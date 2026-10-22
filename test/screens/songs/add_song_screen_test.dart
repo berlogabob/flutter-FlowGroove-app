@@ -75,10 +75,10 @@ void main() {
       expect(scope.title, 'Test Song');
       // Song Lab and Performance sheet are Song Page tabs now; the form's
       // menu carries only the sheet preview + import shortcuts.
-      expect(
-        scope.items.map((i) => i.label),
-        ['Performance sheet', 'Import lyrics & chords'],
-      );
+      expect(scope.items.map((i) => i.label), [
+        'Performance sheet',
+        'Import lyrics & chords',
+      ]);
     });
 
     testWidgets('displays all form fields with an unset key preview', (

@@ -50,10 +50,7 @@ void main() {
         child: MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
-            child: PerformanceSheetScreen(
-              title: 'Empty Song',
-              sections: [],
-            ),
+            child: PerformanceSheetScreen(title: 'Empty Song', sections: []),
           ),
         ),
       ),
@@ -81,10 +78,7 @@ void main() {
         child: MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
-            child: PerformanceSheetScreen(
-              title: 'Empty Song',
-              sections: [],
-            ),
+            child: PerformanceSheetScreen(title: 'Empty Song', sections: []),
           ),
         ),
       ),

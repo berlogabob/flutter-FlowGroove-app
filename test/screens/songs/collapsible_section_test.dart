@@ -5,8 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
-  testWidgets('collapsed inline preview sits on the same line as the title',
-      (tester) async {
+  testWidgets('collapsed inline preview sits on the same line as the title', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _wrap(
         const CollapsibleSection(
@@ -23,8 +24,9 @@ void main() {
     expect(previewY, titleY);
   });
 
-  testWidgets('wide preview (inlinePreview: false) renders under the header',
-      (tester) async {
+  testWidgets('wide preview (inlinePreview: false) renders under the header', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _wrap(
         const CollapsibleSection(

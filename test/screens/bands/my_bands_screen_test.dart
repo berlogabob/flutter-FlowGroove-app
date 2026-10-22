@@ -34,9 +34,7 @@ void main() {
       expect(find.byIcon(Icons.sort), findsOneWidget);
     });
 
-    testWidgets('displays one create floating action button', (
-      tester,
-    ) async {
+    testWidgets('displays one create floating action button', (tester) async {
       await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/bands',
@@ -213,6 +211,5 @@ void main() {
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
-
   });
 }

@@ -38,9 +38,7 @@ void main() {
     final repo = _FakeCanonicalRepo([canonical]);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          canonicalSongRepositoryProvider.overrideWithValue(repo),
-        ],
+        overrides: [canonicalSongRepositoryProvider.overrideWithValue(repo)],
         child: const MaterialApp(home: CanonicalBrowseScreen()),
       ),
     );

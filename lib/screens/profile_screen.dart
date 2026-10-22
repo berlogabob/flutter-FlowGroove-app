@@ -293,7 +293,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       userId = await TelegramService.createLinkToken();
     } on Object catch (e) {
       debugPrint('Telegram link token failed: $e');
-      if (mounted) showAppSnackBar(context, 'Could not start Telegram linking.');
+      if (mounted)
+        showAppSnackBar(context, 'Could not start Telegram linking.');
       return;
     }
     if (!mounted) return;
@@ -874,7 +875,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       onTap: onTap,
     );
   }
-
 }
 
 /// GitHub-style collapsible section: starts closed so Delete Account can't be

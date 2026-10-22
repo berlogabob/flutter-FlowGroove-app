@@ -74,7 +74,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   /// personal list filters out anything with a bandId. A caller that forgets to
   /// pass `scope` should not be able to lose the user's edit.
   bool get _isBandScope =>
-      widget.storageScope == SetlistStorageScope.band || _effectiveBandId != null;
+      widget.storageScope == SetlistStorageScope.band ||
+      _effectiveBandId != null;
 
   String? get _effectiveBandId {
     final rawBandId = _isEditing ? widget.setlist!.bandId : widget.bandId;
@@ -238,7 +239,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
             left: MonoPulseSpacing.lg,
             right: MonoPulseSpacing.lg,
             top: MonoPulseSpacing.lg,
-            bottom: MediaQuery.of(context).viewInsets.bottom + MonoPulseSpacing.lg,
+            bottom:
+                MediaQuery.of(context).viewInsets.bottom + MonoPulseSpacing.lg,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -632,7 +634,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       ),
                       subtitle: Text(
                         _eventDate != null
-                            ? DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(_eventDate!)
+                            ? DateFormat.yMMMd(
+                                Localizations.localeOf(context).toString(),
+                              ).format(_eventDate!)
                             : 'Tap to select date',
                         style: MonoPulseTypography.bodyLarge.copyWith(
                           color: _eventDate != null
@@ -816,135 +820,138 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                           key: ValueKey(item.id),
                           index: index,
                           child: Dismissible(
-                          key: ValueKey('dismiss_${item.id}'),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            alignment: Alignment.centerRight,
-                            margin: const EdgeInsets.only(
-                              bottom: MonoPulseSpacing.md,
-                            ),
-                            padding: const EdgeInsets.only(
-                              right: MonoPulseSpacing.xl,
-                            ),
-                            decoration: BoxDecoration(
-                              color: MonoPulseColors.error,
-                              borderRadius: BorderRadius.circular(
-                                MonoPulseRadius.medium,
+                            key: ValueKey('dismiss_${item.id}'),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              margin: const EdgeInsets.only(
+                                bottom: MonoPulseSpacing.md,
+                              ),
+                              padding: const EdgeInsets.only(
+                                right: MonoPulseSpacing.xl,
+                              ),
+                              decoration: BoxDecoration(
+                                color: MonoPulseColors.error,
+                                borderRadius: BorderRadius.circular(
+                                  MonoPulseRadius.medium,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.delete,
+                                color: context.mp.textPrimary,
                               ),
                             ),
-                            child: Icon(
-                              Icons.delete,
-                              color: context.mp.textPrimary,
-                            ),
-                          ),
-                          onDismissed: (_) {
-                            final removedItem = _selectedItems[index];
-                            final removedSong = _songsById[removedItem.songId];
-                            setState(() {
-                              _selectedItems.removeAt(index);
-                              _markAsChanged();
-                            });
+                            onDismissed: (_) {
+                              final removedItem = _selectedItems[index];
+                              final removedSong =
+                                  _songsById[removedItem.songId];
+                              setState(() {
+                                _selectedItems.removeAt(index);
+                                _markAsChanged();
+                              });
 
-                            // Show snackbar with undo action
-                            showAppSnackBar(
-                              context,
-                              'Removed "${removedSong?.title ?? 'Unavailable song'}"',
-                              actionLabel: 'Undo',
-                              analyticsAction: 'song_removed',
-                              onAction: () {
-                                setState(() {
-                                  _selectedItems.insert(index, removedItem);
-                                  _markAsChanged();
-                                });
-                              },
-                            );
-                          },
-                          child: SetlistSongRow(
-                            index: songNumber,
-                            song: song,
-                            // Assigned people are always materialised into the
-                            // kit roster, so it alone resolves the labels.
-                            performers: performerLabel(
-                              item.performerIds,
-                              peopleById(_eventKit?.people ?? const []),
-                            ),
-                            trailing: song == null
-                                ? null
-                                : Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        tooltip: 'Who plays this',
-                                        icon: Badge(
-                                          isLabelVisible:
-                                              item.performerIds.isNotEmpty,
-                                          label: Text(
-                                            '${item.performerIds.length}',
+                              // Show snackbar with undo action
+                              showAppSnackBar(
+                                context,
+                                'Removed "${removedSong?.title ?? 'Unavailable song'}"',
+                                actionLabel: 'Undo',
+                                analyticsAction: 'song_removed',
+                                onAction: () {
+                                  setState(() {
+                                    _selectedItems.insert(index, removedItem);
+                                    _markAsChanged();
+                                  });
+                                },
+                              );
+                            },
+                            child: SetlistSongRow(
+                              index: songNumber,
+                              song: song,
+                              // Assigned people are always materialised into the
+                              // kit roster, so it alone resolves the labels.
+                              performers: performerLabel(
+                                item.performerIds,
+                                peopleById(_eventKit?.people ?? const []),
+                              ),
+                              trailing: song == null
+                                  ? null
+                                  : Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          tooltip: 'Who plays this',
+                                          icon: Badge(
+                                            isLabelVisible:
+                                                item.performerIds.isNotEmpty,
+                                            label: Text(
+                                              '${item.performerIds.length}',
+                                            ),
+                                            child: const Icon(
+                                              Icons.person_outline,
+                                            ),
                                           ),
-                                          child: const Icon(
-                                            Icons.person_outline,
-                                          ),
-                                        ),
-                                        onPressed: () => _assignPerformers(
-                                          index,
-                                          songNumber,
-                                        ),
-                                      ),
-                                      Container(
-                                        width: 44,
-                                        alignment: Alignment.center,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: MonoPulseSpacing.xs,
-                                          vertical: MonoPulseSpacing.xs,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: MonoPulseColors.accentOrange10,
-                                          borderRadius: BorderRadius.circular(
-                                            MonoPulseRadius.small,
+                                          onPressed: () => _assignPerformers(
+                                            index,
+                                            songNumber,
                                           ),
                                         ),
-                                        child: Text(
-                                          song.ourKey ?? '-',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            color: MonoPulseColors.accentOrange,
+                                        Container(
+                                          width: 44,
+                                          alignment: Alignment.center,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: MonoPulseSpacing.xs,
+                                            vertical: MonoPulseSpacing.xs,
                                           ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      if (song.ourBPM != null)
-                                        Text(
-                                          '${song.ourBPM}',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      if (song.spotifyUrl != null) ...[
-                                        const SizedBox(width: 4),
-                                        InkWell(
-                                          onTap: () async {
-                                            final uri = Uri.parse(
-                                              song.spotifyUrl!,
-                                            );
-                                            if (await canLaunchUrl(uri)) {
-                                              await launchUrl(
-                                                uri,
-                                                mode: LaunchMode
-                                                    .externalApplication,
-                                              );
-                                            }
-                                          },
-                                          child: const Icon(
-                                            Icons.play_circle_fill,
+                                          decoration: BoxDecoration(
                                             color:
-                                                MonoPulseColors.beatModeAccent,
-                                            size: 24,
+                                                MonoPulseColors.accentOrange10,
+                                            borderRadius: BorderRadius.circular(
+                                              MonoPulseRadius.small,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            song.ourKey ?? '-',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              color:
+                                                  MonoPulseColors.accentOrange,
+                                            ),
                                           ),
                                         ),
+                                        const SizedBox(width: 8),
+                                        if (song.ourBPM != null)
+                                          Text(
+                                            '${song.ourBPM}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        if (song.spotifyUrl != null) ...[
+                                          const SizedBox(width: 4),
+                                          InkWell(
+                                            onTap: () async {
+                                              final uri = Uri.parse(
+                                                song.spotifyUrl!,
+                                              );
+                                              if (await canLaunchUrl(uri)) {
+                                                await launchUrl(
+                                                  uri,
+                                                  mode: LaunchMode
+                                                      .externalApplication,
+                                                );
+                                              }
+                                            },
+                                            child: const Icon(
+                                              Icons.play_circle_fill,
+                                              color: MonoPulseColors
+                                                  .beatModeAccent,
+                                              size: 24,
+                                            ),
+                                          ),
+                                        ],
                                       ],
-                                    ],
-                                  ),
-                          ),
+                                    ),
+                            ),
                           ),
                         );
                       },

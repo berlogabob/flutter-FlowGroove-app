@@ -72,7 +72,8 @@ void main() {
       return [
         firebaseAuthProvider.overrideWith((ref) => mockAuth),
         appUserProvider.overrideWith(
-          () => appUserNotifier ??
+          () =>
+              appUserNotifier ??
               _TestAppUserNotifier(MockDataHelper.createMockAppUser()),
         ),
         autocompleteSearchProvider.overrideWith(_TestAutocompleteNotifier.new),
@@ -187,8 +188,9 @@ void main() {
       expect(labels, contains('Export ChordPro'));
     });
 
-    testWidgets('menu shows Song editor for signed-in non-demo user',
-        (tester) async {
+    testWidgets('menu shows Song editor for signed-in non-demo user', (
+      tester,
+    ) async {
       final user = MockUser();
       when(user.uid).thenReturn('test-user-id');
 
@@ -222,8 +224,9 @@ void main() {
       ...overrides(appUserNotifier: _SignedInUserNotifier()),
       canEditBandProvider('b1').overrideWithValue(canEdit),
       bandSongsProvider.overrideWith(
-        (ref, id) =>
-            Stream.value([MockDataHelper.createMockSong(id: 's1', bandId: 'b1')]),
+        (ref, id) => Stream.value([
+          MockDataHelper.createMockSong(id: 's1', bandId: 'b1'),
+        ]),
       ),
     ];
 

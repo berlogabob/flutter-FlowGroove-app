@@ -114,7 +114,8 @@ class HomeScreen extends ConsumerWidget {
           children: [
             _rehearsalsSheetHeader(
               sheetContext,
-              subtitle: 'Rehearsals are per band — choose one to see its schedule.',
+              subtitle:
+                  'Rehearsals are per band — choose one to see its schedule.',
             ),
             for (final band in bands)
               ListTile(
@@ -135,13 +136,21 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _rehearsalsSheetHeader(BuildContext context, {required String subtitle}) {
+  Widget _rehearsalsSheetHeader(
+    BuildContext context, {
+    required String subtitle,
+  }) {
     return ListTile(
-      title: const Text('Rehearsals — choose a band',
-          style: MonoPulseTypography.titleMedium),
-      subtitle: Text(subtitle,
-          style: MonoPulseTypography.bodySmall
-              .copyWith(color: context.mp.textSecondary)),
+      title: const Text(
+        'Rehearsals — choose a band',
+        style: MonoPulseTypography.titleMedium,
+      ),
+      subtitle: Text(
+        subtitle,
+        style: MonoPulseTypography.bodySmall.copyWith(
+          color: context.mp.textSecondary,
+        ),
+      ),
     );
   }
 
@@ -161,8 +170,9 @@ class HomeScreen extends ConsumerWidget {
               Text(
                 'Rehearsals are scheduled per band. Join or create a band first, '
                 'then its rehearsal schedule shows up here.',
-                style: MonoPulseTypography.bodySmall
-                    .copyWith(color: context.mp.textSecondary),
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: context.mp.textSecondary,
+                ),
               ),
               const SizedBox(height: MonoPulseSpacing.lg),
               FilledButton.icon(
@@ -178,7 +188,9 @@ class HomeScreen extends ConsumerWidget {
                   }
                 },
                 icon: const Icon(Icons.group_add),
-                label: Text(isDemo ? 'Sign up to create a band' : 'Create a band'),
+                label: Text(
+                  isDemo ? 'Sign up to create a band' : 'Create a band',
+                ),
               ),
             ],
           ),

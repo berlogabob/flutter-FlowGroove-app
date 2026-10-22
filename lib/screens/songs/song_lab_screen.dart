@@ -242,8 +242,8 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
     final pending = ref.read(pendingStorageDeletesProvider);
     // A recording's audio has to outlive the snackbar for Undo's restored
     // entry to still play; delete it only once the undo window shuts.
-    final url = entry.type == LabEntryType.recording &&
-            entry.attachmentIds.isNotEmpty
+    final url =
+        entry.type == LabEntryType.recording && entry.attachmentIds.isNotEmpty
         ? entry.attachmentIds.first
         : null;
     if (url != null) await pending.enqueue(url);

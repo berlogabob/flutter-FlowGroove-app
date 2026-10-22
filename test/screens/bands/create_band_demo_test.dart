@@ -35,7 +35,9 @@ void main() {
         );
         expect(
           tester
-              .widget<FilledButton>(find.widgetWithText(FilledButton, 'Sign Up'))
+              .widget<FilledButton>(
+                find.widgetWithText(FilledButton, 'Sign Up'),
+              )
               .onPressed,
           isNotNull,
         );

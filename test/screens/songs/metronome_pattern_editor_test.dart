@@ -158,9 +158,7 @@ void main() {
         expect(find.text('Beat'), findsWidgets);
       });
 
-      testWidgets('renders beat mode buttons in grid', (
-        tester,
-      ) async {
+      testWidgets('renders beat mode buttons in grid', (tester) async {
         final beatModes = [
           [BeatMode.accent, BeatMode.normal],
           [BeatMode.silent, BeatMode.accent],
@@ -209,9 +207,7 @@ void main() {
         expect(find.byType(Container), findsWidgets);
       });
 
-      testWidgets('renders accent mode with star icon', (
-        tester,
-      ) async {
+      testWidgets('renders accent mode with star icon', (tester) async {
         final beatModes = [
           [BeatMode.accent],
         ];
@@ -238,9 +234,7 @@ void main() {
         );
       });
 
-      testWidgets('renders silent mode with volume_off icon', (
-        tester,
-      ) async {
+      testWidgets('renders silent mode with volume_off icon', (tester) async {
         final beatModes = [
           [BeatMode.silent],
         ];
@@ -269,9 +263,7 @@ void main() {
     });
 
     group('Number selector interactions', () {
-      testWidgets('increase accentBeats button works', (
-        tester,
-      ) async {
+      testWidgets('increase accentBeats button works', (tester) async {
         int newAccentBeats = 4;
 
         await tester.pumpWidget(
@@ -296,9 +288,7 @@ void main() {
         expect(newAccentBeats, 5);
       });
 
-      testWidgets('decrease accentBeats button works', (
-        tester,
-      ) async {
+      testWidgets('decrease accentBeats button works', (tester) async {
         int newAccentBeats = 4;
 
         await tester.pumpWidget(
@@ -323,9 +313,7 @@ void main() {
         expect(newAccentBeats, 3);
       });
 
-      testWidgets('decrease button disabled at minimum', (
-        tester,
-      ) async {
+      testWidgets('decrease button disabled at minimum', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -369,9 +357,7 @@ void main() {
         expect(addButton.onPressed, isNull);
       });
 
-      testWidgets('increase regularBeats button works', (
-        tester,
-      ) async {
+      testWidgets('increase regularBeats button works', (tester) async {
         int newRegularBeats = 1;
 
         await tester.pumpWidget(
@@ -396,9 +382,7 @@ void main() {
         expect(newRegularBeats, 2);
       });
 
-      testWidgets('decrease regularBeats button works', (
-        tester,
-      ) async {
+      testWidgets('decrease regularBeats button works', (tester) async {
         int newRegularBeats = 2;
 
         await tester.pumpWidget(
@@ -547,9 +531,7 @@ void main() {
     });
 
     group('Dynamic grid updates', () {
-      testWidgets('grid updates when accentBeats changes', (
-        tester,
-      ) async {
+      testWidgets('grid updates when accentBeats changes', (tester) async {
         int currentAccentBeats = 4;
 
         await tester.pumpWidget(
@@ -582,9 +564,7 @@ void main() {
         expect(currentAccentBeats, 5);
       });
 
-      testWidgets('grid updates when regularBeats changes', (
-        tester,
-      ) async {
+      testWidgets('grid updates when regularBeats changes', (tester) async {
         int currentRegularBeats = 1;
 
         await tester.pumpWidget(
@@ -616,9 +596,7 @@ void main() {
     });
 
     group('Edge cases', () {
-      testWidgets('handles minimum accentBeats (1)', (
-        tester,
-      ) async {
+      testWidgets('handles minimum accentBeats (1)', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -637,9 +615,7 @@ void main() {
         expect(find.text('1'), findsWidgets);
       });
 
-      testWidgets('handles maximum accentBeats (16)', (
-        tester,
-      ) async {
+      testWidgets('handles maximum accentBeats (16)', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -656,9 +632,7 @@ void main() {
         expect(find.text('16'), findsWidgets);
       });
 
-      testWidgets('handles maximum regularBeats (8)', (
-        tester,
-      ) async {
+      testWidgets('handles maximum regularBeats (8)', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -693,9 +667,7 @@ void main() {
         expect(find.text('Beat Pattern'), findsOneWidget);
       });
 
-      testWidgets('handles beatModes smaller than grid', (
-        tester,
-      ) async {
+      testWidgets('handles beatModes smaller than grid', (tester) async {
         final beatModes = [
           [BeatMode.accent],
         ]; // Only 1 beat defined

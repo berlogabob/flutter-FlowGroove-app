@@ -48,8 +48,12 @@ void main() {
         people: [EventPerson(id: 'g1', name: 'Lena', role: 'Violin')],
       ),
       members: [
-        BandMember(uid: 'u1', role: 'editor', displayName: 'Ivan',
-            musicRoles: const ['pianist']),
+        BandMember(
+          uid: 'u1',
+          role: 'editor',
+          displayName: 'Ivan',
+          musicRoles: const ['pianist'],
+        ),
       ],
     );
 
@@ -100,48 +104,49 @@ void main() {
     expect(captured!.kit.people.single.uid, 'u1');
   });
 
-  testWidgets('a guest added with "plays every song" comes back in allSongIds', (
-    tester,
-  ) async {
-    PerformerSheetResult? captured;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Builder(
-            builder: (context) => TextButton(
-              onPressed: () async {
-                captured = await showPerformerSheet(
-                  context: context,
-                  selected: const [],
-                  kit: const EventKit(),
-                  members: const [],
-                  songNumber: 1,
-                  songTitle: 'Song One',
-                );
-              },
-              child: const Text('open'),
+  testWidgets(
+    'a guest added with "plays every song" comes back in allSongIds',
+    (tester) async {
+      PerformerSheetResult? captured;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async {
+                  captured = await showPerformerSheet(
+                    context: context,
+                    selected: const [],
+                    kit: const EventKit(),
+                    members: const [],
+                    songNumber: 1,
+                    songTitle: 'Song One',
+                  );
+                },
+                child: const Text('open'),
+              ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Add person'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Ivan');
-    await tester.tap(find.text('Plays every song'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Add'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Done'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Add person'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Ivan');
+      await tester.tap(find.text('Plays every song'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
 
-    final person = captured!.kit.people.single;
-    expect(person.name, 'Ivan');
-    expect(person.uid, isNull, reason: 'a guest is not an app user yet');
-    expect(captured!.performerIds, [person.id]);
-    expect(captured!.allSongIds, {person.id});
-  });
+      final person = captured!.kit.people.single;
+      expect(person.name, 'Ivan');
+      expect(person.uid, isNull, reason: 'a guest is not an app user yet');
+      expect(captured!.performerIds, [person.id]);
+      expect(captured!.allSongIds, {person.id});
+    },
+  );
 }

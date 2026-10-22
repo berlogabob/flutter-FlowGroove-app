@@ -256,10 +256,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
     // Open the song form scoped to this band: the bandId makes the save target
     // saveBandSong instead of the user's personal library. Pushed, not go'd, so
     // saving pops back here instead of stranding the user in the Songs tab.
-    context.pushNamed(
-      'add-song',
-      queryParameters: {'bandId': widget.band.id},
-    );
+    context.pushNamed('add-song', queryParameters: {'bandId': widget.band.id});
   }
 
   void _openSong(BuildContext context, Song song) {

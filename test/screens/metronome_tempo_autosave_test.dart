@@ -114,29 +114,47 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets(
-      'personal song: debounced tempo change saves via updateSong',
-      (tester) async {
-        final song = buildSong();
+    testWidgets('personal song: debounced tempo change saves via updateSong', (
+      tester,
+    ) async {
+      final song = buildSong();
 
-        await pumpLoadedScreen(
-          tester,
-          song: song,
-          extraOverrides: const [],
-        );
+      await pumpLoadedScreen(tester, song: song, extraOverrides: const []);
 
-        container.read(metronomeProvider.notifier).setBpm(140);
-        await tester.pump(const Duration(seconds: 3));
+      container.read(metronomeProvider.notifier).setBpm(140);
+      await tester.pump(const Duration(seconds: 3));
 
-        final captured = verify(
-          mockSongRepository.updateSong(captureAny, uid: uid),
-        ).captured;
-        expect(captured, hasLength(1));
-        expect((captured.single as Song).ourBPM, 140);
+      final captured = verify(
+        mockSongRepository.updateSong(captureAny, uid: uid),
+      ).captured;
+      expect(captured, hasLength(1));
+      expect((captured.single as Song).ourBPM, 140);
 
-        verifyNever(mockSongRepository.updateBandSong(any, any));
-      },
-    );
+      verifyNever(mockSongRepository.updateBandSong(any, any));
+    });
+
+    testWidgets('a second tempo change saves with the commit of the first', (
+      tester,
+    ) async {
+      final song = buildSong();
+      when(
+        mockSongRepository.getSongs(uid),
+      ).thenAnswer((_) async => [song.copyWith(latestCommitId: 'commit-2')]);
+      await pumpLoadedScreen(tester, song: song, extraOverrides: const []);
+
+      final metronome = container.read(metronomeProvider.notifier);
+      metronome.setBpm(140);
+      await tester.pump(const Duration(seconds: 3));
+      metronome.setBpm(150);
+      await tester.pump(const Duration(seconds: 3));
+
+      final saved = verify(
+        mockSongRepository.updateSong(captureAny, uid: uid),
+      ).captured.cast<Song>();
+      expect(saved, hasLength(2));
+      expect(saved.last.ourBPM, 150);
+      expect(saved.last.latestCommitId, 'commit-2');
+    });
 
     testWidgets(
       'band song with edit rights: debounced tempo change saves via updateBandSong',
@@ -174,71 +192,61 @@ void main() {
       },
     );
 
-    testWidgets(
-      'band song without edit rights: tempo change never saves',
-      (tester) async {
-        final song = buildSong();
-        // Band exists, but the signed-in user is neither admin nor editor.
-        final band = Band(
-          id: 'b1',
-          name: 'Test Band',
-          createdBy: 'someone-else',
-          createdAt: DateTime(2024),
-        );
-        final appUser = AppUser(uid: uid, createdAt: DateTime(2024));
+    testWidgets('band song without edit rights: tempo change never saves', (
+      tester,
+    ) async {
+      final song = buildSong();
+      // Band exists, but the signed-in user is neither admin nor editor.
+      final band = Band(
+        id: 'b1',
+        name: 'Test Band',
+        createdBy: 'someone-else',
+        createdAt: DateTime(2024),
+      );
+      final appUser = AppUser(uid: uid, createdAt: DateTime(2024));
 
-        await pumpLoadedScreen(
-          tester,
-          song: song,
-          sourceBandId: 'b1',
-          extraOverrides: [
-            appUserProvider.overrideWith(() => _TestAppUserNotifier(appUser)),
-            bandsProvider.overrideWith((ref) => Stream.value([band])),
-          ],
-        );
+      await pumpLoadedScreen(
+        tester,
+        song: song,
+        sourceBandId: 'b1',
+        extraOverrides: [
+          appUserProvider.overrideWith(() => _TestAppUserNotifier(appUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([band])),
+        ],
+      );
 
-        container.read(metronomeProvider.notifier).setBpm(140);
-        await tester.pump(const Duration(seconds: 3));
+      container.read(metronomeProvider.notifier).setBpm(140);
+      await tester.pump(const Duration(seconds: 3));
 
-        verifyNever(mockSongRepository.updateBandSong(any, any));
-        verifyNever(mockSongRepository.updateSong(any, uid: anyNamed('uid')));
-      },
-    );
+      verifyNever(mockSongRepository.updateBandSong(any, any));
+      verifyNever(mockSongRepository.updateSong(any, uid: anyNamed('uid')));
+    });
 
-    testWidgets(
-      'coalesces rapid tempo changes into a single write',
-      (tester) async {
-        final song = buildSong();
+    testWidgets('coalesces rapid tempo changes into a single write', (
+      tester,
+    ) async {
+      final song = buildSong();
 
-        await pumpLoadedScreen(
-          tester,
-          song: song,
-          extraOverrides: const [],
-        );
+      await pumpLoadedScreen(tester, song: song, extraOverrides: const []);
 
-        container.read(metronomeProvider.notifier).setBpm(130);
-        await tester.pump(const Duration(milliseconds: 500));
-        container.read(metronomeProvider.notifier).setBpm(140);
-        await tester.pump(const Duration(seconds: 3));
+      container.read(metronomeProvider.notifier).setBpm(130);
+      await tester.pump(const Duration(milliseconds: 500));
+      container.read(metronomeProvider.notifier).setBpm(140);
+      await tester.pump(const Duration(seconds: 3));
 
-        final captured = verify(
-          mockSongRepository.updateSong(captureAny, uid: uid),
-        ).captured;
-        expect(captured, hasLength(1));
-        expect((captured.single as Song).ourBPM, 140);
-      },
-    );
+      final captured = verify(
+        mockSongRepository.updateSong(captureAny, uid: uid),
+      ).captured;
+      expect(captured, hasLength(1));
+      expect((captured.single as Song).ourBPM, 140);
+    });
 
     testWidgets(
       "no write when BPM settles back on the song's existing ourBPM",
       (tester) async {
         final song = buildSong();
 
-        await pumpLoadedScreen(
-          tester,
-          song: song,
-          extraOverrides: const [],
-        );
+        await pumpLoadedScreen(tester, song: song, extraOverrides: const []);
 
         // Change away, then back — the listener fires both times (the
         // selected bpm value changes twice), but the debounced save that

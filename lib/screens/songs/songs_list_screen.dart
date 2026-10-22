@@ -968,11 +968,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     if (ref.read(songsFilterSortProvider).filterText.trim().isNotEmpty) {
       AnalyticsService.logSearchSongOpen();
     }
-    context.pushNamed(
-      'song',
-      pathParameters: {'id': song.id},
-      extra: song,
-    );
+    context.pushNamed('song', pathParameters: {'id': song.id}, extra: song);
   }
 
   /// Navigate to edit song screen by index.

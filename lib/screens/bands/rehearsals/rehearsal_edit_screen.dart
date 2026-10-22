@@ -93,14 +93,21 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
     );
     if (end == null) return;
 
-    final startDt =
-        DateTime(date.year, date.month, date.day, start.hour, start.minute);
+    final startDt = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      start.hour,
+      start.minute,
+    );
     var endDt = DateTime(date.year, date.month, date.day, end.hour, end.minute);
     if (!endDt.isAfter(startDt)) {
       endDt = startDt.add(const Duration(hours: 2));
     }
     setState(() {
-      _slots.add(CandidateSlot(id: _uuid.v4(), startTime: startDt, endTime: endDt));
+      _slots.add(
+        CandidateSlot(id: _uuid.v4(), startTime: startDt, endTime: endDt),
+      );
       _slots.sort((a, b) => a.startTime.compareTo(b.startTime));
     });
   }
@@ -123,8 +130,13 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
     );
     if (time == null) return;
     setState(() {
-      _responseDeadline =
-          DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      _responseDeadline = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
     });
   }
 
@@ -170,7 +182,8 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
       ],
       setlistId: _setlistId,
       setlistScope: _setlistId == null ? null : Rehearsal.scopeBand,
-      location: _venueType == Rehearsal.venueCustom &&
+      location:
+          _venueType == Rehearsal.venueCustom &&
               _location.text.trim().isNotEmpty
           ? _location.text.trim()
           : null,

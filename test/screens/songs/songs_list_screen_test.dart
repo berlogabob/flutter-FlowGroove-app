@@ -323,18 +323,14 @@ void main() {
           name: 'First Band',
           createdBy: 'test-user-id',
           createdAt: DateTime(2024),
-          members: [
-            BandMember(uid: mockUser.uid, role: BandMember.roleEditor),
-          ],
+          members: [BandMember(uid: mockUser.uid, role: BandMember.roleEditor)],
         ),
         Band(
           id: 'band-2',
           name: 'Second Band',
           createdBy: 'test-user-id',
           createdAt: DateTime(2024),
-          members: [
-            BandMember(uid: mockUser.uid, role: BandMember.roleAdmin),
-          ],
+          members: [BandMember(uid: mockUser.uid, role: BandMember.roleAdmin)],
         ),
       ];
 

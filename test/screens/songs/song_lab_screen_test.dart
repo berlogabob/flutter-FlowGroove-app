@@ -46,7 +46,11 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
   }
 
   @override
-  Future<void> deleteTask(String songId, String taskId, {String? bandId}) async {
+  Future<void> deleteTask(
+    String songId,
+    String taskId, {
+    String? bandId,
+  }) async {
     tasks.removeWhere((t) => t.id == taskId);
     _emitTasks();
   }
@@ -103,10 +107,7 @@ void main() {
 
       expect(find.text('Add'), findsOneWidget);
       expect(find.byType(PopupMenuButton<LabEntryType>), findsOneWidget);
-      expect(
-        find.text('The story of this song starts here'),
-        findsOneWidget,
-      );
+      expect(find.text('The story of this song starts here'), findsOneWidget);
       await tester.tap(find.text('Add'));
       await tester.pumpAndSettle();
 
@@ -140,9 +141,7 @@ void main() {
       expect(find.text('Try the riff an octave up'), findsOneWidget);
     });
 
-    testWidgets('decision quick-add starts with active status', (
-      tester,
-    ) async {
+    testWidgets('decision quick-add starts with active status', (tester) async {
       final repo = await pump(tester);
 
       await tester.tap(find.text('Add'));

@@ -112,9 +112,8 @@ void main() {
           GoRoute(
             path: '/main/songs/:id',
             name: 'song',
-            builder: (context, state) => TestRouteMarker(
-              'song:${state.uri.queryParameters['bandId']}',
-            ),
+            builder: (context, state) =>
+                TestRouteMarker('song:${state.uri.queryParameters['bandId']}'),
           ),
         ],
         overrides: [
@@ -125,8 +124,7 @@ void main() {
           appUserProvider.overrideWith(
             () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
           ),
-          if (firestore != null)
-            firestoreProvider.overrideWithValue(firestore),
+          if (firestore != null) firestoreProvider.overrideWithValue(firestore),
           bandSongsProvider.overrideWith(
             (ref, bandId) => Stream<List<Song>>.value(
               songs ??
@@ -181,9 +179,7 @@ void main() {
       final band = MockDataHelper.createMockBand(
         id: 'band-123',
         name: 'Band 123',
-        members: [
-          BandMember(uid: 'test-user-id', role: BandMember.roleViewer),
-        ],
+        members: [BandMember(uid: 'test-user-id', role: BandMember.roleViewer)],
       );
 
       await pumpWithBand(tester, band);
@@ -205,9 +201,7 @@ void main() {
       final band = MockDataHelper.createMockBand(
         id: 'band-123',
         name: 'Band 123',
-        members: [
-          BandMember(uid: 'test-user-id', role: BandMember.roleEditor),
-        ],
+        members: [BandMember(uid: 'test-user-id', role: BandMember.roleEditor)],
       );
 
       await pumpWithBand(tester, band, firestore: firestore);

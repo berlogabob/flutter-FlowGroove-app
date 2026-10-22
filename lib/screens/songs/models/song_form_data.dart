@@ -158,7 +158,10 @@ class SongFormData {
   }
 
   /// Root letter, optional accidental, optional minor marker.
-  static final _keyPattern = RegExp(r'^([A-G])([#b]?)(m?)$', caseSensitive: false);
+  static final _keyPattern = RegExp(
+    r'^([A-G])([#b]?)(m?)$',
+    caseSensitive: false,
+  );
 
   /// Parse a key string into base and modifier components.
   ///

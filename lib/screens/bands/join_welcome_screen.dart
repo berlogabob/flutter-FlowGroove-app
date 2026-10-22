@@ -61,7 +61,8 @@ class _JoinWelcomeScreenState extends ConsumerState<JoinWelcomeScreen> {
   /// never join a real band, so if a demo session is active we sign it out
   /// first via the app's own sign-out path.
   Future<void> _loginAndJoin() async {
-    final isDemo = ref.read(isDemoUserProvider) ||
+    final isDemo =
+        ref.read(isDemoUserProvider) ||
         FirebaseAuth.instance.currentUser?.email == 'demo@flowgroove.app';
     if (isDemo) {
       try {
@@ -87,8 +88,8 @@ class _JoinWelcomeScreenState extends ConsumerState<JoinWelcomeScreen> {
             child: _loading
                 ? const CircularProgressIndicator()
                 : _error
-                    ? _buildError(context)
-                    : _buildInvite(context),
+                ? _buildError(context)
+                : _buildInvite(context),
           ),
         ),
       ),
@@ -169,11 +170,7 @@ class _JoinWelcomeScreenState extends ConsumerState<JoinWelcomeScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Icon(
-          Icons.link_off,
-          size: 48,
-          color: context.mp.textTertiary,
-        ),
+        Icon(Icons.link_off, size: 48, color: context.mp.textTertiary),
         const SizedBox(height: MonoPulseSpacing.lg),
         Text(
           'This invite link is invalid or has expired.',

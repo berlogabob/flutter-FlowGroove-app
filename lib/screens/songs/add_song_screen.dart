@@ -304,7 +304,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     // "Apocalypse Now" got stored as real albums. Overwrite with the resolver's
     // properly-picked release before the save can see it.
     if (metadata.found) {
-      ref.read(songFormStateProvider.notifier).refineSuggestionMetadata(
+      ref
+          .read(songFormStateProvider.notifier)
+          .refineSuggestionMetadata(
             album: metadata.album,
             releaseYear: metadata.releaseYear,
             durationMs: metadata.durationMs,
@@ -332,8 +334,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     // section already carries content, so re-selecting never clobbers the
     // user's work or appends a duplicate set.
     final existing = ref.read(songFormStateProvider).formData.sections;
-    final hasContent =
-        existing.any((s) => (s.chordChart ?? '').trim().isNotEmpty);
+    final hasContent = existing.any(
+      (s) => (s.chordChart ?? '').trim().isNotEmpty,
+    );
     if (metadata.sections.isNotEmpty && !hasContent) {
       final sections = [
         for (final part in metadata.sections)
@@ -419,10 +422,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     final imported = await showModalBottomSheet<ImportedSong>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => ImportLyricsDialog(
-        seedTitle: form.title,
-        seedArtist: form.artist,
-      ),
+      builder: (_) =>
+          ImportLyricsDialog(seedTitle: form.title, seedArtist: form.artist),
     );
     if (imported == null || !mounted) return;
     _applyImported(imported);

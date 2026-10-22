@@ -145,9 +145,7 @@ class PracticeScreen extends ConsumerWidget {
         // (UX audit F-011.)
         leading: Icon(
           overdue ? Icons.assignment_late : Icons.radio_button_unchecked,
-          color: overdue
-              ? MonoPulseColors.error
-              : MonoPulseColors.accentOrange,
+          color: overdue ? MonoPulseColors.error : MonoPulseColors.accentOrange,
         ),
         title: Text(item.task.title),
         subtitle: Text(
@@ -159,8 +157,9 @@ class PracticeScreen extends ConsumerWidget {
                   : 'due ${due.day}/${due.month}',
           ].join(' · '),
           style: overdue
-              ? MonoPulseTypography.bodySmall
-                  .copyWith(color: MonoPulseColors.error)
+              ? MonoPulseTypography.bodySmall.copyWith(
+                  color: MonoPulseColors.error,
+                )
               : null,
         ),
         trailing: const Icon(Icons.chevron_right),

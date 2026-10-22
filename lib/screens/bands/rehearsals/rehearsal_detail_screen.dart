@@ -89,7 +89,9 @@ class _Body extends ConsumerWidget {
   ) async {
     final existing = votes[uid];
     final answers = {...?existing?.answers, slotId: answer};
-    await ref.read(rehearsalRepositoryProvider).saveVote(
+    await ref
+        .read(rehearsalRepositoryProvider)
+        .saveVote(
           band.id,
           rehearsal.id,
           RehearsalVote(
@@ -102,7 +104,9 @@ class _Body extends ConsumerWidget {
   }
 
   Future<void> _confirm(WidgetRef ref, String slotId) async {
-    await ref.read(rehearsalRepositoryProvider).saveRehearsal(
+    await ref
+        .read(rehearsalRepositoryProvider)
+        .saveRehearsal(
           rehearsal.copyWith(
             status: Rehearsal.statusConfirmed,
             confirmedSlotId: slotId,
@@ -112,7 +116,9 @@ class _Body extends ConsumerWidget {
   }
 
   Future<void> _setStatus(WidgetRef ref, String status) async {
-    await ref.read(rehearsalRepositoryProvider).saveRehearsal(
+    await ref
+        .read(rehearsalRepositoryProvider)
+        .saveRehearsal(
           rehearsal.copyWith(status: status, updatedAt: DateTime.now()),
         );
   }
@@ -146,7 +152,9 @@ class _Body extends ConsumerWidget {
     );
     if (text == null) return;
     final existing = votes[uid];
-    await ref.read(rehearsalRepositoryProvider).saveVote(
+    await ref
+        .read(rehearsalRepositoryProvider)
+        .saveVote(
           band.id,
           rehearsal.id,
           RehearsalVote(
@@ -161,9 +169,7 @@ class _Body extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final uid = ref.read(currentUserProvider).value?.uid;
-    final scores = {
-      for (final s in scoreSlots(rehearsal, votes)) s.slotId: s,
-    };
+    final scores = {for (final s in scoreSlots(rehearsal, votes)) s.slotId: s};
     final best = bestSlot(rehearsal, votes);
     final confirmed = rehearsal.status == Rehearsal.statusConfirmed;
 
@@ -173,19 +179,23 @@ class _Body extends ConsumerWidget {
         Text(rehearsal.title, style: Theme.of(context).textTheme.headlineSmall),
         if (rehearsal.location != null) ...[
           const SizedBox(height: MonoPulseSpacing.xs),
-          Row(children: [
-            const Icon(Icons.place, size: 16),
-            const SizedBox(width: MonoPulseSpacing.xs),
-            Expanded(child: Text(rehearsal.location!)),
-          ]),
+          Row(
+            children: [
+              const Icon(Icons.place, size: 16),
+              const SizedBox(width: MonoPulseSpacing.xs),
+              Expanded(child: Text(rehearsal.location!)),
+            ],
+          ),
         ],
         if (!confirmed && rehearsal.responseDeadline != null) ...[
           const SizedBox(height: MonoPulseSpacing.xs),
-          Row(children: [
-            const Icon(Icons.alarm, size: 16),
-            const SizedBox(width: MonoPulseSpacing.xs),
-            Text('Respond by ${formatDeadline(rehearsal.responseDeadline!)}'),
-          ]),
+          Row(
+            children: [
+              const Icon(Icons.alarm, size: 16),
+              const SizedBox(width: MonoPulseSpacing.xs),
+              Text('Respond by ${formatDeadline(rehearsal.responseDeadline!)}'),
+            ],
+          ),
         ],
         if (rehearsal.notes != null) ...[
           const SizedBox(height: MonoPulseSpacing.sm),
@@ -207,8 +217,7 @@ class _Body extends ConsumerWidget {
               onVote: uid == null
                   ? null
                   : (answer) => _vote(ref, uid, slot.id, answer),
-              onConfirm:
-                  canEdit ? () => _confirm(ref, slot.id) : null,
+              onConfirm: canEdit ? () => _confirm(ref, slot.id) : null,
             ),
           const SizedBox(height: MonoPulseSpacing.md),
           _notVotedNotice(context, ref, uid, canEdit),
@@ -268,17 +277,21 @@ class _Body extends ConsumerWidget {
     // A vote doc can exist with no answers (a member left a suggestion via
     // "suggest a time" without voting on any slot) — that doesn't count as
     // having responded.
-    final notVoted =
-        pool.where((u) => votes[u]?.answers.isEmpty ?? true).toList();
+    final notVoted = pool
+        .where((u) => votes[u]?.answers.isEmpty ?? true)
+        .toList();
     if (notVoted.isEmpty) return const SizedBox.shrink();
-    final names = notVoted.map((u) {
-      final m = band.members.firstWhere(
-        (m) => m.uid == u,
-        orElse: () => BandMember(uid: u, role: ''),
-      );
-      return memberLabel(displayName: m.displayName, email: m.email);
-    }).join(', ');
-    final deadlinePassed = rehearsal.responseDeadline != null &&
+    final names = notVoted
+        .map((u) {
+          final m = band.members.firstWhere(
+            (m) => m.uid == u,
+            orElse: () => BandMember(uid: u, role: ''),
+          );
+          return memberLabel(displayName: m.displayName, email: m.email);
+        })
+        .join(', ');
+    final deadlinePassed =
+        rehearsal.responseDeadline != null &&
         rehearsal.responseDeadline!.isBefore(DateTime.now());
 
     return Column(
@@ -380,18 +393,23 @@ class _SlotCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final blocked = score?.blocked ?? false;
-    final blockingNames = (score?.blockingUids ?? []).map((u) {
-      final m = band.members.firstWhere(
-        (m) => m.uid == u,
-        orElse: () => BandMember(uid: u, role: ''),
-      );
-      return memberLabel(displayName: m.displayName, email: m.email);
-    }).join(', ');
+    final blockingNames = (score?.blockingUids ?? [])
+        .map((u) {
+          final m = band.members.firstWhere(
+            (m) => m.uid == u,
+            orElse: () => BandMember(uid: u, role: ''),
+          );
+          return memberLabel(displayName: m.displayName, email: m.email);
+        })
+        .join(', ');
 
     return Card(
       shape: isBest
           ? RoundedRectangleBorder(
-              side: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
               borderRadius: BorderRadius.circular(12),
             )
           : null,
@@ -429,12 +447,21 @@ class _SlotCard extends StatelessWidget {
               // needed here for the gap when chips wrap to a second line.
               runSpacing: MonoPulseSpacing.xs,
               children: [
-                _voteButton('Can', RehearsalVote.answerCan,
-                    MonoPulseColors.successGreen),
-                _voteButton('Maybe', RehearsalVote.answerMaybe,
-                    MonoPulseColors.warning),
-                _voteButton("Can't", RehearsalVote.answerCant,
-                    MonoPulseColors.error),
+                _voteButton(
+                  'Can',
+                  RehearsalVote.answerCan,
+                  MonoPulseColors.successGreen,
+                ),
+                _voteButton(
+                  'Maybe',
+                  RehearsalVote.answerMaybe,
+                  MonoPulseColors.warning,
+                ),
+                _voteButton(
+                  "Can't",
+                  RehearsalVote.answerCant,
+                  MonoPulseColors.error,
+                ),
               ],
             ),
             if (onConfirm != null)
@@ -498,22 +525,26 @@ class _ConfirmedCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              const Icon(Icons.event_available),
-              const SizedBox(width: MonoPulseSpacing.sm),
-              Expanded(
-                child: Text(
-                  slot == null ? 'Confirmed' : formatSlotRange(slot),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+            Row(
+              children: [
+                const Icon(Icons.event_available),
+                const SizedBox(width: MonoPulseSpacing.sm),
+                Expanded(
+                  child: Text(
+                    slot == null ? 'Confirmed' : formatSlotRange(slot),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const SizedBox(height: MonoPulseSpacing.md),
             if (attendees.isNotEmpty) Text('Coming: ${attendees.join(', ')}'),
             if (setlist != null) ...[
               const Divider(height: 24),
-              Text('Setlist: ${setlist.name}',
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                'Setlist: ${setlist.name}',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: MonoPulseSpacing.xs),
               for (final item in setlist.effectiveItems)
                 _songLine(ref, songsById[item.songId]),

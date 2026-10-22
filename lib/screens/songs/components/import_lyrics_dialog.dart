@@ -160,7 +160,9 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
     final parsed = _parsed;
     final canImport = parsed.sections.isNotEmpty || parsed.hasMeta;
     return Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(

@@ -235,12 +235,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
         value: HSVColor.fromColor(_selectedColor).hue / 360,
         onChanged: (value) {
           setState(() {
-            _selectedColor = HSVColor.fromAHSV(
-              1,
-              value * 360,
-              1,
-              1,
-            ).toColor();
+            _selectedColor = HSVColor.fromAHSV(1, value * 360, 1, 1).toColor();
             _hexController.text = SectionColorPalette.colorToHex(
               _selectedColor,
             );
@@ -327,7 +322,8 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
                   color: SectionColorPalette.sectionColors[i],
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: _selectedColor == SectionColorPalette.sectionColors[i]
+                    color:
+                        _selectedColor == SectionColorPalette.sectionColors[i]
                         ? Theme.of(context).colorScheme.primary
                         : MonoPulseColors.transparent,
                     width: 2,
@@ -411,11 +407,16 @@ class _HexPresetChip extends StatelessWidget {
     return GestureDetector(
       onTap: () => onTap(hex, color),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm, vertical: MonoPulseSpacing.xs),
+        padding: const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.sm,
+          vertical: MonoPulseSpacing.xs,
+        ),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-          border: Border.all(color: MonoPulseColors.black.withValues(alpha: 0.26)),
+          border: Border.all(
+            color: MonoPulseColors.black.withValues(alpha: 0.26),
+          ),
         ),
         child: Text(
           hex,

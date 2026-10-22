@@ -17,7 +17,9 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
+import '../models/song.dart';
 import '../models/song_lab.dart';
+import '../repositories/repositories.dart' show SongRepository;
 import '../providers/metronome_runtime_providers.dart';
 import '../providers/wakelock_provider.dart';
 import '../services/power_reliability.dart';
@@ -317,6 +319,12 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
       } else {
         await repository.updateSong(updatedSong, uid: user.uid);
       }
+      await _refreshSavedRevision(
+        repository,
+        updatedSong,
+        bandId: state.sourceBandId,
+        uid: user.uid,
+      );
 
       if (!context.mounted || silent) return;
       _showSuccessSnackBar(
@@ -334,6 +342,34 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
         return;
       }
       _showErrorSnackBar(context, 'Failed to save: $e');
+    }
+  }
+
+  /// A save writes a new commit; the loaded copy must carry its id or the next
+  /// save (any later tempo change) is rejected as "changed in another session".
+  Future<void> _refreshSavedRevision(
+    SongRepository repository,
+    Song saved, {
+    required String? bandId,
+    required String uid,
+  }) async {
+    try {
+      final songs = bandId != null
+          ? await repository.getBandSongs(bandId)
+          : await repository.getSongs(uid);
+      final fresh = songs.where((song) => song.id == saved.id).firstOrNull;
+      final active = ref.read(metronomeProvider).activeSong;
+      if (fresh == null || active == null || active.id != saved.id) return;
+      ref
+          .read(metronomeProvider.notifier)
+          .replaceActiveSong(
+            active.copyWith(
+              latestCommitId: fresh.latestCommitId,
+              libraryBaseRevision: fresh.libraryBaseRevision,
+            ),
+          );
+    } on Object {
+      // Best effort: the next save surfaces a real conflict honestly.
     }
   }
 
