@@ -68,18 +68,7 @@ void main() {
 
     Future<void> unmountConcertMode(WidgetTester tester) async {
       await tester.pumpWidget(const SizedBox());
-      // ConcertModeScreen currently reads ref in dispose after unmount.
-      // Keep this known lifecycle error explicit while testing its controls.
-      expect(
-        tester.takeException(),
-        isA<StateError>().having(
-          (error) => error.message,
-          'message',
-          contains(
-            'Using "ref" when a widget is about to or has been unmounted',
-          ),
-        ),
-      );
+      expect(tester.takeException(), isNull);
     }
 
     testWidgets('sheet toggle shows the sheet and hides the BPM readout', (
