@@ -10,6 +10,7 @@ import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/providers/data/midi_song_provider.dart';
 import 'package:flowgroove/services/audio/backing_engine.dart';
 import 'package:flowgroove/utils/pad_state.dart';
+import 'package:flowgroove/utils/play_mode.dart';
 import 'package:flowgroove/utils/quantize.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -138,10 +139,86 @@ void main() {
     await engine.dispose();
   });
 
+  group('play modes and block quantize', () {
+    Future<BackingCommand> launched(String id) async {
+      await transport.launch(id);
+      return engine.commands.last;
+    }
+
+    test('once plays only the launched section, no loop', () async {
+      await transport.attach(entry(), sections);
+      transport.setMode(PlayMode.once);
+      final command = await launched('verse');
+      expect((command.fromBar, command.bars, command.loop), (0, 4, false));
+    });
+
+    test('loop repeats the launched section', () async {
+      await transport.attach(entry(), sections);
+      transport.setMode(PlayMode.loop);
+      final command = await launched('chorus');
+      expect((command.fromBar, command.bars, command.loop), (4, 8, true));
+    });
+
+    test('song runs from the launched section to the end, once', () async {
+      await transport.attach(entry(), sections);
+      transport.setMode(PlayMode.song);
+      final first = await launched('verse');
+      expect((first.fromBar, first.bars, first.loop), (0, 12, false));
+      final second = await launched('chorus');
+      expect((second.fromBar, second.bars, second.loop), (4, 8, false));
+    });
+
+    test('a song run highlights the section being played', () async {
+      await transport.attach(entry(), sections);
+      transport.setMode(PlayMode.song);
+      final command = await launched('verse');
+      engine.playing(command);
+      expect(container.read(backingTransportProvider).playingId, 'verse');
+      engine.barEvents.add(command.atBar + 3);
+      expect(container.read(backingTransportProvider).playingId, 'verse');
+      engine.barEvents.add(command.atBar + 4);
+      expect(container.read(backingTransportProvider).playingId, 'chorus');
+      expect(container.read(backingTransportProvider).songBar, 4);
+    });
+
+    test('block waits for the playing loop pass to finish', () async {
+      await transport.attach(entry(), sections);
+      transport.setMode(PlayMode.loop);
+      final verse = await launched('verse');
+      engine.playing(verse);
+      engine.barEvents.add(verse.atBar + 1);
+      transport.setQuantize(Quantize.block);
+      final chorus = await launched('chorus');
+      expect(chorus.atBar, verse.atBar + 4);
+      // A later bar in the second pass ends at the second pass boundary.
+      engine.barEvents.add(verse.atBar + 5);
+      final again = await launched('verse');
+      expect(again.atBar, verse.atBar + 8);
+    });
+
+    test('block in a song run ends at the current section', () async {
+      await transport.attach(entry(), sections);
+      transport.setMode(PlayMode.song);
+      final verse = await launched('verse');
+      engine.playing(verse);
+      engine.barEvents.add(verse.atBar + 5); // inside the chorus (bars 4..11)
+      transport.setQuantize(Quantize.block);
+      final next = await launched('verse');
+      expect(next.atBar, verse.atBar + 12);
+    });
+
+    test('block with nothing playing starts at the next bar', () async {
+      await transport.attach(entry(), sections);
+      transport.setQuantize(Quantize.block);
+      final first = await launched('verse');
+      expect(first.atBar, 2); // count-in
+    });
+  });
+
   test('stopped launch starts metronome and respects count-in', () async {
     await transport.attach(entry(), sections);
     transport
-      ..setLoop(false)
+      ..setMode(PlayMode.once)
       ..setQuantize(Quantize.beat);
     await transport.launch('chorus');
     final command = engine.commands.single;

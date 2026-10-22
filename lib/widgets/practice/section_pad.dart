@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/pad_state.dart';
+import '../../utils/play_mode.dart';
 
 class SectionPad extends StatelessWidget {
   const SectionPad({
@@ -12,7 +13,8 @@ class SectionPad extends StatelessWidget {
     required this.onTap,
     super.key,
     this.onLongPress,
-    this.loop = false,
+    this.mode = PlayMode.once,
+    this.queuedLabel = 'Next bar',
   });
 
   final String name;
@@ -21,7 +23,8 @@ class SectionPad extends StatelessWidget {
   final PadState state;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
-  final bool loop;
+  final PlayMode mode;
+  final String queuedLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -90,16 +93,18 @@ class SectionPad extends StatelessWidget {
                               size: MonoPulseIcons.sizeSmall,
                               color: foreground,
                             ),
-                            if (loop)
+                            if (mode != PlayMode.once)
                               Icon(
-                                Icons.loop,
+                                mode == PlayMode.loop
+                                    ? Icons.loop
+                                    : Icons.queue_music,
                                 size: MonoPulseIcons.sizeSmall,
                                 color: foreground,
                               ),
                           ],
                           Text(
                             state == PadState.queued
-                                ? 'Next bar'
+                                ? queuedLabel
                                 : padStateLabel(state),
                             style: MonoPulseTypography.labelSmall.copyWith(
                               color: foreground,

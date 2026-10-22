@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,7 @@ import '../../services/audio/midi/drum_loop_renderer.dart';
 import '../../services/audio/midi/drum_samples.dart';
 import '../../utils/bar_math.dart';
 import '../../utils/pad_state.dart';
+import '../../utils/play_mode.dart';
 import '../../utils/quantize.dart';
 import '../metronome_runtime_providers.dart';
 import 'drum_practice_provider.dart';
@@ -48,7 +50,7 @@ class BackingTransportState {
     this.playingId,
     this.queuedId,
     this.rendering = false,
-    this.loop = true,
+    this.mode = PlayMode.loop,
     this.quantize = Quantize.bar,
     this.songBar = 0,
   });
@@ -57,8 +59,10 @@ class BackingTransportState {
   final String? playingId;
   final String? queuedId;
   final bool rendering;
-  final bool loop;
+  final PlayMode mode;
   final Quantize quantize;
+
+  bool get loop => mode == PlayMode.loop;
   final int songBar;
 
   PadState padState(String sectionId) => padStateFor(
@@ -72,7 +76,7 @@ class BackingTransportState {
     Object? playingId = _unchanged,
     Object? queuedId = _unchanged,
     bool? rendering,
-    bool? loop,
+    PlayMode? mode,
     Quantize? quantize,
     int? songBar,
   }) => BackingTransportState(
@@ -84,7 +88,7 @@ class BackingTransportState {
         ? this.queuedId
         : queuedId as String?,
     rendering: rendering ?? this.rendering,
-    loop: loop ?? this.loop,
+    mode: mode ?? this.mode,
     quantize: quantize ?? this.quantize,
     songBar: songBar ?? this.songBar,
   );
@@ -114,9 +118,13 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       final playing = _playing;
       if (state.rendering || playing == null || bar < playing.atBar) return;
       final elapsed = bar - playing.atBar;
+      final songBar =
+          playing.fromBar + (playing.loop ? elapsed % playing.bars : elapsed);
+      // In a song run the highlighted pad follows the section being played.
+      final section = _isSongRun(playing) ? _spanAt(songBar) : null;
       state = state.copyWith(
-        songBar:
-            playing.fromBar + (playing.loop ? elapsed % playing.bars : elapsed),
+        songBar: songBar,
+        playingId: section?.sectionId ?? state.playingId,
       );
     });
     ref.listen(metronomeProvider, (previous, next) {
@@ -219,7 +227,7 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       rendering: false,
       spans: [SectionSpan(sectionId: 'drum-pattern', startBar: 0, bars: bars)],
       songBar: 0,
-      loop: true,
+      mode: PlayMode.loop,
     );
   }
 
@@ -295,6 +303,48 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     }
   }
 
+  SectionSpan? _spanAt(int songBar) {
+    for (final span in state.spans) {
+      if (songBar >= span.startBar && songBar < span.startBar + span.bars) {
+        return span;
+      }
+    }
+    return null;
+  }
+
+  /// A one-shot launch that runs past its own section into the following ones.
+  bool _isSongRun(BackingCommand command) {
+    if (command.loop) return false;
+    final start = _spanAt(command.fromBar);
+    return start != null && command.bars > start.bars;
+  }
+
+  int get _songBars => state.spans.fold<int>(
+    0,
+    (end, span) => math.max(end, span.startBar + span.bars),
+  );
+
+  /// Transport bar where the section that is playing ends, so the next block
+  /// starts exactly after it. Falls back to the next bar when nothing is playing.
+  int _blockBoundaryBar() {
+    final next = _nextBar(Quantize.bar);
+    final playing = _playing;
+    if (playing == null || state.playingId == null) return next;
+    final elapsed = _bar - playing.atBar;
+    if (elapsed < 0) return next;
+    final int remaining;
+    if (playing.loop) {
+      remaining = playing.bars - elapsed % playing.bars;
+    } else {
+      final span = elapsed >= playing.bars
+          ? null
+          : _spanAt(playing.fromBar + elapsed);
+      if (span == null) return next;
+      remaining = span.startBar + span.bars - (playing.fromBar + elapsed);
+    }
+    return math.max(next, _bar + remaining);
+  }
+
   int _nextBar(Quantize quantize) {
     final metro = ref.read(metronomeProvider);
     final current = metro.completedBars > _bar ? metro.completedBars : _bar;
@@ -347,7 +397,7 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       rendering: false,
       spans: const [SectionSpan(sectionId: id, startBar: 0, bars: bars)],
       songBar: 0,
-      loop: true,
+      mode: PlayMode.loop,
     );
     await launch(id);
   }
@@ -365,7 +415,12 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       ref.read(metronomeProvider.notifier).start();
       await _launch(sectionId, metro.countInBars);
     } else {
-      await _launch(sectionId, _nextBar(state.quantize));
+      await _launch(
+        sectionId,
+        state.quantize == Quantize.block
+            ? _blockBoundaryBar()
+            : _nextBar(state.quantize),
+      );
     }
   }
 
@@ -375,8 +430,11 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       token: ++_token,
       kind: BackingKind.launch,
       fromBar: span.startBar,
-      bars: span.bars,
-      loop: state.loop,
+      // Song mode runs from this section to the end of the song, once.
+      bars: state.mode == PlayMode.song
+          ? math.max(span.bars, _songBars - span.startBar)
+          : span.bars,
+      loop: state.mode == PlayMode.loop,
       atBar: atBar,
     );
     _commands[command.token] = (command: command, id: sectionId);
@@ -425,9 +483,7 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     await _engine.command(command);
   }
 
-  // Matches the metronome setters used by callers.
-  // ignore: avoid_positional_boolean_parameters
-  void setLoop(bool loop) => state = state.copyWith(loop: loop);
+  void setMode(PlayMode mode) => state = state.copyWith(mode: mode);
   void setQuantize(Quantize quantize) =>
       state = state.copyWith(quantize: quantize);
 

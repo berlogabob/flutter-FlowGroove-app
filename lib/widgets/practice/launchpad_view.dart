@@ -174,7 +174,9 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                                     sections[span.sectionId]?.color ??
                                     MonoPulseColors.accentOrange,
                                 state: state.padState(span.sectionId),
-                                loop: state.loop,
+                                mode: state.mode,
+                                queuedLabel:
+                                    'Next ${state.quantize.label.toLowerCase()}',
                                 onTap: () => launch(span.sectionId),
                               ),
                             ),
@@ -235,42 +237,21 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                     ),
                     const SizedBox(width: MonoPulseSpacing.sm),
                     Expanded(
-                      child: state.loop
-                          ? OutlinedButton.icon(
-                              style: _transportStyle.copyWith(
-                                foregroundColor: WidgetStateProperty.all(
-                                  MonoPulseColors.accentOrange,
-                                ),
-                                side: WidgetStateProperty.all(
-                                  const BorderSide(
-                                    color: MonoPulseColors.accentOrange,
-                                    width: MonoPulseBorder.bold,
-                                  ),
-                                ),
-                              ),
-                              onPressed: () => transport.setLoop(false),
-                              icon: const Icon(Icons.check),
-                              label: const Text('Loop'),
-                            )
-                          : OutlinedButton(
-                              style: _transportStyle,
-                              onPressed: () => transport.setLoop(true),
-                              child: const Text('Loop'),
-                            ),
+                      child: _TransportChoice(
+                        title: 'Mode',
+                        value: state.mode.label,
+                        tooltip: 'Once, Loop, or play on through the song',
+                        onPressed: () => transport.setMode(state.mode.next),
+                      ),
                     ),
                     const SizedBox(width: MonoPulseSpacing.sm),
                     Expanded(
-                      child: OutlinedButton(
-                        style: _transportStyle,
-                        onPressed: () => transport.setQuantize(
-                          state.quantize == Quantize.bar
-                              ? Quantize.beat
-                              : Quantize.bar,
-                        ),
-                        child: Text(
-                          'Quantize: ${state.quantize == Quantize.beat ? 'Beat' : 'Bar'}',
-                          textAlign: TextAlign.center,
-                        ),
+                      child: _TransportChoice(
+                        title: 'Quantize',
+                        value: state.quantize.label,
+                        tooltip: 'Block waits for the playing section to end',
+                        onPressed: () =>
+                            transport.setQuantize(state.quantize.next),
                       ),
                     ),
                   ],
@@ -308,6 +289,37 @@ Future<void> _startSyncCapture() async {
   } on Object {
     // Diagnostic only.
   }
+}
+
+/// A two-line cycling button: small title over the current value.
+class _TransportChoice extends StatelessWidget {
+  const _TransportChoice({
+    required this.title,
+    required this.value,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final String title;
+  final String value;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: tooltip,
+    child: OutlinedButton(
+      style: _transportStyle,
+      onPressed: onPressed,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(title, style: MonoPulseTypography.labelSmall),
+          Text(value, style: MonoPulseTypography.bodyLarge),
+        ],
+      ),
+    ),
+  );
 }
 
 final _transportStyle = ButtonStyle(

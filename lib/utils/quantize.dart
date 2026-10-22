@@ -1,4 +1,27 @@
-enum Quantize { now, beat, bar }
+/// When a launched pad starts. [block] waits for the section that is playing to
+/// finish, so the next block begins exactly where the previous one ends; the
+/// frame helpers below treat it as [bar] (the provider resolves the block end).
+enum Quantize {
+  now,
+  beat,
+  bar,
+  block;
+
+  String get label => switch (this) {
+    Quantize.now => 'Now',
+    Quantize.beat => 'Beat',
+    Quantize.bar => 'Bar',
+    Quantize.block => 'Block',
+  };
+
+  /// Order the transport button cycles through.
+  Quantize get next => switch (this) {
+    Quantize.beat => Quantize.bar,
+    Quantize.bar => Quantize.block,
+    Quantize.block => Quantize.beat,
+    Quantize.now => Quantize.beat,
+  };
+}
 
 int nextBoundaryFrame({
   required int nowFrame,

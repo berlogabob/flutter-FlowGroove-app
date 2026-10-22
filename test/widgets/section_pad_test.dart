@@ -35,6 +35,24 @@ void main() {
   }
 
   group('SectionPad', () {
+    testWidgets('queued pad names the quantize it waits for', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SectionPad(
+              name: 'Chorus',
+              bars: 4,
+              color: Colors.blue,
+              state: PadState.queued,
+              queuedLabel: 'Next block',
+              onTap: () {},
+            ),
+          ),
+        ),
+      );
+      expect(find.text('Next block'), findsOneWidget);
+    });
+
     testWidgets('fills the width it is given regardless of label', (
       tester,
     ) async {

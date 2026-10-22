@@ -10,6 +10,7 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/providers/data/midi_song_provider.dart';
 import 'package:flowgroove/screens/metronome_screen.dart';
+import 'package:flowgroove/utils/play_mode.dart';
 import 'package:flowgroove/utils/quantize.dart';
 import 'package:flowgroove/widgets/chord_chart_view.dart';
 import 'package:flowgroove/widgets/practice/instrument_strip.dart';
@@ -225,8 +226,10 @@ void main() {
     expect(tester.getRect(row), before);
     expect(find.text('Play').hitTestable(), findsOneWidget);
     expect(find.text('Stop'), findsNothing);
+    expect(find.text('Mode').hitTestable(), findsOneWidget);
     expect(find.text('Loop').hitTestable(), findsOneWidget);
-    expect(find.text('Quantize: Bar').hitTestable(), findsOneWidget);
+    expect(find.text('Quantize').hitTestable(), findsOneWidget);
+    expect(find.text('Bar').hitTestable(), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -242,20 +245,37 @@ void main() {
     expect(transport.launches, ['song']);
   });
 
-  testWidgets('transport controls loop, quantize, play and stop at bar', (
-    tester,
-  ) async {
+  testWidgets('transport buttons cycle play mode and quantize', (tester) async {
     final transport = _Transport(_state(2));
     await _pump(tester, transport);
     await tester.tap(find.text('Play'));
+    expect(transport.launches, ['s0']);
+
+    expect(transport.state.mode, PlayMode.loop);
     await tester.tap(find.text('Loop'));
     await tester.pump();
-    expect(transport.state.loop, isFalse);
-    await tester.tap(find.text('Quantize: Bar'));
+    expect(transport.state.mode, PlayMode.song);
+    expect(find.text('Song'), findsOneWidget);
+    await tester.tap(find.text('Song'));
+    await tester.pump();
+    expect(transport.state.mode, PlayMode.once);
+    expect(find.text('Once'), findsOneWidget);
+    await tester.tap(find.text('Once'));
+    await tester.pump();
+    expect(transport.state.mode, PlayMode.loop);
+
+    expect(transport.state.quantize, Quantize.bar);
+    await tester.tap(find.text('Bar'));
+    await tester.pump();
+    expect(transport.state.quantize, Quantize.block);
+    expect(find.text('Block'), findsOneWidget);
+    await tester.tap(find.text('Block'));
     await tester.pump();
     expect(transport.state.quantize, Quantize.beat);
-    expect(find.text('Quantize: Beat'), findsOneWidget);
-    expect(transport.launches, ['s0']);
+    expect(find.text('Beat'), findsOneWidget);
+    await tester.tap(find.text('Beat'));
+    await tester.pump();
+    expect(transport.state.quantize, Quantize.bar);
   });
 
   testWidgets('one Play/Stop button: Stop while playing, same column as Play', (
