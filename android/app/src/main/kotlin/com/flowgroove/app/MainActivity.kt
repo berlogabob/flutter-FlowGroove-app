@@ -61,6 +61,8 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             try {
                 when (call.method) {
+                    "oemFamily" -> result.success(OemPowerSettings.family())
+                    "openOemSettings" -> result.success(OemPowerSettings.open(this))
                     "isIgnoringBatteryOptimizations" ->
                         result.success(isIgnoringBatteryOptimizations())
                     "requestIgnoreBatteryOptimizations" -> {
