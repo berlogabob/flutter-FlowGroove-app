@@ -49,13 +49,28 @@ void main() {
         Offset(math.cos(angle), math.sin(angle)) * (rect.width / 2 - 20);
   }
 
-  testWidgets('ring tap maps directly to BPM', (tester) async {
+  testWidgets('ring tap does not jump the BPM (F17)', (tester) async {
     await pumpDial(tester);
+    final before = container.read(metronomeProvider).bpm;
 
     await tester.tapAt(globalPointFor(tester, 320));
     await tester.pump();
 
-    expect(container.read(metronomeProvider).bpm, closeTo(320, 1));
+    expect(container.read(metronomeProvider).bpm, before);
+  });
+
+  testWidgets('a drag that starts away from the knob is ignored (F17)', (
+    tester,
+  ) async {
+    await pumpDial(tester);
+    final before = container.read(metronomeProvider).bpm;
+
+    final gesture = await tester.startGesture(globalPointFor(tester, 320));
+    await gesture.moveTo(globalPointFor(tester, 200));
+    await gesture.up();
+    await tester.pump();
+
+    expect(container.read(metronomeProvider).bpm, before);
   });
 
   testWidgets(
@@ -63,8 +78,12 @@ void main() {
     (tester) async {
       await pumpDial(tester);
 
+      container.read(metronomeProvider.notifier).setBpm(80);
+      await tester.pump();
       final gesture = await tester.startGesture(globalPointFor(tester, 80));
-      await gesture.moveTo(globalPointFor(tester, 320));
+      for (var bpm = 90; bpm <= 320; bpm += 10) {
+        await gesture.moveTo(globalPointFor(tester, bpm));
+      }
       await gesture.up();
       await tester.pump();
       expect(container.read(metronomeProvider).bpm, closeTo(320, 1));
@@ -72,7 +91,9 @@ void main() {
       final reverseGesture = await tester.startGesture(
         globalPointFor(tester, 320),
       );
-      await reverseGesture.moveTo(globalPointFor(tester, 80));
+      for (var bpm = 310; bpm >= 80; bpm -= 10) {
+        await reverseGesture.moveTo(globalPointFor(tester, bpm));
+      }
       await reverseGesture.up();
       await tester.pump();
       expect(container.read(metronomeProvider).bpm, closeTo(80, 1));

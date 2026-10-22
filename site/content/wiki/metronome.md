@@ -12,6 +12,7 @@ Practice to a steady beat.
   - **Bottom row, subdivision:** how many clicks each beat is split into
     (1 = just the beat, 2 = eighths, 3 = triplets, 4 = sixteenths).
   - Dot `i` of the bottom row sits under beat `i` of the top row.
+- Change the tempo by dragging the white knob on the dial, with the −5 / −1 / +1 / +5 buttons, or by tapping the BPM number to type it. Tapping elsewhere on the ring does nothing, so a stray touch cannot change a song's tempo.
 - Tap accents to emphasize beats.
 - **Menu (⋯)** in the bottom bar holds Sound, Count-in, Ramp, Haptics and the
   save-to-song actions; toggles flip right inside the sheet.

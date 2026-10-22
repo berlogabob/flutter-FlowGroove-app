@@ -52,19 +52,29 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
               child: GestureDetector(
                 key: const Key('tempo-dial'),
                 behavior: HitTestBehavior.opaque,
-                onPanStart: (details) =>
-                    _updateTempoFromPosition(details.localPosition, dialSize),
-                onPanUpdate: (details) =>
-                    _updateTempoFromPosition(details.localPosition, dialSize),
+                // Only a drag that starts on the knob moves the tempo; a tap or a
+                // stray drag elsewhere on the ring does nothing (F17).
+                onPanStart: (details) {
+                  _knobDrag = TempoDialScale.isNearKnob(
+                    details.localPosition,
+                    dialSize,
+                    ref.read(metronomeProvider).bpm,
+                  );
+                },
+                onPanUpdate: (details) {
+                  if (_knobDrag) {
+                    _updateTempoFromPosition(details.localPosition, dialSize);
+                  }
+                },
+                onPanEnd: (_) => _knobDrag = false,
+                onPanCancel: () => _knobDrag = false,
                 onTapUp: (details) {
                   if (TempoDialScale.isCenterPosition(
                     details.localPosition,
                     dialSize,
                   )) {
                     showTempoInputSheet(context);
-                    return;
                   }
-                  _updateTempoFromPosition(details.localPosition, dialSize);
                 },
                 child: CustomPaint(
                   painter: TempoDialPainter(
@@ -107,6 +117,8 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
       },
     );
   }
+
+  bool _knobDrag = false;
 
   void _updateTempoFromPosition(Offset localPosition, Size dialSize) {
     final newBpm = TempoDialScale.positionToBpm(localPosition, dialSize);

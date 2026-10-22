@@ -172,10 +172,7 @@ class _CornerStepButtonState extends State<_CornerStepButton> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: background,
-              border: Border.all(
-                color: context.mp.borderDefault,
-                width: 1.5,
-              ),
+              border: Border.all(color: context.mp.borderDefault, width: 1.5),
             ),
             child: Text(
               widget.label,
