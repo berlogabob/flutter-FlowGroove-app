@@ -8,11 +8,11 @@
 | 4 | After screen on, pads show the real state | P30 | PASS (60 s screen off, pad still Playing) |
 | 5 | Click vs MIDI offset < 3 ms, drift < 1 ms / 5 min (L29 diagnostic + scripts/measure_sync.py) | P30 | NOT RUN |
 | 6 | BPM change mid-play: backing re-renders, stays in sync | P30 | PASS (+5 twice mid-play: re-render, queued, Playing) |
-| 7 | Bluetooth connect/disconnect mid-play | P30 | NOT RUN |
-| 8 | Low-latency AudioTrack granted (logcat "FAST granted") | P30 | FAIL-ACCEPTED: P30 HAL denies FAST for mono and stereo (logged 'FAST denied'); latency not measurable here |
+| 7 | Bluetooth connect/disconnect mid-play | P30 | PARTIAL: Bluetooth off/on mid-play keeps the track running; no BT audio device was connected, so a real route change was not exercised |
+| 8 | Low-latency AudioTrack granted (logcat "FAST granted") | P30 | P30 FAIL-ACCEPTED (HAL denies FAST); A24 PASS (FAST granted mono) |
 | 9 | Backing tracks button visible with no song | P30 | PASS (L39) |
 | 10 | Battery sheet shows once, Settings tile, vendor deep link opens | P30 | PASS (sheet shows once after Play, steps for Huawei) |
-| 11 | Same checks 1-3, 6-8 | A24 | NOT RUN (not connected) |
-| 12 | Web: pads, per-bar scheduling, tab hidden 60 s, BPM change | Chrome | COMPILES + wired (web engine uses click AudioContext); NOT run in a browser |
+| 11 | Same checks 1-3, 6-8 | A24 | PARTIAL: A24 installs, pads 3-col grid, FAST granted mono, exemption dialog + allowlist, 2 min screen-off playing, lock-screen media control, system pause stops cleanly; UI-after-pause not checked (device locked) |
+| 12 | Web: pads, per-bar scheduling, tab hidden 60 s, BPM change | Chrome | COMPILES; browser smoke PASS (demo login, metronome Play, 0 console errors); MIDI backing not exercisable on web without a login + MIDI song |
 | 13 | Full suite, analyzer, Gradle tests on second01 | Mac | PASS at 2026-10-22 merge; rerun after L37-L40 |
 | 14 | Web deploy (app-hosting + pages) incl. wiki metronome page | Mac | after release |
