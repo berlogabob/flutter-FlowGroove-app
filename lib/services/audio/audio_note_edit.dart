@@ -105,8 +105,19 @@ Uint8List? trimWav(Uint8List wav, {required int startMs, required int endMs}) {
 
 /// `sampling_frequency_index` -> Hz, per ISO/IEC 13818-7.
 const _adtsSampleRates = [
-  96000, 88200, 64000, 48000, 44100, 32000,
-  24000, 22050, 16000, 12000, 11025, 8000, 7350,
+  96000,
+  88200,
+  64000,
+  48000,
+  44100,
+  32000,
+  24000,
+  22050,
+  16000,
+  12000,
+  11025,
+  8000,
+  7350,
 ];
 
 /// Every AAC-LC frame carries exactly this many samples per channel.
@@ -166,7 +177,8 @@ typedef AdtsConfig = ({
     config: (
       sampleRate: _adtsSampleRates[freqIdx],
       freqIndex: freqIdx,
-      channels: ((aac[offset + 2] & 0x01) << 2) | ((aac[offset + 3] >> 6) & 0x03),
+      channels:
+          ((aac[offset + 2] & 0x01) << 2) | ((aac[offset + 3] >> 6) & 0x03),
       profile: (aac[offset + 2] >> 6) & 0x03,
     ),
   );
@@ -233,8 +245,7 @@ Uint8List? trimAudio(
   Uint8List bytes, {
   required int startMs,
   required int endMs,
-}) =>
-    _isAdts(bytes)
+}) => _isAdts(bytes)
     ? trimAdts(bytes, startMs: startMs, endMs: endMs)
     : trimWav(bytes, startMs: startMs, endMs: endMs);
 
@@ -265,7 +276,10 @@ const waveformPeakCount = 200;
 ///
 /// Same -60dB floor as the live recording bars, so a take looks the same while
 /// recording and afterwards.
-List<int> peaksFromLevels(List<double> dbfs, {int buckets = waveformPeakCount}) {
+List<int> peaksFromLevels(
+  List<double> dbfs, {
+  int buckets = waveformPeakCount,
+}) {
   if (dbfs.isEmpty || buckets <= 0) return const [];
   final out = List<int>.filled(math.min(buckets, dbfs.length), 0);
   for (var i = 0; i < out.length; i++) {
@@ -319,7 +333,10 @@ List<int> trimPeaks(List<int> peaks, double startFrac, double endFrac) {
   final from = (startFrac.clamp(0.0, 1.0) * peaks.length).floor();
   final to = (endFrac.clamp(0.0, 1.0) * peaks.length).ceil();
   if (to <= from) return const [];
-  return peaks.sublist(math.min(from, peaks.length - 1), math.min(to, peaks.length));
+  return peaks.sublist(
+    math.min(from, peaks.length - 1),
+    math.min(to, peaks.length),
+  );
 }
 
 /// One timestamped comment on a recording.
@@ -339,8 +356,7 @@ List<AudioMarker> parseMarkers(String? body) {
   for (final line in body.split('\n')) {
     final m = _markerLine.firstMatch(line);
     if (m == null) continue;
-    final ms =
-        (int.parse(m.group(1)!) * 60 + int.parse(m.group(2)!)) * 1000;
+    final ms = (int.parse(m.group(1)!) * 60 + int.parse(m.group(2)!)) * 1000;
     out.add((ms: ms, text: m.group(3)!));
   }
   out.sort((a, b) => a.ms.compareTo(b.ms));

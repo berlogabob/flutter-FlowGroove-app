@@ -23,9 +23,9 @@ Uint8List _wavWithListChunk(int ms) {
     ..add(plain.sublist(0, info.offset - 8)) // through the fmt chunk
     ..add('LIST'.codeUnits)
     ..add(
-      (ByteData(4)..setUint32(0, listBody.length, Endian.little))
-          .buffer
-          .asUint8List(),
+      (ByteData(
+        4,
+      )..setUint32(0, listBody.length, Endian.little)).buffer.asUint8List(),
     )
     ..add(listBody.codeUnits)
     ..add(plain.sublist(info.offset - 8)); // data header + samples
@@ -89,7 +89,15 @@ void main() {
 
     test('returns null for non-RIFF bytes (m4a guard)', () {
       final m4a = Uint8List.fromList([
-        0, 0, 0, 32, ...'ftypM4A '.codeUnits, 0, 0, 0, 0,
+        0,
+        0,
+        0,
+        32,
+        ...'ftypM4A '.codeUnits,
+        0,
+        0,
+        0,
+        0,
       ]);
       expect(parseWav(m4a), isNull);
     });
@@ -101,7 +109,9 @@ void main() {
     test('clamps a data size that overruns the buffer', () {
       final wav = _wav(50);
       // Claim twice as many sample bytes as are actually present.
-      ByteData.sublistView(wav).setUint32(40, 50 * _bytesPerMs * 2, Endian.little);
+      ByteData.sublistView(
+        wav,
+      ).setUint32(40, 50 * _bytesPerMs * 2, Endian.little);
       expect(parseWav(wav)!.length, 50 * _bytesPerMs);
     });
   });
@@ -140,7 +150,11 @@ void main() {
     });
 
     test('trims a WAV whose data chunk is not at byte 44', () {
-      final trimmed = trimWav(_wavWithListChunk(1000), startMs: 100, endMs: 400)!;
+      final trimmed = trimWav(
+        _wavWithListChunk(1000),
+        startMs: 100,
+        endMs: 400,
+      )!;
       expect(wavDurationMs(trimmed), 300);
       // Slicing at a hardcoded 44 would have started inside the LIST chunk.
       final source = _wavWithListChunk(1000);
@@ -164,7 +178,15 @@ void main() {
 
     test('returns null for m4a bytes', () {
       final m4a = Uint8List.fromList([
-        0, 0, 0, 32, ...'ftypM4A '.codeUnits, 0, 0, 0, 0,
+        0,
+        0,
+        0,
+        32,
+        ...'ftypM4A '.codeUnits,
+        0,
+        0,
+        0,
+        0,
       ]);
       expect(trimWav(m4a, startMs: 0, endMs: 100), isNull);
     });
@@ -310,7 +332,15 @@ void main() {
 
     test('refuses m4a and returns null duration', () {
       final m4a = Uint8List.fromList([
-        0, 0, 0, 32, ...'ftypM4A '.codeUnits, 0, 0, 0, 0,
+        0,
+        0,
+        0,
+        32,
+        ...'ftypM4A '.codeUnits,
+        0,
+        0,
+        0,
+        0,
       ]);
       expect(trimAudio(m4a, startMs: 0, endMs: 100), isNull);
       expect(audioDurationMs(m4a), isNull);
@@ -319,18 +349,22 @@ void main() {
 
   group('peaksFromLevels', () {
     test('reduces to the bucket count and takes the loudest per bucket', () {
-      final levels = [
-        for (var i = 0; i < 1000; i++) i.isEven ? -60.0 : -30.0,
-      ];
+      final levels = [for (var i = 0; i < 1000; i++) i.isEven ? -60.0 : -30.0];
       final peaks = peaksFromLevels(levels, buckets: 10);
       expect(peaks.length, 10);
-      expect(peaks.every((p) => p == 128), isTrue, reason: '-30dB -> mid scale');
+      expect(
+        peaks.every((p) => p == 128),
+        isTrue,
+        reason: '-30dB -> mid scale',
+      );
     });
 
     test('maps the floor to 0 and 0dBFS to 255', () {
       expect(peaksFromLevels([-60], buckets: 1), [0]);
       expect(peaksFromLevels([0], buckets: 1), [255]);
-      expect(peaksFromLevels([-90], buckets: 1), [0], reason: 'below the floor');
+      expect(peaksFromLevels([-90], buckets: 1), [
+        0,
+      ], reason: 'below the floor');
     });
 
     test('never pads past the sample count', () {
@@ -363,13 +397,22 @@ void main() {
     });
 
     test('maps silence to zero', () {
-      final silent = wavFromPcm16(Uint8List(1000 * _bytesPerMs), sampleRate: _rate);
+      final silent = wavFromPcm16(
+        Uint8List(1000 * _bytesPerMs),
+        sampleRate: _rate,
+      );
       expect(peaksFromWav(silent, buckets: 8), everyElement(0));
     });
 
     test('is null for non-WAV and for an empty data chunk', () {
-      expect(peaksFromWav(Uint8List.fromList('not audio!!!'.codeUnits)), isNull);
-      expect(peaksFromWav(wavFromPcm16(Uint8List(0), sampleRate: _rate)), isNull);
+      expect(
+        peaksFromWav(Uint8List.fromList('not audio!!!'.codeUnits)),
+        isNull,
+      );
+      expect(
+        peaksFromWav(wavFromPcm16(Uint8List(0), sampleRate: _rate)),
+        isNull,
+      );
     });
 
     test('never returns more bars than there are frames', () {
@@ -454,7 +497,11 @@ void main() {
       final markers = parseMarkers('00:05 head\n00:20 keep\n01:00 tail');
       final shifted = shiftMarkers(markers, startMs: 10000, durationMs: 30000);
       expect(shifted.map((m) => m.text), ['keep']);
-      expect(shifted.single.ms, 10000, reason: '20s - 10s trimmed off the head');
+      expect(
+        shifted.single.ms,
+        10000,
+        reason: '20s - 10s trimmed off the head',
+      );
     });
 
     test('keeps a marker landing exactly on either edge', () {

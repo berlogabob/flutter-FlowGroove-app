@@ -54,14 +54,17 @@ void main() {
     expect(await _queued(), isEmpty);
   });
 
-  test('flush after a cancel deletes nothing — the undo wins the race', () async {
-    final storage = _FakeStorage();
-    final pending = PendingStorageDeletes(storage: storage);
-    await pending.enqueue(_a);
-    await pending.cancel(_a); // user hit Undo…
-    await pending.flush(_a); // …before the grace period elapsed
-    expect(storage.deleted, isEmpty);
-  });
+  test(
+    'flush after a cancel deletes nothing — the undo wins the race',
+    () async {
+      final storage = _FakeStorage();
+      final pending = PendingStorageDeletes(storage: storage);
+      await pending.enqueue(_a);
+      await pending.cancel(_a); // user hit Undo…
+      await pending.flush(_a); // …before the grace period elapsed
+      expect(storage.deleted, isEmpty);
+    },
+  );
 
   test('flushAfter waits out the grace period, then deletes', () async {
     final storage = _FakeStorage();

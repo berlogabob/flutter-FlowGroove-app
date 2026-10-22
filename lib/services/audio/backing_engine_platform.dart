@@ -9,7 +9,9 @@ import 'backing_engine.dart';
 
 class PlatformBackingEngine implements BackingEngine {
   PlatformBackingEngine({MethodChannel? channel, this.cacheDirectory})
-    : _channel = channel ?? const MethodChannel('com.flowgroove/metronome');
+    : _channel = channel ?? const MethodChannel('com.flowgroove/metronome') {
+    backingNativeSink = handleMethodCall;
+  }
 
   final MethodChannel _channel;
   final Directory? cacheDirectory;
@@ -114,6 +116,9 @@ class PlatformBackingEngine implements BackingEngine {
 
   @override
   Future<void> dispose() async {
+    if (backingNativeSink == handleMethodCall) {
+      backingNativeSink = null;
+    }
     try {
       await clear();
     } finally {

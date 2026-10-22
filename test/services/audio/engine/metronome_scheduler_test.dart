@@ -8,18 +8,18 @@ import 'package:flowgroove/services/audio/engine/audio_sink.dart';
 import '../../../helpers/fake_audio_sink.dart';
 
 RenderConfig cfg({int subdivisions = 2}) => RenderConfig(
-      bpm: 120,
-      beats: 4,
-      subdivisions: subdivisions,
-      beatModes: const [],
-      accentEnabled: true,
-      accentFrequency: 1600,
-      beatFrequency: 800,
-      accentBeatFrequency: 2000,
-      volume: 1.0,
-      countInBars: 0,
-      latencyOffsetFrames: 0,
-    );
+  bpm: 120,
+  beats: 4,
+  subdivisions: subdivisions,
+  beatModes: const [],
+  accentEnabled: true,
+  accentFrequency: 1600,
+  beatFrequency: 800,
+  accentBeatFrequency: 2000,
+  volume: 1.0,
+  countInBars: 0,
+  latencyOffsetFrames: 0,
+);
 
 const int kSampleRate = 48000;
 const int kChunkFrames = 9600; // 200ms
@@ -30,7 +30,7 @@ void main() {
   /// around the real Timer, which deadlocks the runner) is the deterministic
   /// seam for the wall-clock feeder.
   ({MetronomeScheduler s, FakeAudioSink sink, void Function(int) advanceMs})
-      build() {
+  build() {
     final sink = FakeAudioSink();
     var nowUs = 0;
     final s = MetronomeScheduler(
@@ -109,7 +109,11 @@ void main() {
     t.advanceMs(120000);
     t.s.pumpForTest();
     expect(t.sink.pushed.length - before, lessThanOrEqualTo(6));
-    expect(t.s.cappedPumps, 0, reason: 'resync should bound work without the cap');
+    expect(
+      t.s.cappedPumps,
+      0,
+      reason: 'resync should bound work without the cap',
+    );
   });
 
   test('resync keeps clicks on the beat grid', () async {
@@ -149,10 +153,14 @@ void main() {
     final absolute = resyncFrame + peakIdx;
     final offGrid = absolute % tickFrames;
     final distance = offGrid < tickFrames ~/ 2 ? offGrid : tickFrames - offGrid;
-    expect(distance, lessThan(64),
-        reason: 'click at absolute frame $absolute is off the $tickFrames grid');
+    expect(
+      distance,
+      lessThan(64),
+      reason: 'click at absolute frame $absolute is off the $tickFrames grid',
+    );
     // And it is the FIRST tick at or after the resync point.
-    final expectedTick = ((resyncFrame + tickFrames - 1) ~/ tickFrames) * tickFrames;
+    final expectedTick =
+        ((resyncFrame + tickFrames - 1) ~/ tickFrames) * tickFrames;
     expect((absolute - expectedTick).abs(), lessThan(64));
   });
 
@@ -183,32 +191,37 @@ void main() {
 
     expect(t.sink.recoverCount, 1);
     expect(t.sink.lastRecoverFrame, isNotNull);
-    expect(t.sink.pushed.length, greaterThan(before),
-        reason: 'recovered should top the buffer back up');
+    expect(
+      t.sink.pushed.length,
+      greaterThan(before),
+      reason: 'recovered should top the buffer back up',
+    );
   });
 
-  test('recovery is budgeted, and a successful recovery restores the budget',
-      () async {
-    final t = build();
-    await t.s.start(cfg());
+  test(
+    'recovery is budgeted, and a successful recovery restores the budget',
+    () async {
+      final t = build();
+      await t.s.start(cfg());
 
-    // A sink that never reports success burns the budget and then stops.
-    for (var i = 0; i < 5; i++) {
-      t.sink.emit(const SinkEvent(SinkEventType.error));
+      // A sink that never reports success burns the budget and then stops.
+      for (var i = 0; i < 5; i++) {
+        t.sink.emit(const SinkEvent(SinkEventType.error));
+        await pumpEventQueue(times: 10);
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+      }
+      expect(t.sink.recoverCount, 3, reason: 'capped at _maxRecoverAttempts');
+      expect(t.s.recoverGiveUps, greaterThan(0));
+
+      // Proof of health restores it, so a gigging user who keeps replugging
+      // headphones keeps getting recoveries.
+      t.sink.emit(const SinkEvent(SinkEventType.recovered));
       await pumpEventQueue(times: 10);
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-    }
-    expect(t.sink.recoverCount, 3, reason: 'capped at _maxRecoverAttempts');
-    expect(t.s.recoverGiveUps, greaterThan(0));
-
-    // Proof of health restores it, so a gigging user who keeps replugging
-    // headphones keeps getting recoveries.
-    t.sink.emit(const SinkEvent(SinkEventType.recovered));
-    await pumpEventQueue(times: 10);
-    t.sink.emit(const SinkEvent(SinkEventType.deviceChanged));
-    await pumpEventQueue(times: 10);
-    expect(t.sink.recoverCount, 4);
-  });
+      t.sink.emit(const SinkEvent(SinkEventType.deviceChanged));
+      await pumpEventQueue(times: 10);
+      expect(t.sink.recoverCount, 4);
+    },
+  );
 
   test('nothing is pumped while recovering', () async {
     final t = build();

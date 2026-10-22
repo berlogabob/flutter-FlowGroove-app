@@ -17,10 +17,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () {
               results.add(
-                pickSetlistPdfLayout(
-                  context,
-                  withEventGuide: withEventGuide,
-                ),
+                pickSetlistPdfLayout(context, withEventGuide: withEventGuide),
               );
             },
             child: const Text('open'),

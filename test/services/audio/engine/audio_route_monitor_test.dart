@@ -8,6 +8,9 @@ void main() {
     expect(AudioRouteMonitor.parse('bluetooth'), AudioRoute.bluetooth);
     expect(AudioRouteMonitor.parse('wired'), AudioRoute.wired);
     expect(AudioRouteMonitor.parse('speaker'), AudioRoute.speaker);
-    expect(AudioRouteMonitor.parse('garbage'), AudioRoute.speaker); // safe default
+    expect(
+      AudioRouteMonitor.parse('garbage'),
+      AudioRoute.speaker,
+    ); // safe default
   });
 }

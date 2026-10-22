@@ -12,11 +12,11 @@ class MetronomeScheduler {
     int sampleRate = 48000,
     bool testMode = false,
     int Function()? clockMicros,
-  })  : _sink = sink,
-        _renderer = renderer,
-        _sampleRate = sampleRate,
-        _testMode = testMode,
-        _clockMicros = clockMicros {
+  }) : _sink = sink,
+       _renderer = renderer,
+       _sampleRate = sampleRate,
+       _testMode = testMode,
+       _clockMicros = clockMicros {
     _sub = _sink.events.listen(_onSinkEvent);
   }
 
@@ -86,17 +86,17 @@ class MetronomeScheduler {
 
   /// Snapshot for on-device diagnosis of feeder starvation (#151).
   Map<String, Object> debugStats() => {
-        'pumpCount': _pumpCount,
-        'pushedChunks': _pushedChunks,
-        'starvationEvents': _starvationEvents,
-        'droppedFrames': _droppedFrames,
-        'droppedMs': _droppedFrames * 1000 ~/ _sampleRate,
-        'queuedFrames': _lastQueuedFrames,
-        'queuedMs': _lastQueuedFrames * 1000 ~/ _sampleRate,
-        'cappedPumps': _cappedPumps,
-        'recoverCount': _recoverCount,
-        'recoverGiveUps': _recoverGiveUps,
-      };
+    'pumpCount': _pumpCount,
+    'pushedChunks': _pushedChunks,
+    'starvationEvents': _starvationEvents,
+    'droppedFrames': _droppedFrames,
+    'droppedMs': _droppedFrames * 1000 ~/ _sampleRate,
+    'queuedFrames': _lastQueuedFrames,
+    'queuedMs': _lastQueuedFrames * 1000 ~/ _sampleRate,
+    'cappedPumps': _cappedPumps,
+    'recoverCount': _recoverCount,
+    'recoverGiveUps': _recoverGiveUps,
+  };
 
   void _resetStats() {
     _pumpCount = 0;
@@ -167,8 +167,10 @@ class MetronomeScheduler {
       // device can't fill the log (the counter keeps counting either way).
       if (_starvationEvents <= _maxStarvationLogs) {
         final ms = (elapsedFrames - _frame) * 1000 ~/ _sampleRate;
-        debugPrint('[MetronomeScheduler] resync: dropped ${ms}ms of audio '
-            '(event $_starvationEvents)');
+        debugPrint(
+          '[MetronomeScheduler] resync: dropped ${ms}ms of audio '
+          '(event $_starvationEvents)',
+        );
       }
       _frame = elapsedFrames;
     }
@@ -181,7 +183,10 @@ class MetronomeScheduler {
         break;
       }
       final frames = _renderer.renderChunk(
-          config: c, startFrame: _frame, frameCount: _chunkFrames);
+        config: c,
+        startFrame: _frame,
+        frameCount: _chunkFrames,
+      );
       _sink.pushFrames(frames);
       _frame += _chunkFrames;
       chunks++;
@@ -205,7 +210,9 @@ class MetronomeScheduler {
     _recovering = true;
     try {
       if (_recoverAttempts > 1) {
-        await Future<void>.delayed(_recoverBackoffBase * (_recoverAttempts - 1));
+        await Future<void>.delayed(
+          _recoverBackoffBase * (_recoverAttempts - 1),
+        );
       }
       await _sink.recover(atFrame: _frame);
     } finally {

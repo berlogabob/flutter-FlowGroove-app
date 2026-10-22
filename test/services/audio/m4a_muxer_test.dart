@@ -121,14 +121,21 @@ void main() {
 
     test('declares the brands Apple does', () {
       final m4a = m4aFromAdts(_adts(3))!;
-      expect(
-        m4a.sublist(0, 28),
-        [
-          0, 0, 0, 28, ...ascii.encode('ftyp'),
-          ...ascii.encode('M4A '), 0, 0, 0, 0,
-          ...ascii.encode('M4A '), ...ascii.encode('mp42'), ...ascii.encode('isom'),
-        ],
-      );
+      expect(m4a.sublist(0, 28), [
+        0,
+        0,
+        0,
+        28,
+        ...ascii.encode('ftyp'),
+        ...ascii.encode('M4A '),
+        0,
+        0,
+        0,
+        0,
+        ...ascii.encode('M4A '),
+        ...ascii.encode('mp42'),
+        ...ascii.encode('isom'),
+      ]);
     });
 
     test('nests the full audio track', () {
@@ -148,14 +155,21 @@ void main() {
         'moov/trak/mdia/minf/stbl/stco',
         'moov/trak/mdia/minf/stbl/stsd/mp4a',
       ]) {
-        expect(() => _find(m4a, path, skip: skip), returnsNormally, reason: path);
+        expect(
+          () => _find(m4a, path, skip: skip),
+          returnsNormally,
+          reason: path,
+        );
       }
     });
 
     test('handler is soun', () {
       final m4a = m4aFromAdts(_adts(3))!;
       final (offset, _) = _find(m4a, 'moov/trak/mdia/hdlr');
-      expect(String.fromCharCodes(m4a.sublist(offset + 16, offset + 20)), 'soun');
+      expect(
+        String.fromCharCodes(m4a.sublist(offset + 16, offset + 20)),
+        'soun',
+      );
     });
   });
 
@@ -206,7 +220,9 @@ void main() {
 
     test('AudioSpecificConfig tracks rate and channels', () {
       for (final (freqIdx, channels) in [(3, 1), (4, 2), (8, 2), (11, 1)]) {
-        final m4a = m4aFromAdts(_adts(3, freqIdx: freqIdx, channels: channels))!;
+        final m4a = m4aFromAdts(
+          _adts(3, freqIdx: freqIdx, channels: channels),
+        )!;
         final (offset, size) = _find(
           m4a,
           'moov/trak/mdia/minf/stbl/stsd/mp4a/esds',
@@ -313,9 +329,15 @@ void main() {
 
   group('metadata', () {
     test('carries the title and artist', () {
-      final m4a = m4aFromAdts(_adts(3), title: 'Bridge riff', artist: 'FlowGroove')!;
-      expect(() => _find(m4a, 'moov/udta/meta/ilst', skip: {'meta': 4}),
-          returnsNormally);
+      final m4a = m4aFromAdts(
+        _adts(3),
+        title: 'Bridge riff',
+        artist: 'FlowGroove',
+      )!;
+      expect(
+        () => _find(m4a, 'moov/udta/meta/ilst', skip: {'meta': 4}),
+        returnsNormally,
+      );
       expect(String.fromCharCodes(m4a), contains('Bridge riff'));
       expect(String.fromCharCodes(m4a), contains('FlowGroove'));
     });
@@ -363,7 +385,11 @@ void main() {
 
     test('a reserved or escape frequency index', () {
       for (final freqIdx in [13, 14, 15]) {
-        expect(m4aFromAdts(_adts(4, freqIdx: freqIdx)), isNull, reason: '$freqIdx');
+        expect(
+          m4aFromAdts(_adts(4, freqIdx: freqIdx)),
+          isNull,
+          reason: '$freqIdx',
+        );
       }
     });
 
@@ -374,13 +400,15 @@ void main() {
   });
 
   test('round-trips the sample count of a real-length take', () {
-      // ~15s at 44.1kHz is 646 frames, the size the device test produces.
+    // ~15s at 44.1kHz is 646 frames, the size the device test produces.
     final m4a = m4aFromAdts(_adts(646, payload: 380))!;
     final (stsz, _) = _find(m4a, 'moov/trak/mdia/minf/stbl/stsz');
     expect(_u32At(m4a, stsz + 16), 646);
     final (mdat, mdatSize) = _find(m4a, 'mdat');
     expect(mdatSize - 8, 646 * 380);
-    expect(_u32At(m4a, _find(m4a, 'moov/trak/mdia/minf/stbl/stco').$1 + 16),
-        mdat + 8);
+    expect(
+      _u32At(m4a, _find(m4a, 'moov/trak/mdia/minf/stbl/stco').$1 + 16),
+      mdat + 8,
+    );
   });
 }

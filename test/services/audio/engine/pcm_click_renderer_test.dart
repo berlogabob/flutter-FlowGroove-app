@@ -13,13 +13,20 @@ RenderConfig cfg({
   double beatFrequency = 800,
   double accentBeatFrequency = 2000,
   List<List<BeatMode>> beatModes = const [],
-}) =>
-    RenderConfig(
-      bpm: bpm, beats: beats, subdivisions: sub, beatModes: beatModes,
-      accentEnabled: true, accentFrequency: accentFrequency,
-      beatFrequency: beatFrequency, accentBeatFrequency: accentBeatFrequency,
-      volume: 1.0, countInBars: 0, latencyOffsetFrames: latency, waveType: wave,
-    );
+}) => RenderConfig(
+  bpm: bpm,
+  beats: beats,
+  subdivisions: sub,
+  beatModes: beatModes,
+  accentEnabled: true,
+  accentFrequency: accentFrequency,
+  beatFrequency: beatFrequency,
+  accentBeatFrequency: accentBeatFrequency,
+  volume: 1.0,
+  countInBars: 0,
+  latencyOffsetFrames: latency,
+  waveType: wave,
+);
 
 // fraction of a click's samples driven to near full scale (|v| > 0.9)
 double fullScaleFraction(List<double> pcm) {
@@ -51,24 +58,34 @@ void main() {
     expect(r.frameForTick(c, 2), 48000);
   });
 
-  test('subdivision 2 places a click at the exact half-beat frame, zero drift', () {
-    final r = PcmClickRenderer(sampleRate: sr);
-    final c = cfg(bpm: 120, sub: 2); // 0.25s per tick => 12000 frames
-    final pcm = r.renderChunk(config: c, startFrame: 0, frameCount: 48000).toList();
-    // clicks expected at frames 0, 12000, 24000, 36000 (+/- a couple frames of attack)
-    expect((firstOnset(pcm, 0)).abs() <= 5, isTrue);
-    expect((firstOnset(pcm, 11990) - 12000).abs() <= 5, isTrue);
-    expect((firstOnset(pcm, 23990) - 24000).abs() <= 5, isTrue);
-    expect((firstOnset(pcm, 35990) - 36000).abs() <= 5, isTrue);
-  });
+  test(
+    'subdivision 2 places a click at the exact half-beat frame, zero drift',
+    () {
+      final r = PcmClickRenderer(sampleRate: sr);
+      final c = cfg(bpm: 120, sub: 2); // 0.25s per tick => 12000 frames
+      final pcm = r
+          .renderChunk(config: c, startFrame: 0, frameCount: 48000)
+          .toList();
+      // clicks expected at frames 0, 12000, 24000, 36000 (+/- a couple frames of attack)
+      expect((firstOnset(pcm, 0)).abs() <= 5, isTrue);
+      expect((firstOnset(pcm, 11990) - 12000).abs() <= 5, isTrue);
+      expect((firstOnset(pcm, 23990) - 24000).abs() <= 5, isTrue);
+      expect((firstOnset(pcm, 35990) - 36000).abs() <= 5, isTrue);
+    },
+  );
 
-  test('latency offset shifts every click earlier by exactly latencyOffsetFrames', () {
-    final r = PcmClickRenderer(sampleRate: sr);
-    final c = cfg(bpm: 120, sub: 1, latency: 480); // 10ms @48k
-    final pcm = r.renderChunk(config: c, startFrame: 0, frameCount: 48000).toList();
-    // tick 1 at 24000, shifted to 23520
-    expect((firstOnset(pcm, 23500) - 23520).abs() <= 5, isTrue);
-  });
+  test(
+    'latency offset shifts every click earlier by exactly latencyOffsetFrames',
+    () {
+      final r = PcmClickRenderer(sampleRate: sr);
+      final c = cfg(bpm: 120, sub: 1, latency: 480); // 10ms @48k
+      final pcm = r
+          .renderChunk(config: c, startFrame: 0, frameCount: 48000)
+          .toList();
+      // tick 1 at 24000, shifted to 23520
+      expect((firstOnset(pcm, 23500) - 23520).abs() <= 5, isTrue);
+    },
+  );
 
   test('no accumulating drift: click at tick 100 lands at the exact frame', () {
     final r = PcmClickRenderer(sampleRate: sr);
@@ -76,7 +93,9 @@ void main() {
     const tick = 100;
     final expected = r.frameForTick(c, tick); // 2,400,000
     // render a window around the far tick
-    final pcm = r.renderChunk(config: c, startFrame: expected - 100, frameCount: 200).toList();
+    final pcm = r
+        .renderChunk(config: c, startFrame: expected - 100, frameCount: 200)
+        .toList();
     final onset = firstOnset(pcm, 0); // index within the window
     // onset is (expected - (expected-100)) = 100, plus the 4-frame accent attack
     expect((onset - 100).abs() <= 5, isTrue);
@@ -84,9 +103,23 @@ void main() {
 
   test('waveType changes the rendered waveform', () {
     final r = PcmClickRenderer(sampleRate: sr);
-    final sine = r.renderChunk(config: cfg(), startFrame: 0, frameCount: 4000).toList();
-    final square = r.renderChunk(config: cfg(wave: 'square'), startFrame: 0, frameCount: 4000).toList();
-    final saw = r.renderChunk(config: cfg(wave: 'sawtooth'), startFrame: 0, frameCount: 4000).toList();
+    final sine = r
+        .renderChunk(config: cfg(), startFrame: 0, frameCount: 4000)
+        .toList();
+    final square = r
+        .renderChunk(
+          config: cfg(wave: 'square'),
+          startFrame: 0,
+          frameCount: 4000,
+        )
+        .toList();
+    final saw = r
+        .renderChunk(
+          config: cfg(wave: 'sawtooth'),
+          startFrame: 0,
+          frameCount: 4000,
+        )
+        .toList();
     // Different waveforms produce different buffers.
     expect(sine, isNot(equals(square)));
     expect(sine, isNot(equals(saw)));
@@ -96,9 +129,14 @@ void main() {
 
   test('output gain makes a volume-1.0 click reach near full scale', () {
     final r = PcmClickRenderer(sampleRate: sr);
-    final pcm = r.renderChunk(config: cfg(), startFrame: 0, frameCount: 4000).toList();
+    final pcm = r
+        .renderChunk(config: cfg(), startFrame: 0, frameCount: 4000)
+        .toList();
     final peak = pcm.map((v) => v.abs()).reduce((a, b) => a > b ? a : b);
-    expect(peak > 0.95, isTrue); // gain drives the click to ~full scale, not a quiet sine
+    expect(
+      peak > 0.95,
+      isTrue,
+    ); // gain drives the click to ~full scale, not a quiet sine
   });
 
   group('three independent pitch tiers', () {
@@ -116,25 +154,28 @@ void main() {
       [BeatMode.normal],
     ];
 
-    test('a marked-accent cell renders at the accent pitch, not the primary pitch', () {
-      final r = PcmClickRenderer(sampleRate: sr);
-      final pcm = r
-          .renderChunk(
-            config: cfg(
-              accentFrequency: 1600,
-              beatFrequency: 800,
-              accentBeatFrequency: 2400,
-              beatModes: accentBeat,
-            ),
-            startFrame: 0,
-            frameCount: 2000,
-          )
-          .toList();
-      final pitch = estimatePitch(pcm, sr);
-      // The first click is a main beat marked as accent: it must sound at the
-      // accent pitch (2400), clearly nearer 2400 than the primary pitch (1600).
-      expect((pitch - 2400).abs() < (pitch - 1600).abs(), isTrue);
-    });
+    test(
+      'a marked-accent cell renders at the accent pitch, not the primary pitch',
+      () {
+        final r = PcmClickRenderer(sampleRate: sr);
+        final pcm = r
+            .renderChunk(
+              config: cfg(
+                accentFrequency: 1600,
+                beatFrequency: 800,
+                accentBeatFrequency: 2400,
+                beatModes: accentBeat,
+              ),
+              startFrame: 0,
+              frameCount: 2000,
+            )
+            .toList();
+        final pitch = estimatePitch(pcm, sr);
+        // The first click is a main beat marked as accent: it must sound at the
+        // accent pitch (2400), clearly nearer 2400 than the primary pitch (1600).
+        expect((pitch - 2400).abs() < (pitch - 1600).abs(), isTrue);
+      },
+    );
 
     test('a normal main beat ignores the accent pitch entirely', () {
       final r = PcmClickRenderer(sampleRate: sr);
@@ -189,7 +230,8 @@ double estimatePitch(List<double> pcm, int sampleRate) {
       if (first < 0) first = i;
       last = i;
     }
-    if (prev != 0 && ((prev < 0 && v >= 0) || (prev > 0 && v <= 0))) crossings++;
+    if (prev != 0 && ((prev < 0 && v >= 0) || (prev > 0 && v <= 0)))
+      crossings++;
     prev = v;
   }
   if (first < 0 || last <= first) return 0;

@@ -32,7 +32,8 @@ void main() {
     HttpOverrides.global = null;
   });
 
-  final fixturePath = Platform.environment['FLOWGROOVE_SETLIST_JSON'] ??
+  final fixturePath =
+      Platform.environment['FLOWGROOVE_SETLIST_JSON'] ??
       '/tmp/roume/setlist.json';
 
   group('setlist PDF render', () {
@@ -46,7 +47,9 @@ void main() {
         return;
       }
       final raw = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
-      setlist = Setlist.fromJson(Map<String, dynamic>.from(raw['setlist'] as Map));
+      setlist = Setlist.fromJson(
+        Map<String, dynamic>.from(raw['setlist'] as Map),
+      );
       songs = [
         for (final s in (raw['songs'] as List))
           Song.fromJson(Map<String, dynamic>.from(s as Map)),
@@ -58,10 +61,16 @@ void main() {
       expect(setlist.name, isNotEmpty);
       expect(songs, isNotEmpty);
       // effectiveItems is what the PDF iterates; a break divider has no songId.
-      expect(setlist.effectiveItems.where((i) => i.isBreak), isNotEmpty,
-          reason: 'expected the medley divider to survive parsing');
-      expect(setlist.eventKit?.people ?? const [], isNotEmpty,
-          reason: 'the lineup section needs an Event Kit roster');
+      expect(
+        setlist.effectiveItems.where((i) => i.isBreak),
+        isNotEmpty,
+        reason: 'expected the medley divider to survive parsing',
+      );
+      expect(
+        setlist.eventKit?.people ?? const [],
+        isNotEmpty,
+        reason: 'the lineup section needs an Event Kit roster',
+      );
       expect(
         setlist.effectiveItems.where((i) => i.performerIds.isNotEmpty),
         isNotEmpty,
@@ -82,9 +91,17 @@ void main() {
           layout: layout,
           performerId: performerId,
         );
-        expect(bytes.length, greaterThan(2000), reason: '$layout produced a suspiciously small file');
+        expect(
+          bytes.length,
+          greaterThan(2000),
+          reason: '$layout produced a suspiciously small file',
+        );
         // A PDF must start with %PDF- and end with the EOF marker.
-        expect(String.fromCharCodes(bytes.take(5)), '%PDF-', reason: '$layout is not a PDF');
+        expect(
+          String.fromCharCodes(bytes.take(5)),
+          '%PDF-',
+          reason: '$layout is not a PDF',
+        );
         expect(
           String.fromCharCodes(bytes.skip(bytes.length - 8)),
           contains('EOF'),
@@ -107,7 +124,11 @@ void main() {
         SetlistPdfLayout.eventGuide,
         SetlistPdfLayout.cheatSheet,
       ]) {
-        final bytes = await PdfService.buildSetlistBytes(setlist, songs, layout: layout);
+        final bytes = await PdfService.buildSetlistBytes(
+          setlist,
+          songs,
+          layout: layout,
+        );
         final name = PdfService.setlistFileName(setlist, layout, null, songs);
         final file = File('${dir.path}/$name');
         file.writeAsBytesSync(bytes);
@@ -117,12 +138,17 @@ void main() {
       // One per-performer copy each, so every guest gets their own running order.
       for (final person in setlist.eventKit!.people) {
         final bytes = await PdfService.buildSetlistBytes(
-          setlist, songs,
+          setlist,
+          songs,
           layout: SetlistPdfLayout.performer,
           performerId: person.id,
         );
         final name = PdfService.setlistFileName(
-            setlist, SetlistPdfLayout.performer, person.id, songs);
+          setlist,
+          SetlistPdfLayout.performer,
+          person.id,
+          songs,
+        );
         File('${dir.path}/$name').writeAsBytesSync(bytes);
         // ignore: avoid_print
         print('wrote ${dir.path}/$name (${person.name})');

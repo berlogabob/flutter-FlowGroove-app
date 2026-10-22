@@ -6,7 +6,6 @@ enum TunerSignalState { idle, noSignal, unstable, detected, inTune }
 
 /// Result of analysing one mono PCM16 frame.
 class PitchAnalysisResult {
-
   const PitchAnalysisResult({
     required this.frequencyHz,
     required this.confidence,

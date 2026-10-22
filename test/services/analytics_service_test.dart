@@ -24,17 +24,23 @@ void main() {
         AnalyticsService.enabled = true;
       });
 
-      test('enabled=false: a HEART event never reaches FirebaseAnalytics', () async {
-        AnalyticsService.enabled = false;
-        await AnalyticsService.logMenuOpened(screen: 'Songs');
-        expect(AnalyticsService.debugLogAttempts, 0);
-      });
+      test(
+        'enabled=false: a HEART event never reaches FirebaseAnalytics',
+        () async {
+          AnalyticsService.enabled = false;
+          await AnalyticsService.logMenuOpened(screen: 'Songs');
+          expect(AnalyticsService.debugLogAttempts, 0);
+        },
+      );
 
-      test('enabled=true: a HEART event passes the guard and is attempted', () async {
-        AnalyticsService.enabled = true;
-        await AnalyticsService.logMenuOpened(screen: 'Songs');
-        expect(AnalyticsService.debugLogAttempts, 1);
-      });
+      test(
+        'enabled=true: a HEART event passes the guard and is attempted',
+        () async {
+          AnalyticsService.enabled = true;
+          await AnalyticsService.logMenuOpened(screen: 'Songs');
+          expect(AnalyticsService.debugLogAttempts, 1);
+        },
+      );
     });
     group('Event Data Classes', () {
       test('BandCreatedEventData creates correct event', () {
@@ -79,7 +85,10 @@ void main() {
       });
 
       test('Drum events register with the correct event names', () {
-        expect(AnalyticsEvents.drumPatternImported, equals('drum_pattern_imported'));
+        expect(
+          AnalyticsEvents.drumPatternImported,
+          equals('drum_pattern_imported'),
+        );
         expect(AnalyticsEvents.drumPatternSaved, equals('drum_pattern_saved'));
         expect(AnalyticsEvents.drumPlayStarted, equals('drum_play_started'));
         expect(AnalyticsEvents.drumSyncToggled, equals('drum_sync_toggled'));
@@ -98,7 +107,10 @@ void main() {
       });
 
       test('DrumPatternSavedEventData creates correct event', () {
-        final eventData = DrumPatternSavedEventData(drumPatternId: 'p1', hitCount: 42);
+        final eventData = DrumPatternSavedEventData(
+          drumPatternId: 'p1',
+          hitCount: 42,
+        );
 
         expect(eventData.eventName, AnalyticsEvents.drumPatternSaved);
         expect(eventData.parameters['drum_pattern_id'], equals('p1'));

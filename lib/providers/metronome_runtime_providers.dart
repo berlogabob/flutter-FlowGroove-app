@@ -16,6 +16,7 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import '../config/metronome_feature_flags.dart';
 import '../models/beat_mode.dart';
 import '../models/metronome_state.dart';
+import '../services/audio/backing_engine.dart';
 import '../services/audio/engine/unified_engine_playback_client.dart';
 import '../services/audio/metronome_audio_engine.dart';
 import '../services/audio/wall_clock_scheduler.dart';
@@ -1052,6 +1053,10 @@ class PlatformMetronomePlaybackClient implements MetronomePlaybackClient {
           _isRunning = false;
           _onStopped?.call();
         }
+        return null;
+      case 'backingState':
+      case 'bar':
+        await backingNativeSink?.call(call);
         return null;
     }
     return null;

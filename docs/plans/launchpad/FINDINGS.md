@@ -20,3 +20,6 @@ Not yet measured: click-vs-MIDI offset in ms (needs the diagnostic stem, L29), A
 
 ## Final device pass (before any release)
 P30 and A24: L29 diagnostic recording (offset < 3 ms, drift < 1 ms / 5 min), pads queued/playing, BPM change mid-play, screen off 2 min, Bluetooth connect mid-play, battery exemption tile, web in Chrome with the tab hidden for 60 s.
+| F10 | Release 0.28 build on P30: "Backing tracks" button disabled until a song is loaded; with no song it sits half under the bottom bar and its "Pick a song first" hint is off screen | p30_c.png | L26 (launchpad layout), new task L35 |
+| F11 | Pad tap stays "Starts next bar" forever: native backingState/bar events were never forwarded from the click channel handler to PlatformBackingEngine | P30 08:55, pad Verse 1 queued 6 s+ | fixed: backingNativeSink + test/services/backing_native_sink_test.dart |
+| F12 | Click AudioTrack still "low latency denied; performanceMode=0" after L31 | logcat FlowGrooveMetronome | open: investigate frame size/sample rate vs FAST requirements (48 kHz, small buffer) |

@@ -1,5 +1,6 @@
 /// Tests for CSV parsing and serialization.
 library;
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -46,10 +47,7 @@ void main() {
 
     group('buildKeyString', () {
       test('builds C major', () {
-        final result = SongCsvSchema.buildKeyString(
-          base: 'C',
-          scale: 'major',
-        );
+        final result = SongCsvSchema.buildKeyString(base: 'C', scale: 'major');
         expect(result, equals('C'));
       });
 

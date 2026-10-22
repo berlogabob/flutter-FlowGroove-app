@@ -82,9 +82,26 @@ void main() {
     });
 
     test('per-field picks land in the merged song; tags union', () {
-      final a = _song('a', title: 'Hey Joe', key: 'Em', tags: ['rock'], year: 2020);
-      final b = _song('b', title: 'Hey Joe!', bpm: 82, tags: ['live'], year: 2021);
-      final c = _song('c', title: 'hey joe (cover)', tags: ['rock', 'jam'], year: 2022);
+      final a = _song(
+        'a',
+        title: 'Hey Joe',
+        key: 'Em',
+        tags: ['rock'],
+        year: 2020,
+      );
+      final b = _song(
+        'b',
+        title: 'Hey Joe!',
+        bpm: 82,
+        tags: ['live'],
+        year: 2021,
+      );
+      final c = _song(
+        'c',
+        title: 'hey joe (cover)',
+        tags: ['rock', 'jam'],
+        year: 2022,
+      );
 
       final merged = resolver.mergeCluster(
         [a, b, c],

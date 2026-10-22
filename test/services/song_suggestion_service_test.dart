@@ -1,4 +1,3 @@
-
 import 'package:flowgroove/models/canonical_song.dart';
 import 'package:flowgroove/models/musicbrainz_recording.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
@@ -115,7 +114,6 @@ void main() {
       expect(suggestions, isNotEmpty);
       expect(suggestions.first.artist, 'Metallica');
     });
-
   });
 }
 

@@ -35,8 +35,9 @@ class AudioFocusManager {
     try {
       if (defaultTargetPlatform == TargetPlatform.android) {
         // Android: Use platform channel to request audio focus
-        final result = await const MethodChannel('com.flowgroove/audio')
-            .invokeMethod('requestAudioFocus');
+        final result = await const MethodChannel(
+          'com.flowgroove/audio',
+        ).invokeMethod('requestAudioFocus');
         _hasFocus = result == true;
       } else if (defaultTargetPlatform == TargetPlatform.iOS) {
         // iOS: Audio session is configured at app level
@@ -102,8 +103,9 @@ class AudioFocusManager {
 
     try {
       if (defaultTargetPlatform == TargetPlatform.android) {
-        await const MethodChannel('com.flowgroove/audio')
-            .invokeMethod('abandonAudioFocus');
+        await const MethodChannel(
+          'com.flowgroove/audio',
+        ).invokeMethod('abandonAudioFocus');
       }
 
       _hasFocus = false;

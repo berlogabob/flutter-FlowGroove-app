@@ -39,11 +39,7 @@ void main() {
           body: 'last chorus half-time',
           status: 'active',
         ),
-        entry(
-          LabEntryType.decision,
-          title: 'Old idea',
-          status: 'superseded',
-        ),
+        entry(LabEntryType.decision, title: 'Old idea', status: 'superseded'),
         entry(LabEntryType.note, body: 'riff idea'),
       ],
       tasks: [

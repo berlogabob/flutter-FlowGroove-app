@@ -7,9 +7,12 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   // SoLoud cannot init in the headless test VM; assert the class satisfies the
   // contract and that pushFrames before open is a safe no-op (no throw).
-  test('NativeSoLoudSink is an AudioSink and tolerates pre-open pushFrames', () {
-    final sink = NativeSoLoudSink();
-    expect(sink, isA<AudioSink>());
-    expect(() => sink.pushFrames(Float32List(0)), returnsNormally);
-  });
+  test(
+    'NativeSoLoudSink is an AudioSink and tolerates pre-open pushFrames',
+    () {
+      final sink = NativeSoLoudSink();
+      expect(sink, isA<AudioSink>());
+      expect(() => sink.pushFrames(Float32List(0)), returnsNormally);
+    },
+  );
 }

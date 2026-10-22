@@ -3,7 +3,7 @@ import 'latency_calibration.dart';
 
 class AudioRouteMonitor {
   AudioRouteMonitor({EventChannel? channel})
-      : _channel = channel ?? const EventChannel('com.flowgroove/audio_route');
+    : _channel = channel ?? const EventChannel('com.flowgroove/audio_route');
 
   final EventChannel _channel;
   AudioRoute _current = AudioRoute.speaker;

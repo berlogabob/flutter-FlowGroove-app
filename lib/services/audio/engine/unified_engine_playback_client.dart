@@ -61,10 +61,10 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
     AudioRouteMonitor? routeMonitor,
     this.haptics,
     int sampleRate = 48000,
-  })  : _sampleRate = sampleRate,
-        _renderer = renderer ?? PcmClickRenderer(sampleRate: sampleRate),
-        _sink = sink ?? NativeSoLoudSink(),
-        _routeMonitor = routeMonitor ?? AudioRouteMonitor() {
+  }) : _sampleRate = sampleRate,
+       _renderer = renderer ?? PcmClickRenderer(sampleRate: sampleRate),
+       _sink = sink ?? NativeSoLoudSink(),
+       _routeMonitor = routeMonitor ?? AudioRouteMonitor() {
     _scheduler = MetronomeScheduler(
       sink: _sink,
       renderer: _renderer,
@@ -189,42 +189,45 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
   }
 
   void _subscribeRoute() {
-    _routeSub ??= _routeMonitor.routeChanges.listen((route) {
-      // The platform route emitter sends the CURRENT route immediately on
-      // listen, not only on changes. Treating that first emission as a
-      // device change would trigger a spurious recover() (SoLoud
-      // deinit+reopen) on every start(), causing an audible glitch.
-      if (!_sawFirstRoute) {
-        _sawFirstRoute = true;
+    _routeSub ??= _routeMonitor.routeChanges.listen(
+      (route) {
+        // The platform route emitter sends the CURRENT route immediately on
+        // listen, not only on changes. Treating that first emission as a
+        // device change would trigger a spurious recover() (SoLoud
+        // deinit+reopen) on every start(), causing an audible glitch.
+        if (!_sawFirstRoute) {
+          _sawFirstRoute = true;
+          _route = route;
+          // Resolve the real starting route's latency promptly (well within
+          // the buffer-ahead window), without signalling recovery: nothing
+          // has changed yet, there is nothing to recover from.
+          final config = _config;
+          if (config != null) {
+            _scheduler.update(_renderConfig(config));
+          }
+          return;
+        }
+        if (route == _route) return;
         _route = route;
-        // Resolve the real starting route's latency promptly (well within
-        // the buffer-ahead window), without signalling recovery: nothing
-        // has changed yet, there is nothing to recover from.
+        // Bridge a real route change -> scheduler recovery (rebuilds the
+        // engine on the new default output device).
+        _sink.signalDeviceChanged();
+        // Re-push render config so the renderer uses the new route's latency.
         final config = _config;
         if (config != null) {
           _scheduler.update(_renderConfig(config));
         }
-        return;
-      }
-      if (route == _route) return;
-      _route = route;
-      // Bridge a real route change -> scheduler recovery (rebuilds the
-      // engine on the new default output device).
-      _sink.signalDeviceChanged();
-      // Re-push render config so the renderer uses the new route's latency.
-      final config = _config;
-      if (config != null) {
-        _scheduler.update(_renderConfig(config));
-      }
-    }, onError: (Object error) {
-      // The route EventChannel is registered in Android's MainActivity only;
-      // on iOS/macOS the platform side is missing, so this stream errors
-      // (MissingPluginException). Without onError that escapes to the zone as
-      // an unhandled async error. Playback is unaffected — it just means the
-      // route stays at its default and route-change recovery never fires
-      // there. Registering the channel in AppDelegate.swift is the real fix.
-      debugPrint('[UnifiedEngine] route monitor unavailable: $error');
-    });
+      },
+      onError: (Object error) {
+        // The route EventChannel is registered in Android's MainActivity only;
+        // on iOS/macOS the platform side is missing, so this stream errors
+        // (MissingPluginException). Without onError that escapes to the zone as
+        // an unhandled async error. Playback is unaffected — it just means the
+        // route stays at its default and route-change recovery never fires
+        // there. Registering the channel in AppDelegate.swift is the real fix.
+        debugPrint('[UnifiedEngine] route monitor unavailable: $error');
+      },
+    );
   }
 
   void _startUiTick(MetronomePlaybackConfig config) {
@@ -268,7 +271,10 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
   /// `shouldPlay`; subdivision ticks get a light `tick()`, main-beat ticks
   /// are dispatched by `BeatMode` (accent/normal/silent). Fires regardless of
   /// count-in, same as the legacy client.
-  void _fireHaptics(MetronomePlaybackConfig config, MetronomePlaybackTick tick) {
+  void _fireHaptics(
+    MetronomePlaybackConfig config,
+    MetronomePlaybackTick tick,
+  ) {
     final client = haptics;
     if (client == null || !config.hapticsEnabled || !tick.shouldPlay) {
       return;

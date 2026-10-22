@@ -43,15 +43,14 @@ void main() {
       // If it's not, it should throw StateError.
       if (!engine.isInitialized) {
         expect(
-          () async => engine.playClick(
-            isAccent: true,
-            volume: 0.5,
+          () async => engine.playClick(isAccent: true, volume: 0.5),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('not initialized'),
+            ),
           ),
-          throwsA(isA<StateError>().having(
-            (e) => e.message,
-            'message',
-            contains('not initialized'),
-          )),
         );
       }
     });

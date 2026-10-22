@@ -16,7 +16,6 @@ enum TunerPermissionState {
 }
 
 class PitchSample {
-
   const PitchSample({
     required this.signalState,
     required this.frequencyHz,
@@ -41,7 +40,6 @@ abstract class AudioInput {
 }
 
 class RecordAudioInput implements AudioInput {
-
   RecordAudioInput({AudioRecorder? recorder})
     : _recorder = recorder ?? AudioRecorder();
   final AudioRecorder _recorder;
@@ -200,7 +198,6 @@ class RecordAudioInput implements AudioInput {
 
 /// Cross-platform microphone pitch detector with serialized frame analysis.
 class PitchDetector {
-
   PitchDetector({this._audioInput});
   static const int bufferSize = 4096;
   static const int hopSize = 1024;

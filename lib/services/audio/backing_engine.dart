@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart' show MethodCall;
 
 class BackingStems {
   const BackingStems({
@@ -48,6 +49,9 @@ class BackingState {
   final BackingStateKind kind;
   final int bar;
 }
+
+/// Set by the Android engine; the click client forwards native backing calls here.
+Future<void> Function(MethodCall call)? backingNativeSink;
 
 abstract class BackingEngine {
   Future<int> engineSampleRate();
