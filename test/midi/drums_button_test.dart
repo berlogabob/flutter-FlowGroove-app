@@ -51,15 +51,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Drums button shown without an active song, disabled', (
+  testWidgets('Backing button shown without an active song, tap explains', (
     tester,
   ) async {
     await pumpScreen(tester, const Size(360, 800));
 
     expect(drumsButton, findsOneWidget);
     expect(find.byIcon(Icons.album_outlined), findsOneWidget);
-    expect(tester.widget<OutlinedButton>(drumsButton).enabled, isFalse);
-    expect(find.text('Pick a song first'), findsOneWidget);
+    expect(tester.widget<OutlinedButton>(drumsButton).enabled, isTrue);
+    await tester.ensureVisible(drumsButton);
+    await tester.tap(drumsButton);
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Pick a song first, then add a MIDI file or drum pattern to it',
+      ),
+      findsOneWidget,
+    );
     expect(find.byType(DrumPracticePanel), findsNothing);
     expect(tester.takeException(), isNull);
   });

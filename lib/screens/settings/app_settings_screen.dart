@@ -13,6 +13,7 @@ import '../../providers/theme_mode_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/app_version.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
+import '../../widgets/metronome/reliability_sheet.dart';
 import '../../widgets/support_sheet.dart';
 import '../../widgets/unified_item/setlist_card_actions.dart';
 import '../../widgets/unified_item/song_card_actions.dart';
@@ -241,6 +242,16 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen>
             ]),
             const SizedBox(height: MonoPulseSpacing.lg),
             _section(context, 'Advanced', [
+              ListTile(
+                leading: const Icon(
+                  Icons.battery_charging_full,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Keep timing reliable'),
+                subtitle: const Text('Phone battery setup and manual steps'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => showReliabilitySheet(context),
+              ),
               ListTile(
                 leading: const Icon(
                   Icons.timer_outlined,
