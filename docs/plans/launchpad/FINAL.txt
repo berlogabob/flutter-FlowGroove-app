@@ -1,16 +1,16 @@
 flutter test exit=0
-01:49 +2808 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/event_share_redirect_test.dart: shared event link also opens for a signed-in user
-01:49 +2809 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/event_share_redirect_test.dart: shared event link a signed-out visitor is still bounced off app routes
-01:49 +2810 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/history_restored_extra_test.dart: the-band renders when extra is history-restored JSON
-❌ Analytics Error in band_opened: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
-01:50 +2811 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_add_flows_return_to_band_test.dart: band add flows (cross-branch push) add-song pushed from band-songs returns on back
-01:50 +2811 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/history_restored_extra_test.dart: setlist-view renders when extra is history-restored JSON
 FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
 FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
-01:50 +2812 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_add_flows_return_to_band_test.dart: band add flows (cross-branch push) add-song pushed from band-songs returns on back
-01:50 +2813 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_add_flows_return_to_band_test.dart: band add flows (cross-branch push) create-setlist pushed from band-setlists returns on back
-01:50 +2814 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/branch_stack_observer_test.dart: BranchStackObserver root = depth 0, pushed child = depth 1, pop = depth 0
-01:51 +2815 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/branch_stack_observer_test.dart: BranchStackObserver a re-mounted branch navigator heals a leaked count (logout→login)
-01:51 +2816 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-songs pushed from the-band returns to the-band on back
-01:51 +2817 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-setlists pushed from the-band returns to the-band on back
-01:51 +2818 ~4: All tests passed!
+01:11 +2811 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:11 +2812 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:11 +2813 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:11 +2814 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:11 +2815 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:12 +2816 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:12 +2817 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+Ticks fired: 60 (skipped: 0)
+Cumulative absolute drift: 123ms
+Average drift per tick: 2.05ms
+Max single-tick drift: 3ms
+Final tick drift: 1ms
+01:14 +2818 ~4: All tests passed!
