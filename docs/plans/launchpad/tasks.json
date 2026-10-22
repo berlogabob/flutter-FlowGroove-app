@@ -730,6 +730,65 @@
    "status": "pending",
    "timeout": 1800,
    "suite": true
+  },
+  {
+   "id": "L38",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Re-sync transport state from the engine on resume (F16)",
+   "files": [
+    "android/app/src/main/kotlin/com/flowgroove/app/BackingMixer.kt",
+    "android/app/src/main/kotlin/com/flowgroove/app/MainActivity.kt",
+    "lib/services/audio/backing_engine.dart",
+    "lib/services/audio/backing_engine_platform.dart",
+    "lib/services/audio/backing_engine_factory.dart",
+    "lib/services/audio/backing_engine_stub.dart",
+    "lib/providers/data/backing_transport_provider.dart",
+    "test/providers/backing_resync_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. P30 finding F16: after screen off/on the audio keeps playing but every pad shows Idle because the Dart transport state is lost. Add `Future<BackingSnapshot?> snapshot()` to BackingEngine (BackingSnapshot: int? playingToken, int fromBar, int bars, bool loop, int atBar, int currentBar; null when nothing plays); PlatformBackingEngine implements it via a new 'backingSnapshot' channel method (BackingMixer exposes its current command state, MainActivity maps it); web/stub engines return their own state or null. backingTransportProvider calls snapshot() when it is built and on every AppLifecycleState.resumed (WidgetsBindingObserver registered in build and removed in ref.onDispose) and, if a command is playing, restores playingId (find the span whose startBar == fromBar and bars == bars) and songBar; if the snapshot is null while Dart thinks it is playing, clear playingId/queuedId. It must NEVER stop or restart playback from a lifecycle event. Tests with the fake engine: snapshot with playing command restores playingId; null snapshot clears; resume triggers a second snapshot call.",
+   "verify": "flutter test test/providers/backing_resync_test.dart test/providers && cd android && ./gradlew :app:compileDebugKotlin -q",
+   "after": [
+    "L37"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": true
+  },
+  {
+   "id": "L39",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Backing tracks button never hidden or dead (F10)",
+   "files": [
+    "lib/screens/metronome_screen.dart",
+    "test/screens/backing_button_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. P30 finding F10: on the metronome screen with no song loaded the 'Backing tracks' button is disabled and half hidden under the bottom bar, and its 'Pick a song first' hint is off screen. Make the section part of the scrolling content with bottom padding equal to the bottom bar/safe-area inset so it is always fully visible, keep the button enabled when no song is loaded and make tapping it open the chooser sheet with a first row/message 'Pick a song first, then add a MIDI file or drum pattern to it' instead of disabling it. Test: pump the metronome screen with no song at 360x640 and a 80 px bottom inset, expect the button's rect bottom <= screen height - inset, and tapping it shows the message.",
+   "verify": "flutter test test/screens/backing_button_test.dart test/screens/metronome_screen_test.dart",
+   "after": [
+    "L37"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L40",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Click AudioTrack low-latency path, second attempt (F12)",
+   "files": [
+    "android/app/src/main/kotlin/com/flowgroove/app/MetronomeEngine.kt"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. P30 finding F12: after L31 logcat still shows 'AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 3840' (mono, 48 kHz, 80 ms buffer) and 'AudioTrack low latency denied; performanceMode=0'. Fix the AudioTrack construction in MetronomeEngine so FAST can be granted: buffer frames = 2 x AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER (fall back to 256), sample rate = PROPERTY_OUTPUT_SAMPLE_RATE, PERFORMANCE_MODE_LOW_LATENCY, AudioAttributes USAGE_MEDIA/CONTENT_TYPE_MUSIC with NO flags other than what is needed; if after creation track.getPerformanceMode() != PERFORMANCE_MODE_LOW_LATENCY recreate it once as STEREO (duplicate the mono mix to both channels in the render loop) and log which variant was granted ('FlowGrooveMetronome: FAST granted mono|stereo' or 'FAST denied: <reason>'); keep the render thread chunk size consistent with the new buffer (one chunk <= buffer/2) and keep the BackingMixer frame grid untouched. If the device still denies FAST, behaviour must be unchanged from today (no regression, no crash).",
+   "verify": "cd android && ./gradlew :app:compileDebugKotlin -q && ./gradlew :app:testDebugUnitTest -q",
+   "after": [
+    "L37"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": false
   }
  ]
 }
