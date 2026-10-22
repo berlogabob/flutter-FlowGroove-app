@@ -213,7 +213,12 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                 Tooltip(
                   message: 'Hold to stop at the next bar',
                   child: OutlinedButton(
-                    onPressed: () => unawaited(transport.stop()),
+                    // Tap stops everything (click + backing); hold stops the
+                    // backing at the next bar and leaves the click running.
+                    onPressed: () {
+                      unawaited(transport.stop());
+                      ref.read(metronomeProvider.notifier).stop();
+                    },
                     onLongPress: () => unawaited(transport.stop(atBar: true)),
                     child: const Text('Stop'),
                   ),
