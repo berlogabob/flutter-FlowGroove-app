@@ -216,7 +216,7 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                             )
                           : Tooltip(
                               message: 'Hold to stop at the next bar',
-                              child: FilledButton.tonalIcon(
+                              child: FilledButton.icon(
                                 style: _transportStyle,
                                 // Tap stops everything (click + backing); hold
                                 // stops the backing at the next bar and leaves
@@ -235,8 +235,18 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                     const SizedBox(width: MonoPulseSpacing.sm),
                     Expanded(
                       child: state.loop
-                          ? FilledButton.tonalIcon(
-                              style: _transportStyle,
+                          ? OutlinedButton.icon(
+                              style: _transportStyle.copyWith(
+                                foregroundColor: WidgetStateProperty.all(
+                                  MonoPulseColors.accentOrange,
+                                ),
+                                side: WidgetStateProperty.all(
+                                  const BorderSide(
+                                    color: MonoPulseColors.accentOrange,
+                                    width: MonoPulseBorder.bold,
+                                  ),
+                                ),
+                              ),
                               onPressed: () => transport.setLoop(false),
                               icon: const Icon(Icons.check),
                               label: const Text('Loop'),
