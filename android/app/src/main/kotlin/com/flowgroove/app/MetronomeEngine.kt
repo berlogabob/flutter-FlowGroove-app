@@ -383,7 +383,7 @@ internal class AndroidMetronomeEngine(
                 val lastJ = floor((chunkEnd - epochFrame) / intervalFrames).toLong()
                 var j = firstJ
                 while (j <= lastJ) {
-                    val tickFrame = epochFrame + Math.round(j * intervalFrames)
+                    val tickFrame = absoluteTickFrame(j, active.intervalMicros.toDouble(), sampleRate, epochFrame)
                     if (tickFrame + renderer.voiceLen > chunkStart && tickFrame < chunkEnd) {
                         val listIndex = ((active.initialTick + 1 + j).mod(size.toLong())).toInt()
                         val tick = active.ticks[listIndex]

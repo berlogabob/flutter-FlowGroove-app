@@ -274,7 +274,7 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                     ),
                   ],
                 ),
-                if (kDebugMode)
+                if (kDebugMode || _kSyncTest)
                   OutlinedButton(
                     onPressed: state.rendering
                         ? null
@@ -289,6 +289,9 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
     );
   }
 }
+
+/// flutter build ... --dart-define=SYNC_TEST=true shows the diagnostic in release.
+const _kSyncTest = bool.fromEnvironment('SYNC_TEST');
 
 final _transportStyle = ButtonStyle(
   minimumSize: WidgetStateProperty.all(const Size.fromHeight(52)),

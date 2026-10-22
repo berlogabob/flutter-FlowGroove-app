@@ -4,6 +4,10 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
+/** Frame of absolute tick [index] on the engine grid; click and backing both use this. */
+fun absoluteTickFrame(index: Long, intervalMicros: Double, sampleRate: Int, epochFrame: Long): Long =
+    epochFrame + Math.round(index * (intervalMicros * sampleRate / 1_000_000.0))
+
 /** Uses the same absolute tick grid as MetronomeEngine, without accumulating drift. */
 fun barStartFrame(
     bar: Int,
@@ -11,7 +15,7 @@ fun barStartFrame(
     intervalMicros: Double,
     sampleRate: Int,
     epochFrame: Long
-): Long = epochFrame + Math.round(bar.toLong() * ticksPerBar * (intervalMicros * sampleRate / 1_000_000.0))
+): Long = absoluteTickFrame(bar.toLong() * ticksPerBar, intervalMicros, sampleRate, epochFrame)
 
 /** Mono, additive backing playback on the engine's absolute frame grid. */
 class BackingMixer(val sampleRate: Int) {
