@@ -157,7 +157,8 @@ internal class AndroidMetronomeEngine(
         .getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER)
         ?.toIntOrNull()
         ?.takeIf { it > 0 } ?: 256
-    private val chunkFrames = burstFrames * 2
+    private val bufferFrames = burstFrames * 2
+    private val chunkFrames = burstFrames
 
     private class PlaybackLatency(val running: AtomicBoolean) {
         @Volatile var millis = -1
@@ -335,8 +336,9 @@ internal class AndroidMetronomeEngine(
         initial: NativeMetronomeConfig,
         latency: PlaybackLatency
     ) {
+        val channelCount = track.channelCount
         val scratch = DoubleArray(chunkFrames)
-        val pcm = ShortArray(chunkFrames)
+        val pcm = ShortArray(chunkFrames * channelCount)
         // (audibleFrame, tickIndex, shouldVibrate) for ticks awaiting UI dispatch.
         val uiQueue = ArrayDeque<Triple<Long, Int, Boolean>>()
         val barQueue = ArrayDeque<Pair<Long, Int>>()
@@ -420,14 +422,22 @@ internal class AndroidMetronomeEngine(
             }
 
             for (i in 0 until chunkFrames) {
-                pcm[i] = (scratch[i].coerceIn(-1.0, 1.0) * 32767.0).toInt().toShort()
+                val sample = (scratch[i].coerceIn(-1.0, 1.0) * 32767.0).toInt().toShort()
+                for (channel in 0 until channelCount) {
+                    pcm[i * channelCount + channel] = sample
+                }
             }
-            val written = track.write(pcm, 0, chunkFrames)
-            if (written < 0) {
-                Log.e(TAG, "AudioTrack write error: $written")
-                break
+            var offset = 0
+            while (offset < pcm.size && running.get()) {
+                val written = track.write(pcm, offset, pcm.size - offset)
+                if (written <= 0) {
+                    Log.e(TAG, "AudioTrack write error: $written")
+                    running.set(false)
+                    break
+                }
+                offset += written
             }
-            framesWritten += written
+            framesWritten += offset / channelCount
 
                 val now = System.nanoTime()
                 if (now >= nextTimestampNanos) {
@@ -472,46 +482,69 @@ internal class AndroidMetronomeEngine(
     }
 
     private fun buildTrack(): AudioTrack? {
-        val bufferFrames = burstFrames * 4
-        val bufferBytes = bufferFrames * 2 // 16-bit mono
-
-        val builder = AudioTrack.Builder()
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
-            .setAudioFormat(
-                AudioFormat.Builder()
-                    .setSampleRate(sampleRate)
-                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                    .build()
-            )
-            .setBufferSizeInBytes(bufferBytes)
-            .setTransferMode(AudioTrack.MODE_STREAM)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
+        val mono = buildTrack(AudioFormat.CHANNEL_OUT_MONO) ?: return null
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            Log.w(TAG, "FAST denied: performance mode unavailable before API 26")
+            return mono
+        }
+        if (mono.performanceMode == AudioTrack.PERFORMANCE_MODE_LOW_LATENCY) {
+            Log.i(TAG, "FAST granted mono")
+            return mono
         }
 
+        // Keep the working mono track if the device cannot initialize stereo.
+        val stereo = buildTrack(AudioFormat.CHANNEL_OUT_STEREO)
+        if (stereo == null) {
+            Log.w(TAG, "FAST denied: mono performanceMode=${mono.performanceMode}; stereo init failed")
+            return mono
+        }
+        mono.release()
+        if (stereo.performanceMode == AudioTrack.PERFORMANCE_MODE_LOW_LATENCY) {
+            Log.i(TAG, "FAST granted stereo")
+        } else {
+            Log.w(TAG, "FAST denied: mono and stereo low latency denied; performanceMode=${stereo.performanceMode}")
+        }
+        return stereo
+    }
+
+    private fun buildTrack(channelMask: Int): AudioTrack? {
+        val channelCount = if (channelMask == AudioFormat.CHANNEL_OUT_MONO) 1 else 2
+        val bufferBytes = bufferFrames * channelCount * 2 // 16-bit PCM
+
         return try {
+            val builder = AudioTrack.Builder()
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .build()
+                )
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setSampleRate(sampleRate)
+                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                        .setChannelMask(channelMask)
+                        .build()
+                )
+                .setBufferSizeInBytes(bufferBytes)
+                .setTransferMode(AudioTrack.MODE_STREAM)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
+            }
+
             val track = builder.build()
             if (track.state != AudioTrack.STATE_INITIALIZED) {
                 track.release()
+                Log.w(TAG, "FAST denied: AudioTrack uninitialized; channelMask=$channelMask")
                 null
             } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     track.setBufferSizeInFrames(bufferFrames)
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    track.performanceMode != AudioTrack.PERFORMANCE_MODE_LOW_LATENCY) {
-                    Log.w(TAG, "AudioTrack low latency denied; performanceMode=${track.performanceMode}")
-                }
                 track
             }
         } catch (e: Exception) {
-            Log.e(TAG, "AudioTrack build failed", e)
+            Log.e(TAG, "FAST denied: AudioTrack build failed; channelMask=$channelMask", e)
             null
         }
     }
