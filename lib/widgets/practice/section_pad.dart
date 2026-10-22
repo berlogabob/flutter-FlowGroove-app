@@ -37,7 +37,8 @@ class SectionPad extends StatelessWidget {
     final radius = BorderRadius.circular(MonoPulseRadius.large);
 
     return Semantics(
-      label: '$name, ${padStateLabel(state)}',
+      label:
+          '$name, ${state == PadState.queued ? 'Starts ${queuedLabel.toLowerCase()}' : padStateLabel(state)}',
       button: true,
       onTap: onTap,
       onLongPress: onLongPress,

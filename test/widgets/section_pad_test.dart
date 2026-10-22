@@ -51,6 +51,10 @@ void main() {
         ),
       );
       expect(find.text('Next block'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('Chorus, Starts next block'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('fills the width it is given regardless of label', (

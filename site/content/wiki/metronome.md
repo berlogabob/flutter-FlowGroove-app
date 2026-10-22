@@ -39,3 +39,6 @@ and the backing always play from one clock, so they stay in time.
     at the next bar.
 
 A pad that is waiting shows what it is waiting for ("Next bar", "Next block").
+
+The MIDI file of a song is kept on your phone after the first time it loads, so
+the launchpad also opens with no network. Open each gig song once while online.
