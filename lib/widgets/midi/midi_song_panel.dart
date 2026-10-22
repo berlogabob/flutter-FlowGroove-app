@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -40,12 +39,11 @@ class MidiSongPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (kIsWeb) return const SizedBox.shrink();
-
     final effectiveBandId = bandId ?? entry.bandId;
     ref.watch(_loadMidiSongProvider((entry, effectiveBandId)));
     final state = ref.watch(midiSongPracticeProvider(entry));
     final practice = ref.read(midiSongPracticeProvider(entry).notifier);
+    final useBackingTransport = practice.usesBackingTransport;
     final metronome = ref.watch(metronomeProvider);
 
     return DraggableScrollableSheet(
@@ -59,7 +57,11 @@ class MidiSongPanel extends ConsumerWidget {
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           children: [
             Text(
-              entry.title?.isNotEmpty == true ? entry.title! : 'MIDI song',
+              useBackingTransport
+                  ? 'Mixer'
+                  : entry.title?.isNotEmpty == true
+                  ? entry.title!
+                  : 'MIDI song',
               style: MonoPulseTypography.titleLarge,
             ),
             Text(
@@ -129,15 +131,16 @@ class MidiSongPanel extends ConsumerWidget {
                 ),
               ),
             const SizedBox(height: MonoPulseSpacing.md),
-            FilledButton.icon(
-              onPressed:
-                  metronome.isPlaying ||
-                      (!state.loading && state.tracks.isNotEmpty)
-                  ? () => ref.read(metronomeProvider.notifier).toggle()
-                  : null,
-              icon: Icon(metronome.isPlaying ? Icons.stop : Icons.play_arrow),
-              label: Text(metronome.isPlaying ? 'Stop' : 'Play'),
-            ),
+            if (!useBackingTransport)
+              FilledButton.icon(
+                onPressed:
+                    metronome.isPlaying ||
+                        (!state.loading && state.tracks.isNotEmpty)
+                    ? () => ref.read(metronomeProvider.notifier).toggle()
+                    : null,
+                icon: Icon(metronome.isPlaying ? Icons.stop : Icons.play_arrow),
+                label: Text(metronome.isPlaying ? 'Stop' : 'Play'),
+              ),
           ],
         ),
       ),

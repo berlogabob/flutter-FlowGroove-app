@@ -3,7 +3,9 @@ import 'dart:typed_data';
 
 import 'package:flowgroove/models/metronome_state.dart';
 import 'package:flowgroove/models/midi_song.dart';
+import 'package:flowgroove/models/section_span.dart';
 import 'package:flowgroove/models/song_lab.dart';
+import 'package:flowgroove/providers/data/backing_transport_provider.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/providers/data/midi_song_practice_provider.dart';
 import 'package:flowgroove/providers/data/midi_song_provider.dart';
@@ -12,12 +14,17 @@ import 'package:flowgroove/services/audio/midi/midi_track_renderer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'backing_transport_test.dart' show FakeBackingEngine;
+
 class _Metronome extends MetronomeNotifier {
   @override
   MetronomeState build() => MetronomeState.initial().copyWith(bpm: 120);
 
   void playing({required bool value}) =>
       state = state.copyWith(isPlaying: value);
+  @override
+  void start() => playing(value: true);
+
   void bpm(int value) => state = state.copyWith(bpm: value);
 }
 
@@ -113,6 +120,7 @@ Future<void> _until(bool Function() condition) async {
 void main() {
   late ProviderContainer container;
   late _Player player;
+  late FakeBackingEngine engine;
   late _Metronome metronome;
   late SongLabEntry entry;
   late MidiSongPracticeNotifier notifier;
@@ -124,6 +132,7 @@ void main() {
       container.read(midiSongPracticeProvider(entry));
 
   setUp(() {
+    engine = FakeBackingEngine();
     player = _Player();
     metronome = _Metronome();
     failFetch = false;
@@ -158,6 +167,8 @@ void main() {
     );
     container = ProviderContainer(
       overrides: [
+        backingEngineProvider.overrideWithValue(engine),
+        useBackingTransportProvider.overrideWithValue(false),
         metronomeProvider.overrideWith(() => metronome),
         midiSongPlayerProvider.overrideWith((ref, entry) => player),
         midiSongBytesFetcherProvider.overrideWithValue((url) async {
@@ -172,7 +183,149 @@ void main() {
     addTearDown(() async {
       container.dispose();
       await pumpEventQueue();
+      await engine.dispose();
     });
+  });
+
+  Future<void> useBacking() async {
+    container.dispose();
+    await pumpEventQueue();
+    metronome = _Metronome();
+    container = ProviderContainer(
+      overrides: [
+        backingEngineProvider.overrideWithValue(engine),
+        useBackingTransportProvider.overrideWithValue(true),
+        metronomeProvider.overrideWith(() => metronome),
+        midiSongPlayerProvider.overrideWith(
+          (ref, entry) => throw StateError('Legacy player must not be created'),
+        ),
+        midiSongBytesFetcherProvider.overrideWithValue((url) async => _smf()),
+      ],
+    )..listen(midiSongPracticeProvider(entry), (_, _) {});
+    notifier = container.read(midiSongPracticeProvider(entry).notifier);
+    await notifier.loadEntry();
+    expect(current().error, isNull);
+  }
+
+  test(
+    'backing path parses roles and attaches without starting audio',
+    () async {
+      await useBacking();
+      expect(current().tracks.map((track) => track.index), [1, 2]);
+      expect(current().tracks.first.effectiveRole, MidiRole.bass);
+      expect(current().tracks.first.volume, 0.4);
+      expect(engine.loads.single.names, ['Bass', 'Harmony']);
+      expect(engine.gains, {0: 1, 1: 1});
+      expect(engine.commands, isEmpty);
+      expect(current().loading, isFalse);
+    },
+  );
+
+  test('backing mixer applies per-track volume, mute and solo', () async {
+    await useBacking();
+    final original = engine.loads.single.stems.first.toList();
+    notifier.setVolume(0, 0);
+    await _until(() => engine.loads.length == 2 && !current().loading);
+    expect(
+      engine.loads.last.stems.first.every((sample) => sample == 0),
+      isTrue,
+    );
+    notifier
+      ..setVolume(0, 0.4)
+      ..setMute(1, mute: true);
+    await _until(() => engine.loads.length == 3 && !current().loading);
+    expect(engine.loads.last.names, ['Bass']);
+    expect(engine.loads.last.stems.first, orderedEquals(original));
+    notifier
+      ..setMute(1, mute: false)
+      ..toggleSolo(1);
+    await _until(() => engine.loads.length == 4 && !current().loading);
+    expect(current().soloed, {1});
+    expect(
+      engine.loads.last.stems.first.every((sample) => sample == 0),
+      isTrue,
+    );
+    expect(engine.loads.last.stems.last.any((sample) => sample != 0), isTrue);
+    expect(engine.commands, isEmpty);
+  });
+
+  test(
+    'tracks sharing a backing stem retain independent mute and solo',
+    () async {
+      final bass = entry.midiSong!.tracks.single;
+      entry = entry.copyWith(
+        midiSong: entry.midiSong!.copyWith(
+          tracks: [bass, bass.copyWith(index: 2, channel: 1, volume: 0.8)],
+        ),
+      );
+      await useBacking();
+      expect(engine.loads.single.names, ['Bass']);
+      notifier.setMute(1, mute: true);
+      await _until(() => engine.loads.length == 2 && !current().loading);
+      final firstOnly = engine.loads.last.stems.single.toList();
+      expect(firstOnly.any((sample) => sample != 0), isTrue);
+      notifier
+        ..setMute(1, mute: false)
+        ..toggleSolo(0);
+      await _until(() => engine.loads.length == 3 && !current().loading);
+      expect(engine.loads.last.stems.single, orderedEquals(firstOnly));
+      expect(current().tracks[1].mute, isFalse);
+      expect(current().tracks[1].volume, 0.8);
+    },
+  );
+
+  test(
+    'backing attach and persisted edits preserve spans and file tempo',
+    () async {
+      const span = SectionSpan(sectionId: 'verse', startBar: 3, bars: 2);
+      entry = entry.copyWith(
+        midiSong: entry.midiSong!.copyWith(
+          sectionMap: [span],
+          useFileTempo: true,
+        ),
+      );
+      await useBacking();
+      final saved = <SongLabEntry>[];
+      await notifier.loadEntry(onPersist: saved.add);
+      expect(container.read(backingTransportProvider).spans, [span]);
+      metronome.bpm(180);
+      await _until(() => engine.loads.length == 3 && !current().loading);
+      expect(engine.loads.last.renderBpm, 120);
+      notifier.setVolume(0, 0.6);
+      await pumpEventQueue();
+      expect(saved.single.midiSong!.sectionMap, [span]);
+      expect(saved.single.midiSong!.useFileTempo, isTrue);
+    },
+  );
+
+  test('big Play launches backing once and Stop uses the transport', () async {
+    await useBacking();
+    metronome.playing(value: true);
+    await _until(() => engine.commands.isNotEmpty);
+    expect(engine.commands, hasLength(1));
+    engine.playing(engine.commands.single);
+    expect(current().playing, isTrue);
+    metronome.playing(value: false);
+    await pumpEventQueue();
+    expect(engine.commands, hasLength(2));
+    expect(current().playing, isFalse);
+  });
+
+  test('pad launch does not also launch the first span', () async {
+    await useBacking();
+    await container.read(backingTransportProvider.notifier).launch('song');
+    await pumpEventQueue();
+    expect(engine.commands, hasLength(1));
+    expect(container.read(metronomeProvider).isPlaying, isTrue);
+  });
+
+  test('backing tempo changes are rendered only by the transport', () async {
+    await useBacking();
+    metronome.bpm(180);
+    await _until(() => engine.loads.length == 2 && !current().loading);
+    expect(engine.loads.last.renderBpm, 180);
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    expect(engine.loads, hasLength(2));
   });
 
   test(
@@ -216,6 +369,8 @@ void main() {
     player = _Player();
     container = ProviderContainer(
       overrides: [
+        backingEngineProvider.overrideWithValue(engine),
+        useBackingTransportProvider.overrideWithValue(false),
         metronomeProvider.overrideWith(() => metronome),
         midiSongPlayerProvider.overrideWith((ref, entry) => player),
         midiSongProvider(entry).overrideWith((ref) async => song),
