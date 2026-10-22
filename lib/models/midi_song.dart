@@ -69,6 +69,7 @@ class MidiTrackData {
     required this.channel,
     required this.program,
     required this.notes,
+    this.hasTrackName = true,
   });
 
   final int index;
@@ -76,6 +77,8 @@ class MidiTrackData {
   final int channel;
   final int program;
   final List<MidiNote> notes;
+  // Distinguishes file names from the parser's numbered placeholder.
+  final bool hasTrackName;
 
   int get noteCount => notes.length;
   int get minPitch => notes.isEmpty

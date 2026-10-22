@@ -36,6 +36,7 @@ MidiSongData parseSmfSong(Uint8List bytes) {
     if (chunkType != 0x4D54726B) continue;
     final index = tracksRead++;
     var name = 'Track ${index + 1}';
+    var hasTrackName = false;
     var tick = 0;
     var runningStatus = 0;
     final programs = List<int>.filled(16, 0);
@@ -107,7 +108,10 @@ MidiSongData parseSmfSong(Uint8List bytes) {
           ));
         } else if (type == 0x03) {
           final trackName = utf8.decode(data.bytes, allowMalformed: true);
-          if (trackName.isNotEmpty) name = trackName;
+          if (trackName.isNotEmpty) {
+            name = trackName;
+            hasTrackName = true;
+          }
         } else if (type == 0x2F) {
           if (length != 0) {
             throw const FormatException('Invalid end-of-track length');
@@ -157,6 +161,7 @@ MidiSongData parseSmfSong(Uint8List bytes) {
         MidiTrackData(
           index: index,
           name: name,
+          hasTrackName: hasTrackName,
           channel: channel,
           program: notePrograms[channel]!,
           notes: channelNotes,
