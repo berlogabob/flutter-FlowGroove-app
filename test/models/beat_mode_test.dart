@@ -168,15 +168,14 @@ void main() {
       required BeatMode mode,
       required bool isMainBeat,
       bool accentEnabled = true,
-    }) =>
-        resolveClickFrequency(
-          mode: mode,
-          isMainBeat: isMainBeat,
-          accentEnabled: accentEnabled,
-          primaryFrequency: 1600,
-          subdivisionFrequency: 800,
-          accentFrequency: 2000,
-        );
+    }) => resolveClickFrequency(
+      mode: mode,
+      isMainBeat: isMainBeat,
+      accentEnabled: accentEnabled,
+      primaryFrequency: 1600,
+      subdivisionFrequency: 800,
+      accentFrequency: 2000,
+    );
 
     test('main beat uses the primary pitch when accents are enabled', () {
       expect(freq(mode: BeatMode.normal, isMainBeat: true), 1600);
@@ -186,15 +185,21 @@ void main() {
       expect(freq(mode: BeatMode.normal, isMainBeat: false), 800);
     });
 
-    test('marked-accent cell uses the dedicated accent pitch, even off-beat', () {
-      expect(freq(mode: BeatMode.accent, isMainBeat: false), 2000);
-      expect(freq(mode: BeatMode.accent, isMainBeat: true), 2000);
-    });
+    test(
+      'marked-accent cell uses the dedicated accent pitch, even off-beat',
+      () {
+        expect(freq(mode: BeatMode.accent, isMainBeat: false), 2000);
+        expect(freq(mode: BeatMode.accent, isMainBeat: true), 2000);
+      },
+    );
 
-    test('accent pitch is independent of the primary pitch on the main beat', () {
-      expect(freq(mode: BeatMode.accent, isMainBeat: true), 2000);
-      expect(freq(mode: BeatMode.normal, isMainBeat: true), 1600);
-    });
+    test(
+      'accent pitch is independent of the primary pitch on the main beat',
+      () {
+        expect(freq(mode: BeatMode.accent, isMainBeat: true), 2000);
+        expect(freq(mode: BeatMode.normal, isMainBeat: true), 1600);
+      },
+    );
 
     test('main beat falls back to subdivision pitch when accents disabled', () {
       expect(

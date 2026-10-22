@@ -343,64 +343,64 @@ class _InteractiveDialState extends State<_InteractiveDial> {
       // exact value is read from the note/frequency readout in the center.
       label: 'Tuning dial, drag to adjust the reference pitch',
       child: GestureDetector(
-      onPanStart: _onPanStart,
-      onPanUpdate: _onPanUpdate,
-      onPanEnd: _onPanEnd,
-      child: Container(
-        width: widget.size,
-        height: widget.size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: context.mp.surface,
-          border: Border.all(color: context.mp.borderSubtle),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Radial gradient lens effect — painted FIRST: its tokens are
-            // fully opaque, so anything below it in this Stack is invisible.
-            _RadialGradientOverlay(size: widget.size),
+        onPanStart: _onPanStart,
+        onPanUpdate: _onPanUpdate,
+        onPanEnd: _onPanEnd,
+        child: Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: context.mp.surface,
+            border: Border.all(color: context.mp.borderSubtle),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Radial gradient lens effect — painted FIRST: its tokens are
+              // fully opaque, so anything below it in this Stack is invisible.
+              _RadialGradientOverlay(size: widget.size),
 
-            // Center frequency/note display
-            _FrequencyDisplay(
-              note: widget.note,
-              frequency: widget.frequency,
-              cents: widget.cents,
-              mode: widget.mode,
-              size: widget.size,
-              hasValidPitch: widget.hasValidPitch,
-              isInTune: widget.isInTune,
-              isListening: widget.isListening,
-              isStarting: widget.isStarting,
-              signalLabel: widget.signalLabel,
-            ),
+              // Center frequency/note display
+              _FrequencyDisplay(
+                note: widget.note,
+                frequency: widget.frequency,
+                cents: widget.cents,
+                mode: widget.mode,
+                size: widget.size,
+                hasValidPitch: widget.hasValidPitch,
+                isInTune: widget.isInTune,
+                isListening: widget.isListening,
+                isStarting: widget.isStarting,
+                signalLabel: widget.signalLabel,
+              ),
 
-            // Handle or needle based on mode
-            if (widget.mode == TunerMode.generate)
-              // Generate mode: rotating handle based on frequency
-              Transform.rotate(
-                angle: TunerDialGeometry.rotationForFrequency(
-                  widget.frequency,
-                  widget.referenceA4,
-                ),
-                child: _EdgeHandle(size: widget.size),
-              )
-            else if (widget.mode == TunerMode.listen &&
-                widget.targetNoteIndex != null)
-              // Manual mode: handle points to selected note position (chromatic)
-              Transform.rotate(
-                angle: TunerDialGeometry.rotationForNoteIndex(
-                  widget.targetNoteIndex!,
-                ),
-                child: _EdgeHandle(size: widget.size),
-              )
-            else if (widget.hasValidPitch)
-              // Listen mode: needle indicator for cents
-              _NeedleIndicator(cents: widget.cents, size: widget.size),
-          ],
+              // Handle or needle based on mode
+              if (widget.mode == TunerMode.generate)
+                // Generate mode: rotating handle based on frequency
+                Transform.rotate(
+                  angle: TunerDialGeometry.rotationForFrequency(
+                    widget.frequency,
+                    widget.referenceA4,
+                  ),
+                  child: _EdgeHandle(size: widget.size),
+                )
+              else if (widget.mode == TunerMode.listen &&
+                  widget.targetNoteIndex != null)
+                // Manual mode: handle points to selected note position (chromatic)
+                Transform.rotate(
+                  angle: TunerDialGeometry.rotationForNoteIndex(
+                    widget.targetNoteIndex!,
+                  ),
+                  child: _EdgeHandle(size: widget.size),
+                )
+              else if (widget.hasValidPitch)
+                // Listen mode: needle indicator for cents
+                _NeedleIndicator(cents: widget.cents, size: widget.size),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -454,7 +454,6 @@ class _InteractiveDialState extends State<_InteractiveDial> {
     });
     HapticFeedback.lightImpact();
   }
-
 }
 
 class _FrequencyDisplay extends StatelessWidget {

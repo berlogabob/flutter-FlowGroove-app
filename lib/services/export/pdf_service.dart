@@ -21,7 +21,14 @@ import '../analytics_service.dart';
 /// songs highlighted (needs `performerId`).
 /// [cheatSheet] = ALL songs on one A4 page, two columns: key/scale, BPM,
 /// time signature and the chord progression per section — the stage crib.
-enum SetlistPdfLayout { detailed, compact, pack, eventGuide, performer, cheatSheet }
+enum SetlistPdfLayout {
+  detailed,
+  compact,
+  pack,
+  eventGuide,
+  performer,
+  cheatSheet,
+}
 
 class PdfService {
   /// Hands the finished PDF to the platform.
@@ -39,12 +46,36 @@ class PdfService {
   /// "Roumé" into "Roum" and "André" into "Andr" in exported filenames. Dart has
   /// no Unicode normalisation in core, so map the Latin-1 range explicitly.
   static const _deaccent = {
-    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a',
-    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
-    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
-    'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
-    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
-    'ç': 'c', 'ñ': 'n', 'ý': 'y', 'ÿ': 'y', 'ß': 'ss', 'æ': 'ae', 'ø': 'o',
+    'à': 'a',
+    'á': 'a',
+    'â': 'a',
+    'ã': 'a',
+    'ä': 'a',
+    'å': 'a',
+    'è': 'e',
+    'é': 'e',
+    'ê': 'e',
+    'ë': 'e',
+    'ì': 'i',
+    'í': 'i',
+    'î': 'i',
+    'ï': 'i',
+    'ò': 'o',
+    'ó': 'o',
+    'ô': 'o',
+    'õ': 'o',
+    'ö': 'o',
+    'ù': 'u',
+    'ú': 'u',
+    'û': 'u',
+    'ü': 'u',
+    'ç': 'c',
+    'ñ': 'n',
+    'ý': 'y',
+    'ÿ': 'y',
+    'ß': 'ss',
+    'æ': 'ae',
+    'ø': 'o',
   };
 
   /// Filename-safe title: drops anything a `download` attribute would choke on.
@@ -78,9 +109,7 @@ class PdfService {
     int? timeTop,
     bool fitOnePage = false,
   }) async {
-    unawaited(
-      AnalyticsService.logPdfExported(itemType: 'song', itemCount: 1),
-    );
+    unawaited(AnalyticsService.logPdfExported(itemType: 'song', itemCount: 1));
     final pdf = pw.Document();
     final font = await PdfGoogleFonts.robotoRegular();
     final fontBold = await PdfGoogleFonts.robotoBold();
@@ -234,14 +263,20 @@ class PdfService {
             children: [
               pw.Text(
                 setlist.name,
-                style: pw.TextStyle(font: fontBold, fontSize: firstPage ? 24 : 14),
+                style: pw.TextStyle(
+                  font: fontBold,
+                  fontSize: firstPage ? 24 : 14,
+                ),
               ),
               if (performer != null)
                 pw.Text(
                   performer.role.isEmpty
                       ? performer.name
                       : '${performer.name} — ${performer.role}',
-                  style: pw.TextStyle(font: fontBold, fontSize: firstPage ? 13 : 11),
+                  style: pw.TextStyle(
+                    font: fontBold,
+                    fontSize: firstPage ? 13 : 11,
+                  ),
                 ),
               if (firstPage && setlist.description != null) ...[
                 pw.SizedBox(height: 4),
@@ -546,8 +581,8 @@ class PdfService {
                         color: PdfColor.fromHex('B0B0B0'),
                       ),
                     ),
-                    if (performerLabel(item.performerIds, lineup)
-                        case final who when who.isNotEmpty) ...[
+                    if (performerLabel(item.performerIds, lineup) case final who
+                        when who.isNotEmpty) ...[
                       pw.SizedBox(height: 4),
                       pw.Text(
                         who,
@@ -712,11 +747,7 @@ class PdfService {
                 width: 22,
                 child: pw.Text(
                   '$n.',
-                  style: pw.TextStyle(
-                    font: fontBold,
-                    fontSize: 11,
-                    color: ink,
-                  ),
+                  style: pw.TextStyle(font: fontBold, fontSize: 11, color: ink),
                 ),
               ),
               pw.Expanded(

@@ -42,7 +42,6 @@ class SongDeltaField {
 /// This is intentionally not a generic JSON Patch. It only permits fields the
 /// app knows how to merge into a [Song] read model.
 class SongDelta extends Equatable {
-
   SongDelta({Map<String, dynamic> values = const {}})
     : values = Map.unmodifiable(_sanitize(values));
 

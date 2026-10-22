@@ -83,10 +83,25 @@ void main() {
     // This is the crash guard. If _parseKey ever emits a base or modifier the
     // dropdown has no item for, the edit form throws.
     const realWorldKeys = [
-      'C', 'D', 'E', 'F', 'G', 'A', 'B',
-      'F#', 'C#', 'Ab', 'Bb', 'Gb',
-      'Am', 'Em', 'dm', 'em',
-      'C#m', 'Abm', 'Bbm',
+      'C',
+      'D',
+      'E',
+      'F',
+      'G',
+      'A',
+      'B',
+      'F#',
+      'C#',
+      'Ab',
+      'Bb',
+      'Gb',
+      'Am',
+      'Em',
+      'dm',
+      'em',
+      'C#m',
+      'Abm',
+      'Bbm',
     ];
 
     for (final key in realWorldKeys) {
@@ -95,7 +110,8 @@ void main() {
         expect(
           _pickerBases,
           contains(form.originalKeyBase),
-          reason: 'base "${form.originalKeyBase}" from "$key" has no dropdown item',
+          reason:
+              'base "${form.originalKeyBase}" from "$key" has no dropdown item',
         );
         expect(
           _pickerModifiers,

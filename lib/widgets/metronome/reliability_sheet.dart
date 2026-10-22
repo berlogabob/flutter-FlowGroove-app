@@ -6,6 +6,7 @@ import '../../theme/mono_pulse_theme.dart';
 Future<void> showReliabilitySheet(
   BuildContext context, {
   PowerReliability? power,
+  String? notice,
 }) async {
   final reliability = power ?? PowerReliability();
   final family = await reliability.family();
@@ -33,6 +34,14 @@ Future<void> showReliabilitySheet(
               'Keep timing reliable',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
+            if (notice != null) ...[
+              const SizedBox(height: MonoPulseSpacing.md),
+              Text(
+                notice,
+                key: const Key('reliability-notice'),
+                style: const TextStyle(color: MonoPulseColors.accentOrange),
+              ),
+            ],
             const SizedBox(height: MonoPulseSpacing.md),
             const Text(
               'Some phones stop audio apps when the screen turns off. Concerts need exact timing.',

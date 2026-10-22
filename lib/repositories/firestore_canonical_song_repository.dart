@@ -7,7 +7,6 @@ import 'canonical_song_repository.dart';
 /// Provides Firestore-based data access for canonical songs.
 /// Includes query optimization, error handling, and data validation.
 class FirestoreCanonicalSongRepository implements CanonicalSongRepository {
-
   FirestoreCanonicalSongRepository({FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
   final FirebaseFirestore _firestore;
@@ -238,7 +237,6 @@ class FirestoreCanonicalSongRepository implements CanonicalSongRepository {
 
 /// Exception thrown by repository operations
 class RepositoryException implements Exception {
-
   const RepositoryException(this.message, {this.originalError});
   final String message;
   final dynamic originalError;

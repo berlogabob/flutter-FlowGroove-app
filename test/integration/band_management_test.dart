@@ -113,9 +113,7 @@ void main() {
         expect(band.memberUids, contains('viewer-1'));
       });
 
-      testWidgets('INT-BAND-01.5: Band copyWith updates name', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.5: Band copyWith updates name', (tester) async {
         // Arrange
         final originalBand = Band(
           id: const Uuid().v4(),
@@ -157,9 +155,7 @@ void main() {
         expect(updatedBand.name, equals(originalBand.name));
       });
 
-      testWidgets('INT-BAND-01.7: Band copyWith adds members', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.7: Band copyWith adds members', (tester) async {
         // Arrange
         final originalBand = Band(
           id: const Uuid().v4(),
@@ -233,9 +229,7 @@ void main() {
         expect(band.name, equals('Test Band'));
       });
 
-      testWidgets('INT-BAND-01.10: Band member with email', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.10: Band member with email', (tester) async {
         // Arrange
         final member = BandMember(
           uid: 'user-1',
@@ -281,9 +275,7 @@ void main() {
     // MEMBER MANAGEMENT TESTS
     // =========================================================================
     group('Member Management Tests', () {
-      testWidgets('INT-BAND-01.12: Add member to band', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.12: Add member to band', (tester) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -309,9 +301,7 @@ void main() {
         expect(updatedBand.memberUids, contains('new-user-id'));
       });
 
-      testWidgets('INT-BAND-01.13: Remove member from band', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.13: Remove member from band', (tester) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -335,9 +325,7 @@ void main() {
         expect(updatedBand.memberUids, isNot(contains('user-to-remove')));
       });
 
-      testWidgets('INT-BAND-01.14: Change member role', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.14: Change member role', (tester) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -362,9 +350,7 @@ void main() {
         expect(updatedBand.adminUids, isEmpty);
       });
 
-      testWidgets('INT-BAND-01.15: Multiple admins supported', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.15: Multiple admins supported', (tester) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -384,9 +370,7 @@ void main() {
         expect(band.adminUids, contains('admin-2'));
       });
 
-      testWidgets('INT-BAND-01.16: Band with many members', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.16: Band with many members', (tester) async {
         // Arrange & Act: Create band with 10 members
         final members = List.generate(
           10,
@@ -431,9 +415,7 @@ void main() {
         expect(band.name, equals(r'Test Band @ # $!'));
       });
 
-      testWidgets('INT-BAND-01.18: Very long band name', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.18: Very long band name', (tester) async {
         // Arrange
         final longName = 'A' * 100;
         final band = Band(
@@ -473,9 +455,7 @@ void main() {
         expect(band1.id, isNot(equals(band2.id)));
       });
 
-      testWidgets('INT-BAND-01.20: Empty band members list', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.20: Empty band members list', (tester) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -527,9 +507,7 @@ void main() {
         expect(member.email, isNull);
       });
 
-      testWidgets('INT-BAND-01.23: Invite code uniqueness', (
-        tester,
-      ) async {
+      testWidgets('INT-BAND-01.23: Invite code uniqueness', (tester) async {
         // Arrange & Act: Generate 100 codes
         final codes = <String>{};
         for (int i = 0; i < 100; i++) {

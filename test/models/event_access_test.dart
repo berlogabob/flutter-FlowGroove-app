@@ -46,7 +46,11 @@ void main() {
     });
 
     test('role keys are matched the way MusicRoleIcon normalises them', () {
-      for (final spelling in ['Sound Engineer', 'sound-engineer', 'SOUND_ENGINEER']) {
+      for (final spelling in [
+        'Sound Engineer',
+        'sound-engineer',
+        'SOUND_ENGINEER',
+      ]) {
         expect(
           canEditArea(presetForRole(spelling).access, EventArea.stage),
           isTrue,

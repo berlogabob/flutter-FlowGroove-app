@@ -117,7 +117,7 @@ class LyricSection {
 /// proxy. This service covers the enrichment step after a match is chosen.
 class MetadataFunctionService {
   MetadataFunctionService({FirebaseFunctions? functions})
-      : _functions = functions ?? FirebaseFunctions.instance;
+    : _functions = functions ?? FirebaseFunctions.instance;
 
   final FirebaseFunctions _functions;
 

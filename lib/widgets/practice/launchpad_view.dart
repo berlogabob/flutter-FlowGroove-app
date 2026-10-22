@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/midi_song.dart';
@@ -278,7 +279,10 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                   OutlinedButton(
                     onPressed: state.rendering
                         ? null
-                        : () => unawaited(transport.launchDiagnostic()),
+                        : () {
+                            unawaited(_startSyncCapture());
+                            unawaited(transport.launchDiagnostic());
+                          },
                     child: const Text('Sync test'),
                   ),
               ],
@@ -292,6 +296,19 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
 
 /// flutter build ... --dart-define=SYNC_TEST=true shows the diagnostic in release.
 const _kSyncTest = bool.fromEnvironment('SYNC_TEST');
+
+/// Android sync test: the engine records its exact mixed PCM to
+/// <externalFilesDir>/sync_capture.wav (adb pull, then scripts/measure_sync.py).
+Future<void> _startSyncCapture() async {
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+  try {
+    await const MethodChannel(
+      'com.flowgroove/metronome',
+    ).invokeMethod<String>('syncCaptureStart', {'seconds': 130});
+  } on Object {
+    // Diagnostic only.
+  }
+}
 
 final _transportStyle = ButtonStyle(
   minimumSize: WidgetStateProperty.all(const Size.fromHeight(52)),

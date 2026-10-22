@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 class TelegramUser {
-
   TelegramUser({
     required this.id,
     this.firstName,

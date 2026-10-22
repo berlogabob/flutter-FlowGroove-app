@@ -198,7 +198,6 @@ UserCredential createMockUserCredential({
 
 /// Mock navigator observer for testing navigation
 class MockNavigatorObserver extends NavigatorObserver {
-
   MockNavigatorObserver({this.onPush, this.onPop});
   final Function(Route<dynamic>)? onPush;
   final Function(Route<dynamic>)? onPop;

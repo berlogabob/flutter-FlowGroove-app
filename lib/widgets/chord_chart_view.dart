@@ -23,7 +23,9 @@ class ChordChartView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lyric =
-        lyricStyle ?? Theme.of(context).textTheme.bodyLarge ?? const TextStyle();
+        lyricStyle ??
+        Theme.of(context).textTheme.bodyLarge ??
+        const TextStyle();
     final chordStyle = lyric.copyWith(
       fontWeight: FontWeight.bold,
       color: chordColor ?? Theme.of(context).colorScheme.primary,
@@ -55,8 +57,11 @@ class _ChartLine extends StatelessWidget {
   final TextStyle chord;
 
   @override
-  Widget build(BuildContext context) =>
-      ChordLineView(segments: parseChordProLine(line), lyric: lyric, chord: chord);
+  Widget build(BuildContext context) => ChordLineView(
+    segments: parseChordProLine(line),
+    lyric: lyric,
+    chord: chord,
+  );
 }
 
 /// Renders one already-parsed ChordPro line as a `Wrap` of chord-over-syllable

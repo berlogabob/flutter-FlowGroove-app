@@ -4,14 +4,14 @@ import 'package:flowgroove/utils/suggestion_links.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 SongSuggestion suggestion({String? mbId, String? spotifyId}) => SongSuggestion(
-      id: 'x',
-      title: 'Go With the Flow',
-      artist: 'Queens of the Stone Age',
-      source: SuggestionSource.musicbrainz,
-      type: SuggestionType.exact,
-      musicBrainzId: mbId,
-      spotifyId: spotifyId,
-    );
+  id: 'x',
+  title: 'Go With the Flow',
+  artist: 'Queens of the Stone Age',
+  source: SuggestionSource.musicbrainz,
+  type: SuggestionType.exact,
+  musicBrainzId: mbId,
+  spotifyId: spotifyId,
+);
 
 void main() {
   test('always adds YouTube, Chords and Lyrics search links', () {
@@ -21,8 +21,9 @@ void main() {
   });
 
   test('search URLs are query-encoded', () {
-    final yt = linksForSuggestion(suggestion())
-        .firstWhere((l) => l.title == 'YouTube');
+    final yt = linksForSuggestion(
+      suggestion(),
+    ).firstWhere((l) => l.title == 'YouTube');
     expect(yt.url, contains('search_query=Queens'));
     expect(yt.url, contains('Stone+Age'));
   });
@@ -42,8 +43,9 @@ void main() {
       linksForSuggestion(suggestion()).any((l) => l.title == 'Spotify'),
       isFalse,
     );
-    final sp = linksForSuggestion(suggestion(spotifyId: 'trk1'))
-        .firstWhere((l) => l.title == 'Spotify');
+    final sp = linksForSuggestion(
+      suggestion(spotifyId: 'trk1'),
+    ).firstWhere((l) => l.title == 'Spotify');
     expect(sp.type, Link.typeSpotify);
     expect(sp.url, 'https://open.spotify.com/track/trk1');
   });

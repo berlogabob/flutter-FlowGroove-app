@@ -16,7 +16,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// - Windows: Windows Credential Manager
 /// - Linux: libsecret
 class SecureStorageService {
-
   SecureStorageService() : _storage = const FlutterSecureStorage();
   final FlutterSecureStorage _storage;
 
@@ -46,7 +45,9 @@ class SecureStorageService {
   Future<String?> read({required String key}) async {
     try {
       final value = await _storage.read(key: key);
-      debugPrint('📖 SecureStorage: Read $key = ${value != null ? '***' : 'null'}');
+      debugPrint(
+        '📖 SecureStorage: Read $key = ${value != null ? '***' : 'null'}',
+      );
       return value;
     } catch (e) {
       debugPrint('❌ SecureStorage: Failed to read $key - $e');
@@ -155,11 +156,7 @@ class SecureStorageService {
   Future<List<String>> getAllKeys() async {
     // Note: FlutterSecureStorage doesn't provide a way to list all keys
     // This is a limitation of the secure storage API
-    return [
-      _authTokenKey,
-      _refreshTokenKey,
-      _userIdKey,
-    ];
+    return [_authTokenKey, _refreshTokenKey, _userIdKey];
   }
 }
 

@@ -66,7 +66,9 @@ class MetronomeSessionRepository {
   Future<void> save(MetronomeSession session) async {
     final sessions = _sessions;
     if (sessions == null) return;
-    await sessions.doc(session.id).set(session.toJson(), SetOptions(merge: true));
+    await sessions
+        .doc(session.id)
+        .set(session.toJson(), SetOptions(merge: true));
   }
 
   Future<List<MetronomeSession>> listAll() async {
@@ -102,7 +104,11 @@ class MetronomeSessionRepository {
           final session = MetronomeSession.fromJson(
             Map<String, dynamic>.from(value),
           );
-          batch.set(_sessions!.doc(session.id), session.toJson(), SetOptions(merge: true));
+          batch.set(
+            _sessions!.doc(session.id),
+            session.toJson(),
+            SetOptions(merge: true),
+          );
         }
         await batch.commit();
       }

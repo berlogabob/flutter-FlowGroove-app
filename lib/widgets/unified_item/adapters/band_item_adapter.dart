@@ -4,7 +4,6 @@ import '../unified_item_model.dart';
 
 /// Adapter for Band model to work with unified item system
 class BandItemAdapter extends UnifiedItemModel {
-
   BandItemAdapter(this.band);
   final Band band;
 

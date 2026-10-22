@@ -62,6 +62,8 @@ class MainActivity : FlutterActivity() {
             try {
                 when (call.method) {
                     "oemFamily" -> result.success(OemPowerSettings.family())
+                    "lastRunEndedUnexpectedly" ->
+                        result.success(MetronomeForegroundService.consumeUnexpectedStop(applicationContext))
                     "openOemSettings" -> result.success(OemPowerSettings.open(this))
                     "isIgnoringBatteryOptimizations" ->
                         result.success(isIgnoringBatteryOptimizations())
@@ -100,6 +102,13 @@ class MainActivity : FlutterActivity() {
         ch.setMethodCallHandler { call, result ->
             when (call.method) {
                 "engineSampleRate" -> result.success(backing.sampleRate)
+                "syncCaptureStart" -> {
+                    val seconds = (call.argument<Number>("seconds") ?: 60).toInt().coerceIn(5, 300)
+                    val file = java.io.File(getExternalFilesDir(null), "sync_capture.wav")
+                    AndroidMetronomeEngine.syncCapture =
+                        SyncCapture(file, backing.sampleRate, seconds.toLong() * backing.sampleRate)
+                    result.success(file.absolutePath)
+                }
                 "engineLatencyMs" -> result.success(AndroidMetronomeEngine.engineLatencyMs())
                 "backingLoad" -> handleMetronomeCall(call, result) { args ->
                     val sampleRate = (args["sampleRate"] as? Number)?.toInt()

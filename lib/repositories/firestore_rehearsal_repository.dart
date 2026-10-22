@@ -7,9 +7,11 @@ import '../models/rehearsal.dart';
 import 'rehearsal_repository.dart';
 
 class FirestoreRehearsalRepository implements RehearsalRepository {
-  FirestoreRehearsalRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _auth = auth ?? FirebaseAuth.instance;
+  FirestoreRehearsalRepository({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
@@ -20,43 +22,51 @@ class FirestoreRehearsalRepository implements RehearsalRepository {
     }
   }
 
-  CollectionReference<Map<String, dynamic>> _col(String bandId) => _firestore
-      .collection('bands')
-      .doc(bandId)
-      .collection('rehearsals');
+  CollectionReference<Map<String, dynamic>> _col(String bandId) =>
+      _firestore.collection('bands').doc(bandId).collection('rehearsals');
 
   @override
   Stream<List<Rehearsal>> watchRehearsals(String bandId) {
-    return _col(bandId).snapshots().map((snap) {
-      return snap.docs
-          .map((doc) {
-            try {
-              return Rehearsal.fromJson({...doc.data(), 'id': doc.id});
-            } catch (e) {
-              debugPrint('❌ Failed to parse rehearsal ${doc.id}: $e');
-              return null;
-            }
-          })
-          .whereType<Rehearsal>()
-          .toList();
-    }).handleError((Object error, StackTrace stackTrace) {
-      debugPrint('❌ watchRehearsals stream error: $error');
-      throw ApiError.fromException(error, stackTrace: stackTrace);
-    });
+    return _col(bandId)
+        .snapshots()
+        .map((snap) {
+          return snap.docs
+              .map((doc) {
+                try {
+                  return Rehearsal.fromJson({...doc.data(), 'id': doc.id});
+                } catch (e) {
+                  debugPrint('❌ Failed to parse rehearsal ${doc.id}: $e');
+                  return null;
+                }
+              })
+              .whereType<Rehearsal>()
+              .toList();
+        })
+        .handleError((Object error, StackTrace stackTrace) {
+          debugPrint('❌ watchRehearsals stream error: $error');
+          throw ApiError.fromException(error, stackTrace: stackTrace);
+        });
   }
 
   @override
   Stream<Rehearsal?> watchRehearsal(String bandId, String rehearsalId) {
-    return _col(bandId).doc(rehearsalId).snapshots().map((doc) {
-      if (!doc.exists) return null;
-      return Rehearsal.fromJson({...doc.data()!, 'id': doc.id});
-    }).handleError((Object error, StackTrace stackTrace) {
-      throw ApiError.fromException(error, stackTrace: stackTrace);
-    });
+    return _col(bandId)
+        .doc(rehearsalId)
+        .snapshots()
+        .map((doc) {
+          if (!doc.exists) return null;
+          return Rehearsal.fromJson({...doc.data()!, 'id': doc.id});
+        })
+        .handleError((Object error, StackTrace stackTrace) {
+          throw ApiError.fromException(error, stackTrace: stackTrace);
+        });
   }
 
   @override
-  Stream<Map<String, RehearsalVote>> watchVotes(String bandId, String rehearsalId) {
+  Stream<Map<String, RehearsalVote>> watchVotes(
+    String bandId,
+    String rehearsalId,
+  ) {
     return _col(bandId)
         .doc(rehearsalId)
         .collection('votes')
@@ -84,9 +94,9 @@ class FirestoreRehearsalRepository implements RehearsalRepository {
   Future<void> saveRehearsal(Rehearsal rehearsal) async {
     try {
       _requireAuth();
-      await _col(rehearsal.bandId)
-          .doc(rehearsal.id)
-          .set(rehearsal.toJson(), SetOptions(merge: true));
+      await _col(
+        rehearsal.bandId,
+      ).doc(rehearsal.id).set(rehearsal.toJson(), SetOptions(merge: true));
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -103,7 +113,11 @@ class FirestoreRehearsalRepository implements RehearsalRepository {
   }
 
   @override
-  Future<void> saveVote(String bandId, String rehearsalId, RehearsalVote vote) async {
+  Future<void> saveVote(
+    String bandId,
+    String rehearsalId,
+    RehearsalVote vote,
+  ) async {
     try {
       _requireAuth();
       await _col(bandId)

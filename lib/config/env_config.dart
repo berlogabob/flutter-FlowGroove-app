@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/api/web_config.stub.dart'
-  if (dart.library.html) '../services/api/web_config.web.dart';
+    if (dart.library.html) '../services/api/web_config.web.dart';
 
 /// Secure Environment Config Loader
 ///
@@ -74,9 +74,9 @@ class EnvConfig {
       return false;
     }
     return twitterApiKey.isNotEmpty &&
-           twitterApiSecret.isNotEmpty &&
-           !_isPlaceholder(twitterApiKey) &&
-           !_isPlaceholder(twitterApiSecret);
+        twitterApiSecret.isNotEmpty &&
+        !_isPlaceholder(twitterApiKey) &&
+        !_isPlaceholder(twitterApiSecret);
   }
 
   /// Check if Firebase is configured
@@ -120,10 +120,10 @@ class EnvConfig {
   // Helper: Check if value is a placeholder
   bool _isPlaceholder(String value) {
     return value.isEmpty ||
-           value.contains('REPLACE_ME') ||
-           value.contains('your_') ||
-           value.contains('YOUR_') ||
-           value == 'none';
+        value.contains('REPLACE_ME') ||
+        value.contains('your_') ||
+        value.contains('YOUR_') ||
+        value == 'none';
   }
 }
 

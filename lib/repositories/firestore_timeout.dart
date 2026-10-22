@@ -22,10 +22,7 @@ const firestoreTimeout = Duration(seconds: 30);
 /// deadline hangs the save button forever on a flaky connection.
 ///
 /// [label] appears only in the debug log, so it can be as specific as useful.
-Future<T> withFirestoreTimeout<T>(
-  String label,
-  Future<T> Function() op,
-) async {
+Future<T> withFirestoreTimeout<T>(String label, Future<T> Function() op) async {
   try {
     return await op().timeout(firestoreTimeout);
   } on TimeoutException catch (e, stackTrace) {

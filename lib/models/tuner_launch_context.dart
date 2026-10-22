@@ -2,7 +2,6 @@ import 'setlist.dart';
 import 'song.dart';
 
 class TunerLaunchContext {
-
   const TunerLaunchContext({
     required this.song,
     this.setlist,

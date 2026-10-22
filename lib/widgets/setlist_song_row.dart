@@ -42,7 +42,8 @@ class SetlistSongRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final song = this.song;
     final performers = this.performers;
-    final showPerformers = song != null && performers != null && performers.isNotEmpty;
+    final showPerformers =
+        song != null && performers != null && performers.isNotEmpty;
     return Card(
       margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
       child: ListTile(

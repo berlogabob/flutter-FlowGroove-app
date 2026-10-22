@@ -22,7 +22,6 @@ const _firestoreTimeout = Duration(seconds: 10);
 /// Handles all song-related data operations with Firestore,
 /// including personal songs and band songs.
 class FirestoreSongRepository implements SongRepository {
-
   FirestoreSongRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
     : _firestore = firestore ?? FirebaseFirestore.instance,
       _auth = auth ?? FirebaseAuth.instance;

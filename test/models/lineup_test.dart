@@ -11,8 +11,12 @@ void main() {
         people: [EventPerson(id: 'g1', name: 'Lena', role: 'Violin')],
       );
       final lineup = lineupFor(kit, [
-        BandMember(uid: 'u1', role: 'editor', displayName: 'Ivan',
-            musicRoles: const ['pianist']),
+        BandMember(
+          uid: 'u1',
+          role: 'editor',
+          displayName: 'Ivan',
+          musicRoles: const ['pianist'],
+        ),
       ]);
 
       expect(lineup.map((p) => p.name), ['Lena', 'Ivan']);

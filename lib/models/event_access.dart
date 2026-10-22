@@ -131,9 +131,7 @@ EventAccessPreset presetForRole(String role) {
       canSuggest: false,
     ),
     'manager' => (
-      access: {
-        for (final area in EventArea.all) area: EventAccessLevel.view,
-      },
+      access: {for (final area in EventArea.all) area: EventAccessLevel.view},
       canSuggest: true,
     ),
     // Anyone who actually plays needs the charts.

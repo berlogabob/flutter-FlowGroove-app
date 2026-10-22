@@ -63,7 +63,11 @@ void main() {
         name: 'Show',
         items: [
           const SetlistItem(id: 'i1', songId: 'song-1'),
-          SetlistItem.breakItem(id: 'b1', breakType: 'guest_set', label: 'EUSTACE'),
+          SetlistItem.breakItem(
+            id: 'b1',
+            breakType: 'guest_set',
+            label: 'EUSTACE',
+          ),
           const SetlistItem(id: 'i2', songId: 'song-2'),
         ],
         createdAt: DateTime(2026),
@@ -88,7 +92,11 @@ void main() {
         bandId: '',
         name: 'Album release',
         items: const [
-          SetlistItem(id: 'i1', songId: 'song-1', performerIds: ['ivan', 'anna']),
+          SetlistItem(
+            id: 'i1',
+            songId: 'song-1',
+            performerIds: ['ivan', 'anna'],
+          ),
           SetlistItem(id: 'i2', songId: 'song-2'),
         ],
         createdAt: DateTime(2026),

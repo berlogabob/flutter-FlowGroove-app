@@ -4,13 +4,7 @@ import '../unified_item_model.dart';
 
 /// Adapter for Song model to work with unified item system
 class SongItemAdapter extends UnifiedItemModel {
-
-  SongItemAdapter(
-    this.song, {
-    this._onEdit,
-    this._onDelete,
-    this._onTap,
-  });
+  SongItemAdapter(this.song, {this._onEdit, this._onDelete, this._onTap});
   final Song song;
   final VoidCallback? _onEdit;
   final VoidCallback? _onDelete;

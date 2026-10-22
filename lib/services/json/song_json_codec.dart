@@ -21,9 +21,23 @@ class SongJsonCodec {
   static const _uuid = Uuid();
 
   static const _knownSongKeys = {
-    'id', 'title', 'artist', 'originalKey', 'ourKey', 'originalBPM', 'ourBPM',
-    'notes', 'tags', 'spotifyUrl', 'links', 'sections',
-    'spotifyId', 'musicbrainzId', 'isrc', 'album', 'durationMs',
+    'id',
+    'title',
+    'artist',
+    'originalKey',
+    'ourKey',
+    'originalBPM',
+    'ourBPM',
+    'notes',
+    'tags',
+    'spotifyUrl',
+    'links',
+    'sections',
+    'spotifyId',
+    'musicbrainzId',
+    'isrc',
+    'album',
+    'durationMs',
   };
 
   // ---- Export ----
@@ -68,7 +82,10 @@ class SongJsonCodec {
     try {
       decoded = json.decode(jsonStr);
     } catch (e) {
-      return SongParseResult(successful: const [], errors: ['Invalid JSON: $e']);
+      return SongParseResult(
+        successful: const [],
+        errors: ['Invalid JSON: $e'],
+      );
     }
 
     final List<dynamic> rawSongs;
@@ -110,7 +127,11 @@ class SongJsonCodec {
       final song = _songFromMap(raw, i + 1, errors, warnings);
       if (song != null) songs.add(song);
     }
-    return SongParseResult(successful: songs, errors: errors, warnings: warnings);
+    return SongParseResult(
+      successful: songs,
+      errors: errors,
+      warnings: warnings,
+    );
   }
 
   Song? _songFromMap(
@@ -127,13 +148,27 @@ class SongJsonCodec {
 
     final unknown = m.keys.where((k) => !_knownSongKeys.contains(k)).toList();
     if (unknown.isNotEmpty) {
-      warnings.add('Song #$idx ("$title"): ignored unknown field(s): '
-          '${unknown.join(', ')}.');
+      warnings.add(
+        'Song #$idx ("$title"): ignored unknown field(s): '
+        '${unknown.join(', ')}.',
+      );
     }
 
-    final originalKey = _key(m['originalKey'], 'originalKey', title, idx, errors);
+    final originalKey = _key(
+      m['originalKey'],
+      'originalKey',
+      title,
+      idx,
+      errors,
+    );
     final ourKey = _key(m['ourKey'], 'ourKey', title, idx, errors);
-    final originalBpm = _bpm(m['originalBPM'], 'originalBPM', title, idx, errors);
+    final originalBpm = _bpm(
+      m['originalBPM'],
+      'originalBPM',
+      title,
+      idx,
+      errors,
+    );
     final ourBpm = _bpm(m['ourBPM'], 'ourBPM', title, idx, errors);
     final spotifyUrl = m['spotifyUrl'] as String?;
     if (spotifyUrl != null && !SongCsvValidation.isValidUrl(spotifyUrl)) {
@@ -174,8 +209,10 @@ class SongJsonCodec {
     if (v == null) return null;
     final key = v.toString();
     if (!SongCsvValidation.isValidKey(key)) {
-      errors.add('Song #$idx ("$title"): invalid $field "$key" '
-          '(expected like C, G#, Am, Bbm).');
+      errors.add(
+        'Song #$idx ("$title"): invalid $field "$key" '
+        '(expected like C, G#, Am, Bbm).',
+      );
       return null;
     }
     return key;
@@ -190,7 +227,9 @@ class SongJsonCodec {
   ) {
     if (v == null) return null;
     if (!SongCsvValidation.isValidBpm(v)) {
-      errors.add('Song #$idx ("$title"): invalid $field "$v" (expected 40-300).');
+      errors.add(
+        'Song #$idx ("$title"): invalid $field "$v" (expected 40-300).',
+      );
       return null;
     }
     return (v as num).toInt();

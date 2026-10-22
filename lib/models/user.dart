@@ -14,10 +14,10 @@ class _Sentinel {
 
 @JsonSerializable()
 class AppUser {
-
   AppUser({
     required this.uid,
-    required this.createdAt, this.displayName,
+    required this.createdAt,
+    this.displayName,
     this.email,
     this.photoURL,
     this.photoSource,

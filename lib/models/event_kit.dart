@@ -12,9 +12,15 @@ import 'event_access.dart';
 
 /// Fixed zone ids, back row (upstage) → front row (audience).
 const stageZoneIds = [
-  'back-left', 'back-center', 'back-right',
-  'mid-left', 'mid-center', 'mid-right',
-  'front-left', 'front-center', 'front-right',
+  'back-left',
+  'back-center',
+  'back-right',
+  'mid-left',
+  'mid-center',
+  'mid-right',
+  'front-left',
+  'front-center',
+  'front-right',
 ];
 
 class StagePlacement {
@@ -26,14 +32,13 @@ class StagePlacement {
     this.brand,
   });
 
-  factory StagePlacement.fromJson(Map<String, dynamic> json) =>
-      StagePlacement(
-        kind: json['kind'] as String? ?? 'equipment',
-        label: json['label'] as String? ?? '',
-        uid: json['uid'] as String?,
-        icon: json['icon'] as String?,
-        brand: json['brand'] as String?,
-      );
+  factory StagePlacement.fromJson(Map<String, dynamic> json) => StagePlacement(
+    kind: json['kind'] as String? ?? 'equipment',
+    label: json['label'] as String? ?? '',
+    uid: json['uid'] as String?,
+    icon: json['icon'] as String?,
+    brand: json['brand'] as String?,
+  );
 
   /// 'member' | 'equipment'.
   final String kind;
@@ -242,8 +247,7 @@ class EventKit {
   Map<String, dynamic> toJson() => {
     'stage': {
       for (final e in stage.entries)
-        if (e.value.isNotEmpty)
-          e.key: e.value.map((p) => p.toJson()).toList(),
+        if (e.value.isNotEmpty) e.key: e.value.map((p) => p.toJson()).toList(),
     },
     'people': people.map((p) => p.toJson()).toList(),
     'rider': rider.map((r) => r.toJson()).toList(),

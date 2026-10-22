@@ -1,5 +1,5 @@
 /// Comprehensive Unit Tests for EnvConfig Class
-/// 
+///
 /// Tests cover:
 /// - Normal config loading from compile-time defaults
 /// - Web config loading from window.env
@@ -44,7 +44,10 @@ void main() {
       });
 
       test('should return default value when key missing', () {
-        final result = envConfig.get('NON_EXISTENT_KEY', defaultValue: 'default_value');
+        final result = envConfig.get(
+          'NON_EXISTENT_KEY',
+          defaultValue: 'default_value',
+        );
         expect(result, equals('default_value'));
       });
 
@@ -67,7 +70,10 @@ void main() {
         // When value contains REPLACE_ME, it should be treated as not configured
         final configWithPlaceholder = EnvConfig();
         // The get method will return default if value is placeholder
-        final result = configWithPlaceholder.get('PLACEHOLDER_KEY', defaultValue: 'fallback');
+        final result = configWithPlaceholder.get(
+          'PLACEHOLDER_KEY',
+          defaultValue: 'fallback',
+        );
         expect(result, equals('fallback'));
       });
 
@@ -196,7 +202,8 @@ void main() {
         final config = EnvConfig();
         const longValue = String.fromEnvironment(
           'LONG_VALUE',
-          defaultValue: 'This is a very long default value that might be used for testing purposes to ensure the system can handle lengthy strings without issues or performance degradation.',
+          defaultValue:
+              'This is a very long default value that might be used for testing purposes to ensure the system can handle lengthy strings without issues or performance degradation.',
         );
         final result = config.get('LONG_KEY', defaultValue: longValue);
         expect(result, isNotEmpty);
@@ -235,14 +242,20 @@ void main() {
       test('should handle values with backslashes', () {
         final config = EnvConfig();
         const valueWithBackslash = r'path\to\file';
-        final result = config.get('BACKSLASH_KEY', defaultValue: valueWithBackslash);
+        final result = config.get(
+          'BACKSLASH_KEY',
+          defaultValue: valueWithBackslash,
+        );
         expect(result, equals(valueWithBackslash));
       });
 
       test('should handle values with newlines (escaped)', () {
         final config = EnvConfig();
         const valueWithNewline = r'line1\nline2';
-        final result = config.get('NEWLINE_KEY', defaultValue: valueWithNewline);
+        final result = config.get(
+          'NEWLINE_KEY',
+          defaultValue: valueWithNewline,
+        );
         expect(result, equals(valueWithNewline));
       });
     });
@@ -282,7 +295,10 @@ void main() {
 
       test('should handle keys with special characters', () {
         final config = EnvConfig();
-        final result = config.get('KEY_WITH_SPECIAL! @#', defaultValue: 'default');
+        final result = config.get(
+          'KEY_WITH_SPECIAL! @#',
+          defaultValue: 'default',
+        );
         expect(result, equals('default'));
       });
 
@@ -297,11 +313,11 @@ void main() {
         final config = EnvConfig();
         const testKey = 'CONSISTENCY_KEY';
         const defaultValue = 'consistent_default';
-        
+
         final result1 = config.get(testKey, defaultValue: defaultValue);
         final result2 = config.get(testKey, defaultValue: defaultValue);
         final result3 = config.get(testKey, defaultValue: defaultValue);
-        
+
         expect(result1, equals(result2));
         expect(result2, equals(result3));
       });
@@ -309,14 +325,16 @@ void main() {
       test('should handle concurrent access safely', () async {
         final config = EnvConfig();
         const iterations = 100;
-        
+
         final futures = List.generate(
           iterations,
-          (i) => Future.value(config.get('CONCURRENT_KEY_$i', defaultValue: 'default_$i')),
+          (i) => Future.value(
+            config.get('CONCURRENT_KEY_$i', defaultValue: 'default_$i'),
+          ),
         );
-        
+
         final results = await Future.wait(futures);
-        
+
         expect(results.length, equals(iterations));
         for (var i = 0; i < iterations; i++) {
           expect(results[i], equals('default_$i'));
@@ -327,20 +345,29 @@ void main() {
     group('Fallback Behavior', () {
       test('should return default when config is not initialized', () {
         final config = EnvConfig();
-        final result = config.get('UNINITIALIZED_KEY', defaultValue: 'fallback');
+        final result = config.get(
+          'UNINITIALIZED_KEY',
+          defaultValue: 'fallback',
+        );
         expect(result, equals('fallback'));
       });
 
       test('should handle missing config gracefully', () {
         final config = EnvConfig();
-        expect(() => config.get('ANY_KEY', defaultValue: 'safe'), returnsNormally);
+        expect(
+          () => config.get('ANY_KEY', defaultValue: 'safe'),
+          returnsNormally,
+        );
       });
 
       test('should prioritize non-placeholder values over defaults', () {
         // This test verifies the logic flow
         final config = EnvConfig();
         // When no value is set, default is returned
-        final result = config.get('PRIORITY_KEY', defaultValue: 'default_value');
+        final result = config.get(
+          'PRIORITY_KEY',
+          defaultValue: 'default_value',
+        );
         expect(result, equals('default_value'));
       });
     });

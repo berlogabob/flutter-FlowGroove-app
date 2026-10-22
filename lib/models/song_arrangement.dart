@@ -57,8 +57,8 @@ class SongArrangement extends Equatable {
     this.forkedFrom,
     DateTime? createdAt,
     DateTime? updatedAt,
-  })  : createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   /// Create a personal arrangement.
   factory SongArrangement.personal({
@@ -259,13 +259,13 @@ class SongArrangement extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        canonicalSongId,
-        ownerType,
-        ownerId,
-        arrangementType,
-        key,
-        tempoBpm,
-        forkedFrom,
-      ];
+    id,
+    canonicalSongId,
+    ownerType,
+    ownerId,
+    arrangementType,
+    key,
+    tempoBpm,
+    forkedFrom,
+  ];
 }

@@ -21,17 +21,12 @@ void main() {
 
     test('falls back to readStream when bytes is null', () async {
       final tempDir = await Directory.systemTemp.createTemp();
-      final tempFile = await File('${tempDir.path}/a.mid').writeAsBytes(
-        [4, 5, 6],
-        flush: true,
-      );
+      final tempFile = await File(
+        '${tempDir.path}/a.mid',
+      ).writeAsBytes([4, 5, 6], flush: true);
       addTearDown(tempFile.delete);
 
-      final file = PlatformFile(
-        name: 'a.mid',
-        size: 3,
-        path: tempFile.path,
-      );
+      final file = PlatformFile(name: 'a.mid', size: 3, path: tempFile.path);
 
       final result = await readPickedBytes(file);
 

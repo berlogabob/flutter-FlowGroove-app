@@ -32,11 +32,7 @@ import 'musicbrainz_service.dart';
 /// );
 /// ```
 class SongSuggestionService {
-
-  SongSuggestionService({
-    required this._musicBrainz,
-    this._canonicalRepo,
-  });
+  SongSuggestionService({required this._musicBrainz, this._canonicalRepo});
   final CanonicalSongRepository? _canonicalRepo;
   final MusicBrainzService _musicBrainz;
 
@@ -90,9 +86,7 @@ class SongSuggestionService {
       deduplicated = deduplicated.map((s) {
         final a = s.artist.toLowerCase().trim();
         return a.length >= 3 && q.contains(a)
-            ? s.copyWith(
-                matchScore: (s.matchScore + 0.1).clamp(0.0, 1.0),
-              )
+            ? s.copyWith(matchScore: (s.matchScore + 0.1).clamp(0.0, 1.0))
             : s;
       }).toList();
     }
@@ -294,7 +288,6 @@ class SongSuggestionService {
 
 /// Parsed query parts
 class _QueryParts {
-
   _QueryParts({required this.title, required this.artist});
   final String title;
   final String artist;

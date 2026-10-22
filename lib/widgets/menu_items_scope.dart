@@ -131,7 +131,10 @@ class MenuScopeRegistry {
   /// the bands branch, so its own menu still resolves here. Location prefix
   /// alone can't tell which navigator a cross-branch push is visible on, and
   /// would return the parent screen's menu instead (device-verified regression).
-  static MenuScopeData? pushedEntryFor(int branch, {Set<String> roots = const {}}) {
+  static MenuScopeData? pushedEntryFor(
+    int branch, {
+    Set<String> roots = const {},
+  }) {
     for (final e in _stack.reversed) {
       if (e.branch == branch && !roots.contains(e.location)) return e.data;
     }

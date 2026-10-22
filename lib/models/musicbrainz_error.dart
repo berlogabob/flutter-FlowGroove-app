@@ -40,9 +40,7 @@ class RateLimitError extends MusicBrainzError {
 
 /// Resource not found (404)
 class NotFoundError extends MusicBrainzError {
-  const NotFoundError({
-    super.message = 'Resource not found',
-  });
+  const NotFoundError({super.message = 'Resource not found'});
 }
 
 /// Server error (5xx)
@@ -65,14 +63,10 @@ class NetworkError extends MusicBrainzError {
 
 /// Authentication error (401/403)
 class AuthError extends MusicBrainzError {
-  const AuthError({
-    super.message = 'Authentication failed',
-  });
+  const AuthError({super.message = 'Authentication failed'});
 }
 
 /// Parse error (invalid response)
 class ParseError extends MusicBrainzError {
-  const ParseError({
-    super.message = 'Failed to parse MusicBrainz response',
-  });
+  const ParseError({super.message = 'Failed to parse MusicBrainz response'});
 }

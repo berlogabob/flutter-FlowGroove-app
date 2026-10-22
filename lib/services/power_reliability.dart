@@ -30,6 +30,11 @@ class PowerReliability {
     await _invoke<void>('requestIgnoreBatteryOptimizations');
   }
 
+  /// True once after the previous playback was ended by the system (no clean
+  /// stop), e.g. a Chinese-ROM battery manager freezing the app.
+  Future<bool> lastRunEndedUnexpectedly() async =>
+      await _invoke<bool>('lastRunEndedUnexpectedly') ?? false;
+
   Future<bool> openVendorSettings() async =>
       await _invoke<bool>('openOemSettings') ?? false;
 

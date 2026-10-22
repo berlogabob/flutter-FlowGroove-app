@@ -37,9 +37,7 @@ class MetronomeAnalytics {
   }) async {
     await _analytics.logEvent(
       name: 'metronome_audio_focus',
-      parameters: {
-        'event_type': eventType,
-      },
+      parameters: {'event_type': eventType},
     );
   }
 }

@@ -168,7 +168,6 @@ class AnalyticsParams {
 
 /// Type-safe analytics event data
 abstract class AnalyticsEventData {
-
   const AnalyticsEventData({required this.eventName, required this.parameters});
   final String eventName;
   final Map<String, Object> parameters;
@@ -385,51 +384,41 @@ class MetronomeStartedEventData extends AnalyticsEventData {
 
 // Drum Events
 class DrumPatternImportedEventData extends AnalyticsEventData {
-  DrumPatternImportedEventData({
-    required String filePath,
-  }) : super(
-         eventName: AnalyticsEvents.drumPatternImported,
-         parameters: {
-           'file_path': filePath,
-         },
-       );
+  DrumPatternImportedEventData({required String filePath})
+    : super(
+        eventName: AnalyticsEvents.drumPatternImported,
+        parameters: {'file_path': filePath},
+      );
 }
 
 class DrumPatternSavedEventData extends AnalyticsEventData {
-  DrumPatternSavedEventData({
-    required String drumPatternId,
-    int? hitCount,
-  }) : super(
-         eventName: AnalyticsEvents.drumPatternSaved,
-         parameters: {
-           'drum_pattern_id': drumPatternId,
-           AnalyticsParams.hitCount: ?hitCount,
-         },
-       );
+  DrumPatternSavedEventData({required String drumPatternId, int? hitCount})
+    : super(
+        eventName: AnalyticsEvents.drumPatternSaved,
+        parameters: {
+          'drum_pattern_id': drumPatternId,
+          AnalyticsParams.hitCount: ?hitCount,
+        },
+      );
 }
 
 class DrumPlayStartedEventData extends AnalyticsEventData {
-  DrumPlayStartedEventData({
-    required int bpm,
-    int? hitCount,
-  }) : super(
-         eventName: AnalyticsEvents.drumPlayStarted,
-         parameters: {
-           AnalyticsParams.bpm: bpm,
-           AnalyticsParams.hitCount: ?hitCount,
-         },
-       );
+  DrumPlayStartedEventData({required int bpm, int? hitCount})
+    : super(
+        eventName: AnalyticsEvents.drumPlayStarted,
+        parameters: {
+          AnalyticsParams.bpm: bpm,
+          AnalyticsParams.hitCount: ?hitCount,
+        },
+      );
 }
 
 class DrumSyncToggledEventData extends AnalyticsEventData {
-  DrumSyncToggledEventData({
-    required bool syncWithClick,
-  }) : super(
-         eventName: AnalyticsEvents.drumSyncToggled,
-         parameters: {
-           AnalyticsParams.syncWithClick: syncWithClick,
-         },
-       );
+  DrumSyncToggledEventData({required bool syncWithClick})
+    : super(
+        eventName: AnalyticsEvents.drumSyncToggled,
+        parameters: {AnalyticsParams.syncWithClick: syncWithClick},
+      );
 }
 
 // Tuner Events

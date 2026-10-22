@@ -148,13 +148,13 @@ class MusicBrainzRecording extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        title,
-        artist,
-        disambiguation,
-        lengthMs,
-        isrcs,
-      ];
+    id,
+    title,
+    artist,
+    disambiguation,
+    lengthMs,
+    isrcs,
+  ];
 
   /// Get primary artist name from artist-credit
   String get artist {
@@ -163,8 +163,7 @@ class MusicBrainzRecording extends Equatable {
   }
 
   /// Get all artist names as list
-  List<String> get artists =>
-      artistCredit.map((ac) => ac.displayName).toList();
+  List<String> get artists => artistCredit.map((ac) => ac.displayName).toList();
 
   /// Get first release year
   /// The release this recording most likely originally came from.
@@ -218,11 +217,7 @@ class MusicBrainzRecording extends Equatable {
 /// Alias (alternative name) in MusicBrainz
 @JsonSerializable()
 class MusicBrainzAlias extends Equatable {
-  const MusicBrainzAlias({
-    required this.name,
-    this.locale,
-    this.primary,
-  });
+  const MusicBrainzAlias({required this.name, this.locale, this.primary});
 
   factory MusicBrainzAlias.fromJson(Map<String, dynamic> json) =>
       _$MusicBrainzAliasFromJson(json);

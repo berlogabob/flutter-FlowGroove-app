@@ -434,6 +434,12 @@ internal class AndroidMetronomeEngine(
                     pcm[i * channelCount + channel] = sample
                 }
             }
+            AndroidMetronomeEngine.syncCapture?.let {
+                if (it.add(pcm, channelCount)) {
+                    it.finish()
+                    AndroidMetronomeEngine.syncCapture = null
+                }
+            }
             var offset = 0
             var stalls = 0
             while (offset < pcm.size && running.get()) {
@@ -521,6 +527,10 @@ internal class AndroidMetronomeEngine(
         } catch (e: Exception) {
             Log.e(TAG, "render loop error", e)
         } finally {
+            AndroidMetronomeEngine.syncCapture?.let {
+                it.finish()
+                AndroidMetronomeEngine.syncCapture = null
+            }
             running.set(false)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 try {
@@ -634,6 +644,9 @@ internal class AndroidMetronomeEngine(
         private var sharedBacking: BackingMixer? = null
         @Volatile private var playbackLatency: PlaybackLatency? = null
         var onBar: ((Int) -> Unit)? = null
+
+        /** Set by the SYNC_TEST diagnostic; the render loop records the mixed PCM into it. */
+        @Volatile var syncCapture: SyncCapture? = null
 
         fun engineLatencyMs(): Int {
             val latency = playbackLatency ?: return -1

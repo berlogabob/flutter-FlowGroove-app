@@ -26,8 +26,10 @@ String buildLabMarkdown({
   if (decisions.isNotEmpty) {
     b.writeln('## Active decisions');
     for (final e in decisions) {
-      b.writeln('- **${e.title ?? 'Decision'}**'
-          '${e.body != null ? ' — ${e.body}' : ''}');
+      b.writeln(
+        '- **${e.title ?? 'Decision'}**'
+        '${e.body != null ? ' — ${e.body}' : ''}',
+      );
     }
     b.writeln();
   }
@@ -36,8 +38,10 @@ String buildLabMarkdown({
   if (open.isNotEmpty) {
     b.writeln('## Open tasks');
     for (final t in open) {
-      b.writeln('- [ ] ${t.title}'
-          '${t.dueAt != null ? ' (due ${_d(t.dueAt!)})' : ''}');
+      b.writeln(
+        '- [ ] ${t.title}'
+        '${t.dueAt != null ? ' (due ${_d(t.dueAt!)})' : ''}',
+      );
     }
     b.writeln();
   }
@@ -45,11 +49,13 @@ String buildLabMarkdown({
   if (versions.isNotEmpty) {
     b.writeln('## Versions');
     for (final v in versions) {
-      b.writeln('- **${v.name}**${v.isCurrent ? ' — current' : ''}'
-          '${v.key != null ? ' · ${v.key}' : ''}'
-          '${v.bpm != null ? ' · ${v.bpm} BPM' : ''}'
-          ' · ${_d(v.createdAt)}'
-          '${v.notes != null ? ' — ${v.notes}' : ''}');
+      b.writeln(
+        '- **${v.name}**${v.isCurrent ? ' — current' : ''}'
+        '${v.key != null ? ' · ${v.key}' : ''}'
+        '${v.bpm != null ? ' · ${v.bpm} BPM' : ''}'
+        ' · ${_d(v.createdAt)}'
+        '${v.notes != null ? ' — ${v.notes}' : ''}',
+      );
     }
     b.writeln();
   }
@@ -57,16 +63,19 @@ String buildLabMarkdown({
   if (entries.isNotEmpty) {
     b.writeln('## Timeline');
     for (final e in entries) {
-      b.writeln('- ${_d(e.createdAt)} · ${e.type.name}'
-          '${e.status != null ? ' (${e.status})' : ''}: '
-          '${e.title ?? ''}${e.title != null && e.body != null ? ' — ' : ''}'
-          '${e.body ?? ''}');
+      b.writeln(
+        '- ${_d(e.createdAt)} · ${e.type.name}'
+        '${e.status != null ? ' (${e.status})' : ''}: '
+        '${e.title ?? ''}${e.title != null && e.body != null ? ' — ' : ''}'
+        '${e.body ?? ''}',
+      );
     }
   }
   return b.toString();
 }
 
-String _d(DateTime t) => '${t.year}-${t.month.toString().padLeft(2, '0')}-'
+String _d(DateTime t) =>
+    '${t.year}-${t.month.toString().padLeft(2, '0')}-'
     '${t.day.toString().padLeft(2, '0')}';
 
 /// Shares the Lab history as a `.md` file (same share path as ChordPro/CSV).

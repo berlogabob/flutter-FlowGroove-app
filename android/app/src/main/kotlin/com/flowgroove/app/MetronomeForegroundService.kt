@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.MediaMetadata
@@ -57,6 +58,7 @@ class MetronomeForegroundService : Service() {
     }
 
     fun startPlayback(args: Map<*, *>) {
+        markRunning(applicationContext)
         currentBpm = bpmFromArgs(args)
         startForegroundNotification()
         engine?.start(args)
@@ -71,6 +73,7 @@ class MetronomeForegroundService : Service() {
     }
 
     fun stopPlayback() {
+        markStopped(applicationContext)
         engine?.stop(notifyFlutter = true)
         mediaSession?.release()
         mediaSession = null
@@ -84,6 +87,7 @@ class MetronomeForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        markStopped(applicationContext)
         mediaSession?.release()
         mediaSession = null
         engine?.dispose()
@@ -205,5 +209,36 @@ class MetronomeForegroundService : Service() {
         private const val NOTIFICATION_ID = 7711
         const val ACTION_START = "com.flowgroove.app.METRONOME_START"
         const val ACTION_STOP = "com.flowgroove.app.METRONOME_STOP"
+
+        private const val RUN_PREFS = "flowgroove_engine_run"
+        private const val RUN_KEY = "running"
+
+        /** True while this process has a live engine; resets with the process. */
+        @Volatile private var active = false
+
+        private fun runPrefs(context: Context) =
+            context.getSharedPreferences(RUN_PREFS, Context.MODE_PRIVATE)
+
+        // commit(): the flag must survive an immediate process kill.
+        fun markRunning(context: Context) {
+            active = true
+            runPrefs(context).edit().putBoolean(RUN_KEY, true).commit()
+        }
+
+        fun markStopped(context: Context) {
+            active = false
+            runPrefs(context).edit().putBoolean(RUN_KEY, false).apply()
+        }
+
+        /**
+         * True when the previous run never stopped cleanly and this process has no live
+         * engine, i.e. the system (battery manager / task killer) ended it. Clears the flag.
+         */
+        fun consumeUnexpectedStop(context: Context): Boolean {
+            val prefs = runPrefs(context)
+            val cutOff = prefs.getBoolean(RUN_KEY, false) && !active
+            if (cutOff) prefs.edit().putBoolean(RUN_KEY, false).apply()
+            return cutOff
+        }
     }
 }

@@ -6,11 +6,7 @@ import '../theme/mono_pulse_theme.dart';
 ///
 /// Shows user-friendly error messages and troubleshooting steps
 class ConfigErrorWidget extends StatelessWidget {
-  const ConfigErrorWidget({
-    required this.exception,
-    super.key,
-    this.onRetry,
-  });
+  const ConfigErrorWidget({required this.exception, super.key, this.onRetry});
 
   final ConfigValidationException exception;
   final VoidCallback? onRetry;
@@ -34,17 +30,17 @@ class ConfigErrorWidget extends StatelessWidget {
                     color: Theme.of(context).colorScheme.error,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Title
                   Text(
                     'Configuration Error',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Subtitle
                   Text(
                     'The app could not start due to configuration issues.',
@@ -52,7 +48,7 @@ class ConfigErrorWidget extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Error cards
                   Container(
                     decoration: BoxDecoration(
@@ -65,44 +61,60 @@ class ConfigErrorWidget extends StatelessWidget {
                       children: [
                         Text(
                           'Errors:',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.onErrorContainer,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
                               ),
                         ),
                         const SizedBox(height: 8),
-                        ...exception.errors.map((error) => Padding(
-                          padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.close,
-                                size: 16,
-                                color: Theme.of(context).colorScheme.onErrorContainer,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  error,
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(context).colorScheme.onErrorContainer,
-                                      ),
+                        ...exception.errors.map(
+                          (error) => Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: MonoPulseSpacing.sm,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.close,
+                                  size: 16,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    error,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onErrorContainer,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        )),
+                        ),
                       ],
                     ),
                   ),
-                  
+
                   // Warnings (if any)
                   if (exception.warnings.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
@@ -111,43 +123,50 @@ class ConfigErrorWidget extends StatelessWidget {
                         children: [
                           Text(
                             'Warnings:',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
-                          ...exception.warnings.map((warning) => Padding(
-                            padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  Icons.warning_amber,
-                                  size: 16,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    warning,
-                                    style: Theme.of(context).textTheme.bodyMedium,
+                          ...exception.warnings.map(
+                            (warning) => Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: MonoPulseSpacing.sm,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.warning_amber,
+                                    size: 16,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      warning,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          )),
+                          ),
                         ],
                       ),
                     ),
                   ],
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   // Troubleshooting section
                   _buildTroubleshootingSection(context),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Retry button
                   if (onRetry != null)
                     FilledButton.icon(
@@ -176,9 +195,9 @@ class ConfigErrorWidget extends StatelessWidget {
         children: [
           Text(
             'Troubleshooting:',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           _buildTroubleshootingStep(
@@ -222,19 +241,16 @@ class ConfigErrorWidget extends StatelessWidget {
             child: Text(
               step,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: Theme.of(context).colorScheme.onPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(top: MonoPulseSpacing.xxs),
-              child: Text(
-                text,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
             ),
           ),
         ],
@@ -245,11 +261,7 @@ class ConfigErrorWidget extends StatelessWidget {
 
 /// Constrains content to a maximum width for better readability
 class MaxWidthBox extends StatelessWidget {
-  const MaxWidthBox({
-    required this.child,
-    super.key,
-    this.maxWidth = 600,
-  });
+  const MaxWidthBox({required this.child, super.key, this.maxWidth = 600});
 
   final Widget child;
   final double maxWidth;

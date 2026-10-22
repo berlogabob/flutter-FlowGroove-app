@@ -64,7 +64,9 @@ class ConfigValidator {
 
     // Check Twitter configuration (optional)
     if (!kIsWeb && !env.isTwitterConfigured) {
-      warnings.add('Twitter/X credentials are not configured - Twitter features will be disabled');
+      warnings.add(
+        'Twitter/X credentials are not configured - Twitter features will be disabled',
+      );
     }
 
     return ConfigValidationResult(
@@ -79,7 +81,7 @@ class ConfigValidator {
   /// This should be called during app initialization
   static Future<void> validateOrThrow() async {
     final result = await validate();
-    
+
     if (!result.isValid) {
       throw ConfigValidationException(
         'Configuration validation failed: ${result.errors.join(', ')}',
@@ -99,10 +101,10 @@ class ConfigValidator {
   /// Check if a value is a placeholder
   static bool _isPlaceholder(String value) {
     return value.isEmpty ||
-           value.contains('REPLACE_ME') ||
-           value.contains('your_') ||
-           value.contains('YOUR_') ||
-           value == 'none';
+        value.contains('REPLACE_ME') ||
+        value.contains('your_') ||
+        value.contains('YOUR_') ||
+        value == 'none';
   }
 }
 

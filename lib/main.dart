@@ -47,7 +47,9 @@ void main() async {
   // unconditionally so the licenses page reads the same everywhere.
   LicenseRegistry.addLicense(
     () => Stream<LicenseEntry>.value(
-      const LicenseEntryWithLineBreaks(<String>['lamejs (LAME)'], '''
+      const LicenseEntryWithLineBreaks(
+        <String>['lamejs (LAME)'],
+        '''
 FlowGroove uses lamejs, a JavaScript port of the LAME MP3 encoder, to turn
 recordings made in a browser into MP3 files that messengers can play.
 
@@ -55,7 +57,8 @@ LAME — https://lame.sourceforge.net/
 lamejs — https://github.com/zhuker/lamejs
 
 Licensed under the LGPL. lamejs is loaded as a separate, unmodified script
-(web/vendor/lamejs.iife.js) and can be replaced with your own build.'''),
+(web/vendor/lamejs.iife.js) and can be replaced with your own build.''',
+      ),
     ),
   );
 

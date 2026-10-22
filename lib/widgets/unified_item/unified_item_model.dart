@@ -32,7 +32,6 @@ abstract class UnifiedItemAction {
 
 /// Delete action with theme colors
 class DeleteAction implements UnifiedItemAction {
-
   DeleteAction({this.onPressed});
   final VoidCallback? onPressed;
 
@@ -107,7 +106,6 @@ class OverflowMenuAction implements UnifiedItemAction {
 
 /// Edit action with theme colors
 class EditAction implements UnifiedItemAction {
-
   EditAction({this.onPressed});
   final VoidCallback? onPressed;
 

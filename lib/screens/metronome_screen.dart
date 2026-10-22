@@ -69,6 +69,9 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     super.initState();
     _metronome = ref.read(metronomeProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_showCutOffNoticeIfNeeded());
+    });
   }
 
   @override
@@ -119,6 +122,24 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
             state == AppLifecycleState.detached ||
             state == AppLifecycleState.hidden)) {
       _stopSafely();
+    }
+  }
+
+  /// If the previous playback was ended by the system, say so and open the
+  /// fix sheet again (even if the first-run sheet was already seen).
+  Future<void> _showCutOffNoticeIfNeeded() async {
+    try {
+      if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+      final power = PowerReliability();
+      if (!await power.lastRunEndedUnexpectedly() || !mounted) return;
+      await showReliabilitySheet(
+        context,
+        power: power,
+        notice:
+            "Last time playback was cut off: your phone's battery manager stopped FlowGroove in the background.",
+      );
+    } catch (_) {
+      // Guidance only; never interrupt the metronome.
     }
   }
 

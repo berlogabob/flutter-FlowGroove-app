@@ -32,7 +32,6 @@ class FirestoreService {
   final SetlistRepository _setlistRepository = FirestoreSetlistRepository();
   final BandRepository _bandRepository = FirestoreBandRepository();
 
-
   /// Helper method to get current user UID.
   /// Throws [ApiError] if not authenticated.
   String get _currentUserId {
@@ -83,7 +82,6 @@ class FirestoreService {
     await _bandRepository.saveBand(band, uid: uid);
   }
 
-
   // ============================================================
   // Setlist Operations
   // ============================================================
@@ -132,7 +130,6 @@ class FirestoreService {
     await _setlistRepository.deleteBandSetlist(bandId, setlistId);
   }
 
-
   // ============================================================
   // Global Bands Collection Methods (for cross-user sharing)
   // ============================================================
@@ -148,10 +145,6 @@ class FirestoreService {
   Future<void> saveBandBatch(Band band, {String? uid}) async {
     await _bandRepository.saveBandBatch(band, uid: uid);
   }
-
-
-
-
 
   // ============================================================
   // Band Songs Methods (for sharing songs between personal and band banks)

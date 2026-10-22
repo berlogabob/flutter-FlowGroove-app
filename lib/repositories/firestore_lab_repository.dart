@@ -17,10 +17,10 @@ class FirestoreLabRepository {
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
     PendingStorageDeletes? pendingStorageDeletes,
-  })
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _auth = auth ?? FirebaseAuth.instance,
-      _pendingStorageDeletes = pendingStorageDeletes ?? PendingStorageDeletes();
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _auth = auth ?? FirebaseAuth.instance,
+       _pendingStorageDeletes =
+           pendingStorageDeletes ?? PendingStorageDeletes();
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
@@ -38,8 +38,16 @@ class FirestoreLabRepository {
     String songId, {
     String? bandId,
   }) => bandId != null
-      ? _firestore.collection('bands').doc(bandId).collection('songs').doc(songId)
-      : _firestore.collection('users').doc(_uid).collection('songs').doc(songId);
+      ? _firestore
+            .collection('bands')
+            .doc(bandId)
+            .collection('songs')
+            .doc(songId)
+      : _firestore
+            .collection('users')
+            .doc(_uid)
+            .collection('songs')
+            .doc(songId);
 
   // ---- Entries ----
 

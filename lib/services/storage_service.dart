@@ -16,9 +16,9 @@ class StorageService {
     FirebaseStorage? storage,
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
-  })  : _injectedStorage = storage,
-        _injectedAuth = auth,
-        _injectedFirestore = firestore;
+  }) : _injectedStorage = storage,
+       _injectedAuth = auth,
+       _injectedFirestore = firestore;
 
   // Resolved on first use, not in the constructor: `.instance` throws unless
   // Firebase is initialised, and merely constructing this service (or a
@@ -163,8 +163,7 @@ class StorageService {
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
-          message:
-              'You do not have permission to delete the profile picture.',
+          message: 'You do not have permission to delete the profile picture.',
           exception: e,
           stackTrace: stackTrace,
         );
@@ -183,8 +182,7 @@ class StorageService {
   Future<String?> getProfilePictureUrl(String uid) async {
     try {
       // Try to get from Firestore first
-      final userDoc =
-          await _firestore.collection('users').doc(uid).get();
+      final userDoc = await _firestore.collection('users').doc(uid).get();
 
       if (userDoc.exists) {
         final data = userDoc.data();

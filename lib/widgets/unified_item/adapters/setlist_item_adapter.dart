@@ -4,7 +4,6 @@ import '../unified_item_model.dart';
 
 /// Adapter for Setlist model to work with unified item system
 class SetlistItemAdapter extends UnifiedItemModel {
-
   SetlistItemAdapter(this.setlist);
   final Setlist setlist;
 

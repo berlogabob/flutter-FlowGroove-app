@@ -18,12 +18,13 @@ class _Sentinel {
 
 @JsonSerializable()
 class Song {
-
   Song({
     required this.id,
     required this.title,
     required this.artist,
-    required this.createdAt, required this.updatedAt, this.originalKey,
+    required this.createdAt,
+    required this.updatedAt,
+    this.originalKey,
     this.originalBPM,
     this.ourKey,
     this.ourBPM,
@@ -280,9 +281,11 @@ class Song {
   Map<String, dynamic> toJson() => _$SongToJson(this);
 
   /// True when any section has chords or notes worth showing on a sheet.
-  bool get hasSheetContent => sections.any((s) =>
-      (s.chordChart != null && s.chordChart!.trim().isNotEmpty) ||
-      s.notes.trim().isNotEmpty);
+  bool get hasSheetContent => sections.any(
+    (s) =>
+        (s.chordChart != null && s.chordChart!.trim().isNotEmpty) ||
+        s.notes.trim().isNotEmpty,
+  );
 }
 
 // Helper methods for BeatMode serialization

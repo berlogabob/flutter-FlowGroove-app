@@ -70,11 +70,9 @@ Future<void> showQuickActionPicker(BuildContext context, WidgetRef ref) async {
           children: [
             const ListTile(
               title: Text('Quick action'),
-              subtitle: Text(
-                'Sets what the pinned button on song cards does',
-              ),
+              subtitle: Text('Sets what the pinned button on song cards does'),
             ),
-            for (final MapEntry(: key, : value)
+            for (final MapEntry(:key, :value)
                 in SongCardActions.quickActions.entries)
               RadioListTile<String>(
                 value: key,
@@ -171,7 +169,11 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         entries: [
           ('Metronome', Icons.av_timer, () => openInMetronome(song)),
           if (song.spotifyUrl != null)
-            ('Play on Spotify', Icons.play_circle_fill, () => openSpotify(song)),
+            (
+              'Play on Spotify',
+              Icons.play_circle_fill,
+              () => openSpotify(song),
+            ),
           ('Open in Tuner', Icons.tune, () => openInTuner(song)),
           if (targetBands.isNotEmpty)
             (
@@ -179,9 +181,13 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               Icons.add_to_queue,
               () => unawaited(pickBandAndAdd(song, targetBands)),
             ),
-          ('Quick action…', Icons.push_pin_outlined, () {
-            unawaited(pickQuickAction());
-          }),
+          (
+            'Quick action…',
+            Icons.push_pin_outlined,
+            () {
+              unawaited(pickQuickAction());
+            },
+          ),
         ],
       ),
     ];

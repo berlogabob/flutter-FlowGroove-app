@@ -39,7 +39,9 @@ class SetlistBreakRow extends StatelessWidget {
         decoration: BoxDecoration(
           color: MonoPulseColors.accentOrange10,
           borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-          border: Border.all(color: MonoPulseColors.accentOrange.withValues(alpha: 0.4)),
+          border: Border.all(
+            color: MonoPulseColors.accentOrange.withValues(alpha: 0.4),
+          ),
         ),
         child: Row(
           children: [

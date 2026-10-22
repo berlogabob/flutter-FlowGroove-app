@@ -42,7 +42,11 @@ List<RouteBase> _routes() {
       name: 'event-share',
       builder: (c, s) => marker('event:${s.uri.queryParameters['t']}'),
     ),
-    GoRoute(path: '/main/home', name: 'home', builder: (c, s) => marker('home')),
+    GoRoute(
+      path: '/main/home',
+      name: 'home',
+      builder: (c, s) => marker('home'),
+    ),
   ];
 }
 

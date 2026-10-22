@@ -24,6 +24,7 @@ void main() {
       return switch (call.method) {
         'oemFamily' => 'huawei',
         'isIgnoringBatteryOptimizations' || 'openOemSettings' => true,
+        'lastRunEndedUnexpectedly' => true,
         _ => null,
       };
     });
@@ -31,6 +32,33 @@ void main() {
 
   tearDown(() {
     binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  test('reports a run that the system cut off', () async {
+    expect(await power.lastRunEndedUnexpectedly(), isTrue);
+    expect(calls, ['lastRunEndedUnexpectedly']);
+  });
+
+  testWidgets('the sheet shows the cut-off notice when given', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showReliabilitySheet(
+              context,
+              power: power,
+              notice: 'Playback was cut off',
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('reliability-notice')), findsOneWidget);
+    expect(find.text('Playback was cut off'), findsOneWidget);
     debugDefaultTargetPlatformOverride = null;
   });
 

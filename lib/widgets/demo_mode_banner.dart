@@ -15,7 +15,6 @@ import '../../theme/mono_pulse_theme.dart';
 ///
 /// Wraps child content and shows a dismissible banner when user is in demo mode.
 class DemoModeBanner extends ConsumerWidget {
-
   const DemoModeBanner({required this.child, super.key});
   final Widget child;
 
@@ -30,7 +29,10 @@ class DemoModeBanner extends ConsumerWidget {
         // Demo mode banner
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: 0),
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.md,
+            vertical: 0,
+          ),
           color: MonoPulseColors.accentOrange.withValues(alpha: 0.15),
           child: SafeArea(
             bottom: false,

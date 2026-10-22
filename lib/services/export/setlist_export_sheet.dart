@@ -57,9 +57,7 @@ Future<({SetlistPdfLayout layout, String? performerId})?> pickSetlistPdfExport(
             ListTile(
               leading: const Icon(Icons.person),
               title: Text(person.name),
-              subtitle: Text(
-                assigned[person.id]!.map((n) => '#$n').join(', '),
-              ),
+              subtitle: Text(assigned[person.id]!.map((n) => '#$n').join(', ')),
               onTap: () => Navigator.pop(context, person),
             ),
         ],
@@ -113,9 +111,7 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
             ListTile(
               leading: const Icon(Icons.library_music),
               title: const Text('SetlistPack'),
-              subtitle: const Text(
-                'Compact setlist + one-page sheet per song',
-              ),
+              subtitle: const Text('Compact setlist + one-page sheet per song'),
               onTap: () => Navigator.pop(context, SetlistPdfLayout.pack),
             ),
           if (withCheatSheet)
@@ -134,8 +130,7 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
               subtitle: const Text(
                 'Cover + setlist + stage plot + role cards + rider',
               ),
-              onTap: () =>
-                  Navigator.pop(context, SetlistPdfLayout.eventGuide),
+              onTap: () => Navigator.pop(context, SetlistPdfLayout.eventGuide),
             ),
           if (withPerformer)
             ListTile(

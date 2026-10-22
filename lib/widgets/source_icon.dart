@@ -3,24 +3,19 @@ import '../models/song_suggestion.dart';
 import '../theme/mono_pulse_theme.dart';
 
 /// Source icon for song suggestions
-/// 
+///
 /// Displays different icons and colors based on suggestion source:
 /// - Personal: Person icon (orange)
 /// - Group: Group icon (blue)
 /// - MusicBrainz: Cloud icon (green)
 /// - Canonical: Library icon (purple)
-/// 
+///
 /// Usage:
 /// ```dart
 /// SourceIcon(source: SuggestionSource.personal)
 /// ```
 class SourceIcon extends StatelessWidget {
-
-  const SourceIcon({
-    required this.source,
-    super.key,
-    this.size = 20,
-  });
+  const SourceIcon({required this.source, super.key, this.size = 20});
   final SuggestionSource source;
   final double size;
 
@@ -36,11 +31,7 @@ class SourceIcon extends StatelessWidget {
         color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
-      child: Icon(
-        iconData,
-        size: size,
-        color: color,
-      ),
+      child: Icon(iconData, size: size, color: color),
     );
   }
 
@@ -63,7 +54,7 @@ class SourceIcon extends StatelessWidget {
 
   Color _getColor(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     switch (source) {
       case SuggestionSource.personal:
         return colorScheme.primary;

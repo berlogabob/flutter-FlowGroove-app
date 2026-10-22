@@ -10,7 +10,6 @@ import 'firestore_timeout.dart';
 /// Handles all band-related data operations with Firestore,
 /// including personal band references and global band data.
 class FirestoreBandRepository implements BandRepository {
-
   FirestoreBandRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
     : _firestore = firestore ?? FirebaseFirestore.instance,
       _auth = auth ?? FirebaseAuth.instance;
@@ -128,7 +127,10 @@ class FirestoreBandRepository implements BandRepository {
       _requireAuth();
       await withFirestoreTimeout(
         'saveBandToGlobal ${band.id}',
-        () => _firestore.collection('bands').doc(band.id).set(band.toJson(), SetOptions(merge: true)),
+        () => _firestore
+            .collection('bands')
+            .doc(band.id)
+            .set(band.toJson(), SetOptions(merge: true)),
       );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
@@ -273,10 +275,7 @@ class FirestoreBandRepository implements BandRepository {
           data,
           SetOptions(merge: true),
         );
-      await withFirestoreTimeout(
-        'saveBandBatch ${band.id}',
-        batch.commit,
-      );
+      await withFirestoreTimeout('saveBandBatch ${band.id}', batch.commit);
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(

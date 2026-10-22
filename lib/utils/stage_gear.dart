@@ -979,12 +979,7 @@ class StageGear {
       'Sonor',
     ],
     'Keys': ['Nord', 'Roland', 'Korg', 'Yamaha', 'Moog', 'Hammond'],
-    'DJ & electronic': [
-      'Pioneer',
-      'Technics',
-      'Denon',
-      'Native Instruments',
-    ],
+    'DJ & electronic': ['Pioneer', 'Technics', 'Denon', 'Native Instruments'],
     'Monitoring & PA': [
       'QSC',
       'RCF',
@@ -1083,10 +1078,7 @@ class StageGear {
     }
 
     for (final role in roleKeys) {
-      final key = role
-          .trim()
-          .toLowerCase()
-          .replaceAll(RegExp(r'[\s-]+'), '_');
+      final key = role.trim().toLowerCase().replaceAll(RegExp(r'[\s-]+'), '_');
       (_roleSuggestions[key] ?? const <String>[]).forEach(add);
     }
     add('monitor_wedge');

@@ -73,9 +73,11 @@ Future<void> showSetlistQuickActionPicker(
           children: [
             const ListTile(
               title: Text('Quick action'),
-              subtitle: Text('Sets what the pinned button on setlist cards does'),
+              subtitle: Text(
+                'Sets what the pinned button on setlist cards does',
+              ),
             ),
-            for (final MapEntry(: key, : value) in setlistQuickActions.entries)
+            for (final MapEntry(:key, :value) in setlistQuickActions.entries)
               RadioListTile<String>(
                 value: key,
                 title: Text(value.$1),

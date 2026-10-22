@@ -17,7 +17,11 @@ Song _song() {
     ourBPM: 84,
     tags: const ['cover', '90s'],
     sections: [
-      Section(id: 's1', name: 'Verse 1', chordChart: '[Em]Another head [C]hangs'),
+      Section(
+        id: 's1',
+        name: 'Verse 1',
+        chordChart: '[Em]Another head [C]hangs',
+      ),
     ],
   );
 }
@@ -25,20 +29,23 @@ Song _song() {
 void main() {
   const codec = SongJsonCodec();
 
-  test('export → parse round-trips the user-facing fields incl. chordChart', () {
-    final result = codec.parse(codec.exportSong(_song()));
-    expect(result.errors, isEmpty);
-    expect(result.successful, hasLength(1));
-    final s = result.successful.single;
-    expect(s.title, 'Zombie');
-    expect(s.artist, 'The Cranberries');
-    expect(s.ourKey, 'Em');
-    expect(s.ourBPM, 84);
-    expect(s.tags, ['cover', '90s']);
-    expect(s.sections.single.name, 'Verse 1');
-    expect(s.sections.single.chordChart, '[Em]Another head [C]hangs');
-    expect(s.id, isNot('x1')); // a fresh id is minted on import
-  });
+  test(
+    'export → parse round-trips the user-facing fields incl. chordChart',
+    () {
+      final result = codec.parse(codec.exportSong(_song()));
+      expect(result.errors, isEmpty);
+      expect(result.successful, hasLength(1));
+      final s = result.successful.single;
+      expect(s.title, 'Zombie');
+      expect(s.artist, 'The Cranberries');
+      expect(s.ourKey, 'Em');
+      expect(s.ourBPM, 84);
+      expect(s.tags, ['cover', '90s']);
+      expect(s.sections.single.name, 'Verse 1');
+      expect(s.sections.single.chordChart, '[Em]Another head [C]hangs');
+      expect(s.id, isNot('x1')); // a fresh id is minted on import
+    },
+  );
 
   test('export emits the versioned envelope', () {
     final map = json.decode(codec.exportSong(_song())) as Map<String, dynamic>;
@@ -75,7 +82,10 @@ void main() {
 
   test('bare single-song object and bare array are accepted', () {
     expect(codec.parse('{"title":"Solo"}').successful, hasLength(1));
-    expect(codec.parse('[{"title":"A"},{"title":"B"}]').successful, hasLength(2));
+    expect(
+      codec.parse('[{"title":"A"},{"title":"B"}]').successful,
+      hasLength(2),
+    );
   });
 
   test('non-JSON and wrong shape produce clear errors', () {
@@ -84,7 +94,9 @@ void main() {
   });
 
   test('sections without ids get minted ids', () {
-    final r = codec.parse('{"songs":[{"title":"A","sections":[{"name":"Intro"}]}]}');
+    final r = codec.parse(
+      '{"songs":[{"title":"A","sections":[{"name":"Intro"}]}]}',
+    );
     final sec = r.successful.single.sections.single;
     expect(sec.name, 'Intro');
     expect(sec.id, isNotEmpty);

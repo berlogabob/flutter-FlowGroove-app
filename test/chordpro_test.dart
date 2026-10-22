@@ -23,7 +23,9 @@ void main() {
     });
 
     test('plain line with no chords', () {
-      expect(parseChordProLine('just words'), [(chord: null, text: 'just words')]);
+      expect(parseChordProLine('just words'), [
+        (chord: null, text: 'just words'),
+      ]);
     });
 
     test('empty line', () {

@@ -8,11 +8,7 @@ import 'package:flutter/foundation.dart';
 /// A single tuning configuration for an instrument.
 @immutable
 class Tuning {
-  const Tuning({
-    required this.id,
-    required this.name,
-    required this.notes,
-  });
+  const Tuning({required this.id, required this.name, required this.notes});
 
   factory Tuning.fromJson(Map<String, dynamic> json) {
     return Tuning(
@@ -35,11 +31,7 @@ class Tuning {
   int get stringCount => notes.length;
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'notes': notes,
-    };
+    return {'id': id, 'name': name, 'notes': notes};
   }
 
   @override

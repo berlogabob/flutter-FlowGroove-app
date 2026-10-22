@@ -63,7 +63,10 @@ class BandFunctionService {
   /// Idempotent: if the caller is already a member, returns a result with
   /// [JoinBandResult.alreadyMember] set to true instead of throwing.
   Future<JoinBandResult> joinBand({String? code, String? bandId}) async {
-    final callable = _functions.httpsCallable('joinBand', options: _callableOptions);
+    final callable = _functions.httpsCallable(
+      'joinBand',
+      options: _callableOptions,
+    );
     final result = await callable.call<Map<String, dynamic>>(
       _withoutNullValues({'code': code, 'bandId': bandId}),
     );
@@ -129,7 +132,10 @@ class BandFunctionService {
     String? role,
     List<String>? musicRoles,
   }) async {
-    final callable = _functions.httpsCallable('updateBandMember', options: _callableOptions);
+    final callable = _functions.httpsCallable(
+      'updateBandMember',
+      options: _callableOptions,
+    );
     try {
       await callable.call<Map<String, dynamic>>(
         _withoutNullValues({
@@ -154,7 +160,8 @@ class BandFunctionService {
       case 'deadline-exceeded':
       case 'unavailable':
         return ApiError.network(
-          message: 'Request timed out. Please check your connection and try again.',
+          message:
+              'Request timed out. Please check your connection and try again.',
           exception: e,
           stackTrace: st,
         );

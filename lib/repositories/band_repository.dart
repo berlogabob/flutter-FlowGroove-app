@@ -27,7 +27,6 @@ abstract class BandRepository {
   /// trip) instead of two sequential `set` calls — used on band create/edit.
   Future<void> saveBandBatch(Band band, {String? uid});
 
-
   /// Gets a band by invite code from global collection.
   Future<Band?> getBandByInviteCode(String code);
 

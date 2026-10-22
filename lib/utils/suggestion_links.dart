@@ -33,7 +33,8 @@ List<Link> linksForSuggestion(SongSuggestion s) {
     ),
     Link(
       type: Link.typeChords,
-      url: 'https://www.ultimate-guitar.com/search.php?search_type=title&value=$q',
+      url:
+          'https://www.ultimate-guitar.com/search.php?search_type=title&value=$q',
       title: 'Chords',
     ),
     Link(
