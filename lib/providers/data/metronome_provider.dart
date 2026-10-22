@@ -858,7 +858,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     final stopwatch = _sessionStopwatch;
     if (session == null || stopwatch == null) return;
     stopwatch.stop();
-    AnalyticsService.logPracticeSession(lengthMs: stopwatch.elapsedMilliseconds);
+    AnalyticsService.logPracticeSession(
+      lengthMs: stopwatch.elapsedMilliseconds,
+    );
     _activeSession = null;
     _sessionStopwatch = null;
     final completedSession = MetronomeSession(

@@ -53,7 +53,10 @@ void main() {
           access: {for (final a in EventArea.all) a: EventAccessLevel.edit},
         );
       }
-      return (isMember: false, access: {EventArea.stage: EventAccessLevel.edit});
+      return (
+        isMember: false,
+        access: {EventArea.stage: EventAccessLevel.edit},
+      );
     }
 
     bool canOpenEventKit(Map<String, String> a, bool isMember) =>

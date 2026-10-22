@@ -2,17 +2,14 @@ import 'package:flowgroove/models/metronome_session.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-MetronomeSession _s(
-  DateTime startedAt, {
-  int seconds = 600,
-  String? songId,
-}) => MetronomeSession(
-  id: '${startedAt.toIso8601String()}-$seconds',
-  startedAt: startedAt,
-  startBpm: 100,
-  elapsedSeconds: seconds,
-  songId: songId,
-);
+MetronomeSession _s(DateTime startedAt, {int seconds = 600, String? songId}) =>
+    MetronomeSession(
+      id: '${startedAt.toIso8601String()}-$seconds',
+      startedAt: startedAt,
+      startBpm: 100,
+      elapsedSeconds: seconds,
+      songId: songId,
+    );
 
 void main() {
   // Wednesday 2026-07-15, 18:00 local.
@@ -61,9 +58,7 @@ void main() {
     });
 
     test('streak is 0 when last practice was 2+ days ago', () {
-      final stats = computePracticeStats([
-        _s(DateTime(2026, 7, 12, 9)),
-      ], now);
+      final stats = computePracticeStats([_s(DateTime(2026, 7, 12, 9))], now);
       expect(stats.streakDays, 0);
     });
 

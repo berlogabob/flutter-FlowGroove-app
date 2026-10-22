@@ -21,20 +21,21 @@ void main() {
     // The Dart-side `enabled` flag only gates the ~15 `_log` events; the ~40
     // legacy methods and Firebase's automatic events are only stopped by the
     // SDK-level collection switch. Consent is a lie without this call.
-    test('toggle-off disables SDK collection, not just the Dart flag', () async {
-      await Future<void>.delayed(Duration.zero);
+    test(
+      'toggle-off disables SDK collection, not just the Dart flag',
+      () async {
+        await Future<void>.delayed(Duration.zero);
 
-      await container.read(analyticsConsentProvider.notifier).toggle();
-      expect(AnalyticsService.debugCollectionEnabled, isFalse);
+        await container.read(analyticsConsentProvider.notifier).toggle();
+        expect(AnalyticsService.debugCollectionEnabled, isFalse);
 
-      await container.read(analyticsConsentProvider.notifier).toggle();
-      expect(AnalyticsService.debugCollectionEnabled, isTrue);
-    });
+        await container.read(analyticsConsentProvider.notifier).toggle();
+        expect(AnalyticsService.debugCollectionEnabled, isTrue);
+      },
+    );
 
     test('a stored false disables SDK collection on load', () async {
-      SharedPreferences.setMockInitialValues({
-        'app.analytics_consent': false,
-      });
+      SharedPreferences.setMockInitialValues({'app.analytics_consent': false});
       container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -49,9 +50,7 @@ void main() {
     });
 
     test('loads a previously-persisted false value and applies it', () async {
-      SharedPreferences.setMockInitialValues({
-        'app.analytics_consent': false,
-      });
+      SharedPreferences.setMockInitialValues({'app.analytics_consent': false});
       container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -63,19 +62,22 @@ void main() {
       expect(AnalyticsService.enabled, isFalse);
     });
 
-    test('toggle flips state, persists it, and updates AnalyticsService.enabled', () async {
-      // Let the initial load settle first.
-      await Future<void>.delayed(Duration.zero);
-      expect(container.read(analyticsConsentProvider), isTrue);
+    test(
+      'toggle flips state, persists it, and updates AnalyticsService.enabled',
+      () async {
+        // Let the initial load settle first.
+        await Future<void>.delayed(Duration.zero);
+        expect(container.read(analyticsConsentProvider), isTrue);
 
-      await container.read(analyticsConsentProvider.notifier).toggle();
+        await container.read(analyticsConsentProvider.notifier).toggle();
 
-      expect(container.read(analyticsConsentProvider), isFalse);
-      expect(AnalyticsService.enabled, isFalse);
+        expect(container.read(analyticsConsentProvider), isFalse);
+        expect(AnalyticsService.enabled, isFalse);
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getBool('app.analytics_consent'), isFalse);
-    });
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool('app.analytics_consent'), isFalse);
+      },
+    );
 
     test('persists across a fresh container (new app session)', () async {
       await Future<void>.delayed(Duration.zero);

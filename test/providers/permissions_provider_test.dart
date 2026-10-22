@@ -56,24 +56,31 @@ void main() {
     editorUids: editorUids,
   );
 
-  test('editor via arrays can edit even when members[].role is stale', () async {
-    // The drift case: doc says viewer, arrays (= server truth) say editor.
-    final c = container(
-      bands: [
-        band(
-          editorUids: const ['u1'],
-          members: [BandMember(uid: 'u1', role: BandMember.roleViewer)],
-        ),
-      ],
-    );
-    await settle(c);
+  test(
+    'editor via arrays can edit even when members[].role is stale',
+    () async {
+      // The drift case: doc says viewer, arrays (= server truth) say editor.
+      final c = container(
+        bands: [
+          band(
+            editorUids: const ['u1'],
+            members: [BandMember(uid: 'u1', role: BandMember.roleViewer)],
+          ),
+        ],
+      );
+      await settle(c);
 
-    expect(c.read(canEditBandProvider('b1')), isTrue);
-    expect(c.read(isBandAdminProvider('b1')), isFalse);
-  });
+      expect(c.read(canEditBandProvider('b1')), isTrue);
+      expect(c.read(isBandAdminProvider('b1')), isFalse);
+    },
+  );
 
   test('admin via arrays gets both gates', () async {
-    final c = container(bands: [band(adminUids: const ['u1'])]);
+    final c = container(
+      bands: [
+        band(adminUids: const ['u1']),
+      ],
+    );
     await settle(c);
 
     expect(c.read(canEditBandProvider('b1')), isTrue);
@@ -91,7 +98,9 @@ void main() {
 
   test('demo user is denied regardless of band role', () async {
     final c = container(
-      bands: [band(adminUids: const ['u1'])],
+      bands: [
+        band(adminUids: const ['u1']),
+      ],
       accessRole: 'demo',
     );
     await settle(c);
@@ -101,7 +110,11 @@ void main() {
   });
 
   test('unknown band and loading stream are fail-closed', () async {
-    final c = container(bands: [band(adminUids: const ['u1'])]);
+    final c = container(
+      bands: [
+        band(adminUids: const ['u1']),
+      ],
+    );
     // Before the stream emits: closed.
     expect(c.read(canEditBandProvider('b1')), isFalse);
     await settle(c);
@@ -115,9 +128,7 @@ void main() {
   group('isDemoUserProvider while the user document is loading', () {
     ProviderContainer loading() {
       final c = ProviderContainer(
-        overrides: [
-          appUserProvider.overrideWith(_LoadingAppUserNotifier.new),
-        ],
+        overrides: [appUserProvider.overrideWith(_LoadingAppUserNotifier.new)],
       );
       addTearDown(c.dispose);
       return c;
@@ -144,9 +155,7 @@ void main() {
     test('a loaded real user is not blocked by that gate', () {
       final c = ProviderContainer(
         overrides: [
-          appUserProvider.overrideWith(
-            () => TestAppUserNotifier(user()),
-          ),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(user())),
         ],
       );
       addTearDown(c.dispose);

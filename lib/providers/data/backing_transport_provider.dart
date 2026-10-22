@@ -113,7 +113,7 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
         state = state.copyWith(playingId: null, queuedId: null);
       }
       if (previous?.bpm != next.bpm && _entry != null) {
-        _resumeId = state.playingId ?? _resumeId;
+        _resumeId = state.playingId ?? state.queuedId ?? _resumeId;
         final generation = _beginRender();
         _debounce = Timer(const Duration(milliseconds: 300), () async {
           try {

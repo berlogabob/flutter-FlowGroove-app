@@ -177,6 +177,23 @@ void main() {
     },
   );
 
+  test(
+    'a second tempo change while the resume is still queued keeps it',
+    () async {
+      await transport.attach(entry(), sections);
+      await transport.launch('verse');
+      engine.playing(engine.commands.last);
+      engine.barEvents.add(3);
+      metro.tempo(130);
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(container.read(backingTransportProvider).queuedId, 'verse');
+      metro.tempo(135);
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(container.read(backingTransportProvider).queuedId, 'verse');
+      expect(engine.loads.last.renderBpm, 135);
+    },
+  );
+
   test('tempo changes clear, debounce, reload and resume next bar', () async {
     await transport.attach(entry(), sections);
     await transport.launch('verse');
