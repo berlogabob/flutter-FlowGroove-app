@@ -7,17 +7,20 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.media.MediaMetadata
+import android.media.session.MediaSession
+import android.media.session.PlaybackState
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import androidx.core.app.NotificationCompat
 
 class MetronomeForegroundService : Service() {
 
     private val binder = MetronomeBinder()
     private var engine: AndroidMetronomeEngine? = null
     private var currentBpm: Int = 0
+    private var mediaSession: MediaSession? = null
 
     /** Set by the bound Activity to forward ticks to the Flutter channel. */
     var tickListener: ((Int) -> Unit)? = null
@@ -34,7 +37,11 @@ class MetronomeForegroundService : Service() {
         engine = AndroidMetronomeEngine(
             context = applicationContext,
             onTick = { index -> tickListener?.invoke(index) },
-            onStopped = { stoppedListener?.invoke() }
+            onStopped = {
+                mediaSession?.release()
+                mediaSession = null
+                stoppedListener?.invoke()
+            }
         )
     }
 
@@ -65,6 +72,8 @@ class MetronomeForegroundService : Service() {
 
     fun stopPlayback() {
         engine?.stop(notifyFlutter = true)
+        mediaSession?.release()
+        mediaSession = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
@@ -75,6 +84,8 @@ class MetronomeForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        mediaSession?.release()
+        mediaSession = null
         engine?.dispose()
         engine = null
         tickListener = null
@@ -101,6 +112,31 @@ class MetronomeForegroundService : Service() {
     }
 
     private fun buildNotification(): Notification {
+        val session = mediaSession ?: MediaSession(this, "FlowGroove").apply {
+            setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS or MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS)
+            setCallback(object : MediaSession.Callback() {
+                override fun onStop() = stopPlayback()
+                override fun onPause() = stopPlayback()
+                override fun onPlay() = stopPlayback()
+            })
+        }.also { mediaSession = it }
+        session.setPlaybackState(
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PLAYING, 0L, 1f)
+                .setActions(PlaybackState.ACTION_STOP or PlaybackState.ACTION_PAUSE or PlaybackState.ACTION_PLAY_PAUSE)
+                .build()
+        )
+        session.setMetadata(
+            MediaMetadata.Builder()
+                .putString(MediaMetadata.METADATA_KEY_TITLE, "FlowGroove")
+                .apply {
+                    if (currentBpm > 0) {
+                        putString(MediaMetadata.METADATA_KEY_ARTIST, "$currentBpm BPM")
+                    }
+                }
+                .build()
+        )
+        session.isActive = true
         val openIntent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         }
@@ -114,15 +150,28 @@ class MetronomeForegroundService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val text = if (currentBpm > 0) "$currentBpm BPM" else "Playing"
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, CHANNEL_ID)
+        } else {
+            @Suppress("DEPRECATION")
+            Notification.Builder(this)
+        }
+        return builder
             .setContentTitle("Metronome")
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setOngoing(true)
-            .setSilent(true)
+            .setSound(null)
+            .setVibrate(null)
+            .setCategory(Notification.CATEGORY_TRANSPORT)
+            .setStyle(
+                Notification.MediaStyle()
+                    .setMediaSession(session.sessionToken)
+                    .setShowActionsInCompactView(0)
+            )
             .setContentIntent(contentPi)
             .addAction(android.R.drawable.ic_media_pause, "Stop", stopPi)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(Notification.PRIORITY_LOW)
             .build()
     }
 
