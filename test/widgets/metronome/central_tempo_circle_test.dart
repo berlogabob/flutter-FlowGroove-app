@@ -100,6 +100,49 @@ void main() {
     },
   );
 
+  testWidgets(
+    'knob drag beats an ancestor scroll view; elsewhere scrolls (F17)',
+    (tester) async {
+      final controller = ScrollController();
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Scaffold(
+              body: ListView(
+                controller: controller,
+                children: const [
+                  SizedBox.square(dimension: 300, child: CentralTempoCircle()),
+                  SizedBox(height: 2000),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      container.read(metronomeProvider.notifier).setBpm(123);
+      await tester.pump();
+
+      final knob = globalPointFor(tester, 123);
+      final gesture = await tester.startGesture(knob);
+      for (var bpm = 125; bpm <= 160; bpm += 5) {
+        await gesture.moveTo(globalPointFor(tester, bpm));
+      }
+      await gesture.up();
+      await tester.pump();
+      expect(container.read(metronomeProvider).bpm, closeTo(160, 2));
+      expect(controller.offset, 0);
+
+      final away = globalPointFor(tester, 320);
+      await tester.dragFrom(away, const Offset(0, -200));
+      await tester.pump();
+      expect(controller.offset, greaterThan(0));
+      expect(container.read(metronomeProvider).bpm, closeTo(160, 2));
+    },
+  );
+
   testWidgets('center and bottom gap do not update BPM', (tester) async {
     await pumpDial(tester);
     container.read(metronomeProvider.notifier).setBpm(222);
