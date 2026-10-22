@@ -1,4 +1,249 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>FlowGroove — Real-Time Setlist Sync on FlowGroove</title><link>https://flowgroove.app/</link><description>Recent content in FlowGroove — Real-Time Setlist Sync on FlowGroove</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Mon, 13 Jul 2026 22:00:00 +0100</lastBuildDate><atom:link href="https://flowgroove.app/index.xml" rel="self" type="application/rss+xml"/><item><title>2nd place on TinyLaunch</title><link>https://flowgroove.app/blog/second-place-on-tinylaunch/</link><pubDate>Mon, 13 Jul 2026 22:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/second-place-on-tinylaunch/</guid><description>The TinyLaunch campaign is over: FlowGroove finished 2nd. What two weeks of launching taught a solo dev, and what happens now.</description></item><item><title>#1 on launch day</title><link>https://flowgroove.app/blog/number-one-on-launch-day/</link><pubDate>Tue, 07 Jul 2026 18:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/number-one-on-launch-day/</guid><description>FlowGroove is sitting at #1 on TinyLaunch right now. A thank-you, and an honest note on what a leaderboard number does and doesn&amp;rsquo;t mean.</description></item><item><title>Delete Your Account — FlowGroove</title><link>https://flowgroove.app/delete-account/</link><pubDate>Tue, 30 Jun 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/delete-account/</guid><description>How to delete your FlowGroove account and all associated data</description></item><item><title>Support — FlowGroove</title><link>https://flowgroove.app/support/</link><pubDate>Tue, 30 Jun 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/support/</guid><description>Get help with FlowGroove — contact, troubleshooting, and useful links</description></item><item><title>In-app help that follows the screen you're on</title><link>https://flowgroove.app/blog/in-app-help-that-follows-the-screen-you-re-on/</link><pubDate>Wed, 24 Jun 2026 10:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/in-app-help-that-follows-the-screen-you-re-on/</guid><description>Per-screen help pages now live inside FlowGroove — open the wiki panel and you get docs for exactly the screen you&amp;rsquo;re looking at, not a generic manual.</description></item><item><title>5 Problems Every Cover Band Faces (And How I Fixed Them)</title><link>https://flowgroove.app/blog/post-002-5-problems-cover-bands-face/</link><pubDate>Wed, 22 Apr 2026 10:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/post-002-5-problems-cover-bands-face/</guid><description>The 5 most common problems every cover band faces during rehearsals and gigs, and how FlowGroove solves each one.</description></item><item><title>Why I Built FlowGroove Between Rehearsals</title><link>https://flowgroove.app/blog/post-001-why-i-built-flowgroove/</link><pubDate>Wed, 15 Apr 2026 10:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/post-001-why-i-built-flowgroove/</guid><description>The story of how 10 years in cover bands led me to build FlowGroove as a solo developer, one late night at a time.</description></item><item><title>About — The Story Behind FlowGroove</title><link>https://flowgroove.app/about/</link><pubDate>Wed, 08 Apr 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/about/</guid><description>How a solo developer built FlowGroove between rehearsals to end band chaos forever</description></item><item><title>FAQ — FlowGroove Questions &amp; Answers</title><link>https://flowgroove.app/faq/</link><pubDate>Wed, 08 Apr 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/faq/</guid><description>Answers to common questions about FlowGroove — pricing, features, offline use, and more</description></item><item><title>Privacy Policy — FlowGroove</title><link>https://flowgroove.app/privacy/</link><pubDate>Wed, 08 Apr 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/privacy/</guid><description>How FlowGroove collects, uses, and protects your data</description></item><item><title>Terms of Service — FlowGroove</title><link>https://flowgroove.app/terms/</link><pubDate>Wed, 08 Apr 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/terms/</guid><description>Terms and conditions for using FlowGroove</description></item><item><title>AI &amp; Import</title><link>https://flowgroove.app/wiki/ai-and-import/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/ai-and-import/</guid><description>&lt;h1 id="ai--import"&gt;AI &amp;amp; Import&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>FlowGroove — Real-Time Setlist Sync on FlowGroove</title><link>https://flowgroove.app/</link><description>Recent content in FlowGroove — Real-Time Setlist Sync on FlowGroove</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Mon, 13 Jul 2026 22:00:00 +0100</lastBuildDate><atom:link href="https://flowgroove.app/index.xml" rel="self" type="application/rss+xml"/><item><title>2nd place on TinyLaunch</title><link>https://flowgroove.app/blog/second-place-on-tinylaunch/</link><pubDate>Mon, 13 Jul 2026 22:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/second-place-on-tinylaunch/</guid><description>The TinyLaunch campaign is over: FlowGroove finished 2nd. What two weeks of launching taught a solo dev, and what happens now.</description><content:encoded>
+## The result
+
+The TinyLaunch run is over, and **FlowGroove finished in 2nd place**. There's a silver
+badge in the footer now.
+
+A week ago this app launched into a batch of polished marketing and AI tools — a
+metronome-and-setlist app for cover bands, built by one person. It spent launch day at #1
+and held near the top until the end. Second overall is more than I planned for, and I'll
+take it with both hands.
+
+## What the launch actually gave me
+
+Not the badge. The launch forced a week of honesty: real users on real phones, finding
+real problems. iPhone sign-in that broke in three different ways until it didn't. Avatars
+that vanished on desktop. A support link that led nowhere on some networks. All of it found
+because strangers clicked a link, and all of it fixed because they told me.
+
+That's what a launch is for, I think. The leaderboard is the excuse; the users are the
+prize.
+
+## What happens now
+
+The app has a proper home at [app.flowgroove.app](https://app.flowgroove.app) — faster
+deploys, cleaner sign-in, same free everything. The devlog keeps going, one story a day,
+because the backlog of things bands need is not getting shorter.
+
+If you voted: thank you. If you're in a band and haven't tried it yet —
+[the demo is real](https://flowgroove.app): three bands, real songs, real setlists,
+no sign-up. Second place on a launch board, but for the next rehearsal your band runs
+with it, it only has to be first choice once.
+</content:encoded></item><item><title>#1 on launch day</title><link>https://flowgroove.app/blog/number-one-on-launch-day/</link><pubDate>Tue, 07 Jul 2026 18:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/number-one-on-launch-day/</guid><description>FlowGroove is sitting at #1 on TinyLaunch right now. A thank-you, and an honest note on what a leaderboard number does and doesn&amp;rsquo;t mean.</description><content:encoded>
+## What happened
+
+As I write this, **FlowGroove is #1 on TinyLaunch** — 39 upvotes, ahead of a couple of
+sharp marketing and AI tools. A metronome-and-setlist app for cover bands, at the top of a
+launch board. I did not have that on the card.
+
+Thank you. Genuinely. Every one of those votes is a person who read one line — *keep your
+band in sync: setlists, tempo, concert mode* — and decided that was worth a click. That's
+not nothing.
+
+## The honest part
+
+A leaderboard is a vanity number. It measures a good day, not a good product. The number I
+actually watch is smaller and quieter: a band opening a setlist five minutes before they go
+on, the metronome not drifting, the sync holding on bad venue wifi. That's the win that
+doesn't show up on a launch board.
+
+So I'm keeping this in proportion — grateful for the day, back to the work tomorrow. If the
+line above sounds like your band, [try it](https://flowgroove.app). It's free, and the demo
+account is real: three bands, real songs, real setlists, no sign-up.
+
+To everyone who voted, and to the bands already using it on stage — thank you. This is a
+better week because of you.
+</content:encoded></item><item><title>Delete Your Account — FlowGroove</title><link>https://flowgroove.app/delete-account/</link><pubDate>Tue, 30 Jun 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/delete-account/</guid><description>How to delete your FlowGroove account and all associated data</description></item><item><title>Support — FlowGroove</title><link>https://flowgroove.app/support/</link><pubDate>Tue, 30 Jun 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/support/</guid><description>Get help with FlowGroove — contact, troubleshooting, and useful links</description></item><item><title>Getting FlowGroove ready for TinyLaunch</title><link>https://flowgroove.app/blog/getting-ready-for-tinylaunch/</link><pubDate>Mon, 29 Jun 2026 06:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/getting-ready-for-tinylaunch/</guid><description>After months of building and three gigs run entirely on the app, I&amp;rsquo;m taking FlowGroove public with a TinyLaunch campaign.</description><content:encoded>
+For months FlowGroove has been a quiet project — built between rehearsals, tested
+at my own gigs. Three shows now, run entirely on the app: songs, setlists, the
+metronome, all of it on stage with me instead of a folder of coffee-stained paper.
+
+Along the way I fixed a long list of small annoyances and a few genuinely scary
+bugs. Somewhere in there it stopped feeling like a prototype and started feeling
+like something I trust in front of an audience.
+
+So it's time to say the word out loud. I'm starting a TinyLaunch campaign for
+FlowGroove — not to chase numbers, but to find the people who'd actually use it:
+bands drowning in the same scattered-chat, lost-setlist, "what's the BPM again?"
+chaos I built this to fix. I want testers, honest feedback, and a few more
+musicians I can help untangle their band's mess.
+
+If that's you — or you know a band like that — cheer me and FlowGroove on. This is
+the part where it stops being just mine.
+</content:encoded></item><item><title>In-app help that follows the screen you're on</title><link>https://flowgroove.app/blog/in-app-help-that-follows-the-screen-you-re-on/</link><pubDate>Wed, 24 Jun 2026 10:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/in-app-help-that-follows-the-screen-you-re-on/</guid><description>Per-screen help pages now live inside FlowGroove — open the wiki panel and you get docs for exactly the screen you&amp;rsquo;re looking at, not a generic manual.</description><content:encoded>
+## What changed
+
+FlowGroove now has built-in help that's aware of where you are. The same Markdown
+pages that power the docs site are bundled into the app, and on desktop a wiki
+panel opens beside what you're doing and shows the page for that exact screen.
+
+- Help docs are written once as Hugo Markdown and reused — site and app read the
+  same source, so they can't drift apart.
+- On desktop the builder splits into two columns: your work on the right, the
+  relevant help page rendered on the left, with overlays kept out of your way.
+- Front-matter is stripped and each screen maps to its own page, so opening help
+  from the metronome gives you metronome docs, not a table of contents to dig through.
+
+## Why it matters
+
+The thing I always hated in band apps: you're mid-rehearsal, you tap "help," and
+you land on a generic FAQ that has nothing to do with the button you were poking
+at. Now the help knows the screen. Less hunting, more playing.
+</content:encoded></item><item><title>5 Problems Every Cover Band Faces (And How I Fixed Them)</title><link>https://flowgroove.app/blog/post-002-5-problems-cover-bands-face/</link><pubDate>Wed, 22 Apr 2026 10:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/post-002-5-problems-cover-bands-face/</guid><description>The 5 most common problems every cover band faces during rehearsals and gigs, and how FlowGroove solves each one.</description><content:encoded>
+# 5 Problems Every Cover Band Faces (And How I Fixed Them)
+
+Ten years of cover bands, and somehow every single one of them ran into the same five problems. So I'll walk you through them — and how FlowGroove deals with each.
+
+---
+
+## Problem #1: The lost setlist
+
+You show up to rehearsal and the setlist — the one piece of paper — is gone. Coffee got on it, or it's at home, or someone "forgot." Now you're spending the first fifteen minutes going "wait, what were we playing?"
+
+FlowGroove keeps your setlists digital and synced across every device. No paper, no coffee casualties, no excuses. Add songs in a few seconds, share with the band, done.
+
+---
+
+## Problem #2: The BPM argument
+
+"Is 'Wonderwall' 87 or 89?" "Does it matter?" It matters when the drummer counts in at 95 and the whole thing wobbles off a cliff. Then it's five minutes of tapping tempo and checking YouTube while the energy drains out of the room.
+
+FlowGroove pulls the BPM for you — type the song name and there it is. If the lookup is ever down, you can enter it by hand. Nothing blocks you.
+
+---
+
+## Problem #3: The key-change confusion
+
+"What key is this?" "I thought G." "No, F#m." *plays a chord* "...yeah, that's not it." Ten minutes of transposition and capo math later, you've lost the thread.
+
+FlowGroove detects the key the same way: type the song, get the key. The guitarist works out the capo, the keys player preps the chords, and everyone's finally on the same page.
+
+---
+
+## Problem #4: The device disconnect
+
+You updated the setlist on your phone. The guitarist has last week's version on his tablet. The drummer printed it out in 2023. Three people, three different setlists, zero agreement.
+
+FlowGroove syncs in real time. Change a song on your phone and it updates on everyone's screen almost immediately — even on patchy venue internet. One setlist, everywhere.
+
+---
+
+## Problem #5: The dark gig
+
+You're on stage, it's dim, you pull out your phone to check what's next, and the screen lights up the whole front row — right into the bass player's eyes.
+
+FlowGroove has a proper stage-ready dark mode: high-contrast, easy to read, and it won't blind your bandmates. Built for dark venues and late nights.
+
+---
+
+## The common thread
+
+Every one of these comes down to the same thing: the right tool just didn't exist for us.
+
+- Paper setlists → digital ones
+- BPM arguments → automatic detection
+- Key confusion → key detection
+- Mismatched devices → real-time sync
+- Blinding screens → dark mode
+
+That's the whole reason FlowGroove exists. Not because I could build it — because I was tired of not having it.
+
+## What FlowGroove does
+
+It's a free, real-time setlist sync app for cover bands. It handles all five problems above, plus a couple you haven't hit yet:
+
+- Auto BPM &amp; key detection for any song
+- Real-time setlist sync across every device
+- Offline mode for signal-free rehearsal rooms
+- Stage-ready dark mode for gigs
+- Free for indie musicians
+
+No corporate team, no venture capital — just a musician who got tired of the chaos.
+
+## Try it
+
+[Try the FlowGroove demo](https://app.flowgroove.app/) — no registration needed.
+
+If it helps your band, you can [support development on Ko-fi](https://ko-fi.com/flowgroove). Every donation keeps the servers running and the coffee flowing.
+
+---
+
+**What does YOUR band struggle with? [Tell me](mailto:hello@flowgroove.app) — I might build the fix.** 🎸
+
+*Got a feature in mind? [Open an issue on GitHub](https://github.com/berlogabob/flutter-FlowGroove-app/issues).*
+</content:encoded></item><item><title>Why I Built FlowGroove Between Rehearsals</title><link>https://flowgroove.app/blog/post-001-why-i-built-flowgroove/</link><pubDate>Wed, 15 Apr 2026 10:00:00 +0100</pubDate><guid>https://flowgroove.app/blog/post-001-why-i-built-flowgroove/</guid><description>The story of how 10 years in cover bands led me to build FlowGroove as a solo developer, one late night at a time.</description><content:encoded>
+# Why I Built FlowGroove Between Rehearsals
+
+I've played in cover bands for about ten years, and I write software for a living. For the longest time those two lives never touched — until one of them got annoying enough to fix with the other.
+
+## The problem that wouldn't go away
+
+You know the drill:
+
+- Paper setlists that got coffee-stained or lost
+- Nobody remembering the BPM for "Wonderwall"
+- The eternal "was it F#m or Gm?" debate
+- Five minutes lost between songs while we found the right version
+- My phone, the guitarist's tablet, and the drummer's laptop all showing something different
+
+We spent more time organizing than playing. And the tools that were supposed to help? Either too complicated to set up, too expensive for a hobby, or buggy enough to crash mid-rehearsal. Cool.
+
+## The breaking point
+
+One Tuesday night, our third rehearsal in a row got derailed because someone lost the setlist. Again. And it hit me: I do this for a living. I build things. Why was I putting up with this?
+
+So I stopped putting up with it.
+
+## Building it
+
+FlowGroove got built the way side projects always do — late nights, weekends, and a lot of coffee. My rules for it were simple:
+
+- **A song should take seconds to add.** Slower than that and the band won't bother.
+- **BPM and key should fill themselves in.** Manual entry is where good intentions go to die.
+- **It has to sync in real time.** I change it, everyone sees it.
+- **It has to work offline.** Rehearsal rooms eat WiFi for breakfast.
+- **Dark mode.** Nobody wants a flashlight on stage.
+- **Free for indie musicians.** Because we are not a wealthy people.
+
+## The tech, briefly
+
+I went with **Flutter** — one codebase for web, iOS, and Android, fast to iterate on, and decent-looking without much fighting. **Firebase Firestore** does the heavy lifting on sync: change something and it shows up on everyone else's screen almost immediately, even on a wobbly venue connection.
+
+## What I learned
+
+Building a product alone is hard, and also kind of great.
+
+On the technical side: real-time sync is sneakier than it looks, offline-first isn't optional for musicians, and "dark mode" is really about contrast, not just a black background.
+
+On the not-technical side: "free" doesn't mean "worthless," it means the value shows up somewhere else. And people will support an honest solo project on Ko-fi if you're actually honest with them.
+
+## Where it's at now
+
+FlowGroove is live, it's free, and it does the job:
+
+- Real-time sync across devices, fast enough to feel instant
+- Auto BPM and key — type the song, get the data
+- Full offline mode
+- A dark theme built for dim venues
+
+## What's next
+
+No dates, just the list: an iOS build, more metadata sources (Spotify, YouTube), transposition and capo helpers, and proper band collaboration with shared libraries and comments.
+
+## Support the journey
+
+If any of this rings true, or if FlowGroove ends up saving your band a few headaches, you can support it on Ko-fi.
+
+[**Support the dev on Ko-fi**](https://ko-fi.com/flowgroove)
+
+Every bit keeps the servers running and the coffee flowing.
+
+---
+
+**Thanks for reading. Now go make some music.** 🎸
+
+*Questions? [Email me](mailto:hello@flowgroove.app) or [open an issue on GitHub](https://github.com/berlogabob/flutter-FlowGroove-app/issues).*
+</content:encoded></item><item><title>About — The Story Behind FlowGroove</title><link>https://flowgroove.app/about/</link><pubDate>Wed, 08 Apr 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/about/</guid><description>How a solo developer built FlowGroove between rehearsals to end band chaos forever</description></item><item><title>FAQ — FlowGroove Questions &amp; Answers</title><link>https://flowgroove.app/faq/</link><pubDate>Wed, 08 Apr 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/faq/</guid><description>Answers to common questions about FlowGroove — pricing, features, offline use, and more</description></item><item><title>Privacy Policy — FlowGroove</title><link>https://flowgroove.app/privacy/</link><pubDate>Wed, 08 Apr 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/privacy/</guid><description>How FlowGroove collects, uses, and protects your data</description></item><item><title>Terms of Service — FlowGroove</title><link>https://flowgroove.app/terms/</link><pubDate>Wed, 08 Apr 2026 00:00:00 +0000</pubDate><guid>https://flowgroove.app/terms/</guid><description>Terms and conditions for using FlowGroove</description></item><item><title>AI &amp; Import</title><link>https://flowgroove.app/wiki/ai-and-import/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/ai-and-import/</guid><description>&lt;h1 id="ai--import"&gt;AI &amp;amp; Import&lt;/h1&gt;
 &lt;p&gt;Get songs in fast — bring your own AI, no in-app tokens.&lt;/p&gt;
 &lt;h2 id="search-to-autofill"&gt;Search to autofill&lt;/h2&gt;
 &lt;ul&gt;
@@ -72,7 +317,9 @@ preferences live in &lt;a href="../settings/"&gt;Settings&lt;/a&gt;.&lt;/p&gt;
 &lt;li&gt;&lt;strong&gt;Link Telegram&lt;/strong&gt; — get your name/photo and band notifications there.&lt;/li&gt;
 &lt;li&gt;Sign out from the button at the bottom of this screen.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Delete account&lt;/strong&gt; (at the bottom) permanently removes your account and all your data.&lt;/li&gt;
-&lt;/ul&gt;</description></item><item><title>Setlists</title><link>https://flowgroove.app/wiki/setlists/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/setlists/</guid><description>&lt;h1 id="setlists"&gt;Setlists&lt;/h1&gt;
+&lt;/ul&gt;</description></item><item><title>Rehearsals</title><link>https://flowgroove.app/wiki/rehearsals/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/rehearsals/</guid><description>&lt;h1 id="rehearsals"&gt;Rehearsals&lt;/h1&gt;
+&lt;p&gt;Agree on when to rehearse — and tie it to the music.&lt;/p&gt;
+&lt;p&gt;Open a band and tap &lt;strong&gt;Rehearsals&lt;/strong&gt; to plan the next session.&lt;/p&gt;</description></item><item><title>Roadmap</title><link>https://flowgroove.app/roadmap/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/roadmap/</guid><description>&lt;p&gt;Where FlowGroove is headed — shipped, in progress, and what&amp;rsquo;s next. Click any card to open it on GitHub.&lt;/p&gt;</description></item><item><title>Setlists</title><link>https://flowgroove.app/wiki/setlists/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/setlists/</guid><description>&lt;h1 id="setlists"&gt;Setlists&lt;/h1&gt;
 &lt;p&gt;Order songs for a performance.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Create a setlist and add songs from your library or a band.&lt;/li&gt;
@@ -101,7 +348,81 @@ Settings sits right under your profile.&lt;/p&gt;</description></item><item><tit
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;&lt;strong&gt;Menu (⋯)&lt;/strong&gt; in the bottom bar holds the library tools: &lt;strong&gt;Browse catalog&lt;/strong&gt;,
-&lt;strong&gt;Find duplicates&lt;/strong&gt;, &lt;strong&gt;Import from CSV&lt;/strong&gt;, &lt;strong&gt;Export to CSV&lt;/strong&gt;.&lt;/p&gt;</description></item><item><title>Tuner</title><link>https://flowgroove.app/wiki/tuner/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/tuner/</guid><description>&lt;h1 id="tuner"&gt;Tuner&lt;/h1&gt;
+&lt;strong&gt;Find duplicates&lt;/strong&gt;, &lt;strong&gt;Import from CSV&lt;/strong&gt;, &lt;strong&gt;Export to CSV&lt;/strong&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;The &lt;strong&gt;Key / BPM filter&lt;/strong&gt; understands flats and minors — filtering by G# also
+finds songs saved as Ab, and the &lt;strong&gt;Major/Minor&lt;/strong&gt; toggle switches the key
+chips. BPM presets match the song&amp;rsquo;s exact Our BPM; songs without one stay
+visible.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;The pinned button on each song card is your &lt;strong&gt;quick action&lt;/strong&gt; — long-press
+the card&amp;rsquo;s ⋯ menu → &lt;em&gt;Quick action…&lt;/em&gt; to choose what it does (Metronome,
+Tuner, Play on Spotify, …). The icon changes to match.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Tap a song to open its page&lt;/strong&gt; — one home with three tabs: &lt;strong&gt;Sheet&lt;/strong&gt; (play
+from it), &lt;strong&gt;Edit&lt;/strong&gt; (details + song structure) and &lt;strong&gt;Lab&lt;/strong&gt; (the song&amp;rsquo;s
+journal). The page&amp;rsquo;s ⋯ menu carries the song tools: Metronome, Open in
+Tuner, Play on Spotify, Add to band…, Export PDF, Export ChordPro.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Tap &lt;strong&gt;+&lt;/strong&gt; to add a song (title, BPM, key, structure, links).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Search to autofill from the online catalog. Matches come from &lt;strong&gt;MusicBrainz&lt;/strong&gt;
+(title, artist, album, release info). &lt;strong&gt;Type the artist as well as the title&lt;/strong&gt; (e.g.
+&lt;em&gt;light my fire the doors&lt;/em&gt;) to pull the right recording to the top — on a bare title
+there are often many same-named covers and the real one can&amp;rsquo;t be told apart. Selecting a
+match fills those fields in, and tempo/key are added from &lt;strong&gt;Deezer&lt;/strong&gt; when available. Your
+own library is deliberately left out of these suggestions so you don&amp;rsquo;t match a song
+against itself.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Provenance links, added for you.&lt;/strong&gt; When you accept a match, FlowGroove drops links into
+the song so you can see where the info came from and jump straight to the source — the
+&lt;strong&gt;MusicBrainz&lt;/strong&gt; recording, the &lt;strong&gt;Spotify&lt;/strong&gt; track (when known), plus &lt;strong&gt;YouTube&lt;/strong&gt;, &lt;strong&gt;chords&lt;/strong&gt;
+and &lt;strong&gt;lyrics&lt;/strong&gt; searches. They show up as chips under Links; &lt;strong&gt;tap one to open it&lt;/strong&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Lyrics + a song map, fetched.&lt;/strong&gt; Plain lyric text is pulled in automatically and split into
+&lt;strong&gt;Verse / Chorus sections&lt;/strong&gt;, so it shows up on the song&amp;rsquo;s &lt;strong&gt;Sheet&lt;/strong&gt; ready
+to play from. Chords aren&amp;rsquo;t available from a free catalogue — paste a ChordPro chart (below)
+for the full chords.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Add lyrics + chords (ChordPro) per section in the &lt;strong&gt;Edit&lt;/strong&gt; tab&amp;rsquo;s song
+structure. &lt;strong&gt;Import lyrics &amp;amp; chords&lt;/strong&gt; takes a pasted full chart and fills
+title, key, tempo, time and the whole structure at once.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;The &lt;strong&gt;Sheet&lt;/strong&gt; tab is the performance sheet — it opens first when you tap a
+song, and Concert Mode&amp;rsquo;s lyrics button lands there too. It keeps the screen
+awake, lets you transpose live (the ± controls sit in the bottom bar), and
+&lt;strong&gt;auto-scrolls hands-free&lt;/strong&gt;: press play and set the pace, or switch to
+&lt;strong&gt;BPM&lt;/strong&gt; mode to scroll at a speed matched to the tempo. The &lt;strong&gt;Stage&lt;/strong&gt;
+button goes full-screen for the gig.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Export from the song page&amp;rsquo;s &lt;strong&gt;⋯ menu&lt;/strong&gt;: a song sheet as &lt;strong&gt;PDF&lt;/strong&gt; — either
+&lt;strong&gt;As is&lt;/strong&gt; (full size, flows across pages) or &lt;strong&gt;Compact&lt;/strong&gt; (everything scaled to fit
+one A4 page) — or as a standard &lt;strong&gt;ChordPro &lt;code&gt;.cho&lt;/code&gt;&lt;/strong&gt; file to share or print. The PDF
+header carries key, scale, tempo, time signature and the song map.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;CSV&lt;/strong&gt; export/import now carries the per-section chords too, so your chart survives
+a trip through a spreadsheet.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Song cards lead with the full-width title; below it a meta rail shows the key
+chip, tempo, and — for band copies — who added the song.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Songs you add to a band become independent copies in that band — editing the band&amp;rsquo;s
+copy changes only that copy, not your personal song.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>Tuner</title><link>https://flowgroove.app/wiki/tuner/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/tuner/</guid><description>&lt;h1 id="tuner"&gt;Tuner&lt;/h1&gt;
 &lt;p&gt;Tune your instrument by ear or display.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Play a note; the tuner shows the detected pitch.&lt;/li&gt;

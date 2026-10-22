@@ -8,6 +8,13 @@ analyzer:
     - "**/*.mocks.dart"
     - "lib/firebase_options.dart"
     - "oldarchive/**"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
   language:
     strict-casts: true
     strict-inference: true

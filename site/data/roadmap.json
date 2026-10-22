@@ -801,6 +801,14 @@
       "type": "Issue",
       "state": "OPEN",
       "status": "No Status"
+    },
+    {
+      "title": "[epic] Event participants: scoped event sharing for non-members",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/180",
+      "number": 180,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Todo"
     }
   ]
 }
