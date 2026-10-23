@@ -96,14 +96,17 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
   Future<void> _reRender(SongLabEntry updated) async {
     _attachedKey = _renderKey(updated);
     _persist(updated);
-    await ref
-        .read(backingTransportProvider.notifier)
-        .attach(
-          updated,
-          widget.sections.isEmpty
-              ? [Section(id: 'song', name: 'Song', duration: 0)]
-              : widget.sections,
-        );
+    final transport = ref.read(backingTransportProvider.notifier);
+    final resume =
+        ref.read(backingTransportProvider).playingId ??
+        ref.read(backingTransportProvider).queuedId;
+    await transport.attach(
+      updated,
+      widget.sections.isEmpty
+          ? [Section(id: 'song', name: 'Song', duration: 0)]
+          : widget.sections,
+    );
+    if (resume != null && mounted) await transport.launch(resume);
     (_console.currentState as dynamic)?.reapplyLive();
   }
 

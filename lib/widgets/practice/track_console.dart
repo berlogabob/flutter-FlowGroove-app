@@ -188,6 +188,12 @@ class _TrackConsoleState extends ConsumerState<TrackConsole> {
   }
 }
 
+/// Track names default to the instrument name; show role and channel instead.
+String _title(MidiTrackMeta track) =>
+    track.name.startsWith(gmProgramName(track.program))
+    ? '${track.effectiveRole.name} · ch ${track.channel + 1}'
+    : track.name;
+
 class _Strip extends StatelessWidget {
   const _Strip({
     required this.track,
@@ -232,7 +238,7 @@ class _Strip extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    track.name,
+                    _title(track),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: MonoPulseTypography.titleMedium,
