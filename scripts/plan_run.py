@@ -74,7 +74,7 @@ def main():
         if any(a not in done for a in t["after"]):
             print(t["id"], "skipped: dependency not passed", t["after"]); continue
         if dry: print(t["id"], t["executor"], t["title"]); continue
-        order = [t["executor"]] + (["codex"] if t["executor"] == "pi" else [])
+        order = [t["executor"]] + (["codex"] if t["executor"] == "pi" and not os.environ.get("NO_CODEX") else [])
         for n, ex in enumerate(order, 1):
             t0 = time.time(); rollback()
             rc, log = run_exec(ex, t)
