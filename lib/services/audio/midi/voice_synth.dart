@@ -8,6 +8,7 @@ import '../../../models/midi_song.dart';
 /// [startSample] may be negative; synthesis keeps its timing when writes are
 /// clipped to the buffer. [durationSamples] is the time before note-off.
 /// Drums use the triangle fallback; sampled percussion is rendered separately.
+/// [program] selects organ, brass, pad, or mallet timbres by GM zero-based range.
 void addVoice(
   Float32List buf, {
   required int sampleRate,
@@ -16,6 +17,7 @@ void addVoice(
   required int pitch,
   required double velocity01,
   required MidiRole role,
+  int? program,
 }) {
   if (buf.isEmpty || durationSamples <= 0 || startSample >= buf.length) return;
   if (sampleRate <= 0) {
@@ -33,10 +35,30 @@ void addVoice(
   if (startSample + total <= 0) return;
 
   final gain = velocity01.clamp(0.0, 1.0) * 0.25;
-  final plucked = role == MidiRole.guitar || role == MidiRole.bass;
-  final bowed = role == MidiRole.strings || role == MidiRole.synth;
-  final singing = role == MidiRole.vocal || role == MidiRole.lead;
-  final attackSeconds = bowed ? 0.03 : (singing ? 0.02 : 0.003);
+  final melodicProgram = role == MidiRole.drums ? null : program;
+  final organ =
+      melodicProgram != null && melodicProgram >= 16 && melodicProgram <= 23;
+  final brass =
+      melodicProgram != null && melodicProgram >= 56 && melodicProgram <= 63;
+  final pad =
+      melodicProgram != null && melodicProgram >= 88 && melodicProgram <= 95;
+  final mallet =
+      melodicProgram != null && melodicProgram >= 8 && melodicProgram <= 15;
+  final programVoice = organ || brass || pad || mallet;
+  final plucked =
+      !programVoice && (role == MidiRole.guitar || role == MidiRole.bass);
+  final bowed =
+      pad ||
+      (!programVoice && (role == MidiRole.strings || role == MidiRole.synth));
+  final singing =
+      !programVoice && (role == MidiRole.vocal || role == MidiRole.lead);
+  final attackSeconds = organ
+      ? 0.01
+      : brass
+      ? 0.04
+      : pad
+      ? 0.15
+      : (bowed ? 0.03 : (singing ? 0.02 : 0.003));
   final attack = math.max(1, (sampleRate * attackSeconds).round());
   final step = 2 * math.pi * frequency / sampleRate;
 
@@ -57,7 +79,19 @@ void addVoice(
   for (var i = 0; i < end; i++) {
     final t = i / sampleRate;
     var value = 0.0;
-    if (plucked) {
+    if (organ || brass) {
+      for (var n = 1; n <= (organ ? 6 : 8); n++) {
+        if (frequency * n >= sampleRate / 2) break;
+        value += math.sin(phase * n) / n;
+      }
+      value /= organ ? 2.45 : 2.718;
+    } else if (mallet) {
+      value = math.sin(phase);
+      if (frequency * 2.76 < sampleRate / 2) {
+        value += math.sin(phase * 2.76);
+      }
+      value *= math.exp(-t * 6) / 2;
+    } else if (plucked) {
       value = delay[cursor];
       final next = (cursor + 1) % delay.length;
       delay[cursor] = (value + delay[next]) * 0.498;
@@ -66,7 +100,7 @@ void addVoice(
         bassLow += bassAlpha * (value - bassLow);
         value = bassLow;
       }
-    } else if (role == MidiRole.keys) {
+    } else if (!programVoice && role == MidiRole.keys) {
       for (var n = 1; n <= 4; n++) {
         if (frequency * n >= sampleRate / 2) break;
         value += math.sin(phase * n) * math.exp(-t * (2 + n)) / n;
