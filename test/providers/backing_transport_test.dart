@@ -360,6 +360,17 @@ void main() {
     expect(engine.commands.single.bars, 3);
   });
 
+  test('file tempo sets the metronome bpm and a normal song keeps it', () async {
+    metro.tempo(90);
+    await transport.attach(entry(fileTempo: true), sections);
+    expect(container.read(metronomeProvider).bpm, 120);
+    expect(engine.loads.last.renderBpm, 120);
+    metro.tempo(90);
+    await transport.attach(entry(), sections);
+    expect(container.read(metronomeProvider).bpm, 90);
+    expect(engine.loads.last.renderBpm, 90);
+  });
+
   test('bar stop waits for engine stopped event', () async {
     await transport.attach(entry(), sections);
     await transport.launch('verse');
