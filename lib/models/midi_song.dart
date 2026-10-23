@@ -123,6 +123,7 @@ class MidiTrackMeta {
     required this.minPitch,
     required this.maxPitch,
     this.roleOverride,
+    this.programOverride,
     this.mute = false,
     this.volume = 1.0,
   }) : assert(volume >= 0 && volume <= 1, 'Volume must be between 0 and 1');
@@ -136,6 +137,7 @@ class MidiTrackMeta {
     roleOverride: json['roleOverride'] == null
         ? null
         : MidiRole.parse(json['roleOverride'] as String?),
+    programOverride: (json['programOverride'] as num?)?.clamp(0, 127),
     mute: json['mute'] as bool? ?? false,
     volume: (json['volume'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 1.0,
     noteCount: (json['noteCount'] as num?)?.toInt() ?? 0,
@@ -149,6 +151,7 @@ class MidiTrackMeta {
   final int program;
   final MidiRole detectedRole;
   final MidiRole? roleOverride;
+  final int? programOverride;
   final bool mute;
   final double volume;
   final int noteCount;
@@ -157,6 +160,8 @@ class MidiTrackMeta {
 
   MidiRole get effectiveRole => roleOverride ?? detectedRole;
 
+  int get effectiveProgram => programOverride ?? program;
+
   MidiTrackMeta copyWith({
     int? index,
     String? name,
@@ -164,6 +169,7 @@ class MidiTrackMeta {
     int? program,
     MidiRole? detectedRole,
     Object? roleOverride = _unchanged,
+    int? programOverride,
     bool? mute,
     double? volume,
     int? noteCount,
@@ -178,6 +184,7 @@ class MidiTrackMeta {
     roleOverride: identical(roleOverride, _unchanged)
         ? this.roleOverride
         : roleOverride as MidiRole?,
+    programOverride: programOverride ?? this.programOverride,
     mute: mute ?? this.mute,
     volume: volume ?? this.volume,
     noteCount: noteCount ?? this.noteCount,
@@ -192,6 +199,7 @@ class MidiTrackMeta {
     'program': program,
     'detectedRole': detectedRole.name,
     if (roleOverride != null) 'roleOverride': roleOverride!.name,
+    if (programOverride != null) 'programOverride': programOverride,
     'mute': mute,
     'volume': volume,
     'noteCount': noteCount,
