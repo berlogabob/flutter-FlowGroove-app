@@ -44,6 +44,7 @@ class LaunchpadView extends ConsumerStatefulWidget {
 class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
   Object? _error;
   String? _attachedKey;
+  MidiSongData? _lastSong;
   Timer? _saveDebounce;
   SongLabEntry? _working;
   final _console = GlobalKey<State<TrackConsole>>();
@@ -124,6 +125,7 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
   @override
   void didUpdateWidget(LaunchpadView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.entry.id != widget.entry.id) _lastSong = null;
     if (_renderKey(oldWidget.entry) != _renderKey(widget.entry)) {
       _working = null;
     }
@@ -172,7 +174,11 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
     final state = ref.watch(backingTransportProvider);
     final transport = ref.read(backingTransportProvider.notifier);
     final metro = ref.watch(metronomeProvider);
-    final song = ref.watch(midiSongProvider(widget.entry)).value;
+    // Keep the last parsed song while an edited entry reloads, so the strips
+    // stay mounted and the page does not jump.
+    final loaded = ref.watch(midiSongProvider(widget.entry)).value;
+    if (loaded != null) _lastSong = loaded;
+    final song = loaded ?? _lastSong;
     final sections = {for (final s in widget.sections) s.id: s};
     final bars = _songBars(song, metro.timeSignature.numerator);
     final spans = state.spans.isEmpty

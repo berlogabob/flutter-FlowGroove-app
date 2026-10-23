@@ -340,6 +340,10 @@ class _Strip extends StatelessWidget {
                   icon: const Icon(Icons.edit_note),
                   onPressed: onEdit,
                 ),
+              ],
+            ),
+            Row(
+              children: [
                 Expanded(
                   child: Slider(
                     value: track.volume,
