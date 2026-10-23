@@ -47,6 +47,7 @@ MidiSongMeta buildMidiSongMeta(
         minPitch: minPitch,
         maxPitch: maxPitch,
         roleOverride: saved?.roleOverride,
+        editedNotes: saved?.editedNotes,
         programOverride: saved?.programOverride,
         mute: saved?.mute ?? false,
         volume: saved?.volume ?? 1.0,

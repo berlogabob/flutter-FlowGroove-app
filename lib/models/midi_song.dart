@@ -111,7 +111,7 @@ class MidiSongData {
 
 const _unchanged = Object();
 
-/// Stored track settings and statistics; note events stay in [MidiTrackData].
+/// Stored track settings and statistics, including optional replacement notes.
 class MidiTrackMeta {
   const MidiTrackMeta({
     required this.index,
@@ -123,6 +123,7 @@ class MidiTrackMeta {
     required this.minPitch,
     required this.maxPitch,
     this.roleOverride,
+    this.editedNotes,
     this.programOverride,
     this.mute = false,
     this.volume = 1.0,
@@ -137,6 +138,13 @@ class MidiTrackMeta {
     roleOverride: json['roleOverride'] == null
         ? null
         : MidiRole.parse(json['roleOverride'] as String?),
+    editedNotes:
+        json['editedNotes'] == null ||
+            (json['editedNotes'] as List).length % 4 != 0
+        ? null
+        : (json['editedNotes'] as List)
+              .map((value) => (value as num).toInt())
+              .toList(),
     programOverride: (json['programOverride'] as num?)?.clamp(0, 127).toInt(),
     mute: json['mute'] as bool? ?? false,
     volume: (json['volume'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 1.0,
@@ -151,6 +159,9 @@ class MidiTrackMeta {
   final int program;
   final MidiRole detectedRole;
   final MidiRole? roleOverride;
+
+  /// Replaces file notes with flat quads: tick, duration, pitch, velocity.
+  final List<int>? editedNotes;
   final int? programOverride;
   final bool mute;
   final double volume;
@@ -169,6 +180,7 @@ class MidiTrackMeta {
     int? program,
     MidiRole? detectedRole,
     Object? roleOverride = _unchanged,
+    Object? editedNotes = _unchanged,
     Object? programOverride = _unchanged,
     bool? mute,
     double? volume,
@@ -184,6 +196,9 @@ class MidiTrackMeta {
     roleOverride: identical(roleOverride, _unchanged)
         ? this.roleOverride
         : roleOverride as MidiRole?,
+    editedNotes: identical(editedNotes, _unchanged)
+        ? this.editedNotes
+        : editedNotes as List<int>?,
     programOverride: identical(programOverride, _unchanged)
         ? this.programOverride
         : programOverride as int?,
@@ -201,6 +216,7 @@ class MidiTrackMeta {
     'program': program,
     'detectedRole': detectedRole.name,
     if (roleOverride != null) 'roleOverride': roleOverride!.name,
+    if (editedNotes != null) 'editedNotes': editedNotes,
     if (programOverride != null) 'programOverride': programOverride,
     'mute': mute,
     'volume': volume,
