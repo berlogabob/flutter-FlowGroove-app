@@ -576,8 +576,40 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     return _engine.command(command);
   }
 
-  void setQuantize(Quantize quantize) =>
-      state = state.copyWith(quantize: quantize);
+  void setQuantize(Quantize quantize) {
+    final changed = state.quantize != quantize;
+    state = state.copyWith(quantize: quantize);
+    if (changed) _retime();
+  }
+
+  /// A launch still waiting for its bar moves to the bar the new quantize gives.
+  void _retime() {
+    final id = state.queuedId;
+    if (state.rendering || id == null || !ref.read(metronomeProvider).isPlaying) {
+      return;
+    }
+    final old = _commands[_token];
+    if (old == null ||
+        old.command.kind != BackingKind.launch ||
+        old.id != id ||
+        _playing?.token == old.command.token) {
+      return;
+    }
+    final at = state.quantize == Quantize.block
+        ? _blockBoundaryBar()
+        : _nextBar(state.quantize);
+    if (at == old.command.atBar) return;
+    _commands.remove(old.command.token);
+    unawaited(_engine.command(
+      BackingCommand(
+        token: ++_token,
+        kind: BackingKind.cancel,
+        fromBar: old.command.token,
+        atBar: 0,
+      ),
+    ));
+    unawaited(_launch(id, at));
+  }
 
   String? _seededEntryId;
 
