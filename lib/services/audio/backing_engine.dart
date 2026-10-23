@@ -20,7 +20,8 @@ class BackingStems {
   final int intervalMicros;
 }
 
-enum BackingKind { launch, stop }
+/// cancel drops a still-queued command; its token is in BackingCommand.fromBar.
+enum BackingKind { launch, stop, cancel }
 
 class BackingCommand {
   const BackingCommand({
