@@ -80,6 +80,18 @@ internal data class NativeMetronomeConfig(
             )
         }
     }
+
+    /**
+     * True when [next] keeps the same tick grid: only haptics, volume or wave
+     * changed, so the engine must not re-anchor (that would restart the click
+     * and shift the backing).
+     */
+    fun sameGrid(next: NativeMetronomeConfig): Boolean =
+        intervalMicros == next.intervalMicros &&
+            ticks == next.ticks &&
+            ticksPerBar == next.ticksPerBar &&
+            bpm == next.bpm &&
+            latencyOffsetFrames == next.latencyOffsetFrames
 }
 
 /**
@@ -372,10 +384,15 @@ internal class AndroidMetronomeEngine(
             while (running.get()) {
                 pendingConfig?.let { pend ->
                 pendingConfig = null
-                active = pend
-                intervalFrames = active.intervalMicros * sampleRate / 1_000_000.0
-                epochFrame = framesWritten - active.latencyOffsetFrames // restart the grid, gaplessly
-                nextBar = 0
+                if (active.sameGrid(pend)) {
+                    // Haptics/volume/wave only: keep the grid and its accent phase.
+                    active = pend.copy(initialTick = active.initialTick)
+                } else {
+                    active = pend
+                    intervalFrames = active.intervalMicros * sampleRate / 1_000_000.0
+                    epochFrame = framesWritten - active.latencyOffsetFrames // restart the grid, gaplessly
+                    nextBar = 0
+                }
             }
 
             java.util.Arrays.fill(scratch, 0.0)

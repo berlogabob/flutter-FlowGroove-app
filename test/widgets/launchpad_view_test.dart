@@ -303,9 +303,7 @@ void main() {
     expect(playing.stops, [false, true]);
   });
 
-  testWidgets('track strips mute, solo and play-along per track', (
-    tester,
-  ) async {
+  testWidgets('track strips mute and solo per track', (tester) async {
     final transport = _Transport(_state(2));
     await _pump(tester, transport);
     await tester.ensureVisible(find.byTooltip('Mute Bass'));
@@ -317,12 +315,6 @@ void main() {
     await tester.tap(find.byTooltip('Solo Bass'));
     await tester.pump();
     expect(transport.solos, [('Bass', true)]);
-    await tester.tap(find.byTooltip('Leave Bass to me'));
-    await tester.pump();
-    expect(transport.mutes.last, ('Bass', true));
-    await tester.tap(find.byTooltip('Leave Bass to me'));
-    await tester.pump();
-    expect(transport.mutes.last, ('Bass', false));
     expect(find.byTooltip('Mute Drums'), findsOneWidget);
     expect(find.text('Drum kit'), findsOneWidget);
   });

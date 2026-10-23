@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/midi_pattern.dart';
@@ -482,11 +482,21 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
         if (_playing?.token == event.token ||
             pending.command.kind == BackingKind.stop) {
           _commands.removeWhere((token, _) => token <= event.token);
+          final endedOnItsOwn =
+              pending.command.kind != BackingKind.stop && !pending.command.loop;
           _playing = null;
           state = state.copyWith(
             playingId: null,
             queuedId: event.token == _token ? null : state.queuedId,
           );
+          // A Once/Song run that finished takes the click with it; otherwise
+          // the click keeps running under an idle "Play" button.
+          if (endedOnItsOwn && ref.read(metronomeProvider).isPlaying) {
+            // Not inline: stopping the click re-enters the engine event stream.
+            scheduleMicrotask(() {
+              if (ref.mounted) ref.read(metronomeProvider.notifier).stop();
+            });
+          }
         }
     }
   }
@@ -528,15 +538,18 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
   void minusOne(String role) => muteStem(role);
 
   void _applyGains() {
+    final applied = <String>[];
     for (var i = 0; i < _names.length; i++) {
       final name = _names[i];
-      _engine.setGain(
-        i,
-        _muted.contains(name) || (_solo != null && _solo != name)
-            ? 0
-            : _volume[name] ?? 1,
-      );
+      final gain = _muted.contains(name) || (_solo != null && _solo != name)
+          ? 0.0
+          : _volume[name] ?? 1.0;
+      _engine.setGain(i, gain);
+      applied.add('$name=$gain');
     }
+    // shortcut: always-on trace so "I hear only the click" reports can be read
+    // from logcat; drop once the console has proven itself on devices.
+    debugPrint('[backing] gains ${applied.join(', ')}');
   }
 }
 

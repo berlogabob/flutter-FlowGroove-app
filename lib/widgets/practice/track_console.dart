@@ -1,22 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/midi_song.dart';
 import '../../providers/data/backing_transport_provider.dart';
 import '../../services/audio/midi/gm_names.dart';
 import '../../theme/mono_pulse_theme.dart';
-
-const _profileKey = 'my_instrument_role';
-const _profileRoles = [
-  MidiRole.drums,
-  MidiRole.bass,
-  MidiRole.guitar,
-  MidiRole.keys,
-  MidiRole.vocal,
-];
 
 /// Stem names exactly as the stem builder derives them (duplicates get ' 2').
 List<String> consoleStemNames(List<MidiTrackMeta> tracks) {
@@ -58,16 +46,8 @@ class TrackConsole extends ConsumerStatefulWidget {
 class _TrackConsoleState extends ConsumerState<TrackConsole> {
   late List<MidiTrackMeta> _tracks = widget.tracks;
   String? _solo;
-  String? _minusOne;
-  MidiRole? _profile;
 
   List<String> get _names => consoleStemNames(_tracks);
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_loadProfile());
-  }
 
   @override
   void didUpdateWidget(TrackConsole oldWidget) {
@@ -93,56 +73,11 @@ class _TrackConsoleState extends ConsumerState<TrackConsole> {
     }
   }
 
-  Future<void> _loadProfile() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final saved = prefs.getString(_profileKey);
-      if (!mounted || saved == null) return;
-      setState(() => _profile = MidiRole.parse(saved));
-      _autoMinusOne();
-    } catch (_) {
-      // Preference storage is a convenience; the console works without it.
-    }
-  }
-
-  Future<void> _setProfile(MidiRole? role) async {
-    setState(() => _profile = role);
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      if (role == null) {
-        await prefs.remove(_profileKey);
-      } else {
-        await prefs.setString(_profileKey, role.name);
-      }
-    } catch (_) {}
-    if (!mounted) return;
-    _setMinusOne(null);
-    _autoMinusOne();
-  }
-
-  void _autoMinusOne() {
-    final role = _profile;
-    if (role == null || _minusOne != null) return;
-    final i = _tracks.indexWhere((t) => t.effectiveRole == role);
-    if (i >= 0) _setMinusOne(_names[i]);
-  }
-
   BackingTransportNotifier get _transport =>
       ref.read(backingTransportProvider.notifier);
 
-  void _setMinusOne(String? name) {
-    final previous = _minusOne;
-    setState(() => _minusOne = name);
-    if (previous != null) {
-      final i = _names.indexOf(previous);
-      _transport.muteStem(previous, mute: i >= 0 && _tracks[i].mute);
-    }
-    if (name != null) _transport.muteStem(name);
-  }
-
-  /// Re-applies solo and "I play this" after a re-render cleared them.
+  /// Re-applies solo after a re-render cleared it.
   void reapplyLive() {
-    if (_minusOne != null) _transport.muteStem(_minusOne!);
     if (_solo != null) _transport.soloStem(_solo!);
   }
 
@@ -157,30 +92,13 @@ class _TrackConsoleState extends ConsumerState<TrackConsole> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Wrap(
-          spacing: MonoPulseSpacing.sm,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            const Text('I am'),
-            for (final role in _profileRoles)
-              ChoiceChip(
-                label: Text(role.name),
-                selected: _profile == role,
-                onSelected: (on) => unawaited(_setProfile(on ? role : null)),
-              ),
-          ],
-        ),
         for (var i = 0; i < _tracks.length; i++)
           _Strip(
             key: ValueKey('strip-${names[i]}'),
             track: _tracks[i],
             solo: _solo == names[i],
-            minusOne: _minusOne == names[i],
             onMute: (mute) {
-              _transport.muteStem(
-                names[i],
-                mute: mute || _minusOne == names[i],
-              );
+              _transport.muteStem(names[i], mute: mute);
               _update(i, _tracks[i].copyWith(mute: mute));
             },
             onSolo: () {
@@ -188,7 +106,6 @@ class _TrackConsoleState extends ConsumerState<TrackConsole> {
               setState(() => _solo = on ? names[i] : null);
               _transport.soloStem(names[i], solo: on);
             },
-            onMinusOne: (on) => _setMinusOne(on ? names[i] : null),
             onVolume: (v) {
               _transport.setStemVolume(names[i], v);
               setState(
@@ -220,10 +137,8 @@ class _Strip extends StatelessWidget {
   const _Strip({
     required this.track,
     required this.solo,
-    required this.minusOne,
     required this.onMute,
     required this.onSolo,
-    required this.onMinusOne,
     required this.onVolume,
     required this.onVolumeDone,
     required this.onProgram,
@@ -233,10 +148,8 @@ class _Strip extends StatelessWidget {
 
   final MidiTrackMeta track;
   final bool solo;
-  final bool minusOne;
   final ValueChanged<bool> onMute;
   final VoidCallback onSolo;
-  final ValueChanged<bool> onMinusOne;
   final ValueChanged<double> onVolume;
   final VoidCallback onVolumeDone;
   final ValueChanged<int?> onProgram;
@@ -314,26 +227,13 @@ class _Strip extends StatelessWidget {
                   tooltip: 'Mute ${track.name}',
                   isSelected: track.mute,
                   onPressed: () => onMute(!track.mute),
-                  icon: Icon(track.mute ? Icons.volume_off : Icons.volume_up),
+                  icon: const Text('M'),
                 ),
                 IconButton.filledTonal(
                   tooltip: 'Solo ${track.name}',
                   isSelected: solo,
                   onPressed: onSolo,
                   icon: const Text('S'),
-                ),
-                Flexible(
-                  flex: 2,
-                  child: FilterChip(
-                    label: const Text(
-                      'I play',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    tooltip: 'Leave ${track.name} to me',
-                    selected: minusOne,
-                    onSelected: onMinusOne,
-                  ),
                 ),
                 IconButton(
                   tooltip: 'Edit notes of ${track.name}',

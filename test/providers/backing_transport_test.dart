@@ -56,6 +56,9 @@ class FakeBackingEngine implements BackingEngine {
     events.add(BackingState(c.token, BackingStateKind.queued, c.atBar));
   }
 
+  void stopped(BackingCommand c) =>
+      events.add(BackingState(c.token, BackingStateKind.stopped, c.atBar));
+
   void playing(BackingCommand c) =>
       events.add(BackingState(c.token, BackingStateKind.playing, c.atBar));
 
@@ -150,6 +153,19 @@ void main() {
       transport.setMode(PlayMode.once);
       final command = await launched('verse');
       expect((command.fromBar, command.bars, command.loop), (0, 4, false));
+    });
+
+    test('a finished Once run stops the click, a loop does not end', () async {
+      await transport.attach(entry(), sections);
+      transport.setMode(PlayMode.once);
+      final command = await launched('verse');
+      engine.playing(command);
+      await Future<void>.delayed(Duration.zero);
+      expect(container.read(metronomeProvider).isPlaying, isTrue);
+      engine.stopped(command);
+      await Future<void>.delayed(Duration.zero);
+      expect(container.read(backingTransportProvider).playingId, isNull);
+      expect(container.read(metronomeProvider).isPlaying, isFalse);
     });
 
     test('loop repeats the launched section', () async {

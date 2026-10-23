@@ -400,8 +400,7 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
               ? _meta!.sectionMap
               : spans,
           tracks: [
-            for (var i = 0; i < state.tracks.length; i++)
-              state.tracks[i],
+            for (var i = 0; i < state.tracks.length; i++) state.tracks[i],
           ],
         );
         await ref

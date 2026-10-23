@@ -18,7 +18,6 @@ import '../../providers/permissions_provider.dart';
 import '../../services/audio/midi/midi_song_meta_builder.dart';
 import '../../services/audio/midi/note_edit.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../utils/quantize.dart';
 import 'note_editor_sheet.dart';
 import 'section_card.dart';
 import 'section_pad.dart';
@@ -196,6 +195,26 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
       final settings = buildMidiSongMeta(song, previous: widget.entry.midiSong);
       consoleTracks.addAll(settings.tracks.where((t) => t.noteCount > 0));
     }
+    // Play starts where the music starts, not on a silent lead-in section.
+    var firstId = spans.first.sectionId;
+    if (song != null) {
+      final ticksPerBar = song.ppq * metro.timeSignature.numerator;
+      final firstTick = song.tracks
+          .expand((t) => t.notes)
+          .fold<int?>(
+            null,
+            (min, n) => min == null || n.tick < min ? n.tick : min,
+          );
+      if (firstTick != null && ticksPerBar > 0) {
+        final bar = firstTick ~/ ticksPerBar;
+        firstId = spans
+            .firstWhere(
+              (s) => s.startBar + s.bars > bar,
+              orElse: () => spans.first,
+            )
+            .sectionId;
+      }
+    }
     final current = sections[state.queuedId ?? state.playingId];
     final disabled = state.rendering || song == null || _error != null;
 
@@ -332,12 +351,15 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                   key: const ValueKey('launchpad-transport'),
                   children: [
                     Expanded(
-                      child: state.playingId == null && state.queuedId == null
+                      child:
+                          state.playingId == null &&
+                              state.queuedId == null &&
+                              !metro.isPlaying
                           ? FilledButton.icon(
                               style: _transportStyle,
                               onPressed: disabled
                                   ? null
-                                  : () => launch(spans.first.sectionId),
+                                  : () => launch(firstId),
                               icon: const Icon(Icons.play_arrow),
                               label: const Text('Play'),
                             )
