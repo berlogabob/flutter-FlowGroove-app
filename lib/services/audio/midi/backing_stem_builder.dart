@@ -14,6 +14,7 @@ Future<Map<String, Int16List>> buildBackingStems({
   required MidiSongData song,
   required double renderBpm,
   MidiSongMeta? meta,
+  bool perTrack = false,
   int sampleRate = 44100,
   int ticksPerBar = 4,
   double? intervalMicros,
@@ -74,14 +75,22 @@ Future<Map<String, Int16List>> buildBackingStems({
   for (var t = 0; t < song.tracks.length; t++) {
     final track = song.tracks[t];
     final setting = settings.tracks[t];
-    if (!setting.mute && track.notes.isNotEmpty && length > 0) {
+    if ((perTrack || !setting.mute) && track.notes.isNotEmpty && length > 0) {
       final role = setting.effectiveRole;
-      final name = switch (role) {
-        MidiRole.drums => 'Drums',
-        MidiRole.bass => 'Bass',
-        MidiRole.vocal || MidiRole.lead => 'Lead',
-        _ => 'Harmony',
-      };
+      var name = perTrack
+          ? setting.name
+          : switch (role) {
+              MidiRole.drums => 'Drums',
+              MidiRole.bass => 'Bass',
+              MidiRole.vocal || MidiRole.lead => 'Lead',
+              _ => 'Harmony',
+            };
+      if (perTrack) {
+        var suffix = 2;
+        while (mixes.containsKey(name)) {
+          name = '${setting.name} ${suffix++}';
+        }
+      }
       final mix = mixes.putIfAbsent(name, () => Float64List(length));
       for (final note in track.notes) {
         if (note.tick < 0 || note.dur <= 0) continue;
