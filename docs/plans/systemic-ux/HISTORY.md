@@ -30,3 +30,9 @@ Release remains blocked; final verification invalidated.
 - Real registry check and 13 gate tests passed; actual make -n release failed with RELEASE BLOCKED before recipes. See verification.json.
 - Code + 293 registry relationships indexed, 108 dependencies checked; other semantic/label coverage remains qualified.
 - Safe planning/guard/documentation files prepared for a scoped local commit; no push/tag/deploy. Commit identity is recorded by Git itself.
+
+## 2026-10-24T00:07:21.907293+01:00 — delayed native-worker failure, OPS-LAN
+
+- Native delegate deleg_ed32697f returned HTTP 401 (invalid/expired API key), one API call; no review output accepted.
+- This is separate from the direct Studio LAN length/empty-final result. OPS-LAN remains blocked; no task closed and no automatic model/provider substitution or credential change.
+- Late notification recorded without restarting remediation or altering the existing release hold.

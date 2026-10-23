@@ -20,5 +20,18 @@
       "accepted_prediction_tokens": 0,
       "rejected_prediction_tokens": 0
     }
+  },
+  "native_delegate": {
+    "delegation_id": "deleg_ed32697f",
+    "requested_model": "ollama/ornith-1.5:35b",
+    "actual_model": null,
+    "status": "failed",
+    "http_status": 401,
+    "error": "Invalid or expired API key",
+    "api_calls": 1,
+    "api_duration_s": 0.8,
+    "wall_duration_s": 1.33,
+    "accepted_output": false,
+    "note": "Separate native delegation authentication failure; not the direct Studio LAN chat result. No credential changes or retry performed."
   }
 }
