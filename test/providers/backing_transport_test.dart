@@ -268,6 +268,24 @@ void main() {
       expect(next.atBar, verse.atBar + 12);
     });
 
+    test('changing quantize re-times a queued launch', () async {
+      await transport.attach(entry(), sections);
+      transport.setQuantize(Quantize.bar);
+      final first = await launched('verse');
+      engine.playing(first);
+      engine.barEvents.add(first.atBar + 1);
+      transport.setQuantize(Quantize.block);
+      final queued = await launched('chorus');
+      final before = engine.commands.length;
+      transport.setQuantize(Quantize.bar);
+      final added = engine.commands.sublist(before);
+      expect(added.first.kind, BackingKind.cancel);
+      expect(added.first.fromBar, queued.token);
+      expect(added.last.kind, BackingKind.launch);
+      expect(added.last.fromBar, 4);
+      expect(added.last.atBar, lessThan(queued.atBar));
+    });
+
     test('block with nothing playing starts at the next bar', () async {
       await transport.attach(entry(), sections);
       transport.setQuantize(Quantize.block);

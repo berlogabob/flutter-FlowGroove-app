@@ -67,6 +67,7 @@ class PlatformBackingEngine implements BackingEngine {
   }
 
   @override
+  // cancel: fromBar carries the token to drop (native side maps it).
   Future<void> command(BackingCommand c) =>
       _channel.invokeMethod<void>('backingCommand', {
         'token': c.token,

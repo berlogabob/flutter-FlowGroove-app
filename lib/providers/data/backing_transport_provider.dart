@@ -576,8 +576,44 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     return _engine.command(command);
   }
 
-  void setQuantize(Quantize quantize) =>
-      state = state.copyWith(quantize: quantize);
+  void setQuantize(Quantize quantize) {
+    final changed = state.quantize != quantize;
+    state = state.copyWith(quantize: quantize);
+    if (changed) _retime();
+  }
+
+  /// A launch still waiting for its bar moves to the bar the new quantize gives.
+  void _retime() {
+    final id = state.queuedId;
+    if (state.rendering ||
+        id == null ||
+        !ref.read(metronomeProvider).isPlaying) {
+      return;
+    }
+    final old = _commands[_token];
+    if (old == null ||
+        old.command.kind != BackingKind.launch ||
+        old.id != id ||
+        _playing?.token == old.command.token) {
+      return;
+    }
+    final at = state.quantize == Quantize.block
+        ? _blockBoundaryBar()
+        : _nextBar(state.quantize);
+    if (at == old.command.atBar) return;
+    _commands.remove(old.command.token);
+    unawaited(
+      _engine.command(
+        BackingCommand(
+          token: ++_token,
+          kind: BackingKind.cancel,
+          fromBar: old.command.token,
+          atBar: 0,
+        ),
+      ),
+    );
+    unawaited(_launch(id, at));
+  }
 
   String? _seededEntryId;
 
@@ -599,19 +635,13 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
   void minusOne(String role) => muteStem(role);
 
   void _applyGains() {
-    final applied = <String>[];
     for (var i = 0; i < _names.length; i++) {
       final name = _names[i];
       final gain = _muted.contains(name) || (_solo != null && _solo != name)
           ? 0.0
           : _volume[name] ?? 1.0;
       _engine.setGain(i, gain);
-      applied.add('$name=$gain');
     }
-    // shortcut: always-on trace so "I hear only the click" reports can be read
-    // from logcat; drop once the console has proven itself on devices.
-    // ignore: avoid_print
-    print('[backing] stems ${applied.join(', ')}');
   }
 }
 

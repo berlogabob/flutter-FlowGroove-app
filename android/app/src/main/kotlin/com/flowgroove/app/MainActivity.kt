@@ -132,6 +132,11 @@ class MainActivity : FlutterActivity() {
                     require(token is String || token is Int || token is Long) { "Invalid token" }
                     val kind = requireNotNull(args["kind"] as? String) { "Missing kind" }
                     val atBar = requireNotNull(args["atBar"] as? Number) { "Missing atBar" }.toInt()
+                    if (kind == "cancel") {
+                        val target = requireNotNull(args["fromBar"] as? Number) { "Missing cancel token" }.toInt()
+                        synchronized(backing) { backing.cancel("n:$target") }
+                        return@handleMetronomeCall
+                    }
                     synchronized(backing) {
                         backing.command(
                             (if (token is String) "s:$token" else "n:$token"), kind,

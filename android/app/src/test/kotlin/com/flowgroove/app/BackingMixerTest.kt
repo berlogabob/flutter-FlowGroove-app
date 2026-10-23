@@ -148,6 +148,16 @@ class BackingMixerTest {
     }
 
     @Test
+    fun cancelDropsAQueuedLaunchBeforeItStarts() {
+        val backing = mixer(mapOf("drums" to shortArrayOf(16384, 16384)))
+        backing.command("n:1", "launch", 0, 2, true, 0)
+        backing.cancel("n:1")
+        val out = doubleArrayOf(0.0, 0.0)
+        render(backing, out, 0L)
+        assertArrayEquals(doubleArrayOf(0.0, 0.0), out, 0.0)
+    }
+
+    @Test
     fun gainRampLasts5MsAndSurvivesChunkSplitsAndRetargeting() {
         val backing = mixer(mapOf("drums" to ShortArray(2000) { 16384 }))
         launch(backing)
