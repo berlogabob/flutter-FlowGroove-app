@@ -278,7 +278,7 @@ void main() {
       expect(container.read(backingTransportProvider).spans, [span]);
       metronome.bpm(180);
       await _until(() => engine.loads.length == 3 && !current().loading);
-      expect(engine.loads.last.renderBpm, 120);
+      expect(engine.loads.last.renderBpm, 180);
       notifier.setVolume(0, 0.6);
       await pumpEventQueue();
       expect(saved.single.midiSong!.sectionMap, [span]);
