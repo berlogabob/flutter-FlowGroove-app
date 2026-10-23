@@ -103,6 +103,7 @@ Future<Map<String, Int16List>> buildBackingStems({
             song: gridSong,
             track: voiceTrack,
             role: role,
+            program: setting.effectiveProgram,
             sampleRate: sampleRate,
             bpmScale: bpmScale,
             maxSeconds: end / sampleRate,

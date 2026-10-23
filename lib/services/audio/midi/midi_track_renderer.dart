@@ -13,6 +13,7 @@ Int16List renderMidiTrack({
   required MidiSongData song,
   required MidiTrackData track,
   required MidiRole role,
+  int? program,
   int sampleRate = 44100,
   double bpmScale = 1,
   double maxSeconds = 600,
@@ -111,6 +112,7 @@ Int16List renderMidiTrack({
         pitch: note.pitch,
         velocity01: note.vel / 127,
         role: role,
+        program: program,
       );
       for (var i = 0; i < voice.length; i++) {
         mix[timed.start + i] += voice[i];
