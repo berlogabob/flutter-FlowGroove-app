@@ -258,6 +258,9 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       ),
       songBar: 0,
     );
+    if (entry.midiSong?.useFileTempo == true) {
+      ref.read(metronomeProvider.notifier).setBpm(entry.midiSong!.initialBpm.round());
+    }
     await _render(_beginRender());
   }
 
@@ -267,9 +270,7 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     if (!ref.mounted || generation != _generation) return;
     if (song == null) throw StateError('No MIDI song attached');
     final metro = ref.read(metronomeProvider);
-    final bpm = entry.midiSong?.useFileTempo == true
-        ? song.initialBpm
-        : metro.bpm.toDouble();
+    final bpm = metro.bpm.toDouble();
     final sampleRate = await _engine.engineSampleRate();
     final ticks = metro.timeSignature.numerator * metro.regularBeats;
     final interval = (60000000 / bpm / metro.regularBeats).round();

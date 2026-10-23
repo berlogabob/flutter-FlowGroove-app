@@ -552,6 +552,8 @@ class MetronomePlaybackConfig {
   Map<String, Object?> toPlatformMap({required int initialTick}) {
     return <String, Object?>{
       'initialTick': initialTick,
+      'bpm': bpm.toDouble(),
+      'ticksPerBar': _safeAccentBeats * _safeRegularBeats,
       'intervalMicros': interval.inMicroseconds,
       'waveType': waveType,
       'volume': volume.clamp(0.0, 1.0),
