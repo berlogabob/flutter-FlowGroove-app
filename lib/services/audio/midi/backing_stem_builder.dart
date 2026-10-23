@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import '../../../models/midi_song.dart';
 import '../../../utils/bar_math.dart';
+import './note_edit.dart';
 import 'midi_song_meta_builder.dart';
 import 'midi_track_renderer.dart';
 
@@ -75,7 +76,10 @@ Future<Map<String, Int16List>> buildBackingStems({
   for (var t = 0; t < song.tracks.length; t++) {
     final track = song.tracks[t];
     final setting = settings.tracks[t];
-    if ((perTrack || !setting.mute) && track.notes.isNotEmpty && length > 0) {
+    final notes = setting.editedNotes != null
+        ? notesFromFlat(setting.editedNotes!)
+        : track.notes;
+    if ((perTrack || !setting.mute) && notes.isNotEmpty && length > 0) {
       final role = setting.effectiveRole;
       var name = perTrack
           ? setting.name
@@ -92,7 +96,7 @@ Future<Map<String, Int16List>> buildBackingStems({
         }
       }
       final mix = mixes.putIfAbsent(name, () => Float64List(length));
-      for (final note in track.notes) {
+      for (final note in notes) {
         if (note.tick < 0 || note.dur <= 0) continue;
         final start = (note.tick * secondsPerTick * sampleRate).round();
         if (start >= length) continue;
