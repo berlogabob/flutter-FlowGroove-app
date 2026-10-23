@@ -8,7 +8,7 @@ import 'smf_parser.dart';
 /// Parses a song using the program active at each channel's first note for its
 /// track; later program changes are ignored.
 MidiSongData parseSmfSong(Uint8List bytes) {
-  final reader = SmfReader(bytes);
+  final reader = SmfReader(unwrapRmid(bytes));
   if (reader.readInt(4) != 0x4D546864) {
     throw const FormatException('Missing MThd header');
   }

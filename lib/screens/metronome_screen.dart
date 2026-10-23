@@ -25,6 +25,7 @@ import '../providers/wakelock_provider.dart';
 import '../services/power_reliability.dart';
 import '../services/wakelock_controller.dart';
 import '../utils/snackbar.dart' show showGlobalSnackBar;
+import '../providers/data/midi_hidden_provider.dart';
 import '../widgets/metronome/backing_sheet.dart';
 import '../widgets/metronome/metronome_sheets.dart';
 import '../widgets/metronome/reliability_sheet.dart';
@@ -459,8 +460,11 @@ final _activeMidiBackingProvider = Provider<SongLabEntry?>((ref) {
   final entries = ref
       .watch(labEntriesProvider((song.id, state.sourceBandId)))
       .value;
+  final hidden = ref.watch(midiHiddenProvider);
   for (final entry in entries ?? <SongLabEntry>[]) {
-    if (entry.type == LabEntryType.midi && entry.midiSong?.fileUrl != null) {
+    if (entry.type == LabEntryType.midi &&
+        entry.midiSong?.fileUrl != null &&
+        !hidden.contains(entry.id)) {
       return entry;
     }
   }

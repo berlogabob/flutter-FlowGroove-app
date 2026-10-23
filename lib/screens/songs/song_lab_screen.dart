@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,20 +15,18 @@ import '../../router/app_router.dart';
 import '../../services/analytics_service.dart';
 import '../../services/export/lab_markdown.dart';
 import '../../services/idea_recorder.dart';
-import '../../services/midi_song_import.dart';
 import '../../services/pending_storage_deletes.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/chordpro.dart';
 import '../../utils/member_label.dart';
-import '../../utils/picked_file.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/midi/midi_import_flow.dart';
 import '../../widgets/midi/midi_song_panel.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import 'components/lab_recording_sheet.dart';
-import 'midi_import_screen.dart';
 
 /// Song Lab timeline (#67): a reverse-chronological journal of typed entries
 /// for one song — the history of "our version" (notes, decisions,
@@ -163,78 +160,21 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
     unawaited(AnalyticsService.logLabEntryAdded(type: type.name));
   }
 
-  bool get _canImportMidi =>
-      !kIsWeb &&
-      (widget.bandId == null
-          ? ref.read(canEditProvider)
-          : ref.read(canEditBandProvider(widget.bandId!)));
+  bool get _canImportMidi => canImportMidi(ref, widget.bandId);
 
   Future<void> _importMidi() async {
     if (_importingMidi || !_canImportMidi) return;
     setState(() => _importingMidi = true);
     try {
-      // Any file keeps native pickers compatible; the MIDI parser validates it.
-      // ignore: avoid_redundant_argument_values
-      final file = await FilePicker.pickFile(type: FileType.any);
-      if (file == null) return;
-      final bytes = await readPickedBytes(file);
-      final preview = previewMidiImport(bytes);
-      if (!mounted || !_canImportMidi) return;
-      final entryId = _uuid.v4();
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute(
-          builder: (importContext) => MidiImportScreen(
-            preview: preview,
-            title: file.name,
-            onSave: (meta) async {
-              if (!mounted || !_canImportMidi) {
-                throw StateError('You do not have permission to import MIDI');
-              }
-              final repo = ref.read(labRepositoryProvider);
-              final entry = await saveMidiImport(
-                bytes: bytes,
-                meta: meta,
-                entryId: entryId,
-                songId: widget.song.id,
-                bandId: widget.bandId,
-                createdBy:
-                    ref.read(firebaseAuthProvider).currentUser?.uid ?? '',
-                title: file.name,
-                upload: ref.read(storageServiceProvider).uploadLabAudio,
-              );
-              await repo.saveEntry(entry, bandId: widget.bandId);
-              unawaited(
-                AnalyticsService.logLabEntryAdded(type: entry.type.name),
-              );
-              if (importContext.mounted) Navigator.of(importContext).pop();
-            },
-          ),
-        ),
+      await pickAndImportMidi(
+        context,
+        ref,
+        songId: widget.song.id,
+        bandId: widget.bandId,
       );
-    } on FormatException {
-      await _showMidiImportError('Not a valid MIDI file');
-    } catch (error) {
-      await _showMidiImportError('Could not import MIDI: $error');
     } finally {
       if (mounted) setState(() => _importingMidi = false);
     }
-  }
-
-  Future<void> _showMidiImportError(String message) async {
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Import MIDI'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _delete(SongLabEntry entry) async {

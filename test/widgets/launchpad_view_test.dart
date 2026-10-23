@@ -238,6 +238,17 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('MIDI menu offers edit, hide and (when allowed) add', (
+    tester,
+  ) async {
+    final transport = _Transport(const BackingTransportState());
+    await _pump(tester, transport);
+    await tester.tap(find.byKey(const ValueKey('midi-menu')));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit arrangement'), findsOneWidget);
+    expect(find.text('Hide MIDI'), findsOneWidget);
+  });
+
   testWidgets('no spans shows one Song pad and attaches whole MIDI song', (
     tester,
   ) async {

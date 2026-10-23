@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/song_lab.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/data/midi_hidden_provider.dart';
 import '../midi/arrangement_sheet.dart';
+import '../midi/midi_import_flow.dart';
 import '../midi/midi_song_panel.dart';
 import 'drum_practice_panel.dart';
 
@@ -49,17 +53,44 @@ class BackingSheet extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.piano_outlined),
               title: Text(e.title?.isNotEmpty == true ? e.title! : 'MIDI song'),
-              subtitle: Text('${e.midiSong!.tracks.length} instruments'),
-              onTap: () => open(
-                (_) => e.midiSong!.sectionMap.isEmpty
-                    ? ArrangementSheet(entry: e, bandId: bandId)
-                    : MidiSongPanel(entry: e, bandId: bandId),
+              subtitle: Text(
+                '${e.midiSong!.tracks.length} instruments'
+                '${ref.watch(midiHiddenProvider).contains(e.id) ? ' · hidden, tap to show' : ''}',
               ),
+              trailing: IconButton(
+                tooltip: 'Edit arrangement',
+                icon: const Icon(Icons.edit_outlined),
+                onPressed: () =>
+                    open((_) => ArrangementSheet(entry: e, bandId: bandId)),
+              ),
+              // A hidden song comes back first; otherwise the old panels open.
+              onTap: ref.watch(midiHiddenProvider).contains(e.id)
+                  ? () {
+                      ref.read(midiHiddenProvider.notifier).show(e.id);
+                      Navigator.of(context).pop();
+                    }
+                  : () => open(
+                      (_) => e.midiSong!.sectionMap.isEmpty
+                          ? ArrangementSheet(entry: e, bandId: bandId)
+                          : MidiSongPanel(entry: e, bandId: bandId),
+                    ),
             ),
-          if (midiSongs.isEmpty)
-            const ListTile(
-              title: Text('No MIDI songs yet'),
-              subtitle: Text("Import one from the song's Song Lab."),
+          if (canImportMidi(ref, bandId))
+            ListTile(
+              leading: const Icon(Icons.upload_file_outlined),
+              title: const Text('Add MIDI file'),
+              subtitle: const Text('.mid, .midi or .rmi from this device'),
+              onTap: () {
+                Navigator.of(context).pop();
+                unawaited(
+                  pickAndImportMidi(
+                    context,
+                    ref,
+                    songId: songId,
+                    bandId: bandId,
+                  ),
+                );
+              },
             ),
         ],
       ),

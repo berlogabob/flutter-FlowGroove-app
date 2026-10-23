@@ -2,6 +2,33 @@ import 'dart:typed_data';
 
 import '../../../models/midi_pattern.dart';
 
+/// RMID (`.rmi`) wraps a Standard MIDI File in a RIFF container; returns the
+/// embedded SMF bytes, or [bytes] unchanged when it is not RIFF/RMID.
+Uint8List unwrapRmid(Uint8List bytes) {
+  bool tag(int at, String text) =>
+      at + 4 <= bytes.length &&
+      String.fromCharCodes(bytes.sublist(at, at + 4)) == text;
+  if (!tag(0, 'RIFF') || !tag(8, 'RMID')) return bytes;
+  var at = 12;
+  while (at + 8 <= bytes.length) {
+    final size = ByteData.sublistView(
+      bytes,
+      at + 4,
+      at + 8,
+    ).getUint32(0, Endian.little);
+    if (tag(at, 'data')) {
+      final end = at + 8 + size;
+      return Uint8List.sublistView(
+        bytes,
+        at + 8,
+        end > bytes.length ? bytes.length : end,
+      );
+    }
+    at += 8 + size + (size.isOdd ? 1 : 0);
+  }
+  return bytes;
+}
+
 MidiPattern parseDrumSmf(
   Uint8List bytes, {
   int maxBars = 4,
@@ -11,7 +38,7 @@ MidiPattern parseDrumSmf(
     throw ArgumentError('maxBars and stepsPerBeat must be positive');
   }
 
-  final reader = SmfReader(bytes);
+  final reader = SmfReader(unwrapRmid(bytes));
   if (reader.readInt(4) != 0x4D546864) {
     throw const FormatException('Missing MThd header');
   }

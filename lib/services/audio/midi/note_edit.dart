@@ -95,6 +95,8 @@ List<MidiNote> toggleCell(
     }
     result.add(note);
   }
-  result.sort((a, b) => a.tick != b.tick ? (a.tick - b.tick) : (a.pitch - b.pitch));
+  result.sort(
+    (a, b) => a.tick != b.tick ? (a.tick - b.tick) : (a.pitch - b.pitch),
+  );
   return result;
 }

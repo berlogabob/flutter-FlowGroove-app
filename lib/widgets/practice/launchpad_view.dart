@@ -18,6 +18,9 @@ import '../../providers/permissions_provider.dart';
 import '../../services/audio/midi/midi_song_meta_builder.dart';
 import '../../services/audio/midi/note_edit.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../providers/data/midi_hidden_provider.dart';
+import '../midi/arrangement_sheet.dart';
+import '../midi/midi_import_flow.dart';
 import 'note_editor_sheet.dart';
 import 'section_card.dart';
 import 'section_pad.dart';
@@ -233,11 +236,18 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (widget.header != null) widget.header!,
-                Text(
-                  bars == null
-                      ? 'Loading MIDI…'
-                      : 'MIDI ${bpm.round()} BPM · $bars bars',
-                  style: MonoPulseTypography.bodySmall,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        bars == null
+                            ? 'Loading MIDI…'
+                            : 'MIDI ${bpm.round()} BPM · $bars bars',
+                        style: MonoPulseTypography.bodySmall,
+                      ),
+                    ),
+                    _MidiMenu(entry: widget.entry),
+                  ],
                 ),
                 if (bars != null && bars < totalBars)
                   Text('Covers $bars of $totalBars bars'),
@@ -486,4 +496,51 @@ int? _songBars(MidiSongData? song, int beatsPerBar) {
     }
   }
   return (endTick / song.ppq / beatsPerBar).ceil();
+}
+
+/// Edit / add / hide for the MIDI song under the launchpad.
+class _MidiMenu extends ConsumerWidget {
+  const _MidiMenu({required this.entry});
+
+  final SongLabEntry entry;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bandId = entry.bandId;
+    return PopupMenuButton<String>(
+      key: const ValueKey('midi-menu'),
+      tooltip: 'MIDI',
+      icon: const Icon(Icons.more_vert),
+      onSelected: (value) {
+        switch (value) {
+          case 'edit':
+            unawaited(
+              showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                showDragHandle: true,
+                builder: (_) => ArrangementSheet(entry: entry, bandId: bandId),
+              ),
+            );
+          case 'add':
+            unawaited(
+              pickAndImportMidi(
+                context,
+                ref,
+                songId: entry.songId,
+                bandId: bandId,
+              ),
+            );
+          case 'hide':
+            ref.read(midiHiddenProvider.notifier).hide(entry.id);
+        }
+      },
+      itemBuilder: (_) => [
+        const PopupMenuItem(value: 'edit', child: Text('Edit arrangement')),
+        if (canImportMidi(ref, bandId))
+          const PopupMenuItem(value: 'add', child: Text('Add MIDI file')),
+        const PopupMenuItem(value: 'hide', child: Text('Hide MIDI')),
+      ],
+    );
+  }
 }
