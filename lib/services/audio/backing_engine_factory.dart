@@ -76,6 +76,15 @@ class WebBackingScheduler implements BackingEngine {
 
   @override
   Future<void> command(BackingCommand c) async {
+    if (c.kind == BackingKind.cancel) {
+      final index = _pending.indexWhere((other) => other.token == c.fromBar);
+      if (index < 0) return;
+      final dropped = _pending.removeAt(index);
+      _cancelFrom(dropped.atBar);
+      _nextBar = math.min(_nextBar ?? dropped.atBar, dropped.atBar);
+      pump();
+      return;
+    }
     if (c.atBar < 0 ||
         (c.kind == BackingKind.launch && (c.fromBar < 0 || c.bars <= 0))) {
       throw ArgumentError('Invalid backing bar range');
