@@ -4,6 +4,15 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## Unreleased — systemic UX/UI work plan and publication hold (2026-10-23)
+
+- Added a single activity registry for nine UX findings, existing open GitHub work
+  and uncovered verification areas; new problems extend the same scope/history.
+- Bounded Ornith 35b / Studio LAN task contracts, dependencies, status and independent
+  Hermes acceptance; product UX fixes are not implemented by this planning change.
+- Publication/version-bump hold in both Makefiles and the Android release workflow;
+  registry/gate regression checks added to development CI. No release or deploy.
+
 ## Unreleased — MIDI drum practice + audit round 3 (2026-10-15)
 
 ### Drum practice (new)

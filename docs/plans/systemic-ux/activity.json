@@ -1,0 +1,2118 @@
+{
+  "schema": 1,
+  "updated_at": "2026-10-23T23:01:37.466939+00:00",
+  "scope": "whole-app UX/UI and all known open project work",
+  "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
+  "provider": {
+    "name": "studio",
+    "base_url": "http://desktop-vdsrh2e:8888/v1",
+    "model": "ollama/ornith-1.5:35b",
+    "max_concurrent": 1,
+    "fallback": "Hermes diagnoses failed task; no automatic cloud/model substitution",
+    "credentials": "existing client only; never stored here"
+  },
+  "baseline": {
+    "source_commit": "e01797d8c95af4778e93466c6e68d6ac9f6b5e72",
+    "ux_findings": 9,
+    "device_captures": 44,
+    "github_open_at_inventory": 14,
+    "coverage": "bounded P30 read-only; not full human/media/platform testing"
+  },
+  "issues": [
+    {
+      "id": "UX-001",
+      "title": "Practice и фактическая практика разделены по разным понятиям",
+      "severity": 3,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/F-001",
+      "evidence_type": "DEVICE+CODE",
+      "summary": "Practice показывает статистику, домашние задания и журнал; Quick start ведёт в Metronome/Tuner/Recorder. MIDI launchpad и непосредственное исполнение находятся в Metronome. Это подтверждённое распределение функций, а не результат наблюдения за растерянностью пользователя.",
+      "source_locations": [
+        "lib/screens/practice_screen.dart:14-17",
+        "lib/screens/practice_screen.dart:33-85"
+      ],
+      "tasks": [
+        "UX-001-R",
+        "UX-001-I",
+        "UX-001-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "UX-002",
+      "title": "Menu совмещает глобальную навигацию и контекстные команды",
+      "severity": 2,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/F-002",
+      "evidence_type": "DEVICE+CODE",
+      "summary": "Пятый слот корневой панели выглядит как сосед вкладок, но открывает меняющееся меню. На Home доступны профиль/Settings, на Setlists — команды библиотеки. У дочернего объекта Menu опять означает его операции. Внутренний API намеренно реализует эти режимы; ошибку роутера этим не доказать.",
+      "source_locations": [
+        "lib/widgets/bottom_nav_or_action_bar.dart:10-16",
+        "lib/widgets/bottom_nav_or_action_bar.dart:96-105",
+        "lib/screens/main_shell.dart:180-266"
+      ],
+      "tasks": [
+        "UX-002-R",
+        "UX-002-I",
+        "UX-002-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "UX-003",
+      "title": "Открытие объекта непоследовательно: песня сразу Edit, сетлист — просмотр",
+      "severity": 2,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/F-003",
+      "evidence_type": "DEVICE+CODE",
+      "summary": "Нажатие карточки песни открыло Edit с заполненной формой и командами редактирования; нажатие карточки сетлиста — read-only экран. Самопроизвольное сохранение или потеря данных не наблюдались и не проверялись.",
+      "source_locations": [
+        "lib/screens/songs/songs_list_screen.dart:715-723"
+      ],
+      "tasks": [
+        "UX-003-R",
+        "UX-003-I",
+        "UX-003-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "UX-004",
+      "title": "Недоступные песни видны, но причины и дальнейшее действие не объяснены",
+      "severity": 3,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/F-004",
+      "evidence_type": "DEVICE+CODE",
+      "summary": "В выбранном сетлисте шесть строк, четыре из них Unavailable song; строки не открываются. После Open in Metronome видна очередь из двух доступных песен. Шесть сохранённых элементов и две playable песни — разные корректные счётчики, а не доказанная арифметическая ошибка. Не установлено, почему ссылки не разрешились: удаление, загрузка или права.",
+      "source_locations": [
+        "lib/widgets/setlist_song_row.dart:11-16",
+        "lib/widgets/setlist_song_row.dart:37-39",
+        "lib/widgets/setlist_song_row.dart:49-65",
+        "lib/widgets/metronome/song_library_block.dart:170-182"
+      ],
+      "tasks": [
+        "UX-004-R",
+        "UX-004-I",
+        "UX-004-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "UX-005",
+      "title": "Нет видимого единого входа для продолжения конкретного рабочего контекста",
+      "severity": 2,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/F-005",
+      "evidence_type": "DEVICE; HYPOTHESIS about user impact",
+      "summary": "В осмотренных состояниях статистика, материалы, задачи и транспорт разнесены; карточки «продолжить: песня · источник · партия · фрагмент · темп» не обнаружено. Это не утверждение, что отсутствует всякое сохранение состояния. Частота и стоимость реальной потери контекста требуют human task test; прежняя недельная статистика не доказывает повторения Stop→Play.",
+      "source_locations": [
+        "docs/plans/unified-workspace/PROPOSAL.md"
+      ],
+      "tasks": [
+        "UX-005-R",
+        "UX-005-I",
+        "UX-005-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "UX-006",
+      "title": "При активном MIDI исчезает общий вход выбора сопровождения",
+      "severity": 3,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/F-006",
+      "evidence_type": "DEVICE+CODE",
+      "summary": "Без активного MIDI есть Backing tracks; с активным MIDI показан LaunchpadView, а прежняя кнопка отсутствует. Меню MIDI в этом состоянии содержит Edit arrangement / Add MIDI file / Hide MIDI. Код подтверждает взаимоисключающие ветви. Это потеря конкретного общего входа, не доказательство полной недоступности Drums всеми возможными маршрутами.",
+      "source_locations": [
+        "lib/screens/metronome_screen.dart:588-609",
+        "lib/screens/metronome_screen.dart:617-654",
+        "lib/widgets/metronome/backing_sheet.dart:45-76"
+      ],
+      "tasks": [
+        "UX-006-R",
+        "UX-006-I",
+        "UX-006-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "UX-007",
+      "title": "У кнопки создания песни отсутствует явное имя в текущей иерархии",
+      "severity": 2,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/F-007",
+      "evidence_type": "DEVICE+CODE",
+      "summary": "Оранжевая FAB видна как плюс, но в захваченной UIAutomator-иерархии кнопка без имени. В вызов SingleFab не передан tooltip, параметр по умолчанию null. Это подтверждает конкретный пробел имени, но не заменяет полноценный TalkBack-тест.",
+      "source_locations": [
+        "lib/screens/songs/songs_list_screen.dart:643-648",
+        "lib/widgets/fab_variants.dart:20-25",
+        "lib/widgets/fab_variants.dart:42-49"
+      ],
+      "tasks": [
+        "UX-007-R",
+        "UX-007-I",
+        "UX-007-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "UX-008",
+      "title": "Микротекст вне общей шкалы требует отдельной проверки читаемости",
+      "severity": 1,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/F-008",
+      "evidence_type": "CODE",
+      "summary": "Подписи иконки tune/fine-tune в transport_bar имеют fontSize 7 и 9. Это локальное расхождение с основной типографической шкалой, не измеренная потеря читаемости на всех устройствах и не самостоятельное численное нарушение WCAG.",
+      "source_locations": [
+        "lib/widgets/tuner/transport_bar.dart:288-322"
+      ],
+      "tasks": [
+        "UX-008-R",
+        "UX-008-I",
+        "UX-008-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "UX-009",
+      "title": "Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных",
+      "severity": 2,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/F-009",
+      "evidence_type": "CODE",
+      "summary": "Practice читает несколько AsyncValue через asData?.value с fallback на пустые stats/lists. При отсутствии asData экран выбирает те же ветви, что для реального пустого журнала/домашних заданий. Ошибка сети на устройстве намеренно не провоцировалась. В Songs уже есть отдельные loading/error/cached-data состояния: lib/screens/songs/songs_list_screen.dart:654-739.",
+      "source_locations": [
+        "lib/screens/practice_screen.dart:23-30",
+        "lib/screens/practice_screen.dart:46-50",
+        "lib/screens/practice_screen.dart:80-85"
+      ],
+      "tasks": [
+        "UX-009-R",
+        "UX-009-I",
+        "UX-009-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-189",
+      "title": "[P6] Event sharing: /event deep links + analytics",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/189",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-189-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-188",
+      "title": "[P5] Event sharing: per-person access ticks UI",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/188",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-188-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-187",
+      "title": "[P4] Event sharing: suggestions inbox (band side)",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/187",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-187-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-186",
+      "title": "[P3] Event sharing: list and revoke active share links",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/186",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-186-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-180",
+      "title": "[epic] Event participants: scoped event sharing for non-members",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/180",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-180-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-179",
+      "title": "UI-vs-rules permission parity gaps (audit follow-ups)",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/179",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-179-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-178",
+      "title": "refactor(metronome): extract live setlist/song sync out of MetronomeNotifier",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/178",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-178-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-177",
+      "title": "Graph-audit remediation 2026-08 (trackable, measurable)",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/177",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-177-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-151",
+      "title": "iOS metronome: PCM feeder starvation — dropped beats up to 118s silence on older hardware + audio/animation desync",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/151",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-151-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-77",
+      "title": "Remote MCP connector — one-click OAuth (Claude/ChatGPT)",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/77",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-77-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-50",
+      "title": "Play Console: org account + first release",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/50",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-50-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-49",
+      "title": "Play Console: store listing assets",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/49",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-49-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-48",
+      "title": "Play Console: App Content forms",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/48",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-48-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "GH-42",
+      "title": "🚀 Google Play Store launch",
+      "severity": null,
+      "status": "open",
+      "source": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/42",
+      "evidence_type": "GITHUB_OPEN_SNAPSHOT",
+      "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
+      "source_locations": [],
+      "tasks": [
+        "GH-42-R"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "QA-DRUMS",
+      "title": "Drums grid/editor и MIDI note editor",
+      "severity": null,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/report.md#coverage-gaps",
+      "evidence_type": "UNVERIFIED_COVERAGE",
+      "summary": "Обязательная незакрытая область проверки; не утверждение о наличии дефекта.",
+      "source_locations": [
+        "test/midi/drum_practice_panel_test.dart"
+      ],
+      "tasks": [
+        "QA-DRUMS-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "QA-SONG",
+      "title": "Song arrangement и create/edit/cancel",
+      "severity": null,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/report.md#coverage-gaps",
+      "evidence_type": "UNVERIFIED_COVERAGE",
+      "summary": "Обязательная незакрытая область проверки; не утверждение о наличии дефекта.",
+      "source_locations": [
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "tasks": [
+        "QA-SONG-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "QA-EVENT",
+      "title": "Event Kit, sharing и роли viewer/member/admin",
+      "severity": null,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/report.md#coverage-gaps",
+      "evidence_type": "UNVERIFIED_COVERAGE",
+      "summary": "Обязательная незакрытая область проверки; не утверждение о наличии дефекта.",
+      "source_locations": [
+        "test/providers/event_permissions_test.dart"
+      ],
+      "tasks": [
+        "QA-EVENT-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "QA-STATE",
+      "title": "Offline, loading/error/partial, permission denial",
+      "severity": null,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/report.md#coverage-gaps",
+      "evidence_type": "UNVERIFIED_COVERAGE",
+      "summary": "Обязательная незакрытая область проверки; не утверждение о наличии дефекта.",
+      "source_locations": [
+        "test/widgets/offline_indicator_test.dart"
+      ],
+      "tasks": [
+        "QA-STATE-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "QA-VISUAL",
+      "title": "Mono Pulse: light/dark, large text, TalkBack",
+      "severity": null,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/report.md#coverage-gaps",
+      "evidence_type": "UNVERIFIED_COVERAGE",
+      "summary": "Обязательная незакрытая область проверки; не утверждение о наличии дефекта.",
+      "source_locations": [
+        "lib/theme/mono_pulse_theme.dart"
+      ],
+      "tasks": [
+        "QA-VISUAL-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "QA-PLATFORM",
+      "title": "P30/A24, landscape, web и iOS risk matrix",
+      "severity": null,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/report.md#coverage-gaps",
+      "evidence_type": "UNVERIFIED_COVERAGE",
+      "summary": "Обязательная незакрытая область проверки; не утверждение о наличии дефекта.",
+      "source_locations": [
+        "docs/plans/launchpad/FINDINGS.md"
+      ],
+      "tasks": [
+        "QA-PLATFORM-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "QA-AUDIO",
+      "title": "MIDI/click, loop/speed/count-in, screen off и route changes",
+      "severity": null,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/report.md#coverage-gaps",
+      "evidence_type": "UNVERIFIED_COVERAGE",
+      "summary": "Обязательная незакрытая область проверки; не утверждение о наличии дефекта.",
+      "source_locations": [
+        "docs/plans/launchpad/DEVICE_PASS.md"
+      ],
+      "tasks": [
+        "QA-AUDIO-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "QA-HUMAN",
+      "title": "Human task testing: navigation, context/resume и setlist recovery",
+      "severity": null,
+      "status": "open",
+      "source": "audit/2026-10-23-systemic-ux/report.md#coverage-gaps",
+      "evidence_type": "UNVERIFIED_COVERAGE",
+      "summary": "Обязательная незакрытая область проверки; не утверждение о наличии дефекта.",
+      "source_locations": [
+        "docs/plans/systemic-ux/TARGET-UX.md"
+      ],
+      "tasks": [
+        "QA-HUMAN-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "NEW-001",
+      "title": "Graphify: проверить частичное извлечение linux header и границы покрытия",
+      "severity": 1,
+      "status": "open",
+      "source": "docs/plans/systemic-ux/graph-update.json",
+      "evidence_type": "NEW_REQUIRES_TRIAGE",
+      "summary": "Repeat and classify before implementation.",
+      "source_locations": [],
+      "tasks": [
+        "NEW-001-R",
+        "NEW-001-V"
+      ],
+      "resolution": null
+    }
+  ],
+  "tasks": [
+    {
+      "id": "UX-001-R",
+      "title": "Повторно проверить: Practice и фактическая практика разделены по разным понятиям",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "UX-001",
+      "read_files": [
+        "lib/screens/practice_screen.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/UX-001.md"
+      ],
+      "acceptance": [
+        "Прочитать перечисленные исходники до конца; указать path:line и актуальный before/after сценарий.",
+        "Разделить подтверждённый дефект, UX-гипотезу и исторический вывод. Без действий с рабочими данными.",
+        "Предложить один минимальный change; если нужен второй production file — добавить отдельную задачу до правки."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-001-I",
+      "title": "Минимальное исправление/проверка решения: Practice и фактическая практика разделены по разным понятиям",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "UX-001-R",
+        "DESIGN-01"
+      ],
+      "issue": "UX-001",
+      "read_files": [
+        "lib/screens/practice_screen.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/practice_screen.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "acceptance": [
+        "Исправлять только подтверждённый в -R сценарий; для гипотез сначала проверка решения, не косметический fix.",
+        "Максимум один production file и один указанный тест. Недостаточно scope — blocked, новая подзадача, никаких выходов за allowlist.",
+        "Сохранить существующие API/модели/Mono Pulse; без новых пакетов, миграций, изменения engine/auth/rules.",
+        "Добавить regression assertion, падающий на исходном дефекте; Hermes запускает targeted flutter test и analyze.",
+        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-001-V",
+      "title": "Независимая приёмка и device recheck: UX-001",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "UX-001-I"
+      ],
+      "issue": "UX-001",
+      "read_files": [
+        "lib/screens/practice_screen.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Реально выполнить целевой тест и analyze; сохранить команды, exit codes, diff allowlist и tested commit.",
+        "Повторить исходный сценарий на безопасных данных; приложить локальное evidence и проверить соседние flows.",
+        "Нельзя закрывать по ответу субагента, одному grep или историческому скриншоту. Для непроверенного состояния оставить blocked."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-002-R",
+      "title": "Повторно проверить: Menu совмещает глобальную навигацию и контекстные команды",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "UX-002",
+      "read_files": [
+        "lib/screens/main_shell.dart",
+        "test/screens/home_quick_actions_test.dart",
+        "lib/widgets/bottom_nav_or_action_bar.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/UX-002.md"
+      ],
+      "acceptance": [
+        "Прочитать перечисленные исходники до конца; указать path:line и актуальный before/after сценарий.",
+        "Разделить подтверждённый дефект, UX-гипотезу и исторический вывод. Без действий с рабочими данными.",
+        "Предложить один минимальный change; если нужен второй production file — добавить отдельную задачу до правки."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-002-I",
+      "title": "Минимальное исправление/проверка решения: Menu совмещает глобальную навигацию и контекстные команды",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "UX-002-R",
+        "DESIGN-01"
+      ],
+      "issue": "UX-002",
+      "read_files": [
+        "lib/screens/main_shell.dart",
+        "test/screens/home_quick_actions_test.dart",
+        "lib/widgets/bottom_nav_or_action_bar.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/main_shell.dart",
+        "test/screens/home_quick_actions_test.dart"
+      ],
+      "acceptance": [
+        "Исправлять только подтверждённый в -R сценарий; для гипотез сначала проверка решения, не косметический fix.",
+        "Максимум один production file и один указанный тест. Недостаточно scope — blocked, новая подзадача, никаких выходов за allowlist.",
+        "Сохранить существующие API/модели/Mono Pulse; без новых пакетов, миграций, изменения engine/auth/rules.",
+        "Добавить regression assertion, падающий на исходном дефекте; Hermes запускает targeted flutter test и analyze.",
+        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-002-V",
+      "title": "Независимая приёмка и device recheck: UX-002",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "UX-002-I"
+      ],
+      "issue": "UX-002",
+      "read_files": [
+        "lib/screens/main_shell.dart",
+        "test/screens/home_quick_actions_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Реально выполнить целевой тест и analyze; сохранить команды, exit codes, diff allowlist и tested commit.",
+        "Повторить исходный сценарий на безопасных данных; приложить локальное evidence и проверить соседние flows.",
+        "Нельзя закрывать по ответу субагента, одному grep или историческому скриншоту. Для непроверенного состояния оставить blocked."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-003-R",
+      "title": "Повторно проверить: Открытие объекта непоследовательно: песня сразу Edit, сетлист — просмотр",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "UX-003",
+      "read_files": [
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/UX-003.md"
+      ],
+      "acceptance": [
+        "Прочитать перечисленные исходники до конца; указать path:line и актуальный before/after сценарий.",
+        "Разделить подтверждённый дефект, UX-гипотезу и исторический вывод. Без действий с рабочими данными.",
+        "Предложить один минимальный change; если нужен второй production file — добавить отдельную задачу до правки."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-003-I",
+      "title": "Минимальное исправление/проверка решения: Открытие объекта непоследовательно: песня сразу Edit, сетлист — просмотр",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "UX-003-R",
+        "DESIGN-01"
+      ],
+      "issue": "UX-003",
+      "read_files": [
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "acceptance": [
+        "Исправлять только подтверждённый в -R сценарий; для гипотез сначала проверка решения, не косметический fix.",
+        "Максимум один production file и один указанный тест. Недостаточно scope — blocked, новая подзадача, никаких выходов за allowlist.",
+        "Сохранить существующие API/модели/Mono Pulse; без новых пакетов, миграций, изменения engine/auth/rules.",
+        "Добавить regression assertion, падающий на исходном дефекте; Hermes запускает targeted flutter test и analyze.",
+        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-003-V",
+      "title": "Независимая приёмка и device recheck: UX-003",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "UX-003-I"
+      ],
+      "issue": "UX-003",
+      "read_files": [
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Реально выполнить целевой тест и analyze; сохранить команды, exit codes, diff allowlist и tested commit.",
+        "Повторить исходный сценарий на безопасных данных; приложить локальное evidence и проверить соседние flows.",
+        "Нельзя закрывать по ответу субагента, одному grep или историческому скриншоту. Для непроверенного состояния оставить blocked."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-004-R",
+      "title": "Повторно проверить: Недоступные песни видны, но причины и дальнейшее действие не объяснены",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "UX-004",
+      "read_files": [
+        "lib/widgets/setlist_song_row.dart",
+        "test/screens/setlists/setlist_view_screen_test.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/UX-004.md"
+      ],
+      "acceptance": [
+        "Прочитать перечисленные исходники до конца; указать path:line и актуальный before/after сценарий.",
+        "Разделить подтверждённый дефект, UX-гипотезу и исторический вывод. Без действий с рабочими данными.",
+        "Предложить один минимальный change; если нужен второй production file — добавить отдельную задачу до правки."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-004-I",
+      "title": "Минимальное исправление/проверка решения: Недоступные песни видны, но причины и дальнейшее действие не объяснены",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "UX-004-R"
+      ],
+      "issue": "UX-004",
+      "read_files": [
+        "lib/widgets/setlist_song_row.dart",
+        "test/screens/setlists/setlist_view_screen_test.dart"
+      ],
+      "allowed_files": [
+        "lib/widgets/setlist_song_row.dart",
+        "test/screens/setlists/setlist_view_screen_test.dart"
+      ],
+      "acceptance": [
+        "Исправлять только подтверждённый в -R сценарий; для гипотез сначала проверка решения, не косметический fix.",
+        "Максимум один production file и один указанный тест. Недостаточно scope — blocked, новая подзадача, никаких выходов за allowlist.",
+        "Сохранить существующие API/модели/Mono Pulse; без новых пакетов, миграций, изменения engine/auth/rules.",
+        "Добавить regression assertion, падающий на исходном дефекте; Hermes запускает targeted flutter test и analyze.",
+        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-004-V",
+      "title": "Независимая приёмка и device recheck: UX-004",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "UX-004-I"
+      ],
+      "issue": "UX-004",
+      "read_files": [
+        "lib/widgets/setlist_song_row.dart",
+        "test/screens/setlists/setlist_view_screen_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Реально выполнить целевой тест и analyze; сохранить команды, exit codes, diff allowlist и tested commit.",
+        "Повторить исходный сценарий на безопасных данных; приложить локальное evidence и проверить соседние flows.",
+        "Нельзя закрывать по ответу субагента, одному grep или историческому скриншоту. Для непроверенного состояния оставить blocked."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-005-R",
+      "title": "Повторно проверить: Нет видимого единого входа для продолжения конкретного рабочего контекста",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "UX-005",
+      "read_files": [
+        "lib/screens/home_screen.dart",
+        "test/domain/metronome_practice_features_test.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/UX-005.md"
+      ],
+      "acceptance": [
+        "Прочитать перечисленные исходники до конца; указать path:line и актуальный before/after сценарий.",
+        "Разделить подтверждённый дефект, UX-гипотезу и исторический вывод. Без действий с рабочими данными.",
+        "Предложить один минимальный change; если нужен второй production file — добавить отдельную задачу до правки."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-005-I",
+      "title": "Минимальное исправление/проверка решения: Нет видимого единого входа для продолжения конкретного рабочего контекста",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "UX-005-R",
+        "DESIGN-01"
+      ],
+      "issue": "UX-005",
+      "read_files": [
+        "lib/screens/home_screen.dart",
+        "test/domain/metronome_practice_features_test.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/home_screen.dart",
+        "test/domain/metronome_practice_features_test.dart"
+      ],
+      "acceptance": [
+        "Исправлять только подтверждённый в -R сценарий; для гипотез сначала проверка решения, не косметический fix.",
+        "Максимум один production file и один указанный тест. Недостаточно scope — blocked, новая подзадача, никаких выходов за allowlist.",
+        "Сохранить существующие API/модели/Mono Pulse; без новых пакетов, миграций, изменения engine/auth/rules.",
+        "Добавить regression assertion, падающий на исходном дефекте; Hermes запускает targeted flutter test и analyze.",
+        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-005-V",
+      "title": "Независимая приёмка и device recheck: UX-005",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "UX-005-I"
+      ],
+      "issue": "UX-005",
+      "read_files": [
+        "lib/screens/home_screen.dart",
+        "test/domain/metronome_practice_features_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Реально выполнить целевой тест и analyze; сохранить команды, exit codes, diff allowlist и tested commit.",
+        "Повторить исходный сценарий на безопасных данных; приложить локальное evidence и проверить соседние flows.",
+        "Нельзя закрывать по ответу субагента, одному grep или историческому скриншоту. Для непроверенного состояния оставить blocked."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-006-R",
+      "title": "Повторно проверить: При активном MIDI исчезает общий вход выбора сопровождения",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "UX-006",
+      "read_files": [
+        "lib/screens/metronome_screen.dart",
+        "test/midi/drums_button_test.dart",
+        "lib/widgets/metronome/backing_sheet.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/UX-006.md"
+      ],
+      "acceptance": [
+        "Прочитать перечисленные исходники до конца; указать path:line и актуальный before/after сценарий.",
+        "Разделить подтверждённый дефект, UX-гипотезу и исторический вывод. Без действий с рабочими данными.",
+        "Предложить один минимальный change; если нужен второй production file — добавить отдельную задачу до правки."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-006-I",
+      "title": "Минимальное исправление/проверка решения: При активном MIDI исчезает общий вход выбора сопровождения",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "UX-006-R"
+      ],
+      "issue": "UX-006",
+      "read_files": [
+        "lib/screens/metronome_screen.dart",
+        "test/midi/drums_button_test.dart",
+        "lib/widgets/metronome/backing_sheet.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/metronome_screen.dart",
+        "test/midi/drums_button_test.dart"
+      ],
+      "acceptance": [
+        "Исправлять только подтверждённый в -R сценарий; для гипотез сначала проверка решения, не косметический fix.",
+        "Максимум один production file и один указанный тест. Недостаточно scope — blocked, новая подзадача, никаких выходов за allowlist.",
+        "Сохранить существующие API/модели/Mono Pulse; без новых пакетов, миграций, изменения engine/auth/rules.",
+        "Добавить regression assertion, падающий на исходном дефекте; Hermes запускает targeted flutter test и analyze.",
+        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-006-V",
+      "title": "Независимая приёмка и device recheck: UX-006",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "UX-006-I"
+      ],
+      "issue": "UX-006",
+      "read_files": [
+        "lib/screens/metronome_screen.dart",
+        "test/midi/drums_button_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Реально выполнить целевой тест и analyze; сохранить команды, exit codes, diff allowlist и tested commit.",
+        "Повторить исходный сценарий на безопасных данных; приложить локальное evidence и проверить соседние flows.",
+        "Нельзя закрывать по ответу субагента, одному grep или историческому скриншоту. Для непроверенного состояния оставить blocked."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-007-R",
+      "title": "Повторно проверить: У кнопки создания песни отсутствует явное имя в текущей иерархии",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "UX-007",
+      "read_files": [
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/UX-007.md"
+      ],
+      "acceptance": [
+        "Прочитать перечисленные исходники до конца; указать path:line и актуальный before/after сценарий.",
+        "Разделить подтверждённый дефект, UX-гипотезу и исторический вывод. Без действий с рабочими данными.",
+        "Предложить один минимальный change; если нужен второй production file — добавить отдельную задачу до правки."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-007-I",
+      "title": "Минимальное исправление/проверка решения: У кнопки создания песни отсутствует явное имя в текущей иерархии",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "UX-007-R"
+      ],
+      "issue": "UX-007",
+      "read_files": [
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "acceptance": [
+        "Исправлять только подтверждённый в -R сценарий; для гипотез сначала проверка решения, не косметический fix.",
+        "Максимум один production file и один указанный тест. Недостаточно scope — blocked, новая подзадача, никаких выходов за allowlist.",
+        "Сохранить существующие API/модели/Mono Pulse; без новых пакетов, миграций, изменения engine/auth/rules.",
+        "Добавить regression assertion, падающий на исходном дефекте; Hermes запускает targeted flutter test и analyze.",
+        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-007-V",
+      "title": "Независимая приёмка и device recheck: UX-007",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "UX-007-I"
+      ],
+      "issue": "UX-007",
+      "read_files": [
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Реально выполнить целевой тест и analyze; сохранить команды, exit codes, diff allowlist и tested commit.",
+        "Повторить исходный сценарий на безопасных данных; приложить локальное evidence и проверить соседние flows.",
+        "Нельзя закрывать по ответу субагента, одному grep или историческому скриншоту. Для непроверенного состояния оставить blocked."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-008-R",
+      "title": "Повторно проверить: Микротекст вне общей шкалы требует отдельной проверки читаемости",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "UX-008",
+      "read_files": [
+        "lib/widgets/tuner/transport_bar.dart",
+        "test/widgets/tuner/central_dial_geometry_test.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/UX-008.md"
+      ],
+      "acceptance": [
+        "Прочитать перечисленные исходники до конца; указать path:line и актуальный before/after сценарий.",
+        "Разделить подтверждённый дефект, UX-гипотезу и исторический вывод. Без действий с рабочими данными.",
+        "Предложить один минимальный change; если нужен второй production file — добавить отдельную задачу до правки."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-008-I",
+      "title": "Минимальное исправление/проверка решения: Микротекст вне общей шкалы требует отдельной проверки читаемости",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "UX-008-R"
+      ],
+      "issue": "UX-008",
+      "read_files": [
+        "lib/widgets/tuner/transport_bar.dart",
+        "test/widgets/tuner/central_dial_geometry_test.dart"
+      ],
+      "allowed_files": [
+        "lib/widgets/tuner/transport_bar.dart",
+        "test/widgets/tuner/central_dial_geometry_test.dart"
+      ],
+      "acceptance": [
+        "Исправлять только подтверждённый в -R сценарий; для гипотез сначала проверка решения, не косметический fix.",
+        "Максимум один production file и один указанный тест. Недостаточно scope — blocked, новая подзадача, никаких выходов за allowlist.",
+        "Сохранить существующие API/модели/Mono Pulse; без новых пакетов, миграций, изменения engine/auth/rules.",
+        "Добавить regression assertion, падающий на исходном дефекте; Hermes запускает targeted flutter test и analyze.",
+        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-008-V",
+      "title": "Независимая приёмка и device recheck: UX-008",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "UX-008-I"
+      ],
+      "issue": "UX-008",
+      "read_files": [
+        "lib/widgets/tuner/transport_bar.dart",
+        "test/widgets/tuner/central_dial_geometry_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Реально выполнить целевой тест и analyze; сохранить команды, exit codes, diff allowlist и tested commit.",
+        "Повторить исходный сценарий на безопасных данных; приложить локальное evidence и проверить соседние flows.",
+        "Нельзя закрывать по ответу субагента, одному grep или историческому скриншоту. Для непроверенного состояния оставить blocked."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-009-R",
+      "title": "Повторно проверить: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "UX-009",
+      "read_files": [
+        "lib/screens/practice_screen.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/UX-009.md"
+      ],
+      "acceptance": [
+        "Прочитать перечисленные исходники до конца; указать path:line и актуальный before/after сценарий.",
+        "Разделить подтверждённый дефект, UX-гипотезу и исторический вывод. Без действий с рабочими данными.",
+        "Предложить один минимальный change; если нужен второй production file — добавить отдельную задачу до правки."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-009-I",
+      "title": "Минимальное исправление/проверка решения: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "UX-009-R"
+      ],
+      "issue": "UX-009",
+      "read_files": [
+        "lib/screens/practice_screen.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/practice_screen.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "acceptance": [
+        "Исправлять только подтверждённый в -R сценарий; для гипотез сначала проверка решения, не косметический fix.",
+        "Максимум один production file и один указанный тест. Недостаточно scope — blocked, новая подзадача, никаких выходов за allowlist.",
+        "Сохранить существующие API/модели/Mono Pulse; без новых пакетов, миграций, изменения engine/auth/rules.",
+        "Добавить regression assertion, падающий на исходном дефекте; Hermes запускает targeted flutter test и analyze.",
+        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-009-V",
+      "title": "Независимая приёмка и device recheck: UX-009",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "UX-009-I"
+      ],
+      "issue": "UX-009",
+      "read_files": [
+        "lib/screens/practice_screen.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Реально выполнить целевой тест и analyze; сохранить команды, exit codes, diff allowlist и tested commit.",
+        "Повторить исходный сценарий на безопасных данных; приложить локальное evidence и проверить соседние flows.",
+        "Нельзя закрывать по ответу субагента, одному grep или историческому скриншоту. Для непроверенного состояния оставить blocked."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-189-R",
+      "title": "Повторная проверка GitHub #189: [P6] Event sharing: /event deep links + analytics",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-189",
+      "read_files": [
+        "EVENT_SHARING_BACKLOG.md"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-189.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-188-R",
+      "title": "Повторная проверка GitHub #188: [P5] Event sharing: per-person access ticks UI",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-188",
+      "read_files": [
+        "EVENT_SHARING_BACKLOG.md"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-188.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-187-R",
+      "title": "Повторная проверка GitHub #187: [P4] Event sharing: suggestions inbox (band side)",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-187",
+      "read_files": [
+        "EVENT_SHARING_BACKLOG.md"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-187.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-186-R",
+      "title": "Повторная проверка GitHub #186: [P3] Event sharing: list and revoke active share links",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-186",
+      "read_files": [
+        "EVENT_SHARING_BACKLOG.md"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-186.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-180-R",
+      "title": "Повторная проверка GitHub #180: [epic] Event participants: scoped event sharing for non-members",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-180",
+      "read_files": [
+        "EVENT_SHARING_BACKLOG.md"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-180.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-179-R",
+      "title": "Повторная проверка GitHub #179: UI-vs-rules permission parity gaps (audit follow-ups)",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-179",
+      "read_files": [
+        "EVENT_SHARING_BACKLOG.md"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-179.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-178-R",
+      "title": "Повторная проверка GitHub #178: refactor(metronome): extract live setlist/song sync out of MetronomeNotifier",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-178",
+      "read_files": [
+        "EVENT_SHARING_BACKLOG.md"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-178.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-177-R",
+      "title": "Повторная проверка GitHub #177: Graph-audit remediation 2026-08 (trackable, measurable)",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-177",
+      "read_files": [
+        "EVENT_SHARING_BACKLOG.md"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-177.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-151-R",
+      "title": "Повторная проверка GitHub #151: iOS metronome: PCM feeder starvation — dropped beats up to 118s silence on older hardware + audio/animation desync",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-151",
+      "read_files": [],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-151.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-77-R",
+      "title": "Повторная проверка GitHub #77: Remote MCP connector — one-click OAuth (Claude/ChatGPT)",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-77",
+      "read_files": [],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-77.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-50-R",
+      "title": "Повторная проверка GitHub #50: Play Console: org account + first release",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-50",
+      "read_files": [],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-50.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-49-R",
+      "title": "Повторная проверка GitHub #49: Play Console: store listing assets",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-49",
+      "read_files": [],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-49.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-48-R",
+      "title": "Повторная проверка GitHub #48: Play Console: App Content forms",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-48",
+      "read_files": [],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-48.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-42-R",
+      "title": "Повторная проверка GitHub #42: 🚀 Google Play Store launch",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "GH-42",
+      "read_files": [],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-42.md"
+      ],
+      "acceptance": [
+        "Прочитать issue body/comments и проверить текущий код/связанные commit/test evidence; заголовка недостаточно.",
+        "Существующую реализацию не считать verified без свежей проверки. Если работа осталась — добавить малые implementation/verification задачи.",
+        "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
+        "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "QA-DRUMS-V",
+      "title": "Расширенная проверка: Drums grid/editor и MIDI note editor",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "DESIGN-01"
+      ],
+      "issue": "QA-DRUMS",
+      "read_files": [
+        "test/midi/drum_practice_panel_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Сначала выделить безопасные конкретные сценарии и тестовые данные; для широкой матрицы добавить отдельную задачу на сценарий/платформу.",
+        "Сохранить фактически выполненные проверки/ограничения. Неподключённое устройство, отсутствие участников или test account = blocked, не passed.",
+        "Каждую новую проблему сразу добавить через activity_plan.py add с evidence и подзадачами; после фикса повторить исходный сценарий."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "QA-SONG-V",
+      "title": "Расширенная проверка: Song arrangement и create/edit/cancel",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "DESIGN-01"
+      ],
+      "issue": "QA-SONG",
+      "read_files": [
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Сначала выделить безопасные конкретные сценарии и тестовые данные; для широкой матрицы добавить отдельную задачу на сценарий/платформу.",
+        "Сохранить фактически выполненные проверки/ограничения. Неподключённое устройство, отсутствие участников или test account = blocked, не passed.",
+        "Каждую новую проблему сразу добавить через activity_plan.py add с evidence и подзадачами; после фикса повторить исходный сценарий."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "QA-EVENT-V",
+      "title": "Расширенная проверка: Event Kit, sharing и роли viewer/member/admin",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "DESIGN-01"
+      ],
+      "issue": "QA-EVENT",
+      "read_files": [
+        "test/providers/event_permissions_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Сначала выделить безопасные конкретные сценарии и тестовые данные; для широкой матрицы добавить отдельную задачу на сценарий/платформу.",
+        "Сохранить фактически выполненные проверки/ограничения. Неподключённое устройство, отсутствие участников или test account = blocked, не passed.",
+        "Каждую новую проблему сразу добавить через activity_plan.py add с evidence и подзадачами; после фикса повторить исходный сценарий."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "QA-STATE-V",
+      "title": "Расширенная проверка: Offline, loading/error/partial, permission denial",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "DESIGN-01"
+      ],
+      "issue": "QA-STATE",
+      "read_files": [
+        "test/widgets/offline_indicator_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Сначала выделить безопасные конкретные сценарии и тестовые данные; для широкой матрицы добавить отдельную задачу на сценарий/платформу.",
+        "Сохранить фактически выполненные проверки/ограничения. Неподключённое устройство, отсутствие участников или test account = blocked, не passed.",
+        "Каждую новую проблему сразу добавить через activity_plan.py add с evidence и подзадачами; после фикса повторить исходный сценарий."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "QA-VISUAL-V",
+      "title": "Расширенная проверка: Mono Pulse: light/dark, large text, TalkBack",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "DESIGN-01"
+      ],
+      "issue": "QA-VISUAL",
+      "read_files": [
+        "lib/theme/mono_pulse_theme.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Сначала выделить безопасные конкретные сценарии и тестовые данные; для широкой матрицы добавить отдельную задачу на сценарий/платформу.",
+        "Сохранить фактически выполненные проверки/ограничения. Неподключённое устройство, отсутствие участников или test account = blocked, не passed.",
+        "Каждую новую проблему сразу добавить через activity_plan.py add с evidence и подзадачами; после фикса повторить исходный сценарий."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "QA-PLATFORM-V",
+      "title": "Расширенная проверка: P30/A24, landscape, web и iOS risk matrix",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "DESIGN-01"
+      ],
+      "issue": "QA-PLATFORM",
+      "read_files": [
+        "docs/plans/launchpad/FINDINGS.md"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Сначала выделить безопасные конкретные сценарии и тестовые данные; для широкой матрицы добавить отдельную задачу на сценарий/платформу.",
+        "Сохранить фактически выполненные проверки/ограничения. Неподключённое устройство, отсутствие участников или test account = blocked, не passed.",
+        "Каждую новую проблему сразу добавить через activity_plan.py add с evidence и подзадачами; после фикса повторить исходный сценарий."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "QA-AUDIO-V",
+      "title": "Расширенная проверка: MIDI/click, loop/speed/count-in, screen off и route changes",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "DESIGN-01"
+      ],
+      "issue": "QA-AUDIO",
+      "read_files": [
+        "docs/plans/launchpad/DEVICE_PASS.md"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Сначала выделить безопасные конкретные сценарии и тестовые данные; для широкой матрицы добавить отдельную задачу на сценарий/платформу.",
+        "Сохранить фактически выполненные проверки/ограничения. Неподключённое устройство, отсутствие участников или test account = blocked, не passed.",
+        "Каждую новую проблему сразу добавить через activity_plan.py add с evidence и подзадачами; после фикса повторить исходный сценарий."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "QA-HUMAN-V",
+      "title": "Расширенная проверка: Human task testing: navigation, context/resume и setlist recovery",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "DESIGN-01"
+      ],
+      "issue": "QA-HUMAN",
+      "read_files": [
+        "docs/plans/systemic-ux/TARGET-UX.md"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Сначала выделить безопасные конкретные сценарии и тестовые данные; для широкой матрицы добавить отдельную задачу на сценарий/платформу.",
+        "Сохранить фактически выполненные проверки/ограничения. Неподключённое устройство, отсутствие участников или test account = blocked, не passed.",
+        "Каждую новую проблему сразу добавить через activity_plan.py add с evidence и подзадачами; после фикса повторить исходный сценарий."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "OPS-LAN",
+      "title": "Подтвердить рабочий Ornith 35b final/tool cycle по LAN",
+      "status": "blocked",
+      "executor": "hermes",
+      "kind": "preflight",
+      "after": [],
+      "issue": null,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Использовать существующий provider studio, endpoint http://desktop-vdsrh2e:8888/v1, точный model ollama/ornith-1.5:35b. Не копировать credentials в план/логи.",
+        "GET /models уже подтверждён. Chat probe вернул finish_reason=length, empty final: НЕ passed.",
+        "Новый простой bounded probe должен вернуть непустой final и exact actual model; затем проверить tool/read-only cycle Pi без записи в приложение. Не повторять тот же failed prompt."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null,
+      "blocker_reason": "Studio lists exact model, but bounded chat returned length / empty final. Need a new simple final + read-only tool-cycle probe."
+    },
+    {
+      "id": "OPS-RUNNER",
+      "title": "Подготовить безопасный запуск существующего Pi клиента",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "preflight",
+      "after": [
+        "OPS-LAN"
+      ],
+      "issue": null,
+      "read_files": [
+        "scripts/plan_run.py"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Не запускать scripts/plan_run.py как есть: там global clean/checkout, git add -A, автоматический cloud fallback и недостаточная семантическая приёмка.",
+        "Одноразовый изолированный worktree, существующий pi клиент, только allowlisted файлы. Ни глобальных credential/model changes, ни нового фреймворка.",
+        "Перед run проверить --help/контекст; задать deadline, один attempt, JSONL log/run ID и чтение фактического final. Hermes проверяет exit, diff и тесты.",
+        "Cloud fallback не автоматический; timeout/empty/auth = failed/blocked. Один failed attempt передаётся Hermes на разбор, не бесконечный retry."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "LEGACY-01",
+      "title": "Сверить незакрытые локальные планы и статусные утверждения",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": null,
+      "read_files": [
+        "docs/plans/audit-r3/PLAN.md",
+        "docs/plans/launchpad/FINDINGS.md",
+        "EVENT_SHARING_BACKLOG.md"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/LEGACY-01.md"
+      ],
+      "acceptance": [
+        "Проверить также ledger/FINAL прежних планов, notes/tuner и unresolved unified-workspace questions. Не принимать old green за сегодняшнюю проверку.",
+        "Добавить все незакрытые работы/непроверенные утверждения в activity.json; дубликаты связать по ID, историю не удалять.",
+        "Сверить 14 GitHub issues и закрытые local E-items: расхождения не закрывать автоматически."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "DESIGN-01",
+      "title": "Утвердить UX-контракты и первый тонкий срез",
+      "status": "queued",
+      "executor": "owner+hermes",
+      "kind": "decision",
+      "after": [
+        "UX-001-R",
+        "UX-002-R",
+        "UX-003-R",
+        "UX-005-R"
+      ],
+      "issue": null,
+      "read_files": [
+        "docs/plans/systemic-ux/TARGET-UX.md"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Проверить low-fi A на задачах; явно записать решения о Practice/Progress, view/Edit и глобальном More.",
+        "Безопасные точечные F006/F007/F009 не должны ждать полного эстетического редизайна.",
+        "Непринятые решения остаются blocked; макет не выдаётся за утверждённую спецификацию."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "FINAL-TEST",
+      "title": "Полная свежая регрессия исправленного кода",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "UX-001-V",
+        "UX-002-V",
+        "UX-003-V",
+        "UX-004-V",
+        "UX-005-V",
+        "UX-006-V",
+        "UX-007-V",
+        "UX-008-V",
+        "UX-009-V",
+        "QA-DRUMS-V",
+        "QA-SONG-V",
+        "QA-EVENT-V",
+        "QA-STATE-V",
+        "QA-VISUAL-V",
+        "QA-PLATFORM-V",
+        "QA-AUDIO-V",
+        "QA-HUMAN-V",
+        "NEW-001-V"
+      ],
+      "issue": null,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "make test-fast; targeted analyze плюс свежий baseline всего analyzer; нужные rules/callable/emulator tests по затронутому scope.",
+        "Сохранить реальные exit codes с pipefail, tested commit и non-skipped обязательные тесты. Не ссылаться на прошлые 2237/2257 результаты как на текущие."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "FINAL-DOCS",
+      "title": "Обновить документацию, Graphify и историю по фактическому коду",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "documentation",
+      "after": [
+        "FINAL-TEST",
+        "LEGACY-01"
+      ],
+      "issue": null,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Обновить актуальные интерфейсные/архитектурные документы, CHANGELOG Unreleased, task→finding→test→commit trace.",
+        "Graphify: инкрементальное обновление затронутых источников, integrity/coverage/query checks; не объявлять pending semantic части обновлёнными.",
+        "Секреты, raw screenshots, invite codes, credentials, worker transcripts с user data не коммитить."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "FINAL-RETEST",
+      "title": "Повторный независимый UX/UI проход после всех исправлений",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "FINAL-DOCS"
+      ],
+      "issue": null,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Повторить исходные findings и изменённые соседние flows; новые проблемы немедленно расширяют этот же scope.",
+        "Не завершать по одному baseline pass. Каждый open issue имеет resolution + fresh evidence + reviewer, каждый task verified.",
+        "Финальный проход выполняется после устранения последней найденной проблемы; новый finding делает результат устаревшим."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "FINAL-OWNER",
+      "title": "Разрешение владельца после нулевого открытого backlog",
+      "status": "queued",
+      "executor": "owner",
+      "kind": "release-decision",
+      "after": [
+        "FINAL-RETEST"
+      ],
+      "issue": null,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Все задачи verified, все проблемы resolved с evidence; GitHub open inventory сверён, issues закрыты владельцем.",
+        "Первый Play release/launch issues создают возможную циклическую зависимость: нужна явная новая политика владельца, не молчаливое исключение.",
+        "Release gate PASS только разрешает отдельное решение о публикации; этот план не поручает deploy/tag/push."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "NEW-001-R",
+      "title": "Graphify: проверить частичное извлечение linux header и границы покрытия — triage",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "NEW-001",
+      "read_files": [
+        "linux/runner/my_application.h",
+        "docs/plans/systemic-ux/graph-update.json"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/NEW-001.md"
+      ],
+      "acceptance": [
+        "Record reproducible source evidence; add bounded fix/test tasks before closure."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "NEW-001-V",
+      "title": "Graphify: проверить частичное извлечение linux header и границы покрытия — verify resolution",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "NEW-001-R"
+      ],
+      "issue": "NEW-001",
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Record reproducible source evidence; add bounded fix/test tasks before closure."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    }
+  ]
+}

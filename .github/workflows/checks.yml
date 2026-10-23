@@ -21,6 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Activity registry and release-hold checks
+        run: |
+          python3 scripts/activity_plan.py check
+          python3 scripts/test_activity_plan.py
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -59,7 +64,18 @@ jobs:
             scripts/preflight-ftp-deploy.sh
 
       - name: Production deploy dry run
-        run: make -n deploy-stable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if python3 scripts/activity_plan.py gate; then
+            make -n deploy-stable
+          else
+            # A valid open backlog should block publication, not break development CI.
+            if make -n deploy-stable > activity-hold.log 2>&1; then
+              echo 'Release hold was bypassed'; exit 1
+            fi
+            grep -F 'RELEASE BLOCKED' activity-hold.log
+          fi
 
   firebase-emulator-checks:
     runs-on: ubuntu-latest

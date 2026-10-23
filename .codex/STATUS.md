@@ -1,5 +1,19 @@
 # STATUS
 
+## Current checkpoint — 2026-10-23
+
+- Active registry: `docs/plans/systemic-ux/activity.json`; 32 open records,
+  59 tasks (34 Ornith-first), including newly found Graphify coverage work. Read current counts.
+- Saved nine UX findings, 14 open GitHub issues and eight uncovered verification areas.
+- Release hold wired into both Makefiles and the Android publishing workflow;
+  development CI validates the hold instead of treating intentional blocking as failure.
+- Studio advertises the exact 35b model, but chat probe returned length/empty-final.
+  OPS-LAN remains blocked; no worker implementation is accepted or running.
+- UX application implementation not started; no Dart/audio/user-data changes.
+- Next: OPS-LAN → safe OPS-RUNNER → repeated source/problem review and small fixes.
+- Historical state below is retained; old green suites and completed checklists are
+  not fresh verification of today's code/device behaviour.
+
 **Last Updated:** 2026-06-05
 
 ## Current State

@@ -2,6 +2,16 @@
 
 This file is the active control plane for `.codex/`.
 
+## Active user-directed work (2026-10-23)
+
+Read `docs/plans/systemic-ux/PLAN.md` and `activity.json` first. The owner explicitly
+authorised bounded Ornith 35b workers on the Studio LAN; this overrides the default
+no-subagent mode for this plan only. Hermes owns decomposition and verification.
+One Studio worker at a time, one production file + at most one test, one attempt.
+New problems immediately extend the same registry. No release/bump/tag/publication
+while any issue, task or required recheck is open. Never run the historical
+`scripts/plan_run.py` unchanged; do not silently switch providers/models.
+
 ## Mode
 
 Default mode is `strict sequential self-guided`.

@@ -1,5 +1,29 @@
 # HANDOFF
 
+## Current handoff — 2026-10-23
+
+Read `docs/plans/systemic-ux/PLAN.md`, `activity.json`, `HISTORY.md`, then BASELINE.md
+and TARGET-UX.md. The task is whole-app systematic UX/UI remediation, documentation,
+Graphify and verified history, not a new visual brand or immediate product rewrite.
+
+No release while any open task/finding/check remains. GitHub issues (14 at snapshot)
+were imported for re-verification, not auto-closed. First-release/Play-launch issues
+can conflict with this literal hold; only the owner may resolve that policy conflict.
+
+Next bounded milestone: OPS-LAN. Existing Pi provider studio points at the Studio
+LAN, model `ollama/ornith-1.5:35b`; model listing works, chat probe produced no final.
+Do not claim a working agent from that. No global auth/provider reconfiguration.
+Then OPS-RUNNER: do not run old plan_run.py's global clean/checkout/add-A/fallback.
+One isolated worker/allowlist/deadline, Hermes tests and accepts each change.
+
+Commands: `uv run --isolated --no-project python scripts/activity_plan.py check`,
+`uv run --isolated --no-project python scripts/test_activity_plan.py`,
+`make activity-status`. Publication gate must stay BLOCKED for the open registry.
+Private device captures stay in ignored audit/; pre-existing untracked research in
+docs/plans/unified-workspace/ is not part of the planning commit. No push/tag/deploy.
+
+Earlier handoff retained below as history; do not treat its task queue as current.
+
 **Last Updated:** 2026-08-22
 **Branch:** `second01` (the working branch — releases only from here)
 

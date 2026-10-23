@@ -6,6 +6,12 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 
 ## Stable Project Facts
 
+- Active whole-app UX/UI work is tracked in docs/plans/systemic-ux/activity.json;
+  PLAN.md defines the execution contract. New findings extend the same release hold.
+- No release with open tasks/problems/rechecks. Ornith 35b on Studio LAN drafts
+  bounded changes; Hermes verifies, updates history and commits scoped changes.
+  Worker final text, old ledgers and old test totals are not fresh acceptance.
+
 - The repo contains a Flutter app, Hugo site, Telegram bot, Firebase Functions, and imported AI workspace context.
 - `.codex/` is the normalized active reference tree.
 - `memory/` remains the protected root memory bank.

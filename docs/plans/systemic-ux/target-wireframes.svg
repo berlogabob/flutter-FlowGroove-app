@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1520" height="920" viewBox="0 0 1520 920"><rect width="100%" height="100%" fill="#090909"/>
+<text x="22" y="46" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="30">FlowGroove / target UX / alternative A</text>
+<text x="22" y="75" fill="#aaaaaa" font-family="Arial,sans-serif" font-size="18">Concept only. Illustrative demo data. Not implemented or user-tested. Keep Mono Pulse.</text>
+<rect x="20" y="105" width="350" height="725" rx="20" fill="#101010" stroke="#454545"/>
+<text x="38" y="148" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="25">Home</text>
+<text x="38" y="178" fill="#aaaaaa" font-family="Arial,sans-serif" font-size="17">One primary next step</text>
+<rect x="395" y="105" width="350" height="725" rx="20" fill="#101010" stroke="#454545"/>
+<text x="413" y="148" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="25">Song overview</text>
+<text x="413" y="178" fill="#aaaaaa" font-family="Arial,sans-serif" font-size="17">Open is not Edit</text>
+<rect x="770" y="105" width="350" height="725" rx="20" fill="#101010" stroke="#454545"/>
+<text x="788" y="148" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="25">Practice</text>
+<text x="788" y="178" fill="#aaaaaa" font-family="Arial,sans-serif" font-size="17">Stable context and source</text>
+<rect x="1145" y="105" width="350" height="725" rx="20" fill="#101010" stroke="#454545"/>
+<text x="1163" y="148" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="25">Setlist view</text>
+<text x="1163" y="178" fill="#aaaaaa" font-family="Arial,sans-serif" font-size="17">Availability before playback</text>
+<rect x="36" y="212" width="318" height="223" rx="12" fill="#181818" stroke="#343434"/>
+<text x="50" y="250" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="21">Continue practice</text>
+<text x="50" y="292" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="22">Demo song</text>
+<text x="50" y="326" fill="#bbbbbb" font-family="Arial,sans-serif" font-size="18">MIDI source / Drums</text>
+<text x="50" y="357" fill="#bbbbbb" font-family="Arial,sans-serif" font-size="18">Verse / 120 BPM / Loop</text>
+<rect x="50" y="378" width="290" height="44" rx="10" fill="#ff6b00" stroke="#ff6b00"/>
+<text x="64" y="407" fill="#090909" font-family="Arial,sans-serif" font-size="18">Review and continue</text>
+<text x="40" y="487" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="20">Recent material</text>
+<rect x="36" y="506" width="318" height="70" rx="12" fill="#181818" stroke="#343434"/>
+<text x="50" y="545" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="18">Demo song / Personal</text>
+<text x="40" y="636" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="20">Progress</text>
+<text x="40" y="670" fill="#aaaaaa" font-family="Arial,sans-serif" font-size="16">History and tasks, not transport</text>
+<rect x="28" y="770" width="334" height="51" rx="0" fill="#101010" stroke="#333333"/>
+<text x="36" y="801" fill="#ff6b00" font-family="Arial,sans-serif" font-size="14">Home</text>
+<text x="101" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">Songs</text>
+<text x="166" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">Bands</text>
+<text x="231" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">Setlists</text>
+<text x="296" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">More</text>
+<text x="415" y="242" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="25">Demo song</text>
+<text x="415" y="272" fill="#aaaaaa" font-family="Arial,sans-serif" font-size="17">Personal / 120 BPM / key</text>
+<rect x="415" y="305" width="310" height="44" rx="10" fill="#ff6b00" stroke="#ff6b00"/>
+<text x="429" y="334" fill="#090909" font-family="Arial,sans-serif" font-size="18">Practice</text>
+<rect x="415" y="377" width="310" height="44" rx="10" fill="#202020" stroke="#454545"/>
+<text x="429" y="406" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="18">Sheet / structure</text>
+<rect x="415" y="439" width="310" height="44" rx="10" fill="#202020" stroke="#454545"/>
+<text x="429" y="468" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="18">Materials / MIDI / audio</text>
+<rect x="415" y="501" width="310" height="44" rx="10" fill="#202020" stroke="#454545"/>
+<text x="429" y="530" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="18">Tasks / notes</text>
+<rect x="415" y="624" width="310" height="44" rx="10" fill="#202020" stroke="#454545"/>
+<text x="429" y="653" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="18">Edit song details</text>
+<text x="415" y="707" fill="#aaaaaa" font-family="Arial,sans-serif" font-size="16">Editing is an explicit action.</text>
+<rect x="403" y="770" width="334" height="51" rx="0" fill="#101010" stroke="#333333"/>
+<text x="411" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">Home</text>
+<text x="476" y="801" fill="#ff6b00" font-family="Arial,sans-serif" font-size="14">Songs</text>
+<text x="541" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">Bands</text>
+<text x="606" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">Setlists</text>
+<text x="671" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">More</text>
+<rect x="786" y="208" width="318" height="87" rx="12" fill="#181818" stroke="#343434"/>
+<text x="800" y="240" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="20">Demo song / Personal</text>
+<text x="800" y="274" fill="#bbbbbb" font-family="Arial,sans-serif" font-size="18">Drums / Verse</text>
+<rect x="786" y="311" width="318" height="44" rx="10" fill="#202020" stroke="#454545"/>
+<text x="800" y="340" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="18">Source: MIDI file  &gt;</text>
+<rect x="786" y="374" width="318" height="58" rx="12" fill="#181818" stroke="#343434"/>
+<text x="800" y="408" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="18">120 BPM   - / +      Loop: on</text>
+<rect x="786" y="453" width="318" height="130" rx="12" fill="#181818" stroke="#343434"/>
+<text x="800" y="487" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="18">Material / selected passage</text>
+<line x1="801" y1="510" x2="1082" y2="510" stroke="#555555"/>
+<line x1="801" y1="529" x2="1082" y2="529" stroke="#555555"/>
+<line x1="801" y1="548" x2="1082" y2="548" stroke="#555555"/>
+<rect x="786" y="609" width="318" height="44" rx="10" fill="#ff6b00" stroke="#ff6b00"/>
+<text x="800" y="638" fill="#090909" font-family="Arial,sans-serif" font-size="18">Play</text>
+<text x="790" y="698" fill="#bbbbbb" font-family="Arial,sans-serif" font-size="18">Notes    Tasks    Record</text>
+<text x="790" y="800" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="17">&lt; Back       Practice       ...</text>
+<text x="1165" y="238" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="24">Demo setlist</text>
+<rect x="1161" y="260" width="318" height="86" rx="12" fill="#20170f" stroke="#ff6b00"/>
+<text x="1175" y="294" fill="#f2f2f2" font-family="Arial,sans-serif" font-size="20">2 of 6 songs available</text>
+<text x="1175" y="326" fill="#ff9a55" font-family="Arial,sans-serif" font-size="16">Review unavailable items  &gt;</text>
+<rect x="1161" y="367" width="318" height="37" rx="4" fill="#181818" stroke="#303030"/>
+<text x="1174" y="392" fill="#dddddd" font-family="Arial,sans-serif" font-size="17">1  Demo song A</text>
+<rect x="1161" y="410" width="318" height="37" rx="4" fill="#181818" stroke="#303030"/>
+<text x="1174" y="435" fill="#dddddd" font-family="Arial,sans-serif" font-size="17">2  Demo song B</text>
+<rect x="1161" y="453" width="318" height="37" rx="4" fill="#181818" stroke="#303030"/>
+<text x="1174" y="478" fill="#a7a7a7" font-family="Arial,sans-serif" font-size="17">3  Unavailable</text>
+<rect x="1161" y="496" width="318" height="37" rx="4" fill="#181818" stroke="#303030"/>
+<text x="1174" y="521" fill="#a7a7a7" font-family="Arial,sans-serif" font-size="17">4  Unavailable</text>
+<rect x="1161" y="539" width="318" height="37" rx="4" fill="#181818" stroke="#303030"/>
+<text x="1174" y="564" fill="#a7a7a7" font-family="Arial,sans-serif" font-size="17">5  Unavailable</text>
+<rect x="1161" y="582" width="318" height="37" rx="4" fill="#181818" stroke="#303030"/>
+<text x="1174" y="607" fill="#a7a7a7" font-family="Arial,sans-serif" font-size="17">6  Unavailable</text>
+<rect x="1161" y="651" width="318" height="44" rx="10" fill="#ff6b00" stroke="#ff6b00"/>
+<text x="1175" y="680" fill="#090909" font-family="Arial,sans-serif" font-size="18">Play available songs</text>
+<text x="1165" y="729" fill="#aaaaaa" font-family="Arial,sans-serif" font-size="16">Edit / export: explicit actions</text>
+<rect x="1153" y="770" width="334" height="51" rx="0" fill="#101010" stroke="#333333"/>
+<text x="1161" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">Home</text>
+<text x="1226" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">Songs</text>
+<text x="1291" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">Bands</text>
+<text x="1356" y="801" fill="#ff6b00" font-family="Arial,sans-serif" font-size="14">Setlists</text>
+<text x="1421" y="801" fill="#999999" font-family="Arial,sans-serif" font-size="14">More</text>
+<text x="22" y="883" fill="#aaaaaa" font-family="Arial,sans-serif" font-size="18">Rules: stable global More; separate object actions; preserve source and scope; never auto-start audio on resume.</text>
+</svg>

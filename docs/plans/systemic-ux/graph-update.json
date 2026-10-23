@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-10-24T00:04:16.664390+01:00",
+  "scope": "Current code extraction plus deterministic activity registry relationships; not full semantic re-extraction of every document",
+  "nodes": 13118,
+  "raw_links": 20105,
+  "activity_relationships": 293,
+  "activity_dependencies": 108,
+  "dangling_endpoints": 0,
+  "query_checked": "UX-006, seeded by sux:issue:UX-006",
+  "llm_tokens_for_registry_extraction": 0,
+  "warnings": [
+    "linux/runner/my_application.h yielded no symbols after syntax error at line 18",
+    "34 code files yielded no symbols; extractor coverage is not complete",
+    "Community labels are hub-derived; LLM label refresh intentionally not run",
+    "Other changed docs/papers/images still require semantic update; no manifest stamped as full coverage",
+    "Graph is >5000 nodes; HTML intentionally not generated (--no-viz)"
+  ],
+  "private_output": "graphify-out/ (gitignored)",
+  "issue_nodes_verified": 32,
+  "task_nodes_verified": 59
+}

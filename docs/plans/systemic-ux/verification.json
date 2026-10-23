@@ -1,0 +1,54 @@
+{
+  "checked_at": "2026-10-24T00:05:20.967060+01:00",
+  "baseline_commit": "e01797d8c95af4778e93466c6e68d6ac9f6b5e72",
+  "scope": "Planning/registry/publication-gate checks only. Not a Flutter application or human usability test.",
+  "checks": [
+    {
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "python",
+        "scripts/activity_plan.py",
+        "check"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"issues\": 32, \"tasks\": 59, \"issue_status\": {\"open\": 32}, \"task_status\": {\"queued\": 58, \"blocked\": 1}}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--no-project",
+        "python",
+        "scripts/test_activity_plan.py"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "..ACTIVITY CHECK FAILED: RELEASE BLOCKED: GitHub issues still open: [42]\n...........\n----------------------------------------------------------------------\nRan 13 tests in 0.612s\n\nOK\n"
+    },
+    {
+      "command": [
+        "make",
+        "-n",
+        "release"
+      ],
+      "exit_code": 2,
+      "stdout": "",
+      "stderr": "scripts/activity-release.mk:6: *** RELEASE BLOCKED by docs/plans/systemic-ux/activity.json; run 'make activity-status'.  Stop.\n"
+    }
+  ],
+  "test_cases": 13,
+  "activity_issues": 32,
+  "activity_tasks": 59,
+  "ornith_tasks": 34,
+  "new_problem_registered": "NEW-001",
+  "publication_state": "BLOCKED",
+  "application_dart_audio_data_changed": false,
+  "graph_evidence": "graph-update.json",
+  "staged_secret_pattern_flags": [],
+  "staged_private_paths": []
+}
