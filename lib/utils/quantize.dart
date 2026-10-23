@@ -14,12 +14,11 @@ enum Quantize {
     Quantize.block => 'Block',
   };
 
-  /// Order the transport button cycles through.
+  /// Order the transport button cycles through. Beat and now are not offered:
+  /// backing commands start on whole bars, so they would behave like bar.
   Quantize get next => switch (this) {
-    Quantize.beat => Quantize.bar,
     Quantize.bar => Quantize.block,
-    Quantize.block => Quantize.beat,
-    Quantize.now => Quantize.beat,
+    _ => Quantize.bar,
   };
 }
 

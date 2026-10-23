@@ -276,11 +276,8 @@ void main() {
     expect(find.text('Block'), findsOneWidget);
     await tester.tap(find.text('Block'));
     await tester.pump();
-    expect(transport.state.quantize, Quantize.beat);
-    expect(find.text('Beat'), findsOneWidget);
-    await tester.tap(find.text('Beat'));
-    await tester.pump();
     expect(transport.state.quantize, Quantize.bar);
+    expect(find.text('Beat'), findsNothing);
   });
 
   testWidgets('one Play/Stop button: Stop while playing, same column as Play', (
