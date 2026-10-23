@@ -1,0 +1,136 @@
+{
+ "branch": "feat/console",
+ "tasks": [
+  {
+   "id": "C01",
+   "executor": "pi",
+   "finding": "CONSOLE",
+   "title": "MidiTrackMeta.programOverride",
+   "files": [
+    "lib/models/midi_song.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. In class MidiTrackMeta add optional field `final int? programOverride;` (ctor named param, default null). fromJson reads json['programOverride'] as num? -> int, clamped 0..127, null when absent. toJson emits 'programOverride' only when non-null. copyWith gets `Object? programOverride = _unchanged` using the same identical(...) pattern as roleOverride. Add getter `int get effectiveProgram => programOverride ?? program;`.",
+   "verify": "dart analyze lib/models/midi_song.dart",
+   "after": [],
+   "status": "pending",
+   "timeout": 300,
+   "suite": false,
+   "must_contain": [
+    "programOverride",
+    "effectiveProgram"
+   ]
+  },
+  {
+   "id": "C02",
+   "executor": "pi",
+   "finding": "CONSOLE",
+   "title": "programOverride test",
+   "files": [
+    "test/models/midi_track_meta_test.dart",
+    "lib/models/midi_song.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/models/midi_track_meta_test.dart (package:flutter_test): toJson/fromJson round trip keeps programOverride 19; fromJson of a map without the key gives null and omits the key in toJson; effectiveProgram is override when set else program; copyWith(programOverride: null) clears it; fromJson clamps 200 to 127.",
+   "verify": "flutter test test/models/midi_track_meta_test.dart",
+   "after": [
+    "C01"
+   ],
+   "status": "pending",
+   "timeout": 300,
+   "suite": false
+  },
+  {
+   "id": "C03",
+   "executor": "codex",
+   "finding": "CONSOLE",
+   "title": "meta builder keeps programOverride",
+   "files": [
+    "lib/services/audio/midi/midi_song_meta_builder.dart",
+    "test/services/audio/midi/meta_builder_program_override_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. In buildMidiSongMeta carry `programOverride: saved?.programOverride` into the rebuilt MidiTrackMeta (same place roleOverride is carried). Add test file test/services/audio/midi/meta_builder_program_override_test.dart: build a MidiSongData with one pitched track, call buildMidiSongMeta, then again with previous: the first result with tracks[0].copyWith(programOverride: 19); assert the second result keeps 19.",
+   "verify": "flutter test test/services/audio/midi/meta_builder_program_override_test.dart",
+   "after": [
+    "C01"
+   ],
+   "status": "pending",
+   "timeout": 300,
+   "suite": false
+  },
+  {
+   "id": "C04",
+   "executor": "codex",
+   "finding": "CONSOLE",
+   "title": "voice timbres by GM program",
+   "files": [
+    "lib/services/audio/midi/voice_synth.dart",
+    "test/services/audio/midi/voice_synth_program_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Add optional named param `int? program` to addVoice (default null). When null or outside the ranges below, output must stay bit-identical to today. Ranges (GM zero-based): 16..23 organ = harmonics 1..6 equal-ish weights 1/n with NO decay and 0.01 s attack; 56..63 brass = harmonics 1..8 weights 1/n with 0.04 s attack; 88..95 pad = existing bowed timbre but 0.15 s attack; 8..15 mallet/bell = partials 1 and 2.76 with exp(-t*6) decay. Only apply when role is not drums. Add test file test/services/audio/midi/voice_synth_program_test.dart: same pitch/velocity/role keys, program 19 vs program null render different buffers; program null equals program 0 render (bit-identical); all outputs finite and non-silent.",
+   "verify": "flutter test test/services/audio/midi/voice_synth_program_test.dart",
+   "after": [
+    "C01"
+   ],
+   "status": "pending",
+   "timeout": 600,
+   "suite": false,
+   "must_contain": [
+    "int? program"
+   ]
+  },
+  {
+   "id": "C05",
+   "executor": "codex",
+   "finding": "CONSOLE",
+   "title": "renderer and stems pass program",
+   "files": [
+    "lib/services/audio/midi/midi_track_renderer.dart",
+    "lib/services/audio/midi/backing_stem_builder.dart",
+    "test/services/audio/midi/render_program_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. renderMidiTrack gets optional `int? program` and forwards it to addVoice. In backing_stem_builder the per-note render call passes `program: setting.effectiveProgram` (setting is the MidiTrackMeta). Add test/services/audio/midi/render_program_test.dart: renderMidiTrack of one note with role keys, program 19 vs 0 gives different PCM; buildBackingStems for a song whose only track has programOverride 19 differs from the same song with no override.",
+   "verify": "flutter test test/services/audio/midi/render_program_test.dart",
+   "after": [
+    "C04",
+    "C03"
+   ],
+   "status": "pending",
+   "timeout": 900,
+   "suite": false
+  },
+  {
+   "id": "C06",
+   "executor": "codex",
+   "finding": "CONSOLE",
+   "title": "one stem per track option",
+   "files": [
+    "lib/services/audio/midi/backing_stem_builder.dart",
+    "test/services/audio/midi/per_track_stems_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Add optional named param `bool perTrack = false` to buildBackingStems. Default behaviour (4 role groups, muted tracks skipped) must not change. When perTrack is true: each non-empty track gets its own stem named by its MidiTrackMeta.name (if two names collide append ' 2', ' 3'); muted tracks are NOT skipped (mute is applied live later) and the per-track volume is still applied. Add test/services/audio/midi/per_track_stems_test.dart: 3 tracks (drums ch 9, bass, keys) -> perTrack gives 3 stems with distinct names, default gives groups named Drums/Bass/Harmony; a track with mute=true is present in perTrack and absent in default.",
+   "verify": "flutter test test/services/audio/midi/per_track_stems_test.dart",
+   "after": [
+    "C05"
+   ],
+   "status": "pending",
+   "timeout": 900,
+   "suite": false
+  },
+  {
+   "id": "C07",
+   "executor": "codex",
+   "finding": "CONSOLE",
+   "title": "transport uses per-track stems + initial mutes",
+   "files": [
+    "lib/providers/data/backing_transport_provider.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. In the MIDI-song load path (the buildBackingStems call) pass perTrack: true. After the engine load and before _applyGains, seed the muted set from the entry's meta: for each name/index in stems that corresponds to a MidiTrackMeta with mute == true add its stem name to _muted (stems are in meta.tracks order filtered to tracks that have notes; match by name). Do not touch the drum-pattern load path. Keep existing tests passing.",
+   "verify": "flutter test test/providers",
+   "after": [
+    "C06"
+   ],
+   "status": "pending",
+   "timeout": 1200,
+   "suite": true
+  }
+ ]
+}
