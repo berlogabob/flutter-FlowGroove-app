@@ -214,7 +214,10 @@ void main() {
       expect(current().tracks.map((track) => track.index), [1, 2]);
       expect(current().tracks.first.effectiveRole, MidiRole.bass);
       expect(current().tracks.first.volume, 0.4);
-      expect(engine.loads.single.names, ['Bass', 'Harmony']);
+      expect(engine.loads.single.names, [
+        'Acoustic Grand Piano · ch 1',
+        'Acoustic Grand Piano · ch 2',
+      ]);
       expect(engine.gains, {0: 1, 1: 1});
       expect(engine.commands, isEmpty);
       expect(current().loading, isFalse);
@@ -234,7 +237,8 @@ void main() {
       ..setVolume(0, 0.4)
       ..setMute(1, mute: true);
     await _until(() => engine.loads.length == 3 && !current().loading);
-    expect(engine.loads.last.names, ['Bass']);
+    // Per-track stems keep muted tracks; mute is applied live by the mixer.
+    expect(engine.loads.last.names, hasLength(2));
     expect(engine.loads.last.stems.first, orderedEquals(original));
     notifier
       ..setMute(1, mute: false)
@@ -250,7 +254,7 @@ void main() {
   });
 
   test(
-    'tracks sharing a backing stem retain independent mute and solo',
+    'tracks with the same name keep independent mute and solo',
     () async {
       final bass = entry.midiSong!.tracks.single;
       entry = entry.copyWith(
@@ -259,16 +263,16 @@ void main() {
         ),
       );
       await useBacking();
-      expect(engine.loads.single.names, ['Bass']);
+      expect(engine.loads.single.names, hasLength(2));
       notifier.setMute(1, mute: true);
       await _until(() => engine.loads.length == 2 && !current().loading);
-      final firstOnly = engine.loads.last.stems.single.toList();
+      final firstOnly = engine.loads.last.stems.first.toList();
       expect(firstOnly.any((sample) => sample != 0), isTrue);
       notifier
         ..setMute(1, mute: false)
         ..toggleSolo(0);
       await _until(() => engine.loads.length == 3 && !current().loading);
-      expect(engine.loads.last.stems.single, orderedEquals(firstOnly));
+      expect(engine.loads.last.stems.first, orderedEquals(firstOnly));
       expect(current().tracks[1].mute, isFalse);
       expect(current().tracks[1].volume, 0.8);
     },

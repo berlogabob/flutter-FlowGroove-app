@@ -277,6 +277,7 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       sampleRate: sampleRate,
       ticksPerBar: ticks,
       intervalMicros: interval.toDouble(),
+      perTrack: true,
     );
     if (!ref.mounted || generation != _generation) return;
     await _serialize(() async {
@@ -294,6 +295,17 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     });
     if (!ref.mounted || generation != _generation) return;
     _names = stems.keys.toList();
+    // Per-track stems keep muted tracks; mute is applied live from the saved flags.
+    // Seed once per song: later reloads (tempo) keep the live mute state.
+    if (_seededEntryId != entry.id) {
+      _seededEntryId = entry.id;
+      _muted
+        ..clear()
+        ..addAll([
+          for (final track in entry.midiSong!.tracks)
+            if (track.mute && _names.contains(track.name)) track.name,
+        ]);
+    }
     _applyGains();
     state = state.copyWith(rendering: false);
     final resume = _resumeId;
@@ -486,6 +498,8 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
   void setMode(PlayMode mode) => state = state.copyWith(mode: mode);
   void setQuantize(Quantize quantize) =>
       state = state.copyWith(quantize: quantize);
+
+  String? _seededEntryId;
 
   void muteStem(String role, {bool mute = true}) {
     mute ? _muted.add(role) : _muted.remove(role);
