@@ -137,7 +137,7 @@ class MidiTrackMeta {
     roleOverride: json['roleOverride'] == null
         ? null
         : MidiRole.parse(json['roleOverride'] as String?),
-    programOverride: (json['programOverride'] as num?)?.clamp(0, 127),
+    programOverride: (json['programOverride'] as num?)?.clamp(0, 127).toInt(),
     mute: json['mute'] as bool? ?? false,
     volume: (json['volume'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 1.0,
     noteCount: (json['noteCount'] as num?)?.toInt() ?? 0,
@@ -169,7 +169,7 @@ class MidiTrackMeta {
     int? program,
     MidiRole? detectedRole,
     Object? roleOverride = _unchanged,
-    int? programOverride,
+    Object? programOverride = _unchanged,
     bool? mute,
     double? volume,
     int? noteCount,
@@ -184,7 +184,9 @@ class MidiTrackMeta {
     roleOverride: identical(roleOverride, _unchanged)
         ? this.roleOverride
         : roleOverride as MidiRole?,
-    programOverride: programOverride ?? this.programOverride,
+    programOverride: identical(programOverride, _unchanged)
+        ? this.programOverride
+        : programOverride as int?,
     mute: mute ?? this.mute,
     volume: volume ?? this.volume,
     noteCount: noteCount ?? this.noteCount,
