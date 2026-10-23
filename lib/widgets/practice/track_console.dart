@@ -36,6 +36,7 @@ class TrackConsole extends ConsumerStatefulWidget {
     required this.tracks,
     required this.onChanged,
     required this.onProgramChanged,
+    required this.onEdit,
     super.key,
   });
 
@@ -47,6 +48,8 @@ class TrackConsole extends ConsumerStatefulWidget {
 
   /// Instrument changes: persist and re-render.
   final void Function(List<MidiTrackMeta> tracks) onProgramChanged;
+
+  final void Function(MidiTrackMeta track) onEdit;
 
   @override
   ConsumerState<TrackConsole> createState() => _TrackConsoleState();
@@ -69,7 +72,25 @@ class _TrackConsoleState extends ConsumerState<TrackConsole> {
   @override
   void didUpdateWidget(TrackConsole oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.tracks != widget.tracks) _tracks = widget.tracks;
+    if (oldWidget.tracks.length != widget.tracks.length) {
+      _tracks = widget.tracks;
+      return;
+    }
+    for (var i = 0; i < widget.tracks.length; i++) {
+      final old = oldWidget.tracks[i];
+      final track = widget.tracks[i];
+      if (old.index != track.index ||
+          old.channel != track.channel ||
+          old.name != track.name ||
+          old.mute != track.mute ||
+          old.volume != track.volume ||
+          old.programOverride != track.programOverride ||
+          old.roleOverride != track.roleOverride ||
+          old.editedNotes?.length != track.editedNotes?.length) {
+        _tracks = widget.tracks;
+        break;
+      }
+    }
   }
 
   Future<void> _loadProfile() async {
@@ -177,6 +198,7 @@ class _TrackConsoleState extends ConsumerState<TrackConsole> {
               );
             },
             onVolumeDone: () => widget.onChanged(_tracks),
+            onEdit: () => widget.onEdit(_tracks[i]),
             onProgram: (program) => _update(
               i,
               _tracks[i].copyWith(programOverride: program),
@@ -205,6 +227,7 @@ class _Strip extends StatelessWidget {
     required this.onVolume,
     required this.onVolumeDone,
     required this.onProgram,
+    required this.onEdit,
     super.key,
   });
 
@@ -217,6 +240,7 @@ class _Strip extends StatelessWidget {
   final ValueChanged<double> onVolume;
   final VoidCallback onVolumeDone;
   final ValueChanged<int?> onProgram;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -298,11 +322,23 @@ class _Strip extends StatelessWidget {
                   onPressed: onSolo,
                   icon: const Text('S'),
                 ),
-                FilterChip(
-                  label: const Text('I play'),
-                  tooltip: 'Leave ${track.name} to me',
-                  selected: minusOne,
-                  onSelected: onMinusOne,
+                Flexible(
+                  flex: 2,
+                  child: FilterChip(
+                    label: const Text(
+                      'I play',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    tooltip: 'Leave ${track.name} to me',
+                    selected: minusOne,
+                    onSelected: onMinusOne,
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Edit notes of ${track.name}',
+                  icon: const Icon(Icons.edit_note),
+                  onPressed: onEdit,
                 ),
                 Expanded(
                   child: Slider(

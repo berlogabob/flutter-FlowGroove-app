@@ -16,11 +16,13 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/data/midi_song_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/audio/midi/midi_song_meta_builder.dart';
+import '../../services/audio/midi/note_edit.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/quantize.dart';
-import 'track_console.dart';
+import 'note_editor_sheet.dart';
 import 'section_card.dart';
 import 'section_pad.dart';
+import 'track_console.dart';
 
 /// A bounded practice surface: only the content scrolls, never the transport.
 class LaunchpadView extends ConsumerStatefulWidget {
@@ -43,6 +45,7 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
   Object? _error;
   String? _attachedKey;
   Timer? _saveDebounce;
+  SongLabEntry? _working;
   final _console = GlobalKey<State<TrackConsole>>();
 
   // Only what changes the rendered audio; mute/volume edits must not re-render.
@@ -68,7 +71,8 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
   }
 
   SongLabEntry _withTracks(List<MidiTrackMeta> visible, {SongLabEntry? base}) {
-    final entry = base ?? widget.entry;
+    final entry =
+        base ?? (_working?.id == widget.entry.id ? _working! : widget.entry);
     final all = [...entry.midiSong!.tracks];
     for (final t in visible) {
       final i = all.indexWhere(
@@ -94,6 +98,7 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
   }
 
   Future<void> _reRender(SongLabEntry updated) async {
+    _working = updated;
     _attachedKey = _renderKey(updated);
     _persist(updated);
     final transport = ref.read(backingTransportProvider.notifier);
@@ -119,6 +124,9 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
   @override
   void didUpdateWidget(LaunchpadView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (_renderKey(oldWidget.entry) != _renderKey(widget.entry)) {
+      _working = null;
+    }
     if (_renderKey(oldWidget.entry) != _renderKey(widget.entry) &&
             _renderKey(widget.entry) != _attachedKey ||
         !identical(oldWidget.sections, widget.sections)) {
@@ -257,6 +265,48 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                     onChanged: (tracks) => _persist(_withTracks(tracks)),
                     onProgramChanged: (tracks) =>
                         unawaited(_reRender(_withTracks(tracks))),
+                    onEdit: (track) {
+                      final song = ref
+                          .read(midiSongProvider(widget.entry))
+                          .value;
+                      if (song == null) return;
+                      final fileTrack = song.tracks
+                          .where(
+                            (t) =>
+                                t.index == track.index &&
+                                t.channel == track.channel,
+                          )
+                          .firstOrNull;
+                      showModalBottomSheet<void>(
+                        context: context,
+                        isScrollControlled: true,
+                        showDragHandle: true,
+                        builder: (_) => NoteEditorSheet(
+                          track: track,
+                          notes: track.editedNotes != null
+                              ? notesFromFlat(track.editedNotes!)
+                              : fileTrack?.notes ?? [],
+                          ppq: song.ppq,
+                          beatsPerBar: ref
+                              .read(metronomeProvider)
+                              .timeSignature
+                              .numerator,
+                          sections: [
+                            for (final span in state.spans)
+                              (
+                                name: sections[span.sectionId]?.name ?? 'Song',
+                                startBar: span.startBar,
+                                bars: span.bars,
+                              ),
+                          ],
+                          onApply: (flat) => unawaited(
+                            _reRender(
+                              _withTracks([track.copyWith(editedNotes: flat)]),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 if (current != null)
                   SectionCard(section: current, queued: state.queuedId != null),

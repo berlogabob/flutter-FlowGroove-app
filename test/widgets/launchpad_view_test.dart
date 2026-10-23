@@ -14,6 +14,7 @@ import 'package:flowgroove/utils/play_mode.dart';
 import 'package:flowgroove/utils/quantize.dart';
 import 'package:flowgroove/widgets/chord_chart_view.dart';
 import 'package:flowgroove/widgets/practice/launchpad_view.dart';
+import 'package:flowgroove/widgets/practice/note_editor_sheet.dart';
 import 'package:flowgroove/widgets/practice/section_card.dart';
 import 'package:flowgroove/widgets/practice/section_pad.dart';
 import 'package:flowgroove/widgets/practice/track_console.dart';
@@ -324,6 +325,19 @@ void main() {
     expect(transport.mutes.last, ('Bass', false));
     expect(find.byTooltip('Mute Drums'), findsOneWidget);
     expect(find.text('Drum kit'), findsOneWidget);
+  });
+
+  testWidgets('Bass strip opens the note editor', (tester) async {
+    final transport = _Transport(_state(2));
+    await _pump(tester, transport);
+    final edit = find.byTooltip('Edit notes of Bass');
+    expect(edit, findsOneWidget);
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    await tester.pump();
+    await tester.ensureVisible(edit);
+    await tester.tap(edit);
+    await tester.pumpAndSettle();
+    expect(find.byType(NoteEditorSheet), findsOneWidget);
   });
 
   testWidgets('honest MIDI length, coverage and rendering warning', (
