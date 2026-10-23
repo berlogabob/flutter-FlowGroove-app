@@ -259,7 +259,9 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       songBar: 0,
     );
     if (entry.midiSong?.useFileTempo == true) {
-      ref.read(metronomeProvider.notifier).setBpm(entry.midiSong!.initialBpm.round());
+      ref
+          .read(metronomeProvider.notifier)
+          .setBpm(entry.midiSong!.initialBpm.round());
     }
     await _render(_beginRender());
   }
@@ -482,7 +484,13 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       case BackingStateKind.stopped:
         if (_playing?.token == event.token ||
             pending.command.kind == BackingKind.stop) {
+          // A mode switch queues its continuation behind the running pass; the
+          // pass ending is a hand-over, not the end of playback.
+          final superseded =
+              pending.command.kind != BackingKind.stop &&
+              _commands.keys.any((token) => token > event.token);
           _commands.removeWhere((token, _) => token <= event.token);
+          if (superseded) return;
           final endedOnItsOwn =
               pending.command.kind != BackingKind.stop && !pending.command.loop;
           _playing = null;
@@ -515,7 +523,59 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     await _engine.command(command);
   }
 
-  void setMode(PlayMode mode) => state = state.copyWith(mode: mode);
+  void setMode(PlayMode mode) {
+    final changed = state.mode != mode;
+    state = state.copyWith(mode: mode);
+    if (changed) _retarget();
+  }
+
+  /// Re-aims the running pad at the new mode from the next bar on. The
+  /// continuation starts at the exact song position, so audio stays seamless;
+  /// Loop plays out the rest of the section, then loops it.
+  void _retarget() {
+    final playing = _playing;
+    if (state.rendering ||
+        playing == null ||
+        !ref.read(metronomeProvider).isPlaying) {
+      return;
+    }
+    final at = _nextBar(Quantize.bar);
+    final elapsed = at - playing.atBar;
+    if (elapsed < 0 || (!playing.loop && elapsed >= playing.bars)) return;
+    final pos =
+        playing.fromBar + (playing.loop ? elapsed % playing.bars : elapsed);
+    final span = _spanAt(pos);
+    if (span == null) return;
+    final id = span.sectionId;
+    final sectionEnd = span.startBar + span.bars;
+    switch (state.mode) {
+      case PlayMode.once:
+        unawaited(_issue(id, pos, sectionEnd - pos, false, at));
+      case PlayMode.song:
+        unawaited(
+          _issue(id, pos, math.max(sectionEnd, _songBars) - pos, false, at),
+        );
+      case PlayMode.loop:
+        unawaited(_issue(id, pos, sectionEnd - pos, false, at));
+        unawaited(
+          _issue(id, span.startBar, span.bars, true, at + sectionEnd - pos),
+        );
+    }
+  }
+
+  Future<void> _issue(String id, int fromBar, int bars, bool loop, int atBar) {
+    final command = BackingCommand(
+      token: ++_token,
+      kind: BackingKind.launch,
+      fromBar: fromBar,
+      bars: bars,
+      loop: loop,
+      atBar: atBar,
+    );
+    _commands[command.token] = (command: command, id: id);
+    return _engine.command(command);
+  }
+
   void setQuantize(Quantize quantize) =>
       state = state.copyWith(quantize: quantize);
 

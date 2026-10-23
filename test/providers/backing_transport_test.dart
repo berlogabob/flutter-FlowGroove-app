@@ -184,6 +184,51 @@ void main() {
       expect((second.fromBar, second.bars, second.loop), (4, 8, false));
     });
 
+    test(
+      'switching to Loop mid-song finishes the section, then loops it',
+      () async {
+        await transport.attach(entry(), sections);
+        transport.setMode(PlayMode.song);
+        final run = await launched('verse');
+        engine.playing(run);
+        engine.barEvents.add(run.atBar + 1);
+        final before = engine.commands.length;
+        transport.setMode(PlayMode.loop);
+        final rest = engine.commands[before];
+        final loop = engine.commands[before + 1];
+        final pos = rest.atBar - run.atBar;
+        expect((rest.fromBar, rest.bars, rest.loop), (pos, 4 - pos, false));
+        expect((loop.fromBar, loop.bars, loop.loop), (0, 4, true));
+        expect(loop.atBar, rest.atBar + rest.bars);
+        // The handed-over pass ending must not take the click with it.
+        engine.stopped(rest);
+        await Future<void>.delayed(Duration.zero);
+        expect(container.read(metronomeProvider).isPlaying, isTrue);
+      },
+    );
+
+    test(
+      'switching to Song or Once mid-loop continues from the exact bar',
+      () async {
+        await transport.attach(entry(), sections);
+        transport.setMode(PlayMode.loop);
+        final run = await launched('chorus');
+        engine.playing(run);
+        engine.barEvents.add(run.atBar + 1);
+        var before = engine.commands.length;
+        transport.setMode(PlayMode.song);
+        final song = engine.commands[before];
+        expect(song.loop, isFalse);
+        expect(song.fromBar, 4 + song.atBar - run.atBar);
+        expect(song.fromBar + song.bars, 12);
+        before = engine.commands.length;
+        transport.setMode(PlayMode.once);
+        final once = engine.commands[before];
+        expect(once.loop, isFalse);
+        expect(once.fromBar + once.bars, 12);
+      },
+    );
+
     test('a song run highlights the section being played', () async {
       await transport.attach(entry(), sections);
       transport.setMode(PlayMode.song);
@@ -360,16 +405,19 @@ void main() {
     expect(engine.commands.single.bars, 3);
   });
 
-  test('file tempo sets the metronome bpm and a normal song keeps it', () async {
-    metro.tempo(90);
-    await transport.attach(entry(fileTempo: true), sections);
-    expect(container.read(metronomeProvider).bpm, 120);
-    expect(engine.loads.last.renderBpm, 120);
-    metro.tempo(90);
-    await transport.attach(entry(), sections);
-    expect(container.read(metronomeProvider).bpm, 90);
-    expect(engine.loads.last.renderBpm, 90);
-  });
+  test(
+    'file tempo sets the metronome bpm and a normal song keeps it',
+    () async {
+      metro.tempo(90);
+      await transport.attach(entry(fileTempo: true), sections);
+      expect(container.read(metronomeProvider).bpm, 120);
+      expect(engine.loads.last.renderBpm, 120);
+      metro.tempo(90);
+      await transport.attach(entry(), sections);
+      expect(container.read(metronomeProvider).bpm, 90);
+      expect(engine.loads.last.renderBpm, 90);
+    },
+  );
 
   test('bar stop waits for engine stopped event', () async {
     await transport.attach(entry(), sections);
