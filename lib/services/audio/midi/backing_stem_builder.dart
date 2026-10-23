@@ -118,7 +118,7 @@ Future<Map<String, Int16List>> buildBackingStems({
             maxSeconds: end / sampleRate,
           );
           for (var i = offset; i < math.min(end, pcm.length); i++) {
-            mix[start + i] += pcm[i] * setting.volume;
+            mix[start + i] += pcm[i] * (perTrack ? 1.0 : setting.volume);
           }
           await pause();
           if (pcm.length < end) break;

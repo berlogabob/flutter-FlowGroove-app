@@ -105,6 +105,7 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
   final _commands = <int, ({BackingCommand command, String? id})>{};
   List<String> _names = [];
   final _muted = <String>{};
+  final _volume = <String, double>{};
   String? _solo;
   String? _resumeId;
   Future<void> _engineWork = Future.value();
@@ -235,6 +236,8 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     _clearPattern();
     _entry = entry;
     _resumeId = null;
+    _seededEntryId = null;
+    _volume.clear();
     _muted.clear();
     _solo = null;
     var start = 0;
@@ -304,6 +307,12 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
         ..addAll([
           for (final track in entry.midiSong!.tracks)
             if (track.mute && _names.contains(track.name)) track.name,
+        ]);
+      _volume
+        ..clear()
+        ..addEntries([
+          for (final track in entry.midiSong!.tracks)
+            if (_names.contains(track.name)) MapEntry(track.name, track.volume),
         ]);
     }
     _applyGains();
@@ -511,6 +520,11 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     if (!state.rendering) _applyGains();
   }
 
+  void setStemVolume(String name, double volume) {
+    _volume[name] = volume.clamp(0.0, 1.0);
+    if (!state.rendering) _applyGains();
+  }
+
   void minusOne(String role) => muteStem(role);
 
   void _applyGains() {
@@ -518,7 +532,9 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       final name = _names[i];
       _engine.setGain(
         i,
-        _muted.contains(name) || (_solo != null && _solo != name) ? 0 : 1,
+        _muted.contains(name) || (_solo != null && _solo != name)
+            ? 0
+            : _volume[name] ?? 1,
       );
     }
   }

@@ -12,11 +12,13 @@ import '../../models/section_span.dart';
 import '../../models/song_lab.dart';
 import '../../providers/data/backing_transport_provider.dart';
 import '../../providers/data/metronome_provider.dart';
+import '../../providers/data/data_providers.dart';
 import '../../providers/data/midi_song_provider.dart';
+import '../../providers/permissions_provider.dart';
 import '../../services/audio/midi/midi_song_meta_builder.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/quantize.dart';
-import 'instrument_strip.dart';
+import 'track_console.dart';
 import 'section_card.dart';
 import 'section_pad.dart';
 
@@ -39,6 +41,71 @@ class LaunchpadView extends ConsumerStatefulWidget {
 
 class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
   Object? _error;
+  String? _attachedKey;
+  Timer? _saveDebounce;
+  final _console = GlobalKey<State<TrackConsole>>();
+
+  // Only what changes the rendered audio; mute/volume edits must not re-render.
+  static String _renderKey(SongLabEntry e) {
+    final m = e.midiSong;
+    if (m == null) return e.id;
+    return [
+      e.id,
+      m.fileUrl,
+      m.startBar,
+      m.useFileTempo,
+      m.sectionMap.map((s) => '${s.sectionId}.${s.startBar}.${s.bars}').join(),
+      for (final t in m.tracks)
+        if (t.roleOverride != null || t.programOverride != null)
+          '${t.index}.${t.channel}.${t.roleOverride?.name}.${t.programOverride}',
+    ].join('|');
+  }
+
+  @override
+  void dispose() {
+    _saveDebounce?.cancel();
+    super.dispose();
+  }
+
+  SongLabEntry _withTracks(List<MidiTrackMeta> visible, {SongLabEntry? base}) {
+    final entry = base ?? widget.entry;
+    final all = [...entry.midiSong!.tracks];
+    for (final t in visible) {
+      final i = all.indexWhere(
+        (a) => a.index == t.index && a.channel == t.channel,
+      );
+      i >= 0 ? all[i] = t : all.add(t);
+    }
+    return entry.copyWith(midiSong: entry.midiSong!.copyWith(tracks: all));
+  }
+
+  void _persist(SongLabEntry updated) {
+    final bandId = updated.bandId;
+    final canEdit = bandId == null
+        ? ref.read(canEditProvider)
+        : ref.read(canEditBandProvider(bandId));
+    if (!canEdit) return;
+    _saveDebounce?.cancel();
+    _saveDebounce = Timer(const Duration(milliseconds: 600), () {
+      unawaited(
+        ref.read(labRepositoryProvider).saveEntry(updated, bandId: bandId),
+      );
+    });
+  }
+
+  Future<void> _reRender(SongLabEntry updated) async {
+    _attachedKey = _renderKey(updated);
+    _persist(updated);
+    await ref
+        .read(backingTransportProvider.notifier)
+        .attach(
+          updated,
+          widget.sections.isEmpty
+              ? [Section(id: 'song', name: 'Song', duration: 0)]
+              : widget.sections,
+        );
+    (_console.currentState as dynamic)?.reapplyLive();
+  }
 
   @override
   void initState() {
@@ -49,7 +116,8 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
   @override
   void didUpdateWidget(LaunchpadView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.entry != widget.entry ||
+    if (_renderKey(oldWidget.entry) != _renderKey(widget.entry) &&
+            _renderKey(widget.entry) != _attachedKey ||
         !identical(oldWidget.sections, widget.sections)) {
       _scheduleAttach();
     }
@@ -66,6 +134,7 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
   Future<void> _attach() async {
     final entry = widget.entry;
     final sections = widget.sections;
+    _attachedKey = _renderKey(entry);
     try {
       final song = await ref.read(midiSongProvider(entry).future);
       if (!mounted || widget.entry != entry) return;
@@ -105,18 +174,10 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
     final bpm = widget.entry.midiSong?.useFileTempo == true
         ? song?.initialBpm ?? widget.entry.midiSong!.initialBpm
         : metro.bpm.toDouble();
-    final names = <String>{};
+    final consoleTracks = <MidiTrackMeta>[];
     if (song != null) {
       final settings = buildMidiSongMeta(song, previous: widget.entry.midiSong);
-      for (final track in settings.tracks) {
-        if (track.mute || track.noteCount == 0) continue;
-        names.add(switch (track.effectiveRole) {
-          MidiRole.drums => 'Drums',
-          MidiRole.bass => 'Bass',
-          MidiRole.vocal || MidiRole.lead => 'Lead',
-          _ => 'Harmony',
-        });
-      }
+      consoleTracks.addAll(settings.tracks.where((t) => t.noteCount > 0));
     }
     final current = sections[state.queuedId ?? state.playingId];
     final disabled = state.rendering || song == null || _error != null;
@@ -186,10 +247,14 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                   },
                 ),
                 const SizedBox(height: MonoPulseSpacing.md),
-                InstrumentStrip(
-                  key: ObjectKey(widget.entry),
-                  names: names.toList(),
-                ),
+                if (consoleTracks.isNotEmpty)
+                  TrackConsole(
+                    key: _console,
+                    tracks: consoleTracks,
+                    onChanged: (tracks) => _persist(_withTracks(tracks)),
+                    onProgramChanged: (tracks) =>
+                        unawaited(_reRender(_withTracks(tracks))),
+                  ),
                 if (current != null)
                   SectionCard(section: current, queued: state.queuedId != null),
               ],

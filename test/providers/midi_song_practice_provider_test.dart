@@ -218,65 +218,49 @@ void main() {
         'Acoustic Grand Piano · ch 1',
         'Acoustic Grand Piano · ch 2',
       ]);
-      expect(engine.gains, {0: 1, 1: 1});
+      expect(engine.gains, {0: 0.4, 1: 1.0});
       expect(engine.commands, isEmpty);
       expect(current().loading, isFalse);
     },
   );
 
-  test('backing mixer applies per-track volume, mute and solo', () async {
+  test('backing mixer applies per-track volume, mute and solo live', () async {
     await useBacking();
-    final original = engine.loads.single.stems.first.toList();
     notifier.setVolume(0, 0);
-    await _until(() => engine.loads.length == 2 && !current().loading);
-    expect(
-      engine.loads.last.stems.first.every((sample) => sample == 0),
-      isTrue,
-    );
+    expect(engine.gains, {0: 0.0, 1: 1.0});
     notifier
-      ..setVolume(0, 0.4)
+      ..setVolume(0, 0.5)
       ..setMute(1, mute: true);
-    await _until(() => engine.loads.length == 3 && !current().loading);
-    // Per-track stems keep muted tracks; mute is applied live by the mixer.
-    expect(engine.loads.last.names, hasLength(2));
-    expect(engine.loads.last.stems.first, orderedEquals(original));
+    expect(engine.gains, {0: 0.5, 1: 0.0});
     notifier
       ..setMute(1, mute: false)
       ..toggleSolo(1);
-    await _until(() => engine.loads.length == 4 && !current().loading);
     expect(current().soloed, {1});
-    expect(
-      engine.loads.last.stems.first.every((sample) => sample == 0),
-      isTrue,
-    );
-    expect(engine.loads.last.stems.last.any((sample) => sample != 0), isTrue);
+    expect(engine.gains, {0: 0.0, 1: 1.0});
+    // Gains are live: no re-render, no transport command.
+    expect(engine.loads, hasLength(1));
     expect(engine.commands, isEmpty);
   });
 
-  test(
-    'tracks with the same name keep independent mute and solo',
-    () async {
-      final bass = entry.midiSong!.tracks.single;
-      entry = entry.copyWith(
-        midiSong: entry.midiSong!.copyWith(
-          tracks: [bass, bass.copyWith(index: 2, channel: 1, volume: 0.8)],
-        ),
-      );
-      await useBacking();
-      expect(engine.loads.single.names, hasLength(2));
-      notifier.setMute(1, mute: true);
-      await _until(() => engine.loads.length == 2 && !current().loading);
-      final firstOnly = engine.loads.last.stems.first.toList();
-      expect(firstOnly.any((sample) => sample != 0), isTrue);
-      notifier
-        ..setMute(1, mute: false)
-        ..toggleSolo(0);
-      await _until(() => engine.loads.length == 3 && !current().loading);
-      expect(engine.loads.last.stems.first, orderedEquals(firstOnly));
-      expect(current().tracks[1].mute, isFalse);
-      expect(current().tracks[1].volume, 0.8);
-    },
-  );
+  test('tracks with the same name keep independent mute and solo', () async {
+    final bass = entry.midiSong!.tracks.single;
+    entry = entry.copyWith(
+      midiSong: entry.midiSong!.copyWith(
+        tracks: [bass, bass.copyWith(index: 2, channel: 1, volume: 0.8)],
+      ),
+    );
+    await useBacking();
+    expect(engine.loads.single.names, hasLength(2));
+    notifier.setMute(1, mute: true);
+    expect(engine.gains[1], 0);
+    expect(engine.gains[0], isNot(0));
+    notifier
+      ..setMute(1, mute: false)
+      ..toggleSolo(0);
+    expect(engine.gains[1], 0);
+    expect(current().tracks[1].mute, isFalse);
+    expect(current().tracks[1].volume, 0.8);
+  });
 
   test(
     'backing attach and persisted edits preserve spans and file tempo',

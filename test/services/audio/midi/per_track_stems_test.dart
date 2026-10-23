@@ -108,7 +108,7 @@ void main() {
     expect(stems.keys, [name, '$name 2', '$name 3']);
   });
 
-  test('per-track stems still apply track volume', () async {
+  test('per-track stems leave volume to the live mixer', () async {
     final input = song([track(0, 'Keys')]);
     final detected = buildMidiSongMeta(input);
     final full = await buildBackingStems(
@@ -126,12 +126,6 @@ void main() {
       sampleRate: sampleRate,
       perTrack: true,
     );
-    final reference = full['Keys']!;
-    final quieter = half['Keys']!;
-    expect(reference, contains(isNot(0)));
-    expect(quieter.length, reference.length);
-    for (var i = 0; i < reference.length; i++) {
-      expect(quieter[i], closeTo(reference[i] * 0.5, 1));
-    }
+    expect(half['Keys'], orderedEquals(full['Keys']!));
   });
 }

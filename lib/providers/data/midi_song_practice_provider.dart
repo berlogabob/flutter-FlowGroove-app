@@ -301,10 +301,12 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
 
   void _syncGains() {
     if (_useBackingTransport) {
-      _debounce?.cancel();
-      _debounce = Timer(const Duration(milliseconds: 150), () {
-        unawaited(_reload());
-      });
+      // Per-track stems: mute, solo and volume are live gains, no re-render.
+      final transport = ref.read(backingTransportProvider.notifier);
+      final gains = state.gains;
+      for (var i = 0; i < state.tracks.length; i++) {
+        transport.setStemVolume(state.tracks[i].name, gains[i]);
+      }
       return;
     }
     try {
@@ -399,7 +401,7 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
               : spans,
           tracks: [
             for (var i = 0; i < state.tracks.length; i++)
-              state.tracks[i].copyWith(volume: state.gains[i]),
+              state.tracks[i],
           ],
         );
         await ref

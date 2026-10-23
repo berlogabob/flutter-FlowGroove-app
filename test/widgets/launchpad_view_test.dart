@@ -13,10 +13,10 @@ import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/utils/play_mode.dart';
 import 'package:flowgroove/utils/quantize.dart';
 import 'package:flowgroove/widgets/chord_chart_view.dart';
-import 'package:flowgroove/widgets/practice/instrument_strip.dart';
 import 'package:flowgroove/widgets/practice/launchpad_view.dart';
 import 'package:flowgroove/widgets/practice/section_card.dart';
 import 'package:flowgroove/widgets/practice/section_pad.dart';
+import 'package:flowgroove/widgets/practice/track_console.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,6 +43,7 @@ class _Transport extends BackingTransportNotifier {
   final mutes = <(String, bool)>[];
   final solos = <(String, bool)>[];
   final minusOnes = <String>[];
+  final volumes = <(String, double)>[];
   List<Section>? attached;
 
   @override
@@ -67,6 +68,9 @@ class _Transport extends BackingTransportNotifier {
 
   @override
   void minusOne(String role) => minusOnes.add(role);
+
+  @override
+  void setStemVolume(String name, double volume) => volumes.add((name, volume));
 
   BackingTransportState get snapshot => state;
   set snapshot(BackingTransportState next) => state = next;
@@ -219,9 +223,9 @@ void main() {
     await _pump(tester, transport, count: 12, scale: 2);
     final row = find.byKey(const ValueKey('launchpad-transport'));
     final before = tester.getRect(row);
-    await tester.ensureVisible(find.byType(InstrumentStrip));
+    await tester.ensureVisible(find.byType(TrackConsole));
     await tester.pump();
-    await tester.drag(find.byType(InstrumentStrip), const Offset(0, -250));
+    await tester.drag(find.byType(TrackConsole), const Offset(0, -250));
     await tester.pump();
     expect(tester.getRect(row), before);
     expect(find.text('Play').hitTestable(), findsOneWidget);
@@ -298,27 +302,28 @@ void main() {
     expect(playing.stops, [false, true]);
   });
 
-  testWidgets('instrument chips mute, solo and toggle minus one', (
+  testWidgets('track strips mute, solo and play-along per track', (
     tester,
   ) async {
     final transport = _Transport(_state(2));
     await _pump(tester, transport);
-    await tester.ensureVisible(find.text('Bass'));
-    await tester.tap(find.text('Bass'));
+    await tester.ensureVisible(find.byTooltip('Mute Bass'));
+    await tester.tap(find.byTooltip('Mute Bass'));
     await tester.pump();
-    await tester.tap(find.text('Bass'));
+    await tester.tap(find.byTooltip('Mute Bass'));
     await tester.pump();
     expect(transport.mutes, [('Bass', true), ('Bass', false)]);
-    await tester.longPress(find.text('Bass'));
+    await tester.tap(find.byTooltip('Solo Bass'));
     await tester.pump();
     expect(transport.solos, [('Bass', true)]);
-    expect(find.text('Bass · Solo'), findsOneWidget);
-    await tester.tap(find.text('I play this').first);
+    await tester.tap(find.byTooltip('Leave Bass to me'));
     await tester.pump();
-    expect(transport.minusOnes, ['Bass']);
-    await tester.tap(find.text('I play this').first);
+    expect(transport.mutes.last, ('Bass', true));
+    await tester.tap(find.byTooltip('Leave Bass to me'));
     await tester.pump();
     expect(transport.mutes.last, ('Bass', false));
+    expect(find.byTooltip('Mute Drums'), findsOneWidget);
+    expect(find.text('Drum kit'), findsOneWidget);
   });
 
   testWidgets('honest MIDI length, coverage and rendering warning', (
@@ -375,11 +380,12 @@ void main() {
     );
     await tester.pump();
     await tester.pump();
+    await tester.pump();
     expect(find.byType(LaunchpadView), findsOneWidget);
     expect(find.text('Backing tracks'), findsNothing);
     final row = find.byKey(const ValueKey('launchpad-transport'));
     final before = tester.getRect(row);
-    await tester.ensureVisible(find.byType(InstrumentStrip));
+    await tester.ensureVisible(find.byType(TrackConsole));
     await tester.pump();
     expect(tester.getRect(row), before);
     expect(find.text('Play').hitTestable(), findsOneWidget);
