@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/midi_pattern.dart';
@@ -549,7 +549,8 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     }
     // shortcut: always-on trace so "I hear only the click" reports can be read
     // from logcat; drop once the console has proven itself on devices.
-    debugPrint('[backing] gains ${applied.join(', ')}');
+    // ignore: avoid_print
+    print('[backing] stems ${applied.join(', ')}');
   }
 }
 
