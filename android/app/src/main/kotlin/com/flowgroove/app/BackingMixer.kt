@@ -74,6 +74,8 @@ class BackingMixer(val sampleRate: Int) {
         onState?.invoke(token, "queued", atBar)
     }
 
+    fun cancel(token: String) { commands.removeAll { it.token == token } }
+
     fun setGain(stem: String, gain: Double) {
         val envelope = requireNotNull(gains[stem]) { "Unknown stem: $stem" }
         require(gain.isFinite()) { "Invalid gain" }
