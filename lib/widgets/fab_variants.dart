@@ -46,7 +46,7 @@ class SingleFab extends StatelessWidget {
       backgroundColor: MonoPulseColors.accentOrange,
       // Black-on-orange per the MonoPulse FAB token (~6.5:1 vs ~3:1 for white). F-007.
       foregroundColor: MonoPulseColors.black,
-      child: Icon(icon),
+      child: Icon(icon, semanticLabel: tooltip),
     );
   }
 }

@@ -645,6 +645,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
               icon: Icons.add,
               onPressed: () => context.goNamed('add-song'),
               heroTag: 'songs_fab',
+              tooltip: 'Add song',
             )
           : null,
       body: _buildBody(songsAsync, bandsAsync),
