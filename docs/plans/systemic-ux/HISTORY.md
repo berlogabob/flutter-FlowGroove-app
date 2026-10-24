@@ -94,3 +94,23 @@ Scope audit: the 11 read requests include 4 unallowlisted read attempts at 2 gue
 ## 2026-10-24T14:45:03.684541+01:00 — UX-006-I parent preflight
 
 Existing test/widgets/launchpad_view_test.dart:361-405 explicitly codifies missing chooser with an authenticated active MIDI fixture. Scope changed to that one relevant test, not a second test file; public MetronomeScreen seam unchanged. Separate clean worktree fix/ux006 at 63f301da avoids divergent old branch. Baseline native flutter_soloud compilation hit 180/120 s caps before test assertions; a real bounded 600 s baseline build now runs as proc_5ca025878ff8. No worker launched or RED/GREEN claimed yet.
+
+## 2026-10-24T15:55:25.323581+01:00 — UX-006-I awaiting full orientation verification
+
+Ornith implementation returned exit 0 in 50.62 s, exact model/provider and decoded backend manifest checked, two reads/one edit in sole production file; parent test unchanged by worker. Parent added explicit const and isolated permission fixture. Portrait flow plus existing related suite passed 16 tests. Expanded final fixture reproduced original defect in both portrait and landscape; final expanded GREEN is not yet claimed. Short build limits and a 420 s tool transport interruption delayed verification. Fixed source was recovered from recorded worker edits after interrupted baseline inspection; no baseline left in working source. Long bounded final run proc_5d473e2ade8a now active (1200 s); no main-branch code integration/release yet.
+
+## 2026-10-24T16:10:40.566185+01:00 — final expanded suite returned GREEN; scheduled brief enabled
+
+proc_5d473e2ade8a exited 0, All tests passed: 17 across Launchpad and drums button files, including authenticated active MIDI portrait and landscape. Code not yet integrated into primary, so UX-006-I remains review. Read-only script-only monitor d173a844e136 scheduled every 10 minutes to the origin Telegram DM; it does not execute implementation or close tasks.
+
+## 2026-10-24T16:20:54.513718+01:00 — UX-006 code integrated, primary checks launched
+
+Worktree code commit ba47ab143e8d5bd7e7b76823f310b3676ba9e20a cherry-picked as e6d8f26b6782fd3f3d3ce686a46a3ae396f6fcdc on second01. Exactly one production and one test file; hashes match the 17-test accepted worktree run. Primary six-file related regression now runs as proc_0a98acfc2ee0 (1800 s cap); final worktree analyze/format proc_ff17f75b994d pending. UX-006-I remains review until checks accepted. No device validation, tag, push or deploy.
+
+## 2026-10-24T16:32:48.923938+01:00 — UX-006-I accepted on primary
+
+Primary six-file run proc_0a98acfc2ee0 exited 0, 64 tests passed. Final worktree analyze/format/diff check proc_ff17f75b994d exited 0; three infos are located in source lines unchanged from baseline, no warnings. Accepted source/test hashes match tested worktree and e6d8f26b6782fd3f3d3ce686a46a3ae396f6fcdc. UX-006-I verified; UX-006-V explicitly blocked for fresh device recheck, not waived. All 33 issue records remain open.
+
+## 2026-10-24T16:46:22.404789+01:00 — next bounded triage launched
+
+NEW-002-R launched as proc_64e1fb0458b6 via existing Pi/Studio. Three explicit FAB call-site windows, at most three reads, 180 s process cap, no edits or commands; parent must inspect result before task closure and add three bounded fix/test tasks if confirmed. Periodic monitor now checks real worker PID from private process.json as well as native compiler/test processes.

@@ -27,6 +27,11 @@ Commands: `uv run --isolated --no-project python scripts/activity_plan.py check`
 Private device captures stay in ignored audit/; pre-existing untracked research in
 docs/plans/unified-workspace/ is not part of the planning commit. No push/tag/deploy.
 
+UX-006-I is verified on second01 e6d8f26b (64 primary related tests); UX-006-V is blocked
+for fresh installed-device validation. Whole issue remains open. Use fix/ux006 worktree
+for this slice; the older fix/systemic-ux worktree is divergent and was not reset.
+Read-only brief d173a844e136 runs every 10 minutes; it never implements or closes tasks.
+
 Earlier handoff retained below as history; do not treat its task queue as current.
 
 **Last Updated:** 2026-08-22
@@ -146,3 +151,5 @@ accidental dumps rather than work:
 They are probably `.gitignore` candidates. Left untouched so the decision is the owner's.
 
 UX-006-R completion: Ornith timed out (540 s, no final) and guessed 4 read attempts at 2 unallowlisted paths. Rejected; no retry. Hermes completed the three-file source review, recorded separate failed attempt and explicit actor change. UX-006-I still queued; authenticated active-MIDI regression first. Source review only, not a second UI fix.
+
+UX-006-I integrated and accepted: e6d8f26b, 64 related primary tests, final analyze/format exit 0. UX-006-V remains blocked for fresh installed-device evidence. Periodic read-only brief d173a844e136 checks every 10 minutes; it does not drive implementation.

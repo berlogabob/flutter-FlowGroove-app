@@ -15,7 +15,8 @@
   No audio/user-data changes, publication or install.
 - OPS-RUNNER and UX-007-R/I/S verified. NEW-002 records three adjacent missing labels.
 - UX-006-R worker timed out after 540 s / 11 reads / no final; no output accepted.
-  Hermes completed direct source review without retry; UX-006-I is next, test fixture first.
+  Hermes completed direct source review without retry. UX-006-I is now integrated and verified
+  as e6d8f26b with 64 related primary tests; UX-006-V is blocked for fresh device evidence.
 - Historical state below is retained; old green suites and completed checklists are
   not fresh verification of today's code/device behaviour.
 
@@ -80,3 +81,5 @@
 1. Continue reducing repo-wide lint backlog in touched subsystems until targeted analyze output is mostly silent.
 2. Generate a fresh untruncated exact-candidate dry-run report, then run a no-write preview with explicit `--project` before any real canonical library migration batch.
 3. Keep emulator-backed acceptance flows under `integration_test/**` and keep routed widget/navigation coverage in the fast test tree.
+
+UX-006-I integrated and accepted: e6d8f26b, 64 related primary tests, final analyze/format exit 0. UX-006-V remains blocked for fresh installed-device evidence. Periodic read-only brief d173a844e136 checks every 10 minutes; it does not drive implementation.

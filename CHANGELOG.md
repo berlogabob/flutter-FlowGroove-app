@@ -4,6 +4,12 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## Unreleased — verified UX implementation slices (2026-10-24)
+
+- UX-007: create-song FAB tooltip and rendered accessible name; issue remains open for device/TalkBack acceptance.
+- UX-006: keep the existing backing chooser with active MIDI without replacing the pinned launchpad transport. Portrait/landscape regression verifies opening the chooser, returning to the launchpad and no transport launch; 64 related tests pass on second01.
+- No dependency, engine, permission, version or release change. UX-006 device recheck remains blocked, and the publication hold is unchanged.
+
 ## Unreleased — systemic UX/UI work plan and publication hold (2026-10-23)
 
 - Added a single activity registry for nine UX findings, existing open GitHub work

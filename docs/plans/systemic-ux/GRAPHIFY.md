@@ -1,35 +1,37 @@
 # Graphify checkpoint
 
+```json
 {
-  "checked_at": "2026-10-24T04:35:19.454928+01:00",
-  "scope": "Current code extraction plus deterministic activity registry relationships; not full semantic re-extraction of every document",
+  "checked_at": "2026-10-24T16:49:36.498401+01:00",
+  "scope": "Fresh code extraction plus literal registry/task/allowed-file layer; not full document semantic extraction",
   "nodes": 13123,
-  "raw_links": 20122,
+  "raw_links": 20123,
   "activity_relationships": 310,
-  "activity_dependencies": 115,
-  "dangling_endpoints": 0,
-  "query_checked": "UX-007 → R/I/S/V and file allowlists; source code + literal registry updated",
-  "llm_tokens_for_registry_extraction": 0,
-  "warnings": [
-    "linux/runner/my_application.h yielded no symbols after syntax error at line 18",
-    "34 code files yielded no symbols; extractor coverage is not complete",
-    "Community labels are hub-derived; LLM label refresh intentionally not run",
-    "Other changed docs/papers/images still require semantic update; no manifest stamped as full coverage",
-    "Graph is >5000 nodes; HTML intentionally not generated (--no-viz)"
-  ],
-  "private_output": "graphify-out/ (gitignored)",
   "issue_nodes_verified": 33,
-  "task_nodes_verified": 62
+  "task_nodes_verified": 62,
+  "dangling_endpoints": 0,
+  "query_checked": "UX-006 seed and exact canonical-source-file implementation allowlist",
+  "llm_tokens_for_registry_extraction": 0,
+  "code_commit": "e6d8f26b6782fd3f3d3ce686a46a3ae396f6fcdc",
+  "task_status": {
+    "queued": 53,
+    "verified": 7,
+    "blocked": 1,
+    "running": 1
+  },
+  "warnings": [
+    "Existing linux/runner/my_application.h syntax error, no symbols",
+    "34 source files without extracted symbols (NEW-001 remains open)",
+    "No full changed-document semantic extraction or new HTML"
+  ],
+  "private_output": "graphify-out/ (gitignored)"
 }
+```
 
 ## Reproduction / integrity rule
 
-1. Back up graph.json, then `GRAPHIFY_NO_AUTO_REFRESH=1 graphify update . --no-cluster` for code.
-2. Index activity.json literal issue/task/after/allowed_files fields as EXTRACTED, not inferred implementation claims. `may_edit` means planned allowlist, not completed code.
-3. Merge with build_merge(root=repo); preserve old parallel raw links. Canonicalisation can remap file-reference IDs: obtain activity edges from the merged G with _src/_tgt, not the pre-merge fragment IDs, before passing original_links to to_json. Otherwise the exporter drops remapped-endpoint links.
-4. Recluster with `graphify cluster-only . --no-viz --no-label`; validate all issue/task nodes, every dependency and all current activity relationships (310 at this checkpoint), and zero dangling endpoints. Query UX-006 against the saved graph.
-5. Do not clear semantic pending state or claim all docs/labels refreshed. Graph/report remain local; this summary is the safe committed evidence.
-
-The installed post-commit hook launches a code-only asynchronous rebuild. This planning commit uses its existing `GRAPHIFY_SKIP_HOOK=1` opt-out only for that command; security/pre-commit checks remain active. Code and registry were explicitly refreshed and verified. Future code updates must re-merge the structured registry layer afterwards: the scanner otherwise prunes its unsupported/ignored JSON source.
-
-UX-006-R follow-up: registry node status/executor refreshed from activity.json after rejected Ornith timeout and accepted parent review. 33 issue nodes, 62 task nodes and 310 registry relations retained. This is a literal registry metadata refresh, not a new AST/full-document semantic extraction.
+1. Back up graph.json, run GRAPHIFY_NO_AUTO_REFRESH=1 graphify update . --no-cluster for code.
+2. Rebuild the literal activity-extraction.json layer from canonical tasks, issues, dependencies and current allowed_files; relation may_edit is not proof of completed code.
+3. build_merge then collect canonical _src/_tgt registry links from merged graph, preserving untouched raw code links.
+4. Cluster and export; verify all 33 issues/62 tasks, all 310 relations, no dangling endpoints, exact UX-006-I allowlist by canonical node.source_file (not basename label), and seeded query.
+5. Preserve pending semantic state; do not claim full document or label coverage. Use GRAPHIFY_SKIP_HOOK=1 only per commit, then explicit export to the accepted commit.

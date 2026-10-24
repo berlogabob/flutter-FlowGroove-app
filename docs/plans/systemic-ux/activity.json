@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-24T04:51:08.716318+01:00",
+  "updated_at": "2026-10-24T16:32:48.923938+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -1044,7 +1044,7 @@
     {
       "id": "UX-006-I",
       "title": "Минимальное исправление/проверка решения: При активном MIDI исчезает общий вход выбора сопровождения",
-      "status": "running",
+      "status": "verified",
       "executor": "ornith",
       "kind": "implementation",
       "after": [
@@ -1071,22 +1071,56 @@
       "max_attempts": 1,
       "run": {
         "id": "UX-006-I-20261024-144503",
-        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-006-I-20261024-144503/preflight.json",
-        "started_at": "2026-10-24T14:45:03.684541+01:00",
-        "deadline_at": "2026-10-24T14:55:03.684541+01:00",
-        "phase": "parent_preflight_native_asset_build",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-006-I-20261024-144503/pi.jsonl",
+        "started_at": "2026-10-24T15:13:21.834861+01:00",
+        "deadline_at": "2026-10-24T15:17:21.834861+01:00",
+        "phase": "accepted_primary_implementation",
         "active_actor": "hermes",
         "requested_model": "ollama/ornith-1.5:35b",
-        "actual_model": null,
+        "actual_model": "ollama/ornith-1.5:35b",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
-        "preflight_process": "proc_5ca025878ff8"
+        "preflight_process": "proc_5ca025878ff8",
+        "preflight": {
+          "baseline_exit_code": 0,
+          "baseline_tests": 13,
+          "red_exit_code": 1,
+          "red_assertion": "Expected one OutlinedButton Backing tracks, found 0",
+          "native_build_completed": true
+        },
+        "duration_s": 50.62,
+        "worker_exit_code": 0,
+        "verification_process": "proc_5d473e2ade8a",
+        "verification_deadline_at": "2026-10-24T16:15:25.323581+01:00",
+        "backend_manifest_verified": true,
+        "verification_result": {
+          "exit_code": 0,
+          "tests_passed": 17,
+          "scope": "worktree",
+          "process": "proc_5d473e2ade8a",
+          "source_sha256": "e0af589993115faf0a70ded143df4bf9ac9f3ff5c10b72f532363379eaab692d",
+          "test_sha256": "7fc48e113a5287a0981903c1a01eb4dc73e4c8f9ec7a6c2338e31261dc9f74ac"
+        },
+        "worktree_commit": "ba47ab143e8d5bd7e7b76823f310b3676ba9e20a",
+        "primary_commit": "e6d8f26b6782fd3f3d3ce686a46a3ae396f6fcdc",
+        "verification_worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "primary_verification_process": "proc_0a98acfc2ee0",
+        "final_analyze_process": "proc_ff17f75b994d",
+        "primary_tests_passed": 64,
+        "primary_test_exit_code": 0,
+        "final_analyze_exit_code": 0
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "e6d8f26b6782fd3f3d3ce686a46a3ae396f6fcdc",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/UX-006-I.json"
+        ]
+      }
     },
     {
       "id": "UX-006-V",
       "title": "Независимая приёмка и device recheck: UX-006",
-      "status": "queued",
+      "status": "blocked",
       "executor": "hermes",
       "kind": "verification",
       "after": [
@@ -1095,6 +1129,7 @@
       "issue": "UX-006",
       "read_files": [
         "lib/screens/metronome_screen.dart",
+        "test/widgets/launchpad_view_test.dart",
         "test/midi/drums_button_test.dart"
       ],
       "allowed_files": [],
@@ -1106,7 +1141,8 @@
       "timeout_s": null,
       "max_attempts": 1,
       "run": null,
-      "verification": null
+      "verification": null,
+      "blocked_reason": "Fresh installed-device recheck remains unperformed; source/widget tests do not satisfy device acceptance. No waiver or claim that no device exists."
     },
     {
       "id": "UX-007-R",
@@ -2301,7 +2337,7 @@
     {
       "id": "NEW-002-R",
       "title": "Проверить и подписать create FAB в Setlists, Band Setlists и Rehearsals — triage",
-      "status": "queued",
+      "status": "running",
       "executor": "ornith",
       "kind": "research",
       "after": [
@@ -2322,7 +2358,18 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "NEW-002-R-20261024-164041",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-R-20261024-164041/pi.jsonl",
+        "started_at": "2026-10-24T16:40:41.367015+01:00",
+        "deadline_at": "2026-10-24T16:44:41.367015+01:00",
+        "actual_model": null,
+        "requested_model": "ollama/ornith-1.5:35b",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "active_actor": "ornith",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-R-20261024-164041/process.json",
+        "phase": "bounded_read_only_triage"
+      },
       "verification": null
     },
     {

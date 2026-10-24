@@ -1,32 +1,25 @@
 {
-  "checked_at": "2026-10-24T04:35:19.454928+01:00",
-  "scope": "Current code extraction plus deterministic activity registry relationships; not full semantic re-extraction of every document",
+  "checked_at": "2026-10-24T16:49:36.498401+01:00",
+  "scope": "Fresh code extraction plus literal registry/task/allowed-file layer; not full document semantic extraction",
   "nodes": 13123,
-  "raw_links": 20122,
+  "raw_links": 20123,
   "activity_relationships": 310,
-  "activity_dependencies": 115,
-  "dangling_endpoints": 0,
-  "query_checked": "UX-007 → R/I/S/V and file allowlists; source code + literal registry updated",
-  "llm_tokens_for_registry_extraction": 0,
-  "warnings": [
-    "linux/runner/my_application.h yielded no symbols after syntax error at line 18",
-    "34 code files yielded no symbols; extractor coverage is not complete",
-    "Community labels are hub-derived; LLM label refresh intentionally not run",
-    "Other changed docs/papers/images still require semantic update; no manifest stamped as full coverage",
-    "Graph is >5000 nodes; HTML intentionally not generated (--no-viz)"
-  ],
-  "private_output": "graphify-out/ (gitignored)",
   "issue_nodes_verified": 33,
   "task_nodes_verified": 62,
-  "registry_metadata_refresh": {
-    "at": "2026-10-24T04:57:33.398486+01:00",
-    "reason": "UX-006-R failed Ornith attempt, explicit Hermes fallback accepted",
-    "issues": 33,
-    "tasks": 62,
-    "task_status": {
-      "queued": 56,
-      "verified": 6
-    },
-    "scope": "Literal registry status/executor only; no new code AST or full document semantic extraction"
-  }
+  "dangling_endpoints": 0,
+  "query_checked": "UX-006 seed and exact canonical-source-file implementation allowlist",
+  "llm_tokens_for_registry_extraction": 0,
+  "code_commit": "e6d8f26b6782fd3f3d3ce686a46a3ae396f6fcdc",
+  "task_status": {
+    "queued": 53,
+    "verified": 7,
+    "blocked": 1,
+    "running": 1
+  },
+  "warnings": [
+    "Existing linux/runner/my_application.h syntax error, no symbols",
+    "34 source files without extracted symbols (NEW-001 remains open)",
+    "No full changed-document semantic extraction or new HTML"
+  ],
+  "private_output": "graphify-out/ (gitignored)"
 }
