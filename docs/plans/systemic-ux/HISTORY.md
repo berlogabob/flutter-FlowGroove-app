@@ -194,3 +194,7 @@ Expanded run passed cached refresh and loading→error/data cases; navigation as
 ## 2026-10-24T19:54:06.460726+01:00 — Card final GREEN and code integrated
 
 Six cases passed, analyze/format/diff exit 0; four pre-existing info expressions retained without unrelated cleanup. Fixed-source/test hashes matched final worktree, code c5444d7eea333602860d3a6d47cae0eb5bb20f48 cherry-picked as 87bfe21f96a1273cb4711f75ad5cca0aed25b04d. Eight-file primary regression proc_7c4f32232b38 pending; UX-009-I2 remains review. No device acceptance/release.
+
+## 2026-10-24T20:10:08.779791+01:00 — Shared card accepted, readonly semantics RED started
+
+74 primary tests passed across eight related files on 87bfe21f96a1273cb4711f75ad5cca0aed25b04d; source/test hashes match accepted six-case worktree suite. UX-009-I2 verified, source/test/evidence retained and no model credit for parent fallback. NEW-003-I now runs rendered readonly semantics RED as proc_d5b3ef9e53bc with original source still intact. UX-009 whole-screen slice remains queued; all 34 issues stay open.

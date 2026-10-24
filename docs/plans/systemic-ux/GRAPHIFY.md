@@ -2,7 +2,7 @@
 
 ```json
 {
-  "checked_at": "2026-10-24T20:04:09.965974+01:00",
+  "checked_at": "2026-10-24T20:10:08.529620+01:00",
   "scope": "Fresh code extraction plus literal registry/task/allowed-file layer; not full document semantic extraction",
   "nodes": 13137,
   "raw_links": 20185,
@@ -14,10 +14,10 @@
   "llm_tokens_for_registry_extraction": 0,
   "code_commit": "87bfe21f96a1273cb4711f75ad5cca0aed25b04d",
   "task_status": {
-    "verified": 14,
+    "verified": 15,
     "blocked": 4,
-    "queued": 50,
-    "review": 1
+    "queued": 49,
+    "running": 1
   },
   "warnings": [
     "Existing linux/runner/my_application.h syntax error, no symbols",

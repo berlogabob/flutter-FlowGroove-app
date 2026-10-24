@@ -256,7 +256,7 @@ All three slices gate NEW-002-V and FINAL-TEST; device acceptance remains separa
 
 ## UX-009 additional shared caller slice
 
-- [ ] **UX-009-I2** — Home/Practice shared DashboardCard loading/error vs true empty week; one production file + existing card tests. Must pass before PracticeScreen slice; all dependencies are recorded in activity.json.
+- [x] **UX-009-I2** — Home/Practice shared DashboardCard loading/error vs true empty week; one production file + existing card tests. Must pass before PracticeScreen slice; all dependencies are recorded in activity.json.
 
 ## NEW-003 — readonly stats-card semantics
 

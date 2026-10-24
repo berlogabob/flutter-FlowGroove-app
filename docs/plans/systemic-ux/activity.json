@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-24T19:02:04.675399+01:00",
+  "updated_at": "2026-10-24T20:10:08.529620+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -1457,7 +1457,7 @@
     {
       "id": "UX-009-I2",
       "title": "Различать loading/error и пустую неделю в общем PracticeDashboardCard (Home + Practice)",
-      "status": "review",
+      "status": "verified",
       "executor": "hermes",
       "kind": "implementation",
       "after": [
@@ -1490,7 +1490,7 @@
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
         "requested_model": "ollama/ornith-1.5:35b",
         "actual_model": null,
-        "phase": "primary_related_regression_verification",
+        "phase": "accepted_primary_implementation",
         "active_actor": "hermes",
         "preflight_process": "proc_7b16a5452437",
         "red_exit_code": 1,
@@ -1515,9 +1515,16 @@
           "exit_code": 0,
           "tests_passed": 6,
           "scope": "worktree"
-        }
+        },
+        "primary_tests_passed": 74
       },
-      "verification": null,
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "87bfe21f96a1273cb4711f75ad5cca0aed25b04d",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/UX-009-I2.json"
+        ]
+      },
       "attempts": [
         {
           "id": "UX-009-I2-20261024-190204",
@@ -2829,11 +2836,22 @@
       "issue": "NEW-003",
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "NEW-003-I-20261024-200705",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-003-I-20261024-200705/red-test.json",
+        "started_at": "2026-10-24T20:07:05.185884+01:00",
+        "deadline_at": "2026-10-24T20:37:05.185884+01:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": null,
+        "phase": "parent_readonly_semantics_red",
+        "active_actor": "hermes",
+        "preflight_process": "proc_d5b3ef9e53bc"
+      },
       "verification": null,
       "id": "NEW-003-I",
       "title": "Correct readonly Practice card accessible instruction without changing navigation",
-      "status": "queued",
+      "status": "running",
       "executor": "ornith",
       "kind": "implementation",
       "after": [
