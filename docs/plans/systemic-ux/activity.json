@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-24T21:31:58.648284+01:00",
+  "updated_at": "2026-10-25T00:01:22.158564+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -1593,8 +1593,8 @@
     {
       "id": "UX-009-I",
       "title": "Минимальное исправление/проверка решения: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных",
-      "status": "review",
-      "executor": "hermes",
+      "status": "running",
+      "executor": "luna",
       "kind": "implementation",
       "after": [
         "UX-009-R",
@@ -1620,25 +1620,26 @@
       "timeout_s": 600,
       "max_attempts": 1,
       "run": {
-        "id": "UX-009-I-20261024-204816",
-        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-20261024-204816/pi.jsonl",
-        "started_at": "2026-10-24T20:56:08.689015+01:00",
-        "deadline_at": "2026-10-24T21:06:08.689015+01:00",
-        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
-        "requested_model": "ollama/ornith-1.5:35b",
+        "id": "UX-009-I-LUNA-20261024-234329",
+        "started_at": "2026-10-24T23:43:29.960405+01:00",
+        "deadline_at": "2026-10-24T23:58:29.960405+01:00",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
         "actual_model": null,
-        "phase": "parent_direct_fallback_after_timeout",
-        "active_actor": "hermes",
-        "preflight_process": "proc_dc3b5f9ed2dd",
-        "red_exit_code": 1,
-        "remaining_parts": [
-          "independent recent-session loading/error/retry",
-          "song-title availability versus actual Removed song"
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+        "active_actor": "luna",
+        "phase": "gateway_disconnected_outcome_unknown",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-LUNA-20261024-234329/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-LUNA-20261024-234329/process.json",
+        "file_lease": [
+          "lib/screens/practice_screen.dart",
+          "test/screens/practice_screen_test.dart"
         ],
-        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-20261024-204816/process.json",
-        "model_timeout_s": 540,
-        "process": "proc_83a7b4a9f0b4",
-        "worker_failure": "540s timeout, no reads/edits/final; no retry."
+        "parent_code_writes_paused": true,
+        "process": "proc_b00cdb819749",
+        "cli_session_id": "local-9e1843ff439773d2b421186920ec607d6c4e9732aec159ebf453a8a830d43e66",
+        "gateway_turn_status": "unknown",
+        "needs_reconciliation": true
       },
       "verification": null,
       "attempts": [
@@ -1678,6 +1679,41 @@
             "final": "",
             "parent_verified": false
           }
+        },
+        {
+          "id": "UX-009-I-20261024-204816",
+          "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-20261024-204816/pi.jsonl",
+          "started_at": "2026-10-24T20:56:08.689015+01:00",
+          "deadline_at": "2026-10-24T21:06:08.689015+01:00",
+          "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+          "requested_model": "ollama/ornith-1.5:35b",
+          "actual_model": null,
+          "phase": "homework_targeted_green_remaining_sections_pending",
+          "active_actor": "hermes",
+          "preflight_process": "proc_dc3b5f9ed2dd",
+          "red_exit_code": 1,
+          "remaining_parts": [
+            "independent recent-session loading/error/retry",
+            "song-title availability versus actual Removed song"
+          ],
+          "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-20261024-204816/process.json",
+          "model_timeout_s": 540,
+          "process": "proc_83a7b4a9f0b4",
+          "worker_failure": "540s timeout, no reads/edits/final; no retry.",
+          "green_process": "proc_62b84a7749f7",
+          "green_report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-20261024-204816/homework-green.json",
+          "homework_source_sha256": "6c8742a6d8ba2ea8833f6238c781ab23e1ccccb4f15356bb375b9fee389922f0",
+          "homework_test_sha256": "9ae3dddf82ef0122b9112839f76352a7102942be3c133f596d594b2fb3c81076",
+          "homework_targeted_tests": 8,
+          "homework_targeted_result": "PASS",
+          "remaining": [
+            "recent session loading/error states",
+            "song title loading/error fallbacks",
+            "final analyze/format",
+            "primary integration and applicable regression",
+            "device verification"
+          ],
+          "outcome": "parent_homework_8_targeted_green_remaining_pending"
         }
       ],
       "original_executor": "ornith"
@@ -3062,5 +3098,15 @@
       "memory": "project-only context file and resumable session",
       "global_config_changed": false
     }
+  },
+  "queue_controller": {
+    "job_id": "748ba92c74d8",
+    "interval": "every 3m",
+    "admission_script": "/Users/berloga/MyHermes/FlowGrooveStatus/queue_gate.py",
+    "instructions": "/Users/berloga/MyHermes/FlowGrooveStatus/QUEUE-SUPERVISOR.md",
+    "status_job": "d173a844e136",
+    "max_luna_workers": 1,
+    "owner": "scheduled Hermes controller; foreground must honor file leases",
+    "enabled_after_verification": true
   }
 }

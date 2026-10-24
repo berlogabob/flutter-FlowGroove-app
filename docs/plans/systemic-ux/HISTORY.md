@@ -224,3 +224,11 @@ Existing Ornith Homework run actually timed out at 540 s without read/edit/final
 ## 2026-10-24T21:31:58.643426+01:00 — Luna project-memory resume exercised
 
 Second Luna draft UX-008-R produced in 75.644 s in the same exact returned session ID; file-call paths match assigned sources/context and only two report artifacts exist. Both drafts remain review, no production fix acceptance claimed. Project-only context + resumed conversation tested; future sessions should be renewed at coherent feature boundaries to prevent unbounded history growth. No native global delegation repin, personal-memory copy or source-code merge performed.
+
+Homework direct tracer prepared after saved Ornith timeout: local AsyncValue.when for Homework, truthful loading/error and local Retry, existing rows and Quick start untouched. Public-screen/card tests proc_62b84a7749f7 pending. No full regression/Graphify loop for this unintegrated intermediate slice; sessions/title parts remain required.
+
+Homework tracer targeted GREEN: 8 public screen/card tests passed, final JSON done.success=true, source/test SHA256 match launched snapshot. UX-009-I remains review: sessions/title states and final integration checks incomplete. No primary cherry-pick or release performed.
+
+2026-10-24T23:43:29.960405+01:00 — Status recovery: confirmed no live Luna/Ornith work, three pending reviews; monitor had not dispatched successors. Launched one bounded Luna implementation worker proc_b00cdb819749 in existing warm fix/ux009 checkout, leased only PracticeScreen + public screen tests. Scope: sessions/title states, genuine RED/GREEN, scoped final checks, no new build checkout or release. Parent pauses writes to leased files; existing parent Homework 8-test GREEN retained.
+
+2026-10-25T00:01:22.158564+01:00 — User explicitly requires continuous queue ownership, not status-only reporting. Installed native every-3m supervisor with conditional wakeAgent admission, existing every-10m status unchanged. Own uv project/.venv and stdlib fixtures PASS. Native installed scheduler source confirms same-job overlap guard. UX-009-I CLI disconnected after actual file/tool calls; server-side outcome UNKNOWN, lease retained and supervisor instructed to reconcile without repeating implementation. Setup followed by immediate controller fire; actual first cycle outcome remains pending.

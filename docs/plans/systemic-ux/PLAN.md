@@ -273,3 +273,13 @@ All three slices gate NEW-002-V and FINAL-TEST; device acceptance remains separa
 - [ ] Measure accepted code throughput with coherent slices and batch integration checks, not additional agent counts.
 
 See PARALLEL-LANES.md for revised verification/checkpoint cadence; release hold is unchanged.
+
+## Continuous queue control — authorized 2026-10-24
+
+- [x] User requires no unattended idle while executable tasks remain.
+- [x] Native recurring supervisor 748ba92c74d8 configured every 3m; cheap admission script skips LLM while no action is due.
+- [x] Admission fixtures exercise busy, ready, pending review, missing PID, expired run, unmet dependencies and manual blocker.
+- [x] Preserve disconnected gateway leases: missing CLI PID is not model completion; reconcile server-side outcome before redispatch.
+- [ ] Verify first scheduled/manual controller cycle outcome; do not equate installed supervision with accepted product fixes.
+
+Status-only job d173a844e136 remains every 10m. Controller owns registry/dispatch/acceptance; foreground honors file leases. Limits: one Luna and one controlled test lane; no unauthorized cleanup, global config changes or release.
