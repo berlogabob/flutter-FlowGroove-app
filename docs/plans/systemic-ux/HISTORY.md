@@ -138,3 +138,19 @@ Primary 12 tests pass, source/test hashes match, integrated 5de705cbdde2ab476b78
 ## 2026-10-24T17:57:10.999314+01:00 — NEW-002-I2 bounded edit and GREEN launched
 
 Ornith returned in 23.84 s with one read/one edit, correct backend manifest and untouched parent test. Parent diff confirms only tooltip Create Band Setlist added. Existing band-scope navigation and viewer/demo cases retained. Whole Band Setlists suite plus analyze/format/diff run as proc_8d7a1d8b3263; I2 review only, not integrated.
+
+## 2026-10-24T18:09:56.647004+01:00 — I2 worktree checks passed and integrated; I3 fixture prepared
+
+All six Band Setlists tests pass, including band-scoped create/edit and viewer/demo guards. Analyze no issues; format/diff exit 0. Code 8a46527bb37fdba74cb440281d0e837aac93e797 cherry-picked as fafd262441f22ae7ae90fa485417eee04a91183b; primary replay proc_06091a3664dc pending. Rehearsals gains an isolated public screen fixture using existing routed harness/mock band and overridden read/permission providers, covering merged action name, band-scoped navigation and readonly UI. I3 production untouched pending RED.
+
+## 2026-10-24T18:19:09.999887+01:00 — I2 accepted; I3 actual RED confirmed
+
+Six primary Band Setlists tests passed; source hashes match fafd262441f22ae7ae90fa485417eee04a91183b. I2 verified, issue remains open. Rehearsals fixture compiled and readonly guard passed; proposal FAB test failed specifically for empty merged label against Propose rehearsal, not fixture/provider errors.
+
+## 2026-10-24T18:25:33.248424+01:00 — I3 patch returned with read-budget deviation
+
+Ornith exit 0 / 29.84 s / verified backend, one edit and two reads of the same allowed source instead of one requested read. Assertion caught the deviation; it is not reported as fully compliant. Parent inspected and retained the exact one-tooltip-line diff; test file untouched, no path expansion or retry. Task remains review pending independent GREEN/role/scope/analyze.
+
+## 2026-10-24T18:29:01.741747+01:00 — I3 independent checks running
+
+proc_dcdce8987aa4 runs the two-case Rehearsals fixture plus analyze/format/diff. Production/test hashes recorded. I2 accepted on primary; I3 not integrated or accepted; NEW-002 remains open and gated by V/device checks.
