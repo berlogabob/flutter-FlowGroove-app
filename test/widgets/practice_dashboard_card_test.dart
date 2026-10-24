@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/widgets/practice_dashboard_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+
+import '../helpers/routed_test_harness.dart';
 
 void main() {
-  Future<void> pump(WidgetTester tester, PracticeStats stats) async {
+  Future<void> pump(WidgetTester tester, FutureOr<PracticeStats> stats) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [practiceStatsProvider.overrideWith((ref) async => stats)],
@@ -17,6 +22,110 @@ void main() {
   }
 
   group('PracticeDashboardCard (#133)', () {
+    testWidgets('loading preserves tappable and non-tappable navigation', (
+      tester,
+    ) async {
+      for (final tappable in [false, true]) {
+        final pending = Completer<PracticeStats>();
+        await pumpRoutedTestApp(
+          tester,
+          initialLocation: '/card',
+          overrides: [
+            practiceStatsProvider.overrideWith((ref) => pending.future),
+          ],
+          routes: [
+            GoRoute(
+              path: '/card',
+              builder: (_, _) =>
+                  Scaffold(body: PracticeDashboardCard(tappable: tappable)),
+            ),
+            GoRoute(
+              path: '/practice',
+              name: 'practice',
+              builder: (_, _) =>
+                  const Scaffold(body: Text('Practice destination')),
+            ),
+          ],
+        );
+        await tester.tap(find.text('Loading practice…'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Practice destination'),
+          tappable ? findsOneWidget : findsNothing,
+        );
+        if (!tappable) {
+          expect(find.text('Loading practice…'), findsOneWidget);
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+      }
+    });
+
+    testWidgets('refresh keeps available practice stats visible', (
+      tester,
+    ) async {
+      const stats = PracticeStats(
+        totalSecondsThisWeek: 600,
+        sessionCountThisWeek: 1,
+        streakDays: 1,
+        dailySeconds: [0, 0, 0, 0, 0, 0, 600],
+        perSongSeconds: {},
+      );
+      Future<PracticeStats> Function() load = () async => stats;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [practiceStatsProvider.overrideWith((ref) => load())],
+          child: const MaterialApp(
+            home: Scaffold(body: PracticeDashboardCard()),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('10 min'), findsOneWidget);
+      final pending = Completer<PracticeStats>();
+      load = () => pending.future;
+      ProviderScope.containerOf(
+        tester.element(find.byType(PracticeDashboardCard)),
+      ).invalidate(practiceStatsProvider);
+      await tester.pump();
+      expect(find.text('10 min'), findsOneWidget);
+      expect(find.text('Loading practice…'), findsNothing);
+      pending.complete(PracticeStats.empty);
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('No practice yet'), findsOneWidget);
+    });
+
+    testWidgets('loading and failure never claim an empty practice week', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      final pending = Completer<PracticeStats>();
+      try {
+        await pump(tester, pending.future);
+        final card = find.byType(PracticeDashboardCard);
+        expect(find.text('Loading practice…'), findsOneWidget);
+        expect(find.text('No practice yet'), findsNothing);
+        expect(
+          tester.getSemantics(card).getSemanticsData().label,
+          contains('Loading practice'),
+        );
+        pending.completeError(StateError('private diagnostic'));
+        await tester.pump();
+        await tester.pump();
+        expect(find.text('Unable to load practice'), findsOneWidget);
+        expect(find.text('No practice yet'), findsNothing);
+        expect(find.textContaining('private diagnostic'), findsNothing);
+        expect(
+          tester.getSemantics(card).getSemanticsData().label,
+          contains('Unable to load practice'),
+        );
+      } finally {
+        semantics.dispose();
+      }
+    });
+
     test('formatMinutes renders seconds, minutes and hours', () {
       // Sub-minute shows real seconds, not a misleading "0 min" (UX audit F-020).
       expect(PracticeDashboardCard.formatMinutes(59), '59s');
