@@ -206,3 +206,11 @@ Readonly merged semantics RED showed actual No practice yet this week. Tap to st
 ## 2026-10-24T20:26:05.343684+01:00 — Readonly-card conditional label prepared
 
 Parent added only tappable selection for empty-week accessible label; Home true label, visible UI, data/error/loading branches and callbacks untouched. Final regression checks both readonly semantics/copy and original tappable semantics/copy; full seven-case suite/analyze/format/diff proc_740851d3d2bd pending. Code remains worktree-only, no primary acceptance or device claim.
+
+## 2026-10-24T20:51:07.883224+01:00 — NEW-003 final GREEN / public PracticeScreen tracer launched
+
+Seven card tests passed, including readonly/tappable semantics, retained route flags, async/data/cached refresh. Analyze/format/diff exit 0; four baseline info expressions retained. Code c6d104946b169b6a20b4b2e87d1306666a29df43 cherry-picked as 6d26f9ef2352a3f98c7909a17c404de404245c48; primary eight-file regression proc_cc582a08c4b7 pending. UX-009-I public-screen fixture uses existing routed harness and four overridden data providers plus offline=false; initial homework loading→error→retry/empty flow with real Quick start navigation, no backend/audio. First RED proc_dc3b5f9ed2dd pending; no PracticeScreen production edits yet. Sessions/title fallbacks remain required before accepting UX-009-I.
+
+## 2026-10-24T20:57:12.409069+01:00 — NEW-003 code accepted; Homework tracer dispatched
+
+75 primary tests passed on 6d26f9ef2352a3f98c7909a17c404de404245c48 with matching final source/test hashes; NEW-003-I verified, device V and issue remain open. PracticeScreen public RED confirms missing Loading homework rather than provider/plugin failure. One bounded Ornith task proc_83a7b4a9f0b4 now edits only the Homework section in PracticeScreen, preserving Quick start and other sections, with model timeout 540 s (within task 600 s) instead of arbitrary 120 s. Parent must exercise the tracer, then handle required remaining states before accepting the whole task.

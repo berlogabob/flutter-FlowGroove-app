@@ -261,5 +261,5 @@ All three slices gate NEW-002-V and FINAL-TEST; device acceptance remains separa
 ## NEW-003 — readonly stats-card semantics
 
 - [x] **NEW-003-R** — separate accessible label from visible copy; source confirmed.
-- [ ] **NEW-003-I** — one shared-card production file plus existing test, after UX-009-I2; preserve disabled navigation.
+- [x] **NEW-003-I** — one shared-card production file plus existing test, after UX-009-I2; preserve disabled navigation.
 - [ ] **NEW-003-V** — independent tests and fresh device/screen-reader evidence.

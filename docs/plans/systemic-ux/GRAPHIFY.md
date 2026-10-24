@@ -2,7 +2,7 @@
 
 ```json
 {
-  "checked_at": "2026-10-24T20:26:05.343684+01:00",
+  "checked_at": "2026-10-24T20:57:12.409069+01:00",
   "scope": "Fresh code extraction plus literal registry/task/allowed-file layer; not full document semantic extraction",
   "nodes": 13137,
   "raw_links": 20185,
@@ -12,12 +12,12 @@
   "dangling_endpoints": 0,
   "query_checked": "Fresh shared-card code extraction and literal 34-issue/69-task registry with corrected scopes, NEW-003, and current canonical file edges; no dangling endpoints.",
   "llm_tokens_for_registry_extraction": 0,
-  "code_commit": "87bfe21f96a1273cb4711f75ad5cca0aed25b04d",
+  "code_commit": "6d26f9ef2352a3f98c7909a17c404de404245c48",
   "task_status": {
-    "verified": 15,
+    "verified": 16,
     "blocked": 4,
-    "queued": 49,
-    "review": 1
+    "queued": 48,
+    "running": 1
   },
   "warnings": [
     "Existing linux/runner/my_application.h syntax error, no symbols",

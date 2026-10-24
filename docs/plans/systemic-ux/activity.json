@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-24T20:26:05.343684+01:00",
+  "updated_at": "2026-10-24T20:57:12.409069+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -1558,7 +1558,7 @@
     {
       "id": "UX-009-I",
       "title": "Минимальное исправление/проверка решения: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных",
-      "status": "queued",
+      "status": "running",
       "executor": "ornith",
       "kind": "implementation",
       "after": [
@@ -1584,7 +1584,26 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "UX-009-I-20261024-204816",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-20261024-204816/pi.jsonl",
+        "started_at": "2026-10-24T20:56:08.689015+01:00",
+        "deadline_at": "2026-10-24T21:06:08.689015+01:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": null,
+        "phase": "ornith_homework_vertical_slice",
+        "active_actor": "ornith",
+        "preflight_process": "proc_dc3b5f9ed2dd",
+        "red_exit_code": 1,
+        "remaining_parts": [
+          "independent recent-session loading/error/retry",
+          "song-title availability versus actual Removed song"
+        ],
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-20261024-204816/process.json",
+        "model_timeout_s": 540,
+        "process": "proc_83a7b4a9f0b4"
+      },
       "verification": null
     },
     {
@@ -2844,7 +2863,7 @@
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
         "requested_model": "ollama/ornith-1.5:35b",
         "actual_model": null,
-        "phase": "parent_green_semantics_verification",
+        "phase": "accepted_primary_implementation",
         "active_actor": "hermes",
         "preflight_process": "proc_d5b3ef9e53bc",
         "red_exit_code": 1,
@@ -2852,12 +2871,32 @@
         "green_process": "proc_740851d3d2bd",
         "green_report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-003-I-20261024-200705/green-test.json",
         "green_source_sha256": "02fe6b9dd69e61279ed40a5eb13228dfe6c7d96db0b2c4d5420e8ddcee69f00c",
-        "green_test_sha256": "cd055d020a6cb7969f6e7b80df28e49b609d6423f19dd678c964b60f288991d5"
+        "green_test_sha256": "cd055d020a6cb7969f6e7b80df28e49b609d6423f19dd678c964b60f288991d5",
+        "verification_worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "primary_verification_process": "proc_cc582a08c4b7",
+        "worktree_tests_passed": 7,
+        "worktree_analyze_exit_code": 0,
+        "worktree_analyze_infos": 4,
+        "worktree_format_exit_code": 0,
+        "worktree_commit": "c6d104946b169b6a20b4b2e87d1306666a29df43",
+        "primary_commit": "6d26f9ef2352a3f98c7909a17c404de404245c48",
+        "verification_result": {
+          "exit_code": 0,
+          "tests_passed": 7,
+          "scope": "worktree"
+        },
+        "primary_tests_passed": 75
       },
-      "verification": null,
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "6d26f9ef2352a3f98c7909a17c404de404245c48",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/NEW-003-I.json"
+        ]
+      },
       "id": "NEW-003-I",
       "title": "Correct readonly Practice card accessible instruction without changing navigation",
-      "status": "review",
+      "status": "verified",
       "executor": "hermes",
       "kind": "implementation",
       "after": [

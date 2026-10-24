@@ -7,6 +7,7 @@ Play Store `versionCode`).
 ## Unreleased — verified UX implementation slices (2026-10-24)
 
 - UX-007: create-song FAB tooltip and rendered accessible name; issue remains open for device/TalkBack acceptance.
+- NEW-003-I: non-tappable Practice card no longer announces a tap action; tappable Home label and navigation preserved. Seven focused /75 primary related tests passed; device/screen-reader acceptance pending.
 - UX-009-I2: shared Home/Practice card distinguishes loading/error from real empty/populated weeks, including accessible status, retained cached refresh data and unchanged navigation. Six focused /74 related primary tests passed; whole PracticeScreen sections and device acceptance remain pending.
 - NEW-002-I1: personal Setlists create FAB names its action as Create Setlist; 12 screen tests pass on primary, including rendered semantics and the no-edit FAB guard. Band Setlists also fixed (Create Band Setlist), with 6 primary role/navigation tests and clean analyze. Rehearsals proposal FAB also named (Propose rehearsal), with two focused tests and 68 related primary tests passed. Installed-device/screen-reader acceptance remains pending.
 - UX-006: keep the existing backing chooser with active MIDI without replacing the pinned launchpad transport. Portrait/landscape regression verifies opening the chooser, returning to the launchpad and no transport launch; 64 related tests pass on second01.
