@@ -1354,7 +1354,7 @@
     {
       "id": "UX-009-R",
       "title": "Повторно проверить: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных",
-      "status": "queued",
+      "status": "running",
       "executor": "ornith",
       "kind": "research",
       "after": [
@@ -1376,7 +1376,19 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "UX-009-R-20261024-183810",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-R-20261024-183810/pi.jsonl",
+        "started_at": "2026-10-24T18:38:10.267709+01:00",
+        "deadline_at": "2026-10-24T18:42:10.267709+01:00",
+        "actual_model": null,
+        "requested_model": "ollama/ornith-1.5:35b",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "active_actor": "ornith",
+        "phase": "bounded_read_only_triage",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-R-20261024-183810/process.json",
+        "process": "proc_bfff379b9a82"
+      },
       "verification": null
     },
     {
@@ -2577,7 +2589,7 @@
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
         "requested_model": "ollama/ornith-1.5:35b",
         "actual_model": "ollama/ornith-1.5:35b",
-        "phase": "parent_green_and_role_verification",
+        "phase": "primary_regression_verification",
         "active_actor": "hermes",
         "preflight_process": "proc_6dd47d51cbbc",
         "red_exit_code": 1,
@@ -2590,7 +2602,20 @@
         "green_process": "proc_dcdce8987aa4",
         "green_report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I3-20261024-180956/green-test.json",
         "green_source_sha256": "65ada592e7877dc4abdfb7716a4559b053f7b7afdd3b550cee1d5d6e3b35e9a8",
-        "green_test_sha256": "0f1ef61c0c85b294f52476ad534a4b33fd1e5c6f0689bf85505a1d27d734c7c3"
+        "green_test_sha256": "0f1ef61c0c85b294f52476ad534a4b33fd1e5c6f0689bf85505a1d27d734c7c3",
+        "worktree_tests_passed": 2,
+        "worktree_analyze_exit_code": 0,
+        "worktree_analyze_issues": 0,
+        "worktree_format_exit_code": 0,
+        "worktree_commit": "473011f697bd79b0cc312b9d9fb81468f6f910ae",
+        "primary_commit": "370b23f96e2a33fe38c165a31c3786b2c19e1019",
+        "verification_worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "primary_verification_process": "proc_e052664fe359",
+        "verification_result": {
+          "exit_code": 0,
+          "tests_passed": 2,
+          "scope": "worktree"
+        }
       },
       "verification": null
     }

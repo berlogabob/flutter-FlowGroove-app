@@ -154,3 +154,11 @@ Ornith exit 0 / 29.84 s / verified backend, one edit and two reads of the same a
 ## 2026-10-24T18:29:01.741747+01:00 — I3 independent checks running
 
 proc_dcdce8987aa4 runs the two-case Rehearsals fixture plus analyze/format/diff. Production/test hashes recorded. I2 accepted on primary; I3 not integrated or accepted; NEW-002 remains open and gated by V/device checks.
+
+## 2026-10-24T18:36:49.460566+01:00 — Rehearsals worktree GREEN and integrated
+
+Two Rehearsals tests passed: accessible proposal name/band-scoped navigation and readonly guard. Analyze no issues; format/diff exit 0. Code 473011f697bd79b0cc312b9d9fb81468f6f910ae cherry-picked as 370b23f96e2a33fe38c165a31c3786b2c19e1019. Seven-file primary related suite proc_e052664fe359 now runs; I3 remains review. No device pass or release.
+
+## 2026-10-24T18:39:40.109480+01:00 — next UX triage launched
+
+UX-009-R runs as proc_bfff379b9a82 via existing bounded Pi client: read complete PracticeScreen (325 lines) and current DashboardCard test (51 lines), exactly two reads, no edits or import exploration. Intended to separate loading/error fallback evidence from usability hypotheses and identify the correct regression seam. Source/model claims still await parent review.

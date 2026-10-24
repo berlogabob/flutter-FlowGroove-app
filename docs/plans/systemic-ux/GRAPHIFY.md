@@ -2,21 +2,22 @@
 
 ```json
 {
-  "checked_at": "2026-10-24T18:29:08.744409+01:00",
+  "checked_at": "2026-10-24T18:43:51.160109+01:00",
   "scope": "Fresh code extraction plus literal registry/task/allowed-file layer; not full document semantic extraction",
-  "nodes": 13127,
-  "raw_links": 20145,
+  "nodes": 13130,
+  "raw_links": 20157,
   "activity_relationships": 331,
   "issue_nodes_verified": 33,
   "task_nodes_verified": 65,
   "dangling_endpoints": 0,
   "query_checked": "Literal registry nodes/status, dependencies and current one-file fix allowlists; code unchanged from accepted UX-006 checkpoint",
   "llm_tokens_for_registry_extraction": 0,
-  "code_commit": "fafd262441f22ae7ae90fa485417eee04a91183b",
+  "code_commit": "370b23f96e2a33fe38c165a31c3786b2c19e1019",
   "task_status": {
-    "queued": 53,
+    "queued": 52,
     "verified": 10,
     "blocked": 1,
+    "running": 1,
     "review": 1
   },
   "warnings": [
