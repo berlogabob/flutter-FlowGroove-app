@@ -90,3 +90,7 @@ Real bounded process proc_57c99db6ccb1 / launcher PID 91566 started through uv a
 Ornith exit 124 after 540.07 s, 11 read calls, no final; worker attempt failed and retained. No identical retry. Hermes directly verified the early-return/selector branches and existing test gap; task executor explicitly changed to parent for accepted source review. No UI edit, regression run, device check or release credited.
 
 Scope audit: the 11 read requests include 4 unallowlisted read attempts at 2 guessed paths. This is an additional rejection reason, not accepted worker evidence; read-only tools are not a filesystem path sandbox. Failed attempt retains requested paths.
+
+## 2026-10-24T14:45:03.684541+01:00 — UX-006-I parent preflight
+
+Existing test/widgets/launchpad_view_test.dart:361-405 explicitly codifies missing chooser with an authenticated active MIDI fixture. Scope changed to that one relevant test, not a second test file; public MetronomeScreen seam unchanged. Separate clean worktree fix/ux006 at 63f301da avoids divergent old branch. Baseline native flutter_soloud compilation hit 180/120 s caps before test assertions; a real bounded 600 s baseline build now runs as proc_5ca025878ff8. No worker launched or RED/GREEN claimed yet.

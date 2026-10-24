@@ -1044,7 +1044,7 @@
     {
       "id": "UX-006-I",
       "title": "Минимальное исправление/проверка решения: При активном MIDI исчезает общий вход выбора сопровождения",
-      "status": "queued",
+      "status": "running",
       "executor": "ornith",
       "kind": "implementation",
       "after": [
@@ -1053,12 +1053,12 @@
       "issue": "UX-006",
       "read_files": [
         "lib/screens/metronome_screen.dart",
-        "test/midi/drums_button_test.dart",
+        "test/widgets/launchpad_view_test.dart",
         "lib/widgets/metronome/backing_sheet.dart"
       ],
       "allowed_files": [
         "lib/screens/metronome_screen.dart",
-        "test/midi/drums_button_test.dart"
+        "test/widgets/launchpad_view_test.dart"
       ],
       "acceptance": [
         "Исправлять только подтверждённый в -R сценарий; для гипотез сначала проверка решения, не косметический fix.",
@@ -1069,7 +1069,18 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "UX-006-I-20261024-144503",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-006-I-20261024-144503/preflight.json",
+        "started_at": "2026-10-24T14:45:03.684541+01:00",
+        "deadline_at": "2026-10-24T14:55:03.684541+01:00",
+        "phase": "parent_preflight_native_asset_build",
+        "active_actor": "hermes",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": null,
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+        "preflight_process": "proc_5ca025878ff8"
+      },
       "verification": null
     },
     {

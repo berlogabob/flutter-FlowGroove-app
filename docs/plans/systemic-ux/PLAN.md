@@ -141,7 +141,7 @@ Registry изменяет только один родительский про�
 - [x] **UX-006-R** · hermes (fallback after one Ornith timeout) · Повторно проверить: При активном MIDI исчезает общий вход выбора сопровождения
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-006.md`.
 - [ ] **UX-006-I** · ornith · Минимальное исправление/проверка решения: При активном MIDI исчезает общий вход выбора сопровождения
-  - После: UX-006-R. Scope: `lib/screens/metronome_screen.dart`, `test/midi/drums_button_test.dart`.
+  - После: UX-006-R. Scope: `lib/screens/metronome_screen.dart`, `test/widgets/launchpad_view_test.dart`.
 - [ ] **UX-006-V** · hermes · Независимая приёмка и device recheck: UX-006
   - После: UX-006-I. Scope: проверка/решение без production edits.
 - [x] **UX-007-R** · ornith · Повторно проверить: У кнопки создания песни отсутствует явное имя в текущей иерархии
@@ -241,3 +241,5 @@ Code commit d842fa36674a6a4a008ac413203bf939603c836b in fix/systemic-ux: caller 
 Primary branch checkpoint: efef7ca4 passed 47 tests across four related screen files, plus analyze/format. UX-006-R completed via parent source fallback after one 540 s Ornith timeout; no UI implementation or device verification credited. No fresh device/TalkBack verification or release.
 
 UX-006-R: worker exit 124/no final preserved in attempt_history; parent source review verified, see reviews/UX-006.md. Next UX-006-I requires an authenticated active-MIDI regression fixture before production edits.
+
+UX-006-I in progress: existing authenticated public launchpad test selected as the sole regression file; native asset baseline build precedes RED. Runtime phase is recorded explicitly; Ornith implementation has not started yet.
