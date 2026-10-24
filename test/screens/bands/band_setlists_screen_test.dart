@@ -66,6 +66,21 @@ void main() {
         expect(find.text('Friday Gig'), findsOneWidget);
         expect(find.text('2 songs'), findsOneWidget);
 
+        final semantics = tester.ensureSemantics();
+        try {
+          await tester.pump();
+          expect(
+            tester
+                .getSemantics(find.byType(FloatingActionButton))
+                .getSemanticsData()
+                .label,
+            contains('Create Band Setlist'),
+          );
+          expect(find.byTooltip('Create Band Setlist'), findsOneWidget);
+        } finally {
+          semantics.dispose();
+        }
+
         await tester.tap(find.byType(FloatingActionButton));
         await tester.pumpAndSettle();
 
