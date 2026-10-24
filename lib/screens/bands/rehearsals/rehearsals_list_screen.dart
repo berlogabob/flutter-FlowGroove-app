@@ -42,6 +42,7 @@ class RehearsalsListScreen extends ConsumerWidget {
           ? SingleFab(
               icon: Icons.add,
               onPressed: () => _create(context),
+              tooltip: 'Propose rehearsal',
               heroTag: 'rehearsals_fab_${band.id}',
             )
           : null,
