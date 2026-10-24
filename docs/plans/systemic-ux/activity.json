@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-24T04:07:22.460709+01:00",
+  "updated_at": "2026-10-24T03:28:58.210062+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -151,7 +151,8 @@
       "tasks": [
         "UX-007-R",
         "UX-007-I",
-        "UX-007-V"
+        "UX-007-V",
+        "UX-007-S"
       ],
       "resolution": null
     },
@@ -529,6 +530,21 @@
       "tasks": [
         "NEW-001-R",
         "NEW-001-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "NEW-002",
+      "title": "Проверить и подписать create FAB в Setlists, Band Setlists и Rehearsals",
+      "severity": 2,
+      "status": "open",
+      "source": "lib/screens/setlists/setlists_list_screen.dart:201; lib/screens/bands/band_setlists_screen.dart:218; lib/screens/bands/rehearsals/rehearsals_list_screen.dart:42",
+      "evidence_type": "NEW_REQUIRES_TRIAGE",
+      "summary": "CODE observation: these three SingleFab call sites supply no tooltip. Reproduce their rendered semantics, then split fixes by production file. No device proof or automatic closure claimed.",
+      "source_locations": [],
+      "tasks": [
+        "NEW-002-R",
+        "NEW-002-V"
       ],
       "resolution": null
     }
@@ -1043,7 +1059,7 @@
     {
       "id": "UX-007-R",
       "title": "Повторно проверить: У кнопки создания песни отсутствует явное имя в текущей иерархии",
-      "status": "queued",
+      "status": "verified",
       "executor": "ornith",
       "kind": "research",
       "after": [
@@ -1065,17 +1081,34 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
-      "verification": null
+      "run": {
+        "id": "UX-007-R-20261024-041046",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-007-R-20261024-041046/pi.jsonl",
+        "started_at": "2026-10-24T04:10:46.464251+01:00",
+        "deadline_at": "2026-10-24T04:20:46.464251+01:00",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": "ollama/ornith-1.5:35b",
+        "result_path": "docs/plans/systemic-ux/reviews/UX-007.md",
+        "finish_reason": "stop"
+      },
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "e198a54d520ac7f2cce99ab0b7e02e54ff40f91b",
+        "evidence": [
+          "docs/plans/systemic-ux/reviews/UX-007.md",
+          "docs/plans/systemic-ux/verification/UX-007-R.json"
+        ]
+      }
     },
     {
       "id": "UX-007-I",
       "title": "Минимальное исправление/проверка решения: У кнопки создания песни отсутствует явное имя в текущей иерархии",
-      "status": "queued",
+      "status": "verified",
       "executor": "ornith",
       "kind": "implementation",
       "after": [
-        "UX-007-R"
+        "UX-007-R",
+        "UX-007-S"
       ],
       "issue": "UX-007",
       "read_files": [
@@ -1095,8 +1128,25 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
-      "verification": null
+      "run": {
+        "id": "UX-007-I-20261024-041641",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-007-I-20261024-041641/pi.jsonl",
+        "started_at": "2026-10-24T04:16:41.361065+01:00",
+        "deadline_at": "2026-10-24T04:26:41.361065+01:00",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": "ollama/ornith-1.5:35b",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_systemic_ux",
+        "red_test_log": "audit/2026-10-23-systemic-ux/workers/UX-007-R-20261024-041046/red-test.log",
+        "result_path": "docs/plans/systemic-ux/verification/UX-007-I.json",
+        "finish_reason": "stop"
+      },
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "d842fa36674a6a4a008ac413203bf939603c836b",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/UX-007-I.json"
+        ]
+      }
     },
     {
       "id": "UX-007-V",
@@ -1121,7 +1171,8 @@
       "timeout_s": null,
       "max_attempts": 1,
       "run": null,
-      "verification": null
+      "verification": null,
+      "pending_reason": "Fresh installed-device/TalkBack check remains; code and rendered semantics regression are verified, not full issue closure."
     },
     {
       "id": "UX-008-R",
@@ -1901,7 +1952,7 @@
     {
       "id": "OPS-RUNNER",
       "title": "Подготовить безопасный запуск существующего Pi клиента",
-      "status": "queued",
+      "status": "verified",
       "executor": "hermes",
       "kind": "preflight",
       "after": [
@@ -1920,8 +1971,22 @@
       ],
       "timeout_s": null,
       "max_attempts": 1,
-      "run": null,
-      "verification": null
+      "run": {
+        "id": "OPS-RUNNER-20261024-040954",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/OPS-LAN-20261024-040047/pi-tool-probe.jsonl",
+        "started_at": "2026-10-24T04:09:54.507290+01:00",
+        "deadline_at": "2026-10-24T04:19:54.507290+01:00",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": "ollama/ornith-1.5:35b",
+        "result_path": "docs/plans/systemic-ux/verification/OPS-RUNNER.json"
+      },
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "e198a54d520ac7f2cce99ab0b7e02e54ff40f91b",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/OPS-RUNNER.json"
+        ]
+      }
     },
     {
       "id": "LEGACY-01",
@@ -2003,7 +2068,8 @@
         "QA-PLATFORM-V",
         "QA-AUDIO-V",
         "QA-HUMAN-V",
-        "NEW-001-V"
+        "NEW-001-V",
+        "NEW-002-V"
       ],
       "issue": null,
       "read_files": [],
@@ -2120,6 +2186,97 @@
         "NEW-001-R"
       ],
       "issue": "NEW-001",
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Record reproducible source evidence; add bounded fix/test tasks before closure."
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-007-S",
+      "title": "SingleFab: передать существующий tooltip в semanticLabel и проверить реальный label",
+      "status": "verified",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "UX-007-R",
+        "OPS-RUNNER"
+      ],
+      "issue": "UX-007",
+      "read_files": [
+        "lib/widgets/fab_variants.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "allowed_files": [
+        "lib/widgets/fab_variants.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "acceptance": [
+        "Править только SingleFab child Icon: semanticLabel берётся из существующего tooltip; API и цвета не менять.",
+        "Существующий failing routed widget test должен стать GREEN без ослабления проверки label.",
+        "Другие SingleFab callers без tooltip не считать исправленными; проверить отдельно при закрытии UX-007."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": {
+        "id": "UX-007-S-20261024-042009",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-007-S-20261024-042009/pi.jsonl",
+        "started_at": "2026-10-24T04:20:09.201149+01:00",
+        "deadline_at": "2026-10-24T04:30:09.201149+01:00",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": "ollama/ornith-1.5:35b",
+        "result_path": "docs/plans/systemic-ux/verification/UX-007-S.json",
+        "finish_reason": "stop"
+      },
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "d842fa36674a6a4a008ac413203bf939603c836b",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/UX-007-S.json"
+        ]
+      }
+    },
+    {
+      "id": "NEW-002-R",
+      "title": "Проверить и подписать create FAB в Setlists, Band Setlists и Rehearsals — triage",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "issue": "NEW-002",
+      "read_files": [
+        "lib/screens/setlists/setlists_list_screen.dart",
+        "lib/screens/bands/band_setlists_screen.dart",
+        "lib/screens/bands/rehearsals/rehearsals_list_screen.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/NEW-002.md"
+      ],
+      "acceptance": [
+        "Record reproducible source evidence; add bounded fix/test tasks before closure."
+      ],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "NEW-002-V",
+      "title": "Проверить и подписать create FAB в Setlists, Band Setlists и Rehearsals — verify resolution",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "NEW-002-R"
+      ],
+      "issue": "NEW-002",
       "read_files": [],
       "allowed_files": [],
       "acceptance": [

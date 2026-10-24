@@ -2,16 +2,19 @@
 
 ## Current checkpoint — 2026-10-24
 
-- Active registry: `docs/plans/systemic-ux/activity.json`; 32 open records,
-  59 tasks (34 Ornith-first), including newly found Graphify coverage work. Read current counts.
+- Active registry: `docs/plans/systemic-ux/activity.json`; 33 open records,
+  62 tasks (36 Ornith-first), including newly found Graphify coverage work. Read current counts.
 - Saved nine UX findings, 14 open GitHub issues and eight uncovered verification areas.
 - Release hold wired into both Makefiles and the Android publishing workflow;
   development CI validates the hold instead of treating intentional blocking as failure.
 - OPS-LAN verified: existing Pi studio / Ornith 35b performed a read tool call and
   returned a source-checked final in 9.69 s. Native delegate 401 remains separate.
   Noninteractive Pi must use stdin=DEVNULL; inherited stdin stalled the first launch.
-- UX application implementation not started; no Dart/audio/user-data changes.
-- Next: safe OPS-RUNNER → UX-007-R → one bounded accessibility fix after verification.
+- First UX-007 code slice verified on fix/systemic-ux: caller tooltip + shared Icon
+  semantic label, 20 screen tests pass; fresh device/TalkBack remains pending.
+  No audio/user-data changes, publication or install.
+- OPS-RUNNER and UX-007-R/I/S verified. NEW-002 records three adjacent missing labels;
+  next: integrate the tested slice, device check and remaining bounded tasks.
 - Historical state below is retained; old green suites and completed checklists are
   not fresh verification of today's code/device behaviour.
 

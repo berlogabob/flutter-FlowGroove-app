@@ -1,14 +1,14 @@
 # Active activity plan — FlowGroove systemic UX/UI
 
-Дата: 2026-10-23. Владелец приёмки: Hermes; продуктовые решения/закрытие GitHub issues: Andrew. Реализация UX этим checkpoint не запущена.
+Дата: 2026-10-23. Владелец приёмки: Hermes; продуктовые решения/закрытие GitHub issues: Andrew. План создан 23 октября; выполнение начато 24 октября малыми проверяемыми срезами.
 
 ## Источник истины
 
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
-- В процессе уже добавлен NEW-001: ограничения извлечения Graphify. Сейчас 32 открытые записи, 59 задач; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 59 задач, из них 34 назначены Ornith. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
+- В процессе уже добавлен NEW-001: ограничения извлечения Graphify. Сейчас 33 открытые записи, 62 задачи; состояние всегда читать из activity.json.
+- Текущая декомпозиция: 62 задачи, из них 36 назначены Ornith. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -27,7 +27,7 @@ Gate требует: валидный реестр и DAG, все issue resolved
 ## Очерёдность
 
 - [x] OPS-LAN: exact Ornith 35b runtime + реальный read tool + проверенный непустой final; verification/OPS-LAN.json. Native delegate 401 не исправлялся.
-- [ ] OPS-RUNNER: подтвердить безопасный клиент/изоляцию; не запускать старый runner как есть.
+- [x] OPS-RUNNER: чистый fix/systemic-ux worktree, existing Pi с bounded tools/stdin, parent diff/allowlist/test приёмка; verification/OPS-RUNNER.json. Старый runner не запускался.
 - [ ] Повторно изучить UX-001…UX-009; проверить реальные source branches и сформулировать малые acceptance tests.
 - [ ] LEGACY-01 и GH-*-R: сверить все прежние local/remote открытые работы, связи/дубликаты и доказательства.
 - [ ] DESIGN-01: утвердить Practice/Progress, view/Edit и global/context menu до широких nav-изменений.
@@ -38,7 +38,7 @@ Gate требует: валидный реестр и DAG, все issue resolved
 
 ## Текущий checkpoint — 2026-10-24
 
-OPS-LAN verified через существующий Pi studio. Один read tool, корректный source-backed final, 9.69 s. Первый Pi timeout был запуском с inherited stdin; использовать stdin=DEVNULL. Старые неуспешные probes ниже сохраняются как история. Далее OPS-RUNNER и UX-007-R; UX исправлений пока нет.
+OPS-LAN verified через существующий Pi studio. Один read tool, корректный source-backed final, 9.69 s. Первый Pi timeout был запуском с inherited stdin; использовать stdin=DEVNULL. Старые неуспешные probes ниже сохраняются как история. OPS-RUNNER и UX-007-R/I/S verified; первый кодовый срез прошёл 20 screen tests, но device/TalkBack и закрытие issue остаются впереди.
 
 ## Ornith-first по LAN
 
@@ -144,9 +144,9 @@ Registry изменяет только один родительский про�
   - После: UX-006-R. Scope: `lib/screens/metronome_screen.dart`, `test/midi/drums_button_test.dart`.
 - [ ] **UX-006-V** · hermes · Независимая приёмка и device recheck: UX-006
   - После: UX-006-I. Scope: проверка/решение без production edits.
-- [ ] **UX-007-R** · ornith · Повторно проверить: У кнопки создания песни отсутствует явное имя в текущей иерархии
+- [x] **UX-007-R** · ornith · Повторно проверить: У кнопки создания песни отсутствует явное имя в текущей иерархии
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-007.md`.
-- [ ] **UX-007-I** · ornith · Минимальное исправление/проверка решения: У кнопки создания песни отсутствует явное имя в текущей иерархии
+- [x] **UX-007-I** · ornith · Минимальное исправление/проверка решения: У кнопки создания песни отсутствует явное имя в текущей иерархии
   - После: UX-007-R. Scope: `lib/screens/songs/songs_list_screen.dart`, `test/screens/songs/songs_list_screen_test.dart`.
 - [ ] **UX-007-V** · hermes · Независимая приёмка и device recheck: UX-007
   - После: UX-007-I. Scope: проверка/решение без production edits.
@@ -229,3 +229,11 @@ Registry изменяет только один родительский про�
 - [ ] NEW-001-V · Hermes: подтвердить покрытие/ограничение и безопасное resolution после triage.
 
 Регистрация выполнена реальной командой add; финальные зависимости расширены, история дописана, release остаётся BLOCKED.
+
+- [x] UX-007-S · Ornith: SingleFab Icon semanticLabel из tooltip. Добавлено после реального RED, который не исправился одним tooltip; UX-007-I зависит от этого среза.
+
+## UX-007 implementation checkpoint
+
+Code commit d842fa36674a6a4a008ac413203bf939603c836b in fix/systemic-ux: caller tooltip + shared Icon semanticLabel. Parent corrected the test to merged SemanticsData and in-body handle disposal, then confirmed original RED / tooltip-only RED / both GREEN. All 20 SongsListScreen tests pass; analyzer has only the same two baseline findings, format unchanged. UX-007-V remains open for fresh device/TalkBack, so the issue and release hold are NOT closed.
+
+- [ ] NEW-002-R/V · Соседние create FAB: Setlists, Band Setlists, Rehearsals. Создано реальной командой add по свежему чтению callers; не объявлены исправленными этим срезом.

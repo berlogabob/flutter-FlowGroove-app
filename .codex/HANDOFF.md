@@ -14,8 +14,12 @@ OPS-LAN is verified; see verification/OPS-LAN.json. Existing Pi studio / exact O
 35b completed read + correct final without global auth/provider reconfiguration.
 Native delegate remains 401. Noninteractive subprocess must use stdin=DEVNULL;
 keep no-context/no-skills/no-extensions/no-mcp and explicit tools for bounded work.
-Next OPS-RUNNER: isolated worktree, no old plan_run.py global clean/checkout/add-A
-or cloud fallback. Then UX-007-R and one bounded fix; Hermes runs tests and accepts.
+OPS-RUNNER verified in ../flutter_repsync_systemic_ux, fix/systemic-ux. No old
+runner, global clean/checkout/add-A or cloud fallback. UX-007-R/I/S verified: two
+bounded Ornith production edits plus parent regression test; 20 screen tests pass.
+UX-007-V stays pending for fresh device/TalkBack. NEW-002 tracks three adjacent FAB
+callers. Preserve final merged-semantics regression and the original/tooltip/both
+RED/RED/GREEN matrix; do not revert to raw SemanticsNode.label assertions.
 
 Commands: `uv run --isolated --no-project python scripts/activity_plan.py check`,
 `uv run --isolated --no-project python scripts/test_activity_plan.py`,

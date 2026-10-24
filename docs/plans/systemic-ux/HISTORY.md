@@ -44,3 +44,27 @@ New user-authorised bounded experiment with adequate final budget and read-only 
 ## 2026-10-24T04:07:22.462281+01:00 — OPS-LAN verified
 
 Existing Pi studio client / exact Ornith 35b completed real read-only tool cycle, exit 0, 9.69 s, two source names independently checked. Native delegate 401 unchanged. Initial inherited-stdin launch timed out with zero events; corrected distinct probe used stdin=DEVNULL. Raw logs remain private. See verification/OPS-LAN.json.
+
+## 2026-10-24T04:09:54.507290+01:00 — OPS-RUNNER verified
+
+Isolated fix/systemic-ux worktree at e198a54d; offline Flutter dependencies resolved, Git state clean. Existing Pi invocation, per-task explicit tool sets, parent allowlist/diff checks and bounded timeout; not an OS sandbox. Old runner, destructive clean/checkout and automatic fallback are not used.
+
+## 2026-10-24T04:12:27.140207+01:00 — UX-007-R verified
+
+Ornith source review confirmed the missing tooltip. Parent corrected one invented line reference and added explicit semantics setup to the proposed regression test. No code/device execution credited to the worker. Next: RED → bounded Ornith production edit → GREEN.
+
+## 2026-10-24T04:20:09.183988+01:00 — UX-007 root cause expanded after real failed test
+
+The one-line tooltip edit did not satisfy rendered FAB label: full SongsListScreen file showed 19 passes and the new semantics assertion failed. Flutter Tooltip uses RawTooltip.semanticsTooltip; Icon has a separate semanticLabel. Added UX-007-S (one shared production file); UX-007-I blocked until it passes. Do not weaken the assertion or credit the issue as fixed.
+
+## 2026-10-24T04:28:50.203871+01:00 — UX-007-I/S code verified
+
+Ornith performed each of the two single-file production edits. Parent corrected its own test accessor/lifecycle, repeated a real 3-variant matrix (original fails; tooltip-only fails; both pass), then all 20 SongsListScreen tests passed. Analyze/format checks passed with two unchanged baseline diagnostics. Code commit d842fa36674a6a4a008ac413203bf939603c836b. Device/TalkBack and issue closure remain pending.
+
+## 2026-10-24T03:28:58.210062+00:00 — NEW-002 added
+
+Проверить и подписать create FAB в Setlists, Band Setlists и Rehearsals
+
+Source: lib/screens/setlists/setlists_list_screen.dart:201; lib/screens/bands/band_setlists_screen.dart:218; lib/screens/bands/rehearsals/rehearsals_list_screen.dart:42
+
+Release remains blocked; final verification invalidated.
