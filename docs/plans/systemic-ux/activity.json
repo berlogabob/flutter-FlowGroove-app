@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-24T16:32:48.923938+01:00",
+  "updated_at": "2026-10-24T17:00:51.447516+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -544,7 +544,10 @@
       "source_locations": [],
       "tasks": [
         "NEW-002-R",
-        "NEW-002-V"
+        "NEW-002-V",
+        "NEW-002-I1",
+        "NEW-002-I2",
+        "NEW-002-I3"
       ],
       "resolution": null
     }
@@ -2161,7 +2164,10 @@
         "QA-AUDIO-V",
         "QA-HUMAN-V",
         "NEW-001-V",
-        "NEW-002-V"
+        "NEW-002-V",
+        "NEW-002-I1",
+        "NEW-002-I2",
+        "NEW-002-I3"
       ],
       "issue": null,
       "read_files": [],
@@ -2337,7 +2343,7 @@
     {
       "id": "NEW-002-R",
       "title": "Проверить и подписать create FAB в Setlists, Band Setlists и Rehearsals — triage",
-      "status": "running",
+      "status": "verified",
       "executor": "ornith",
       "kind": "research",
       "after": [
@@ -2363,14 +2369,22 @@
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-R-20261024-164041/pi.jsonl",
         "started_at": "2026-10-24T16:40:41.367015+01:00",
         "deadline_at": "2026-10-24T16:44:41.367015+01:00",
-        "actual_model": null,
+        "actual_model": "ollama/ornith-1.5:35b",
         "requested_model": "ollama/ornith-1.5:35b",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
         "active_actor": "ornith",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-R-20261024-164041/process.json",
-        "phase": "bounded_read_only_triage"
+        "phase": "parent_source_review_accepted",
+        "duration_s": 74.48
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "6cc92c8e4a3a71e76f280c5875bb30a3d90bd4a4",
+        "evidence": [
+          "docs/plans/systemic-ux/reviews/NEW-002.md",
+          "docs/plans/systemic-ux/verification/NEW-002-R.json"
+        ]
+      }
     },
     {
       "id": "NEW-002-V",
@@ -2379,7 +2393,10 @@
       "executor": "hermes",
       "kind": "verification",
       "after": [
-        "NEW-002-R"
+        "NEW-002-R",
+        "NEW-002-I1",
+        "NEW-002-I2",
+        "NEW-002-I3"
       ],
       "issue": "NEW-002",
       "read_files": [],
@@ -2389,6 +2406,104 @@
       ],
       "timeout_s": null,
       "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "executor": "ornith",
+      "kind": "implementation",
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "id": "NEW-002-I1",
+      "title": "Подписать create FAB в Setlists",
+      "status": "running",
+      "after": [
+        "NEW-002-R"
+      ],
+      "issue": "NEW-002",
+      "read_files": [
+        "lib/screens/setlists/setlists_list_screen.dart",
+        "test/screens/setlists/setlists_list_screen_test.dart",
+        "lib/widgets/fab_variants.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/setlists/setlists_list_screen.dart",
+        "test/screens/setlists/setlists_list_screen_test.dart"
+      ],
+      "acceptance": [
+        "Existing SingleFab tooltip is 'Create Setlist'; preserve permission branches, route, hero tag and Mono Pulse.",
+        "Parent supplies failing rendered merged-semantics regression; real RED and GREEN plus role checks required.",
+        "Only one production file and the named test; no dependencies, provider/engine/auth/shared-widget changes."
+      ],
+      "run": {
+        "id": "NEW-002-I1-20261024-170510",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I1-20261024-170510/red-test.json",
+        "started_at": "2026-10-24T17:05:10.680678+01:00",
+        "deadline_at": "2026-10-24T17:35:10.680678+01:00",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": null,
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+        "phase": "parent_rendered_semantics_red",
+        "active_actor": "hermes",
+        "preflight_process": "proc_136f64d6046b"
+      },
+      "verification": null
+    },
+    {
+      "executor": "ornith",
+      "kind": "implementation",
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "id": "NEW-002-I2",
+      "title": "Подписать create FAB в Band Setlists",
+      "status": "queued",
+      "after": [
+        "NEW-002-R"
+      ],
+      "issue": "NEW-002",
+      "read_files": [
+        "lib/screens/bands/band_setlists_screen.dart",
+        "test/screens/bands/band_setlists_screen_test.dart",
+        "lib/widgets/fab_variants.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/bands/band_setlists_screen.dart",
+        "test/screens/bands/band_setlists_screen_test.dart"
+      ],
+      "acceptance": [
+        "Existing SingleFab tooltip is 'Create Band Setlist'; preserve permission branches, route, hero tag and Mono Pulse.",
+        "Parent supplies failing rendered merged-semantics regression; real RED and GREEN plus role checks required.",
+        "Only one production file and the named test; no dependencies, provider/engine/auth/shared-widget changes."
+      ],
+      "run": null,
+      "verification": null
+    },
+    {
+      "executor": "ornith",
+      "kind": "implementation",
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "id": "NEW-002-I3",
+      "title": "Подписать create FAB в Rehearsals",
+      "status": "queued",
+      "after": [
+        "NEW-002-R"
+      ],
+      "issue": "NEW-002",
+      "read_files": [
+        "lib/screens/bands/rehearsals/rehearsals_list_screen.dart",
+        "test/screens/bands/rehearsals/rehearsals_list_screen_test.dart",
+        "lib/widgets/fab_variants.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/bands/rehearsals/rehearsals_list_screen.dart",
+        "test/screens/bands/rehearsals/rehearsals_list_screen_test.dart"
+      ],
+      "acceptance": [
+        "Existing SingleFab tooltip is 'Propose rehearsal'; preserve permission branches, route, hero tag and Mono Pulse.",
+        "Parent supplies failing rendered merged-semantics regression; real RED and GREEN plus role checks required.",
+        "Only one production file and the named test; no dependencies, provider/engine/auth/shared-widget changes."
+      ],
       "run": null,
       "verification": null
     }

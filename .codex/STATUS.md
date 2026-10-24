@@ -3,7 +3,7 @@
 ## Current checkpoint — 2026-10-24
 
 - Active registry: `docs/plans/systemic-ux/activity.json`; 33 open records,
-  62 tasks (35 current Ornith assignments, one explicit parent fallback), including newly found Graphify coverage work. Read current counts.
+  65 tasks (38 current Ornith assignments, one explicit parent fallback), including newly found Graphify coverage work. Read current counts.
 - Saved nine UX findings, 14 open GitHub issues and eight uncovered verification areas.
 - Release hold wired into both Makefiles and the Android publishing workflow;
   development CI validates the hold instead of treating intentional blocking as failure.
@@ -83,3 +83,5 @@
 3. Keep emulator-backed acceptance flows under `integration_test/**` and keep routed widget/navigation coverage in the fast test tree.
 
 UX-006-I integrated and accepted: e6d8f26b, 64 related primary tests, final analyze/format exit 0. UX-006-V remains blocked for fresh installed-device evidence. Periodic read-only brief d173a844e136 checks every 10 minutes; it does not drive implementation.
+
+NEW-002-R accepted from three parent-checked source windows. Three one-production-file fix/test slices registered; NEW-002-I1 now runs its rendered-semantics RED on fix/new002 in ../flutter_repsync_ux006 (proc_136f64d6046b). No tooltip fix has been applied yet.

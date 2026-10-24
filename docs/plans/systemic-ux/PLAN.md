@@ -8,7 +8,7 @@
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
 - В процессе уже добавлен NEW-001: ограничения извлечения Graphify. Сейчас 33 открытые записи, 62 задачи; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 62 задачи, из них 35 назначены Ornith; UX-006-R принят Hermes после первого timeout. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
+- Текущая декомпозиция: 65 задач, из них 38 назначены Ornith; UX-006-R принят Hermes после первого timeout. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -245,3 +245,11 @@ UX-006-R: worker exit 124/no final preserved in attempt_history; parent source r
 UX-006-I complete: authenticated public launchpad regression covers portrait/landscape; Ornith production edit and parent tests/const cleanup accepted on primary. See verification/UX-006-I.json.
 
 UX-006-I accepted on second01 e6d8f26b: 64 primary related tests passed (including the 17 target cases), final analyze/format exit 0. UX-006-V is blocked pending fresh installed-device recheck; issue remains open and release held.
+
+## NEW-002 bounded fix slices
+
+- [ ] **NEW-002-I1** · ornith · Подписать create FAB в Setlists. Scope: `lib/screens/setlists/setlists_list_screen.dart`, `test/screens/setlists/setlists_list_screen_test.dart`. After NEW-002-R.
+- [ ] **NEW-002-I2** · ornith · Подписать create FAB в Band Setlists. Scope: `lib/screens/bands/band_setlists_screen.dart`, `test/screens/bands/band_setlists_screen_test.dart`. After NEW-002-R.
+- [ ] **NEW-002-I3** · ornith · Подписать create FAB в Rehearsals. Scope: `lib/screens/bands/rehearsals/rehearsals_list_screen.dart`, `test/screens/bands/rehearsals/rehearsals_list_screen_test.dart`. After NEW-002-R.
+
+All three slices gate NEW-002-V and FINAL-TEST; device acceptance remains separate.

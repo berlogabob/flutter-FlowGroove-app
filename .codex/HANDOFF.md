@@ -153,3 +153,5 @@ They are probably `.gitignore` candidates. Left untouched so the decision is the
 UX-006-R completion: Ornith timed out (540 s, no final) and guessed 4 read attempts at 2 unallowlisted paths. Rejected; no retry. Hermes completed the three-file source review, recorded separate failed attempt and explicit actor change. UX-006-I still queued; authenticated active-MIDI regression first. Source review only, not a second UI fix.
 
 UX-006-I integrated and accepted: e6d8f26b, 64 related primary tests, final analyze/format exit 0. UX-006-V remains blocked for fresh installed-device evidence. Periodic read-only brief d173a844e136 checks every 10 minutes; it does not drive implementation.
+
+NEW-002-R accepted from three parent-checked source windows. Three one-production-file fix/test slices registered; NEW-002-I1 now runs its rendered-semantics RED on fix/new002 in ../flutter_repsync_ux006 (proc_136f64d6046b). No tooltip fix has been applied yet.

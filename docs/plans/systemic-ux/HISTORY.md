@@ -114,3 +114,11 @@ Primary six-file run proc_0a98acfc2ee0 exited 0, 64 tests passed. Final worktree
 ## 2026-10-24T16:46:22.404789+01:00 — next bounded triage launched
 
 NEW-002-R launched as proc_64e1fb0458b6 via existing Pi/Studio. Three explicit FAB call-site windows, at most three reads, 180 s process cap, no edits or commands; parent must inspect result before task closure and add three bounded fix/test tasks if confirmed. Periodic monitor now checks real worker PID from private process.json as well as native compiler/test processes.
+
+## 2026-10-24T17:00:51.447516+01:00 — NEW-002-R accepted, three bounded fixes registered
+
+Correct Ornith/Studio run, three scoped reads, source checked by parent. Spoken-label speculation and translated labels not accepted; existing English action vocabulary retained. NEW-002-I1/I2/I3 each allow one production and one test file. NEW-002-V and FINAL-TEST depend on all slices; issue not resolved.
+
+## 2026-10-24T17:11:39.841252+01:00 — NEW-002-I1 RED launched
+
+Parent added merged SemanticsData/tooltip assertions using existing routed setlists fixture, explicit try/finally semantics disposal. No production edit yet. Reused warm worktree under branch fix/new002; long bounded native/test run proc_136f64d6046b writes red-test.json. Successful worker triage is not counted as a UI fix.
