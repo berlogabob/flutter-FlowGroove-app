@@ -198,3 +198,11 @@ Six cases passed, analyze/format/diff exit 0; four pre-existing info expressions
 ## 2026-10-24T20:10:08.779791+01:00 — Shared card accepted, readonly semantics RED started
 
 74 primary tests passed across eight related files on 87bfe21f96a1273cb4711f75ad5cca0aed25b04d; source/test hashes match accepted six-case worktree suite. UX-009-I2 verified, source/test/evidence retained and no model credit for parent fallback. NEW-003-I now runs rendered readonly semantics RED as proc_d5b3ef9e53bc with original source still intact. UX-009 whole-screen slice remains queued; all 34 issues stay open.
+
+## 2026-10-24T20:22:16.060056+01:00 — NEW-003 original RED and explicit fallback
+
+Readonly merged semantics RED showed actual No practice yet this week. Tap to start practicing. One Ornith attempt timed out at 120 s after one allowed read, zero edits/final (120.45 s duration); rejected and preserved, no retry. Parent takes over the one conditional label change. Two recent code attempts reached the short bound despite successful 95 s research; server degradation is not diagnosed. Future distinct code-task bounds must fit the ledger (up to 600 s), not silently retry these tasks.
+
+## 2026-10-24T20:26:05.343684+01:00 — Readonly-card conditional label prepared
+
+Parent added only tappable selection for empty-week accessible label; Home true label, visible UI, data/error/loading branches and callbacks untouched. Final regression checks both readonly semantics/copy and original tappable semantics/copy; full seven-case suite/analyze/format/diff proc_740851d3d2bd pending. Code remains worktree-only, no primary acceptance or device claim.

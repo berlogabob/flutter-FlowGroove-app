@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-24T20:10:08.529620+01:00",
+  "updated_at": "2026-10-24T20:26:05.343684+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -2838,21 +2838,27 @@
       "max_attempts": 1,
       "run": {
         "id": "NEW-003-I-20261024-200705",
-        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-003-I-20261024-200705/red-test.json",
-        "started_at": "2026-10-24T20:07:05.185884+01:00",
-        "deadline_at": "2026-10-24T20:37:05.185884+01:00",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-003-I-20261024-200705/pi.jsonl",
+        "started_at": "2026-10-24T20:19:09.951797+01:00",
+        "deadline_at": "2026-10-24T20:22:09.951797+01:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
         "requested_model": "ollama/ornith-1.5:35b",
         "actual_model": null,
-        "phase": "parent_readonly_semantics_red",
+        "phase": "parent_green_semantics_verification",
         "active_actor": "hermes",
-        "preflight_process": "proc_d5b3ef9e53bc"
+        "preflight_process": "proc_d5b3ef9e53bc",
+        "red_exit_code": 1,
+        "worker_failure": "120 s bound exceeded; one allowed source read, no edit/final. No repeated prompt.",
+        "green_process": "proc_740851d3d2bd",
+        "green_report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-003-I-20261024-200705/green-test.json",
+        "green_source_sha256": "02fe6b9dd69e61279ed40a5eb13228dfe6c7d96db0b2c4d5420e8ddcee69f00c",
+        "green_test_sha256": "cd055d020a6cb7969f6e7b80df28e49b609d6423f19dd678c964b60f288991d5"
       },
       "verification": null,
       "id": "NEW-003-I",
       "title": "Correct readonly Practice card accessible instruction without changing navigation",
-      "status": "running",
-      "executor": "ornith",
+      "status": "review",
+      "executor": "hermes",
       "kind": "implementation",
       "after": [
         "NEW-003-R",
@@ -2869,7 +2875,36 @@
       "acceptance": [
         "One production file and one existing widget test only; change accessible empty-data instruction for tappable:false, not onTap/routes/audio.",
         "Prove true/false rendered semantics and retained existing loading/error/data navigation tests."
-      ]
+      ],
+      "attempts": [
+        {
+          "id": "NEW-003-I-20261024-200705",
+          "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-003-I-20261024-200705/pi.jsonl",
+          "started_at": "2026-10-24T20:19:09.951797+01:00",
+          "deadline_at": "2026-10-24T20:22:09.951797+01:00",
+          "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+          "requested_model": "ollama/ornith-1.5:35b",
+          "actual_model": null,
+          "phase": "ornith_readonly_semantics_implementation",
+          "active_actor": "ornith",
+          "preflight_process": "proc_d5b3ef9e53bc",
+          "red_exit_code": 1,
+          "result": {
+            "exit_code": 124,
+            "actual_model": null,
+            "provider": null,
+            "duration_s": 120.45,
+            "backend_manifest_verified": false,
+            "allowed_paths_only": true,
+            "test_unchanged": true,
+            "reads": 1,
+            "edits": 0,
+            "final": ""
+          },
+          "outcome": "rejected_timeout_no_final_no_edits"
+        }
+      ],
+      "original_executor": "ornith"
     },
     {
       "issue": "NEW-003",
