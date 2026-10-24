@@ -202,6 +202,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
               icon: Icons.add,
               onPressed: () => context.goNamed('create-setlist'),
               heroTag: 'setlists_fab',
+              tooltip: 'Create Setlist',
             )
           : null,
       body: _buildBody(setlistsAsync),

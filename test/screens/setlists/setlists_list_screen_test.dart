@@ -3,6 +3,7 @@ import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flowgroove/screens/setlists/setlists_list_screen.dart';
@@ -88,6 +89,38 @@ void main() {
       expect(find.text('Setlists'), findsOneWidget);
       expect(find.text('Search setlists...'), findsOneWidget);
       expect(find.byIcon(Icons.sort), findsOneWidget);
+    });
+
+    testWidgets('create FAB exposes an accessible action name', (tester) async {
+      final semantics = tester.ensureSemantics();
+      try {
+        await pumpRoutedTestApp(
+          tester,
+          initialLocation: '/main/setlists',
+          overrides: overridesFor(setlists: Stream<List<Setlist>>.value([])),
+        );
+        final fab = find.byType(FloatingActionButton);
+        expect(fab, findsOneWidget);
+        expect(
+          tester.getSemantics(fab).getSemanticsData().label,
+          contains('Create Setlist'),
+        );
+        expect(find.byTooltip('Create Setlist'), findsOneWidget);
+      } finally {
+        semantics.dispose();
+      }
+    });
+
+    testWidgets('readonly users have no create FAB', (tester) async {
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/setlists',
+        overrides: [
+          ...overridesFor(setlists: Stream<List<Setlist>>.value([])),
+          canEditProvider.overrideWithValue(false),
+        ],
+      );
+      expect(find.byType(FloatingActionButton), findsNothing);
     });
 
     testWidgets('displays empty state when no setlists exist', (tester) async {
