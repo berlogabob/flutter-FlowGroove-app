@@ -36,3 +36,11 @@ Release remains blocked; final verification invalidated.
 - Native delegate deleg_ed32697f returned HTTP 401 (invalid/expired API key), one API call; no review output accepted.
 - This is separate from the direct Studio LAN length/empty-final result. OPS-LAN remains blocked; no task closed and no automatic model/provider substitution or credential change.
 - Late notification recorded without restarting remediation or altering the existing release hold.
+
+## 2026-10-24T04:00:47.909446+01:00 — OPS-LAN restarted, OPS-LAN-20261024-040047
+
+New user-authorised bounded experiment with adequate final budget and read-only tool access. Prior 401/empty-final failures retained; no global credentials/provider changes and no force-cancel of another active model job.
+
+## 2026-10-24T04:07:22.462281+01:00 — OPS-LAN verified
+
+Existing Pi studio client / exact Ornith 35b completed real read-only tool cycle, exit 0, 9.69 s, two source names independently checked. Native delegate 401 unchanged. Initial inherited-stdin launch timed out with zero events; corrected distinct probe used stdin=DEVNULL. Raw logs remain private. See verification/OPS-LAN.json.

@@ -1,6 +1,6 @@
 # HANDOFF
 
-## Current handoff — 2026-10-23
+## Current handoff — 2026-10-24
 
 Read `docs/plans/systemic-ux/PLAN.md`, `activity.json`, `HISTORY.md`, then BASELINE.md
 and TARGET-UX.md. The task is whole-app systematic UX/UI remediation, documentation,
@@ -10,11 +10,12 @@ No release while any open task/finding/check remains. GitHub issues (14 at snaps
 were imported for re-verification, not auto-closed. First-release/Play-launch issues
 can conflict with this literal hold; only the owner may resolve that policy conflict.
 
-Next bounded milestone: OPS-LAN. Existing Pi provider studio points at the Studio
-LAN, model `ollama/ornith-1.5:35b`; model listing works, chat probe produced no final.
-Do not claim a working agent from that. No global auth/provider reconfiguration.
-Then OPS-RUNNER: do not run old plan_run.py's global clean/checkout/add-A/fallback.
-One isolated worker/allowlist/deadline, Hermes tests and accepts each change.
+OPS-LAN is verified; see verification/OPS-LAN.json. Existing Pi studio / exact Ornith
+35b completed read + correct final without global auth/provider reconfiguration.
+Native delegate remains 401. Noninteractive subprocess must use stdin=DEVNULL;
+keep no-context/no-skills/no-extensions/no-mcp and explicit tools for bounded work.
+Next OPS-RUNNER: isolated worktree, no old plan_run.py global clean/checkout/add-A
+or cloud fallback. Then UX-007-R and one bounded fix; Hermes runs tests and accepts.
 
 Commands: `uv run --isolated --no-project python scripts/activity_plan.py check`,
 `uv run --isolated --no-project python scripts/test_activity_plan.py`,

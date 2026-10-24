@@ -1,0 +1,34 @@
+{
+  "task": "OPS-LAN",
+  "verified_at": "2026-10-24T04:07:22.458175+01:00",
+  "reviewer": "hermes",
+  "tested_commit": "aa7cc781ef57b5d250106b546cb4567e471bf1ca",
+  "provider": "studio",
+  "requested_model": "ollama/ornith-1.5:35b",
+  "actual_model": "ollama/ornith-1.5:35b",
+  "backend_ornith_35b_manifest_verified": true,
+  "loaded_server_context": 262144,
+  "client_context": 65536,
+  "pi_exit_code": 0,
+  "pi_duration_s": 9.69,
+  "read_tools": 1,
+  "read_path": "scripts/test_activity_plan.py",
+  "final": "- `test_dependency_cycle_rejected`\n- `test_optimized_python_cannot_remove_safety_checks`",
+  "source_names_independently_verified": [
+    "test_dependency_cycle_rejected",
+    "test_optimized_python_cannot_remove_safety_checks"
+  ],
+  "global_configuration_changed": false,
+  "native_delegate_status": "401 remains unresolved; verified execution uses existing Pi studio provider",
+  "unsuccessful_probes": [
+    {
+      "kind": "literal nonce prompt",
+      "result": "nonempty refusal, not accepted as task proof"
+    },
+    {
+      "kind": "initial Pi launch",
+      "result": "180 s timeout with zero JSON events; stdin inherited; corrected new read-only task used stdin=DEVNULL"
+    }
+  ],
+  "private_log": "audit/2026-10-23-systemic-ux/workers/OPS-LAN-20261024-040047/pi-tool-probe.jsonl"
+}

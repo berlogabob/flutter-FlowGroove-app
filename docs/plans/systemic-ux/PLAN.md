@@ -26,7 +26,7 @@ Gate требует: валидный реестр и DAG, все issue resolved
 
 ## Очерёдность
 
-- [ ] OPS-LAN: получить непустой final + точный actual model + read-only tool cycle.
+- [x] OPS-LAN: exact Ornith 35b runtime + реальный read tool + проверенный непустой final; verification/OPS-LAN.json. Native delegate 401 не исправлялся.
 - [ ] OPS-RUNNER: подтвердить безопасный клиент/изоляцию; не запускать старый runner как есть.
 - [ ] Повторно изучить UX-001…UX-009; проверить реальные source branches и сформулировать малые acceptance tests.
 - [ ] LEGACY-01 и GH-*-R: сверить все прежние local/remote открытые работы, связи/дубликаты и доказательства.
@@ -35,6 +35,10 @@ Gate требует: валидный реестр и DAG, все issue resolved
 - [ ] Остальные UX-срезы: после -R и необходимых решений, один production file + один test за задачу.
 - [ ] QA-*: безопасные копии данных, роли, editors, state/recovery, visual/a11y, платформы, audio и human tasks.
 - [ ] FINAL-TEST → FINAL-DOCS → FINAL-RETEST → FINAL-OWNER. Новая проблема инвалидирует финальную приёмку.
+
+## Текущий checkpoint — 2026-10-24
+
+OPS-LAN verified через существующий Pi studio. Один read tool, корректный source-backed final, 9.69 s. Первый Pi timeout был запуском с inherited stdin; использовать stdin=DEVNULL. Старые неуспешные probes ниже сохраняются как история. Далее OPS-RUNNER и UX-007-R; UX исправлений пока нет.
 
 ## Ornith-first по LAN
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-23T23:01:37.466939+00:00",
+  "updated_at": "2026-10-24T04:07:22.460709+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -1864,7 +1864,7 @@
     {
       "id": "OPS-LAN",
       "title": "Подтвердить рабочий Ornith 35b final/tool cycle по LAN",
-      "status": "blocked",
+      "status": "verified",
       "executor": "hermes",
       "kind": "preflight",
       "after": [],
@@ -1878,9 +1878,25 @@
       ],
       "timeout_s": null,
       "max_attempts": 1,
-      "run": null,
-      "verification": null,
-      "blocker_reason": "Studio lists exact model, but bounded chat returned length / empty final. Need a new simple final + read-only tool-cycle probe."
+      "run": {
+        "id": "OPS-LAN-20261024-040047",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/OPS-LAN-20261024-040047/events.jsonl",
+        "started_at": "2026-10-24T04:00:47.909446+01:00",
+        "deadline_at": "2026-10-24T04:10:47.909446+01:00",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": "ollama/ornith-1.5:35b",
+        "attempt_context": "New user-authorised preflight: short 8192-token final probe and read-only Pi tool cycle; no credentials/config changes.",
+        "result_path": "docs/plans/systemic-ux/verification/OPS-LAN.json",
+        "finish_reason": "stop",
+        "duration_s": 9.69
+      },
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "aa7cc781ef57b5d250106b546cb4567e471bf1ca",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/OPS-LAN.json"
+        ]
+      }
     },
     {
       "id": "OPS-RUNNER",
