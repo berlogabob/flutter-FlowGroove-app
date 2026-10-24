@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T00:20:00+01:00",
+  "updated_at": "2026-10-25T00:36:15.732359+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -879,7 +879,7 @@
     {
       "id": "UX-004-R",
       "title": "Повторно проверить: Недоступные песни видны, но причины и дальнейшее действие не объяснены",
-      "status": "review",
+      "status": "verified",
       "executor": "luna",
       "kind": "research",
       "after": [
@@ -903,24 +903,25 @@
       "timeout_s": 600,
       "max_attempts": 1,
       "run": {"id":"UX-004-R-LUNA-20261025-0020","started_at":"2026-10-25T00:23:56.989374+01:00","deadline_at":"2026-10-25T00:33:56.989374+01:00","process":"proc_80bd6ad09a5c","pid":5630,"worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","active_actor":"hermes","phase":"parent_source_review_pending","session_id":"local-e3333186625baf1dcb9b183b68ded16da2b4b1a22051f3c3614e2fb6db774d7f","worker_exit_code":0,"duration_s":36.233,"server_ended_at":"2026-10-25T00:24:36.731+01:00","artifact":"docs/plans/systemic-ux/reviews/UX-004.md","file_lease":["docs/plans/systemic-ux/reviews/UX-004.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-R-LUNA-20261025-0020/hermes-corrected.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-R-LUNA-20261025-0020/process.json","launcher_history":[{"process":"proc_54309c8aab92","exit_code":2,"total_tokens":0,"log":"hermes.jsonl","reason":"Unsupported gateway --run-budget; no model request; corrected CLI without config changes or repeated inference"}],"selection_reason":"UX-008-I requires rendered preflight before a speculative font change; severity-3 UX-004 triage unlocks implementation. UX-009-I is terminal and awaiting independent code acceptance."},
-      "verification": null
+      "verification": {"reviewer":"hermes","tested_commit":"8bd98a5385125de0146113f3f4c1ccd10c81dc69","evidence":["docs/plans/systemic-ux/reviews/UX-004.md","docs/plans/systemic-ux/verification/UX-004-R.json"]}
     },
     {
       "id": "UX-004-I",
       "title": "Минимальное исправление/проверка решения: Недоступные песни видны, но причины и дальнейшее действие не объяснены",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "running",
+      "executor": "luna",
       "kind": "implementation",
       "after": [
         "UX-004-R"
       ],
       "issue": "UX-004",
       "read_files": [
-        "lib/widgets/setlist_song_row.dart",
-        "test/screens/setlists/setlist_view_screen_test.dart"
+        "lib/screens/setlists/setlist_view_screen.dart",
+        "test/screens/setlists/setlist_view_screen_test.dart",
+        "lib/widgets/setlist_song_row.dart"
       ],
       "allowed_files": [
-        "lib/widgets/setlist_song_row.dart",
+        "lib/screens/setlists/setlist_view_screen.dart",
         "test/screens/setlists/setlist_view_screen_test.dart"
       ],
       "acceptance": [
@@ -928,11 +929,12 @@
         "Максимум один production file и один указанный тест. Недостаточно scope — blocked, новая подзадача, никаких выходов за allowlist.",
         "Сохранить существующие API/модели/Mono Pulse; без новых пакетов, миграций, изменения engine/auth/rules.",
         "Добавить regression assertion, падающий на исходном дефекте; Hermes запускает targeted flutter test и analyze.",
-        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы."
+        "Для multi-file решения это только первый срез: -V запрещено закрывать, пока не добавлены/проверены остальные срезы.",
+        "Approved seam: existing rendered SetlistViewScreen/MainShell. Successful missing lookup: cause-neutral explanation; editors directed to existing Menu → Edit Setlist, viewers no edit instruction. No-data songs error distinct; initial loading/cached content and queue filtering unchanged. Mixed rows, permission and existing scope navigation tested vertically RED/GREEN."
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {"id":"UX-004-I-LUNA-20261025-0035","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","started_at":"2026-10-25T00:36:15.732359+01:00","deadline_at":"2026-10-25T00:46:15.732359+01:00","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_ux006","active_actor":"luna","phase":"model_baseline_check_cli_disconnected","process":"proc_f24768825d45","pid":7320,"cli_session_id":"local-f35ded6d5496c6185657c11a2af4e463b3aff83872c040304254693e83ee29ad","needs_reconciliation":true,"cli_exit_code":1,"gateway_turn_status":"unknown_after_cli_disconnect_server_continued","controller_observation":{"at":"2026-10-25T00:39:02+01:00","last_api_call":2,"last_api_at":"2026-10-25T00:37:34.522+01:00","controlled_check_pid":7508,"controlled_check":"baseline existing SetlistViewScreen tests","decision":"Server continued after CLI exit; retain source/test lease and occupied Luna/test lane; no resend or takeover."},"file_lease":["lib/screens/setlists/setlist_view_screen.dart","test/screens/setlists/setlist_view_screen_test.dart"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/process.json","selection_reason":"Severity-3 implementation unlocked by accepted UX-004-R outranks further research. One warm checkout/test lane; UX-009 terminal files remain untouched."},
       "verification": null
     },
     {
@@ -946,6 +948,7 @@
       ],
       "issue": "UX-004",
       "read_files": [
+        "lib/screens/setlists/setlist_view_screen.dart",
         "lib/widgets/setlist_song_row.dart",
         "test/screens/setlists/setlist_view_screen_test.dart"
       ],

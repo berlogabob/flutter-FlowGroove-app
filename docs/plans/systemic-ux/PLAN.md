@@ -126,10 +126,10 @@ Registry изменяет только один родительский про�
   - После: UX-003-R, DESIGN-01. Scope: `lib/screens/songs/songs_list_screen.dart`, `test/screens/songs/songs_list_screen_test.dart`.
 - [ ] **UX-003-V** · hermes · Независимая приёмка и device recheck: UX-003
   - После: UX-003-I. Scope: проверка/решение без production edits.
-- [ ] **UX-004-R** · ornith · Повторно проверить: Недоступные песни видны, но причины и дальнейшее действие не объяснены
+- [x] **UX-004-R** · luna + independent Hermes source acceptance · Повторно проверить: Недоступные песни видны, но причины и дальнейшее действие не объяснены
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-004.md`.
-- [ ] **UX-004-I** · ornith · Минимальное исправление/проверка решения: Недоступные песни видны, но причины и дальнейшее действие не объяснены
-  - После: UX-004-R. Scope: `lib/widgets/setlist_song_row.dart`, `test/screens/setlists/setlist_view_screen_test.dart`.
+- [ ] **UX-004-I** · luna · Минимальное исправление/проверка решения: Недоступные песни видны, но причины и дальнейшее действие не объяснены
+  - После: UX-004-R. Scope corrected after accepted source review: `lib/screens/setlists/setlist_view_screen.dart`, `test/screens/setlists/setlist_view_screen_test.dart`; shared row unchanged. Live run/lease in activity.json.
 - [ ] **UX-004-V** · hermes · Независимая приёмка и device recheck: UX-004
   - После: UX-004-I. Scope: проверка/решение без production edits.
 - [ ] **UX-005-R** · ornith · Повторно проверить: Нет видимого единого входа для продолжения конкретного рабочего контекста
