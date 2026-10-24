@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-24T03:28:58.210062+00:00",
+  "updated_at": "2026-10-24T04:37:16.023189+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -974,7 +974,7 @@
     {
       "id": "UX-006-R",
       "title": "Повторно проверить: При активном MIDI исчезает общий вход выбора сопровождения",
-      "status": "queued",
+      "status": "running",
       "executor": "ornith",
       "kind": "research",
       "after": [
@@ -997,7 +997,17 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "UX-006-R-20261024-043716",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-006-R-20261024-043716/pi.jsonl",
+        "started_at": "2026-10-24T04:37:16.023189+01:00",
+        "deadline_at": "2026-10-24T04:47:16.023189+01:00",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": null,
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_systemic_ux",
+        "launcher_session": "proc_57c99db6ccb1",
+        "launcher_pid": 91566
+      },
       "verification": null
     },
     {
@@ -1089,7 +1099,8 @@
         "requested_model": "ollama/ornith-1.5:35b",
         "actual_model": "ollama/ornith-1.5:35b",
         "result_path": "docs/plans/systemic-ux/reviews/UX-007.md",
-        "finish_reason": "stop"
+        "finish_reason": "stop",
+        "duration_s": 66.13
       },
       "verification": {
         "reviewer": "hermes",
@@ -1138,13 +1149,15 @@
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_systemic_ux",
         "red_test_log": "audit/2026-10-23-systemic-ux/workers/UX-007-R-20261024-041046/red-test.log",
         "result_path": "docs/plans/systemic-ux/verification/UX-007-I.json",
-        "finish_reason": "stop"
+        "finish_reason": "stop",
+        "duration_s": 30.09
       },
       "verification": {
         "reviewer": "hermes",
-        "tested_commit": "d842fa36674a6a4a008ac413203bf939603c836b",
+        "tested_commit": "efef7ca4240751b6fe6f0208ae6b09610f39db85",
         "evidence": [
-          "docs/plans/systemic-ux/verification/UX-007-I.json"
+          "docs/plans/systemic-ux/verification/UX-007-I.json",
+          "docs/plans/systemic-ux/verification/UX-007-primary.json"
         ]
       }
     },
@@ -2010,7 +2023,8 @@
       "acceptance": [
         "Проверить также ledger/FINAL прежних планов, notes/tuner и unresolved unified-workspace questions. Не принимать old green за сегодняшнюю проверку.",
         "Добавить все незакрытые работы/непроверенные утверждения в activity.json; дубликаты связать по ID, историю не удалять.",
-        "Сверить 14 GitHub issues и закрытые local E-items: расхождения не закрывать автоматически."
+        "Сверить 14 GitHub issues и закрытые local E-items: расхождения не закрывать автоматически.",
+        "Fresh baseline for UX-007: pre-existing redundant-argument info at songs_list_screen.dart:474 and unused theme import warning at songs_list_screen_test.dart:9. Do not label them new regressions; retain in legacy lint review."
       ],
       "timeout_s": 600,
       "max_attempts": 1,
@@ -2230,13 +2244,15 @@
         "requested_model": "ollama/ornith-1.5:35b",
         "actual_model": "ollama/ornith-1.5:35b",
         "result_path": "docs/plans/systemic-ux/verification/UX-007-S.json",
-        "finish_reason": "stop"
+        "finish_reason": "stop",
+        "duration_s": 90.73
       },
       "verification": {
         "reviewer": "hermes",
-        "tested_commit": "d842fa36674a6a4a008ac413203bf939603c836b",
+        "tested_commit": "efef7ca4240751b6fe6f0208ae6b09610f39db85",
         "evidence": [
-          "docs/plans/systemic-ux/verification/UX-007-S.json"
+          "docs/plans/systemic-ux/verification/UX-007-S.json",
+          "docs/plans/systemic-ux/verification/UX-007-primary.json"
         ]
       }
     },

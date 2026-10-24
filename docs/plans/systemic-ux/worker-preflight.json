@@ -33,5 +33,13 @@
     "wall_duration_s": 1.33,
     "accepted_output": false,
     "note": "Separate native delegation authentication failure; not the direct Studio LAN chat result. No credential changes or retry performed."
+  },
+  "current_execution_path": {
+    "status": "verified",
+    "provider": "studio",
+    "model": "ollama/ornith-1.5:35b",
+    "client": "existing Pi",
+    "proof": "verification/OPS-LAN.json",
+    "native_delegate_401": "not repaired; not used for accepted implementation"
   }
 }

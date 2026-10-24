@@ -237,3 +237,5 @@ Registry изменяет только один родительский про�
 Code commit d842fa36674a6a4a008ac413203bf939603c836b in fix/systemic-ux: caller tooltip + shared Icon semanticLabel. Parent corrected the test to merged SemanticsData and in-body handle disposal, then confirmed original RED / tooltip-only RED / both GREEN. All 20 SongsListScreen tests pass; analyzer has only the same two baseline findings, format unchanged. UX-007-V remains open for fresh device/TalkBack, so the issue and release hold are NOT closed.
 
 - [ ] NEW-002-R/V · Соседние create FAB: Setlists, Band Setlists, Rehearsals. Создано реальной командой add по свежему чтению callers; не объявлены исправленными этим срезом.
+
+Primary branch checkpoint: efef7ca4 passed 47 tests across four related screen files, plus analyze/format. UX-006-R is now running read-only on Studio; its result must be source-checked before any new edit. No fresh device/TalkBack verification or release.

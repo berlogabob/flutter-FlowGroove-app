@@ -68,3 +68,19 @@ Ornith performed each of the two single-file production edits. Parent corrected 
 Source: lib/screens/setlists/setlists_list_screen.dart:201; lib/screens/bands/band_setlists_screen.dart:218; lib/screens/bands/rehearsals/rehearsals_list_screen.dart:42
 
 Release remains blocked; final verification invalidated.
+
+## 2026-10-24T04:33:14.667045+01:00 — UX-007 slice integrated and rechecked on second01
+
+Feature commit d842fa36674a6a4a008ac413203bf939603c836b cherry-picked as efef7ca4240751b6fe6f0208ae6b09610f39db85. Four related screen files: 47 tests passed on second01. Analyze/format checks passed with the same two baseline diagnostics; no new errors. Device/TalkBack not performed and UX-007 remains open. No bump, install, tag, push or deploy.
+
+## 2026-10-24T04:35:19.465496+01:00 — Graphify and registry checkpoint
+
+Current code and 310 literal activity relationships refreshed; 33 issue and 62 task nodes present, no dangling endpoints, UX-007 query checked. Five tasks verified; all 33 problems still open pending their full acceptance. Private logs remain ignored; full semantic/label extraction is still qualified by NEW-001.
+
+## 2026-10-24T04:37:16.023189+01:00 — UX-006-R queued for bounded LAN source review
+
+Next high-priority task uses existing Pi studio Ornith 35b, read-only, three allowlisted context files, isolated worktree, one request/process, stdin closed and 540 s hard process deadline. Result requires parent source verification; no UI edit or task closure delegated.
+
+## 2026-10-24T04:39:11.641084+01:00 — UX-006-R worker launched
+
+Real bounded process proc_57c99db6ccb1 / launcher PID 91566 started through uv and existing Pi studio. Streamed JSONL stays private; result.json is not acceptance. Registry remains running until parent reviews completion/failure; release hold remains active.

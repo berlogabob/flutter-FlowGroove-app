@@ -10,11 +10,12 @@
 - OPS-LAN verified: existing Pi studio / Ornith 35b performed a read tool call and
   returned a source-checked final in 9.69 s. Native delegate 401 remains separate.
   Noninteractive Pi must use stdin=DEVNULL; inherited stdin stalled the first launch.
-- First UX-007 code slice verified on fix/systemic-ux: caller tooltip + shared Icon
-  semantic label, 20 screen tests pass; fresh device/TalkBack remains pending.
+- First UX-007 code slice integrated as efef7ca4: caller tooltip + shared Icon
+  semantic label; 47 related screen tests pass on second01. Fresh device/TalkBack pending.
   No audio/user-data changes, publication or install.
-- OPS-RUNNER and UX-007-R/I/S verified. NEW-002 records three adjacent missing labels;
-  next: integrate the tested slice, device check and remaining bounded tasks.
+- OPS-RUNNER and UX-007-R/I/S verified. NEW-002 records three adjacent missing labels.
+- UX-006-R started as a bounded read-only Ornith/Pi background review (proc_57c99db6ccb1);
+  result requires parent source verification. No UI edit delegated in that run.
 - Historical state below is retained; old green suites and completed checklists are
   not fresh verification of today's code/device behaviour.
 

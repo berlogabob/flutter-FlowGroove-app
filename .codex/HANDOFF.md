@@ -16,8 +16,8 @@ Native delegate remains 401. Noninteractive subprocess must use stdin=DEVNULL;
 keep no-context/no-skills/no-extensions/no-mcp and explicit tools for bounded work.
 OPS-RUNNER verified in ../flutter_repsync_systemic_ux, fix/systemic-ux. No old
 runner, global clean/checkout/add-A or cloud fallback. UX-007-R/I/S verified: two
-bounded Ornith production edits plus parent regression test; 20 screen tests pass.
-UX-007-V stays pending for fresh device/TalkBack. NEW-002 tracks three adjacent FAB
+bounded Ornith production edits plus parent regression test; 20 screen tests pass in isolation; cherry-pick efef7ca4 passed 47 related screen tests
+on second01. UX-007-V stays pending for fresh device/TalkBack. NEW-002 tracks three adjacent FAB
 callers. Preserve final merged-semantics regression and the original/tooltip/both
 RED/RED/GREEN matrix; do not revert to raw SemanticsNode.label assertions.
 
