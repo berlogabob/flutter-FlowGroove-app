@@ -219,6 +219,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
               icon: Icons.add,
               onPressed: _handleCreate,
               heroTag: 'band_setlists_fab_${widget.band.id}',
+              tooltip: 'Create Band Setlist',
             )
           : null,
       body: _buildBody(setlistsAsync),
