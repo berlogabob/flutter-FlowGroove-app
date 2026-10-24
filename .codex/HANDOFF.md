@@ -154,4 +154,6 @@ UX-006-R completion: Ornith timed out (540 s, no final) and guessed 4 read attem
 
 UX-006-I integrated and accepted: e6d8f26b, 64 related primary tests, final analyze/format exit 0. UX-006-V remains blocked for fresh installed-device evidence. Periodic read-only brief d173a844e136 checks every 10 minutes; it does not drive implementation.
 
-NEW-002-R accepted from three parent-checked source windows. Three one-production-file fix/test slices registered; NEW-002-I1 confirmed rendered RED, then Ornith added exactly one tooltip line in 28.47 s. Whole-file GREEN, read-only guard, analyze/format now run as proc_9c2681e9389a in fix/new002. No primary integration/acceptance yet.
+NEW-002-R accepted from three parent-checked source windows. Three one-production-file fix/test slices registered; NEW-002-I1 confirmed rendered RED, then Ornith added exactly one tooltip line in 28.47 s. Whole-file GREEN: 12 tests plus analyze/format/diff passed. Integrated as 5de705cb; 12 primary tests passed, I1 verified. NEW-002-I2 confirmed RED and runs GREEN/roles/analyze (proc_8d7a1d8b3263).
+
+NEW-002-I1 verified on 5de705cb: 12 primary tests, accessible-name and no-edit guard checks; issue remains open. NEW-002-I2 confirmed RED, Ornith added one tooltip line, GREEN/roles/analyze pending as proc_8d7a1d8b3263. NEW-002-I3 remains queued.

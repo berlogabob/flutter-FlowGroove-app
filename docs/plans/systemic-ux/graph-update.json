@@ -1,18 +1,18 @@
 {
-  "checked_at": "2026-10-24T17:31:59.479388+01:00",
+  "checked_at": "2026-10-24T17:57:11.167165+01:00",
   "scope": "Fresh code extraction plus literal registry/task/allowed-file layer; not full document semantic extraction",
   "nodes": 13127,
-  "raw_links": 20144,
+  "raw_links": 20145,
   "activity_relationships": 331,
   "issue_nodes_verified": 33,
   "task_nodes_verified": 65,
   "dangling_endpoints": 0,
   "query_checked": "Literal registry nodes/status, dependencies and current one-file fix allowlists; code unchanged from accepted UX-006 checkpoint",
   "llm_tokens_for_registry_extraction": 0,
-  "code_commit": "e6d8f26b6782fd3f3d3ce686a46a3ae396f6fcdc",
+  "code_commit": "5de705cbdde2ab476b788d6db9e0121a70cf6f67",
   "task_status": {
-    "queued": 55,
-    "verified": 8,
+    "queued": 54,
+    "verified": 9,
     "blocked": 1,
     "review": 1
   },

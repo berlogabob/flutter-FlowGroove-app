@@ -2416,7 +2416,7 @@
       "max_attempts": 1,
       "id": "NEW-002-I1",
       "title": "Подписать create FAB в Setlists",
-      "status": "review",
+      "status": "verified",
       "after": [
         "NEW-002-R"
       ],
@@ -2443,7 +2443,7 @@
         "requested_model": "ollama/ornith-1.5:35b",
         "actual_model": "ollama/ornith-1.5:35b",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
-        "phase": "parent_green_and_role_verification",
+        "phase": "accepted_primary_implementation",
         "active_actor": "hermes",
         "preflight_process": "proc_136f64d6046b",
         "red_exit_code": 1,
@@ -2453,9 +2453,28 @@
         "green_report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I1-20261024-170510/green-test.json",
         "backend_manifest_verified": true,
         "green_source_sha256": "37acd41bdddd1e3627c89f0c4770e318260956f1fa3ecf070b310a49ff552bce",
-        "green_test_sha256": "51594a94ad9f42f4205592df1919fd91dbbc68d6b3d13bed72543f3f86bb3f03"
+        "green_test_sha256": "51594a94ad9f42f4205592df1919fd91dbbc68d6b3d13bed72543f3f86bb3f03",
+        "worktree_tests_passed": 12,
+        "worktree_analyze_exit_code": 0,
+        "worktree_format_exit_code": 0,
+        "worktree_commit": "823b47dba17e807ae8e8b424c791291438f833c6",
+        "primary_commit": "5de705cbdde2ab476b788d6db9e0121a70cf6f67",
+        "verification_worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "primary_verification_process": "proc_ba23aa3a455b",
+        "verification_result": {
+          "exit_code": 0,
+          "tests_passed": 12,
+          "scope": "worktree"
+        },
+        "primary_tests_passed": 12
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "5de705cbdde2ab476b788d6db9e0121a70cf6f67",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/NEW-002-I1.json"
+        ]
+      }
     },
     {
       "executor": "ornith",
@@ -2464,7 +2483,7 @@
       "max_attempts": 1,
       "id": "NEW-002-I2",
       "title": "Подписать create FAB в Band Setlists",
-      "status": "queued",
+      "status": "review",
       "after": [
         "NEW-002-R"
       ],
@@ -2483,7 +2502,26 @@
         "Parent supplies failing rendered merged-semantics regression; real RED and GREEN plus role checks required.",
         "Only one production file and the named test; no dependencies, provider/engine/auth/shared-widget changes."
       ],
-      "run": null,
+      "run": {
+        "id": "NEW-002-I2-20261024-174427",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I2-20261024-174427/pi.jsonl",
+        "started_at": "2026-10-24T17:54:11.462592+01:00",
+        "deadline_at": "2026-10-24T17:57:11.462592+01:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "actual_model": "ollama/ornith-1.5:35b",
+        "phase": "parent_green_and_role_verification",
+        "active_actor": "hermes",
+        "preflight_process": "proc_bcc3d5175eff",
+        "red_exit_code": 1,
+        "red_actual_label": "",
+        "duration_s": 23.84,
+        "backend_manifest_verified": true,
+        "green_process": "proc_8d7a1d8b3263",
+        "green_report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I2-20261024-174427/green-test.json",
+        "green_source_sha256": "7d19e4a8bb9dc3e172b766e35ccba58d02f430a96c7718d12a5e60157964d66b",
+        "green_test_sha256": "e8abd02c425e5045afea75a320c919223d17a8f149bbc1d9bc8b91d3774a0f19"
+      },
       "verification": null
     },
     {

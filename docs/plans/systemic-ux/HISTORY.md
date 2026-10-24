@@ -126,3 +126,15 @@ Parent added merged SemanticsData/tooltip assertions using existing routed setli
 ## 2026-10-24T17:29:34.790245+01:00 — NEW-002-I1 RED confirmed and bounded edit returned
 
 Rendered merged label was empty (expected Create Setlist), real red-test.json success=false. Ornith returned in 28.47 s, one read/one edit, exact model/provider/backend manifest, parent test unchanged. Parent diff confirms one added tooltip line only. Existing routed fixture gained label/tooltip assertions plus a no-edit permission guard check. Whole setlists test file and analyze/format now run as proc_9c2681e9389a; task remains review, no primary integration or acceptance yet.
+
+## 2026-10-24T17:44:27.702029+01:00 — NEW-002-I1 worktree GREEN integrated; I2 RED prepared
+
+12 worktree setlist tests passed including label/tooltip, no-edit guard and navigation; analyze/format/diff exit 0. One directive-ordering info remains in an already unsorted import block. Code 823b47dba17e807ae8e8b424c791291438f833c6 cherry-picked as 5de705cbdde2ab476b788d6db9e0121a70cf6f67. Primary replay proc_ba23aa3a455b pending, I1 remains review. Independent Band Setlists fixture now asserts the accessible name before the unchanged band-scoped navigation; I2 production code untouched.
+
+## 2026-10-24T17:52:12.001487+01:00 — NEW-002-I1 accepted; I2 RED confirmed
+
+Primary 12 tests pass, source/test hashes match, integrated 5de705cbdde2ab476b788d6db9e0121a70cf6f67. Accessible Create Setlist name and no-edit guard tested. I1 verified, whole NEW-002 issue remains open. Band Setlists RED confirms empty merged name against Create Band Setlist; fixture scope/navigation retained.
+
+## 2026-10-24T17:57:10.999314+01:00 — NEW-002-I2 bounded edit and GREEN launched
+
+Ornith returned in 23.84 s with one read/one edit, correct backend manifest and untouched parent test. Parent diff confirms only tooltip Create Band Setlist added. Existing band-scope navigation and viewer/demo cases retained. Whole Band Setlists suite plus analyze/format/diff run as proc_8d7a1d8b3263; I2 review only, not integrated.

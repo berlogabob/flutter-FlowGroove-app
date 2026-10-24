@@ -248,7 +248,7 @@ UX-006-I accepted on second01 e6d8f26b: 64 primary related tests passed (includi
 
 ## NEW-002 bounded fix slices
 
-- [ ] **NEW-002-I1** · ornith · Подписать create FAB в Setlists. Scope: `lib/screens/setlists/setlists_list_screen.dart`, `test/screens/setlists/setlists_list_screen_test.dart`. After NEW-002-R.
+- [x] **NEW-002-I1** · ornith · Подписать create FAB в Setlists. Scope: `lib/screens/setlists/setlists_list_screen.dart`, `test/screens/setlists/setlists_list_screen_test.dart`. After NEW-002-R.
 - [ ] **NEW-002-I2** · ornith · Подписать create FAB в Band Setlists. Scope: `lib/screens/bands/band_setlists_screen.dart`, `test/screens/bands/band_setlists_screen_test.dart`. After NEW-002-R.
 - [ ] **NEW-002-I3** · ornith · Подписать create FAB в Rehearsals. Scope: `lib/screens/bands/rehearsals/rehearsals_list_screen.dart`, `test/screens/bands/rehearsals/rehearsals_list_screen_test.dart`. After NEW-002-R.
 
