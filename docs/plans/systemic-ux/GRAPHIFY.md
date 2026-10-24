@@ -2,7 +2,7 @@
 
 ```json
 {
-  "checked_at": "2026-10-24T17:11:43.313088+01:00",
+  "checked_at": "2026-10-24T17:31:59.479388+01:00",
   "scope": "Fresh code extraction plus literal registry/task/allowed-file layer; not full document semantic extraction",
   "nodes": 13127,
   "raw_links": 20144,
@@ -17,7 +17,7 @@
     "queued": 55,
     "verified": 8,
     "blocked": 1,
-    "running": 1
+    "review": 1
   },
   "warnings": [
     "Existing linux/runner/my_application.h syntax error, no symbols",

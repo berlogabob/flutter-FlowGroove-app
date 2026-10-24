@@ -2416,7 +2416,7 @@
       "max_attempts": 1,
       "id": "NEW-002-I1",
       "title": "Подписать create FAB в Setlists",
-      "status": "running",
+      "status": "review",
       "after": [
         "NEW-002-R"
       ],
@@ -2437,15 +2437,23 @@
       ],
       "run": {
         "id": "NEW-002-I1-20261024-170510",
-        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I1-20261024-170510/red-test.json",
-        "started_at": "2026-10-24T17:05:10.680678+01:00",
-        "deadline_at": "2026-10-24T17:35:10.680678+01:00",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I1-20261024-170510/pi.jsonl",
+        "started_at": "2026-10-24T17:20:12.255254+01:00",
+        "deadline_at": "2026-10-24T17:23:12.255254+01:00",
         "requested_model": "ollama/ornith-1.5:35b",
-        "actual_model": null,
+        "actual_model": "ollama/ornith-1.5:35b",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
-        "phase": "parent_rendered_semantics_red",
+        "phase": "parent_green_and_role_verification",
         "active_actor": "hermes",
-        "preflight_process": "proc_136f64d6046b"
+        "preflight_process": "proc_136f64d6046b",
+        "red_exit_code": 1,
+        "red_assertion": "Actual rendered label: ''",
+        "duration_s": 28.47,
+        "green_process": "proc_9c2681e9389a",
+        "green_report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I1-20261024-170510/green-test.json",
+        "backend_manifest_verified": true,
+        "green_source_sha256": "37acd41bdddd1e3627c89f0c4770e318260956f1fa3ecf070b310a49ff552bce",
+        "green_test_sha256": "51594a94ad9f42f4205592df1919fd91dbbc68d6b3d13bed72543f3f86bb3f03"
       },
       "verification": null
     },

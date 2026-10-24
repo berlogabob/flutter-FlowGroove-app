@@ -122,3 +122,7 @@ Correct Ornith/Studio run, three scoped reads, source checked by parent. Spoken-
 ## 2026-10-24T17:11:39.841252+01:00 — NEW-002-I1 RED launched
 
 Parent added merged SemanticsData/tooltip assertions using existing routed setlists fixture, explicit try/finally semantics disposal. No production edit yet. Reused warm worktree under branch fix/new002; long bounded native/test run proc_136f64d6046b writes red-test.json. Successful worker triage is not counted as a UI fix.
+
+## 2026-10-24T17:29:34.790245+01:00 — NEW-002-I1 RED confirmed and bounded edit returned
+
+Rendered merged label was empty (expected Create Setlist), real red-test.json success=false. Ornith returned in 28.47 s, one read/one edit, exact model/provider/backend manifest, parent test unchanged. Parent diff confirms one added tooltip line only. Existing routed fixture gained label/tooltip assertions plus a no-edit permission guard check. Whole setlists test file and analyze/format now run as proc_9c2681e9389a; task remains review, no primary integration or acceptance yet.

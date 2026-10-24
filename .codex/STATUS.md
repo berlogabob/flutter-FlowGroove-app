@@ -84,4 +84,4 @@
 
 UX-006-I integrated and accepted: e6d8f26b, 64 related primary tests, final analyze/format exit 0. UX-006-V remains blocked for fresh installed-device evidence. Periodic read-only brief d173a844e136 checks every 10 minutes; it does not drive implementation.
 
-NEW-002-R accepted from three parent-checked source windows. Three one-production-file fix/test slices registered; NEW-002-I1 now runs its rendered-semantics RED on fix/new002 in ../flutter_repsync_ux006 (proc_136f64d6046b). No tooltip fix has been applied yet.
+NEW-002-R accepted from three parent-checked source windows. Three one-production-file fix/test slices registered; NEW-002-I1 confirmed rendered RED, then Ornith added exactly one tooltip line in 28.47 s. Whole-file GREEN, read-only guard, analyze/format now run as proc_9c2681e9389a in fix/new002. No primary integration/acceptance yet.
