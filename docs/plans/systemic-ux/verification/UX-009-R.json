@@ -1,0 +1,24 @@
+{
+  "task": "UX-009-R",
+  "reviewer": "hermes",
+  "actual_model": "ollama/ornith-1.5:35b",
+  "duration_s": 86.26,
+  "read_calls": 2,
+  "full_source_coverage": {
+    "lib/screens/practice_screen.dart": 325,
+    "test/widgets/practice_dashboard_card_test.dart": 51
+  },
+  "initial_runtime_check": false,
+  "parent_corrected_check": true,
+  "reason": "Launcher had copied NEW-002 allowlist; actual worker paths/model/complete read ranges independently verified. No model retry. Original result retained.",
+  "word_count": 192,
+  "requested_word_limit": 150,
+  "proposal_rejected": "Screen-wide loading/error guard would hide independent Quick start and useful sections; use per-section states and separately fix reused DashboardCard.",
+  "parent_additional_sources": [
+    "lib/widgets/practice_dashboard_card.dart:34-64",
+    "lib/screens/home_screen.dart:33"
+  ],
+  "device_tested": false,
+  "source_snapshot_commit": "b93a4784fd4aca9fd9e23e99ba6ea4785e2c61c7",
+  "execution_note": "Source-triage acceptance only; tested_commit identifies inspected tree, not a claim of widget/device execution."
+}

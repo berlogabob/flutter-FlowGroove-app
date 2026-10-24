@@ -7,8 +7,8 @@
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
-- В процессе уже добавлен NEW-001: ограничения извлечения Graphify. Сейчас 33 открытые записи, 62 задачи; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 65 задач, из них 38 назначены Ornith; UX-006-R принят Hermes после первого timeout. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
+- В процессе уже добавлен NEW-001: ограничения извлечения Graphify. Сейчас 33 открытые записи, 66 задач; состояние всегда читать из activity.json.
+- Текущая декомпозиция: 66 задач, из них 38 назначены Ornith; UX-006-R и UX-009-I2 выполняются/приняты Hermes после первого timeout. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -156,7 +156,7 @@ Registry изменяет только один родительский про�
   - После: UX-008-R. Scope: `lib/widgets/tuner/transport_bar.dart`, `test/widgets/tuner/central_dial_geometry_test.dart`.
 - [ ] **UX-008-V** · hermes · Независимая приёмка и device recheck: UX-008
   - После: UX-008-I. Scope: проверка/решение без production edits.
-- [ ] **UX-009-R** · ornith · Повторно проверить: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных
+- [x] **UX-009-R** · ornith · Повторно проверить: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-009.md`.
 - [ ] **UX-009-I** · ornith · Минимальное исправление/проверка решения: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных
   - После: UX-009-R. Scope: `lib/screens/practice_screen.dart`, `test/widgets/practice_dashboard_card_test.dart`.
@@ -250,6 +250,10 @@ UX-006-I accepted on second01 e6d8f26b: 64 primary related tests passed (includi
 
 - [x] **NEW-002-I1** · ornith · Подписать create FAB в Setlists. Scope: `lib/screens/setlists/setlists_list_screen.dart`, `test/screens/setlists/setlists_list_screen_test.dart`. After NEW-002-R.
 - [x] **NEW-002-I2** · ornith · Подписать create FAB в Band Setlists. Scope: `lib/screens/bands/band_setlists_screen.dart`, `test/screens/bands/band_setlists_screen_test.dart`. After NEW-002-R.
-- [ ] **NEW-002-I3** · ornith · Подписать create FAB в Rehearsals. Scope: `lib/screens/bands/rehearsals/rehearsals_list_screen.dart`, `test/screens/bands/rehearsals/rehearsals_list_screen_test.dart`. After NEW-002-R.
+- [x] **NEW-002-I3** · ornith · Подписать create FAB в Rehearsals. Scope: `lib/screens/bands/rehearsals/rehearsals_list_screen.dart`, `test/screens/bands/rehearsals/rehearsals_list_screen_test.dart`. After NEW-002-R.
 
 All three slices gate NEW-002-V and FINAL-TEST; device acceptance remains separate.
+
+## UX-009 additional shared caller slice
+
+- [ ] **UX-009-I2** — Home/Practice shared DashboardCard loading/error vs true empty week; one production file + existing card tests. Must pass before PracticeScreen slice; all dependencies are recorded in activity.json.

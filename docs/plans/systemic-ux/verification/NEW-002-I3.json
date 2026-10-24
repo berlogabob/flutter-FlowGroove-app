@@ -1,0 +1,30 @@
+{
+  "task": "NEW-002-I3",
+  "reviewer": "hermes",
+  "tested_commit": "370b23f96e2a33fe38c165a31c3786b2c19e1019",
+  "worktree_commit": "473011f697bd79b0cc312b9d9fb81468f6f910ae",
+  "actual_model": "ollama/ornith-1.5:35b",
+  "backend_manifest_verified": true,
+  "worker_duration_s": 29.84,
+  "worker_reads": 2,
+  "worker_edits": 1,
+  "worker_prompt_deviation": "Two reads instead of requested one, both same allowed file; no automatic compliance acceptance. Parent inspected exact one-line diff; final acceptance requires tests.",
+  "production_diff": "one tooltip argument; permissions, route, extra band payload and heroTag unchanged",
+  "red": {
+    "exit_code": 1,
+    "actual_label": "",
+    "expected": "Propose rehearsal",
+    "report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I3-20261024-180956/red-test.json"
+  },
+  "green": {
+    "worktree_tests": 2,
+    "primary_related_tests": 68,
+    "primary_process": "proc_e052664fe359",
+    "report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I3-20261024-180956/primary-related.json",
+    "includes": "rehearsal merged name and band route, readonly guard; related songs/bands/setlists/launchpad/drums"
+  },
+  "analyze_exit_code": 0,
+  "analyze_issues": 0,
+  "format_exit_code": 0,
+  "device_tested": false
+}

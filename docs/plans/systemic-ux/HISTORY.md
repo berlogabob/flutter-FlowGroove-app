@@ -162,3 +162,19 @@ Two Rehearsals tests passed: accessible proposal name/band-scoped navigation and
 ## 2026-10-24T18:39:40.109480+01:00 — next UX triage launched
 
 UX-009-R runs as proc_bfff379b9a82 via existing bounded Pi client: read complete PracticeScreen (325 lines) and current DashboardCard test (51 lines), exactly two reads, no edits or import exploration. Intended to separate loading/error fallback evidence from usability hypotheses and identify the correct regression seam. Source/model claims still await parent review.
+
+## 2026-10-24T18:53:11.823996+01:00 — I3 accepted / UX-009 triage and scope correction
+
+68 tests passed across seven primary files on 370b23f96e2a33fe38c165a31c3786b2c19e1019; I3 verified, NEW-002-V explicitly blocked for fresh device/screen-reader evidence. UX-009-R source reviewed: model did two complete allowed reads; original runner false-negative was a parent copied-allowlist bug, fixed without another model run. Global blocker proposal rejected, four independent data fallbacks and shared Home/Practice card recorded. Added UX-009-I2, changed whole-screen regression seam to a new public PracticeScreen fixture, updated V/final dependencies. No issue closed or waived.
+
+## 2026-10-24T19:04:45.071632+01:00 — UX-009-I2 RED fixture launched
+
+Preserved existing dashboard data/empty tests, generalized their provider fixture to FutureOr, added a public rendered loading→error lifecycle test with semantics and no raw exception text. Model edits not started; original source still present. proc_7b16a5452437 runs the focused RED in clean fix/ux009 worktree.
+
+## 2026-10-24T19:12:27.671559+01:00 — UX-009-I2 worker timeout, explicit parent fallback
+
+One model attempt hit the 120 s bound (136.43 s launcher duration), four reads of the allowed source, zero edits and no final/model-end identity. Result rejected and attempt preserved. No repeated prompt or provider change. Existing source still intact. Executor changed to Hermes for direct completion of the confirmed card async-state bug.
+
+## 2026-10-24T19:17:17.177721+01:00 — direct card patch prepared and checks launched
+
+Parent removed empty-stat substitution from shared DashboardCard, used AsyncValue.when for content and accessible label, retained data chart/headline, Card/InkWell/onTap and existing Mono Pulse tokens. Loading/error have no fabricated zero-week bars or raw error text. proc_acce872e0790 runs full card suite/analyze/format/diff; source/test hashes recorded. Patch remains isolated and unaccepted.
