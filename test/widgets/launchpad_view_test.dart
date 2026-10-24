@@ -9,6 +9,7 @@ import 'package:flowgroove/providers/data/backing_transport_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/providers/data/midi_song_provider.dart';
+import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/utils/play_mode.dart';
 import 'package:flowgroove/utils/quantize.dart';
@@ -358,52 +359,70 @@ void main() {
     );
   });
 
-  testWidgets('metronome replaces backing chooser with pinned launchpad', (
-    tester,
-  ) async {
-    final sections = _sections(12);
-    final song = Song(
-      id: 'song',
-      title: 'Practice song',
-      artist: 'Artist',
-      sections: sections,
-      createdAt: DateTime(2026),
-      updatedAt: DateTime(2026),
+  for (final size in [const Size(390, 844), const Size(844, 390)]) {
+    testWidgets(
+      'metronome keeps backing chooser with pinned launchpad at $size',
+      (tester) async {
+        final sections = _sections(12);
+        final song = Song(
+          id: 'song',
+          title: 'Practice song',
+          artist: 'Artist',
+          sections: sections,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        );
+        final auth = MockFirebaseAuth();
+        final user = MockUser();
+        when(auth.currentUser).thenReturn(user);
+        when(user.uid).thenReturn('user');
+        final transport = _Transport(_state(12));
+        await tester.binding.setSurfaceSize(size);
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              firebaseAuthProvider.overrideWithValue(auth),
+              authStateProvider.overrideWith((ref) => Stream.value(user)),
+              canEditProvider.overrideWithValue(false),
+              metronomeProvider.overrideWith(() => _Metronome(song: song)),
+              backingTransportProvider.overrideWith(() => transport),
+              labEntriesProvider((
+                'song',
+                null,
+              )).overrideWith((ref) => Stream.value([_entry])),
+              midiSongProvider(_entry).overrideWith((ref) async => _midi),
+            ],
+            child: const MaterialApp(home: MetronomeScreen()),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+        expect(find.byType(LaunchpadView), findsOneWidget);
+        final chooser = find.widgetWithText(OutlinedButton, 'Backing tracks');
+        expect(chooser, findsOneWidget);
+        await tester.ensureVisible(chooser);
+        await tester.pumpAndSettle();
+        await tester.tap(chooser);
+        await tester.pumpAndSettle();
+        expect(find.text('Drum pattern'), findsOneWidget);
+        expect(find.text('MIDI song'), findsOneWidget);
+        expect(find.text('Add MIDI file'), findsNothing);
+        expect(transport.launches, isEmpty);
+        Navigator.of(tester.element(find.text('Drum pattern'))).pop();
+        await tester.pumpAndSettle();
+        expect(find.byType(LaunchpadView), findsOneWidget);
+        final row = find.byKey(const ValueKey('launchpad-transport'));
+        final before = tester.getRect(row);
+        await tester.ensureVisible(find.byType(TrackConsole));
+        await tester.pump();
+        expect(tester.getRect(row), before);
+        expect(find.text('Play').hitTestable(), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
     );
-    final auth = MockFirebaseAuth();
-    final user = MockUser();
-    when(auth.currentUser).thenReturn(user);
-    when(user.uid).thenReturn('user');
-    await tester.binding.setSurfaceSize(const Size(390, 844));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(auth),
-          authStateProvider.overrideWith((ref) => Stream.value(user)),
-          metronomeProvider.overrideWith(() => _Metronome(song: song)),
-          backingTransportProvider.overrideWith(() => _Transport(_state(12))),
-          labEntriesProvider((
-            'song',
-            null,
-          )).overrideWith((ref) => Stream.value([_entry])),
-          midiSongProvider(_entry).overrideWith((ref) async => _midi),
-        ],
-        child: const MaterialApp(home: MetronomeScreen()),
-      ),
-    );
-    await tester.pump();
-    await tester.pump();
-    await tester.pump();
-    expect(find.byType(LaunchpadView), findsOneWidget);
-    expect(find.text('Backing tracks'), findsNothing);
-    final row = find.byKey(const ValueKey('launchpad-transport'));
-    final before = tester.getRect(row);
-    await tester.ensureVisible(find.byType(TrackConsole));
-    await tester.pump();
-    expect(tester.getRect(row), before);
-    expect(find.text('Play').hitTestable(), findsOneWidget);
-  });
+  }
 
   testWidgets('iOS hides launchpad without attaching backing', (tester) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;

@@ -615,20 +615,35 @@ class _MetronomeSongLibrary extends ConsumerWidget {
     }
 
     final entry = ref.watch(_activeMidiBackingProvider);
+    final backingButton = Tooltip(
+      message: 'Backing tracks',
+      child: active == null
+          ? OutlinedButton.icon(
+              icon: const Icon(Icons.album_outlined),
+              label: const Text('Backing tracks'),
+              onPressed: onPressed,
+            )
+          : FilledButton.icon(
+              icon: const Icon(Icons.album_outlined),
+              label: Text('Drums · $active'),
+              onPressed: onPressed,
+            ),
+    );
     if (entry != null) {
       return LaunchpadView(
         key: ValueKey(entry.id),
         entry: entry,
         sections: state.activeSong!.sections,
-        header: const Column(
+        header: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TimeSignatureBlock(),
-            SizedBox(height: MonoPulseSpacing.sm),
-            TempoControlCluster(),
-            SizedBox(height: MonoPulseSpacing.md),
-            SongLibraryBlock(),
-            SizedBox(height: MonoPulseSpacing.md),
+            const TimeSignatureBlock(),
+            const SizedBox(height: MonoPulseSpacing.sm),
+            const TempoControlCluster(),
+            const SizedBox(height: MonoPulseSpacing.md),
+            const SongLibraryBlock(),
+            const SizedBox(height: MonoPulseSpacing.md),
+            backingButton,
           ],
         ),
       );
@@ -639,20 +654,7 @@ class _MetronomeSongLibrary extends ConsumerWidget {
       children: [
         const SongLibraryBlock(),
         const SizedBox(height: MonoPulseSpacing.sm),
-        Tooltip(
-          message: 'Backing tracks',
-          child: active == null
-              ? OutlinedButton.icon(
-                  icon: const Icon(Icons.album_outlined),
-                  label: const Text('Backing tracks'),
-                  onPressed: onPressed,
-                )
-              : FilledButton.icon(
-                  icon: const Icon(Icons.album_outlined),
-                  label: Text('Drums · $active'),
-                  onPressed: onPressed,
-                ),
-        ),
+        backingButton,
       ],
     );
   }
