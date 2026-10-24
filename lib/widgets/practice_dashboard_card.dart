@@ -69,7 +69,9 @@ class PracticeDashboardCard extends ConsumerWidget {
     return Semantics(
       label: statsAsync.when(
         data: (stats) => stats.isEmptyWeek
-            ? 'No practice yet this week. Tap to start practicing.'
+            ? tappable
+                  ? 'No practice yet this week. Tap to start practicing.'
+                  : 'No practice yet this week. Start the metronome to log time.'
             : 'Practiced ${formatMinutes(stats.totalSecondsThisWeek)} this '
                   'week across ${stats.sessionCountThisWeek} sessions, '
                   '${stats.streakDays} day streak.',
