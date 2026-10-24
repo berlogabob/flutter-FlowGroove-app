@@ -33,7 +33,6 @@ class PracticeDashboardCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(practiceStatsProvider);
-    final stats = statsAsync.asData?.value ?? PracticeStats.empty;
 
     final card = Card(
       child: InkWell(
@@ -41,24 +40,42 @@ class PracticeDashboardCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(child: _headline(context, stats)),
-              const SizedBox(width: MonoPulseSpacing.lg),
-              _WeekBars(dailySeconds: stats.dailySeconds),
-            ],
+          child: statsAsync.when(
+            data: (stats) => Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(child: _headline(context, stats)),
+                const SizedBox(width: MonoPulseSpacing.lg),
+                _WeekBars(dailySeconds: stats.dailySeconds),
+              ],
+            ),
+            loading: () => Text(
+              'Loading practice…',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: context.mp.textSecondary,
+              ),
+            ),
+            error: (_, _) => Text(
+              'Unable to load practice',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: context.mp.textSecondary,
+              ),
+            ),
           ),
         ),
       ),
     );
 
     return Semantics(
-      label: stats.isEmptyWeek
-          ? 'No practice yet this week. Tap to start practicing.'
-          : 'Practiced ${formatMinutes(stats.totalSecondsThisWeek)} this '
-                'week across ${stats.sessionCountThisWeek} sessions, '
-                '${stats.streakDays} day streak.',
+      label: statsAsync.when(
+        data: (stats) => stats.isEmptyWeek
+            ? 'No practice yet this week. Tap to start practicing.'
+            : 'Practiced ${formatMinutes(stats.totalSecondsThisWeek)} this '
+                  'week across ${stats.sessionCountThisWeek} sessions, '
+                  '${stats.streakDays} day streak.',
+        loading: () => 'Loading practice…',
+        error: (_, _) => 'Unable to load practice',
+      ),
       button: tappable,
       child: card,
     );
