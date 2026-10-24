@@ -86,6 +86,29 @@ void main() {
       expect(find.byIcon(Icons.sort), findsOneWidget);
     });
 
+    testWidgets('create song FAB exposes an accessible action name', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      try {
+        await pumpRoutedTestApp(
+          tester,
+          initialLocation: '/main/songs',
+          overrides: overridesFor(songs: Stream<List<Song>>.value([])),
+        );
+
+        expect(
+          tester
+              .getSemantics(find.byType(FloatingActionButton))
+              .getSemanticsData()
+              .label,
+          'Add song',
+        );
+      } finally {
+        semantics.dispose();
+      }
+    });
+
     testWidgets('displays empty state when no songs exist', (tester) async {
       await pumpRoutedTestApp(
         tester,
