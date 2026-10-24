@@ -1,0 +1,16 @@
+{
+  "task": "UX-008-R",
+  "reviewer": "hermes",
+  "tested_commit": "1b55581c",
+  "scope": "independent complete source review; no production change or device/human acceptance",
+  "worker": {"provider": "openai-codex", "actual_model": "gpt-6-luna", "exit_code": 0, "duration_ms": 75644, "reads": 3, "writes": 1, "allowed_paths_only": true},
+  "source_identical_to_worker": true,
+  "source_sha256": {
+    "lib/widgets/tuner/transport_bar.dart": "a5f517e5d1893bd79c264ac3bc1744d25ba228a49cd9b1585522c5e479720bb6",
+    "test/widgets/tuner/central_dial_geometry_test.dart": "7357b8dce7d36327a3bd7e53d2cc00f21f4986bee68b77beea9c063c1159da99"
+  },
+  "corrections": ["Current labelSmall is 11, not the worker's unverified 9.", "Positioned Listen text creation is not proof of visible painted content outside Stack.", "Geometry-only tests do not cover transport layout; rendered preflight and an agreed public seam must precede tests/implementation."],
+  "report": "docs/plans/systemic-ux/reviews/UX-008.md",
+  "tests": "not run: source review only, no executable changes",
+  "remaining": ["rendered layout preflight before UX-008-I", "device and human readability", "UX-008 remains open"]
+}

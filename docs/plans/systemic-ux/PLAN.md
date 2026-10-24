@@ -150,7 +150,7 @@ Registry изменяет только один родительский про�
   - После: UX-007-R. Scope: `lib/screens/songs/songs_list_screen.dart`, `test/screens/songs/songs_list_screen_test.dart`.
 - [ ] **UX-007-V** · hermes · Независимая приёмка и device recheck: UX-007
   - После: UX-007-I. Scope: проверка/решение без production edits.
-- [ ] **UX-008-R** · ornith · Повторно проверить: Микротекст вне общей шкалы требует отдельной проверки читаемости
+- [x] **UX-008-R** · luna + independent Hermes source acceptance · Повторно проверить: Микротекст вне общей шкалы требует отдельной проверки читаемости
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-008.md`.
 - [ ] **UX-008-I** · ornith · Минимальное исправление/проверка решения: Микротекст вне общей шкалы требует отдельной проверки читаемости
   - После: UX-008-R. Scope: `lib/widgets/tuner/transport_bar.dart`, `test/widgets/tuner/central_dial_geometry_test.dart`.
@@ -280,6 +280,6 @@ See PARALLEL-LANES.md for revised verification/checkpoint cadence; release hold 
 - [x] Native recurring supervisor 748ba92c74d8 configured every 3m; cheap admission script skips LLM while no action is due.
 - [x] Admission fixtures exercise busy, ready, pending review, missing PID, expired run, unmet dependencies and manual blocker.
 - [x] Preserve disconnected gateway leases: missing CLI PID is not model completion; reconcile server-side outcome before redispatch.
-- [ ] Verify first scheduled/manual controller cycle outcome; do not equate installed supervision with accepted product fixes.
+- [x] First controller cycle accepted UX-002-R; next accepted UX-008-R and reconciled terminal UX-009-I. Source-review acceptances are not product-fix counts.
 
 Status-only job d173a844e136 remains every 10m. Controller owns registry/dispatch/acceptance; foreground honors file leases. Limits: one Luna and one controlled test lane; no unauthorized cleanup, global config changes or release.

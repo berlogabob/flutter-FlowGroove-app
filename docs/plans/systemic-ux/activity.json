@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T00:08:56.126683+01:00",
+  "updated_at": "2026-10-25T00:20:00+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -879,8 +879,8 @@
     {
       "id": "UX-004-R",
       "title": "Повторно проверить: Недоступные песни видны, но причины и дальнейшее действие не объяснены",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "review",
+      "executor": "luna",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -889,6 +889,7 @@
       "issue": "UX-004",
       "read_files": [
         "lib/widgets/setlist_song_row.dart",
+        "lib/screens/setlists/setlist_view_screen.dart",
         "test/screens/setlists/setlist_view_screen_test.dart"
       ],
       "allowed_files": [
@@ -901,7 +902,7 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {"id":"UX-004-R-LUNA-20261025-0020","started_at":"2026-10-25T00:23:56.989374+01:00","deadline_at":"2026-10-25T00:33:56.989374+01:00","process":"proc_80bd6ad09a5c","pid":5630,"worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","active_actor":"hermes","phase":"parent_source_review_pending","session_id":"local-e3333186625baf1dcb9b183b68ded16da2b4b1a22051f3c3614e2fb6db774d7f","worker_exit_code":0,"duration_s":36.233,"server_ended_at":"2026-10-25T00:24:36.731+01:00","artifact":"docs/plans/systemic-ux/reviews/UX-004.md","file_lease":["docs/plans/systemic-ux/reviews/UX-004.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-R-LUNA-20261025-0020/hermes-corrected.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-R-LUNA-20261025-0020/process.json","launcher_history":[{"process":"proc_54309c8aab92","exit_code":2,"total_tokens":0,"log":"hermes.jsonl","reason":"Unsupported gateway --run-budget; no model request; corrected CLI without config changes or repeated inference"}],"selection_reason":"UX-008-I requires rendered preflight before a speculative font change; severity-3 UX-004 triage unlocks implementation. UX-009-I is terminal and awaiting independent code acceptance."},
       "verification": null
     },
     {
@@ -1340,7 +1341,7 @@
     {
       "id": "UX-008-R",
       "title": "Повторно проверить: Микротекст вне общей шкалы требует отдельной проверки читаемости",
-      "status": "review",
+      "status": "verified",
       "executor": "luna",
       "kind": "research",
       "after": [
@@ -1381,12 +1382,13 @@
         "duration_s": 75.644,
         "session_id": "local-2c2401233df6eb2c84a4707095700c1fde1657d2e9775b53dc2dbf11da8b5fbf"
       },
-      "verification": null
+      "verification": {"reviewer":"hermes","tested_commit":"1b55581c","evidence":["docs/plans/systemic-ux/reviews/UX-008.md","docs/plans/systemic-ux/verification/UX-008-R.json"]}
     },
     {
       "id": "UX-008-I",
       "title": "Минимальное исправление/проверка решения: Микротекст вне общей шкалы требует отдельной проверки читаемости",
-      "status": "queued",
+      "status": "blocked",
+      "blocked_reason": "Parent rendered preflight required: actual labelSmall is 11 (not 9); geometry-only assigned test does not cover TransportBar. Recover existing rendered tuner fixture/agreed seam and clipping constraints before production or new tests; no confirmed human readability violation.",
       "executor": "ornith",
       "kind": "implementation",
       "after": [
@@ -1593,7 +1595,7 @@
     {
       "id": "UX-009-I",
       "title": "Минимальное исправление/проверка решения: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных",
-      "status": "running",
+      "status": "review",
       "executor": "luna",
       "kind": "implementation",
       "after": [
@@ -1625,21 +1627,22 @@
         "deadline_at": "2026-10-24T23:58:29.960405+01:00",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "actual_model": null,
+        "actual_model": "gpt-6-luna",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
-        "active_actor": "luna",
-        "phase": "gateway_disconnected_outcome_unknown",
+        "active_actor": "hermes",
+        "phase": "parent_verification_pending_server_terminal_confirmed",
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-LUNA-20261024-234329/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-LUNA-20261024-234329/process.json",
         "file_lease": [
           "lib/screens/practice_screen.dart",
           "test/screens/practice_screen_test.dart"
         ],
-        "parent_code_writes_paused": true,
+        "parent_code_writes_paused": false,
         "process": "proc_b00cdb819749",
         "cli_session_id": "local-9e1843ff439773d2b421186920ec607d6c4e9732aec159ebf453a8a830d43e66",
-        "gateway_turn_status": "active_after_cli_disconnect_observed_in_server_logs",
-        "needs_reconciliation": true,
+        "gateway_turn_status": "terminal_text_response_stop_at_2026-10-25T00:14:53.445+01:00",
+        "needs_reconciliation": false,
+        "server_completion": {"ended_at":"2026-10-25T00:14:53.445+01:00","provider":"openai-codex","actual_model":"gpt-6-luna","api_calls":25,"reason":"text_response(finish_reason=stop)","evidence":"gateway response ready at 00:14:53.613; final RESULT.md present; parsed red.json done.success=false with two intended failures, green.json done.success=true with 10 testDone and no errors. Worker checks, not independent acceptance.","remaining":["parent source/diff/hash review","independent targeted checks","explicit missing-song/error coverage","primary integration/combined regression","device verification"]},
         "controller_observation": {"at": "2026-10-25T00:08:56.126683+01:00", "actual_model": "gpt-6-luna", "provider": "openai-codex", "last_api_call": 22, "last_api_at": "2026-10-25T00:07:06.369+01:00", "controlled_check_pid": 3374, "controlled_check": "scoped flutter analyze in leased worktree", "deadline_exceeded": true, "decision": "Retain lease and occupied Luna slot: server continued implementation after CLI disconnect. No repeated prompt, conflicting dispatch or parent code writes. Terminal outcome still pending; active_list omits this local adapter session and is not proof of completion."}
       },
       "verification": null,
