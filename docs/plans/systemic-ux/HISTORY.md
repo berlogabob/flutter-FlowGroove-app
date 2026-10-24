@@ -178,3 +178,19 @@ One model attempt hit the 120 s bound (136.43 s launcher duration), four reads o
 ## 2026-10-24T19:17:17.177721+01:00 — direct card patch prepared and checks launched
 
 Parent removed empty-stat substitution from shared DashboardCard, used AsyncValue.when for content and accessible label, retained data chart/headline, Card/InkWell/onTap and existing Mono Pulse tokens. Loading/error have no fabricated zero-week bars or raw error text. proc_acce872e0790 runs full card suite/analyze/format/diff; source/test hashes recorded. Patch remains isolated and unaccepted.
+
+## 2026-10-24T19:32:01.139545+01:00 — Card interim GREEN / expanded public guards
+
+Four card tests passed, including rendered loading→error semantics, real empty/populated data and no private error text. Analyze exit 0 with four info expressions already present in baseline; format/diff passed. Added real routed tappable/non-tappable loading coverage and invalidate→cached-refresh→new-empty-data coverage; source unchanged, final six-case suite now required. No primary integration yet.
+
+## 2026-10-24T19:42:10.804811+01:00 — Expanded card checks / parallel UX-001 source triage
+
+Expanded run passed cached refresh and loading→error/data cases; navigation assertions passed but test teardown caught an outstanding Riverpod autoDispose timer in the external-container routed fixture. Parent explicitly unmounts/pumps between fixture cases; no production change or weakened assertion. Final replay proc_4d4c3eddc694 pending. UX-001-R scope corrected from unrelated DashboardCard-only unit test to actual Home+Practice sources; parent supplied verified card navigation context. Preflight matched runner allowlist to prompt/ledger; new read-only model run proc_ef6ca6593645, no model retry of UX-009-I2.
+
+## 2026-10-24T19:44:59.826156+01:00 — UX-001 source accepted / NEW-003 registered
+
+95.07 s, two allowed complete reads, runtime identity checks passed. Parent corrected disabled-card visible-vs-accessible wording and inaccurate line/static claims; rejected enabling its tap callback. UX-001-I blocked on DESIGN-01. Confirmed accessible-label mismatch added as NEW-003 with R verified and bounded I/V tasks; all release-final dependencies updated. Final card six-case tests passed; analyze still running.
+
+## 2026-10-24T19:54:06.460726+01:00 — Card final GREEN and code integrated
+
+Six cases passed, analyze/format/diff exit 0; four pre-existing info expressions retained without unrelated cleanup. Fixed-source/test hashes matched final worktree, code c5444d7eea333602860d3a6d47cae0eb5bb20f48 cherry-picked as 87bfe21f96a1273cb4711f75ad5cca0aed25b04d. Eight-file primary regression proc_7c4f32232b38 pending; UX-009-I2 remains review. No device acceptance/release.

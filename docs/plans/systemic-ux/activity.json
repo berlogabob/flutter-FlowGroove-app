@@ -36,7 +36,14 @@
         "UX-001-I",
         "UX-001-V"
       ],
-      "resolution": null
+      "resolution": null,
+      "follow_up_observations": [
+        {
+          "type": "CODE+UX-HYPOTHESIS",
+          "source": "lib/widgets/practice_dashboard_card.dart:56-63 (primary before UX-009-I2)",
+          "observation": "Empty-week semantics mentions Tap to start regardless of tappable; Home callback navigates to Practice, while Practice embeds the card non-tappable. Recheck wording/action affordance under existing UX-001-R; no new user outcome asserted."
+        }
+      ]
     },
     {
       "id": "UX-002",
@@ -553,13 +560,32 @@
         "NEW-002-I3"
       ],
       "resolution": null
+    },
+    {
+      "id": "NEW-003",
+      "title": "Non-tappable Practice stats card announces an unavailable tap action",
+      "severity": 2,
+      "status": "open",
+      "source": "docs/plans/systemic-ux/reviews/UX-001.md",
+      "evidence_type": "CODE",
+      "summary": "Practice embeds PracticeDashboardCard(tappable:false). Visible empty-state text correctly suggests starting Metronome, but outer Semantics unconditionally says Tap to start. Keep existing navigation behavior; fix only the inappropriate accessible instruction in a separate one-file slice after UX-009-I2.",
+      "source_locations": [
+        "lib/screens/practice_screen.dart:38",
+        "lib/widgets/practice_dashboard_card.dart:56-63 (before UX-009-I2)"
+      ],
+      "tasks": [
+        "NEW-003-R",
+        "NEW-003-I",
+        "NEW-003-V"
+      ],
+      "resolution": null
     }
   ],
   "tasks": [
     {
       "id": "UX-001-R",
       "title": "Повторно проверить: Practice и фактическая практика разделены по разным понятиям",
-      "status": "queued",
+      "status": "verified",
       "executor": "ornith",
       "kind": "research",
       "after": [
@@ -569,7 +595,7 @@
       "issue": "UX-001",
       "read_files": [
         "lib/screens/practice_screen.dart",
-        "test/widgets/practice_dashboard_card_test.dart"
+        "lib/screens/home_screen.dart"
       ],
       "allowed_files": [
         "docs/plans/systemic-ux/reviews/UX-001.md"
@@ -581,13 +607,33 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
-      "verification": null
+      "run": {
+        "id": "UX-001-R-20261024-193639",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-001-R-20261024-193639/pi.jsonl",
+        "started_at": "2026-10-24T19:36:39.392333+01:00",
+        "deadline_at": "2026-10-24T19:40:39.392333+01:00",
+        "actual_model": "ollama/ornith-1.5:35b",
+        "requested_model": "ollama/ornith-1.5:35b",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "active_actor": "hermes",
+        "phase": "accepted_source_triage_with_parent_corrections",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-001-R-20261024-193639/process.json",
+        "process": "proc_ef6ca6593645",
+        "duration_s": 95.07
+      },
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "8a4fefdd6a4d31463f552aa673a3edd0fc828e87",
+        "evidence": [
+          "docs/plans/systemic-ux/reviews/UX-001.md",
+          "docs/plans/systemic-ux/verification/UX-001-R.json"
+        ]
+      }
     },
     {
       "id": "UX-001-I",
       "title": "Минимальное исправление/проверка решения: Practice и фактическая практика разделены по разным понятиям",
-      "status": "queued",
+      "status": "blocked",
       "executor": "ornith",
       "kind": "implementation",
       "after": [
@@ -613,7 +659,10 @@
       "timeout_s": 600,
       "max_attempts": 1,
       "run": null,
-      "verification": null
+      "verification": null,
+      "blockers": [
+        "Flow/terminology change requires DESIGN-01; source recheck is not user validation."
+      ]
     },
     {
       "id": "UX-001-V",
@@ -1441,15 +1490,32 @@
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
         "requested_model": "ollama/ornith-1.5:35b",
         "actual_model": null,
-        "phase": "parent_green_and_role_verification",
+        "phase": "primary_related_regression_verification",
         "active_actor": "hermes",
         "preflight_process": "proc_7b16a5452437",
         "red_exit_code": 1,
         "worker_failure": "120 s bound exceeded; 4 in-scope reads, no edits/final; no repeated worker prompt.",
-        "green_process": "proc_acce872e0790",
-        "green_report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I2-20261024-190204/green-test.json",
+        "green_process": "proc_4d4c3eddc694",
+        "green_report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I2-20261024-190204/green-final.json",
         "green_source_sha256": "d14339a5a6cc9b4fbe1473af5577f1d430a0ea51f172dc1abeac2b8e3bdf2d98",
-        "green_test_sha256": "c901914425c2a3ded101c5554841b6b192b4f230dc9939313a71bbf14a038730"
+        "green_test_sha256": "fbdebbcc29923179a33b3e0018fc34f7df28876c48b9cd0505eaf711e7f5d795",
+        "worktree_tests_interim": 4,
+        "interim_analyze_exit_code": 0,
+        "interim_analyze_infos": 4,
+        "expanded_fixture_failure": "Initial navigation/refresh expansion had 5 tests pass and one test fail at teardown with a pending Riverpod autoDispose timer. Public behavior assertions passed; parent now unmounts and pumps between routed fixtures, without changing production or weakening assertions.",
+        "verification_worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "primary_verification_process": "proc_7c4f32232b38",
+        "worktree_tests_passed": 6,
+        "worktree_analyze_exit_code": 0,
+        "worktree_analyze_infos": 4,
+        "worktree_format_exit_code": 0,
+        "worktree_commit": "c5444d7eea333602860d3a6d47cae0eb5bb20f48",
+        "primary_commit": "87bfe21f96a1273cb4711f75ad5cca0aed25b04d",
+        "verification_result": {
+          "exit_code": 0,
+          "tests_passed": 6,
+          "scope": "worktree"
+        }
       },
       "verification": null,
       "attempts": [
@@ -2276,7 +2342,8 @@
         "NEW-002-I1",
         "NEW-002-I2",
         "NEW-002-I3",
-        "UX-009-I2"
+        "UX-009-I2",
+        "NEW-003-V"
       ],
       "issue": null,
       "read_files": [],
@@ -2725,6 +2792,92 @@
           "docs/plans/systemic-ux/verification/NEW-002-I3.json"
         ]
       }
+    },
+    {
+      "issue": "NEW-003",
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "8a4fefdd6a4d31463f552aa673a3edd0fc828e87",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/NEW-003-R.json"
+        ]
+      },
+      "id": "NEW-003-R",
+      "title": "Confirm accessible instruction on non-tappable stats card",
+      "status": "verified",
+      "executor": "hermes",
+      "kind": "research",
+      "after": [
+        "OPS-LAN",
+        "OPS-RUNNER"
+      ],
+      "read_files": [
+        "lib/widgets/practice_dashboard_card.dart",
+        "lib/screens/practice_screen.dart"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/verification/NEW-003-R.json"
+      ],
+      "acceptance": [
+        "Inspect actual caller flag, visible copy and outer semantics separately; no device claim."
+      ]
+    },
+    {
+      "issue": "NEW-003",
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null,
+      "id": "NEW-003-I",
+      "title": "Correct readonly Practice card accessible instruction without changing navigation",
+      "status": "queued",
+      "executor": "ornith",
+      "kind": "implementation",
+      "after": [
+        "NEW-003-R",
+        "UX-009-I2"
+      ],
+      "read_files": [
+        "lib/widgets/practice_dashboard_card.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "allowed_files": [
+        "lib/widgets/practice_dashboard_card.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "acceptance": [
+        "One production file and one existing widget test only; change accessible empty-data instruction for tappable:false, not onTap/routes/audio.",
+        "Prove true/false rendered semantics and retained existing loading/error/data navigation tests."
+      ]
+    },
+    {
+      "issue": "NEW-003",
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null,
+      "id": "NEW-003-V",
+      "title": "Independently accept Practice card accessible instruction",
+      "status": "blocked",
+      "executor": "hermes",
+      "kind": "verification",
+      "after": [
+        "NEW-003-I"
+      ],
+      "read_files": [
+        "lib/widgets/practice_dashboard_card.dart",
+        "test/widgets/practice_dashboard_card_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Independent targeted tests/analyze and actual safe device/screen-reader recheck; source alone cannot close issue."
+      ],
+      "blockers": [
+        "Implementation not complete and fresh device/screen-reader evidence absent."
+      ]
     }
   ]
 }

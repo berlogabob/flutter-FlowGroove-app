@@ -2,21 +2,21 @@
 
 ```json
 {
-  "checked_at": "2026-10-24T19:17:24.530296+01:00",
+  "checked_at": "2026-10-24T20:04:09.965974+01:00",
   "scope": "Fresh code extraction plus literal registry/task/allowed-file layer; not full document semantic extraction",
-  "nodes": 13132,
-  "raw_links": 20165,
-  "activity_relationships": 339,
-  "issue_nodes_verified": 33,
-  "task_nodes_verified": 66,
+  "nodes": 13137,
+  "raw_links": 20185,
+  "activity_relationships": 355,
+  "issue_nodes_verified": 34,
+  "task_nodes_verified": 69,
   "dangling_endpoints": 0,
-  "query_checked": "Fresh related code graph; literal registry 33 issues/66 tasks, current scopes and dependencies; UX-009 source paths queried; code checkpoint 370b23f9.",
+  "query_checked": "Fresh shared-card code extraction and literal 34-issue/69-task registry with corrected scopes, NEW-003, and current canonical file edges; no dangling endpoints.",
   "llm_tokens_for_registry_extraction": 0,
-  "code_commit": "370b23f96e2a33fe38c165a31c3786b2c19e1019",
+  "code_commit": "87bfe21f96a1273cb4711f75ad5cca0aed25b04d",
   "task_status": {
-    "queued": 51,
-    "verified": 12,
-    "blocked": 2,
+    "verified": 14,
+    "blocked": 4,
+    "queued": 50,
     "review": 1
   },
   "warnings": [

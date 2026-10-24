@@ -7,8 +7,8 @@
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
-- В процессе уже добавлен NEW-001: ограничения извлечения Graphify. Сейчас 33 открытые записи, 66 задач; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 66 задач, из них 38 назначены Ornith; UX-006-R и UX-009-I2 выполняются/приняты Hermes после первого timeout. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
+- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 69 задач; состояние всегда читать из activity.json.
+- Текущая декомпозиция: 69 задач, из них 39 назначены Ornith; UX-006-R и UX-009-I2 выполняются/приняты Hermes после первого timeout. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -108,7 +108,7 @@ Registry изменяет только один родительский про�
 
 ## Задачи (первоначальная декомпозиция, актуальный status в activity.json)
 
-- [ ] **UX-001-R** · ornith · Повторно проверить: Practice и фактическая практика разделены по разным понятиям
+- [x] **UX-001-R** · ornith · Повторно проверить: Practice и фактическая практика разделены по разным понятиям
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-001.md`.
 - [ ] **UX-001-I** · ornith · Минимальное исправление/проверка решения: Practice и фактическая практика разделены по разным понятиям
   - После: UX-001-R, DESIGN-01. Scope: `lib/screens/practice_screen.dart`, `test/widgets/practice_dashboard_card_test.dart`.
@@ -257,3 +257,9 @@ All three slices gate NEW-002-V and FINAL-TEST; device acceptance remains separa
 ## UX-009 additional shared caller slice
 
 - [ ] **UX-009-I2** — Home/Practice shared DashboardCard loading/error vs true empty week; one production file + existing card tests. Must pass before PracticeScreen slice; all dependencies are recorded in activity.json.
+
+## NEW-003 — readonly stats-card semantics
+
+- [x] **NEW-003-R** — separate accessible label from visible copy; source confirmed.
+- [ ] **NEW-003-I** — one shared-card production file plus existing test, after UX-009-I2; preserve disabled navigation.
+- [ ] **NEW-003-V** — independent tests and fresh device/screen-reader evidence.

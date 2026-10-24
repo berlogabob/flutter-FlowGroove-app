@@ -1,0 +1,21 @@
+{
+  "task": "UX-001-R",
+  "reviewer": "hermes",
+  "source_snapshot_commit": "8a4fefdd6a4d31463f552aa673a3edd0fc828e87",
+  "actual_model": "ollama/ornith-1.5:35b",
+  "duration_s": 95.07,
+  "read_calls": 2,
+  "runtime_checks_passed": true,
+  "full_read_files": [
+    "lib/screens/practice_screen.dart",
+    "lib/screens/home_screen.dart"
+  ],
+  "parent_corrections": [
+    "Practice embedded card is reactive but non-tappable, not static",
+    "Visible disabled-state copy is not Tap to start; outer semantics label is wrong",
+    "Practice card call is line38, not45",
+    "Do not enable a disabled card/start audio without design approval"
+  ],
+  "decision": "UX-001-I waits for DESIGN-01; source-confirmed accessibility mismatch NEW-003",
+  "device_tested": false
+}
