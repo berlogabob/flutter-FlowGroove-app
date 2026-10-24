@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-24T04:37:16.023189+01:00",
+  "updated_at": "2026-10-24T04:51:08.716318+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -974,8 +974,8 @@
     {
       "id": "UX-006-R",
       "title": "Повторно проверить: При активном MIDI исчезает общий вход выбора сопровождения",
-      "status": "running",
-      "executor": "ornith",
+      "status": "verified",
+      "executor": "hermes",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -998,17 +998,48 @@
       "timeout_s": 600,
       "max_attempts": 1,
       "run": {
-        "id": "UX-006-R-20261024-043716",
-        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-006-R-20261024-043716/pi.jsonl",
-        "started_at": "2026-10-24T04:37:16.023189+01:00",
-        "deadline_at": "2026-10-24T04:47:16.023189+01:00",
-        "requested_model": "ollama/ornith-1.5:35b",
+        "id": "UX-006-R-hermes-fallback-20261024-045108",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/plans/systemic-ux/reviews/UX-006.md",
+        "started_at": "2026-10-24T04:51:08.716318+01:00",
+        "deadline_at": "2026-10-24T05:01:08.716318+01:00",
         "actual_model": null,
-        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_systemic_ux",
-        "launcher_session": "proc_57c99db6ccb1",
-        "launcher_pid": 91566
+        "result_path": "docs/plans/systemic-ux/reviews/UX-006.md",
+        "note": "Parent source review, not a model worker result"
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "c8dbb35c99674ffa7acd93e4b2fa45eb4943fcfd",
+        "evidence": [
+          "docs/plans/systemic-ux/reviews/UX-006.md",
+          "docs/plans/systemic-ux/verification/UX-006-R.json"
+        ]
+      },
+      "attempt_history": [
+        {
+          "executor": "ornith",
+          "run": {
+            "id": "UX-006-R-20261024-043716",
+            "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-006-R-20261024-043716/pi.jsonl",
+            "started_at": "2026-10-24T04:37:16.023189+01:00",
+            "deadline_at": "2026-10-24T04:47:16.023189+01:00",
+            "requested_model": "ollama/ornith-1.5:35b",
+            "actual_model": null,
+            "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_systemic_ux",
+            "launcher_session": "proc_57c99db6ccb1",
+            "launcher_pid": 91566
+          },
+          "status": "failed",
+          "exit_code": 124,
+          "duration_s": 540.07,
+          "reason": "No final before 540 s deadline; 4 unallowlisted read attempts at 2 guessed paths; output rejected",
+          "read_requests_outside_allowlist": [
+            "lib/widgets/metronome/launchpad_view.dart",
+            "lib/widgets/metronome/launchpadview.dart"
+          ],
+          "unallowlisted_read_request_count": 4
+        }
+      ],
+      "primary_executor": "ornith"
     },
     {
       "id": "UX-006-I",

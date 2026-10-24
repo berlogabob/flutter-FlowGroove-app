@@ -144,3 +144,5 @@ accidental dumps rather than work:
 - `.opencode/`, `audit_reports/`
 
 They are probably `.gitignore` candidates. Left untouched so the decision is the owner's.
+
+UX-006-R completion: Ornith timed out (540 s, no final) and guessed 4 read attempts at 2 unallowlisted paths. Rejected; no retry. Hermes completed the three-file source review, recorded separate failed attempt and explicit actor change. UX-006-I still queued; authenticated active-MIDI regression first. Source review only, not a second UI fix.

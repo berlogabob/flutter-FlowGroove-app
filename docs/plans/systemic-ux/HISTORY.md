@@ -84,3 +84,9 @@ Next high-priority task uses existing Pi studio Ornith 35b, read-only, three all
 ## 2026-10-24T04:39:11.641084+01:00 — UX-006-R worker launched
 
 Real bounded process proc_57c99db6ccb1 / launcher PID 91566 started through uv and existing Pi studio. Streamed JSONL stays private; result.json is not acceptance. Registry remains running until parent reviews completion/failure; release hold remains active.
+
+## 2026-10-24T04:51:08.716318+01:00 — UX-006-R timeout and parent fallback
+
+Ornith exit 124 after 540.07 s, 11 read calls, no final; worker attempt failed and retained. No identical retry. Hermes directly verified the early-return/selector branches and existing test gap; task executor explicitly changed to parent for accepted source review. No UI edit, regression run, device check or release credited.
+
+Scope audit: the 11 read requests include 4 unallowlisted read attempts at 2 guessed paths. This is an additional rejection reason, not accepted worker evidence; read-only tools are not a filesystem path sandbox. Failed attempt retains requested paths.

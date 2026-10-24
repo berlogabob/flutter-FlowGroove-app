@@ -31,3 +31,5 @@
 5. Do not clear semantic pending state or claim all docs/labels refreshed. Graph/report remain local; this summary is the safe committed evidence.
 
 The installed post-commit hook launches a code-only asynchronous rebuild. This planning commit uses its existing `GRAPHIFY_SKIP_HOOK=1` opt-out only for that command; security/pre-commit checks remain active. Code and registry were explicitly refreshed and verified. Future code updates must re-merge the structured registry layer afterwards: the scanner otherwise prunes its unsupported/ignored JSON source.
+
+UX-006-R follow-up: registry node status/executor refreshed from activity.json after rejected Ornith timeout and accepted parent review. 33 issue nodes, 62 task nodes and 310 registry relations retained. This is a literal registry metadata refresh, not a new AST/full-document semantic extraction.

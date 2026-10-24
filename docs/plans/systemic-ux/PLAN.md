@@ -8,7 +8,7 @@
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
 - В процессе уже добавлен NEW-001: ограничения извлечения Graphify. Сейчас 33 открытые записи, 62 задачи; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 62 задачи, из них 36 назначены Ornith. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
+- Текущая декомпозиция: 62 задачи, из них 35 назначены Ornith; UX-006-R принят Hermes после первого timeout. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -138,7 +138,7 @@ Registry изменяет только один родительский про�
   - После: UX-005-R, DESIGN-01. Scope: `lib/screens/home_screen.dart`, `test/domain/metronome_practice_features_test.dart`.
 - [ ] **UX-005-V** · hermes · Независимая приёмка и device recheck: UX-005
   - После: UX-005-I. Scope: проверка/решение без production edits.
-- [ ] **UX-006-R** · ornith · Повторно проверить: При активном MIDI исчезает общий вход выбора сопровождения
+- [x] **UX-006-R** · hermes (fallback after one Ornith timeout) · Повторно проверить: При активном MIDI исчезает общий вход выбора сопровождения
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-006.md`.
 - [ ] **UX-006-I** · ornith · Минимальное исправление/проверка решения: При активном MIDI исчезает общий вход выбора сопровождения
   - После: UX-006-R. Scope: `lib/screens/metronome_screen.dart`, `test/midi/drums_button_test.dart`.
@@ -206,9 +206,9 @@ Registry изменяет только один родительский про�
   - После: DESIGN-01. Scope: проверка/решение без production edits.
 - [ ] **QA-HUMAN-V** · hermes · Расширенная проверка: Human task testing: navigation, context/resume и setlist recovery
   - После: DESIGN-01. Scope: проверка/решение без production edits.
-- [ ] **OPS-LAN** · hermes · Подтвердить рабочий Ornith 35b final/tool cycle по LAN
+- [x] **OPS-LAN** · hermes · Подтвердить рабочий Ornith 35b final/tool cycle по LAN
   - После: нет. Scope: проверка/решение без production edits.
-- [ ] **OPS-RUNNER** · hermes · Подготовить безопасный запуск существующего Pi клиента
+- [x] **OPS-RUNNER** · hermes · Подготовить безопасный запуск существующего Pi клиента
   - После: OPS-LAN. Scope: проверка/решение без production edits.
 - [ ] **LEGACY-01** · ornith · Сверить незакрытые локальные планы и статусные утверждения
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/LEGACY-01.md`.
@@ -238,4 +238,6 @@ Code commit d842fa36674a6a4a008ac413203bf939603c836b in fix/systemic-ux: caller 
 
 - [ ] NEW-002-R/V · Соседние create FAB: Setlists, Band Setlists, Rehearsals. Создано реальной командой add по свежему чтению callers; не объявлены исправленными этим срезом.
 
-Primary branch checkpoint: efef7ca4 passed 47 tests across four related screen files, plus analyze/format. UX-006-R is now running read-only on Studio; its result must be source-checked before any new edit. No fresh device/TalkBack verification or release.
+Primary branch checkpoint: efef7ca4 passed 47 tests across four related screen files, plus analyze/format. UX-006-R completed via parent source fallback after one 540 s Ornith timeout; no UI implementation or device verification credited. No fresh device/TalkBack verification or release.
+
+UX-006-R: worker exit 124/no final preserved in attempt_history; parent source review verified, see reviews/UX-006.md. Next UX-006-I requires an authenticated active-MIDI regression fixture before production edits.

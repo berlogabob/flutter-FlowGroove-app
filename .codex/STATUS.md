@@ -3,7 +3,7 @@
 ## Current checkpoint — 2026-10-24
 
 - Active registry: `docs/plans/systemic-ux/activity.json`; 33 open records,
-  62 tasks (36 Ornith-first), including newly found Graphify coverage work. Read current counts.
+  62 tasks (35 current Ornith assignments, one explicit parent fallback), including newly found Graphify coverage work. Read current counts.
 - Saved nine UX findings, 14 open GitHub issues and eight uncovered verification areas.
 - Release hold wired into both Makefiles and the Android publishing workflow;
   development CI validates the hold instead of treating intentional blocking as failure.
@@ -14,8 +14,8 @@
   semantic label; 47 related screen tests pass on second01. Fresh device/TalkBack pending.
   No audio/user-data changes, publication or install.
 - OPS-RUNNER and UX-007-R/I/S verified. NEW-002 records three adjacent missing labels.
-- UX-006-R started as a bounded read-only Ornith/Pi background review (proc_57c99db6ccb1);
-  result requires parent source verification. No UI edit delegated in that run.
+- UX-006-R worker timed out after 540 s / 11 reads / no final; no output accepted.
+  Hermes completed direct source review without retry; UX-006-I is next, test fixture first.
 - Historical state below is retained; old green suites and completed checklists are
   not fresh verification of today's code/device behaviour.
 

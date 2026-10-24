@@ -17,5 +17,16 @@
   ],
   "private_output": "graphify-out/ (gitignored)",
   "issue_nodes_verified": 33,
-  "task_nodes_verified": 62
+  "task_nodes_verified": 62,
+  "registry_metadata_refresh": {
+    "at": "2026-10-24T04:57:33.398486+01:00",
+    "reason": "UX-006-R failed Ornith attempt, explicit Hermes fallback accepted",
+    "issues": 33,
+    "tasks": 62,
+    "task_status": {
+      "queued": 56,
+      "verified": 6
+    },
+    "scope": "Literal registry status/executor only; no new code AST or full document semantic extraction"
+  }
 }
