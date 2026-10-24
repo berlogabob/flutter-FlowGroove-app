@@ -114,7 +114,7 @@ Registry изменяет только один родительский про�
   - После: UX-001-R, DESIGN-01. Scope: `lib/screens/practice_screen.dart`, `test/widgets/practice_dashboard_card_test.dart`.
 - [ ] **UX-001-V** · hermes · Независимая приёмка и device recheck: UX-001
   - После: UX-001-I. Scope: проверка/решение без production edits.
-- [ ] **UX-002-R** · ornith · Повторно проверить: Menu совмещает глобальную навигацию и контекстные команды
+- [x] **UX-002-R** · luna + independent Hermes source acceptance · Повторно проверить: Menu совмещает глобальную навигацию и контекстные команды
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-002.md`.
 - [ ] **UX-002-I** · ornith · Минимальное исправление/проверка решения: Menu совмещает глобальную навигацию и контекстные команды
   - После: UX-002-R, DESIGN-01. Scope: `lib/screens/main_shell.dart`, `test/screens/home_quick_actions_test.dart`.

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T00:01:22.158564+01:00",
+  "updated_at": "2026-10-25T00:08:56.126683+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -692,7 +692,7 @@
     {
       "id": "UX-002-R",
       "title": "Повторно проверить: Menu совмещает глобальную навигацию и контекстные команды",
-      "status": "review",
+      "status": "verified",
       "executor": "luna",
       "kind": "research",
       "after": [
@@ -733,7 +733,7 @@
         "session_id": "local-2c2401233df6eb2c84a4707095700c1fde1657d2e9775b53dc2dbf11da8b5fbf",
         "artifact": "docs/plans/systemic-ux/reviews/UX-002.md"
       },
-      "verification": null
+      "verification": {"reviewer": "hermes", "tested_commit": "1e1e5331ad7f4b47baf8e2b05c16abad5824abd2", "evidence": ["docs/plans/systemic-ux/reviews/UX-002.md", "docs/plans/systemic-ux/verification/UX-002-R.json"]}
     },
     {
       "id": "UX-002-I",
@@ -1638,8 +1638,9 @@
         "parent_code_writes_paused": true,
         "process": "proc_b00cdb819749",
         "cli_session_id": "local-9e1843ff439773d2b421186920ec607d6c4e9732aec159ebf453a8a830d43e66",
-        "gateway_turn_status": "unknown",
-        "needs_reconciliation": true
+        "gateway_turn_status": "active_after_cli_disconnect_observed_in_server_logs",
+        "needs_reconciliation": true,
+        "controller_observation": {"at": "2026-10-25T00:08:56.126683+01:00", "actual_model": "gpt-6-luna", "provider": "openai-codex", "last_api_call": 22, "last_api_at": "2026-10-25T00:07:06.369+01:00", "controlled_check_pid": 3374, "controlled_check": "scoped flutter analyze in leased worktree", "deadline_exceeded": true, "decision": "Retain lease and occupied Luna slot: server continued implementation after CLI disconnect. No repeated prompt, conflicting dispatch or parent code writes. Terminal outcome still pending; active_list omits this local adapter session and is not proof of completion."}
       },
       "verification": null,
       "attempts": [

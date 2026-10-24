@@ -1,0 +1,17 @@
+{
+  "task": "UX-002-R",
+  "reviewer": "hermes",
+  "tested_commit": "1e1e5331ad7f4b47baf8e2b05c16abad5824abd2",
+  "scope": "independent complete source review; no production changes or human/device acceptance",
+  "worker": {"provider": "openai-codex", "actual_model": "gpt-6-luna", "exit_code": 0, "duration_ms": 35040, "reads": 4, "writes": 1, "allowed_paths_only": true},
+  "source_identical_to_worker": true,
+  "source_sha256": {
+    "lib/screens/main_shell.dart": "f291cb9ceac37fa4504f530fabb271173e7f0262fe299c689d3706798b5c6998",
+    "lib/widgets/bottom_nav_or_action_bar.dart": "642eb5323843cf47979efe7e05f1d2a47cae6ad0c1b10e7e56d12ab00a9ca986",
+    "lib/widgets/app_menu_sheet.dart": "0c48f86116404d69946c3fb2c7d92bf8ae52e7bb9d3ea598b86a68fb8dc5efd7"
+  },
+  "corrections": ["Landscape always renders Menu, unlike portrait empty child menus.", "Absence of global rows on this path does not prove no other entry exists.", "Test seam must be rendered routed shell, not constructor parameters."],
+  "report": "docs/plans/systemic-ux/reviews/UX-002.md",
+  "tests": "not run: source-review-only acceptance; no executable changes",
+  "remaining": ["DESIGN-01 before implementation", "device and human checks", "UX-002 remains open"]
+}
