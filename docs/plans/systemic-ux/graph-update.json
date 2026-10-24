@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-10-24T20:57:12.409069+01:00",
+  "checked_at": "2026-10-24T21:31:58.648284+01:00",
   "scope": "Fresh code extraction plus literal registry/task/allowed-file layer; not full document semantic extraction",
   "nodes": 13137,
   "raw_links": 20185,
@@ -13,13 +13,14 @@
   "task_status": {
     "verified": 16,
     "blocked": 4,
-    "queued": 48,
-    "running": 1
+    "queued": 46,
+    "review": 3
   },
   "warnings": [
     "Existing linux/runner/my_application.h syntax error, no symbols",
     "34 source files without extracted symbols (NEW-001 remains open)",
     "No full changed-document semantic extraction or new HTML"
   ],
-  "private_output": "graphify-out/ (gitignored)"
+  "private_output": "graphify-out/ (gitignored)",
+  "update_kind": "Registry metadata only; production code unchanged, no repeated AST or clustering"
 }

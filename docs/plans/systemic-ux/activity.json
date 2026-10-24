@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-24T20:57:12.409069+01:00",
+  "updated_at": "2026-10-24T21:31:58.648284+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -692,8 +692,8 @@
     {
       "id": "UX-002-R",
       "title": "Повторно проверить: Menu совмещает глобальную навигацию и контекстные команды",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "review",
+      "executor": "luna",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -702,8 +702,8 @@
       "issue": "UX-002",
       "read_files": [
         "lib/screens/main_shell.dart",
-        "test/screens/home_quick_actions_test.dart",
-        "lib/widgets/bottom_nav_or_action_bar.dart"
+        "lib/widgets/bottom_nav_or_action_bar.dart",
+        "lib/widgets/app_menu_sheet.dart"
       ],
       "allowed_files": [
         "docs/plans/systemic-ux/reviews/UX-002.md"
@@ -715,7 +715,24 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "UX-002-R-LUNA-20261024-211550",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-002-R-LUNA-20261024-211550/hermes.jsonl",
+        "started_at": "2026-10-24T21:15:50.043470+01:00",
+        "deadline_at": "2026-10-24T21:25:50.043470+01:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "requested_model": "gpt-6-luna",
+        "requested_provider": "openai-codex",
+        "actual_model": "gpt-6-luna",
+        "active_actor": "hermes",
+        "phase": "parent_source_review_pending",
+        "project_context_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-002-R-LUNA-20261024-211550/PROJECT-CONTEXT.md",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-002-R-LUNA-20261024-211550/process.json",
+        "process": "proc_e4aeba00be3c",
+        "duration_s": 35.04,
+        "session_id": "local-2c2401233df6eb2c84a4707095700c1fde1657d2e9775b53dc2dbf11da8b5fbf",
+        "artifact": "docs/plans/systemic-ux/reviews/UX-002.md"
+      },
       "verification": null
     },
     {
@@ -1323,8 +1340,8 @@
     {
       "id": "UX-008-R",
       "title": "Повторно проверить: Микротекст вне общей шкалы требует отдельной проверки читаемости",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "review",
+      "executor": "luna",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -1345,7 +1362,25 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "UX-008-R-LUNA-20261024-212236",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-008-R-LUNA-20261024-212236/hermes-resume.jsonl",
+        "started_at": "2026-10-24T21:22:36.156094+01:00",
+        "deadline_at": "2026-10-24T21:32:36.156094+01:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "requested_model": "gpt-6-luna",
+        "requested_provider": "openai-codex",
+        "actual_model": "gpt-6-luna",
+        "active_actor": "hermes",
+        "phase": "parent_source_review_pending",
+        "project_context_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-002-R-LUNA-20261024-211550/PROJECT-CONTEXT.md",
+        "resume_session_id": "local-2c2401233df6eb2c84a4707095700c1fde1657d2e9775b53dc2dbf11da8b5fbf",
+        "process": "proc_baa2eec1e593",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-008-R-LUNA-20261024-212236/process.json",
+        "launcher_note": "First command rejected unsupported --no-restore-cwd before any model call (0 tokens); corrected to --in, original log retained.",
+        "duration_s": 75.644,
+        "session_id": "local-2c2401233df6eb2c84a4707095700c1fde1657d2e9775b53dc2dbf11da8b5fbf"
+      },
       "verification": null
     },
     {
@@ -1558,8 +1593,8 @@
     {
       "id": "UX-009-I",
       "title": "Минимальное исправление/проверка решения: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных",
-      "status": "running",
-      "executor": "ornith",
+      "status": "review",
+      "executor": "hermes",
       "kind": "implementation",
       "after": [
         "UX-009-R",
@@ -1592,8 +1627,8 @@
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
         "requested_model": "ollama/ornith-1.5:35b",
         "actual_model": null,
-        "phase": "ornith_homework_vertical_slice",
-        "active_actor": "ornith",
+        "phase": "parent_direct_fallback_after_timeout",
+        "active_actor": "hermes",
         "preflight_process": "proc_dc3b5f9ed2dd",
         "red_exit_code": 1,
         "remaining_parts": [
@@ -1602,9 +1637,50 @@
         ],
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-20261024-204816/process.json",
         "model_timeout_s": 540,
-        "process": "proc_83a7b4a9f0b4"
+        "process": "proc_83a7b4a9f0b4",
+        "worker_failure": "540s timeout, no reads/edits/final; no retry."
       },
-      "verification": null
+      "verification": null,
+      "attempts": [
+        {
+          "id": "UX-009-I-20261024-204816",
+          "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-20261024-204816/pi.jsonl",
+          "started_at": "2026-10-24T20:56:08.689015+01:00",
+          "deadline_at": "2026-10-24T21:06:08.689015+01:00",
+          "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+          "requested_model": "ollama/ornith-1.5:35b",
+          "actual_model": null,
+          "phase": "ornith_homework_vertical_slice",
+          "active_actor": "ornith",
+          "preflight_process": "proc_dc3b5f9ed2dd",
+          "red_exit_code": 1,
+          "remaining_parts": [
+            "independent recent-session loading/error/retry",
+            "song-title availability versus actual Removed song"
+          ],
+          "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-20261024-204816/process.json",
+          "model_timeout_s": 540,
+          "process": "proc_83a7b4a9f0b4",
+          "outcome": "rejected_timeout_no_tools_no_edits",
+          "result": {
+            "task": "UX-009-I",
+            "slice": "Homework only",
+            "exit_code": 124,
+            "duration_s": 541.41,
+            "actual_model": "ollama/ornith-1.5:35b",
+            "provider": "studio",
+            "backend_manifest_verified": false,
+            "allowed_paths_only": true,
+            "test_unchanged": true,
+            "reads": 0,
+            "edits": 0,
+            "runtime_checks_passed": false,
+            "final": "",
+            "parent_verified": false
+          }
+        }
+      ],
+      "original_executor": "ornith"
     },
     {
       "id": "UX-009-V",
@@ -2971,5 +3047,20 @@
         "Implementation not complete and fresh device/screen-reader evidence absent."
       ]
     }
-  ]
+  ],
+  "worker_lanes": {
+    "studio": {
+      "provider": "studio",
+      "model": "ollama/ornith-1.5:35b",
+      "max_concurrent": 1
+    },
+    "luna": {
+      "provider": "openai-codex",
+      "model": "gpt-6-luna",
+      "max_concurrent": 1,
+      "runtime": "Hermes CLI per-invocation override",
+      "memory": "project-only context file and resumable session",
+      "global_config_changed": false
+    }
+  }
 }

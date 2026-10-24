@@ -214,3 +214,13 @@ Seven card tests passed, including readonly/tappable semantics, retained route f
 ## 2026-10-24T20:57:12.409069+01:00 — NEW-003 code accepted; Homework tracer dispatched
 
 75 primary tests passed on 6d26f9ef2352a3f98c7909a17c404de404245c48 with matching final source/test hashes; NEW-003-I verified, device V and issue remain open. PracticeScreen public RED confirms missing Loading homework rather than provider/plugin failure. One bounded Ornith task proc_83a7b4a9f0b4 now edits only the Homework section in PracticeScreen, preserving Quick start and other sections, with model timeout 540 s (within task 600 s) instead of arbitrary 120 s. Parent must exercise the tracer, then handle required remaining states before accepting the whole task.
+
+## 2026-10-24T21:28:31.958040+01:00 — User authorized Luna parallel lane / real pilot
+
+Hermes CLI with per-call gpt-6-luna/openai-codex returned LUNA_READY; Pi openai-codex refresh failed 401, no credential/global-config changes. Dedicated fix/luna-ux worktree created. Luna produced only assigned UX-002-R review in 35.040 s (four allowed reads including project context, one write); model/tool log + artifact + git status checked, findings not yet parent-accepted. Resumable project-only session launched for UX-008-R, no personal memory injection. The first resume CLI rejected --no-restore-cwd before inference; corrected to documented --in, original failure preserved. Read-only status monitor now recognizes explicit Luna PID marker; isolated positive/negative fixtures pass.
+
+Existing Ornith Homework run actually timed out at 540 s without read/edit/final; preserved under attempts and handed to parent direct fallback, no retry. Parallel lanes must not be misreported as two currently live model workers. Revised cadence batches full related regressions/code Graphify at coherent integration checkpoints, retaining targeted RED/GREEN, final source analyze/format/diff and device blockers.
+
+## 2026-10-24T21:31:58.643426+01:00 — Luna project-memory resume exercised
+
+Second Luna draft UX-008-R produced in 75.644 s in the same exact returned session ID; file-call paths match assigned sources/context and only two report artifacts exist. Both drafts remain review, no production fix acceptance claimed. Project-only context + resumed conversation tested; future sessions should be renewed at coherent feature boundaries to prevent unbounded history growth. No native global delegation repin, personal-memory copy or source-code merge performed.

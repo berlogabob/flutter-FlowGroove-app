@@ -8,7 +8,7 @@
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
 - В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 69 задач; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 69 задач, из них 38 назначены Ornith; UX-006-R и UX-009-I2 выполняются/приняты Hermes после первого timeout. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
+- Текущая декомпозиция: 69 задач, из них 35 назначены Ornith; UX-006-R и UX-009-I2 выполняются/приняты Hermes после первого timeout. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -263,3 +263,13 @@ All three slices gate NEW-002-V and FINAL-TEST; device acceptance remains separa
 - [x] **NEW-003-R** — separate accessible label from visible copy; source confirmed.
 - [x] **NEW-003-I** — one shared-card production file plus existing test, after UX-009-I2; preserve disabled navigation.
 - [ ] **NEW-003-V** — independent tests and fresh device/screen-reader evidence.
+
+## Parallel Luna lane — authorized 2026-10-24
+
+- [x] Real Luna request through Hermes CLI; Pi OAuth route failed 401 and was not silently substituted.
+- [x] Independent fix/luna-ux worktree and project-only context; no global provider/delegation or personal-memory changes.
+- [x] UX-002-R draft produced in 35.040 s, only assigned report written; parent acceptance pending.
+- [x] Resume same Luna session for UX-008-R; controller remains sole registry/integration writer.
+- [ ] Measure accepted code throughput with coherent slices and batch integration checks, not additional agent counts.
+
+See PARALLEL-LANES.md for revised verification/checkpoint cadence; release hold is unchanged.
