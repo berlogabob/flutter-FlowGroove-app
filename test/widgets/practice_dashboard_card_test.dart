@@ -10,11 +10,17 @@ import 'package:go_router/go_router.dart';
 import '../helpers/routed_test_harness.dart';
 
 void main() {
-  Future<void> pump(WidgetTester tester, FutureOr<PracticeStats> stats) async {
+  Future<void> pump(
+    WidgetTester tester,
+    FutureOr<PracticeStats> stats, {
+    bool tappable = true,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [practiceStatsProvider.overrideWith((ref) async => stats)],
-        child: const MaterialApp(home: Scaffold(body: PracticeDashboardCard())),
+        child: MaterialApp(
+          home: Scaffold(body: PracticeDashboardCard(tappable: tappable)),
+        ),
       ),
     );
     await tester.pump();
@@ -22,6 +28,34 @@ void main() {
   }
 
   group('PracticeDashboardCard (#133)', () {
+    testWidgets('readonly empty card does not announce a tap action', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      try {
+        await pump(tester, PracticeStats.empty, tappable: false);
+        final label = tester
+            .getSemantics(find.byType(PracticeDashboardCard))
+            .getSemanticsData()
+            .label;
+        expect(label, isNot(contains('Tap to start')));
+        expect(label, contains('Start the metronome to log time'));
+        expect(find.text('Tap to start'), findsNothing);
+        expect(find.text('Start the metronome to log time'), findsOneWidget);
+        await pump(tester, PracticeStats.empty);
+        expect(
+          tester
+              .getSemantics(find.byType(PracticeDashboardCard))
+              .getSemanticsData()
+              .label,
+          contains('Tap to start practicing'),
+        );
+        expect(find.text('Tap to start'), findsOneWidget);
+      } finally {
+        semantics.dispose();
+      }
+    });
+
     testWidgets('loading preserves tappable and non-tappable navigation', (
       tester,
     ) async {
