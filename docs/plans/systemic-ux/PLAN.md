@@ -128,8 +128,8 @@ Registry изменяет только один родительский про�
   - После: UX-003-I. Scope: проверка/решение без production edits.
 - [x] **UX-004-R** · luna + independent Hermes source acceptance · Повторно проверить: Недоступные песни видны, но причины и дальнейшее действие не объяснены
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-004.md`.
-- [ ] **UX-004-I** · luna · Минимальное исправление/проверка решения: Недоступные песни видны, но причины и дальнейшее действие не объяснены
-  - После: UX-004-R. Scope corrected after accepted source review: `lib/screens/setlists/setlist_view_screen.dart`, `test/screens/setlists/setlist_view_screen_test.dart`; shared row unchanged. Live run/lease in activity.json.
+- [x] **UX-004-I** · luna + parent review · Минимальное исправление/проверка решения: Недоступные песни видны, но причины и дальнейшее действие не объяснены
+  - После: UX-004-R. Scope: `lib/screens/setlists/setlist_view_screen.dart`, `test/screens/setlists/setlist_view_screen_test.dart`; shared row unchanged. Integrated f0aa7414; 10 warm + 27 primary combined tests PASS. UX-004-V/device remains open.
 - [ ] **UX-004-V** · hermes · Независимая приёмка и device recheck: UX-004
   - После: UX-004-I. Scope: проверка/решение без production edits.
 - [x] **UX-005-R** · luna + independent Hermes source acceptance · Повторно проверить: Нет видимого единого входа для продолжения конкретного рабочего контекста

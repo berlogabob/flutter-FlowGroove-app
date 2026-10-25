@@ -1,0 +1,43 @@
+{
+  "task": "UX-004-I",
+  "reviewer": "hermes",
+  "tested_commit": "f0aa74143f8afa8cda333d6ac5d1f01ed943cf1a",
+  "scope": "Accepted implementation and primary integration; not device/human acceptance or issue closure",
+  "worker": {
+    "provider": "openai-codex",
+    "actual_model": "gpt-6-luna",
+    "session_id": "local-f35ded6d5496c6185657c11a2af4e463b3aff83872c040304254693e83ee29ad",
+    "cli_exit_code": 1,
+    "gateway_terminal_at": "2026-10-25T00:52:36.502+01:00",
+    "api_calls": 19,
+    "deadline_exceeded": true,
+    "prompt_repeated": false,
+    "deviations": ["AGENTS.md filename search outside initial read window; no AGENTS content read observed", "Retained CLI stream stops early; full tool-path compliance is not asserted from it. Independent git diff contains only assigned source and test."]
+  },
+  "behavior": [
+    "Successful missing-song lookup has cause-neutral explanation, without deletion or permission certainty.",
+    "Editors are directed to existing Menu → Edit Setlist; viewers get no edit advice or affordance.",
+    "No-data song-load error is distinct from successful unresolved entries.",
+    "Mixed playable/unavailable rows still navigate to Metronome; existing personal/band editor route parameters remain tested.",
+    "Initial loading, provider cached-data policy, saved items, shared row and queue filtering code are unchanged."
+  ],
+  "parent_review": ["Removed redundant showEditAdvice flag; reused existing canEdit.", "Computed notice predicate once rather than scanning saved items per rendered row.", "Extended mixed-row public screen regression to exercise actual Menu → Metronome navigation."],
+  "source_sha256": {
+    "lib/screens/setlists/setlist_view_screen.dart": "9d8590f4611c47673d37d9e9f0e1b626be06ce04eee64a0a687d85c04806255b",
+    "test/screens/setlists/setlist_view_screen_test.dart": "4bdc2f3c22782e683dee52da4cb29d841415ae1d7f8f0e57d23cacc9562ff7ef"
+  },
+  "checks": {
+    "worker_baseline": {"visible_tests": 7, "success": true},
+    "worker_red": {"visible_tests": 1, "success": false, "assertion": "Expected one unavailable-library explanation, found zero", "log": "red-editor.json"},
+    "worker_green": {"visible_tests": 10, "success": true, "log": "final.json"},
+    "parent_warm_test": {"process": "proc_df3cac13314c", "exit_code": 0, "visible_tests": 10, "log": "parent-final.json", "cold_native_compilation": true},
+    "parent_primary_combined": {"process": "proc_0ea191a4944f", "exit_code": 0, "visible_tests": 27, "log": "primary-final.json", "files": ["test/screens/setlists/setlist_view_screen_test.dart", "test/screens/setlists/setlists_list_screen_test.dart", "test/screens/setlists/create_setlist_screen_test.dart"]},
+    "analyze": {"command": "flutter analyze --no-pub --no-fatal-infos lib/screens/setlists/setlist_view_screen.dart test/screens/setlists/setlist_view_screen_test.dart", "exit_code": 0, "infos": 3, "existing_findings": ["source directives_ordering", "source use_null_aware_elements in unchanged song navigation", "test directives_ordering"]},
+    "format": {"initial_check": "One file needed formatting after parent simplification; retained, formatted, then final check passed", "final_exit_code": 0, "files_changed_by_final_check": 0},
+    "diff_check": {"exit_code": 0},
+    "source_identity_primary_warm": true,
+    "security_commit_hook": "PASS"
+  },
+  "private_log_directory": "audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035",
+  "remaining": ["UX-004-V fresh installed-device/adjacent-flow checks", "human usability metrics unset", "final broad regression and Graphify checkpoint", "owner issue closure; release hold remains"]
+}

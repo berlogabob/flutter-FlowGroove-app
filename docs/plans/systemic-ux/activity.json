@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T01:44:00+01:00",
+  "updated_at": "2026-10-25T01:15:15.157682+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -909,7 +909,7 @@
     {
       "id": "UX-004-I",
       "title": "Минимальное исправление/проверка решения: Недоступные песни видны, но причины и дальнейшее действие не объяснены",
-      "status": "review",
+      "status": "verified",
       "executor": "luna",
       "kind": "implementation",
       "after": [
@@ -935,8 +935,8 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": {"id":"UX-004-I-LUNA-20261025-0035","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","started_at":"2026-10-25T00:36:15.732359+01:00","deadline_at":"2026-10-25T00:46:15.732359+01:00","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_ux006","active_actor":"hermes","phase":"parent_verification_pending_server_terminal_confirmed","process":"proc_f24768825d45","pid":7320,"cli_session_id":"local-f35ded6d5496c6185657c11a2af4e463b3aff83872c040304254693e83ee29ad","needs_reconciliation":false,"cli_exit_code":1,"gateway_turn_status":"terminal_text_response_stop_at_2026-10-25T00:52:36.502+01:00","server_completion":{"ended_at":"2026-10-25T00:52:36.502+01:00","gateway_response_at":"2026-10-25T00:52:36.550+01:00","api_calls":19,"actual_model":"gpt-6-luna","provider":"openai-codex","worker_final_tests":10,"worker_final_success":true,"acceptance":"pending independent review; CLI disconnect and elapsed deadline preserved, no model prompt repeated"},"controller_observation":{"at":"2026-10-25T00:39:02+01:00","last_api_call":2,"last_api_at":"2026-10-25T00:37:34.522+01:00","controlled_check_pid":7508,"controlled_check":"baseline existing SetlistViewScreen tests","decision":"Server continued after CLI exit; retain source/test lease and occupied Luna/test lane; no resend or takeover."},"file_lease":["lib/screens/setlists/setlist_view_screen.dart","test/screens/setlists/setlist_view_screen_test.dart"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/process.json","selection_reason":"Severity-3 implementation unlocked by accepted UX-004-R outranks further research. One warm checkout/test lane; UX-009 terminal files remain untouched."},
-      "verification": null
+      "run": {"id":"UX-004-I-LUNA-20261025-0035","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","started_at":"2026-10-25T00:36:15.732359+01:00","deadline_at":"2026-10-25T00:46:15.732359+01:00","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_ux006","active_actor":"hermes","phase":"accepted_primary_implementation_parent_simplified","primary_commit":"f0aa74143f8afa8cda333d6ac5d1f01ed943cf1a","primary_tests_passed":27,"primary_test_exit_code":0,"parent_verification_process":"proc_df3cac13314c","primary_verification_process":"proc_0ea191a4944f","worktree_tests_passed":10,"worktree_analyze_exit_code":0,"worktree_analyze_infos":3,"worktree_format_final_exit_code":0,"parent_actor":"hermes","parent_test_log":"audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/parent-final.json","process":"proc_f24768825d45","pid":7320,"cli_session_id":"local-f35ded6d5496c6185657c11a2af4e463b3aff83872c040304254693e83ee29ad","needs_reconciliation":false,"cli_exit_code":1,"gateway_turn_status":"terminal_text_response_stop_at_2026-10-25T00:52:36.502+01:00","server_completion":{"ended_at":"2026-10-25T00:52:36.502+01:00","gateway_response_at":"2026-10-25T00:52:36.550+01:00","api_calls":19,"actual_model":"gpt-6-luna","provider":"openai-codex","worker_final_tests":10,"worker_final_success":true,"acceptance":"pending independent review; CLI disconnect and elapsed deadline preserved, no model prompt repeated"},"controller_observation":{"at":"2026-10-25T00:39:02+01:00","last_api_call":2,"last_api_at":"2026-10-25T00:37:34.522+01:00","controlled_check_pid":7508,"controlled_check":"baseline existing SetlistViewScreen tests","decision":"Server continued after CLI exit; retain source/test lease and occupied Luna/test lane; no resend or takeover."},"file_lease":["lib/screens/setlists/setlist_view_screen.dart","test/screens/setlists/setlist_view_screen_test.dart"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/process.json","selection_reason":"Severity-3 implementation unlocked by accepted UX-004-R outranks further research. One warm checkout/test lane; UX-009 terminal files remain untouched."},
+      "verification": {"reviewer":"hermes","tested_commit":"f0aa74143f8afa8cda333d6ac5d1f01ed943cf1a","evidence":["docs/plans/systemic-ux/verification/UX-004-I.json"]}
     },
     {
       "id": "UX-004-V",
@@ -1763,7 +1763,7 @@
     {
       "id": "GH-189-R",
       "title": "Повторная проверка GitHub #189: [P6] Event sharing: /event deep links + analytics",
-      "status": "running",
+      "status": "review",
       "executor": "luna",
       "kind": "research",
       "after": [
@@ -1797,14 +1797,14 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": {"id":"GH-189-R-LUNA-20261025-0142","process":"proc_aa9862f1fc25","pid":16652,"cli_started_at":"2026-10-25T01:43:08.478541+01:00","started_at":"2026-10-25T01:42:00+01:00","deadline_at":"2026-10-25T01:52:00+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"luna","phase":"model_source_review","needs_reconciliation":false,"file_lease":["docs/plans/systemic-ux/reviews/GH-189.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-R-LUNA-20261025-0142/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-R-LUNA-20261025-0142/process.json","selection_reason":"First queued dependency-ready source task; implementations gated by owner DESIGN-01 or rendered UX-008 preflight, UX-004 implementation awaiting independent acceptance. Fresh GitHub issue/comments read by parent; explicit cross-platform read-only window expanded for this one finding, single report write, no tests/builds."},
+      "run": {"id":"GH-189-R-LUNA-20261025-0142","process":"proc_aa9862f1fc25","pid":16652,"cli_started_at":"2026-10-25T01:43:08.478541+01:00","started_at":"2026-10-25T01:42:00+01:00","deadline_at":"2026-10-25T01:52:00+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"hermes","phase":"parent_source_review_pending_server_terminal_confirmed","session_id":"local-492653cbd6700ca9448227c230006aadb6e505a45993d00fe2d7afe946c03320","server_ended_at":"2026-10-25T01:46:25.972+01:00","server_api_calls":9,"gateway_response_at":"2026-10-25T01:46:26.454+01:00","needs_reconciliation":false,"file_lease":["docs/plans/systemic-ux/reviews/GH-189.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-R-LUNA-20261025-0142/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-R-LUNA-20261025-0142/process.json","selection_reason":"First queued dependency-ready source task; implementations gated by owner DESIGN-01 or rendered UX-008 preflight, UX-004 implementation awaiting independent acceptance. Fresh GitHub issue/comments read by parent; explicit cross-platform read-only window expanded for this one finding, single report write, no tests/builds."},
       "verification": null
     },
     {
       "id": "GH-188-R",
       "title": "Повторная проверка GitHub #188: [P5] Event sharing: per-person access ticks UI",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "review",
+      "executor": "luna",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -1812,7 +1812,10 @@
       ],
       "issue": "GH-188",
       "read_files": [
-        "EVENT_SHARING_BACKLOG.md"
+        "EVENT_SHARING_BACKLOG.md",
+        "lib/models/event_access.dart",
+        "lib/screens/setlists/event_kit_editor_screen.dart",
+        "test/models/event_access_test.dart"
       ],
       "allowed_files": [
         "docs/plans/systemic-ux/reviews/GH-188.md"
@@ -1825,7 +1828,7 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {"id":"GH-188-R-LUNA-20261025-0155","started_at":"2026-10-25T01:55:00+01:00","deadline_at":"2026-10-25T02:05:00+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","process":"proc_6d87c554dd1c","pid":20199,"cli_started_at":"2026-10-25T01:54:44.428062+01:00","actual_model":"gpt-6-luna","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"hermes","phase":"parent_source_review_pending","session_id":"local-16ea632ca357d6e7141439a2bda20f5501a8eb53f5624981194bbb33186f81b3","worker_exit_code":0,"duration_ms":36977,"needs_reconciliation":false,"file_lease":["docs/plans/systemic-ux/reviews/GH-188.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-R-LUNA-20261025-0155/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-R-LUNA-20261025-0155/process.json","selection_reason":"First queued ready research; no queued implementation is ready (DESIGN-01 owner decision, UX-008 rendered preflight). UX-004-I is under parent independent test acceptance in separate warm checkout. GH-189 server terminal confirmed; report awaits source acceptance/decomposition. One read-only Luna and one parent test lane."},
       "verification": null
     },
     {
