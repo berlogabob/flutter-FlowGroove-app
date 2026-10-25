@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T07:36:39+00:00",
+  "updated_at": "2026-10-25T08:02:00+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -254,7 +254,7 @@
       "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
       "source_locations": [],
       "tasks": [
-        "GH-187-R"
+        "GH-187-R", "GH-187-P", "GH-187-I1", "GH-187-I2", "GH-187-I3", "GH-187-V"
       ],
       "resolution": null
     },
@@ -2688,8 +2688,8 @@
     {
       "id": "GH-187-R",
       "title": "Повторная проверка GitHub #187: [P4] Event sharing: suggestions inbox (band side)",
-      "status": "blocked",
-      "blocked_reason": "First Luna dispatch failed before a session was returned: Gateway connection failed; no local fallback (CLI exit 1, empty session, zero tokens). No server Luna activity observed in launch window; preserve attempt, do not repeat prompt. Controller source-only direct fallback next reconciliation; no model/credential changes.",
+      "status": "verified",
+      "blocked_reason": null,
       "executor": "hermes direct fallback after retained Luna connection failure",
       "kind": "research",
       "after": [
@@ -2723,7 +2723,8 @@
       "run": {
         "id": "GH-187-R-LUNA-20261025-0702",
         "requested_provider": "openai-codex", "requested_model": "gpt-6-luna",
-        "phase": "worker_admission_failed_parent_fallback_pending", "active_actor": "hermes",
+        "phase": "accepted_controller_source_fallback",
+        "user_status": "Исходники входящих запросов проверены: интерфейс есть, Accept пока не изменяет сетлист. Зарегистрированы отдельные исправления; issue остаётся открытым.", "active_actor": "hermes",
         "started_at": "2026-10-25T07:03:01.699921+00:00", "deadline_at": "2026-10-25T07:13:00+00:00",
         "process": "proc_7eaf4daa762f", "pid": 62709,
         "cli_exit_code": 1, "session_id": "", "tokens": 0,
@@ -2736,7 +2737,71 @@
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-R-LUNA-20261025-0702/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-R-LUNA-20261025-0702/process.json"
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes", "tested_commit": "734e91b7a2d937ac893d81f526412aaae3a8970e",
+        "evidence": ["docs/plans/systemic-ux/reviews/GH-187.md", "docs/plans/systemic-ux/verification/GH-187-R.json"]
+      }
+    },
+    {
+      "id": "GH-187-P", "title": "Define smallest safe typed suggestion application contract",
+      "status": "queued", "executor": "luna", "kind": "research", "issue": "GH-187",
+      "after": ["GH-187-R"],
+      "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js", "lib/models/setlist.dart", "lib/models/event_suggestion.dart", "lib/repositories/firestore_setlist_repository.dart"],
+      "allowed_files": ["docs/plans/systemic-ux/reviews/GH-187-application.md"],
+      "acceptance": ["Resolve exact structured add/remove/reorder payload and stable item identity including duplicates and breaks; scope validation, atomic status/content updates, stale/replay and note decisions. Never execute free text. Inspect existing callable seam and register precise I1/I2 read/write paths before implementation; no code or permission changes."],
+      "timeout_s": 600, "max_attempts": 1, "run": null, "verification": null
+    },
+    {
+      "id": "GH-187-I1", "title": "Atomically apply validated structured suggestions on accept",
+      "status": "blocked", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "blocked_reason": "GH-187-P must settle exact item/payload and stale/idempotent contract; do not invent changes from free text.",
+      "after": ["GH-187-P"],
+      "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
+      "allowed_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
+      "acceptance": ["Public callable RED/GREEN: add/remove/reorder apply the intended change and accepted status atomically; notes/decline do not edit content; stale/replayed/unauthorized requests cannot corrupt data. Preserve scope, demo, privacy, rate-limit and unrelated items."],
+      "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
+    },
+    {
+      "id": "GH-187-I2", "title": "Wire structured proposals through existing public event flow",
+      "status": "blocked", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "blocked_reason": "Requires GH-187-P exact caller/model/fixture mapping and accepted backend contract; expand into bounded registered sub-slices if more than one production/test pair is required.",
+      "after": ["GH-187-P", "GH-187-I1"], "read_files": [], "allowed_files": [],
+      "acceptance": ["Existing public rendered flow submits structured add/remove/reorder without parsing free text; preserves note, role, consent and scope behavior. Exact allowlist and public fixtures must be registered before dispatch; retain RED/GREEN."],
+      "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
+    },
+    {
+      "id": "GH-187-I3", "title": "Distinguish inbox loading/error from genuinely empty requests",
+      "status": "running", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "after": ["GH-187-R"],
+      "read_files": ["lib/widgets/event_suggestions_inbox.dart", "test/widgets/event_suggestions_inbox_test.dart", "lib/providers/data/data_providers.dart", "lib/models/event_suggestion.dart", "lib/services/event_share_service.dart", "lib/utils/snackbar.dart", "lib/screens/practice_screen.dart"],
+      "allowed_files": ["lib/widgets/event_suggestions_inbox.dart", "test/widgets/event_suggestions_inbox_test.dart"],
+      "acceptance": ["Use existing public EventSuggestionsInbox widget seam: initial loading and no-data error are visible, Retry invalidates the exact band/personal provider and recovers; genuinely empty stays unobtrusive. Preserve cached requests during refresh/error and scope/role/resolve behavior. Vertical RED/GREEN, final targeted tests, scoped analyze/format/diff, no new dependencies or rules writes."],
+      "timeout_s": 1800, "max_attempts": 1,
+      "run": {
+        "id": "GH-187-I3-LUNA-20261025-0758", "requested_provider": "openai-codex", "requested_model": "gpt-6-luna",
+        "phase": "model_implementation_cli_disconnected_server_continues", "active_actor": "luna",
+        "process": "proc_c0124d723870", "pid": 70276,
+        "session_id": "local-ecf425334d0ebc5d0548f252cb3f3ed16f0283d5338a1153c010f33f0758977c",
+        "actual_model": "gpt-6-luna", "actual_provider": "openai-codex",
+        "cli_exit_code": 1, "cli_error": "Gateway disconnected; turn outcome is unknown",
+        "server_evidence": "agent.log turn context 08:00:42.933 UTC; gpt-6-luna/openai-codex API calls 1/2 at 08:01:10.710 and 08:01:16.283, after CLI exit; real warm worktree file reads. No terminal outcome observed.",
+        "started_at": "2026-10-25T07:59:35.515624+00:00", "deadline_at": "2026-10-25T08:30:00+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+        "file_lease": ["lib/widgets/event_suggestions_inbox.dart", "test/widgets/event_suggestions_inbox_test.dart"],
+        "test_lane": "exclusive worker targeted widget tests; parent no competing builds/tests",
+        "needs_reconciliation": true,
+        "user_status": "Исправление загрузки и ошибок входящих запросов выполняется. Связь с консолью оборвалась, но серверная работа подтверждена; приёмка ещё впереди.",
+        "selection_reason": "Only dependency-ready bounded implementation after R acceptance; outranks further research. Existing public-widget seam and one production/test pair.",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-I3-LUNA-20261025-0758/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-I3-LUNA-20261025-0758/process.json"
+      }, "verification": null
+    },
+    {
+      "id": "GH-187-V", "title": "Verify suggestions application, permissions and guest/device round trip",
+      "status": "queued", "executor": "hermes", "kind": "verification", "issue": "GH-187",
+      "after": ["GH-187-I1", "GH-187-I2", "GH-187-I3"], "read_files": [], "allowed_files": [],
+      "acceptance": ["Fresh combined callable/rules/public-widget regression, band/personal scope and viewer/editor permission parity, stale/replay and duplicate/break integrity. Safe device guest-submit/band-apply/guest-own-status round trip with source identity. Keep human metrics unset and GitHub issue OPEN until owner acceptance; no release waiver."],
+      "timeout_s": null, "max_attempts": 1, "run": null, "verification": null
     },
     {
       "id": "GH-186-R",
@@ -3392,7 +3457,8 @@
         "UX-009-I2",
         "NEW-003-V",
         "GH-188-V",
-        "GH-189-V"
+        "GH-189-V",
+        "GH-187-V"
       ],
       "issue": null,
       "read_files": [],

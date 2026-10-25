@@ -1,0 +1,25 @@
+{
+  "task": "GH-187-R",
+  "reviewer": "hermes",
+  "scope": "independent source review and bounded follow-up decomposition, not product acceptance",
+  "source_commit": "734e91b7a2d937ac893d81f526412aaae3a8970e",
+  "worker_attempt": "Original GH-187-R Luna admission failure retained in registry/run; empty session, zero tokens, exit 1. No replay or model substitution. Controller completed source review directly.",
+  "github": {"number": 187, "state": "OPEN", "comments": [], "fresh_read": "2026-10-25"},
+  "checks": [
+    "Fresh gh issue view 187 --json number,title,body,comments,state returned all three original acceptance requirements",
+    "Inspected public SetlistViewScreen inbox caller, complete inbox widget, complete EventSuggestion model and resolve service payload",
+    "Inspected complete submitSuggestion/resolveSuggestion and ownSuggestions implementations, guest status renderer and data-provider wiring",
+    "Inspected Firestore membership/writer rules and existing public widget/callable test assertions",
+    "git log confirms existing implementation history; no claim that issue title proves missing UI"
+  ],
+  "findings": [
+    "Inbox/count/attribution and guest own-status paths exist in source",
+    "Accept only updates decision metadata; reorder/add/remove application required by issue is absent on the complete caller/callable path",
+    "No structured order proposal exists in inspected model/submission; preflight required before executing untrusted requests",
+    "Inbox .value ?? [] hides initial loading and no-data stream errors as empty"
+  ],
+  "follow_up_tasks": ["GH-187-P", "GH-187-I1", "GH-187-I2", "GH-187-I3", "GH-187-V"],
+  "tests_executed": [],
+  "not_checked": ["fresh widget/emulator regression", "deployed callable/rules", "device", "human usability", "full Graphify"],
+  "release_hold": true
+}
