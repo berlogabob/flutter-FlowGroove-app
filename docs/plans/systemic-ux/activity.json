@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T09:26:00+00:00",
+  "updated_at": "2026-10-25T11:56:00+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -2754,13 +2754,13 @@
     },
     {
       "id": "GH-187-I1", "title": "Atomically apply validated structured suggestions on accept",
-      "status": "running", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "status": "verified", "executor": "luna draft + hermes direct completion", "kind": "implementation", "issue": "GH-187",
       "blocked_reason": null,
       "after": ["GH-187-P"],
       "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js", "docs/plans/systemic-ux/reviews/GH-187-application.md", "functions/package.json", "firebase.json"],
       "allowed_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
       "acceptance": ["Public callable RED/GREEN: add/remove/reorder apply the intended change and accepted status atomically; notes/decline do not edit content; stale/replayed/unauthorized requests cannot corrupt data. Preserve scope, demo, privacy, rate-limit and unrelated items."],
-      "timeout_s": 1800, "max_attempts": 1, "run": {"id": "GH-187-I1-LUNA-20261025-0923", "requested_provider": "openai-codex", "requested_model": "gpt-6-luna", "phase": "server_continuation_after_cli_disconnect", "active_actor": "luna", "cli_exit_code": 1, "cli_error": "Gateway disconnected; turn outcome is unknown", "session_id": "local-a90ef283188911cbd05be978eff015397b9086acc50a07f7979847ab7bc64e50", "actual_model": "gpt-6-luna", "actual_provider": "openai-codex", "server_evidence": "Exact turn 09:25:16.499 UTC; API 2 at 09:25:50.351 UTC and allowed file tool reads observed; no terminal event at controller readback.", "process": "proc_1100b783feed", "pid": 77087, "started_at": "2026-10-25T09:24:15.981982+00:00", "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna", "deadline_at": "2026-10-25T09:55:00+00:00", "file_lease": ["functions/src/events.js", "functions/test/callable-event-share.test.js"], "test_lane": "exclusive Luna callable emulator lane; parent tests paused", "needs_reconciliation": true, "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-I1-LUNA-20261025-0923/hermes.jsonl", "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-I1-LUNA-20261025-0923/process.json", "user_status": "Реализация применения предложений начата; после обрыва CLI подтверждён живой процесс проверки на сервере. Результат ещё не принят, повторное задание не отправлялось."}, "verification": null
+      "timeout_s": 1800, "max_attempts": 1, "run": {"id": "GH-187-I1-LUNA-20261025-0923", "requested_provider": "openai-codex", "requested_model": "gpt-6-luna", "phase": "integrated_source_acceptance", "active_actor": "hermes", "cli_exit_code": 1, "cli_error": "Gateway disconnected; turn outcome is unknown", "session_id": "local-a90ef283188911cbd05be978eff015397b9086acc50a07f7979847ab7bc64e50", "actual_model": "gpt-6-luna", "actual_provider": "openai-codex", "server_evidence": "Controller readback 2026-10-25 09:50 UTC: exact original session continues through API 29 at 09:49:46.146, actual gpt-6-luna/openai-codex; no terminal model outcome observed. Warm events.js and public callable test now changed. Independently read retained 06-green-remove.log (1 passing/exit 0) and 07-green-suggestions.log (16 passing/exit 0, emulator shutdown); worker edited tests after the latter, so these do not validate final bytes or establish independent acceptance. Sole Luna/test lane and both leases retained until terminal handoff; deadline 09:55 UTC unexpired, no repeated prompt or conflicting dispatch. No independent pending review. Native controller enabled/last_status=ok/next_run_at=2026-10-25T09:50:13.855124+00:00 read back; scheduler unchanged. SSD 16 GiB, memory free 27%; no concurrency increase.", "process": "proc_1100b783feed", "pid": 77087, "started_at": "2026-10-25T09:24:15.981982+00:00", "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna", "deadline_at": "2026-10-25T09:55:00+00:00", "file_lease": ["functions/src/events.js", "functions/test/callable-event-share.test.js"], "test_lane": "released after final primary exit 0; transferred to GH-187-S", "lease_released_at": "2026-10-25T11:54:39+00:00", "needs_reconciliation": false, "server_terminal_at": "2026-10-25T09:56:33.833+00:00", "server_terminal_reason": "max_iterations_reached(32/32)", "phase_started_at": "2026-10-25T11:43:00+00:00", "last_meaningful_progress": "Terminal server handoff and no owned processes established; privacy RED and 75-pass/2-failure run preserved. Permission-before-existence and boolean fixtures corrected; final callable regression running.", "verification_process": "proc_64f6a21e1901", "next_action": "Verify final callable results, integrate I1, dispatch S once test lane is free.", "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-I1-LUNA-20261025-0923/hermes.jsonl", "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-I1-LUNA-20261025-0923/process.json", "user_status": "Применение структурированных предложений принято и интегрировано: 87 проверок прошли. Клиентский ввод и проверка на устройстве ещё впереди."}, "verification": {"reviewer": "hermes", "tested_commit": "6a5143493babf229d4dd20c668dd5d4fc562e4ec", "evidence": ["docs/plans/systemic-ux/verification/GH-187-I1.json"]}
     },
     {
       "id": "GH-187-I2", "title": "Wire structured proposals through existing public event flow",
@@ -2771,9 +2771,26 @@
       "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
     },
     {
-      "id": "GH-187-S", "title": "Validate and persist structured proposals at submission", "status": "queued", "executor": "luna", "kind": "implementation", "issue": "GH-187",
-      "after": ["GH-187-I1"], "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js", "docs/plans/systemic-ux/reviews/GH-187-application.md"], "allowed_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
-      "acceptance": ["Public callable RED/GREEN for exact v1 proposal/schema/current fingerprint, both scopes, invalid payload without quota charge, legacy notes, preserved caps/privacy. No free-text execution."], "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
+      "id": "GH-187-S", "title": "Validate and persist structured proposals at submission", "status": "running", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "after": ["GH-187-I1"], "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js", "docs/plans/systemic-ux/reviews/GH-187-application.md", "functions/package.json", "firebase.json"], "allowed_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
+      "acceptance": ["Public callable RED/GREEN for exact v1 proposal/schema/current fingerprint, both scopes, invalid payload without quota charge, legacy notes, preserved caps/privacy. No free-text execution."], "timeout_s": 2040, "max_attempts": 1,
+      "run": {
+        "id": "GH-187-S-LUNA-20261025-1155", "requested_provider": "openai-codex", "requested_model": "gpt-6-luna",
+        "phase": "model_implementation", "active_actor": "luna", "phase_started_at": "2026-10-25T12:00:02.463+00:00",
+        "actual_provider": "openai-codex", "actual_model": "gpt-6-luna",
+        "last_observed_activity": "2026-10-25T12:00:37.228+00:00",
+        "last_meaningful_progress": "Actual server API calls 1-3 and source reads observed; baseline suggestions emulator started. This is not new-behavior RED.",
+        "process": "proc_2a1b28baee82", "pid": 88801,
+        "session_id": "local-d37756e342e99f4968bc4f2a11a77d3f766dee09c920577b70ca30ebe34cf43e",
+        "started_at": "2026-10-25T11:59:42.117549+00:00", "deadline_at": "2026-10-25T12:30:00+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": ["functions/src/events.js", "functions/test/callable-event-share.test.js"], "test_lane": "exclusive Luna callable emulator lane; parent checks complete",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-S-LUNA-20261025-1155/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-S-LUNA-20261025-1155/process.json",
+        "expected_artifact": "Bounded events.js/callable-event-share.test.js diff with actual RED/GREEN and final callable regression",
+        "next_action": "Confirm actual model admission and terminal outcome before independent acceptance",
+        "user_status": "Применение предложений интегрировано: 87 проверок прошли. Исполнитель начал следующий срез — проверку и сохранение структурированных запросов; сейчас запущен исходный callable-тест."
+      }, "verification": null
     },
     {
       "id": "GH-187-E", "title": "Expose authorized running-order identity and proposal base", "status": "queued", "executor": "luna", "kind": "implementation", "issue": "GH-187",

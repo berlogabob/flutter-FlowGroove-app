@@ -178,7 +178,8 @@ Registry изменяет только один родительский про�
 - [x] **GH-187-R** · Hermes direct fallback after retained Luna admission failure · Source review accepted; inbox/guest status exist, Accept does not apply typed changes; initial loading/error hidden. No product/device acceptance.
   - Evidence: `reviews/GH-187.md`, `verification/GH-187-R.json`. Issue OPEN, original failed attempt preserved.
 - [x] **GH-187-P** · independently accepted typed contract; duplicate/break identity, atomic/stale/replay and legacy decision-only semantics fixed. Source contract only, not a product fix. I1 backend → S submission → E authorized view → C transport → U structured UI → I2 compatibility/presentation gate; all registered under GH-187, V/final gates retained.
-- [ ] **GH-187-I1/I2** · atomic backend implementation dispatched after P; client integration waits for S/E/C/U and explicit legacy/presentation checks. No free-text execution.
+- [x] **GH-187-I1** · atomic typed add/remove/reorder backend integrated `6a514349`; controller corrections preserve authority/privacy and legacy decisions. 79 warm / 87 primary callable+security tests PASS; original incomplete Luna attempt retained.
+- [ ] **GH-187-S/E/C/U/I2** · structured submission is the next bounded slice; client integration waits for authorized view/transport/UI and explicit legacy/presentation checks. No free-text execution or device acceptance.
 - [x] **GH-187-I3** · inbox loading/error/retry through existing public widget/test pair; cached requests/roles/scope preserved. Integrated `37490537`; 11 warm / 54 primary combined tests PASS. Original Luna lease-loss failure retained, controller completed directly. GH-187-V/device remains open.
 - [ ] **GH-187-V** · fresh combined regression and safe device/guest round trip; gates FINAL-TEST.
 - [ ] **GH-186-R** · ornith · Повторная проверка GitHub #186: [P3] Event sharing: list and revoke active share links

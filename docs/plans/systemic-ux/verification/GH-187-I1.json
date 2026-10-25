@@ -1,0 +1,36 @@
+{
+  "task": "GH-187-I1",
+  "reviewer": "hermes",
+  "tested_commit": "6a5143493babf229d4dd20c668dd5d4fc562e4ec",
+  "accepted_at": "2026-10-25T11:54:39+00:00",
+  "scope": "Source/emulator acceptance only; no deployment, device acceptance or issue closure",
+  "worker": {
+    "provider": "openai-codex",
+    "model": "gpt-6-luna",
+    "session": "local-a90ef283188911cbd05be978eff015397b9086acc50a07f7979847ab7bc64e50",
+    "cli_exit": 1,
+    "cli_error": "Gateway disconnected; turn outcome is unknown",
+    "server_terminal_at": "2026-10-25T09:56:33.833+00:00",
+    "server_terminal_reason": "max_iterations_reached(32/32)",
+    "handoff": "Exact terminal server log and absent owned test processes independently observed before controller writes; no implementation prompt replay. Partial retained stream does not establish complete tool-path compliance.",
+    "original_attempt_preserved": true
+  },
+  "source_sha256": {
+    "functions/src/events.js": "c108f5973cae8e42d8c318af554c77bfad68ad45a2af3bc21b73c904510bd063",
+    "functions/test/callable-event-share.test.js": "90422ae71bf76693f16e2fd0a54f37cb8e93a267cf3b82ab125e08a3042ce336"
+  },
+  "checks": [
+    {"name": "worker typed removal behavioral RED", "log": "05-red-remove.log", "exit_code": 1, "result": "0 passing, 1 assertion failure: original backend did not remove selected duplicate"},
+    {"name": "retained parent privacy RED", "log": "09-parent-red-isolation.log", "exit_code": 1, "result": "assertion rejects running-order duplication in suggestion record"},
+    {"name": "retained earlier parent combined", "log": "10-parent-green-all.log", "exit_code": 2, "result": "75 passing, 2 failing; boolean fixtures and permission-before-existence ordering subsequently corrected"},
+    {"name": "Java prerequisite attempt", "log": "11-parent-green-all.log", "exit_code": 1, "result": "Default Java too old; used installed Temurin 25 per command, no install/global config change"},
+    {"name": "warm final callable", "log": "12-parent-green-all.log", "exit_code": 0, "passing": 79},
+    {"name": "primary final callable plus security regression", "log": "13-primary-combined.log", "process": "proc_3871c2838f79", "exit_code": 0, "passing": 87},
+    {"name": "node --check both changed JS files", "exit_code": 0},
+    {"name": "git diff --check and warm/primary exact bytes", "exit_code": 0}
+  ],
+  "coverage": "Public wrapped callable: atomic add/remove/reorder, duplicate song identity, break/opaque metadata, status, legacy note decisions, decline, stale/malformed/missing targets, invalid permutations, missing identity, concurrent winner/replay, personal owner and band authorization, demo/privacy/quota regression. No private helper tests.",
+  "controller_corrections": "Preserved private running-order isolation from prior parent attempt, moved authorization before missing-resource response, supplied explicit boolean accept in permission/demo fixtures, added invalid-target no-write and personal typed regressions.",
+  "local_log_directory": "audit/2026-10-23-systemic-ux/workers/GH-187-I1-LUNA-20261025-0923",
+  "limitations": ["Structured submission/view/transport/UI follow-ups remain open", "Legacy songIds-only mutations intentionally fail closed", "No device/human/GA4 acceptance", "No full Graphify refresh or whole-project test suite; final gates retained", "No repository JS lint/format script configured; node syntax and diff whitespace checks used", "Hooks explicitly bypassed for bounded checkpoint; release hold unchanged"]
+}
