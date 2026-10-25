@@ -3438,8 +3438,8 @@
     {
       "id": "GH-179-R",
       "title": "Повторная проверка GitHub #179: UI-vs-rules permission parity gaps (audit follow-ups)",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "running",
+      "executor": "luna",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -3447,7 +3447,16 @@
       ],
       "issue": "GH-179",
       "read_files": [
-        "EVENT_SHARING_BACKLOG.md"
+        "lib/screens/songs/song_lab_screen.dart",
+        "lib/services/idea_recorder.dart",
+        "lib/widgets/tuner/custom_tuning_editor.dart",
+        "lib/screens/tuner_screen.dart",
+        "lib/providers/permissions_provider.dart",
+        "lib/screens/bands/rehearsals/rehearsal_detail_screen.dart",
+        "lib/providers/data/metronome_provider.dart",
+        "functions/src/band_avatar.js",
+        "firestore.rules",
+        "storage.rules"
       ],
       "allowed_files": [
         "docs/plans/systemic-ux/reviews/GH-179.md"
@@ -3460,7 +3469,31 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-179-R-LUNA-20261025-1656",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "model_research",
+        "active_actor": "luna",
+        "pid": 16706,
+        "process": "proc_2ac685d4bd85",
+        "session_id": "local-34ad4039ada04f3598455915aba0fc0e2b3de368b66d6f3714ffde92d56ba9a2",
+        "actual_model": "gpt-6-luna",
+        "actual_provider": "openai-codex",
+        "last_observed_activity": "2026-10-25T16:59:28.004+00:00",
+        "last_meaningful_progress": "Original server API 4 and real source-read events observed; no report acceptance yet",
+        "started_at": "2026-10-25T16:56:00+00:00",
+        "phase_started_at": "2026-10-25T16:56:00+00:00",
+        "deadline_at": "2026-10-25T17:06:00+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": ["docs/plans/systemic-ux/reviews/GH-179.md"],
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-R-LUNA-20261025-1656/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-R-LUNA-20261025-1656/process.json",
+        "expected_artifact": "Source-backed permission-gap report with bounded fix candidates and explicit coverage gaps",
+        "next_action": "Sole file-only Luna dispatch; independently accept terminal report next cycle",
+        "user_status": "Проверяются доступные команды и серверные права, чтобы выделить следующий малый безопасный фикс.",
+        "needs_reconciliation": false
+      },
       "verification": null
     },
     {
@@ -4975,8 +5008,8 @@
     {
       "id": "GH-186-U",
       "title": "Writer-only event link inventory and isolated revoke in existing editor",
-      "status": "running",
-      "executor": "luna",
+      "status": "verified",
+      "executor": "Luna draft + Hermes direct completion",
       "kind": "implementation",
       "issue": "GH-186",
       "after": [
@@ -5001,33 +5034,40 @@
         "id": "GH-186-U-LUNA-20261025-150703",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "phase": "model_implementation",
-        "active_actor": "luna",
+        "phase": "accepted_primary_ui",
+        "active_actor": "hermes",
         "started_at": "2026-10-25T15:07:03.078826+00:00",
-        "phase_started_at": "2026-10-25T15:07:03.078826+00:00",
+        "phase_started_at": "2026-10-25T16:54:05.963705+00:00",
         "deadline_at": "2026-10-25T15:42:03.078826+00:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
-        "file_lease": [
-          "lib/screens/setlists/event_kit_editor_screen.dart",
-          "test/screens/setlists/event_kit_editor_test.dart"
-        ],
+        "file_lease": [],
         "test_lane": "exclusive Flutter rendered editor test lane",
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-U-LUNA-20261025-150703/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-U-LUNA-20261025-150703/process.json",
         "expected_artifact": "writer-only paged link inventory and isolated revoke, rendered RED/GREEN",
-        "next_action": "Reconcile original terminal and independently verify exact source/tests",
-        "user_status": "Клиентская загрузка принята; исполнитель делает экран списка ссылок и выборочный отзыв.",
-        "last_observed_activity": "2026-10-25T15:08:33.952550+00:00",
-        "last_meaningful_progress": "2026-10-25 15:08:03,778 INFO [local-e9b2df18677495b61f757312d3113f74d549420d9dfb5dffbb0e393a900a2d8d] agent.conversation_loop: API call #2: model=gpt-6-luna provider=openai-codex in=6793 out=269 total=7062 latency=3.1s cache=6272/6793 (92%) id=resp_0c59f9dd322f07ec016ade1b513a1c8191ae70699f1f778d96",
+        "next_action": "GH-186-V requires safe device verification; URL policy remains blocked; dispatch independent GH-179-R to identify permission fixes",
+        "user_status": "Список ссылок и изолированный отзыв приняты в основной ветке: 63 совместных теста прошли. Проверка на устройстве остаётся открытой.",
+        "terminal_evidence": "agent.log 2026-10-25 15:20:52.796 Turn ended interrupted_by_system(session_turn_lease_lost), 25/32 calls; response ready 15:20:53.291, inactive environment cleanup 15:21:23.112; no prompt replay",
+        "original_attempt_outcome": "interrupted_by_system(session_turn_lease_lost); incomplete draft and no new rendered tests",
+        "handoff_actor": "hermes",
+        "last_observed_activity": "2026-10-25T16:54:05.963705+00:00",
+        "last_meaningful_progress": "63 primary combined tests PASS, Flutter exit 0, committed exact tested source",
         "pid": 11283,
         "process": "proc_76f912108060",
         "session_id": "local-e9b2df18677495b61f757312d3113f74d549420d9dfb5dffbb0e393a900a2d8d",
         "actual_model": "gpt-6-luna",
         "actual_provider": "openai-codex",
         "controller_next_run_observed": "2026-10-25T15:09:56.395526+00:00",
-        "needs_reconciliation": true
+        "needs_reconciliation": false,
+        "primary_commit": "6f85d62fc2db7ee2a91f8e966cb87b233cfd5190",
+        "primary_tests_passed": 63
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "6f85d62fc2db7ee2a91f8e966cb87b233cfd5190",
+        "evidence": ["docs/plans/systemic-ux/verification/GH-186-U.json"]
+      },
+      "attempts": [{"actor": "luna", "outcome": "interrupted_by_system(session_turn_lease_lost); incomplete draft", "terminal_at": "2026-10-25T15:20:52.796Z", "prompt_replayed": false}]
     },
     {
       "id": "GH-186-URL",
