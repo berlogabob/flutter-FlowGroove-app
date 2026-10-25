@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T17:11:51.382092+00:00",
+  "updated_at": "2026-10-25T18:15:50.629435+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -325,7 +325,8 @@
         "GH-179-DEMO-R",
         "GH-179-LEGACY-R",
         "GH-179-DELETE-OWNER",
-        "GH-179-V"
+        "GH-179-V",
+        "GH-179-LAB-S1"
       ],
       "resolution": null
     },
@@ -5153,12 +5154,13 @@
     {
       "id": "GH-179-LAB",
       "title": "Song Lab mutation permissions including lazy migration and stale actions",
-      "status": "running",
+      "status": "blocked",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-179",
       "after": [
-        "GH-179-R"
+        "GH-179-LAB-S1",
+        "GH-179-REC-I"
       ],
       "read_files": [
         "lib/screens/songs/song_lab_screen.dart",
@@ -5173,10 +5175,7 @@
         "lib/models/user.dart",
         "lib/providers/auth/auth_provider.dart"
       ],
-      "allowed_files": [
-        "lib/screens/songs/song_lab_screen.dart",
-        "test/screens/songs/song_lab_screen_test.dart"
-      ],
+      "allowed_files": [],
       "acceptance": [
         "Existing public rendered SongLabScreen seam, one RED/GREEN slice at a time. Demo/signed-out/loading fail closed; personal authorized and band editor/admin retain edits; member views/export/filter/playback remain; preserve non-demo author entry deletion but no forbidden Undo. Gate lazy migration and mutations before/after awaits/stale callbacks. Explicit fixture authorization, embedded/standalone, denied actions make no writes; preserve existing MIDI permissions."
       ],
@@ -5186,25 +5185,59 @@
         "id": "GH-179-LAB-LUNA-20261025-171151",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "phase": "parent_preflight",
+        "phase": "aggregate_waiting_shared_recording_checks",
         "active_actor": "hermes",
         "started_at": "2026-10-25T17:11:51.382092+00:00",
-        "phase_started_at": "2026-10-25T17:11:51.382092+00:00",
+        "phase_started_at": "2026-10-25T17:38:52.071238+00:00",
         "deadline_at": "2026-10-25T17:46:51.382092+00:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
-        "file_lease": [
-          "lib/screens/songs/song_lab_screen.dart",
-          "test/screens/songs/song_lab_screen_test.dart"
-        ],
-        "test_lane": "exclusive controlled Flutter SongLab lane",
+        "file_lease": [],
+        "test_lane": null,
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-LAB-LUNA-20261025-171151/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-LAB-LUNA-20261025-171151/process.json",
         "expected_artifact": "Two-file Song Lab permission patch with retained public rendered RED/GREEN",
-        "next_action": "Observe exact model/tool runtime, then independently accept source and tests after terminal handoff; no prompt replay",
-        "user_status": "Начат малый срез прав Song Lab: действия записи, задачи, версии и миграция заметок; приёмка ещё впереди.",
-        "needs_reconciliation": false
+        "next_action": "GH-179-REC-R traces shared recorder authority/ambiguous saves, REC-I includes recording cancellation regressions; then reaccept aggregate",
+        "user_status": "Экранный срез Song Lab принят отдельно. Общая приёмка ждёт проверки и исправления общего пути записи аудио.",
+        "needs_reconciliation": false,
+        "process": "proc_48c2f462d824",
+        "pid": 18338,
+        "session_id": "local-a3ca6b7b7dcbe4dfd0b05813505006195d5d10de6537e8fb5b637f8f7eb7d48b",
+        "actual_model": "gpt-6-luna",
+        "actual_provider": "openai-codex",
+        "last_observed_activity": "2026-10-25T17:29:40.289000+00:00",
+        "last_meaningful_progress": "Original exact-model server continues API 26 after missing CLI. green3.json done.success=false: five visible authorized scenarios pass, demo scenario errors; no final permission GREEN or independent acceptance. No terminal server outcome; both leases and sole test lane retained. No pending independent review exists.",
+        "controller_next_run_observed": "2026-10-25T17:30:14.250659+00:00",
+        "dependency_preflight_correction": {
+          "at": "2026-10-25T17:14:13.851027+00:00",
+          "reason": "Warm SongLab import graph failed to compile because accepted event callers used missing analytics methods. Baseline failure is NOT product RED. No test compiler active at dependency sync.",
+          "synced_from_primary": [
+            "lib/services/analytics_service.dart",
+            "lib/services/analytics_events.dart"
+          ],
+          "source_sha256": {
+            "lib/services/analytics_service.dart": "a82ad1feaf8cd03a4e85d54f21bd2533cf61116de5c828ebd082272600302536",
+            "lib/services/analytics_events.dart": "2b64fafd3540ea3def3eefd8eee4f3e8be5d2c5e0b14bd08a76958f7b3c232eb"
+          },
+          "worker_scope_deviations_observed": [
+            "Read models/band.dart and providers/data/data_providers.dart outside original eleven-file window; necessary fixture references were omitted from parent prompt.",
+            "Worker overwrote baseline.json machine report with blocked summary; original baseline tool output retained in hermes.jsonl. No passing/RED credit."
+          ]
+        },
+        "attempt_history": [
+          {
+            "actor": "luna",
+            "session_id": "local-a3ca6b7b7dcbe4dfd0b05813505006195d5d10de6537e8fb5b637f8f7eb7d48b",
+            "outcome": "max_iterations_reached(32/32)",
+            "terminal_at": "2026-10-25T17:35:57.865+00:00",
+            "evidence": "agent.log original session terminal; final.json six visible PASS, insufficient permission/stale matrix; cached authorization and export regression require parent corrections"
+          }
+        ],
+        "last_observed_at": "2026-10-25T18:12:09.532710+00:00",
+        "last_progress_at": "2026-10-25T18:12:09.532710+00:00",
+        "primary_commit": "ba1c8a45b672a8b65ff28a3d835387957c3cf97b"
       },
-      "verification": null
+      "verification": null,
+      "blocked_reason": "Screen slice accepted separately. Shared captureIdea authority across awaits and recording-delete pending-queue cancellation still require explicit recorder/audio checks; aggregate is NOT accepted."
     },
     {
       "id": "GH-179-AUDIO-R",
@@ -5258,7 +5291,7 @@
     {
       "id": "GH-179-REC-R",
       "title": "Trace recorder upload/save failure reconciliation and all callers",
-      "status": "queued",
+      "status": "running",
       "executor": "luna",
       "kind": "research",
       "issue": "GH-179",
@@ -5269,17 +5302,77 @@
         "lib/services/idea_recorder.dart",
         "lib/screens/recorder_screen.dart",
         "lib/services/storage_service.dart",
-        "lib/repositories/firestore_lab_repository.dart"
+        "lib/repositories/firestore_lab_repository.dart",
+        "lib/screens/songs/song_lab_screen.dart",
+        "lib/services/pending_storage_deletes.dart",
+        "lib/providers/permissions_provider.dart",
+        "lib/providers/auth/auth_provider.dart",
+        "storage.rules",
+        "firestore.rules"
       ],
       "allowed_files": [
         "docs/plans/systemic-ux/reviews/GH-179-recorder.md"
       ],
       "acceptance": [
-        "Trace recorder upload/save failure reconciliation and all callers; register exact scope/public regression before edits; no issue/device credit."
+        "Trace recorder upload/save failure reconciliation and all callers; register exact scope/public regression before edits; no issue/device credit.",
+        "Named blocker for LAB aggregate: trace captureIdea authority before/after recording sheet/upload/save and pending enqueue cancellation on revoked delete. Explicit source-backed public seams and exact bounded implementation pairs; no private data or production edits."
       ],
       "timeout_s": 1080,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-179-REC-R-LUNA-20261025-1815",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "model_source_research",
+        "active_actor": "luna",
+        "started_at": "2026-10-25T18:13:25.498732+00:00",
+        "phase_started_at": "2026-10-25T18:14:30.969+00:00",
+        "deadline_at": "2026-10-25T18:31:25.498732+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": [
+          "docs/plans/systemic-ux/reviews/GH-179-recorder.md"
+        ],
+        "test_lane": null,
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-R-LUNA-20261025-1815/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-R-LUNA-20261025-1815/process.json",
+        "expected_artifact": "Source-backed recorder authority/ambiguous-save report; ten exact reads, one report, no builds or production writes",
+        "next_action": "Observe original model/runtime, reconcile terminal, independently accept report; no replay",
+        "user_status": "Начата проверка общего пути записи аудио: смена прав во время записи и сохранения, защита уже сохранённых файлов. Это оставшийся блокер общей приёмки Song Lab.",
+        "needs_reconciliation": false,
+        "process": "proc_a8b33ba24116",
+        "pid": 23426,
+        "session_id": "local-67f1dd8164be5737719dc456ee4fc5c5d665c4c7471146078d6a7d759f8ec7d7",
+        "actual_provider": "openai-codex",
+        "actual_model": "gpt-6-luna",
+        "last_observed_at": "2026-10-25T18:15:50.629435+00:00",
+        "last_observed_activity": "2026-10-25T18:15:50.629435+00:00",
+        "last_meaningful_progress": "2026-10-25 18:15:03,090 INFO [local-67f1dd8164be5737719dc456ee4fc5c5d665c4c7471146078d6a7d759f8ec7d7] agent.conversation_loop: API call #4: model=gpt-6-luna provider=openai-codex in=50629 out=1370 total=51999 latency=15.9s cache=6912/50629 (14%) id=resp_0d7ccb256eca5f0f016ade4717755c819181f1ddc14880e39a",
+        "observed_tool_calls": 15,
+        "controller_next_run_observed": "2026-10-25T18:18:19.434132+00:00",
+        "scheduler_readback": {
+          "id": "748ba92c74d8",
+          "enabled": true,
+          "state": "scheduled",
+          "last_status": "ok",
+          "next_run_at": "2026-10-25T18:18:19.434132+00:00",
+          "fire_claim": {
+            "at": "2026-10-25T18:15:49.143548+00:00",
+            "by": "Berlogas-MBP:10669:3c99134ab791491584fe11a6d0a448e5"
+          }
+        },
+        "scope_deviations_observed": [
+          "Two filename discoveries and two broad content searches outside the exact ten-file window; retain actual events, no strict scope-compliance claim."
+        ],
+        "cli_process_readback": {
+          "pid": 23426,
+          "status": "running",
+          "started_at": "2026-10-25T18:13:56.872380+00:00",
+          "deadline_at": "2026-10-25T18:31:25.498732+00:00",
+          "provider": "openai-codex",
+          "requested_model": "gpt-6-luna",
+          "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna"
+        }
+      },
       "verification": null
     },
     {
@@ -5295,7 +5388,8 @@
       "read_files": [],
       "allowed_files": [],
       "acceptance": [
-        "Prevent orphan recording without deleting committed references; register exact scope/public regression before edits; no issue/device credit."
+        "Prevent orphan recording without deleting committed references; register exact scope/public regression before edits; no issue/device credit.",
+        "Also gate shared captureIdea current authority across awaits for every caller, preserving personal/band identity and committed references; cover recording-delete pending enqueue/revocation/cancel without deleting referenced audio before LAB aggregate acceptance. Register exact source/test slices before edits."
       ],
       "timeout_s": 2100,
       "max_attempts": 1,
@@ -5495,6 +5589,57 @@
       "max_attempts": 1,
       "run": null,
       "verification": null
+    },
+    {
+      "id": "GH-179-LAB-S1",
+      "title": "Song Lab screen-owned mutation gates and current-permission callbacks",
+      "status": "verified",
+      "executor": "Luna draft + Hermes direct completion",
+      "kind": "implementation",
+      "issue": "GH-179",
+      "after": [
+        "GH-179-R"
+      ],
+      "read_files": [
+        "lib/screens/songs/song_lab_screen.dart",
+        "test/screens/songs/song_lab_screen_test.dart",
+        "lib/providers/permissions_provider.dart",
+        "lib/models/song_lab.dart",
+        "lib/repositories/firestore_lab_repository.dart",
+        "lib/screens/songs/song_page_screen.dart",
+        "firestore.rules",
+        "lib/widgets/midi/midi_import_flow.dart",
+        "test/helpers/mocks.mocks.dart",
+        "lib/models/user.dart",
+        "lib/providers/auth/auth_provider.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/songs/song_lab_screen.dart",
+        "test/screens/songs/song_lab_screen_test.dart"
+      ],
+      "acceptance": [
+        "Screen-owned task/entry/version guards, explicit identity fixtures and public rendered RED/GREEN. Shared recording pipeline is NOT accepted by this slice; LAB aggregate retains REC-I dependency."
+      ],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": {
+        "id": "GH-179-LAB-LUNA-20261025-171151-S1",
+        "phase": "accepted_primary_screen_slice",
+        "active_actor": "hermes",
+        "phase_started_at": "2026-10-25T18:12:09.532710+00:00",
+        "last_observed_at": "2026-10-25T18:12:09.532710+00:00",
+        "last_progress_at": "2026-10-25T18:12:09.532710+00:00",
+        "primary_commit": "ba1c8a45b672a8b65ff28a3d835387957c3cf97b",
+        "file_lease": [],
+        "user_status": "Принят экранный срез прав Song Lab: 40 связанных тестов прошли. Общая проверка Song Lab остаётся открытой из-за асинхронной записи аудио."
+      },
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "ba1c8a45b672a8b65ff28a3d835387957c3cf97b",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-179-LAB-S1.json"
+        ]
+      }
     }
   ],
   "worker_lanes": {

@@ -7,8 +7,8 @@
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
-- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 92 задачи; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 92 задачи; исполнителей/фазы читать из activity.json. UX-006-R и UX-009-I2 приняты Hermes после первого timeout. Остальное — малые реализации, независимая приёмка, устройства/люди, preflight и решения владельца.
+- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Текущие количества и состояния читать из activity.json; GH-179 дополнен отдельными permission/security срезами.
+- Исходная декомпозиция расширяется по принятым source reviews; исполнителей/фазы читать из activity.json. UX-006-R и UX-009-I2 приняты Hermes после первого timeout. Остальное — малые реализации, независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -196,7 +196,8 @@ Registry изменяет только один родительский про�
 - [ ] **GH-180-R** · ornith · Повторная проверка GitHub #180: [epic] Event participants: scoped event sharing for non-members
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-180.md`.
 - [x] **GH-179-R** · Luna + независимая приёмка Hermes · Source review прав принят; исправлены рекомендации по lazy migration, author-delete/Undo и тестовым identities. Evidence: `verification/GH-179-R.json`; это не исправление продукта.
-  - [ ] **GH-179-LAB** — bounded SongLabScreen permissions + существующий публичный widget seam; следующий исполнитель Luna.
+  - [ ] **GH-179-LAB** — aggregate remains open: screen slice accepted separately, shared recording authority/cancellation awaits GH-179-REC-R/I.
+  - [x] **GH-179-LAB-S1** — screen-owned task/entry/version gates and current-permission callbacks; integrated `ba1c8a45`, 22 Song Lab / 40 combined tests PASS. No full LAB/audio/device acceptance.
   - [ ] **GH-179-AUDIO-R/I, REC-R/I, TUNER-R/I, VOTE, AVATAR, DEMO-R, LEGACY-R, DELETE-OWNER, V** — все остаточные срезы и решения зарегистрированы в activity.json; V блокирует FINAL-TEST. Никакого закрытия issue по одному UI fix.
 - [ ] **GH-178-R** · ornith · Повторная проверка GitHub #178: refactor(metronome): extract live setlist/song sync out of MetronomeNotifier
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-178.md`.
