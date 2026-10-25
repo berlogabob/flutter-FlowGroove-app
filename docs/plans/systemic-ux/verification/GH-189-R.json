@@ -1,0 +1,12 @@
+{
+  "task": "GH-189-R",
+  "reviewer": "hermes",
+  "tested_commit": "13e054c048fc4fe9997d8ef60bc7d1066af64cc9",
+  "scope": "Independent source triage only; no product repair, fresh test/device/GA4/human acceptance",
+  "remote": {"issue": 189, "state": "OPEN", "comments": 0, "command": "gh issue view 189 --repo berlogabob/flutter-FlowGroove-app --json title,body,state,comments"},
+  "source_identity": {"assigned_files": 13, "all_byte_identical_to_research_checkout": true, "generation_sha256": "d1c783448ade382580635e0a8c10f1ad1c2c61124833bd54c5d7d939e06c86fb", "router_sha256": "1a24b02a31eb803f194a1583578a115df111ff0ca969914aa528c2c8ad7ae9c7", "suggestion_sha256": "2f5259295698272699e21eb637948b7c5460c4cd7748e20585cfe766b62e3a03", "manifest_sha256": "5707f41dabdba4319fe03755db8d8dc18a27715dc23ffd96235db380a6c936d0"},
+  "worker": {"model": "gpt-6-luna", "provider": "openai-codex", "session": "local-492653cbd6700ca9448227c230006aadb6e505a45993d00fe2d7afe946c03320", "server_terminal": "2026-10-25T01:46:25.972+01:00", "retained_stream": "partial; 13 source reads, 1 spillover read, 18 searches; report write and final absent", "strict_tool_compliance": "not established; source conclusions independently accepted with explicit deviations"},
+  "independent_findings": ["Generated app.flowgroove.app hash route differs from Android flowgroove.app /join filter; router exemption is not OS dispatch evidence.", "No event-specific analytics in inspected success paths/constants; existing invite methods provide precedent only.", "No tracked iOS entitlement or AASA. Associated Domains are not Info.plist keys; missing custom AppDelegate handler alone proves no Flutter defect.", "Tracked site/static/.well-known/assetlinks.json exists but content/live serving not inspected; Hosting deployment not established."],
+  "follow_up": ["GH-189-A0", "GH-189-A1", "GH-189-A2", "GH-189-A3", "GH-189-L0", "GH-189-L1", "GH-189-L2", "GH-189-L3", "GH-189-L4", "GH-189-V"],
+  "release": "Held. Remote issue remains OPEN; no install/deploy/push, GA4 or human outcome credit."
+}

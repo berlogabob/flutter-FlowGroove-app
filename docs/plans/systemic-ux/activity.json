@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T01:27:00+00:00",
+  "updated_at": "2026-10-25T01:39:31+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -214,7 +214,7 @@
       "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
       "source_locations": [],
       "tasks": [
-        "GH-189-R"
+        "GH-189-R", "GH-189-A0", "GH-189-A1", "GH-189-A2", "GH-189-A3", "GH-189-L0", "GH-189-L1", "GH-189-L2", "GH-189-L3", "GH-189-L4", "GH-189-V"
       ],
       "resolution": null
     },
@@ -1763,7 +1763,7 @@
     {
       "id": "GH-189-R",
       "title": "Повторная проверка GitHub #189: [P6] Event sharing: /event deep links + analytics",
-      "status": "review",
+      "status": "verified",
       "executor": "luna",
       "kind": "research",
       "after": [
@@ -1797,8 +1797,57 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": {"id":"GH-189-R-LUNA-20261025-0142","process":"proc_aa9862f1fc25","pid":16652,"cli_started_at":"2026-10-25T01:43:08.478541+01:00","started_at":"2026-10-25T01:42:00+01:00","deadline_at":"2026-10-25T01:52:00+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"hermes","phase":"parent_source_review_pending_server_terminal_confirmed","session_id":"local-492653cbd6700ca9448227c230006aadb6e505a45993d00fe2d7afe946c03320","server_ended_at":"2026-10-25T01:46:25.972+01:00","server_api_calls":9,"gateway_response_at":"2026-10-25T01:46:26.454+01:00","needs_reconciliation":false,"file_lease":["docs/plans/systemic-ux/reviews/GH-189.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-R-LUNA-20261025-0142/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-R-LUNA-20261025-0142/process.json","selection_reason":"First queued dependency-ready source task; implementations gated by owner DESIGN-01 or rendered UX-008 preflight, UX-004 implementation awaiting independent acceptance. Fresh GitHub issue/comments read by parent; explicit cross-platform read-only window expanded for this one finding, single report write, no tests/builds."},
-      "verification": null
+      "run": {"id":"GH-189-R-LUNA-20261025-0142","process":"proc_aa9862f1fc25","pid":16652,"cli_started_at":"2026-10-25T01:43:08.478541+01:00","started_at":"2026-10-25T01:42:00+01:00","deadline_at":"2026-10-25T01:52:00+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"hermes","phase":"accepted_source_review_with_parent_corrections_partial_stream","session_id":"local-492653cbd6700ca9448227c230006aadb6e505a45993d00fe2d7afe946c03320","server_ended_at":"2026-10-25T01:46:25.972+01:00","server_api_calls":9,"gateway_response_at":"2026-10-25T01:46:26.454+01:00","needs_reconciliation":false,"file_lease":["docs/plans/systemic-ux/reviews/GH-189.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-R-LUNA-20261025-0142/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-R-LUNA-20261025-0142/process.json","selection_reason":"First queued dependency-ready source task; implementations gated by owner DESIGN-01 or rendered UX-008 preflight, UX-004 implementation awaiting independent acceptance. Fresh GitHub issue/comments read by parent; explicit cross-platform read-only window expanded for this one finding, single report write, no tests/builds."},
+      "verification": {"reviewer":"hermes","tested_commit":"13e054c048fc4fe9997d8ef60bc7d1066af64cc9","evidence":["docs/plans/systemic-ux/reviews/GH-189.md","docs/plans/systemic-ux/verification/GH-189-R.json"]}
+    },
+    {
+      "id":"GH-189-A0", "title":"Central event-sharing analytics names", "status":"queued", "executor":"luna", "kind":"implementation", "issue":"GH-189", "after":["GH-189-R"],
+      "read_files":["lib/services/analytics_events.dart","test/services/analytics_service_test.dart"], "allowed_files":["lib/services/analytics_events.dart"],
+      "acceptance":["Add only three consistent event names following existing constants; settle names before callers. No token, URL, text, person or account parameters. Parent source/analyzer check; public analytics behavior tested in dependent A1, no tautological constants test."], "timeout_s":600,"max_attempts":1,"run":null,"verification":null
+    },
+    {
+      "id":"GH-189-A1", "title":"Consent-safe event-sharing analytics methods", "status":"queued", "executor":"luna", "kind":"implementation", "issue":"GH-189", "after":["GH-189-A0"],
+      "read_files":["lib/services/analytics_service.dart","lib/services/analytics_events.dart","test/services/analytics_service_test.dart"], "allowed_files":["lib/services/analytics_service.dart","test/services/analytics_service_test.dart"],
+      "acceptance":["Use existing public AnalyticsService/Firebase analytics capture seam and consent policy; recover fixture before tests. Vertical RED/GREEN for all three exact events, no secret/personal payload, consent-off suppression and nonfatal failures. No new dependency or global analytics redesign; scoped analyze/format."], "timeout_s":1200,"max_attempts":1,"run":null,"verification":null
+    },
+    {
+      "id":"GH-189-A2", "title":"Record successful event share creation", "status":"queued", "executor":"luna", "kind":"implementation", "issue":"GH-189", "after":["GH-189-A1","GH-188-I"],
+      "read_files":["lib/screens/setlists/event_kit_editor_screen.dart","test/screens/setlists/event_kit_editor_test.dart","lib/services/analytics_service.dart"], "allowed_files":["lib/screens/setlists/event_kit_editor_screen.dart","test/screens/setlists/event_kit_editor_test.dart"],
+      "acceptance":["Existing rendered Share action: one event after successful creation/copy, none on failure/denial. Preserve clipboard, dotted writes, access guards; no token in analytics. Existing public fixture RED/GREEN, scoped checks and related permission regressions. Must wait for GH-188 file lease/integration."], "timeout_s":1800,"max_attempts":1,"run":null,"verification":null
+    },
+    {
+      "id":"GH-189-A3", "title":"Record event link opens and successful suggestions", "status":"blocked", "executor":"luna", "kind":"implementation", "issue":"GH-189", "after":["GH-189-A1"],
+      "read_files":["lib/screens/setlists/event_share_screen.dart","lib/services/analytics_service.dart"], "allowed_files":["lib/screens/setlists/event_share_screen.dart"],
+      "acceptance":["Recover existing public EventShareScreen fixture and register its exact test path before dispatch. Once-per-open semantics must distinguish token link from direct member navigation; rebuild/retry not duplicate opens. Successful submit only, failure/cancel no submit event; no token/text payload; vertical RED/GREEN and scoped checks."], "blocked_reason":"Parent must recover rendered screen fixture and precise open/init lifecycle; source review did not inspect those seams. Do not add speculative test/provider abstraction.", "timeout_s":1800,"max_attempts":1,"run":null,"verification":null
+    },
+    {
+      "id":"GH-189-L0", "title":"Resolve canonical URL, legacy compatibility and association source paths", "status":"queued", "executor":"luna", "kind":"research", "issue":"GH-189", "after":["GH-189-R"],
+      "read_files":["firebase.json","lib/router/app_router.dart","lib/screens/setlists/event_kit_editor_screen.dart","android/app/src/main/AndroidManifest.xml","ios/Runner.xcodeproj/project.pbxproj"], "allowed_files":["docs/plans/systemic-ux/reviews/GH-189-links.md"],
+      "acceptance":["Read-only preflight: inspect tracked Hosting/association assets, exact host ownership/config evidence and legacy hash links. Recommend smallest compatible URL contract; do not invent signing team/fingerprint or live deployment. Register exact additional read window before dispatch. Resolve specific L1/L2/L3/L4 blockers; no network writes, deploy or install."], "timeout_s":600,"max_attempts":1,"run":null,"verification":null
+    },
+    {
+      "id":"GH-189-L1", "title":"Canonical event URL generation and legacy route compatibility", "status":"blocked", "executor":"luna", "kind":"implementation", "issue":"GH-189", "after":["GH-189-L0","GH-189-A2"],
+      "read_files":["lib/screens/setlists/event_kit_editor_screen.dart","lib/router/app_router.dart","test/router/event_share_redirect_test.dart"], "allowed_files":[],
+      "acceptance":["Before dispatch register separate one-production-file/test slices for any generator/router changes established by L0. Preserve legacy hash URLs, token integrity and signed-out guards; RED/GREEN via actual public clipboard/router seams."], "blocked_reason":"Canonical host/path and actual router compatibility must be established by L0; not an approved broad multi-file edit.", "timeout_s":1800,"max_attempts":1,"run":null,"verification":null
+    },
+    {
+      "id":"GH-189-L2", "title":"Android event App Link association", "status":"blocked", "executor":"luna", "kind":"implementation", "issue":"GH-189", "after":["GH-189-L0","GH-189-L1"],
+      "read_files":["android/app/src/main/AndroidManifest.xml"], "allowed_files":["android/app/src/main/AndroidManifest.xml"],
+      "acceptance":["Align approved exact host/path with event URL; preserve existing join filter. Static manifest validation plus fresh installed-device dispatch in GH-189-V, not grep-only device credit."], "blocked_reason":"Await canonical URL and exact assetlinks/signing association evidence from L0; no fabricated fingerprint.", "timeout_s":600,"max_attempts":1,"run":null,"verification":null
+    },
+    {
+      "id":"GH-189-L3", "title":"iOS Associated Domains signing configuration", "status":"blocked", "executor":"luna", "kind":"implementation", "issue":"GH-189", "after":["GH-189-L0","GH-189-L1"],
+      "read_files":["ios/Runner.xcodeproj/project.pbxproj","ios/Runner/Info.plist","ios/Runner/AppDelegate.swift"], "allowed_files":[],
+      "acceptance":["After L0 register exact entitlement/project-config slices; preserve existing Flutter universal-link delegation and signing. Do not infer missing handler from AppDelegate without inspecting Flutter default behavior. Device and origin checks remain V."], "blocked_reason":"Exact approved domains/entitlement path and signing app identifier unresolved; no signing/config edits until preflight.", "timeout_s":1200,"max_attempts":1,"run":null,"verification":null
+    },
+    {
+      "id":"GH-189-L4", "title":"Hosting AASA and assetlinks source configuration", "status":"blocked", "executor":"luna", "kind":"implementation", "issue":"GH-189", "after":["GH-189-L0","GH-189-L1"],
+      "read_files":["firebase.json"], "allowed_files":[],
+      "acceptance":["After L0 register exact association-asset/config slices and local content/type/path checks. Use established app identifiers only; never deploy. Live correct-origin responses and platform verification remain V/external hold."], "blocked_reason":"Hosting asset inventory, source paths, signing identifiers and exact public origin not established. No invented AASA/team/fingerprint.", "timeout_s":1200,"max_attempts":1,"run":null,"verification":null
+    },
+    {
+      "id":"GH-189-V", "title":"Independent integrated links/analytics and Android+iOS/GA4 acceptance", "status":"queued", "executor":"hermes", "kind":"verification", "issue":"GH-189", "after":["GH-189-A0","GH-189-A1","GH-189-A2","GH-189-A3","GH-189-L0","GH-189-L1","GH-189-L2","GH-189-L3","GH-189-L4"],
+      "read_files":[], "allowed_files":[], "acceptance":["Integrated exact-hash tests, consent/privacy and permission/legacy link regressions. Fresh Android+iOS installed-app opening with actual token; exact-origin AASA/assetlinks and all three GA4 Realtime events. No automatic deploy/install to clear blockers, no remote issue closure or release waiver. Human outcomes unset."], "timeout_s":null,"max_attempts":1,"run":null,"verification":null
     },
     {
       "id": "GH-188-R",
@@ -1851,7 +1900,7 @@
       ],
       "timeout_s": 1800,
       "max_attempts": 1,
-      "run": {"id":"GH-188-I-LUNA-20261025-0124","process":"proc_1e93352d21bc","pid":24442,"cli_started_at":"2026-10-25T01:26:18.794316+00:00","started_at":"2026-10-25T01:24:00+00:00","deadline_at":"2026-10-25T01:54:00+00:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","session_id":"local-a114c032d8ece3687118062310a343385d8c75478afa7090722ab2b77d8d64e0","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_ux006","active_actor":"luna","phase":"model_implementation","file_lease":["lib/screens/setlists/event_kit_editor_screen.dart","test/screens/setlists/event_kit_editor_test.dart"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-I-LUNA-20261025-0124/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-I-LUNA-20261025-0124/process.json","selection_reason":"GH-188 source review independently accepted; now dependency-ready implementation outranks queued research. Existing public fixture recovered and warm source/test byte identity verified. 30-minute bound allows native test build and vertical checks; one Luna and one test lane."},
+      "run": {"id":"GH-188-I-LUNA-20261025-0124","process":"proc_1e93352d21bc","pid":24442,"cli_started_at":"2026-10-25T01:26:18.794316+00:00","started_at":"2026-10-25T01:24:00+00:00","deadline_at":"2026-10-25T01:54:00+00:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","session_id":"local-a114c032d8ece3687118062310a343385d8c75478afa7090722ab2b77d8d64e0","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_ux006","active_actor":"luna","phase":"server_implementation_after_cli_disconnect","needs_reconciliation":true,"controller_observation":{"at":"2026-10-25T01:39:31+00:00","server_last_api_call":6,"server_last_api_at":"2026-10-25T01:37:50.927+00:00","baseline_done_success":true,"test_phase":"red.jsonl controlled test observed PID 25399","decision":"Gateway continued after missing CLI; retain occupied Luna/test lane and both file leases. No resend or competing dispatch; deadline 01:54 UTC unchanged."},"file_lease":["lib/screens/setlists/event_kit_editor_screen.dart","test/screens/setlists/event_kit_editor_test.dart"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-I-LUNA-20261025-0124/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-I-LUNA-20261025-0124/process.json","selection_reason":"GH-188 source review independently accepted; now dependency-ready implementation outranks queued research. Existing public fixture recovered and warm source/test byte identity verified. 30-minute bound allows native test build and vertical checks; one Luna and one test lane."},
       "verification": null
     },
     {
@@ -2551,7 +2600,8 @@
         "NEW-002-I3",
         "UX-009-I2",
         "NEW-003-V",
-        "GH-188-V"
+        "GH-188-V",
+        "GH-189-V"
       ],
       "issue": null,
       "read_files": [],

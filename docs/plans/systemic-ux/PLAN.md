@@ -7,8 +7,8 @@
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
-- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 71 задача; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 71 задача; исполнителей/фазы читать из activity.json. UX-006-R и UX-009-I2 приняты Hermes после первого timeout. Остальное — малые реализации, независимая приёмка, устройства/люди, preflight и решения владельца.
+- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 81 задача; состояние всегда читать из activity.json.
+- Текущая декомпозиция: 81 задача; исполнителей/фазы читать из activity.json. UX-006-R и UX-009-I2 приняты Hermes после первого timeout. Остальное — малые реализации, независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -162,8 +162,11 @@ Registry изменяет только один родительский про�
   - После: UX-009-R, UX-009-I2. Scope: `lib/screens/practice_screen.dart`, `test/screens/practice_screen_test.dart`. Integrated b7fa6542; 22 primary related tests PASS. UX-009-V/device and issue closure remain open.
 - [ ] **UX-009-V** · hermes · Независимая приёмка и device recheck: UX-009
   - После: UX-009-I. Scope: проверка/решение без production edits.
-- [ ] **GH-189-R** · ornith · Повторная проверка GitHub #189: [P6] Event sharing: /event deep links + analytics
-  - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-189.md`.
+- [x] **GH-189-R** · luna + independent Hermes source acceptance · Event deep links and analytics; partial stream deviations retained, not device/GA4 acceptance.
+  - Scope: `reviews/GH-189.md`, `verification/GH-189-R.json`; exact source identity checked against 13e054c0. Remote issue OPEN.
+- [ ] **GH-189-A0/A1/A2/A3** · constants → consent-safe service → successful create → once-per-link-open/successful suggestion. Existing public fixtures; A2 waits GH-188-I lease; A3 blocked on fixture/lifecycle preflight.
+- [ ] **GH-189-L0/L1/L2/L3/L4** · canonical host/legacy/association preflight → URL compatibility → Android → iOS/Hosting source configuration. L1–L4 blocked until exact contract/signing/paths established; no deployment.
+- [ ] **GH-189-V** · integrated permission/privacy/legacy regressions + actual Android/iOS opening and GA4 Realtime. Added to FINAL-TEST dependencies; no release waiver.
 - [x] **GH-188-R** · luna + independent Hermes source acceptance · GitHub #188: per-person access ticks UI
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-188.md`. Source-only; missing controls confirmed; issue stays OPEN.
 - [ ] **GH-188-I** · luna · Existing Add/Edit crew sheet: effective per-area controls/live preview; public EventKitEditorScreen fixture. One production + one existing test file, exclusive warm ux006 lease, one test lane.
