@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flowgroove/services/pending_storage_deletes.dart';
 import 'package:flowgroove/services/storage_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,6 +27,22 @@ Future<List<String>> _queued() async =>
       'pending_storage_deletes',
     ) ??
     const [];
+
+class _PausedStorage extends StorageService {
+  final started = Completer<String>();
+  final release = Completer<void>();
+  final deleted = <String>[];
+
+  @override
+  Future<bool> deleteByUrl(String url) async {
+    deleted.add(url);
+    if (!started.isCompleted) {
+      started.complete(url);
+      await release.future;
+    }
+    return true;
+  }
+}
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
@@ -106,5 +124,32 @@ void main() {
     final storage = _FakeStorage();
     await PendingStorageDeletes(storage: storage).sweep();
     expect(storage.deleted, isEmpty);
+  });
+
+  test('sweep observes cancellation while deletion is paused', () async {
+    final storage = _PausedStorage();
+    final pending = PendingStorageDeletes(storage: storage);
+    await pending.enqueue(_a);
+    await pending.enqueue(_b);
+    final sweeping = pending.sweep();
+    expect(await storage.started.future, _a);
+    await pending.cancel(_b);
+    storage.release.complete();
+    await sweeping;
+    expect(storage.deleted, [_a]);
+    expect(await _queued(), isEmpty);
+  });
+
+  test('sweep preserves concurrent enqueue while deletion is paused', () async {
+    final storage = _PausedStorage();
+    final pending = PendingStorageDeletes(storage: storage);
+    const c = 'https://example.test/c.aac?token=3';
+    await pending.enqueue(_a);
+    final sweeping = pending.sweep();
+    await storage.started.future;
+    await pending.enqueue(c);
+    storage.release.complete();
+    await sweeping;
+    expect(await _queued(), [c]);
   });
 }

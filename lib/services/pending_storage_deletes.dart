@@ -49,8 +49,8 @@ class PendingStorageDeletes {
     ]);
   }
 
-  /// Deletes [url] now, unless [cancel] already removed it — the queue is what
-  /// decides, so an undo always wins the race with a pending flush.
+  /// Deletes [url] now unless [cancel] removed it before deletion starts.
+  /// Cancellation cannot undo a Storage deletion already in flight.
   Future<void> flush(String url) async {
     final prefs = await _p;
     if (!(prefs.getStringList(_key) ?? const []).contains(url)) return;
@@ -69,16 +69,13 @@ class PendingStorageDeletes {
     await flush(url);
   }
 
-  /// Retries everything still queued. Called once at startup; failures stay
-  /// queued for the next launch rather than being dropped.
+  /// Retries the URLs present at sweep start. Failures stay queued for retry.
   Future<void> sweep() async {
     final prefs = await _p;
     final queued = prefs.getStringList(_key) ?? const <String>[];
     if (queued.isEmpty) return;
-    final failed = <String>[];
     for (final url in queued) {
-      if (!await _storage.deleteByUrl(url)) failed.add(url);
+      await flush(url);
     }
-    await prefs.setStringList(_key, failed);
   }
 }
