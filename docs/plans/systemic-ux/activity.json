@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T05:27:00+00:00",
+  "updated_at": "2026-10-25T05:40:00+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -2200,13 +2200,16 @@
         "session_id": "local-3ded22748ccf697d4ee83f72e023ee610b20a765c440b8e150f751ac30974f8a",
         "needs_reconciliation": true,
         "controller_observation": {
-          "last_api_call": 9,
-          "last_api_at": "2026-10-25T05:22:38.677+00:00",
-          "controlled_check_pid": 52182,
-          "controlled_check": "worker green EventKitEditorScreen regression",
-          "baseline_visible_passes": 15,
-          "red_done_success": false,
-          "decision": "Server continued after CLI disappeared; retain source/test lease and occupied Luna/test slots. No resend or conflicting dispatch; worker tests are not independent acceptance."
+          "last_api_call": 16,
+                  "last_api_at": "2026-10-25T05:37:30.230+00:00",
+                  "controlled_check_pid": null,
+                  "controlled_check": "No live test PID observed at controller preflight; gateway terminal tool outcome remains unresolved.",
+                  "baseline_visible_passes": 15,
+                  "red_done_success": false,
+                  "worker_final_visible_passes": 15,
+                  "worker_final_done_success": true,
+                  "worker_tool_timeout_at": "2026-10-25T05:37:13.127+00:00",
+                  "decision": "Worker final.jsonl is GREEN but not acceptance; subsequent terminal timed out at 420s and gateway continued through API 16. Retain lease and occupied Luna/test slots pending actual server terminal, no prompt replay or conflicting dispatch."
         },
         "file_lease": ["lib/screens/setlists/event_kit_editor_screen.dart", "test/screens/setlists/event_kit_editor_test.dart"],
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A2-LUNA-20261025-0515/hermes.jsonl",
@@ -2218,7 +2221,7 @@
     {
       "id": "GH-189-A3",
       "title": "Record event link opens and successful suggestions",
-      "status": "blocked",
+      "status": "queued",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-189",
@@ -2227,15 +2230,24 @@
       ],
       "read_files": [
         "lib/screens/setlists/event_share_screen.dart",
-        "lib/services/analytics_service.dart"
+        "test/screens/setlists/event_share_render_test.dart",
+        "test/screens/setlists/event_share_screen_test.dart",
+        "lib/services/analytics_service.dart",
+        "test/services/analytics_service_test.dart"
       ],
       "allowed_files": [
-        "lib/screens/setlists/event_share_screen.dart"
+        "lib/screens/setlists/event_share_screen.dart",
+        "test/screens/setlists/event_share_render_test.dart"
       ],
       "acceptance": [
-        "Recover existing public EventShareScreen fixture and register its exact test path before dispatch. Once-per-open semantics must distinguish token link from direct member navigation; rebuild/retry not duplicate opens. Successful submit only, failure/cancel no submit event; no token/text payload; vertical RED/GREEN and scoped checks."
+        "Approved public seam: existing rendered EventShareScreen and FakeEventShareService in event_share_render_test.dart; existing direct-owner/claim fixture is read-only reference. Count one successful token-backed initial load per mounted screen lifetime, none for failed loads/direct member navigation; refresh, rebuild and return from editor must not duplicate. Log successful suggestions only after service completion (token and direct-owner flows), never cancel/blank/failure; parameterless consent-safe AnalyticsService calls only, exact SDK transport name/null payload. Keep auth, scoped contents, navigation and snackbar behavior. Vertical RED/GREEN through rendered actions, explicit consent-off/failure/cancel/refresh matrix, scoped analyze/format and related permission regressions. No private-provider abstraction or mirrored gate tests."
       ],
-      "blocked_reason": "Parent must recover rendered screen fixture and precise open/init lifecycle; source review did not inspect those seams. Do not add speculative test/provider abstraction.",
+      "preflight": {
+        "reviewer": "hermes",
+        "evidence": "docs/plans/systemic-ux/verification/GH-189-A3-preflight.json",
+        "note": "Source-only prerequisite recovered; implementation, runtime tests and acceptance remain pending. Dispatch waits for the sole Luna/test lane to be free."
+      },
+      "previous_blocked_reason": "Parent must recover rendered screen fixture and precise open/init lifecycle; resolved by source-only preflight, not by test execution.",
       "timeout_s": 1800,
       "max_attempts": 1,
       "run": null,

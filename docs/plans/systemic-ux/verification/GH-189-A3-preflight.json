@@ -1,0 +1,21 @@
+{
+  "task": "GH-189-A3",
+  "reviewer": "hermes",
+  "tested_commit": "3da69007fd228c483a737f1584c5f3fb9b7e1427",
+  "scope": "source-only prerequisite recovery; no implementation or runtime acceptance",
+  "sources": {
+    "lib/screens/setlists/event_share_screen.dart": "2f5259295698272699e21eb637948b7c5460c4cd7748e20585cfe766b62e3a03",
+    "test/screens/setlists/event_share_render_test.dart": "7d44c2edeeb021c78dffab7e73c5005e4f0ae86cf0b2dd2d41d2b409627bda6e",
+    "test/screens/setlists/event_share_screen_test.dart": "ee2698571cd56a89477f228af11c9f44afc8265b533c496cbe969f1f570d0c56"
+  },
+  "observations": [
+    "initState calls _load at screen lines 47-50; successful mounted response is applied at 67-71. Failed first load renders error, not successful content.",
+    "RefreshIndicator calls _load at 215-216; returning from the Event kit calls _load at 197. Instrumenting every successful _load would duplicate opens.",
+    "Token and direct-owner arguments share getEventView. Only token-backed successful open is the link-open event. Once per mounted screen lifetime is the bounded contract, not analytics retention or a user-unique count.",
+    "Suggestion sheet cancel/blank returns before service call at 104. submitSuggestion completes at 115 before success snackbar at 116; log successful submission there, without text/token payload.",
+    "Existing rendered fixture event_share_render_test.dart injects FakeEventShareService and signed-out auth; suggestion test exercises actual sheet Send. Extend this fixture rather than adding a duplicate or mirrored gate test.",
+    "event_share_screen_test.dart retains direct-owner suggestion and signed-in token claim/navigation references. It stays read-only for this bounded slice; run it at combined regression."
+  ],
+  "implementation_status": "queued; wait for sole Luna/test lane GH-189-A2 to terminate and reconcile",
+  "remaining": ["vertical RED/GREEN", "success/failure/cancel/consent/refresh matrix", "scoped checks", "independent integration", "device and GA4 verification"]
+}
