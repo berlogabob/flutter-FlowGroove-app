@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T13:22:18.037343+00:00",
+  "updated_at": "2026-10-25T13:52:42.323570+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -4592,7 +4592,7 @@
     {
       "id": "GH-187-U1",
       "title": "Rendered typed remove/reorder suggestions preserving note flow",
-      "status": "running",
+      "status": "verified",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-187",
@@ -4616,36 +4616,76 @@
       ],
       "timeout_s": 1800,
       "max_attempts": 1,
-      "verification": null,
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "deb989e97993039ecda8e58df8ca849c2d888209",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-187-U1.json"
+        ]
+      },
       "run": {
         "id": "GH-187-U1-LUNA-20261025-1320",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "phase": "model_implementation",
-        "active_actor": "luna",
-        "phase_started_at": "2026-10-25T13:20:53.137+00:00",
+        "phase": "accepted_primary_implementation",
+        "active_actor": "hermes",
+        "phase_started_at": "2026-10-25T13:30:00+00:00",
         "started_at": "2026-10-25T13:20:51.126394+00:00",
         "deadline_at": "2026-10-25T13:50:27.815922+00:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
-        "file_lease": [
-          "lib/screens/setlists/event_share_screen.dart",
-          "test/screens/setlists/event_share_render_test.dart"
-        ],
-        "test_lane": "exclusive Luna targeted Flutter lane",
+        "file_lease": [],
+        "test_lane": "released",
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-U1-LUNA-20261025-1320/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-U1-LUNA-20261025-1320/process.json",
         "expected_artifact": "Public rendered remove/reorder choices and regressions; note preserved",
-        "next_action": "Reconcile original session; independently accept rendered fixture after terminal outcome; no conflicting writes or tests",
-        "user_status": "Модель приступила к экрану структурированных предложений удаления и перестановки; клиентский транспорт уже принят.",
+        "next_action": "Complete public rendered regression and minimal production correction; no prompt replay",
+        "user_status": "Удаление точного повтора песни и перестановка приняты: 57 связанных тестов прошли. Добавление песен и устройство ещё не приняты.",
         "process": "proc_854505b78884",
         "pid": 99158,
         "session_id": "local-57eec7127c778ed81295b4d29f2696872ff6ce2cfa7c116542169c51da9a91fb",
         "actual_model": "gpt-6-luna",
         "actual_provider": "openai-codex",
-        "last_observed_activity": "2026-10-25T13:22:18.037127+00:00",
-        "last_meaningful_progress": "2026-10-25 13:21:55,137 INFO [local-57eec7127c778ed81295b4d29f2696872ff6ce2cfa7c116542169c51da9a91fb] agent.conversation_loop: API call #2: model=gpt-6-luna provider=openai-codex in=34507 out=138 total=34645 latency=2.4s cache=6016/34507 (17%) id=resp_0082b7ef36d2f582016ade026caff4819199eddc46ea653dc6",
-        "controller_next_run_observed": "2026-10-25T13:25:10.516158+00:00"
-      }
+        "last_observed_activity": "2026-10-25T13:21:55.137+00:00",
+        "last_meaningful_progress": "Original server continues through actual gpt-6-luna/openai-codex API 2 and real terminal events after CLI exit 1/unknown; sole worker/test slot and both leases retained, no replay. Initial API timeout/recovery retained, not terminal model failure.",
+        "controller_next_run_observed": "2026-10-25T13:25:10.516158+00:00",
+        "needs_reconciliation": false,
+        "terminal_evidence": "agent.log turn ended max_iterations_reached at 13:28:10.735; response ready 13:28:33.911",
+        "primary_commit": "deb989e97993039ecda8e58df8ca849c2d888209",
+        "primary_tests_passed": 57
+      },
+      "attempts": [
+        {
+          "id": "GH-187-U1-LUNA-20261025-1320",
+          "requested_provider": "openai-codex",
+          "requested_model": "gpt-6-luna",
+          "phase": "model_implementation",
+          "active_actor": "luna",
+          "phase_started_at": "2026-10-25T13:20:53.137+00:00",
+          "started_at": "2026-10-25T13:20:51.126394+00:00",
+          "deadline_at": "2026-10-25T13:50:27.815922+00:00",
+          "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+          "file_lease": [
+            "lib/screens/setlists/event_share_screen.dart",
+            "test/screens/setlists/event_share_render_test.dart"
+          ],
+          "test_lane": "exclusive Luna targeted Flutter lane",
+          "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-U1-LUNA-20261025-1320/hermes.jsonl",
+          "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-U1-LUNA-20261025-1320/process.json",
+          "expected_artifact": "Public rendered remove/reorder choices and regressions; note preserved",
+          "next_action": "Reconcile original session; independently accept rendered fixture after terminal outcome; no conflicting writes or tests",
+          "user_status": "Клиентский транспорт принят. Модель начала экран удаления/перестановки; после отключения CLI работа на сервере подтверждена, завершение пока неизвестно.",
+          "process": "proc_854505b78884",
+          "pid": 99158,
+          "session_id": "local-57eec7127c778ed81295b4d29f2696872ff6ce2cfa7c116542169c51da9a91fb",
+          "actual_model": "gpt-6-luna",
+          "actual_provider": "openai-codex",
+          "last_observed_activity": "2026-10-25T13:21:55.137+00:00",
+          "last_meaningful_progress": "Original server continues through actual gpt-6-luna/openai-codex API 2 and real terminal events after CLI exit 1/unknown; sole worker/test slot and both leases retained, no replay. Initial API timeout/recovery retained, not terminal model failure.",
+          "controller_next_run_observed": "2026-10-25T13:25:10.516158+00:00",
+          "needs_reconciliation": true,
+          "outcome": "incomplete_max_iterations_32_compile_failures_no_behavioral_red"
+        }
+      ]
     },
     {
       "id": "GH-187-U2",
@@ -4655,7 +4695,8 @@
       "kind": "implementation",
       "issue": "GH-187",
       "after": [
-        "GH-187-U1"
+        "GH-187-U1",
+        "GH-187-U2-R"
       ],
       "blocked_reason": "Need bounded safe candidate source: current getEventView only discloses songs already in the order, not the private library. Do not invent anonymous whole-library picker or claim existing-song duplicates fulfill all add requirements.",
       "read_files": [
@@ -4672,6 +4713,62 @@
       "max_attempts": 1,
       "run": null,
       "verification": null
+    },
+    {
+      "id": "GH-187-U2-R",
+      "title": "Resolve safe add-song candidate-source contract without library disclosure",
+      "status": "running",
+      "executor": "luna",
+      "kind": "research",
+      "issue": "GH-187",
+      "after": [
+        "GH-187-U1"
+      ],
+      "read_files": [
+        "functions/src/events.js",
+        "firestore.rules",
+        "lib/services/event_share_service.dart",
+        "lib/screens/setlists/event_share_screen.dart",
+        "lib/screens/setlists/create_setlist_screen.dart",
+        "docs/plans/systemic-ux/reviews/GH-187-application.md"
+      ],
+      "allowed_files": [
+        "docs/plans/systemic-ux/reviews/GH-187-add-selection.md"
+      ],
+      "acceptance": [
+        "Source-backed choice between scoped published candidates and authorized owner selection. Do not silently narrow anonymous add to existing-song duplicates. Identify exact backend/client/model/public-test slices and unresolved owner decisions; no implementation or device acceptance."
+      ],
+      "timeout_s": 1080,
+      "max_attempts": 1,
+      "verification": null,
+      "run": {
+        "id": "GH-187-U2-R-LUNA-20261025-1353",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "model_research",
+        "active_actor": "luna",
+        "phase_started_at": "2026-10-25T13:53:22.625959+00:00",
+        "started_at": "2026-10-25T13:52:42.323570+00:00",
+        "deadline_at": "2026-10-25T14:10:42.323570+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": [
+          "docs/plans/systemic-ux/reviews/GH-187-add-selection.md"
+        ],
+        "test_lane": "read-only research; no build/test commands",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-U2-R-LUNA-20261025-1353/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-U2-R-LUNA-20261025-1353/process.json",
+        "expected_artifact": "docs/plans/systemic-ux/reviews/GH-187-add-selection.md",
+        "next_action": "Reconcile exact server terminal outcome then independently verify source claims and register implementation slices",
+        "user_status": "Начата проверка безопасного выбора добавляемых песен: без раскрытия частной библиотеки.",
+        "process": "proc_efefa1ba6c67",
+        "pid": 2618,
+        "session_id": "local-a4d2658d4d6150056de45b202a908aefc133185c05b5a7a35ea02d53b43bb304",
+        "last_observed_activity": "2026-10-25 13:53:35,926 INFO [local-a4d2658d4d6150056de45b202a908aefc133185c05b5a7a35ea02d53b43bb304] agent.conversation_loop: API call #2: model=gpt-6-luna provider=openai-codex in=10838 out=192 total=11030 latency=4.9s cache=4864/10838 (45%) id=resp_09e3f77a2d809458016ade09dc752c8191a0c20549145bb111",
+        "last_meaningful_progress": "Bounded read-only safe add-selection source contract; production and heavy test lane unleased",
+        "controller_next_run_observed": "2026-10-25T13:54:08.402715+00:00",
+        "actual_provider": "openai-codex",
+        "actual_model": "gpt-6-luna"
+      }
     }
   ],
   "worker_lanes": {

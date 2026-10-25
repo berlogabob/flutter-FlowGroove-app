@@ -1,0 +1,41 @@
+{
+  "task": "GH-187-U1",
+  "reviewer": "hermes",
+  "tested_commit": "deb989e97993039ecda8e58df8ca849c2d888209",
+  "scope": "Accepted primary remove/reorder rendered UI, not whole GH-187 or device acceptance",
+  "worker": {
+    "provider": "openai-codex",
+    "model": "gpt-6-luna",
+    "session": "local-57eec7127c778ed81295b4d29f2696872ff6ce2cfa7c116542169c51da9a91fb",
+    "terminal": "2026-10-25T13:28:10.735Z max_iterations_reached(32/32); response ready 13:28:33.911Z",
+    "outcome": "Incomplete draft: compile failures, no successful behavioral RED or final GREEN. Disconnected CLI retained; no prompt replay. Controller completed after confirmed terminal handoff and no owned test process remained.",
+    "deviation": "Worker changed analytics callers to unsupported methods due to stale warm analytics_service.dart outside read window; parent preserved accepted parameterless analytics methods in primary. Failed logs are not RED evidence."
+  },
+  "checks": {
+    "red": "parent-red.json: original primary production with new rendered removal fixture loads successfully, then fails because Change type is absent; exit 1",
+    "first_green": "parent-green1.json: removal and existing rendered fixture pass, exit 0",
+    "reorder": "Actual long-press gesture moves a song across the break and submits exact ordered IDs. Earlier key generic mismatch, lazy row lookup after drag and incorrect drag destination expectation retained as fixture failures, not product RED. Final expectation retains a changed complete permutation including the break.",
+    "small_screen_red": "parent-combined.json: 360x640 long-order fixture detects 88px dropdown overflow; corrected with isExpanded. Missing third suite path in same invocation retained without combined pass credit.",
+    "final_command": "flutter test --no-pub test/screens/setlists/event_share_render_test.dart test/services/event_share_service_test.dart test/screens/setlists/event_share_screen_test.dart test/router/event_share_redirect_test.dart --reporter json",
+    "final_log": "private workers/GH-187-U1-LUNA-20261025-1320/parent-final.json",
+    "visible_tests_passed": 57,
+    "exit_code": 0,
+    "done_success": true,
+    "analyze": "dart analyze two changed files: exit 0, 12 info, no warnings/errors; includes Flutter deprecated radio/reorder APIs",
+    "format": "dart format two changed files: zero changes on final pass",
+    "diff_check": "git diff --check exit 0"
+  },
+  "accepted_behaviors": [
+    "Exact first/second duplicate occurrence IDs; numbered rendered labels distinguish duplicates, breaks are not removable",
+    "Reorder includes all current occurrence IDs and breaks, current fingerprint and version/kind, direct owner scope preserved",
+    "Unready or ungranted running order remains note-only; no canSuggest means no entry affordance",
+    "Note payload compatibility, cancellation, service failure, consent-off and nonfatal analytics failure retained",
+    "Long 20-item order scrolls and sends final selected occurrence at 360x640 without overflow",
+    "No library query, direct document write, free-text parsing or automatic application"
+  ],
+  "sha256": {
+    "lib/screens/setlists/event_share_screen.dart": "59a99c642c10ee4772384f61eba27b5922688b63cbd8be7a23b66e3950278c4a",
+    "test/screens/setlists/event_share_render_test.dart": "800251bcdfe358cc36e0467d6abe81fa6b920a54dea1ecb9c8a62577132c944d"
+  },
+  "remaining": ["U2 safe add-song selection", "Structured inbox/legacy presentation gate", "Device/human/GA4 checks", "Full Graphify and final regression", "No issue closure, release, push, deploy or install"]
+}
