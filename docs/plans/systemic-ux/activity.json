@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T14:18:39.377044+00:00",
+  "updated_at": "2026-10-25T14:44:11.536920+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -4830,7 +4830,7 @@
     {
       "id": "GH-186-B",
       "title": "Authorized metadata-only paginated event-share inventory and production callable export",
-      "status": "running",
+      "status": "verified",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-186",
@@ -4857,40 +4857,54 @@
         "id": "GH-186-B-LUNA-20261025-141431",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "phase": "model_implementation",
-        "active_actor": "luna",
+        "phase": "accepted_primary_backend",
+        "active_actor": "hermes",
         "phase_started_at": "2026-10-25T14:17:11.321000+00:00",
         "started_at": "2026-10-25T14:16:55.774713+00:00",
         "deadline_at": "2026-10-25T14:49:31.460841+00:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
-        "file_lease": [
-          "functions/src/events.js",
-          "functions/index.js",
-          "functions/test/callable-event-share.test.js"
-        ],
+        "file_lease": [],
         "test_lane": "exclusive callable emulator lane",
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-B-LUNA-20261025-141431/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-B-LUNA-20261025-141431/process.json",
         "expected_artifact": "metadata-only inventory/export and raw public callable RED/GREEN",
-        "next_action": "Observe exact model admission; parent independently verifies terminal evidence",
-        "user_status": "Начата серверная часть списка ссылок: права, безопасные метаданные и полный обход страниц.",
+        "next_action": "Dispatch GH-186-C typed client transport",
+        "user_status": "Серверный список ссылок принят: 95 совместных тестов прошли. Клиентская и экранная части ещё впереди.",
         "process": "proc_a70f9956a59d",
         "pid": 5187,
         "session_id": "local-b0b525bec55b16bbd1ef896dbfe061353e124a5def55254a3692a8e2a335a6be",
         "actual_model": "gpt-6-luna",
         "actual_provider": "openai-codex",
-        "last_observed_activity": "2026-10-25T14:18:09.576000+00:00",
-        "last_meaningful_progress": "Exact Luna init, retained original session and real reads of four assigned files observed; initial malformed shell command and out-of-window discovery/.codex read retained for acceptance",
+        "last_observed_activity": "2026-10-25T14:41:01.653626+00:00",
+        "last_meaningful_progress": "Backend accepted on primary after 95 combined callable/security checks",
         "needs_reconciliation": false,
-        "controller_next_run_observed": "2026-10-25T14:21:07.805334+00:00",
-        "scope_deviations_observed": 3
+        "controller_next_run_observed": "2026-10-25T14:26:13.417254+00:00",
+        "scope_deviations_observed": 3,
+        "gateway_turn_status": "terminal_max_iterations_reached_32_at_2026-10-25T14:32:30.219Z",
+        "primary_commit": "8cfa06981c16d8340301eb6da75ba6d522d53302",
+        "primary_tests_passed": 95
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "8cfa06981c16d8340301eb6da75ba6d522d53302",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-186-B.json"
+        ]
+      },
+      "attempts": [
+        {
+          "actor": "luna",
+          "outcome": "incomplete_max_iterations_32",
+          "terminal_at": "2026-10-25T14:32:30.219Z",
+          "raw_result": "86 passing / 1 failing; lifecycle fixture contamination",
+          "prompt_replayed": false
+        }
+      ]
     },
     {
       "id": "GH-186-C",
       "title": "Share inventory typed transport and bounded page decoding",
-      "status": "queued",
+      "status": "running",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-186",
@@ -4910,7 +4924,35 @@
       ],
       "timeout_s": 2100,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-186-C-LUNA-20261025-144255",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "model_implementation",
+        "active_actor": "luna",
+        "started_at": "2026-10-25T14:42:55.213148+00:00",
+        "phase_started_at": "2026-10-25T14:42:55.213148+00:00",
+        "deadline_at": "2026-10-25T15:17:55.213148+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": [
+          "lib/services/event_share_service.dart",
+          "test/services/event_share_service_test.dart"
+        ],
+        "test_lane": "exclusive Flutter service test lane",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-C-LUNA-20261025-144255/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-C-LUNA-20261025-144255/process.json",
+        "expected_artifact": "typed service and public invoker RED/GREEN",
+        "next_action": "Reconcile original server terminal; independently verify exact bytes",
+        "user_status": "Серверная часть принята; запущена клиентская загрузка страниц списка ссылок.",
+        "last_observed_activity": "2026-10-25T14:44:11.536920+00:00",
+        "last_meaningful_progress": "Accepted backend prerequisite; exact client source synchronized",
+        "pid": 8680,
+        "process": "proc_73c549878e57",
+        "session_id": "local-5cf749588bf250a3ecac25096d3e0415743a7bfa61cf9c6cfcde12673de63eb2",
+        "actual_model": "gpt-6-luna",
+        "actual_provider": "openai-codex",
+        "controller_next_run_observed": "2026-10-25T14:44:31.456734+00:00"
+      },
       "verification": null
     },
     {
