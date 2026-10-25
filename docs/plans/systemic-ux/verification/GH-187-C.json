@@ -1,0 +1,34 @@
+{
+  "task": "GH-187-C",
+  "reviewer": "hermes",
+  "tested_commit": "73057d2f73384640c61157d009f65c8e89e5cd41",
+  "scope": "Client transport integration only, not UI/device or issue closure",
+  "worker": {
+    "provider": "openai-codex",
+    "model": "gpt-6-luna",
+    "terminal_at": "2026-10-25T13:04:24.911+00:00",
+    "terminal_reason": "text_response(stop), 14 calls",
+    "session_id": "local-7a4248885b20065c9dfc435a95fcd7b66c4e842f5d585d59f7937fe60af512bc"
+  },
+  "checks": {
+    "parent_behavioral_red": "Proposal-forwarding removal: actual null vs exact proposal, exit 1; fixed bytes preserved privately and restored",
+    "warm_green": "17 visible PASS, exit 0",
+    "primary_combined_green": "44 visible PASS, done.success=true, exit 0: service/rendered event/inbox",
+    "analyze": "13 existing infos, zero warnings/errors; exit 1 retained",
+    "format": "3 files, zero changes, exit 0",
+    "whitespace": "git diff --check exit 0",
+    "identity": "Primary source/test bytes match committed Git and warm checkout"
+  },
+  "sha256": {
+    "lib/services/event_share_service.dart": "b792825d54aff9243cb2d327f5fe7d5a58d7d28fc7e9fca45512c435381affd1",
+    "test/services/event_share_service_test.dart": "a5105672e22374573e821ad51cc85be4f58de7f6bd0b8ca86feaef5d509ce04c",
+    "test/screens/setlists/event_share_render_test.dart": "b548f33c164630f22d9f00667a90763fb760aaf9198daf2c0d00d36d4e389a7c"
+  },
+  "corrections": [
+    "Matched proposal.kind/type fixtures, exact payloads for band/personal/token and add/remove/reorder; typed failures propagate",
+    "Existing rendered fake required optional proposal parameter: registered signature-only fixture repair before edit; original compile failure retained",
+    "Use existing null-stripping transport, not extra conditional"
+  ],
+  "private_evidence_directory": "audit/2026-10-23-systemic-ux/workers/GH-187-C-LUNA-20261025-1250",
+  "remaining": "GH-187-U/I2/V, structured presentation/add selection, device/human/final Graphify; release hold unchanged"
+}

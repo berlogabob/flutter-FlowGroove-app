@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T11:56:00+00:00",
+  "updated_at": "2026-10-25T13:22:18.037343+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -263,7 +263,9 @@
         "GH-187-U",
         "GH-187-I2",
         "GH-187-I3",
-        "GH-187-V"
+        "GH-187-V",
+        "GH-187-U1",
+        "GH-187-U2"
       ],
       "resolution": null
     },
@@ -3146,7 +3148,7 @@
     {
       "id": "GH-187-C",
       "title": "Transport typed proposal and scoped running-order base",
-      "status": "running",
+      "status": "verified",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-187",
@@ -3161,7 +3163,8 @@
       ],
       "allowed_files": [
         "lib/services/event_share_service.dart",
-        "test/services/event_share_service_test.dart"
+        "test/services/event_share_service_test.dart",
+        "test/screens/setlists/event_share_render_test.dart"
       ],
       "acceptance": [
         "Existing public service seam RED/GREEN for exact typed payload and base/identity decoding, legacy compatibility and band/personal/token scope. Register a separate pair before any external model edit."
@@ -3172,44 +3175,51 @@
         "id": "GH-187-C-LUNA-20261025-1250",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "phase": "model_implementation",
-        "active_actor": "luna",
-        "phase_started_at": "2026-10-25T12:50:40.093+00:00",
+        "phase": "integrated",
+        "active_actor": "hermes",
+        "phase_started_at": "2026-10-25T13:12:32.386302+00:00",
         "started_at": "2026-10-25T12:50:36.535655+00:00",
         "deadline_at": "2026-10-25T13:19:17.694345+00:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
-        "file_lease": [
-          "lib/services/event_share_service.dart",
-          "test/services/event_share_service_test.dart"
-        ],
-        "test_lane": "exclusive Luna Flutter targeted lane",
+        "file_lease": [],
+        "test_lane": "released after final primary regression",
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-C-LUNA-20261025-1250/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-C-LUNA-20261025-1250/process.json",
         "expected_artifact": "Typed proposal forwarding and EventView runningOrder decoding through existing service/test pair",
-        "next_action": "Observe model admission and real tool use; independently reconcile original server",
-        "user_status": "Начата клиентская передача структурированных предложений и чтение серверной основы порядка песен.",
+        "next_action": "Independent exact payload/decoding review, primary integration",
+        "user_status": "Клиентский транспорт принят и интегрирован: 44 связанных теста прошли; экран структурированных предложений ещё впереди.",
         "process": "proc_4d7e5c26fadb",
         "pid": 95830,
         "session_id": "local-7a4248885b20065c9dfc435a95fcd7b66c4e842f5d585d59f7937fe60af512bc",
         "actual_provider": "openai-codex",
         "actual_model": "gpt-6-luna",
-        "last_observed_activity": "2026-10-25 12:51:20,115",
-        "last_meaningful_progress": "Actual model source reads, targeted test patch and Flutter test process observed; no acceptance yet.",
-        "controller_next_run_observed": "2026-10-25T12:52:54.524176+00:00",
-        "needs_reconciliation": true
+        "last_observed_activity": "2026-10-25T13:04:24.911+00:00",
+        "last_meaningful_progress": "Original server continues through actual gpt-6-luna/openai-codex API 10 after CLI disconnect; bounded service/test draft exists and scoped analyzer process observed. No terminal model outcome yet. Worker RED/GREEN files are manually written summaries, not raw command evidence; independent acceptance must recover actual terminal output and run final exact-byte checks. Sole worker/test lane and both leases retained; no prompt replay or competing dispatch. No independent pending review exists.",
+        "controller_next_run_observed": "2026-10-25T13:00:24.743672+00:00",
+        "needs_reconciliation": false,
+        "terminal_outcome": "text_response(stop), 14/32 API calls; server response ready 13:04:25.093 UTC",
+        "scope_expansion": "Parent integration found public FakeEventShareService override compile failure after optional proposal API addition; register one signature-only fixture repair before edit. No new production pair.",
+        "finished_at": "2026-10-25T13:20:27.815922+00:00"
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "73057d2f73384640c61157d009f65c8e89e5cd41",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-187-C.json"
+        ]
+      }
     },
     {
       "id": "GH-187-U",
-      "title": "Offer structured proposals through rendered event flow",
+      "title": "Structured proposal UI acceptance gate: remove/reorder and safe add selection",
       "status": "blocked",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-187",
-      "blocked_reason": "After transport acceptance, settle safe add-song selection without anonymous library disclosure; register any extra pair before editing. No whole-library guest reads or free-text interpretation.",
+      "blocked_reason": "U1 implements executable remove/reorder first; U2 safe add selection remains explicit privacy/design blocker. U cannot be accepted from first slice alone.",
       "after": [
-        "GH-187-C"
+        "GH-187-U1",
+        "GH-187-U2"
       ],
       "read_files": [
         "lib/screens/setlists/event_share_screen.dart",
@@ -3217,10 +3227,7 @@
         "lib/services/event_share_service.dart",
         "docs/plans/systemic-ux/reviews/GH-187-application.md"
       ],
-      "allowed_files": [
-        "lib/screens/setlists/event_share_screen.dart",
-        "test/screens/setlists/event_share_render_test.dart"
-      ],
+      "allowed_files": [],
       "acceptance": [
         "Public rendered RED/GREEN: typed choices preserve duplicate/break identities, notes, roles, scope, cancel, analytics and legacy-not-ready state; no prose execution or private library exposure."
       ],
@@ -4581,6 +4588,90 @@
       "blockers": [
         "Implementation not complete and fresh device/screen-reader evidence absent."
       ]
+    },
+    {
+      "id": "GH-187-U1",
+      "title": "Rendered typed remove/reorder suggestions preserving note flow",
+      "status": "running",
+      "executor": "luna",
+      "kind": "implementation",
+      "issue": "GH-187",
+      "after": [
+        "GH-187-C"
+      ],
+      "read_files": [
+        "lib/screens/setlists/event_share_screen.dart",
+        "test/screens/setlists/event_share_render_test.dart",
+        "lib/services/event_share_service.dart",
+        "docs/plans/systemic-ux/reviews/GH-187-application.md",
+        "lib/models/event_access.dart",
+        "lib/theme/mono_pulse_theme.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/setlists/event_share_screen.dart",
+        "test/screens/setlists/event_share_render_test.dart"
+      ],
+      "acceptance": [
+        "Existing rendered EventShareScreen seam RED/GREEN: note remains compatible; remove chooses exact song occurrence and reorder sends all occurrence IDs including breaks; exact v1 fingerprint/type; no free-text parsing, library reads or direct writes; canSuggest/access/readiness/cancel/scope/analytics/errors preserved."
+      ],
+      "timeout_s": 1800,
+      "max_attempts": 1,
+      "verification": null,
+      "run": {
+        "id": "GH-187-U1-LUNA-20261025-1320",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "model_implementation",
+        "active_actor": "luna",
+        "phase_started_at": "2026-10-25T13:20:53.137+00:00",
+        "started_at": "2026-10-25T13:20:51.126394+00:00",
+        "deadline_at": "2026-10-25T13:50:27.815922+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": [
+          "lib/screens/setlists/event_share_screen.dart",
+          "test/screens/setlists/event_share_render_test.dart"
+        ],
+        "test_lane": "exclusive Luna targeted Flutter lane",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-U1-LUNA-20261025-1320/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-U1-LUNA-20261025-1320/process.json",
+        "expected_artifact": "Public rendered remove/reorder choices and regressions; note preserved",
+        "next_action": "Reconcile original session; independently accept rendered fixture after terminal outcome; no conflicting writes or tests",
+        "user_status": "Модель приступила к экрану структурированных предложений удаления и перестановки; клиентский транспорт уже принят.",
+        "process": "proc_854505b78884",
+        "pid": 99158,
+        "session_id": "local-57eec7127c778ed81295b4d29f2696872ff6ce2cfa7c116542169c51da9a91fb",
+        "actual_model": "gpt-6-luna",
+        "actual_provider": "openai-codex",
+        "last_observed_activity": "2026-10-25T13:22:18.037127+00:00",
+        "last_meaningful_progress": "2026-10-25 13:21:55,137 INFO [local-57eec7127c778ed81295b4d29f2696872ff6ce2cfa7c116542169c51da9a91fb] agent.conversation_loop: API call #2: model=gpt-6-luna provider=openai-codex in=34507 out=138 total=34645 latency=2.4s cache=6016/34507 (17%) id=resp_0082b7ef36d2f582016ade026caff4819199eddc46ea653dc6",
+        "controller_next_run_observed": "2026-10-25T13:25:10.516158+00:00"
+      }
+    },
+    {
+      "id": "GH-187-U2",
+      "title": "Safe add-song selection without anonymous library disclosure",
+      "status": "blocked",
+      "executor": "luna",
+      "kind": "implementation",
+      "issue": "GH-187",
+      "after": [
+        "GH-187-U1"
+      ],
+      "blocked_reason": "Need bounded safe candidate source: current getEventView only discloses songs already in the order, not the private library. Do not invent anonymous whole-library picker or claim existing-song duplicates fulfill all add requirements.",
+      "read_files": [
+        "lib/screens/setlists/event_share_screen.dart",
+        "test/screens/setlists/event_share_render_test.dart",
+        "lib/services/event_share_service.dart",
+        "docs/plans/systemic-ux/reviews/GH-187-application.md"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Register exact public flow/source before implementation; safe scoped candidates or authorized owner selection, preserve privacy and existing note/remove/reorder."
+      ],
+      "timeout_s": 1800,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
     }
   ],
   "worker_lanes": {

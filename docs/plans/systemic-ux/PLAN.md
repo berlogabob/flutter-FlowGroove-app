@@ -7,8 +7,8 @@
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
-- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 90 задач; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 90 задач; исполнителей/фазы читать из activity.json. UX-006-R и UX-009-I2 приняты Hermes после первого timeout. Остальное — малые реализации, независимая приёмка, устройства/люди, preflight и решения владельца.
+- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 92 задачи; состояние всегда читать из activity.json.
+- Текущая декомпозиция: 92 задачи; исполнителей/фазы читать из activity.json. UX-006-R и UX-009-I2 приняты Hermes после первого timeout. Остальное — малые реализации, независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -181,7 +181,8 @@ Registry изменяет только один родительский про�
 - [x] **GH-187-I1** · atomic typed add/remove/reorder backend integrated `6a514349`; controller corrections preserve authority/privacy and legacy decisions. 79 warm / 87 primary callable+security tests PASS; original incomplete Luna attempt retained.
 - [x] **GH-187-S** · typed proposal submission integrated `6321d0c6`; real public callable RED, final 88 primary callable/security tests PASS; rejected schema/targets consume no quota, both scopes persist proposals without execution. Device/client/issue acceptance remains open.
 - [x] **GH-187-E** · authorized running-order identities/base integrated `df4c4c39`; independent public callable RED, 82 warm / 90 primary combined tests PASS. Permission omission, legacy unready and private-field filtering checked; original incomplete Luna attempt retained.
-- [ ] **GH-187-C/U/I2** · transport is next; client integration waits for transport/UI and explicit legacy/presentation checks. No free-text execution or device acceptance.
+- [x] **GH-187-C** · client transport integrated `73057d2f`: typed payload forwarding and scoped running-order base; 44 primary combined tests PASS. Existing rendered fake signature corrected; no UI/device acceptance.
+- [ ] **GH-187-U1/U2/U/I2** · U1 remove/reorder rendered flow dispatched after transport; U2 safe add-song selection remains explicitly blocked on scoped candidates/authorized selection. U is an aggregate gate, not closed by first slice. I2 retains structured presentation/legacy checks; no free-text execution or device acceptance.
 - [x] **GH-187-I3** · inbox loading/error/retry through existing public widget/test pair; cached requests/roles/scope preserved. Integrated `37490537`; 11 warm / 54 primary combined tests PASS. Original Luna lease-loss failure retained, controller completed directly. GH-187-V/device remains open.
 - [ ] **GH-187-V** · fresh combined regression and safe device/guest round trip; gates FINAL-TEST.
 - [ ] **GH-186-R** · ornith · Повторная проверка GitHub #186: [P3] Event sharing: list and revoke active share links
