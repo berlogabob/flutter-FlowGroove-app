@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T14:02:24.256971+00:00",
+  "updated_at": "2026-10-25T14:18:39.377044+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -279,7 +279,12 @@
       "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
       "source_locations": [],
       "tasks": [
-        "GH-186-R"
+        "GH-186-R",
+        "GH-186-B",
+        "GH-186-C",
+        "GH-186-U",
+        "GH-186-URL",
+        "GH-186-V"
       ],
       "resolution": null
     },
@@ -3335,8 +3340,8 @@
     {
       "id": "GH-186-R",
       "title": "Повторная проверка GitHub #186: [P3] Event sharing: list and revoke active share links",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "verified",
+      "executor": "luna + independent Hermes source acceptance",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -3344,6 +3349,12 @@
       ],
       "issue": "GH-186",
       "read_files": [
+        "functions/src/events.js",
+        "functions/test/callable-event-share.test.js",
+        "lib/services/event_share_service.dart",
+        "lib/screens/setlists/event_kit_editor_screen.dart",
+        "test/services/event_share_service_test.dart",
+        "test/screens/setlists/event_kit_editor_test.dart",
         "EVENT_SHARING_BACKLOG.md"
       ],
       "allowed_files": [
@@ -3355,10 +3366,46 @@
         "Не закрывать remote issue/board: окончательное закрытие владельцем. Remote open остаётся blocker.",
         "Для epic подтвердить children; для first release/Play launch явно сообщить циклическую зависимость с no-release policy."
       ],
-      "timeout_s": 600,
+      "timeout_s": 1080,
       "max_attempts": 1,
-      "run": null,
-      "verification": null
+      "run": {
+        "id": "GH-186-R-LUNA-20261025-140411",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "accepted_source_review",
+        "active_actor": "hermes",
+        "phase_started_at": "2026-10-25T14:14:31.460841+00:00",
+        "started_at": "2026-10-25T14:04:11.340164+00:00",
+        "deadline_at": "2026-10-25T14:22:11.340164+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": [],
+        "test_lane": "read-only source review; no build/test commands",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-R-LUNA-20261025-140411/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-R-LUNA-20261025-140411/process.json",
+        "expected_artifact": "docs/plans/systemic-ux/reviews/GH-186.md",
+        "next_action": "Implement GH-186-B at existing public callable seam",
+        "user_status": "Проверка списка и отзыва ссылок принята; зарегистрированы серверная, клиентская и экранная части. Это ещё не исправление.",
+        "last_observed_activity": "2026-10-25T14:14:31.460841+00:00",
+        "last_meaningful_progress": "Confirmed missing inventory and registered backend/export, transport, writer-only UI, URL and final gates",
+        "process": "proc_40e11fd7f892",
+        "pid": 4021,
+        "session_id": "local-76fd9be2065ffb8dc1481940c8110b5ee8b764d2b64b8a7b9e3617c4af9ba0c7",
+        "actual_provider": "openai-codex",
+        "actual_model": "gpt-6-luna",
+        "controller_next_run_observed": "2026-10-25T14:08:06.797227+00:00",
+        "scope_deviations_observed": 1,
+        "needs_reconciliation": false,
+        "exit_code": 0,
+        "finish_reason": "stop"
+      },
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "d0ed6fd309d7fce10a490e15f688cb2085ae4c42",
+        "evidence": [
+          "docs/plans/systemic-ux/reviews/GH-186.md",
+          "docs/plans/systemic-ux/verification/GH-186-R.json"
+        ]
+      }
     },
     {
       "id": "GH-180-R",
@@ -3987,7 +4034,8 @@
         "NEW-003-V",
         "GH-188-V",
         "GH-189-V",
-        "GH-187-V"
+        "GH-187-V",
+        "GH-186-V"
       ],
       "issue": null,
       "read_files": [],
@@ -4778,6 +4826,168 @@
         "finish_reason": "stop",
         "exit_code": 0
       }
+    },
+    {
+      "id": "GH-186-B",
+      "title": "Authorized metadata-only paginated event-share inventory and production callable export",
+      "status": "running",
+      "executor": "luna",
+      "kind": "implementation",
+      "issue": "GH-186",
+      "after": [
+        "GH-186-R"
+      ],
+      "read_files": [
+        "functions/src/events.js",
+        "functions/index.js",
+        "functions/test/callable-event-share.test.js",
+        "docs/plans/systemic-ux/reviews/GH-186.md"
+      ],
+      "allowed_files": [
+        "functions/src/events.js",
+        "functions/index.js",
+        "functions/test/callable-event-share.test.js"
+      ],
+      "acceptance": [
+        "Existing public callable RED/GREEN; band writer/personal owner and demo denials, exact event isolation, projected metadata only, current roster grants, active/revoked/expired/legacy/unavailable, bounded complete page traversal and cursor validation, two-link revoke isolation. Explicit small second production file exception: required functions/index.js export wiring, no new test seam."
+      ],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": {
+        "id": "GH-186-B-LUNA-20261025-141431",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "model_implementation",
+        "active_actor": "luna",
+        "phase_started_at": "2026-10-25T14:17:11.321000+00:00",
+        "started_at": "2026-10-25T14:16:55.774713+00:00",
+        "deadline_at": "2026-10-25T14:49:31.460841+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": [
+          "functions/src/events.js",
+          "functions/index.js",
+          "functions/test/callable-event-share.test.js"
+        ],
+        "test_lane": "exclusive callable emulator lane",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-B-LUNA-20261025-141431/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-B-LUNA-20261025-141431/process.json",
+        "expected_artifact": "metadata-only inventory/export and raw public callable RED/GREEN",
+        "next_action": "Observe exact model admission; parent independently verifies terminal evidence",
+        "user_status": "Начата серверная часть списка ссылок: права, безопасные метаданные и полный обход страниц.",
+        "process": "proc_a70f9956a59d",
+        "pid": 5187,
+        "session_id": "local-b0b525bec55b16bbd1ef896dbfe061353e124a5def55254a3692a8e2a335a6be",
+        "actual_model": "gpt-6-luna",
+        "actual_provider": "openai-codex",
+        "last_observed_activity": "2026-10-25T14:18:09.576000+00:00",
+        "last_meaningful_progress": "Exact Luna init, retained original session and real reads of four assigned files observed; initial malformed shell command and out-of-window discovery/.codex read retained for acceptance",
+        "needs_reconciliation": false,
+        "controller_next_run_observed": "2026-10-25T14:21:07.805334+00:00",
+        "scope_deviations_observed": 3
+      },
+      "verification": null
+    },
+    {
+      "id": "GH-186-C",
+      "title": "Share inventory typed transport and bounded page decoding",
+      "status": "queued",
+      "executor": "luna",
+      "kind": "implementation",
+      "issue": "GH-186",
+      "after": [
+        "GH-186-B"
+      ],
+      "read_files": [
+        "lib/services/event_share_service.dart",
+        "test/services/event_share_service_test.dart"
+      ],
+      "allowed_files": [
+        "lib/services/event_share_service.dart",
+        "test/services/event_share_service_test.dart"
+      ],
+      "acceptance": [
+        "Existing CallableInvoker seam: exact scope/cursor payload, strict safe metadata decoder, no secrets, malformed/empty and paging handling; preserve existing callers."
+      ],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-186-U",
+      "title": "Writer-only event link inventory and isolated revoke in existing editor",
+      "status": "queued",
+      "executor": "luna",
+      "kind": "implementation",
+      "issue": "GH-186",
+      "after": [
+        "GH-186-C"
+      ],
+      "read_files": [
+        "lib/screens/setlists/event_kit_editor_screen.dart",
+        "test/screens/setlists/event_kit_editor_test.dart",
+        "lib/services/event_share_service.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/setlists/event_kit_editor_screen.dart",
+        "test/screens/setlists/event_kit_editor_test.dart"
+      ],
+      "acceptance": [
+        "Existing rendered editor seam RED/GREEN: real writer/owner not ordinary member or guest/demo; exhaustive pages with load/error/retry/empty, current metadata/state/created, cancel and isolated successful/failed revoke without minting; preserve Mono Pulse and old flows."
+      ],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "GH-186-URL",
+      "title": "Centralize event-share base URL after approved compatibility policy",
+      "status": "blocked",
+      "executor": "luna",
+      "kind": "implementation",
+      "issue": "GH-186",
+      "after": [
+        "GH-186-R",
+        "GH-189-L1"
+      ],
+      "read_files": [
+        "lib/screens/setlists/event_kit_editor_screen.dart",
+        "test/screens/setlists/event_kit_editor_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "After GH-189-L1 approved source policy, register exact shared URL caller/test files before edits; preserve current legacy URL compatibility. No native ownership or deploy waiver."
+      ],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null,
+      "blocked_reason": "Canonical host/path compatibility policy remains GH-189-L1 blocker; exact centralized helper/caller scope must be registered after that decision.",
+      "requires_approval": true
+    },
+    {
+      "id": "GH-186-V",
+      "title": "Integrated link inventory/revoke permissions regressions and safe device acceptance",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "issue": "GH-186",
+      "after": [
+        "GH-186-B",
+        "GH-186-C",
+        "GH-186-U",
+        "GH-186-URL"
+      ],
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Fresh callable/security/client/rendered combined checks; two links: revoke kills selected only; all live event links complete, no secrets, writer parity, personal/band/device flows. Owner closes remote issue only after evidence."
+      ],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null
     }
   ],
   "worker_lanes": {

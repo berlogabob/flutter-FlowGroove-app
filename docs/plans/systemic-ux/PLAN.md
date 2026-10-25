@@ -187,7 +187,8 @@ Registry изменяет только один родительский про�
 - [ ] **GH-187-U2/U/I2** · Named safe add-selection research → implementation remains explicit privacy gate; U2 scoped candidates/authorized selection unresolved. U is aggregate only; I2 retains structured presentation/legacy checks; no free-text execution or device acceptance.
 - [x] **GH-187-I3** · inbox loading/error/retry through existing public widget/test pair; cached requests/roles/scope preserved. Integrated `37490537`; 11 warm / 54 primary combined tests PASS. Original Luna lease-loss failure retained, controller completed directly. GH-187-V/device remains open.
 - [ ] **GH-187-V** · fresh combined regression and safe device/guest round trip; gates FINAL-TEST.
-- [ ] **GH-186-R** · ornith · Повторная проверка GitHub #186: [P3] Event sharing: list and revoke active share links
+- [x] **GH-186-R** · luna + independent Hermes source acceptance · Missing inventory confirmed; required export/writer/pagination/URL gates registered. Source review only.
+- [ ] **GH-186-B/C/U/URL/V** · Authorized metadata callable + export → typed client → writer-only inventory/revoke; URL waits GH-189-L1; combined/device final gate retained.
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-186.md`.
 - [ ] **GH-180-R** · ornith · Повторная проверка GitHub #180: [epic] Event participants: scoped event sharing for non-members
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-180.md`.
