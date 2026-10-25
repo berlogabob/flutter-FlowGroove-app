@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T02:19:43.430805+00:00",
+  "updated_at": "2026-10-25T04:40:00+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -2098,8 +2098,8 @@
     {
       "id": "GH-189-A1",
       "title": "Consent-safe event-sharing analytics methods",
-      "status": "queued",
-      "executor": "luna",
+      "status": "review",
+      "executor": "hermes direct fallback after bounded Luna admission failure",
       "kind": "implementation",
       "issue": "GH-189",
       "after": [
@@ -2119,7 +2119,34 @@
       ],
       "timeout_s": 1200,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-189-A1-LUNA-20261025-0305",
+        "process": "proc_e499565d3285",
+        "pid": 39831,
+        "actual_model": "gpt-6-luna",
+        "cli_started_at": "2026-10-25T03:12:17.950019+00:00",
+        "started_at": "2026-10-25T03:10:00+00:00",
+        "deadline_at": "2026-10-25T03:30:00+00:00",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "active_actor": "hermes",
+        "phase": "parent_fallback_baseline_in_progress_after_terminal_admission_failure",
+        "session_id": "local-8491fdbc357dfc5d6fabf957fadd6a73b3a08d9291123c9501ad2f6e0330f6d1",
+        "gateway_turn_status": "terminal_text_response_stop_2026-10-25T03:20:30.517+00:00",
+        "worker_outcome": "Rejected: test-lane admission marker absent at final check; 420s tool wait timeout; no edits or implementation. No prompt replay.",
+        "parent_baseline_process": "proc_0e029ccc4a6b",
+        "parent_baseline_pid": 47020,
+        "parent_worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "parent_baseline_prior_failure": "proc_402e89c52d2b exited 1 before tests: research checkout lacks resolved flutter_test dependency; not RED. Reused prepared primary checkout, no pub/install.",
+        "parent_baseline_deadline_at": "2026-10-25T04:49:00+00:00",
+        "parent_baseline_report": "audit/2026-10-23-systemic-ux/workers/GH-189-A1-LUNA-20261025-0305/parent-baseline-primary.jsonl",
+        "file_lease": ["lib/services/analytics_service.dart", "test/services/analytics_service_test.dart"],
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A1-LUNA-20261025-0305/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A1-LUNA-20261025-0305/process.json",
+        "needs_reconciliation": false,
+        "test_admission": "No tests/analyze/format before parent test-lane.free marker. At most 600-second foreground wait, otherwise report blocked."
+      },
       "verification": null
     },
     {
@@ -2179,7 +2206,7 @@
     {
       "id": "GH-189-L0",
       "title": "Resolve canonical URL, legacy compatibility and association source paths",
-      "status": "queued",
+      "status": "running",
       "executor": "luna",
       "kind": "research",
       "issue": "GH-189",
@@ -2191,7 +2218,12 @@
         "lib/router/app_router.dart",
         "lib/screens/setlists/event_kit_editor_screen.dart",
         "android/app/src/main/AndroidManifest.xml",
-        "ios/Runner.xcodeproj/project.pbxproj"
+        "ios/Runner.xcodeproj/project.pbxproj",
+        ".firebaserc",
+        "site/static/.well-known/assetlinks.json",
+        "site/hugo.toml",
+        "ios/Runner/Info.plist",
+        "ios/Runner/AppDelegate.swift"
       ],
       "allowed_files": [
         "docs/plans/systemic-ux/reviews/GH-189-links.md"
@@ -2201,7 +2233,28 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-189-L0-LUNA-20261025-0436",
+        "process": "proc_36b4b0d20d44",
+        "pid": 47001,
+        "cli_started_at": "2026-10-25T04:37:42.990335+00:00",
+        "started_at": "2026-10-25T04:36:00+00:00",
+        "deadline_at": "2026-10-25T04:47:00+00:00",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+        "active_actor": "luna",
+        "phase": "server_source_preflight_after_cli_disconnect",
+        "session_id": "local-3a09bd073eb6ea2c079dbe5d960249fea5e6abede1aa91a1ff16c65a2c96f446",
+        "actual_model": "gpt-6-luna",
+        "needs_reconciliation": true,
+        "cli_exit_code": 1,
+        "controller_observation": "Server API call 3 at 04:39:53.163 UTC continued after CLI exit 04:39:21.907. Preserve exclusive report lease and occupied Luna slot; no resend. Initial stream timeout/retry retained in server log.",
+        "file_lease": ["docs/plans/systemic-ux/reviews/GH-189-links.md"],
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-L0-LUNA-20261025-0436/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-L0-LUNA-20261025-0436/process.json",
+        "selection_reason": "A1 rejected admission/no-code turn is controller-owned direct fallback, existing baseline uses sole test lane in separate research checkout. L0 is next dependency-ready worker slice and unlocks exact L1-L4 contract/signing blockers. Read-only file tools; no test/build lane."
+      },
       "verification": null
     },
     {
@@ -2398,7 +2451,7 @@
     {
       "id": "GH-188-I",
       "title": "Per-person event access controls and effective live preview in existing Add/Edit crew sheet",
-      "status": "running",
+      "status": "verified",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-188",
@@ -2441,7 +2494,11 @@
         "session_id": "local-a114c032d8ece3687118062310a343385d8c75478afa7090722ab2b77d8d64e0",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
         "active_actor": "hermes",
-        "phase": "parent_green_checks_missing_acceptance_matrix",
+        "phase": "accepted_primary",
+      "parent_matrix_process": "proc_994c476acb72",
+      "parent_matrix_pid": 36343,
+      "parent_matrix_log": "audit/2026-10-23-systemic-ux/workers/GH-188-I-LUNA-20261025-0124/parent-matrix4.jsonl",
+      "parent_matrix_history": "First foreground matrix timed out before test load. Matrix2 executed 26 cases: 24 passed, two fixture failures (false canSuggest omitted by existing serializer; pageBack requires nonexistent back button on modal). Corrected expectations to existing serialization and OS back. Matrix3 timed out before loading. Direct SDK snapshot avoids flutter shell startup; final acceptance still pending.",
         "needs_reconciliation": false,
         "controller_observation": {
           "at": "2026-10-25T01:39:31+00:00",
@@ -2466,17 +2523,17 @@
         "parent_red_reason": "New-person role-reset disclosure missing; actual assertion failed after selector/scroll corrections.",
         "parent_deadline_at": "2026-10-25T02:34:43.430805+00:00",
         "remaining": [
-          "existing-person saved override/canSuggest seeding",
-          "typed/chip role reset and preset isolation public regression",
-          "cancel/no-write and identity/notes preservation public regression",
-          "final scoped analyze/format",
-          "primary integration and combined permissions regression",
           "device gate GH-188-V"
         ],
         "parent_green1_exit_code": 1,
-        "parent_green1_reason": "Expected client canSuggest=true payload, got null: lazy _presetRole initialized after typed change; fixed state initialization in initState."
+        "parent_green1_reason": "Expected client canSuggest=true payload, got null: lazy _presetRole initialized after typed change; fixed state initialization in initState.",
+        "parent_final": {"warm_passed": 26, "primary_combined_passed": 51, "test_exit_code": 0, "analyze_exit_code": 0, "format_exit_code": 0, "integrated_commit": "3c1937491f10726f2ac390b771d342c4685f3d48"}
       },
-      "verification": null,
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "3c1937491f10726f2ac390b771d342c4685f3d48",
+        "evidence": ["docs/plans/systemic-ux/verification/GH-188-I.json"]
+      },
       "attempts": [
         {
           "id": "GH-188-I-LUNA-20261025-0124",

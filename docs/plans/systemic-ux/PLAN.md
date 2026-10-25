@@ -170,7 +170,7 @@ Registry изменяет только один родительский про�
 - [ ] **GH-189-V** · integrated permission/privacy/legacy regressions + actual Android/iOS opening and GA4 Realtime. Added to FINAL-TEST dependencies; no release waiver.
 - [x] **GH-188-R** · luna + independent Hermes source acceptance · GitHub #188: per-person access ticks UI
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-188.md`. Source-only; missing controls confirmed; issue stays OPEN.
-- [ ] **GH-188-I** · Hermes direct fallback after Luna terminal incomplete result · Existing Add/Edit crew sheet; parent fixed public selector/scroll, new-person disclosure and lazy role-state seeding after genuine REDs. Exclusive warm ux006 lease; remaining permission/role/cancel matrix and primary integration not accepted.
+- [x] **GH-188-I** · Luna draft + Hermes direct completion · Integrated `3c193749`: five per-person hidden/view/edit controls and effective live preview; identity/notes, cancel, role-reset and preset isolation preserved. Independently parsed 26 warm / 51 primary combined tests PASS, scoped analyze/format passed. Device gate GH-188-V remains open.
 - [ ] **GH-188-V** · hermes · Independent source/test/primary integration + safe device/permission recheck; gates FINAL-TEST.
 - [ ] **GH-187-R** · ornith · Повторная проверка GitHub #187: [P4] Event sharing: suggestions inbox (band side)
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-187.md`.
