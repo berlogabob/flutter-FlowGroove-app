@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T05:40:00+00:00",
+  "updated_at": "2026-10-25T06:09:00+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -2161,8 +2161,8 @@
     {
       "id": "GH-189-A2",
       "title": "Record successful event share creation",
-      "status": "running",
-      "executor": "luna",
+      "status": "verified",
+      "executor": "luna draft + Hermes direct completion",
       "kind": "implementation",
       "issue": "GH-189",
       "after": [
@@ -2195,11 +2195,14 @@
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
-        "active_actor": "luna",
-        "phase": "model_implementation_gateway_continues_cli_disconnected",
+        "active_actor": "hermes",
+        "phase": "accepted_primary_implementation_parent_completed_matrix",
+        "parent_process": "proc_181f762dfdcc",
+        "parent_pid": 54405,
+        "server_completion": {"at": "2026-10-25T05:43:48.295+00:00", "reason": "text_response/stop", "api_calls": 20, "actual_model": "gpt-6-luna", "outcome": "incomplete: failure/denial/consent widget coverage outstanding; original attempt retained; no replay"},
         "session_id": "local-3ded22748ccf697d4ee83f72e023ee610b20a765c440b8e150f751ac30974f8a",
-        "needs_reconciliation": true,
-        "controller_observation": {
+        "needs_reconciliation": false,
+        "previous_controller_observation": {
           "last_api_call": 16,
                   "last_api_at": "2026-10-25T05:37:30.230+00:00",
                   "controlled_check_pid": null,
@@ -2211,17 +2214,19 @@
                   "worker_tool_timeout_at": "2026-10-25T05:37:13.127+00:00",
                   "decision": "Worker final.jsonl is GREEN but not acceptance; subsequent terminal timed out at 420s and gateway continued through API 16. Retain lease and occupied Luna/test slots pending actual server terminal, no prompt replay or conflicting dispatch."
         },
-        "file_lease": ["lib/screens/setlists/event_kit_editor_screen.dart", "test/screens/setlists/event_kit_editor_test.dart"],
+        "file_lease": [],
+        "primary_commit": "75b3d59d1983fc5d52f816f6addfbe5ac7a728b6",
+        "parent_checks": {"matrix_process": "proc_181f762dfdcc", "combined_process": "proc_72c1f9950e90", "visible_passes": [21, 90], "exit_codes": [0, 0]},
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A2-LUNA-20261025-0515/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A2-LUNA-20261025-0515/process.json",
         "selection_reason": "A1 accepted and GH-188 integrated; highest-priority dependency-ready implementation. Transfer sole Luna/test lane to warm ux006; accepted dirty GH-188 source/test bytes match primary and are retained as baseline, not reset. L0 review remains for next cycle."
       },
-      "verification": null
+      "verification": {"reviewer": "hermes", "tested_commit": "75b3d59d1983fc5d52f816f6addfbe5ac7a728b6", "evidence": ["docs/plans/systemic-ux/verification/GH-189-A2.json"]}
     },
     {
       "id": "GH-189-A3",
       "title": "Record event link opens and successful suggestions",
-      "status": "queued",
+      "status": "running",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-189",
@@ -2250,7 +2255,24 @@
       "previous_blocked_reason": "Parent must recover rendered screen fixture and precise open/init lifecycle; resolved by source-only preflight, not by test execution.",
       "timeout_s": 1800,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-189-A3-LUNA-20261025-0610",
+        "started_at": "2026-10-25T06:09:28.424216+00:00",
+        "process": "proc_05cf53751e4b",
+        "pid": 57218,
+        "actual_model": "gpt-6-luna",
+        "deadline_at": "2026-10-25T06:39:00+00:00",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+        "active_actor": "luna",
+        "phase": "model_implementation_running",
+        "needs_reconciliation": false,
+        "file_lease": ["lib/screens/setlists/event_share_screen.dart", "test/screens/setlists/event_share_render_test.dart"],
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A3-LUNA-20261025-0610/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A3-LUNA-20261025-0610/process.json",
+        "selection_reason": "A2 accepted; highest-priority ready bounded implementation, existing fixture/lifecycle preflight recovered. Sole Luna/test lane now free; no conflicting file lease."
+      },
       "verification": null
     },
     {
