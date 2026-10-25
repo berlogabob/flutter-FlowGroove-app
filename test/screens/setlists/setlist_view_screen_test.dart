@@ -66,6 +66,7 @@ void main() {
       bool canEdit = true,
       String? bandId,
       SetlistStorageScope storageScope = SetlistStorageScope.personal,
+      bool bandSongsFail = false,
     }) async {
       tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1;
@@ -160,7 +161,9 @@ void main() {
           // instead of the personal ones; unoverridden they error and
           // Riverpod's retry timer trips the pending-timer check.
           bandSongsProvider.overrideWith(
-            (ref, id) => Stream<List<Song>>.value(songs),
+            (ref, id) => bandSongsFail
+                ? Stream<List<Song>>.error(StateError('load failed'))
+                : Stream<List<Song>>.value(songs),
           ),
           bandSetlistsProvider.overrideWith(
             (ref, id) => Stream<List<Setlist>>.value([setlist]),
@@ -226,6 +229,77 @@ void main() {
       expect(find.text('120'), findsOneWidget);
       expect(find.text('G'), findsOneWidget);
       expect(find.text('90'), findsOneWidget);
+    });
+
+    testWidgets('explains unresolved songs and how editors can review them', (
+      tester,
+    ) async {
+      setlist = MockDataHelper.createMockSetlist(
+        id: 'setlist-1',
+        name: 'Gig Setlist',
+        songIds: ['s1', 'missing', 's2'],
+      );
+      await pumpView(tester);
+
+      expect(
+        find.text('Some songs are unavailable in the current library.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Use Menu → Edit Setlist to review these entries.'),
+        findsOneWidget,
+      );
+      expect(find.text('First Song'), findsOneWidget);
+      expect(find.text('Unavailable song'), findsOneWidget);
+      expect(find.text('Second Song'), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Metronome'));
+      await tester.pumpAndSettle();
+      expect(find.text('route:metronome'), findsOneWidget);
+    });
+
+    testWidgets('viewers see unavailable notice without editor advice', (
+      tester,
+    ) async {
+      setlist = MockDataHelper.createMockSetlist(
+        id: 'setlist-1',
+        name: 'Gig Setlist',
+        songIds: ['s1', 'missing', 's2'],
+      );
+      await pumpView(tester, canEdit: false);
+
+      expect(
+        find.text('Some songs are unavailable in the current library.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Use Menu → Edit Setlist to review these entries.'),
+        findsNothing,
+      );
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit Setlist'), findsNothing);
+    });
+
+    testWidgets('distinguishes song-load error from unresolved songs', (
+      tester,
+    ) async {
+      await pumpView(tester, bandId: 'band-1', bandSongsFail: true);
+
+      expect(
+        find.text('Could not load songs. Try again later.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Some songs are unavailable in the current library.'),
+        findsNothing,
+      );
+      expect(
+        find.text('Use Menu → Edit Setlist to review these entries.'),
+        findsNothing,
+      );
+      expect(find.text('Unavailable song'), findsNWidgets(2));
     });
 
     testWidgets(
