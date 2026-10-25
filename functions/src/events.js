@@ -608,6 +608,18 @@ exports.getEventView = functions.https.onCall(async (request) => {
   const items = (setlist.items || []).filter(Boolean);
   let songs = [];
   if (canView(access, "runningOrder")) {
+    const fingerprint = proposalFingerprint(setlist.items);
+    view.runningOrder = fingerprint
+      ? { ready: true, items: setlist.items.map((i) => ({
+        id: i.id,
+        songId: i.songId || null,
+        type: i.type || "song",
+        tuningPresetId: i.tuningPresetId ?? null,
+        breakType: i.breakType ?? null,
+        breakLabel: i.breakLabel ?? null,
+        performerIds: i.performerIds ?? [],
+      })), baseFingerprint: fingerprint }
+      : { ready: false, items: null, baseFingerprint: null };
     const all = items
       .filter((i) => i.type !== "break" && i.songId)
       .map((i) => i.songId);

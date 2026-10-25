@@ -164,6 +164,9 @@ describe("event sharing callables", function () {
       assert.equal(anonymous.ownerUid, ownerUid);
       assert.equal(anonymous.bandId, undefined);
       assert.equal(anonymous.songs[0].title, "Personal song");
+      assert.equal(anonymous.runningOrder.ready, true);
+      assert.equal(anonymous.runningOrder.baseFingerprint.length, 64);
+      assert.deepEqual(anonymous.runningOrder.items.map((item) => item.id), ["i1"]);
       assert.equal(anonymous.stage, undefined);
       assert.equal(anonymous.rider, undefined);
       assert.ok(!JSON.stringify(anonymous).includes("PRIVATE"));
@@ -520,6 +523,52 @@ describe("event sharing callables", function () {
   });
 
   describe("getEventView scoping", () => {
+    it("exposes authorized running-order identities and v1 fingerprint only", async () => {
+      const items = [
+        { id: "same-song-a", songId: "song-1", type: "song", performerIds: ["p-couple"], opaque: "private" },
+        { id: "pause", type: "break", breakType: "intermission", breakLabel: "Pause" },
+        { id: "same-song-b", songId: "song-1", type: "song" },
+      ];
+      await db.doc(`bands/${BAND}/setlists/${SETLIST}`).update({ items });
+      const fingerprint = require("node:crypto").createHash("sha256").update(JSON.stringify([
+        ["same-song-a", "song", "song-1", null, null, null, ["p-couple"]],
+        ["pause", "break", "", null, "intermission", "Pause", []],
+        ["same-song-b", "song", "song-1", null, null, null, []],
+      ])).digest("hex");
+      const token = await shareFor("p-couple");
+      const view = await call(events.getEventView)(req({ token }));
+      assert.deepEqual(view.runningOrder, { ready: true, items: items.map((item) => ({
+        id: item.id, songId: item.songId || null, type: item.type,
+        tuningPresetId: null, breakType: item.breakType || null,
+        breakLabel: item.breakLabel || null, performerIds: item.performerIds || [],
+      })), baseFingerprint: fingerprint });
+      assert.deepEqual(view.items.map((item) => item.id), items.map((item) => item.id));
+      assert.deepEqual(view.items.map((item) => item.songId), ["song-1", null, "song-1"]);
+      assert.ok(!JSON.stringify(view).includes("opaque"));
+      assert.ok(!JSON.stringify(view).includes(token));
+      const memberView = await call(events.getEventView)(req({ bandId: BAND, setlistId: SETLIST }, "member"));
+      assert.deepEqual(memberView.runningOrder, view.runningOrder);
+      await call(events.claimEventShare)(req({ token }, "eng"));
+      const guestView = await call(events.getEventView)(req({ bandId: BAND, setlistId: SETLIST }, "eng"));
+      assert.deepEqual(guestView.runningOrder, view.runningOrder);
+      await seed(PEOPLE.map((p) => p.id === "p-eng" ? { ...p, access: { stage: "view" } } : p));
+      const denied = await call(events.getEventView)(req({ token: await shareFor("p-eng") }));
+      for (const key of ["runningOrder", "items", "songs"]) assert.equal(denied[key], undefined);
+    });
+
+    it("marks legacy and ambiguous running orders unready without inventing identities", async () => {
+      const token = await shareFor("p-couple");
+      for (const items of [[], [{ songId: "song-1" }], [{ id: "dup", songId: "song-1" }, { id: "dup", songId: "song-1" }], [null]]) {
+        await db.doc(`bands/${BAND}/setlists/${SETLIST}`).update({ items });
+        const view = await call(events.getEventView)(req({ token }));
+        assert.deepEqual(view.runningOrder, { ready: false, items: null, baseFingerprint: null });
+        assert.deepEqual((await db.doc(`bands/${BAND}/setlists/${SETLIST}`).get()).data().items, items);
+      }
+      await db.doc(`bands/${BAND}/setlists/${SETLIST}`).update({ items: admin.firestore.FieldValue.delete() });
+      const legacy = await call(events.getEventView)(req({ token }));
+      assert.deepEqual(legacy.runningOrder, { ready: false, items: null, baseFingerprint: null });
+    });
+
     it("gives a client titles but NO chart data at all", async () => {
       const view = await call(events.getEventView)(
         req({ token: await shareFor("p-couple") }),
