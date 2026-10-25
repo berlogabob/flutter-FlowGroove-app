@@ -1,0 +1,34 @@
+{
+  "task": "UX-009-I",
+  "reviewer": "hermes",
+  "tested_commit": "b7fa6542e9893bfb08e80edce8f76aa332a1603e",
+  "worktree_commit": "0cb545a9",
+  "scope": "PracticeScreen independent async sections and song-title availability; implementation accepted, issue/device acceptance remains open",
+  "worker": {
+    "provider": "openai-codex",
+    "actual_model": "gpt-6-luna",
+    "session_id": "local-9e1843ff439773d2b421186920ec607d6c4e9732aec159ebf453a8a830d43e66",
+    "outcome": "Server terminal text_response/stop confirmed in previous cycle; disconnected CLI was not resent",
+    "acceptance_corrections": [
+      "Worker left logbook missing IDs permanently Loading even after successful empty songs data; no-data song errors also looked loading.",
+      "Added one rendered-screen tracer for pending -> error -> successful empty, covering both title callers, with genuine RED before source edits.",
+      "Removed widget-local title cache/state conversion; existing AsyncValue.value retains provider-owned cached data without independent stale widget cache.",
+      "Strengthened recent-session test with explicit loading and error messages."
+    ],
+    "tool_scope_limit": "Disconnected stream is incomplete; no blanket claim of full tool-event compliance. Parent inspected final source diff, both title callers and exact production/test bytes."
+  },
+  "source_sha256": {
+    "lib/screens/practice_screen.dart": "b1643e3775c1591f9125f67417d575ea244ae0fe90d141b7a75ab16836c50794",
+    "test/screens/practice_screen_test.dart": "f70b27f033f603532ec7f8db166bae0b0b87c00b259edca2d3628bdd5a9dc588"
+  },
+  "checks": [
+    {"command": "flutter test --no-pub test/screens/practice_screen_test.dart --plain-name 'song lookup failure and confirmed missing song stay distinct'", "exit_code": 1, "phase": "parent RED", "assertion": "Expected 2 Song unavailable texts; actual 0", "report": "parent-red-title.json"},
+    {"phase": "first parent GREEN attempt", "exit_code": 1, "reason": "Compilation: untyped empty-list fallback inferred Map<dynamic,dynamic>; restored typed Song fallback/import. Preserved parent-green.json, not counted as RED."},
+    {"command": "flutter test --no-pub test/screens/practice_screen_test.dart test/widgets/practice_dashboard_card_test.dart", "exit_code": 0, "scope": "warm worktree", "tests_passed": 11, "terminal_done_success": true},
+    {"command": "flutter analyze --no-pub --no-fatal-infos lib/screens/practice_screen.dart test/screens/practice_screen_test.dart", "exit_code": 0, "diagnostics": "One existing prefer_if_elements_to_conditional_expressions info in unchanged due-date logic; no new warning/error."},
+    {"command": "dart format --output=none --set-exit-if-changed lib/screens/practice_screen.dart test/screens/practice_screen_test.dart", "exit_code": 0, "files_changed": 0},
+    {"command": "git diff --check", "exit_code": 0},
+    {"command": "flutter test --no-pub test/screens/practice_screen_test.dart test/widgets/practice_dashboard_card_test.dart test/screens/home_screen_test.dart test/screens/home_quick_actions_test.dart", "exit_code": 0, "scope": "primary second01", "tests_passed": 22, "terminal_done_success": true, "source_test_hashes_match_worktree": true}
+  ],
+  "remaining": ["UX-009-V fresh safe device/state recheck", "human Task success/Happiness unset", "full source Graphify update and final broad regressions remain gated by FINAL-DOCS/FINAL-TEST", "No release/push/deploy/install performed"]
+}

@@ -795,8 +795,8 @@
     {
       "id": "UX-003-R",
       "title": "Повторно проверить: Открытие объекта непоследовательно: песня сразу Edit, сетлист — просмотр",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "running",
+      "executor": "luna",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -805,7 +805,8 @@
       "issue": "UX-003",
       "read_files": [
         "lib/screens/songs/songs_list_screen.dart",
-        "test/screens/songs/songs_list_screen_test.dart"
+        "test/screens/songs/songs_list_screen_test.dart",
+        "lib/screens/setlists/setlist_view_screen.dart"
       ],
       "allowed_files": [
         "docs/plans/systemic-ux/reviews/UX-003.md"
@@ -817,7 +818,7 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {"id":"UX-003-R-LUNA-20261025-0113","started_at":"2026-10-25T01:12:38+01:00","deadline_at":"2026-10-25T01:22:38+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":null,"worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"luna","phase":"bounded_source_review_dispatch","process":"proc_b69a1e2a4a19","pid":11624,"cli_started_at":"2026-10-25T01:13:54.036687+01:00","file_lease":["docs/plans/systemic-ux/reviews/UX-003.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-003-R-LUNA-20261025-0113/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-003-R-LUNA-20261025-0113/process.json","selection_reason":"No dependency-ready implementation: UX-008 blocked on rendered preflight, nav changes gated by DESIGN-01. UX-003 research unlocks that named design dependency. UX-004 is terminal and review pending, no second acceptance this cycle."},
       "verification": null
     },
     {
@@ -908,7 +909,7 @@
     {
       "id": "UX-004-I",
       "title": "Минимальное исправление/проверка решения: Недоступные песни видны, но причины и дальнейшее действие не объяснены",
-      "status": "running",
+      "status": "review",
       "executor": "luna",
       "kind": "implementation",
       "after": [
@@ -934,7 +935,7 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": {"id":"UX-004-I-LUNA-20261025-0035","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","started_at":"2026-10-25T00:36:15.732359+01:00","deadline_at":"2026-10-25T00:46:15.732359+01:00","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_ux006","active_actor":"luna","phase":"model_baseline_check_cli_disconnected","process":"proc_f24768825d45","pid":7320,"cli_session_id":"local-f35ded6d5496c6185657c11a2af4e463b3aff83872c040304254693e83ee29ad","needs_reconciliation":true,"cli_exit_code":1,"gateway_turn_status":"unknown_after_cli_disconnect_server_continued","controller_observation":{"at":"2026-10-25T00:39:02+01:00","last_api_call":2,"last_api_at":"2026-10-25T00:37:34.522+01:00","controlled_check_pid":7508,"controlled_check":"baseline existing SetlistViewScreen tests","decision":"Server continued after CLI exit; retain source/test lease and occupied Luna/test lane; no resend or takeover."},"file_lease":["lib/screens/setlists/setlist_view_screen.dart","test/screens/setlists/setlist_view_screen_test.dart"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/process.json","selection_reason":"Severity-3 implementation unlocked by accepted UX-004-R outranks further research. One warm checkout/test lane; UX-009 terminal files remain untouched."},
+      "run": {"id":"UX-004-I-LUNA-20261025-0035","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","started_at":"2026-10-25T00:36:15.732359+01:00","deadline_at":"2026-10-25T00:46:15.732359+01:00","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_ux006","active_actor":"hermes","phase":"parent_verification_pending_server_terminal_confirmed","process":"proc_f24768825d45","pid":7320,"cli_session_id":"local-f35ded6d5496c6185657c11a2af4e463b3aff83872c040304254693e83ee29ad","needs_reconciliation":false,"cli_exit_code":1,"gateway_turn_status":"terminal_text_response_stop_at_2026-10-25T00:52:36.502+01:00","server_completion":{"ended_at":"2026-10-25T00:52:36.502+01:00","gateway_response_at":"2026-10-25T00:52:36.550+01:00","api_calls":19,"actual_model":"gpt-6-luna","provider":"openai-codex","worker_final_tests":10,"worker_final_success":true,"acceptance":"pending independent review; CLI disconnect and elapsed deadline preserved, no model prompt repeated"},"controller_observation":{"at":"2026-10-25T00:39:02+01:00","last_api_call":2,"last_api_at":"2026-10-25T00:37:34.522+01:00","controlled_check_pid":7508,"controlled_check":"baseline existing SetlistViewScreen tests","decision":"Server continued after CLI exit; retain source/test lease and occupied Luna/test lane; no resend or takeover."},"file_lease":["lib/screens/setlists/setlist_view_screen.dart","test/screens/setlists/setlist_view_screen_test.dart"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-004-I-LUNA-20261025-0035/process.json","selection_reason":"Severity-3 implementation unlocked by accepted UX-004-R outranks further research. One warm checkout/test lane; UX-009 terminal files remain untouched."},
       "verification": null
     },
     {
@@ -1598,7 +1599,7 @@
     {
       "id": "UX-009-I",
       "title": "Минимальное исправление/проверка решения: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных",
-      "status": "review",
+      "status": "verified",
       "executor": "luna",
       "kind": "implementation",
       "after": [
@@ -1633,7 +1634,13 @@
         "actual_model": "gpt-6-luna",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
         "active_actor": "hermes",
-        "phase": "parent_verification_pending_server_terminal_confirmed",
+        "phase": "accepted_primary_implementation_parent_corrected",
+        "primary_commit": "b7fa6542e9893bfb08e80edce8f76aa332a1603e",
+        "primary_tests_passed": 22,
+        "worktree_tests_passed": 11,
+        "parent_red_exit_code": 1,
+        "final_analyze_exit_code": 0,
+        "final_format_exit_code": 0,
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-LUNA-20261024-234329/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I-LUNA-20261024-234329/process.json",
         "file_lease": [
@@ -1648,7 +1655,7 @@
         "server_completion": {"ended_at":"2026-10-25T00:14:53.445+01:00","provider":"openai-codex","actual_model":"gpt-6-luna","api_calls":25,"reason":"text_response(finish_reason=stop)","evidence":"gateway response ready at 00:14:53.613; final RESULT.md present; parsed red.json done.success=false with two intended failures, green.json done.success=true with 10 testDone and no errors. Worker checks, not independent acceptance.","remaining":["parent source/diff/hash review","independent targeted checks","explicit missing-song/error coverage","primary integration/combined regression","device verification"]},
         "controller_observation": {"at": "2026-10-25T00:08:56.126683+01:00", "actual_model": "gpt-6-luna", "provider": "openai-codex", "last_api_call": 22, "last_api_at": "2026-10-25T00:07:06.369+01:00", "controlled_check_pid": 3374, "controlled_check": "scoped flutter analyze in leased worktree", "deadline_exceeded": true, "decision": "Retain lease and occupied Luna slot: server continued implementation after CLI disconnect. No repeated prompt, conflicting dispatch or parent code writes. Terminal outcome still pending; active_list omits this local adapter session and is not proof of completion."}
       },
-      "verification": null,
+      "verification": {"reviewer":"hermes","tested_commit":"b7fa6542e9893bfb08e80edce8f76aa332a1603e","evidence":["docs/plans/systemic-ux/verification/UX-009-I.json"]},
       "attempts": [
         {
           "id": "UX-009-I-20261024-204816",

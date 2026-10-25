@@ -158,8 +158,8 @@ Registry изменяет только один родительский про�
   - После: UX-008-I. Scope: проверка/решение без production edits.
 - [x] **UX-009-R** · ornith · Повторно проверить: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-009.md`.
-- [ ] **UX-009-I** · ornith · Минимальное исправление/проверка решения: Загрузка и ошибка в Practice могут выглядеть как отсутствие пользовательских данных
-  - После: UX-009-R. Scope: `lib/screens/practice_screen.dart`, `test/widgets/practice_dashboard_card_test.dart`.
+- [x] **UX-009-I** · luna + parent corrections · PracticeScreen independent loading/error/retry and truthful song-title states
+  - После: UX-009-R, UX-009-I2. Scope: `lib/screens/practice_screen.dart`, `test/screens/practice_screen_test.dart`. Integrated b7fa6542; 22 primary related tests PASS. UX-009-V/device and issue closure remain open.
 - [ ] **UX-009-V** · hermes · Независимая приёмка и device recheck: UX-009
   - После: UX-009-I. Scope: проверка/решение без production edits.
 - [ ] **GH-189-R** · ornith · Повторная проверка GitHub #189: [P6] Event sharing: /event deep links + analytics
