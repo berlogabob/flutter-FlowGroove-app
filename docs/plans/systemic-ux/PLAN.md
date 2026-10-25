@@ -7,8 +7,8 @@
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
-- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 69 задач; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 69 задач, из них 35 назначены Ornith; UX-006-R и UX-009-I2 выполняются/приняты Hermes после первого timeout. Остальное — независимая приёмка, устройства/люди, preflight и решения владельца.
+- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 71 задача; состояние всегда читать из activity.json.
+- Текущая декомпозиция: 71 задача; исполнителей/фазы читать из activity.json. UX-006-R и UX-009-I2 приняты Hermes после первого timeout. Остальное — малые реализации, независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -164,8 +164,10 @@ Registry изменяет только один родительский про�
   - После: UX-009-I. Scope: проверка/решение без production edits.
 - [ ] **GH-189-R** · ornith · Повторная проверка GitHub #189: [P6] Event sharing: /event deep links + analytics
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-189.md`.
-- [ ] **GH-188-R** · ornith · Повторная проверка GitHub #188: [P5] Event sharing: per-person access ticks UI
-  - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-188.md`.
+- [x] **GH-188-R** · luna + independent Hermes source acceptance · GitHub #188: per-person access ticks UI
+  - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-188.md`. Source-only; missing controls confirmed; issue stays OPEN.
+- [ ] **GH-188-I** · luna · Existing Add/Edit crew sheet: effective per-area controls/live preview; public EventKitEditorScreen fixture. One production + one existing test file, exclusive warm ux006 lease, one test lane.
+- [ ] **GH-188-V** · hermes · Independent source/test/primary integration + safe device/permission recheck; gates FINAL-TEST.
 - [ ] **GH-187-R** · ornith · Повторная проверка GitHub #187: [P4] Event sharing: suggestions inbox (band side)
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-187.md`.
 - [ ] **GH-186-R** · ornith · Повторная проверка GitHub #186: [P3] Event sharing: list and revoke active share links

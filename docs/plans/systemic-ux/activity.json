@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T01:15:15.157682+00:00",
+  "updated_at": "2026-10-25T01:27:00+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -228,7 +228,7 @@
       "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
       "source_locations": [],
       "tasks": [
-        "GH-188-R"
+        "GH-188-R", "GH-188-I", "GH-188-V"
       ],
       "resolution": null
     },
@@ -1803,7 +1803,7 @@
     {
       "id": "GH-188-R",
       "title": "Повторная проверка GitHub #188: [P5] Event sharing: per-person access ticks UI",
-      "status": "review",
+      "status": "verified",
       "executor": "luna",
       "kind": "research",
       "after": [
@@ -1828,7 +1828,46 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": {"id":"GH-188-R-LUNA-20261025-0155","started_at":"2026-10-25T01:55:00+01:00","deadline_at":"2026-10-25T02:05:00+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","process":"proc_6d87c554dd1c","pid":20199,"cli_started_at":"2026-10-25T01:54:44.428062+01:00","actual_model":"gpt-6-luna","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"hermes","phase":"parent_source_review_pending","session_id":"local-16ea632ca357d6e7141439a2bda20f5501a8eb53f5624981194bbb33186f81b3","worker_exit_code":0,"duration_ms":36977,"needs_reconciliation":false,"file_lease":["docs/plans/systemic-ux/reviews/GH-188.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-R-LUNA-20261025-0155/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-R-LUNA-20261025-0155/process.json","selection_reason":"First queued ready research; no queued implementation is ready (DESIGN-01 owner decision, UX-008 rendered preflight). UX-004-I is under parent independent test acceptance in separate warm checkout. GH-189 server terminal confirmed; report awaits source acceptance/decomposition. One read-only Luna and one parent test lane."},
+      "run": {"id":"GH-188-R-LUNA-20261025-0155","started_at":"2026-10-25T01:55:00+01:00","deadline_at":"2026-10-25T02:05:00+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","process":"proc_6d87c554dd1c","pid":20199,"cli_started_at":"2026-10-25T01:54:44.428062+01:00","actual_model":"gpt-6-luna","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"hermes","phase":"accepted_source_review","session_id":"local-16ea632ca357d6e7141439a2bda20f5501a8eb53f5624981194bbb33186f81b3","worker_exit_code":0,"duration_ms":36977,"needs_reconciliation":false,"file_lease":["docs/plans/systemic-ux/reviews/GH-188.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-R-LUNA-20261025-0155/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-R-LUNA-20261025-0155/process.json","selection_reason":"First queued ready research; no queued implementation is ready (DESIGN-01 owner decision, UX-008 rendered preflight). UX-004-I is under parent independent test acceptance in separate warm checkout. GH-189 server terminal confirmed; report awaits source acceptance/decomposition. One read-only Luna and one parent test lane."},
+      "verification": {"reviewer":"hermes","tested_commit":"a8689cee4302e71f64bdbfb573cb00cd4e60fac2","evidence":["docs/plans/systemic-ux/reviews/GH-188.md","docs/plans/systemic-ux/verification/GH-188-R.json"]}
+    },
+    {
+      "id": "GH-188-I",
+      "title": "Per-person event access controls and effective live preview in existing Add/Edit crew sheet",
+      "status": "running",
+      "executor": "luna",
+      "kind": "implementation",
+      "issue": "GH-188",
+      "after": ["GH-188-R"],
+      "read_files": ["lib/screens/setlists/event_kit_editor_screen.dart", "test/screens/setlists/event_kit_editor_test.dart", "lib/models/event_access.dart", "lib/models/event_kit.dart", "test/models/event_access_test.dart", "lib/theme/mono_pulse_theme.dart", "test/helpers/mocks.mocks.dart"],
+      "allowed_files": ["lib/screens/setlists/event_kit_editor_screen.dart", "test/screens/setlists/event_kit_editor_test.dart"],
+      "acceptance": [
+        "Existing public EventKitEditorScreen Add/Edit actions and updateEventKitArea payload are the seam; reuse existing fixture, do not expose private sheet/providers.",
+        "Five areas each hidden/view/edit; new person seeded from role preset, existing person from stored access. Live preview reflects effective access including stored overrides and effective canSuggest.",
+        "Persist manual controls via existing dotted people writer; hidden means absent. Keep id/uid/notes, cancel/no-write, membership guards and canSuggest save behavior unchanged; no rules/server/auth/share-link changes.",
+        "Role changes deliberately reset access to new role preset; communicate reset in sheet and cover typed/chip roles. Never mutate role presets; next event/person retains defaults.",
+        "Vertical RED/GREEN: first failing rendered behavior assertion then minimal production change, repeat. Capture exact commands, exit codes and retained logs; cold-build timeout is not RED. Existing tests must continue passing, including scroll-safe Add/Save after sheet grows.",
+        "Final targeted existing screen and model tests, scoped analyze/format/diff. One controlled test lane, no simultaneous builds. At most one production file and one existing test file; private evidence only in assigned run directory. No integration/commit by worker; Hermes accepts independently."
+      ],
+      "timeout_s": 1800,
+      "max_attempts": 1,
+      "run": {"id":"GH-188-I-LUNA-20261025-0124","process":"proc_1e93352d21bc","pid":24442,"cli_started_at":"2026-10-25T01:26:18.794316+00:00","started_at":"2026-10-25T01:24:00+00:00","deadline_at":"2026-10-25T01:54:00+00:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","session_id":"local-a114c032d8ece3687118062310a343385d8c75478afa7090722ab2b77d8d64e0","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_ux006","active_actor":"luna","phase":"model_implementation","file_lease":["lib/screens/setlists/event_kit_editor_screen.dart","test/screens/setlists/event_kit_editor_test.dart"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-I-LUNA-20261025-0124/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-188-I-LUNA-20261025-0124/process.json","selection_reason":"GH-188 source review independently accepted; now dependency-ready implementation outranks queued research. Existing public fixture recovered and warm source/test byte identity verified. 30-minute bound allows native test build and vertical checks; one Luna and one test lane."},
+      "verification": null
+    },
+    {
+      "id": "GH-188-V",
+      "title": "Independent acceptance of per-person event access UI, permission matrix and safe device recheck",
+      "status": "queued",
+      "executor": "hermes",
+      "kind": "verification",
+      "issue": "GH-188",
+      "after": ["GH-188-I"],
+      "read_files": ["lib/screens/setlists/event_kit_editor_screen.dart", "test/screens/setlists/event_kit_editor_test.dart", "test/models/event_access_test.dart"],
+      "allowed_files": [],
+      "acceptance": ["Independently verify worker identity/scope, real RED/GREEN logs, source/test hashes and primary integration; run related permission/sharing regressions.", "Fresh safe device Add/Edit/cancel and permission recheck with readable controls; source/widget checks are not device or human usability acceptance. Remote issue stays OPEN for owner closure."],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "run": null,
       "verification": null
     },
     {
@@ -2511,7 +2550,8 @@
         "NEW-002-I2",
         "NEW-002-I3",
         "UX-009-I2",
-        "NEW-003-V"
+        "NEW-003-V",
+        "GH-188-V"
       ],
       "issue": null,
       "read_files": [],

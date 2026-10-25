@@ -1,0 +1,18 @@
+{
+  "task": "GH-188-R",
+  "reviewer": "hermes",
+  "tested_commit": "a8689cee4302e71f64bdbfb573cb00cd4e60fac2",
+  "scope": "Source triage only; not product implementation, fresh test pass, device or human acceptance",
+  "remote": {"issue": 188, "state": "OPEN", "comments": 0, "read_command": "gh issue view 188 --repo berlogabob/flutter-FlowGroove-app --json title,body,comments,state"},
+  "independent_source_check": [
+    "Shared Add/Edit entry points at event_kit_editor_screen.dart:146-169 return EventPerson through the same sheet and dotted people writer.",
+    "Sheet 1082-1207 has name/role/notes only; preview 1022-1079 uses preset rather than saved overrides.",
+    "Save 1184-1189 preserves stored access/canSuggest for unchanged role and resets on role change.",
+    "event_access_test.dart:109-126 tests model serialization only, not rendered access controls.",
+    "Existing EventKitEditorScreen fixture test/screens/setlists/event_kit_editor_test.dart exercises Add/Edit and captures public updateEventKitArea payload; suitable existing seam, no private widget exposure."
+  ],
+  "worker": {"process": "proc_6d87c554dd1c", "provider": "openai-codex", "model": "gpt-6-luna", "exit_code": 0, "model_duration_ms": 36977, "session": "local-16ea632ca357d6e7141439a2bda20f5501a8eb53f5624981194bbb33186f81b3", "scope": "four assigned source reads, two searches within them, one assigned report patch"},
+  "source_sha256": {"EVENT_SHARING_BACKLOG.md":"680468761f3b0a7e1a27b21c103c3f0916f4f41d88f87a41921e476549f23526","lib/models/event_access.dart":"3de15ebe1990ba1a57ffe3aaf38e9d146e81ce98905a729a787aa1a342aa9e00","lib/screens/setlists/event_kit_editor_screen.dart":"d1c783448ade382580635e0a8c10f1ad1c2c61124833bd54c5d7d939e06c86fb","test/models/event_access_test.dart":"15f0b9b174e8613ccdf861f9bd43aa748be0a30983c7d44bcaccb960c321cc34"},
+  "follow_up": ["GH-188-I", "GH-188-V"],
+  "release": "Held; remote issue remains OPEN and owner-controlled."
+}
