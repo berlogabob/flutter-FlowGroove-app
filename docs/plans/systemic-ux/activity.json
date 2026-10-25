@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T06:09:00+00:00",
+  "updated_at": "2026-10-25T07:36:39+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -2226,8 +2226,8 @@
     {
       "id": "GH-189-A3",
       "title": "Record event link opens and successful suggestions",
-      "status": "running",
-      "executor": "luna",
+      "status": "verified",
+      "executor": "luna draft + Hermes direct completion",
       "kind": "implementation",
       "issue": "GH-189",
       "after": [
@@ -2265,18 +2265,23 @@
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
-        "active_actor": "luna",
-        "phase": "model_implementation_gateway_continues_cli_disconnected",
-        "session_id": "local-c7d48a82e56f6dbeb749164b342e385aaf137a97aab464f06c4ba94ec87b731d",
-        "cli_exit_code": 1,
-        "needs_reconciliation": true,
-        "controller_observation": {"last_api_call": 6, "last_api_at": "2026-10-25T06:12:06.773+00:00", "decision": "Server continued after unknown CLI disconnect; retain both file leases and sole Luna/test lane; no prompt replay. Initial read/discovery and scratch evidence path deviations retained, full compliance not claimed."},
-        "file_lease": ["lib/screens/setlists/event_share_screen.dart", "test/screens/setlists/event_share_render_test.dart"],
+        "active_actor": "hermes",
+        "phase": "accepted_primary_after_parent_completed_matrix",
+        "primary_commit": "23ac5256f051408b7b59526f72abb2054087a7e2",
+        "parent_checks": {"combined_process": "proc_a8cf2db11170", "combined_visible_passes": 84, "suggestion_red": "proc_b107f3caba64", "suggestion_green": "proc_f03d69160943", "source_restore_verified": true},
+              "terminal_at": "2026-10-25T06:48:17.314+00:00",
+              "terminal_reason": "text_response/stop, 32 API calls; worker explicitly incomplete and overdue; original evidence retained",
+              "parent_actor": "hermes",
+              "session_id": "local-c7d48a82e56f6dbeb749164b342e385aaf137a97aab464f06c4ba94ec87b731d",
+              "cli_exit_code": 1,
+              "needs_reconciliation": false,
+        "previous_controller_observation": {"last_api_call": 31, "last_api_at": "2026-10-25T06:46:44.013+00:00", "deadline_exceeded": true, "scheduler_next_run_at": "2026-10-25T06:47:24.060596+00:00", "worker_checks": "Retained final-render: 8 visible passes; final-screen: 12; final-service: 15; all done.success=true. final-analytics done.success=true but zero visible test cases, so no analytics test-count credit. Worker changed production again after these checks; exact final bytes not independently accepted. Missing lifecycle/direct-owner/consent/error matrix remains. Worker evidence only.", "decision": "Deadline 06:39 exceeded; actual gateway API 29 and source patch after deadline prove continued activity, not termination. Preserve original session/process and exclusive source/test leases; do not replay or overlap. Parent direct fallback waits for confirmed terminal handoff. No independent pending draft available. Scheduler enabled/last_status=ok, next run read back, no scheduler changes. Original timeout and path deviations retained."},
+        "file_lease": [],
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A3-LUNA-20261025-0610/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A3-LUNA-20261025-0610/process.json",
         "selection_reason": "A2 accepted; highest-priority ready bounded implementation, existing fixture/lifecycle preflight recovered. Sole Luna/test lane now free; no conflicting file lease."
       },
-      "verification": null
+      "verification": {"reviewer": "hermes", "tested_commit": "23ac5256f051408b7b59526f72abb2054087a7e2", "evidence": ["docs/plans/systemic-ux/verification/GH-189-A3.json"]}
     },
     {
       "id": "GH-189-L0",
@@ -2683,8 +2688,9 @@
     {
       "id": "GH-187-R",
       "title": "Повторная проверка GitHub #187: [P4] Event sharing: suggestions inbox (band side)",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "blocked",
+      "blocked_reason": "First Luna dispatch failed before a session was returned: Gateway connection failed; no local fallback (CLI exit 1, empty session, zero tokens). No server Luna activity observed in launch window; preserve attempt, do not repeat prompt. Controller source-only direct fallback next reconciliation; no model/credential changes.",
+      "executor": "hermes direct fallback after retained Luna connection failure",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -2692,7 +2698,16 @@
       ],
       "issue": "GH-187",
       "read_files": [
-        "EVENT_SHARING_BACKLOG.md"
+        "lib/widgets/event_suggestions_inbox.dart",
+        "lib/models/event_suggestion.dart",
+        "lib/screens/setlists/setlist_view_screen.dart",
+        "lib/screens/setlists/event_share_screen.dart",
+        "lib/services/event_share_service.dart",
+        "lib/providers/data/data_providers.dart",
+        "functions/src/events.js",
+        "functions/test/callable-event-share.test.js",
+        "test/widgets/event_suggestions_inbox_test.dart",
+        "firestore.rules"
       ],
       "allowed_files": [
         "docs/plans/systemic-ux/reviews/GH-187.md"
@@ -2705,7 +2720,22 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-187-R-LUNA-20261025-0702",
+        "requested_provider": "openai-codex", "requested_model": "gpt-6-luna",
+        "phase": "worker_admission_failed_parent_fallback_pending", "active_actor": "hermes",
+        "started_at": "2026-10-25T07:03:01.699921+00:00", "deadline_at": "2026-10-25T07:13:00+00:00",
+        "process": "proc_7eaf4daa762f", "pid": 62709,
+        "cli_exit_code": 1, "session_id": "", "tokens": 0,
+        "failure_at": "2026-10-25T07:03:51.198588+00:00",
+        "error": "Gateway connection failed; no local fallback",
+        "needs_reconciliation": false,
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": [],
+        "original_file_lease": ["docs/plans/systemic-ux/reviews/GH-187.md"],
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-R-LUNA-20261025-0702/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-R-LUNA-20261025-0702/process.json"
+      },
       "verification": null
     },
     {
