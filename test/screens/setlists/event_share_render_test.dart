@@ -61,6 +61,7 @@ class FakeEventShareService implements EventShareService {
     required String type,
     String? songId,
     String? text,
+    Map<String, dynamic>? proposal,
   }) async {
     if (failSubmit) throw StateError('failed');
     suggestions.add(text ?? '');

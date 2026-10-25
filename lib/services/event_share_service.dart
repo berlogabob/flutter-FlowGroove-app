@@ -107,10 +107,21 @@ class EventView {
     this.stage,
     this.rider,
     this.mySuggestions = const [],
+    this.runningOrderReady = false,
+    this.runningOrderItems,
+    this.baseFingerprint,
   });
 
   factory EventView.fromMap(Map<String, dynamic> map) {
     final viewer = _map(map['viewer']);
+    final runningOrder = _map(map['runningOrder']);
+    final fingerprint = runningOrder['baseFingerprint'];
+    final runningItems = _list(runningOrder['items']);
+    final isReady =
+        runningOrder['ready'] == true &&
+        fingerprint is String &&
+        RegExp(r'^[0-9a-f]{64}$').hasMatch(fingerprint) &&
+        runningOrder['items'] is List;
     return EventView(
       bandId: map['bandId'] as String?,
       ownerUid: map['ownerUid'] as String?,
@@ -134,6 +145,9 @@ class EventView {
         for (final raw in _list(map['mySuggestions']))
           EventSuggestion.fromJson(raw),
       ],
+      runningOrderReady: isReady,
+      runningOrderItems: isReady ? runningItems : null,
+      baseFingerprint: isReady ? fingerprint : null,
     );
   }
 
@@ -172,6 +186,9 @@ class EventView {
   /// for a security rule to match on. Without it "the band decides" is
   /// invisible to the person who asked.
   final List<EventSuggestion> mySuggestions;
+  final bool runningOrderReady;
+  final List<Map<String, dynamic>>? runningOrderItems;
+  final String? baseFingerprint;
 
   bool canSee(String area) => canViewArea(access, area);
   bool canChange(String area) => canEditArea(access, area);
@@ -289,6 +306,7 @@ class EventShareService {
     required String type,
     String? songId,
     String? text,
+    Map<String, dynamic>? proposal,
   }) => _call('submitSuggestion', {
     'token': token,
     'bandId': bandId,
@@ -297,6 +315,7 @@ class EventShareService {
     'type': type,
     'songId': songId,
     'text': text,
+    'proposal': proposal,
   });
 
   Future<void> resolveSuggestion({

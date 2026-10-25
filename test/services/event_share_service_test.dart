@@ -69,6 +69,58 @@ void main() {
   });
 
   group('EventView', () {
+    test('decodes running-order readiness and preserves item occurrences', () {
+      final fingerprint = 'a' * 64;
+      final items = [
+        {'id': 'occurrence-1', 'songId': 'same-song', 'type': 'song'},
+        {'id': 'break-1', 'type': 'break', 'breakLabel': 'Interval'},
+        {'id': 'occurrence-2', 'songId': 'same-song', 'type': 'song'},
+      ];
+      final ready = EventView.fromMap({
+        'setlistId': 'sl1',
+        'name': 'Gig',
+        'viewer': {'access': <String, dynamic>{}, 'canSuggest': false},
+        'items': [
+          {'id': 'legacy'},
+        ],
+        'runningOrder': {
+          'ready': true,
+          'items': items,
+          'baseFingerprint': fingerprint,
+        },
+      });
+      expect(ready.runningOrderReady, isTrue);
+      expect(ready.baseFingerprint, fingerprint);
+      expect(ready.runningOrderItems, items);
+      expect(ready.items, [
+        {'id': 'legacy'},
+      ]);
+
+      for (final input in [
+        <String, dynamic>{},
+        {
+          'runningOrder': <String, dynamic>{'ready': false},
+        },
+        {
+          'runningOrder': {
+            'ready': true,
+            'items': items,
+            'baseFingerprint': 'invalid',
+          },
+        },
+      ]) {
+        final view = EventView.fromMap({
+          'setlistId': 'sl1',
+          'name': 'Gig',
+          'viewer': {'access': <String, dynamic>{}, 'canSuggest': false},
+          ...input,
+        });
+        expect(view.runningOrderReady, isFalse);
+        expect(view.runningOrderItems, isNull);
+        expect(view.baseFingerprint, isNull);
+      }
+    });
+
     test('distinguishes "not shared with you" from empty', () {
       final hidden = EventView.fromMap({
         'setlistId': 'sl1',
@@ -246,6 +298,99 @@ void main() {
       expect(invoker.calls.single.name, 'resolveSuggestion');
       expect(invoker.calls.single.args['accept'], false);
     });
+
+    test(
+      'submitSuggestion forwards a proposal unchanged in each scope',
+      () async {
+        final proposal = {
+          'version': 1,
+          'kind': 'add',
+          'baseFingerprint': 'a' * 64,
+          'songId': 'song-1',
+          'beforeItemId': 'occurrence-2',
+        };
+        final invoker = _RecordingInvoker();
+        final service = containerWith(invoker).read(eventShareServiceProvider);
+        await service.submitSuggestion(
+          bandId: 'band-1',
+          setlistId: 'sl-1',
+          type: 'add',
+          proposal: proposal,
+        );
+        expect(invoker.calls.single.args['proposal'], same(proposal));
+        expect(invoker.calls.single.args['bandId'], 'band-1');
+        expect(invoker.calls.single.args.containsKey('token'), isFalse);
+
+        await service.submitSuggestion(
+          ownerUid: 'owner-1',
+          setlistId: 'sl-1',
+          type: 'add',
+          proposal: proposal,
+        );
+        expect(invoker.calls.last.args['proposal'], same(proposal));
+        expect(invoker.calls.last.args['ownerUid'], 'owner-1');
+        expect(invoker.calls.last.args.containsKey('bandId'), isFalse);
+        expect(invoker.calls.last.args.containsKey('token'), isFalse);
+
+        await service.submitSuggestion(
+          token: 'tok.secret',
+          type: 'add',
+          proposal: proposal,
+        );
+        expect(invoker.calls.last.args['proposal'], same(proposal));
+        expect(invoker.calls.last.args['token'], 'tok.secret');
+        expect(invoker.calls.last.args.containsKey('bandId'), isFalse);
+        expect(invoker.calls.last.args.containsKey('ownerUid'), isFalse);
+        final scopes = [
+          {'bandId': 'band-1', 'setlistId': 'sl-1'},
+          {'ownerUid': 'owner-1', 'setlistId': 'sl-1'},
+          {'token': 'tok.secret'},
+        ];
+        for (var i = 0; i < scopes.length; i++) {
+          expect(invoker.calls[i].name, 'submitSuggestion');
+          expect(invoker.calls[i].args, {
+            ...scopes[i],
+            'type': 'add',
+            'proposal': proposal,
+          });
+        }
+        for (final operation in [
+          {'kind': 'remove', 'itemId': 'occurrence-2'},
+          {
+            'kind': 'reorder',
+            'itemIds': ['occurrence-2', 'break-1', 'occurrence-1'],
+          },
+        ]) {
+          final typed = {
+            'version': 1,
+            'baseFingerprint': 'a' * 64,
+            ...operation,
+          };
+          await service.submitSuggestion(
+            token: 'tok.secret',
+            type: operation['kind']! as String,
+            text: 'Please review',
+            proposal: typed,
+          );
+          expect(invoker.calls.last.name, 'submitSuggestion');
+          expect(invoker.calls.last.args, {
+            'token': 'tok.secret',
+            'type': operation['kind'],
+            'text': 'Please review',
+            'proposal': typed,
+          });
+        }
+        invoker.throwThis = StateError('stale proposal');
+        await expectLater(
+          service.submitSuggestion(
+            token: 'tok.secret',
+            type: 'add',
+            proposal: proposal,
+          ),
+          throwsStateError,
+        );
+      },
+    );
 
     test('submitSuggestion omits the keys it was not given', () async {
       // token vs bandId/setlistId is how the server tells an anonymous link
