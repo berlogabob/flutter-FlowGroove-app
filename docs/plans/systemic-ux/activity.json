@@ -2771,15 +2771,15 @@
       "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
     },
     {
-      "id": "GH-187-S", "title": "Validate and persist structured proposals at submission", "status": "running", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "id": "GH-187-S", "title": "Validate and persist structured proposals at submission", "status": "verified", "executor": "luna + parent acceptance", "kind": "implementation", "issue": "GH-187",
       "after": ["GH-187-I1"], "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js", "docs/plans/systemic-ux/reviews/GH-187-application.md", "functions/package.json", "firebase.json"], "allowed_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
       "acceptance": ["Public callable RED/GREEN for exact v1 proposal/schema/current fingerprint, both scopes, invalid payload without quota charge, legacy notes, preserved caps/privacy. No free-text execution."], "timeout_s": 2040, "max_attempts": 1,
       "run": {
         "id": "GH-187-S-LUNA-20261025-1155", "requested_provider": "openai-codex", "requested_model": "gpt-6-luna",
-        "phase": "model_implementation", "active_actor": "luna", "phase_started_at": "2026-10-25T12:00:02.463+00:00",
+        "phase": "accepted_primary_implementation", "active_actor": "hermes", "phase_started_at": "2026-10-25T12:24:00+00:00",
         "actual_provider": "openai-codex", "actual_model": "gpt-6-luna",
-        "last_observed_activity": "2026-10-25T12:00:37.228+00:00",
-        "last_meaningful_progress": "Actual server API calls 1-3 and source reads observed; baseline suggestions emulator started. This is not new-behavior RED.",
+        "last_observed_activity": "2026-10-25T12:27:21+00:00",
+        "last_meaningful_progress": "Original model stopped normally at 12:16:27.920 UTC after 26 API calls. Independently accepted 6321d0c6 after real primary RED and final 88-pass combined callable/security run; parent extended existing fixture. Original CLI/patch/fixture failures retained.",
         "process": "proc_2a1b28baee82", "pid": 88801,
         "session_id": "local-d37756e342e99f4968bc4f2a11a77d3f766dee09c920577b70ca30ebe34cf43e",
         "started_at": "2026-10-25T11:59:42.117549+00:00", "deadline_at": "2026-10-25T12:30:00+00:00",
@@ -2788,14 +2788,29 @@
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-S-LUNA-20261025-1155/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-S-LUNA-20261025-1155/process.json",
         "expected_artifact": "Bounded events.js/callable-event-share.test.js diff with actual RED/GREEN and final callable regression",
-        "next_action": "Confirm actual model admission and terminal outcome before independent acceptance",
-        "user_status": "Применение предложений интегрировано: 87 проверок прошли. Исполнитель начал следующий срез — проверку и сохранение структурированных запросов; сейчас запущен исходный callable-тест."
-      }, "verification": null
+        "next_action": "Accepted; lease released and next GH-187-E may start",
+        "user_status": "Проверка и сохранение структурированных предложений приняты: 88 совместных серверных тестов прошли. Интерфейс и устройство ещё не проверены.",
+        "terminal_at": "2026-10-25T12:16:27.920+00:00", "phase_completed_at": "2026-10-25T12:27:21+00:00", "lease_released": true
+      }, "verification": {"reviewer": "hermes", "tested_commit": "6321d0c6967f2df50ff7290e31587f2e493fa54c", "evidence": ["docs/plans/systemic-ux/verification/GH-187-S.json"]}
     },
     {
-      "id": "GH-187-E", "title": "Expose authorized running-order identity and proposal base", "status": "queued", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "id": "GH-187-E", "title": "Expose authorized running-order identity and proposal base", "status": "running", "executor": "luna", "kind": "implementation", "issue": "GH-187",
       "after": ["GH-187-S"], "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js", "docs/plans/systemic-ux/reviews/GH-187-application.md"], "allowed_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
-      "acceptance": ["getEventView public callable RED/GREEN: stable item identities and fingerprint only with runningOrder access, legacy readiness explicit, no tokens/private library leaks; preserve permission filtering."], "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
+      "acceptance": ["getEventView public callable RED/GREEN: stable item identities and fingerprint only with runningOrder access, legacy readiness explicit, no tokens/private library leaks; preserve permission filtering."], "timeout_s": 2100, "max_attempts": 1,
+      "run": {
+        "id": "GH-187-E-LUNA-20261025-1230", "requested_provider": "openai-codex", "requested_model": "gpt-6-luna",
+        "phase": "model_implementation", "active_actor": "luna", "phase_started_at": "2026-10-25T12:28:56.315+00:00",
+        "process": "proc_b11ebf4c919f", "pid": 93505, "started_at": "2026-10-25T12:28:53.143127+00:00",
+        "session_id": "local-64ffe2a8cfbb600d1c16934609fd838d1b9700436e321ac121384c6a4ea2aacb",
+        "actual_provider": "openai-codex", "actual_model": "gpt-6-luna",
+        "last_observed_activity": "2026-10-25T12:29:11.732+00:00", "last_meaningful_progress": "Actual original model admitted; API 5 and allowed public test patch observed; targeted RED emulator launched, no acceptance yet.",
+        "deadline_at": "2026-10-25T13:05:00+00:00", "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": ["functions/src/events.js", "functions/test/callable-event-share.test.js"], "test_lane": "exclusive Luna callable emulator lane",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-E-LUNA-20261025-1230/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-E-LUNA-20261025-1230/process.json",
+        "expected_artifact": "getEventView permission-safe identities/base and actual public callable RED/GREEN", "next_action": "Observe admission then independently reconcile original server outcome",
+        "user_status": "Начата следующая серверная часть: доступные участнику идентификаторы порядка песен и основа предложения, без раскрытия закрытых данных."
+      }, "verification": null
     },
     {
       "id": "GH-187-C", "title": "Transport typed proposal and scoped running-order base", "status": "queued", "executor": "luna", "kind": "implementation", "issue": "GH-187",
