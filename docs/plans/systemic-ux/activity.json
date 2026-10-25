@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T13:52:42.323570+00:00",
+  "updated_at": "2026-10-25T14:02:24.256971+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -4698,7 +4698,7 @@
         "GH-187-U1",
         "GH-187-U2-R"
       ],
-      "blocked_reason": "Need bounded safe candidate source: current getEventView only discloses songs already in the order, not the private library. Do not invent anonymous whole-library picker or claim existing-song duplicates fulfill all add requirements.",
+      "blocked_reason": "Source review accepted: no authorized guest candidate source exists. Owner must approve explicit event-published candidate policy (publisher, guest visibility, fields/cap, unpublish and band/personal parity). Then register bounded backend, publishing control, transport and selection slices. Do not expose private libraries or substitute existing-order duplicates.",
       "read_files": [
         "lib/screens/setlists/event_share_screen.dart",
         "test/screens/setlists/event_share_render_test.dart",
@@ -4712,13 +4712,14 @@
       "timeout_s": 1800,
       "max_attempts": 1,
       "run": null,
-      "verification": null
+      "verification": null,
+      "requires_approval": true
     },
     {
       "id": "GH-187-U2-R",
       "title": "Resolve safe add-song candidate-source contract without library disclosure",
-      "status": "review",
-      "executor": "luna",
+      "status": "verified",
+      "executor": "luna + independent Hermes source acceptance",
       "kind": "research",
       "issue": "GH-187",
       "after": [
@@ -4740,14 +4741,21 @@
       ],
       "timeout_s": 1080,
       "max_attempts": 1,
-      "verification": null,
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "72201a70b26bd81abe1e9febf4362c49cdc10ed0",
+        "evidence": [
+          "docs/plans/systemic-ux/reviews/GH-187-add-selection.md",
+          "docs/plans/systemic-ux/verification/GH-187-U2-R.json"
+        ]
+      },
       "run": {
         "id": "GH-187-U2-R-LUNA-20261025-1353",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "phase": "pending_parent_source_acceptance",
+        "phase": "accepted_source_review_owner_policy_blocker",
         "active_actor": "hermes",
-        "phase_started_at": "2026-10-25T13:54:11.851+00:00",
+        "phase_started_at": "2026-10-25T14:02:24.256971+00:00",
         "started_at": "2026-10-25T13:52:42.323570+00:00",
         "deadline_at": "2026-10-25T14:10:42.323570+00:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
@@ -4756,13 +4764,13 @@
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-U2-R-LUNA-20261025-1353/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-U2-R-LUNA-20261025-1353/process.json",
         "expected_artifact": "docs/plans/systemic-ux/reviews/GH-187-add-selection.md",
-        "next_action": "Next controller independently reviews exact six source identities and report; register implementation decisions/slices without claiming research as product fix",
-        "user_status": "Удаление/перестановка приняты. Черновик безопасного выбора добавляемых песен получен и ожидает независимой проверки.",
+        "next_action": "Owner approves publication policy before exact implementation slices are registered; continue independent ready queue",
+        "user_status": "Проверка безопасного добавления песен принята. Реализация ждёт решения о явно опубликованном списке; приватная библиотека гостям не раскрывается.",
         "process": "proc_efefa1ba6c67",
         "pid": 2618,
         "session_id": "local-a4d2658d4d6150056de45b202a908aefc133185c05b5a7a35ea02d53b43bb304",
-        "last_observed_activity": "2026-10-25T13:54:11.851+00:00",
-        "last_meaningful_progress": "Bounded read-only safe add-selection source contract; production and heavy test lane unleased",
+        "last_observed_activity": "2026-10-25T14:02:24.256971+00:00",
+        "last_meaningful_progress": "Safe candidate-source options independently checked; private-library disclosure forbidden; owner publication policy remains unresolved",
         "controller_next_run_observed": "2026-10-25T13:54:08.402715+00:00",
         "actual_provider": "openai-codex",
         "actual_model": "gpt-6-luna",
