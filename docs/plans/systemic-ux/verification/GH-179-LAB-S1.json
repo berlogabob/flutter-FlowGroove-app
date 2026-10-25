@@ -1,0 +1,52 @@
+{
+  "task": "GH-179-LAB-S1",
+  "parent": "GH-179-LAB",
+  "reviewer": "hermes",
+  "type": "CODE_AND_AUTOMATED_TESTS_ONLY",
+  "base_commit": "f3faa6980828c6a1b8da9bef96a5f5cca6abf522",
+  "source_sha256": {
+    "lib/screens/songs/song_lab_screen.dart": "bdc9fcbd1fca2050d02c3dc0925e8561695137f3b65e273420287c5cf0534809",
+    "test/screens/songs/song_lab_screen_test.dart": "e0b2e883e48b3dd1957cf1e04c386298315d7766aa6f665de3c7071b926d3ec9"
+  },
+  "worker": {
+    "requested_provider": "openai-codex",
+    "actual_provider": "openai-codex",
+    "requested_model": "gpt-6-luna",
+    "actual_model": "gpt-6-luna",
+    "session_id": "local-a3ca6b7b7dcbe4dfd0b05813505006195d5d10de6537e8fb5b637f8f7eb7d48b",
+    "terminal": "max_iterations_reached(32/32)",
+    "terminal_at": "2026-10-25T17:35:57.865+00:00",
+    "result": "Incomplete six-test draft. Parent independently completed without replay after exact server terminal handoff.",
+    "deviations": "Earlier out-of-window fixture reads, overwritten baseline report and compile failures retained in original attempt history; no strict scope-compliance or original full-LAB acceptance claim."
+  },
+  "red_green": [
+    "Worker red-demo.json: loaded rendered test fails on forbidden Add task. Original pre-assertion import-graph failure is not RED.",
+    "Parent export RED: viewer loses standalone Export history; restored read-only export then GREEN.",
+    "Parent stale-action RED: task changes todo to doing after identity revocation before next frame; replaced cached authorization with current provider reads then GREEN.",
+    "Parent author-delete RED: viewer author sees forbidden Undo; preserve own-entry delete but omit Undo without edit permission, then GREEN.",
+    "Parent version RED: current-version write proceeds after identity revocation during saveVersion; guard subsequent writes after awaits then GREEN."
+  ],
+  "final_checks": {
+    "combined_command": "flutter test --no-pub test/screens/songs/song_lab_screen_test.dart test/screens/songs/song_page_screen_test.dart test/repositories/song_lab_midi_permissions_test.dart test/repositories/firestore_lab_repository_test.dart test/services/lab_markdown_test.dart --reporter json",
+    "combined_exit": 0,
+    "done_success": true,
+    "visible_pass": 40,
+    "song_lab_pass": 22,
+    "analyze_command": "flutter analyze --no-pub --no-fatal-infos lib/screens/songs/song_lab_screen.dart test/screens/songs/song_lab_screen_test.dart",
+    "analyze_exit": 0,
+    "analyze_infos": 3,
+    "analyze_errors": 0,
+    "analyze_warnings": 0,
+    "format_exit": 0,
+    "format_changed": 0,
+    "git_diff_check_exit": 0
+  },
+  "accepted_scope": "Screen-owned task/entry/version affordances and live callback guards, denied lazy migration, non-demo author deletion without unauthorized restore, standalone read-only export; embedded/standalone viewer/editor/admin plus signed-out/loading/error and personal-authorized rendered coverage. MIDI import permissions and existing playback/filter code preserved.",
+  "retained_attempts": "audit/2026-10-23-systemic-ux/workers/GH-179-LAB-LUNA-20261025-171151 (private, not committed)",
+  "limits": [
+    "GH-179-LAB aggregate remains unaccepted: shared captureIdea performs uploads/saves across awaits without current authority checks. GH-179-REC-R/I must trace/fix all callers and ambiguous outcomes before aggregate acceptance.",
+    "Recording deletion cancellation after pending enqueue and late identity/role combinations require explicit final audio/storage integration coverage, not credited by the non-audio 40-test run.",
+    "First parent export RED command timed out after assertion output; retained as timeout with loaded assertion evidence, not clean process completion. Later final combined and analyzer commands returned exit 0.",
+    "No device, human, real audio/Storage, full suite or full Graphify acceptance. No issue closure, release, push, deploy or install."
+  ]
+}

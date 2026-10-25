@@ -59,8 +59,29 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
   bool _showTasks = false;
   bool _migrated = false;
   bool _importingMidi = false;
-
   (String, String?) get _key => (widget.song.id, widget.bandId);
+
+  bool get _canEdit => widget.bandId == null
+      ? ref.watch(canEditProvider)
+      : ref.watch(canEditBandProvider(widget.bandId!));
+
+  bool _canEditNow() =>
+      mounted &&
+      (widget.bandId == null
+          ? ref.read(canEditProvider)
+          : ref.read(canEditBandProvider(widget.bandId!)));
+
+  bool _canDeleteEntry(SongLabEntry entry) {
+    if (!mounted) return false;
+    final user = ref.read(appUserProvider);
+    return _canEditNow() ||
+        (widget.bandId != null &&
+            !user.isLoading &&
+            !user.hasError &&
+            user.value != null &&
+            user.value!.accessRole != 'demo' &&
+            user.value!.uid == entry.authorId);
+  }
 
   static const _quickTypes = [
     LabEntryType.note,
@@ -91,7 +112,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
   /// One-time lazy migration (#66): the song's free-text notes become the
   /// first timeline entry, so the Lab never opens empty on an annotated song.
   Future<void> _migrateNotesIfNeeded(List<SongLabEntry> entries) async {
-    if (_migrated || entries.isNotEmpty) return;
+    if (_migrated || entries.isNotEmpty || !_canEditNow()) return;
     final notes = widget.song.notes;
     if (notes == null || notes.trim().isEmpty) return;
     _migrated = true;
@@ -116,6 +137,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
   }
 
   Future<void> _compose(LabEntryType type, {SongLabEntry? existing}) async {
+    if (!_canEditNow()) return;
     final result = await showModalBottomSheet<_ComposeResult>(
       context: context,
       isScrollControlled: true,
@@ -125,7 +147,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
         existing: existing,
       ),
     );
-    if (result == null || !mounted) return;
+    if (result == null || !mounted || !_canEditNow()) return;
 
     final repo = ref.read(labRepositoryProvider);
     if (existing != null) {
@@ -178,6 +200,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
   }
 
   Future<void> _delete(SongLabEntry entry) async {
+    if (!_canDeleteEntry(entry)) return;
     final repo = ref.read(labRepositoryProvider);
     final pending = ref.read(pendingStorageDeletesProvider);
     // A recording's audio has to outlive the snackbar for Undo's restored
@@ -187,33 +210,42 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
         ? entry.attachmentIds.first
         : null;
     if (url != null) await pending.enqueue(url);
+    if (!_canDeleteEntry(entry)) {
+      if (url != null) await pending.cancel(url);
+      return;
+    }
     await repo.deleteEntry(widget.song.id, entry.id, bandId: widget.bandId);
     if (url != null) unawaited(pending.flushAfter(url, undoGracePeriod));
     if (!mounted) return;
     showAppSnackBar(
       context,
       'Entry deleted',
-      actionLabel: 'Undo',
+      actionLabel: _canEditNow() ? 'Undo' : null,
       onAction: () {
+        if (!_canEditNow()) return;
         repo.saveEntry(entry, bandId: widget.bandId);
         if (url != null) pending.cancel(url);
       },
     );
   }
 
-  Future<void> _setStatus(SongLabEntry entry, String status) => ref
-      .read(labRepositoryProvider)
-      .saveEntry(entry.copyWith(status: status), bandId: widget.bandId);
+  Future<void> _setStatus(SongLabEntry entry, String status) async {
+    if (!_canEditNow()) return;
+    await ref
+        .read(labRepositoryProvider)
+        .saveEntry(entry.copyWith(status: status), bandId: widget.bandId);
+  }
 
   // ---- Versions (#70) ----
 
   Future<void> _saveVersion() async {
+    if (!_canEditNow()) return;
     final result = await showModalBottomSheet<(String, String?, bool)>(
       context: context,
       isScrollControlled: true,
       builder: (_) => const _SaveVersionSheet(),
     );
-    if (result == null || !mounted) return;
+    if (result == null || !mounted || !_canEditNow()) return;
     final (name, notes, makeCurrent) = result;
 
     final repo = ref.read(labRepositoryProvider);
@@ -234,6 +266,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
       createdAt: now,
     );
     await repo.saveVersion(version, bandId: widget.bandId);
+    if (!_canEditNow()) return;
     if (makeCurrent) {
       await repo.setCurrentVersion(
         widget.song.id,
@@ -242,6 +275,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
       );
     }
     // The changelog lives in the timeline (never silently overwritten).
+    if (!_canEditNow()) return;
     final uid = ref.read(firebaseAuthProvider).currentUser?.uid ?? '';
     await repo.saveEntry(
       SongLabEntry(
@@ -278,6 +312,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canEdit = _canEdit;
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -305,7 +340,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
               // own two actions live here instead of a menu sheet.
               if (widget.embedded) ...[
                 IconButton(
-                  onPressed: _saveVersion,
+                  onPressed: canEdit ? _saveVersion : null,
                   icon: const Icon(Icons.bookmark_add_outlined),
                   tooltip: 'Save version',
                 ),
@@ -326,11 +361,12 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
     return StandardScreenScaffold(
       title: 'Lab — ${widget.song.title}',
       menuItems: [
-        AppMenuItem(
-          icon: Icons.bookmark_add_outlined,
-          label: 'Save version',
-          onTap: _saveVersion,
-        ),
+        if (canEdit)
+          AppMenuItem(
+            icon: Icons.bookmark_add_outlined,
+            label: 'Save version',
+            onTap: _saveVersion,
+          ),
         AppMenuItem(
           icon: Icons.description_outlined,
           label: 'Export history (Markdown)',
@@ -404,11 +440,13 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(MonoPulseSpacing.md),
-              child: ActionChip(
-                avatar: const Icon(Icons.add, size: 18),
-                label: const Text('Add task'),
-                onPressed: _composeTask,
-              ),
+              child: _canEdit
+                  ? ActionChip(
+                      avatar: const Icon(Icons.add, size: 18),
+                      label: const Text('Add task'),
+                      onPressed: _composeTask,
+                    )
+                  : const SizedBox.shrink(),
             ),
             Expanded(
               child: tasks.isEmpty
@@ -453,6 +491,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
   ];
 
   Future<void> _cycleStatus(SongTask task) {
+    if (!_canEditNow()) return Future.value();
     final next =
         _statusOrder[(_statusOrder.indexOf(task.status) + 1) %
             _statusOrder.length];
@@ -487,19 +526,29 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
         // Tap the chip to cycle the status; long-press the row deletes.
         trailing: ActionChip(
           label: Text(t.status.name),
-          onPressed: () => _cycleStatus(t),
+          onPressed: _canEdit ? () => _cycleStatus(t) : null,
         ),
-        onLongPress: () async {
-          final repo = ref.read(labRepositoryProvider);
-          await repo.deleteTask(widget.song.id, t.id, bandId: widget.bandId);
-          if (!mounted) return;
-          showAppSnackBar(
-            context,
-            'Task deleted',
-            actionLabel: 'Undo',
-            onAction: () => repo.saveTask(t, bandId: widget.bandId),
-          );
-        },
+        onLongPress: !_canEdit
+            ? null
+            : () async {
+                if (!_canEditNow()) return;
+                final repo = ref.read(labRepositoryProvider);
+                await repo.deleteTask(
+                  widget.song.id,
+                  t.id,
+                  bandId: widget.bandId,
+                );
+                if (!mounted) return;
+                showAppSnackBar(
+                  context,
+                  'Task deleted',
+                  actionLabel: 'Undo',
+                  onAction: () {
+                    if (!_canEditNow()) return;
+                    repo.saveTask(t, bandId: widget.bandId);
+                  },
+                );
+              },
       ),
     );
   }
@@ -517,6 +566,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
   }
 
   Future<void> _composeTask() async {
+    if (!_canEditNow()) return;
     final band = widget.bandId == null
         ? null
         : (ref.read(bandsProvider).value ?? [])
@@ -531,15 +581,14 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
         members: band?.members ?? const [],
       ),
     );
-    if (result == null || !mounted) return;
+    if (result == null || !mounted || !_canEditNow()) return;
     await ref
         .read(labRepositoryProvider)
         .saveTask(result, bandId: widget.bandId);
   }
 
   Widget _quickAddRow() {
-    final canEdit =
-        widget.bandId == null || ref.watch(canEditBandProvider(widget.bandId!));
+    final canEdit = _canEdit;
     if (!canEdit) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -589,8 +638,15 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
   }
 
   /// Record/attach an audio idea (#69) — shared capture path (#145).
-  Future<void> _composeRecording() =>
-      captureIdea(context, ref, songId: widget.song.id, bandId: widget.bandId);
+  Future<void> _composeRecording() async {
+    if (!_canEditNow()) return;
+    await captureIdea(
+      context,
+      ref,
+      songId: widget.song.id,
+      bandId: widget.bandId,
+    );
+  }
 
   Widget _filterRow() => Padding(
     padding: const EdgeInsets.symmetric(
@@ -629,6 +685,16 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
   Widget _entryCard(SongLabEntry e) {
     final section = _sectionName(e.sectionId);
     final superseded = e.status == 'superseded';
+    final canEdit = _canEdit;
+    final user = ref.watch(appUserProvider);
+    final canDelete =
+        canEdit ||
+        (widget.bandId != null &&
+            !user.isLoading &&
+            !user.hasError &&
+            user.value != null &&
+            user.value!.accessRole != 'demo' &&
+            user.value!.uid == e.authorId);
     return Card(
       margin: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.lg,
@@ -688,18 +754,22 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
             _ => null,
           },
           itemBuilder: (_) => [
-            const PopupMenuItem(value: 'edit', child: Text('Edit')),
-            if (e.type == LabEntryType.decision && e.status == 'active')
+            if (canEdit)
+              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+            if (canEdit &&
+                e.type == LabEntryType.decision &&
+                e.status == 'active')
               const PopupMenuItem(
                 value: 'supersede',
                 child: Text('Mark superseded'),
               ),
-            if (e.type == LabEntryType.experiment) ...[
+            if (canEdit && e.type == LabEntryType.experiment) ...[
               const PopupMenuItem(value: 'tried', child: Text('Tried it')),
               const PopupMenuItem(value: 'accepted', child: Text('Accepted')),
               const PopupMenuItem(value: 'rejected', child: Text('Rejected')),
             ],
-            const PopupMenuItem(value: 'delete', child: Text('Delete')),
+            if (canDelete)
+              const PopupMenuItem(value: 'delete', child: Text('Delete')),
           ],
         ),
       ),
