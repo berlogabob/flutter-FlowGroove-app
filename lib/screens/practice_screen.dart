@@ -22,13 +22,17 @@ class PracticeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats =
         ref.watch(practiceStatsProvider).asData?.value ?? PracticeStats.empty;
-    final sessions =
-        ref.watch(practiceSessionsProvider).asData?.value ??
-        const <MetronomeSession>[];
-    final homework =
-        ref.watch(myHomeworkProvider).asData?.value ?? const <HomeworkItem>[];
-    final songs = ref.watch(songsProvider).asData?.value ?? const <Song>[];
-    final titles = {for (final s in songs) s.id: s.title};
+    final sessionsAsync = ref.watch(practiceSessionsProvider);
+    final homeworkAsync = ref.watch(myHomeworkProvider);
+    final songsAsync = ref.watch(songsProvider);
+    final titles = {
+      for (final s in songsAsync.value ?? const <Song>[]) s.id: s.title,
+    };
+    final missingTitle = songsAsync.hasError
+        ? 'Song unavailable'
+        : songsAsync.hasValue
+        ? 'Removed song'
+        : 'Loading song…';
 
     return ToolScreenScaffold(
       title: 'Practice',
@@ -39,17 +43,38 @@ class PracticeScreen extends ConsumerWidget {
           if (!stats.isEmptyWeek) ...[
             const SizedBox(height: MonoPulseSpacing.lg),
             _sectionTitle(context, 'Where your time went'),
-            _TimePerSong(stats: stats, titles: titles),
+            _TimePerSong(
+              stats: stats,
+              titles: titles,
+              missingTitle: missingTitle,
+            ),
           ],
           const SizedBox(height: MonoPulseSpacing.lg),
           _sectionTitle(context, 'Homework'),
-          if (homework.isEmpty)
-            _quietText(
-              context,
-              'Nothing open. Open a song, then its Lab tab, to add tasks.',
-            )
-          else
-            for (final item in homework.take(10)) _homeworkRow(context, item),
+          ...homeworkAsync.when<List<Widget>>(
+            data: (homework) => homework.isEmpty
+                ? [
+                    _quietText(
+                      context,
+                      'Nothing open. Open a song, then its Lab tab, to add tasks.',
+                    ),
+                  ]
+                : [
+                    for (final item in homework.take(10))
+                      _homeworkRow(context, item),
+                  ],
+            loading: () => [_quietText(context, 'Loading homework…')],
+            error: (_, _) => [
+              _quietText(context, 'Unable to load homework'),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () => ref.invalidate(myHomeworkProvider),
+                  child: const Text('Retry'),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: MonoPulseSpacing.lg),
           _sectionTitle(context, 'Quick start'),
           Row(
@@ -78,14 +103,33 @@ class PracticeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
           _sectionTitle(context, 'Recent sessions'),
-          if (sessions.isEmpty)
-            _quietText(
-              context,
-              'No sessions yet — every metronome run lands here '
-              'automatically.',
-            )
-          else
-            ..._logbook(context, sessions.take(30).toList(), titles),
+          ...sessionsAsync.when<List<Widget>>(
+            data: (sessions) => sessions.isEmpty
+                ? [
+                    _quietText(
+                      context,
+                      'No sessions yet — every metronome run lands here '
+                      'automatically.',
+                    ),
+                  ]
+                : _logbook(
+                    context,
+                    sessions.take(30).toList(),
+                    titles,
+                    missingTitle,
+                  ),
+            loading: () => [_quietText(context, 'Loading sessions…')],
+            error: (_, _) => [
+              _quietText(context, 'Unable to load sessions'),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () => ref.invalidate(practiceSessionsProvider),
+                  child: const Text('Retry'),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 96),
         ],
       ),
@@ -176,6 +220,7 @@ class PracticeScreen extends ConsumerWidget {
     BuildContext context,
     List<MetronomeSession> sessions,
     Map<String, String> titles,
+    String missingTitle,
   ) {
     final rows = <Widget>[];
     DateTime? lastDay;
@@ -215,7 +260,7 @@ class PracticeScreen extends ConsumerWidget {
       }
       final song = s.songId == null
           ? 'Freestyle'
-          : titles[s.songId] ?? 'Removed song';
+          : titles[s.songId] ?? missingTitle;
       rows.add(
         Row(
           children: [
@@ -241,10 +286,15 @@ class PracticeScreen extends ConsumerWidget {
 /// "where your time goes" view (the differentiator competitors gate behind
 /// premium — our sessions carry songId already).
 class _TimePerSong extends StatelessWidget {
-  const _TimePerSong({required this.stats, required this.titles});
+  const _TimePerSong({
+    required this.stats,
+    required this.titles,
+    required this.missingTitle,
+  });
 
   final PracticeStats stats;
   final Map<String, String> titles;
+  final String missingTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -261,7 +311,7 @@ class _TimePerSong extends StatelessWidget {
     ];
 
     String name(String id) =>
-        id.isEmpty ? 'Freestyle' : titles[id] ?? 'Removed song';
+        id.isEmpty ? 'Freestyle' : titles[id] ?? missingTitle;
 
     final segments = [
       for (final e in top) (name(e.key), e.value),
