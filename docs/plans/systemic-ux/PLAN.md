@@ -195,8 +195,9 @@ Registry изменяет только один родительский про�
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-186.md`.
 - [ ] **GH-180-R** · ornith · Повторная проверка GitHub #180: [epic] Event participants: scoped event sharing for non-members
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-180.md`.
-- [ ] **GH-179-R** · ornith · Повторная проверка GitHub #179: UI-vs-rules permission parity gaps (audit follow-ups)
-  - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-179.md`.
+- [x] **GH-179-R** · Luna + независимая приёмка Hermes · Source review прав принят; исправлены рекомендации по lazy migration, author-delete/Undo и тестовым identities. Evidence: `verification/GH-179-R.json`; это не исправление продукта.
+  - [ ] **GH-179-LAB** — bounded SongLabScreen permissions + существующий публичный widget seam; следующий исполнитель Luna.
+  - [ ] **GH-179-AUDIO-R/I, REC-R/I, TUNER-R/I, VOTE, AVATAR, DEMO-R, LEGACY-R, DELETE-OWNER, V** — все остаточные срезы и решения зарегистрированы в activity.json; V блокирует FINAL-TEST. Никакого закрытия issue по одному UI fix.
 - [ ] **GH-178-R** · ornith · Повторная проверка GitHub #178: refactor(metronome): extract live setlist/song sync out of MetronomeNotifier
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-178.md`.
 - [ ] **GH-177-R** · ornith · Повторная проверка GitHub #177: Graph-audit remediation 2026-08 (trackable, measurable)
