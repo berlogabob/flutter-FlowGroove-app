@@ -88,6 +88,11 @@ class AnalyticsEvents {
   static const String toolOpened = 'tool_opened';
   static const String practiceSession = 'practice_session';
   static const String rehearsalCreated = 'rehearsal_created';
+
+  // Event Sharing
+  static const String eventShareCreated = 'event_share_created';
+  static const String eventLinkOpened = 'event_link_opened';
+  static const String eventSuggestionSubmitted = 'event_suggestion_submitted';
 }
 
 /// User property names
