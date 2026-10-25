@@ -67,21 +67,29 @@ class _EventSuggestionsInboxState extends ConsumerState<EventSuggestionsInbox> {
 
   @override
   Widget build(BuildContext context) {
-    final suggestions =
-        ref
-            .watch(
-              widget.bandId != null
-                  ? setlistSuggestionsProvider((
-                      widget.bandId!,
-                      widget.setlistId,
-                    ))
-                  : personalSetlistSuggestionsProvider((
-                      widget.ownerUid!,
-                      widget.setlistId,
-                    )),
-            )
-            .value ??
-        const <EventSuggestion>[];
+    final provider = widget.bandId != null
+        ? setlistSuggestionsProvider((widget.bandId!, widget.setlistId))
+        : personalSetlistSuggestionsProvider((
+            widget.ownerUid!,
+            widget.setlistId,
+          ));
+    final requests = ref.watch(provider);
+    final suggestions = requests.value ?? const <EventSuggestion>[];
+    if (!requests.hasValue) {
+      if (requests.isLoading) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Unable to load event requests.'),
+          TextButton(
+            onPressed: () => ref.invalidate(provider),
+            child: const Text('Retry'),
+          ),
+        ],
+      );
+    }
     if (suggestions.isEmpty) return const SizedBox.shrink();
 
     final open = suggestions.where((s) => s.isOpen).length;
@@ -90,6 +98,14 @@ class _EventSuggestionsInboxState extends ConsumerState<EventSuggestionsInbox> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (requests.hasError) ...[
+            const Text('Could not refresh event requests.'),
+            TextButton(
+              onPressed: () => ref.invalidate(provider),
+              child: const Text('Retry'),
+            ),
+          ] else if (requests.isLoading)
+            const LinearProgressIndicator(),
           Row(
             children: [
               const Icon(

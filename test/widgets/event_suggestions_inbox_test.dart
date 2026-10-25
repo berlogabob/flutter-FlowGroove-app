@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flowgroove/models/event_suggestion.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/services/event_share_service.dart';
@@ -125,6 +127,108 @@ void main() {
     await pump(tester, suggestions: const []);
     expect(find.textContaining('Requests'), findsNothing);
   });
+
+  testWidgets('shows loading while requests have not arrived', (tester) async {
+    final controller = StreamController<List<EventSuggestion>>();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          setlistSuggestionsProvider((
+            'band-1',
+            'sl-1',
+          )).overrideWith((ref) => controller.stream),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(
+            body: EventSuggestionsInbox(
+              bandId: 'band-1',
+              setlistId: 'sl-1',
+              canResolve: true,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    unawaited(controller.close());
+  });
+
+  for (final personal in [false, true]) {
+    testWidgets(
+      '${personal ? 'personal' : 'band'} inbox retries its own stream and retains cached requests',
+      (tester) async {
+        final streams = <StreamController<List<EventSuggestion>>>[];
+        final provider = personal
+            ? personalSetlistSuggestionsProvider(('owner', 'sl-1'))
+            : setlistSuggestionsProvider(('band-1', 'sl-1'));
+        final container = ProviderContainer(
+          overrides: [
+            provider.overrideWith((ref) {
+              final stream = StreamController<List<EventSuggestion>>();
+              streams.add(stream);
+              ref.onDispose(() => unawaited(stream.close()));
+              return stream.stream;
+            }),
+          ],
+        );
+        try {
+          await tester.pumpWidget(
+            UncontrolledProviderScope(
+              container: container,
+              child: MaterialApp(
+                home: Scaffold(
+                  body: EventSuggestionsInbox(
+                    bandId: personal ? null : 'band-1',
+                    ownerUid: personal ? 'owner' : null,
+                    setlistId: 'sl-1',
+                    canResolve: false,
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pump();
+          expect(streams, hasLength(1));
+          streams[0].addError(StateError('offline'));
+          await tester.pump();
+          expect(find.text('Unable to load event requests.'), findsOneWidget);
+          await tester.tap(find.text('Retry'));
+          await tester.pump();
+          expect(streams, hasLength(2));
+          streams[1].add([suggestion()]);
+          await tester.pump();
+          expect(find.text('Requests (1 open)'), findsOneWidget);
+          expect(find.text('Retry'), findsNothing);
+          expect(find.text('Accept'), findsNothing);
+          container.invalidate(provider);
+          await tester.pump();
+          expect(streams, hasLength(3));
+          expect(find.text('Please play our first dance'), findsOneWidget);
+          expect(find.byType(LinearProgressIndicator), findsOneWidget);
+          streams[2].addError(StateError('refresh failed'));
+          await tester.pump();
+          expect(find.text('Please play our first dance'), findsOneWidget);
+          expect(
+            find.text('Could not refresh event requests.'),
+            findsOneWidget,
+          );
+          await tester.tap(find.text('Retry'));
+          await tester.pump();
+          expect(streams, hasLength(4));
+          streams[3].add(const []);
+          await tester.pump();
+          expect(find.textContaining('Requests'), findsNothing);
+          expect(find.text('Retry'), findsNothing);
+          expect(find.byType(LinearProgressIndicator), findsNothing);
+        } finally {
+          await tester.pumpWidget(const SizedBox.shrink());
+          container.dispose();
+        }
+      },
+    );
+  }
 
   testWidgets('shows a guest request attributed to the assigned name', (
     tester,
