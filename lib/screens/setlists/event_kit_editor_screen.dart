@@ -10,7 +10,9 @@ import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
 import '../../services/analytics_service.dart';
+import '../../services/event_share_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/member_label.dart';
 import '../../utils/music_role_icon.dart';
@@ -77,6 +79,36 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
 
   bool _canView(String area) => canViewArea(_access, area);
   bool _canEdit(String area) => canEditArea(_access, area);
+
+  bool get _canManageShares {
+    final uid = ref.watch(currentUserProvider).value?.uid;
+    if (uid == null || uid.isEmpty) return false;
+    if (widget.bandId != null) {
+      return ref.watch(canEditBandProvider(widget.bandId!));
+    }
+    return widget.ownerUid == uid && ref.watch(canEditProvider);
+  }
+
+  Future<void> _showShareInventory() async {
+    final uid = ref.read(currentUserProvider).value?.uid;
+    final bandId = widget.bandId;
+    final allowed =
+        uid != null &&
+        uid.isNotEmpty &&
+        (bandId != null
+            ? ref.read(canEditBandProvider(bandId))
+            : widget.ownerUid == uid && ref.read(canEditProvider));
+    if (!allowed) return;
+    await showDialog<void>(
+      context: context,
+      builder: (_) => _ShareInventoryDialog(
+        service: ref.read(eventShareServiceProvider),
+        bandId: bandId,
+        ownerUid: bandId == null ? widget.ownerUid : null,
+        setlistId: widget.setlist.id,
+      ),
+    );
+  }
 
   /// Which songs each person is assigned to (set in the setlist editor).
   Map<String, List<int>> get _songNumbers =>
@@ -279,6 +311,15 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
             // the rules refuse the write anyway, so never offer it.
             if (_isMember) ...[
               _sectionTitle('Crew & guests'),
+              if (_canManageShares)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ActionChip(
+                    avatar: const Icon(Icons.link, size: 18),
+                    label: const Text('Share links inventory'),
+                    onPressed: _showShareInventory,
+                  ),
+                ),
               for (final p in _kit.people)
                 ListTile(
                   dense: true,
@@ -1260,6 +1301,176 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
       ),
     );
   }
+}
+
+class _ShareInventoryDialog extends StatefulWidget {
+  const _ShareInventoryDialog({
+    required this.service,
+    required this.setlistId,
+    this.bandId,
+    this.ownerUid,
+  });
+
+  final EventShareService service;
+  final String setlistId;
+  final String? bandId, ownerUid;
+
+  @override
+  State<_ShareInventoryDialog> createState() => _ShareInventoryDialogState();
+}
+
+class _ShareInventoryDialogState extends State<_ShareInventoryDialog> {
+  final _shares = <EventShareSummary>[];
+  final _revoked = <String>{}, _revoking = <String>{};
+  String? _cursor;
+  String? _error;
+  bool _loading = true, _hasMore = false, _loadFailed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load({bool next = false}) async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _loadFailed = false;
+    });
+    try {
+      final page = await widget.service.listShares(
+        bandId: widget.bandId,
+        ownerUid: widget.ownerUid,
+        setlistId: widget.setlistId,
+        cursor: next ? _cursor : null,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (!next) _shares.clear();
+        _shares.addAll(page.shares);
+        _cursor = page.nextCursor;
+        _hasMore = page.hasMore;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _loadFailed = true;
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _revoke(EventShareSummary share) async {
+    if (_revoking.contains(share.tokenId)) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Revoke share link?'),
+        content: Text('Revoke access for ${share.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Revoke'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() {
+      _revoking.add(share.tokenId);
+      _error = null;
+    });
+    try {
+      await widget.service.revokeShare(share.tokenId);
+      if (!mounted) return;
+      setState(() => _revoked.add(share.tokenId));
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Could not revoke link: $e');
+    } finally {
+      if (mounted) setState(() => _revoking.remove(share.tokenId));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Share links inventory'),
+    content: SizedBox(
+      width: 480,
+      height: MediaQuery.sizeOf(context).height * .55,
+      child: Column(
+        children: [
+          if (_error != null)
+            Row(
+              children: [
+                Expanded(child: Text(_error!)),
+                if (_loadFailed)
+                  TextButton(
+                    onPressed: () =>
+                        _load(next: _shares.isNotEmpty && _hasMore),
+                    child: const Text('Retry'),
+                  ),
+              ],
+            ),
+          Expanded(
+            child: _loading && _shares.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : _shares.isEmpty && _error == null
+                ? const Center(child: Text('No share links yet.'))
+                : ListView(
+                    children: [
+                      for (final share in _shares)
+                        ListTile(
+                          title: Text(
+                            share.name.isEmpty
+                                ? 'Unnamed participant'
+                                : share.name,
+                          ),
+                          subtitle: Text(
+                            '${share.role.isEmpty ? 'No role' : share.role} · ${share.access.entries.map((e) => '${e.key}: ${e.value}').join(', ')} · ${_revoked.contains(share.tokenId) ? 'revoked' : share.state} · ${share.createdAt?.toLocal().toString().split(' ').first ?? 'Date unavailable'}',
+                          ),
+                          trailing:
+                              share.state == 'active' &&
+                                  !_revoked.contains(share.tokenId)
+                              ? IconButton(
+                                  tooltip: 'Revoke ${share.name}',
+                                  icon: const Icon(Icons.link_off),
+                                  onPressed: _revoking.contains(share.tokenId)
+                                      ? null
+                                      : () => _revoke(share),
+                                )
+                              : null,
+                        ),
+                      if (_hasMore)
+                        Align(
+                          alignment: Alignment.center,
+                          child: TextButton(
+                            onPressed: _loading
+                                ? null
+                                : () => _load(next: true),
+                            child: const Text('Load more'),
+                          ),
+                        ),
+                    ],
+                  ),
+          ),
+          if (_loading && _shares.isNotEmpty) const LinearProgressIndicator(),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Close'),
+      ),
+    ],
+  );
 }
 
 class _AddRiderSheet extends StatelessWidget {

@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 // Firebase Core's installed test mocks; no production dependency is needed.
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flowgroove/models/event_kit.dart';
+import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
+
 import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flowgroove/services/analytics_service.dart';
 import 'package:flowgroove/services/event_share_service.dart';
@@ -17,6 +22,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
 import '../../helpers/mocks.mocks.dart';
+import '../../helpers/routed_test_harness.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +47,9 @@ void main() {
     String? ownerUid,
     bool personal = false,
     EventShareService? shareService,
+    AppUser? appUser,
+    bool bandWriter = false,
+    bool authenticated = true,
   }) async {
     final firestore = MockFirestoreService();
     when(
@@ -61,14 +70,36 @@ void main() {
           firestoreProvider.overrideWithValue(firestore),
           if (shareService != null)
             eventShareServiceProvider.overrideWithValue(shareService),
-          currentUserProvider.overrideWithValue(AsyncValue<User?>.data(user)),
+          currentUserProvider.overrideWithValue(
+            AsyncValue<User?>.data(authenticated ? user : null),
+          ),
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(
+              appUser ?? AppUser(uid: 'u1', createdAt: DateTime(2026)),
+            ),
+          ),
+          bandsProvider.overrideWith(
+            (ref) => Stream.value([
+              Band(
+                id: 'band-1',
+                name: 'Band',
+                createdBy: 'other',
+                createdAt: DateTime(2026),
+                memberUids: const ['u1'],
+                adminUids: const [],
+                editorUids: bandWriter ? const ['u1'] : const [],
+              ),
+            ]),
+          ),
         ],
         child: MaterialApp(
           home: EventKitEditorScreen(
             setlist: withSetlist ?? setlist,
             // A band id makes this a shared event, which is what makes the
             // access map meaningful — a personal setlist has no grants.
-            bandId: personal || access == null ? null : 'band-1',
+            bandId: personal
+                ? null
+                : (access != null || bandWriter ? 'band-1' : null),
             ownerUid: ownerUid,
             access: access ?? const {},
             isMember: isMember,
@@ -94,6 +125,227 @@ void main() {
       uid: anyNamed('uid'),
     ),
   ).captured;
+
+  for (final scenario in [
+    'member',
+    'guest',
+    'demo',
+    'non-owner',
+    'signed-out',
+  ]) {
+    testWidgets('share inventory hidden for $scenario without a service call', (
+      tester,
+    ) async {
+      var calls = 0;
+      await pump(
+        tester,
+        access: const {'crew': 'edit'},
+        personal: scenario != 'member' && scenario != 'guest',
+        ownerUid: scenario == 'non-owner' ? 'other' : 'u1',
+        isMember: scenario != 'guest',
+        authenticated: scenario != 'signed-out',
+        appUser: AppUser(
+          uid: 'u1',
+          createdAt: DateTime(2026),
+          accessRole: scenario == 'demo' ? 'demo' : 'member',
+        ),
+        shareService: EventShareService(
+          invoker: (name, args) async {
+            calls++;
+            return {};
+          },
+        ),
+      );
+      expect(find.text('Share links inventory'), findsNothing);
+      expect(calls, 0);
+    });
+  }
+
+  testWidgets(
+    'share inventory initial loading and failed load retry never imply empty data',
+    (tester) async {
+      final first = Completer<Map<String, dynamic>>();
+      var calls = 0;
+      await pump(
+        tester,
+        personal: true,
+        ownerUid: 'u1',
+        shareService: EventShareService(
+          invoker: (name, args) async {
+            expect(name, 'listEventShares');
+            calls++;
+            if (calls == 1) return first.future;
+            return {
+              'shares': <Object?>[],
+              'hasMore': false,
+              'nextCursor': null,
+            };
+          },
+        ),
+      );
+      await tester.ensureVisible(find.text('Share links inventory'));
+      await tester.tap(find.text('Share links inventory'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('No share links yet.'), findsNothing);
+      first.completeError(StateError('offline'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('offline'), findsOneWidget);
+      expect(find.text('No share links yet.'), findsNothing);
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+      expect(find.text('No share links yet.'), findsOneWidget);
+      expect(calls, 2);
+    },
+  );
+
+  testWidgets('share inventory owner loads metadata without minting a link', (
+    tester,
+  ) async {
+    final calls = <Map<String, dynamic>>[];
+    await pump(
+      tester,
+      personal: true,
+      ownerUid: 'u1',
+      shareService: EventShareService(
+        invoker: (name, args) async {
+          expect(name, 'listEventShares');
+          calls.add(args);
+          return {'shares': <Object?>[], 'hasMore': false, 'nextCursor': null};
+        },
+      ),
+    );
+    expect(find.text('Share links inventory'), findsOneWidget);
+    await tester.ensureVisible(find.text('Share links inventory'));
+    await tester.tap(find.text('Share links inventory'));
+    await tester.pumpAndSettle();
+    expect(find.text('No share links yet.'), findsOneWidget);
+    expect(calls, [
+      {'ownerUid': 'u1', 'setlistId': 'sl1'},
+    ]);
+  });
+
+  Map<String, dynamic> shareRow(
+    String id,
+    String name, {
+    String state = 'active',
+  }) => {
+    'tokenId': id,
+    'participantId': 'p-$id',
+    'name': name,
+    'role': 'Photographer',
+    'access': {'eventInfo': 'view'},
+    'createdAt': '2026-10-25T12:00:00.000Z',
+    'expiresAt': null,
+    'state': state,
+  };
+
+  testWidgets(
+    'share inventory pages preserve rows on failure and retry exact cursor',
+    (tester) async {
+      final calls = <Map<String, dynamic>>[];
+      var failed = false;
+      await pump(
+        tester,
+        bandWriter: true,
+        shareService: EventShareService(
+          invoker: (name, args) async {
+            expect(name, 'listEventShares');
+            calls.add(args);
+            if (args['cursor'] == 'a' && !failed) {
+              failed = true;
+              throw StateError('offline');
+            }
+            return {
+              'shares': [
+                args['cursor'] == null
+                    ? shareRow('a', 'Ana')
+                    : shareRow('b', 'Bob', state: 'expired'),
+              ],
+              'hasMore': args['cursor'] == null,
+              'nextCursor': args['cursor'] == null ? 'a' : null,
+            };
+          },
+        ),
+      );
+      await tester.ensureVisible(find.text('Share links inventory'));
+      await tester.tap(find.text('Share links inventory'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ana'), findsOneWidget);
+      await tester.tap(find.text('Load more'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ana'), findsOneWidget);
+      expect(find.textContaining('offline'), findsOneWidget);
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ana'), findsOneWidget);
+      expect(find.text('Bob'), findsOneWidget);
+      expect(find.text('Load more'), findsNothing);
+      expect(find.textContaining('expired'), findsOneWidget);
+      expect(find.textContaining('2026-10-25'), findsNWidgets(2));
+      expect(calls, [
+        {'bandId': 'band-1', 'setlistId': 'sl1'},
+        {'bandId': 'band-1', 'setlistId': 'sl1', 'cursor': 'a'},
+        {'bandId': 'band-1', 'setlistId': 'sl1', 'cursor': 'a'},
+      ]);
+    },
+  );
+
+  testWidgets(
+    'share inventory revoke cancel failure and success isolate selected link',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final revoked = <String>[];
+      await pump(
+        tester,
+        personal: true,
+        ownerUid: 'u1',
+        shareService: EventShareService(
+          invoker: (name, args) async {
+            if (name == 'listEventShares')
+              return {
+                'shares': [shareRow('a', 'Ana'), shareRow('b', 'Bob')],
+                'hasMore': false,
+                'nextCursor': null,
+              };
+            expect(name, 'revokeEventShare');
+            expect(args, {'tokenId': 'a'});
+            revoked.add(args['tokenId'] as String);
+            if (revoked.length == 1) throw StateError('offline');
+            return {};
+          },
+        ),
+      );
+      await tester.ensureVisible(find.text('Share links inventory'));
+      await tester.tap(find.text('Share links inventory'));
+      await tester.pumpAndSettle();
+      Future<void> confirm(String action) async {
+        await tester.tap(find.byTooltip('Revoke Ana'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(action));
+        await tester.pumpAndSettle();
+      }
+
+      await confirm('Cancel');
+      expect(revoked, isEmpty);
+      await confirm('Revoke');
+      expect(find.text('Ana'), findsOneWidget);
+      expect(find.text('Bob'), findsOneWidget);
+      expect(find.textContaining('Could not revoke'), findsOneWidget);
+      await confirm('Revoke');
+      expect(revoked, ['a', 'a']);
+      expect(find.text('Ana'), findsOneWidget);
+      expect(find.text('Bob'), findsOneWidget);
+      expect(find.textContaining('revoked'), findsOneWidget);
+      expect(find.byTooltip('Revoke Ana'), findsNothing);
+      expect(find.byTooltip('Revoke Bob'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets(
     'personal owner shares with free-form people without band members',
@@ -146,7 +398,9 @@ void main() {
           },
         ),
       );
+      await tester.scrollUntilVisible(find.text('Add rider item'), 150);
       expect(find.text('Add rider item'), findsOneWidget);
+      await tester.ensureVisible(find.text('Add person'));
       await tester.tap(find.text('Add person'));
       await tester.pumpAndSettle();
       await tester.enterText(find.widgetWithText(TextField, 'Name'), 'Ana');
