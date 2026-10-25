@@ -1,14 +1,93 @@
 // Analytics Service Unit Tests
 // Tests for the centralized analytics service
 
+import 'package:firebase_core/firebase_core.dart';
+// Firebase Core's installed test mocks; no production dependency is needed.
+// ignore: depend_on_referenced_packages
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/services/analytics_events.dart';
 import 'package:flowgroove/services/analytics_service.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('event sharing transport', () {
+    const channel = BasicMessageChannel<Object?>(
+      'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.logEvent',
+      StandardMessageCodec(),
+    );
+    final events = <Object?>[];
+    var fail = false;
+
+    setUpAll(() async {
+      setupFirebaseCoreMocks();
+      await Firebase.initializeApp();
+    });
+    setUp(() {
+      events.clear();
+      fail = false;
+      AnalyticsService.enabled = true;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockDecodedMessageHandler<Object?>(channel, (message) async {
+            events.add(message);
+            return fail
+                ? <Object?>['unavailable', 'SDK failure', null]
+                : <Object?>[null];
+          });
+    });
+    tearDown(() {
+      AnalyticsService.enabled = true;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockDecodedMessageHandler<Object?>(channel, null);
+    });
+
+    test('share creation sends only its event name', () async {
+      await AnalyticsService.logEventShareCreated();
+      expect(events, [
+        [
+          {'eventName': 'event_share_created', 'parameters': null},
+        ],
+      ]);
+    });
+    test('link opening sends only its event name', () async {
+      await AnalyticsService.logEventLinkOpened();
+      expect(events, [
+        [
+          {'eventName': 'event_link_opened', 'parameters': null},
+        ],
+      ]);
+    });
+    test('suggestion submission sends only its event name', () async {
+      await AnalyticsService.logEventSuggestionSubmitted();
+      expect(events, [
+        [
+          {'eventName': 'event_suggestion_submitted', 'parameters': null},
+        ],
+      ]);
+    });
+    for (final logEvent in <Future<void> Function()>[
+      AnalyticsService.logEventShareCreated,
+      AnalyticsService.logEventLinkOpened,
+      AnalyticsService.logEventSuggestionSubmitted,
+    ].indexed) {
+      test('consent off suppresses event ${logEvent.$1}', () async {
+        AnalyticsService.enabled = false;
+        await logEvent.$2();
+        expect(events, isEmpty);
+      });
+      test('SDK failure is nonfatal for event ${logEvent.$1}', () async {
+        fail = true;
+        await expectLater(logEvent.$2(), completes);
+        expect(events, hasLength(1));
+      });
+    }
+  });
+
   group('AnalyticsService', () {
     // The HEART events (added for the UX audit) route through the private
     // `_log` choke point, which is the only place `AnalyticsService.enabled`

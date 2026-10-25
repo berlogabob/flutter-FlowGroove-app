@@ -698,6 +698,18 @@ class AnalyticsService {
     }
   }
 
+  /// A share link was created; never send its token or recipient details.
+  static Future<void> logEventShareCreated() =>
+      _log(AnalyticsEvents.eventShareCreated);
+
+  /// An event link was opened; never send its URL or token.
+  static Future<void> logEventLinkOpened() =>
+      _log(AnalyticsEvents.eventLinkOpened);
+
+  /// A suggestion was submitted; never send its text or author details.
+  static Future<void> logEventSuggestionSubmitted() =>
+      _log(AnalyticsEvents.eventSuggestionSubmitted);
+
   /// E: a Song Lab entry was created (#67). [type] is the LabEntryType name.
   static Future<void> logLabEntryAdded({required String type}) =>
       _log(AnalyticsEvents.labEntryAdded, {'type': type});
