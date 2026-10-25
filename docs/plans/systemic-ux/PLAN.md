@@ -7,8 +7,8 @@
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 
 - Исходный scope: 9 UX findings + 14 GitHub issues + 8 обязательных областей проверки.
-- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 86 задач; состояние всегда читать из activity.json.
-- Текущая декомпозиция: 86 задач; исполнителей/фазы читать из activity.json. UX-006-R и UX-009-I2 приняты Hermes после первого timeout. Остальное — малые реализации, независимая приёмка, устройства/люди, preflight и решения владельца.
+- В процессе добавлены NEW-001 (Graphify), NEW-002 (соседние FAB) и NEW-003 (семантика readonly-card). Сейчас 34 открытые записи, 90 задач; состояние всегда читать из activity.json.
+- Текущая декомпозиция: 90 задач; исполнителей/фазы читать из activity.json. UX-006-R и UX-009-I2 приняты Hermes после первого timeout. Остальное — малые реализации, независимая приёмка, устройства/люди, preflight и решения владельца.
 - Реальные текущие числа: `make activity-status`.
 - Новая проблема, обнаруженная в процессе, входит в тот же scope сразу, а не в «после релиза».
 
@@ -177,8 +177,8 @@ Registry изменяет только один родительский про�
 - [ ] **GH-188-V** · hermes · Independent source/test/primary integration + safe device/permission recheck; gates FINAL-TEST.
 - [x] **GH-187-R** · Hermes direct fallback after retained Luna admission failure · Source review accepted; inbox/guest status exist, Accept does not apply typed changes; initial loading/error hidden. No product/device acceptance.
   - Evidence: `reviews/GH-187.md`, `verification/GH-187-R.json`. Issue OPEN, original failed attempt preserved.
-- [ ] **GH-187-P** · bounded typed-application contract: stable identity, duplicates/breaks, atomic/stale/replay semantics; exact I1/I2 scope before code.
-- [ ] **GH-187-I1/I2** · backend actual application → structured client flow; blocked on P, no free-text execution.
+- [x] **GH-187-P** · independently accepted typed contract; duplicate/break identity, atomic/stale/replay and legacy decision-only semantics fixed. Source contract only, not a product fix. I1 backend → S submission → E authorized view → C transport → U structured UI → I2 compatibility/presentation gate; all registered under GH-187, V/final gates retained.
+- [ ] **GH-187-I1/I2** · atomic backend implementation dispatched after P; client integration waits for S/E/C/U and explicit legacy/presentation checks. No free-text execution.
 - [x] **GH-187-I3** · inbox loading/error/retry through existing public widget/test pair; cached requests/roles/scope preserved. Integrated `37490537`; 11 warm / 54 primary combined tests PASS. Original Luna lease-loss failure retained, controller completed directly. GH-187-V/device remains open.
 - [ ] **GH-187-V** · fresh combined regression and safe device/guest round trip; gates FINAL-TEST.
 - [ ] **GH-186-R** · ornith · Повторная проверка GitHub #186: [P3] Event sharing: list and revoke active share links

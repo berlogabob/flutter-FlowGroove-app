@@ -1,0 +1,29 @@
+# GH-187-P — accepted source contract, 2026-10-25
+
+Hermes independently reviewed the six worker sources and the current submit/resolve service and rendered caller. This accepts a contract, NOT a repaired product defect. Original 9728-byte Luna draft and disconnected CLI evidence remain in the private warm checkout/run. Actual gpt-6-luna/openai-codex server turn ended at 09:03:55.008 UTC, three calls; no replay.
+
+## Verified current behavior
+
+- events.js:711–805 persists type/songId/text but no typed proposal; resolve writes status only. Existing callable tests assert that behavior, not applied changes.
+- SetlistItem has serialized identity, duplicate songs and break metadata. Setlist.effectiveItems synthesizes positional IDs only when stored items are empty; toJson already materializes them on an ordinary save. Therefore a new global UUID migration is NOT a prerequisite for safely handling documents with unique persisted item IDs. Missing/ambiguous identity must fail closed.
+- FirestoreSetlistRepository saves merge toJsonForSave, preserving eventKit. The proposal path must update only items/songIds/updatedAt, never replace the document.
+- EventShareScreen._suggest currently sends only type=note through EventShareService.submitSuggestion. EventSuggestion and the inbox lack structured proposal presentation. These are separate registered follow-ups, not secretly covered by a backend patch.
+
+## Fixed v1 contract
+
+A persisted structured suggestion has type matching proposal.kind. Proposal accepts exactly: version=1, kind, baseFingerprint and operation fields. Add: songId plus optional beforeItemId (omitted means append). Remove: itemId (song only). Reorder: itemIds, an exact permutation of all current IDs including breaks. Unknown fields/kinds/types are rejected. Identifiers are nonempty strings, no slash; no trimming/repair of malformed identifiers. Notes must not carry proposals. Text is an optional bounded human annotation, NEVER executed.
+
+Fingerprint is SHA256 UTF-8 JSON of ordered tuples `[id,typeOrSong,songIdOrEmpty,tuningPresetIdOrNull,breakTypeOrNull,breakLabelOrNull,performerIdsOrEmptyArray]`. Validate item types/field shapes first; preserve untouched raw item objects including unknown fields. No updatedAt-only stale detection. Require nonempty stored items with unique nonempty persisted IDs; legacy songIds-only or ambiguous documents receive failed-precondition with no writes. No migration/backfill or claim of universal legacy support. Full legacy rollout remains an explicit I2 compatibility gate, not waived.
+
+Resolve uses one transaction reading parent, suggestion and current band authority (personal owner is exact auth identity). Require boolean accept, existing parent/suggestion and open status. Decline changes status only. Missing proposal means legacy decision-only, never content execution. Invalid proposal is rejected on accept. Typed acceptance checks exact base fingerprint and operation structure against transaction snapshots; add also checks song existence in the same scoped library. Add generates one new item ID outside the retry callback, then reuses it; remove targets exactly one song; reorder preserves all item objects and metadata. Write items, mirrored songIds and accepted/resolver/time atomically. Mismatched fingerprint, missing target/song/anchor or invalid permutation leaves both documents unchanged. Replays return failed-precondition without a second mutation; concurrent resolutions yield one transition. No external side effects in transaction. Preserve scope, demo protection, privacy and rate limit.
+
+## Registered slices and public seams
+
+1. GH-187-I1: resolve backend, functions/src/events.js + functions/test/callable-event-share.test.js. Public wrapped callable with emulator setup fixtures and readback assertions for atomic effects, not private helper tests. Structured fixture records may be seeded before submission is supported.
+2. GH-187-S: structured submission/persisted snapshot validation through the same callable/test pair, after I1. Validate current fingerprint and payload before charging token quota. Preserve legacy note submission and existing caps. No UI credit.
+3. GH-187-E: scoped running-order item identity/fingerprint exposure through getEventView and the same callable/test pair, after S. Only existing runningOrder-authorized callers; do not expose library/private song data or tokens. Include legacy-not-ready signal.
+4. GH-187-C: service/model transport in lib/services/event_share_service.dart + test/services/event_share_service_test.dart after E; exact payload forwarding and scope/legacy compatibility. If a separate EventSuggestion model change is needed, register a separate pair before editing.
+5. GH-187-U: rendered structured choices in lib/screens/setlists/event_share_screen.dart + test/screens/setlists/event_share_render_test.dart after C; no free-text parsing, no fabricated library picker for anonymous users. Named uncertainty: add library selection requires authorized band-side selection or safe scoped candidates, not whole-library guest reads. Preserve note/analytics/auth/cancel and test legacy unavailable state.
+6. GH-187-I2: existing client integration/compatibility gate after E/C/U, blocked until exact inbox/model presentation and legacy handling are independently checked; cannot close from backend or transport alone. Register further bounded pairs if needed. GH-187-V depends on the entire chain and fresh device/permission round trip.
+
+Parent baseline exercised the existing callable seam: firebase emulators:exec --project repsync-app-event-share-test --only firestore with mocha callable-event-share.test.js --grep suggestions, exit 0, 13 passing. This is baseline only, not new-behavior GREEN. No device/human acceptance, issue closure, deployment or migration.

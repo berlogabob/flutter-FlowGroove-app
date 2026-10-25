@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T08:09:15+00:00",
+  "updated_at": "2026-10-25T09:26:00+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -254,7 +254,7 @@
       "summary": "Открыто на момент инвентаризации; отсутствие реализации не предполагается. Требует повторной проверки и решения владельца.",
       "source_locations": [],
       "tasks": [
-        "GH-187-R", "GH-187-P", "GH-187-I1", "GH-187-I2", "GH-187-I3", "GH-187-V"
+        "GH-187-R", "GH-187-P", "GH-187-I1", "GH-187-S", "GH-187-E", "GH-187-C", "GH-187-U", "GH-187-I2", "GH-187-I3", "GH-187-V"
       ],
       "resolution": null
     },
@@ -2744,31 +2744,52 @@
     },
     {
       "id": "GH-187-P", "title": "Define smallest safe typed suggestion application contract",
-      "status": "review", "executor": "luna", "kind": "research", "issue": "GH-187",
+      "status": "verified", "executor": "luna draft + independent Hermes contract corrections", "kind": "research", "issue": "GH-187",
       "after": ["GH-187-R"],
       "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js", "lib/models/setlist.dart", "lib/models/event_suggestion.dart", "lib/repositories/firestore_setlist_repository.dart", "docs/plans/systemic-ux/reviews/GH-187.md"],
       "allowed_files": ["docs/plans/systemic-ux/reviews/GH-187-application.md"],
       "acceptance": ["Resolve exact structured add/remove/reorder payload and stable item identity including duplicates and breaks; scope validation, atomic status/content updates, stale/replay and note decisions. Never execute free text. Inspect existing callable seam and register precise I1/I2 read/write paths before implementation; no code or permission changes."],
       "timeout_s": 600, "max_attempts": 1,
-      "run": {"id": "GH-187-P-LUNA-20261025", "requested_provider": "openai-codex", "requested_model": "gpt-6-luna", "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna", "phase": "parent_review_pending", "active_actor": "hermes", "cli_exit_code": 1, "cli_error": "Gateway disconnected; turn outcome is unknown", "terminal_evidence": "Exact original server turn ended text_response/stop 2026-10-25T09:03:55.008Z, three API calls; report write completed 09:03:47.824. No duplicate prompt. Draft not independently accepted.", "process": "proc_9a57bb825c25", "pid": 75519, "session_id": "local-dd21bc925ade03514b65f24fe4508544a0e0b5329c2f21aaadac3fe7c963a2f9", "actual_provider": "openai-codex", "actual_model": "gpt-6-luna", "server_evidence": "Exact server turn 09:00:23.773 UTC; API 1 09:00:43.234 and retained actual file tool reads", "started_at": "2026-10-25T09:00:06.957012+00:00", "deadline_at": "2026-10-25T09:10:00+00:00", "file_lease": ["docs/plans/systemic-ux/reviews/GH-187-application.md"], "needs_reconciliation": true, "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-P-LUNA-20261025/hermes.jsonl", "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-P-LUNA-20261025/process.json", "user_status": "Подготовлен проект безопасного применения предложений; независимая проверка ещё не выполнена."}, "verification": null
+      "run": {"id": "GH-187-P-LUNA-20261025", "requested_provider": "openai-codex", "requested_model": "gpt-6-luna", "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna", "phase": "accepted_source_contract", "active_actor": "hermes", "cli_exit_code": 1, "cli_error": "Gateway disconnected; turn outcome is unknown", "terminal_evidence": "Exact original server turn ended text_response/stop 2026-10-25T09:03:55.008Z, three API calls; report write completed 09:03:47.824. No duplicate prompt. Draft not independently accepted.", "process": "proc_9a57bb825c25", "pid": 75519, "session_id": "local-dd21bc925ade03514b65f24fe4508544a0e0b5329c2f21aaadac3fe7c963a2f9", "actual_provider": "openai-codex", "actual_model": "gpt-6-luna", "server_evidence": "Exact server turn 09:00:23.773 UTC; API 1 09:00:43.234 and retained actual file tool reads", "started_at": "2026-10-25T09:00:06.957012+00:00", "deadline_at": "2026-10-25T09:10:00+00:00", "file_lease": [], "needs_reconciliation": false, "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-P-LUNA-20261025/hermes.jsonl", "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-P-LUNA-20261025/process.json", "user_status": "Принят контракт безопасного применения предложений; backend и клиент разделены на проверяемые срезы. Это ещё не исправление продукта."}, "verification": {"reviewer": "hermes", "tested_commit": "36c01385", "evidence": ["docs/plans/systemic-ux/reviews/GH-187-application.md", "docs/plans/systemic-ux/verification/GH-187-P.json"]}
     },
     {
       "id": "GH-187-I1", "title": "Atomically apply validated structured suggestions on accept",
-      "status": "blocked", "executor": "luna", "kind": "implementation", "issue": "GH-187",
-      "blocked_reason": "GH-187-P must settle exact item/payload and stale/idempotent contract; do not invent changes from free text.",
+      "status": "running", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "blocked_reason": null,
       "after": ["GH-187-P"],
-      "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
+      "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js", "docs/plans/systemic-ux/reviews/GH-187-application.md", "functions/package.json", "firebase.json"],
       "allowed_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
       "acceptance": ["Public callable RED/GREEN: add/remove/reorder apply the intended change and accepted status atomically; notes/decline do not edit content; stale/replayed/unauthorized requests cannot corrupt data. Preserve scope, demo, privacy, rate-limit and unrelated items."],
-      "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
+      "timeout_s": 1800, "max_attempts": 1, "run": {"id": "GH-187-I1-LUNA-20261025-0923", "requested_provider": "openai-codex", "requested_model": "gpt-6-luna", "phase": "model_implementation", "active_actor": "luna", "session_id": "local-a90ef283188911cbd05be978eff015397b9086acc50a07f7979847ab7bc64e50", "actual_model": "gpt-6-luna", "actual_provider": "openai-codex", "server_evidence": "Exact turn 09:25:16.499 UTC; API 2 at 09:25:50.351 UTC and allowed file tool reads observed; no terminal event at controller readback.", "process": "proc_1100b783feed", "pid": 77087, "started_at": "2026-10-25T09:24:15.981982+00:00", "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna", "deadline_at": "2026-10-25T09:55:00+00:00", "file_lease": ["functions/src/events.js", "functions/test/callable-event-share.test.js"], "test_lane": "exclusive Luna callable emulator lane; parent tests paused", "needs_reconciliation": false, "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-I1-LUNA-20261025-0923/hermes.jsonl", "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-187-I1-LUNA-20261025-0923/process.json", "user_status": "Контракт принят; передаётся реализация атомарного применения предложений. Исходные 13 callable-тестов прошли, новое поведение ещё не проверено."}, "verification": null
     },
     {
       "id": "GH-187-I2", "title": "Wire structured proposals through existing public event flow",
       "status": "blocked", "executor": "luna", "kind": "implementation", "issue": "GH-187",
       "blocked_reason": "Requires GH-187-P exact caller/model/fixture mapping and accepted backend contract; expand into bounded registered sub-slices if more than one production/test pair is required.",
-      "after": ["GH-187-P", "GH-187-I1"], "read_files": [], "allowed_files": [],
+      "after": ["GH-187-P", "GH-187-I1", "GH-187-S", "GH-187-E", "GH-187-C", "GH-187-U"], "read_files": ["lib/models/event_suggestion.dart", "lib/widgets/event_suggestions_inbox.dart", "test/widgets/event_suggestions_inbox_test.dart"], "allowed_files": [],
       "acceptance": ["Existing public rendered flow submits structured add/remove/reorder without parsing free text; preserves note, role, consent and scope behavior. Exact allowlist and public fixtures must be registered before dispatch; retain RED/GREEN."],
       "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
+    },
+    {
+      "id": "GH-187-S", "title": "Validate and persist structured proposals at submission", "status": "queued", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "after": ["GH-187-I1"], "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js", "docs/plans/systemic-ux/reviews/GH-187-application.md"], "allowed_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
+      "acceptance": ["Public callable RED/GREEN for exact v1 proposal/schema/current fingerprint, both scopes, invalid payload without quota charge, legacy notes, preserved caps/privacy. No free-text execution."], "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
+    },
+    {
+      "id": "GH-187-E", "title": "Expose authorized running-order identity and proposal base", "status": "queued", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "after": ["GH-187-S"], "read_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js", "docs/plans/systemic-ux/reviews/GH-187-application.md"], "allowed_files": ["functions/src/events.js", "functions/test/callable-event-share.test.js"],
+      "acceptance": ["getEventView public callable RED/GREEN: stable item identities and fingerprint only with runningOrder access, legacy readiness explicit, no tokens/private library leaks; preserve permission filtering."], "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
+    },
+    {
+      "id": "GH-187-C", "title": "Transport typed proposal and scoped running-order base", "status": "queued", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "after": ["GH-187-E"], "read_files": ["lib/services/event_share_service.dart", "test/services/event_share_service_test.dart", "docs/plans/systemic-ux/reviews/GH-187-application.md"], "allowed_files": ["lib/services/event_share_service.dart", "test/services/event_share_service_test.dart"],
+      "acceptance": ["Existing public service seam RED/GREEN for exact typed payload and base/identity decoding, legacy compatibility and band/personal/token scope. Register a separate pair before any external model edit."], "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
+    },
+    {
+      "id": "GH-187-U", "title": "Offer structured proposals through rendered event flow", "status": "blocked", "executor": "luna", "kind": "implementation", "issue": "GH-187",
+      "blocked_reason": "After transport acceptance, settle safe add-song selection without anonymous library disclosure; register any extra pair before editing. No whole-library guest reads or free-text interpretation.",
+      "after": ["GH-187-C"], "read_files": ["lib/screens/setlists/event_share_screen.dart", "test/screens/setlists/event_share_render_test.dart", "lib/services/event_share_service.dart", "docs/plans/systemic-ux/reviews/GH-187-application.md"], "allowed_files": ["lib/screens/setlists/event_share_screen.dart", "test/screens/setlists/event_share_render_test.dart"],
+      "acceptance": ["Public rendered RED/GREEN: typed choices preserve duplicate/break identities, notes, roles, scope, cancel, analytics and legacy-not-ready state; no prose execution or private library exposure."], "timeout_s": 1800, "max_attempts": 1, "run": null, "verification": null
     },
     {
       "id": "GH-187-I3", "title": "Distinguish inbox loading/error from genuinely empty requests",
