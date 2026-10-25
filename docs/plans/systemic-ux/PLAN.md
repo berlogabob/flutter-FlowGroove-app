@@ -120,7 +120,7 @@ Registry изменяет только один родительский про�
   - После: UX-002-R, DESIGN-01. Scope: `lib/screens/main_shell.dart`, `test/screens/home_quick_actions_test.dart`.
 - [ ] **UX-002-V** · hermes · Независимая приёмка и device recheck: UX-002
   - После: UX-002-I. Scope: проверка/решение без production edits.
-- [ ] **UX-003-R** · ornith · Повторно проверить: Открытие объекта непоследовательно: песня сразу Edit, сетлист — просмотр
+- [x] **UX-003-R** · luna + independent Hermes caller/destination acceptance · Повторно проверить: Открытие объекта непоследовательно: песня сразу Edit, сетлист — просмотр
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-003.md`.
 - [ ] **UX-003-I** · ornith · Минимальное исправление/проверка решения: Открытие объекта непоследовательно: песня сразу Edit, сетлист — просмотр
   - После: UX-003-R, DESIGN-01. Scope: `lib/screens/songs/songs_list_screen.dart`, `test/screens/songs/songs_list_screen_test.dart`.

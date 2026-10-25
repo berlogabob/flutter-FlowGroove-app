@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T01:15:03.732757+01:00",
+  "updated_at": "2026-10-25T01:28:00+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -795,7 +795,7 @@
     {
       "id": "UX-003-R",
       "title": "Повторно проверить: Открытие объекта непоследовательно: песня сразу Edit, сетлист — просмотр",
-      "status": "review",
+      "status": "verified",
       "executor": "luna",
       "kind": "research",
       "after": [
@@ -819,7 +819,7 @@
       "timeout_s": 600,
       "max_attempts": 1,
       "run": {"id":"UX-003-R-LUNA-20261025-0113","started_at":"2026-10-25T01:12:38+01:00","deadline_at":"2026-10-25T01:22:38+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","session_id":"local-f3b2cdac9461d30fd406aa52dd11b08abbebd21db3aaef2af843329a5bbc46a8","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"hermes","phase":"parent_source_review_pending","worker_exit_code":0,"duration_ms":59809,"needs_reconciliation":false,"artifact":"docs/plans/systemic-ux/reviews/UX-003.md","process":"proc_b69a1e2a4a19","pid":11624,"cli_started_at":"2026-10-25T01:13:54.036687+01:00","file_lease":["docs/plans/systemic-ux/reviews/UX-003.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-003-R-LUNA-20261025-0113/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-003-R-LUNA-20261025-0113/process.json","selection_reason":"No dependency-ready implementation: UX-008 blocked on rendered preflight, nav changes gated by DESIGN-01. UX-003 research unlocks that named design dependency. UX-004 is terminal and review pending, no second acceptance this cycle."},
-      "verification": null
+      "verification": {"reviewer":"hermes","tested_commit":"923b9049cda9efaf8c9f554b625f616f3686f98d","evidence":["docs/plans/systemic-ux/reviews/UX-003.md","docs/plans/systemic-ux/verification/UX-003-R.json"]}
     },
     {
       "id": "UX-003-I",
@@ -967,8 +967,8 @@
     {
       "id": "UX-005-R",
       "title": "Повторно проверить: Нет видимого единого входа для продолжения конкретного рабочего контекста",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "running",
+      "executor": "luna",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -989,7 +989,7 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {"id":"UX-005-R-LUNA-20261025-0125","started_at":"2026-10-25T01:25:30+01:00","deadline_at":"2026-10-25T01:35:30+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","process":"proc_673c612ca5c9","pid":13489,"cli_started_at":"2026-10-25T01:26:52.739237+01:00","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"luna","phase":"model_source_review","file_lease":["docs/plans/systemic-ux/reviews/UX-005.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-005-R-LUNA-20261025-0125/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-005-R-LUNA-20261025-0125/process.json","selection_reason":"No ready implementation: nav gated DESIGN-01, UX-008 blocked on rendered preflight. UX-005-R resolves remaining named DESIGN-01 research dependency. UX-004-I terminal pending independent acceptance; source lease remains untouched."},
       "verification": null
     },
     {
