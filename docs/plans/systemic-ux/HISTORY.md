@@ -508,3 +508,4 @@ Registered GH-187-U2-R under original GH-187 and added it before U2: bounded sou
 
 Native supervisor readback enabled/scheduled, last_status=ok, next_run_at=2026-10-25T13:54:08.402715+00:00 with current fire_claim; scheduler unchanged. Resource observation SSD 22 GiB/memory free 29%; no cleanup or unrelated process termination. Canonical registry validates 34 issues/93 tasks; all issues remain OPEN. No device/human/GA4/full Graphify, release/push/tag/deploy/install or global model/credentials/personal-memory edits; unified-workspace untouched. One accepted code slice and one next dispatch this cycle.
 
+Final U2-R readback: original server text_response(stop) at 13:54:11.851 UTC, 10 calls, CLI exit 0; nonempty scoped report exists. Marked review, not accepted or running; lease released, next controller must independently review. One accepted slice/one dispatch cycle bound retained. No second implementation worker started.
