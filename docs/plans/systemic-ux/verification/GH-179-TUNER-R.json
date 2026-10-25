@@ -1,0 +1,58 @@
+{
+  "task": "GH-179-TUNER-R",
+  "reviewer": "hermes",
+  "accepted_at": "2026-10-25T21:53:16.821776+00:00",
+  "tested_commit": "572a3b541c253d81cd9fd00f8e031c174de1c750",
+  "scope": "Independent CODE review only after failed worker; no product/device credit",
+  "original_attempt": {
+    "id": "GH-179-TUNER-R-LUNA-20261025-210456",
+    "requested_provider": "openai-codex",
+    "requested_model": "gpt-6-luna",
+    "phase": "parent_dispatch_preflight",
+    "active_actor": "hermes",
+    "started_at": "2026-10-25T21:04:56.655693+00:00",
+    "phase_started_at": "2026-10-25T21:04:56.655693+00:00",
+    "deadline_at": "2026-10-25T21:22:56.655693+00:00",
+    "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+    "file_lease": [],
+    "test_lane": null,
+    "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-R-LUNA-20261025-210456/hermes.jsonl",
+    "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-R-LUNA-20261025-210456/process.json",
+    "expected_artifact": "docs/plans/systemic-ux/reviews/GH-179-tuner.md",
+    "next_action": "Launch once, reconcile original runtime/model, independently review named tuner authorization blocker. No implementation or test lease.",
+    "user_status": "Проверка прав Storage принята как анализ исходников. Подготовлена проверка синхронизации и привязки пресетов тюнера; запуск ещё не подтверждён.",
+    "needs_reconciliation": true,
+    "worker_active": false,
+    "outcome": "failed_quota_and_unrequested_runtime_fallback",
+    "session_id": "local-a5d4f0549dd8b6fadc3706a4d214360eaaadfa697e25d30b7ebf9a4bead6370f",
+    "server_terminal": "2026-10-25T21:12:16.967Z exhausted connection error; gateway response ready 21:12:30.271Z; duplicate skipped 21:12:32.749Z"
+  },
+  "source_sha256": {
+    "lib/widgets/tuner/custom_tuning_editor.dart": "e6ad3bce0c8664e48bf4f719c137ad4af86c50a5467192358360408eb07db850",
+    "lib/screens/tuner_screen.dart": "8f097b32e9995c9ee2a98c69e0aee8beff1ce71d2b2de83319bf7bf6b246a22a",
+    "lib/providers/tuner_provider.dart": "c0f5252ca947c9d6c2cf26f4ad49479422285619e6f82de943d25903b2b949b2",
+    "lib/models/tuner_launch_context.dart": "eebdd17230c477abf6f2a7701c7931d232cca72ff9b23a49527b370b3ae11ebe",
+    "lib/widgets/unified_item/song_card_actions.dart": "090eadbcdc51b6817ebc4390853f332f018a39d2b9fe1e5ba6b81d3a02b69925",
+    "lib/providers/permissions_provider.dart": "745dcdd226aad80502a2ba79a06ba535763b04acb12a24d41afe45e2223f5d2b",
+    "lib/providers/auth/auth_provider.dart": "9f631120be7143cb77293f3293cc9886ba388203e97f38505aeff0490f06b657",
+    "lib/repositories/tuner_preset_repository.dart": "10ead84d8a63b81a54ad3bf8dd9da1d1ef31a8104a20a8130c7ce10383500884",
+    "lib/models/tuner_preset.dart": "bc05804694049dfb0ebfc78a864168d8d909f9ee0099b3b646e687c52b960429",
+    "firestore.rules": "d0df6997227595bece55687cd1cc4b1a96081064d721733531eceb082d26f234",
+    "test/widgets/tuner/custom_tuning_editor_test.dart": "69a55555e529def46751d7bdcf7d4c5ce9ac4f1a9189b1ad683c1a0452eaf290",
+    "test/providers/tuner_provider_test.dart": "4084505fc1ae36727a8e5ee79b2359ad9685d5e62910bddccc91482a59181fb6",
+    "test/models/tuner_launch_context_test.dart": "dcf9686662de7deddefdd21966e854b4f8145635facdb223258b96ddb8f74892",
+    "test/repositories/tuner_preset_repository_test.dart": "73e8540e896a72ec27f26291bb933e16b3f865dd98b4da9ac2d8c8ffa2130e8f"
+  },
+  "checks": [
+    "Fourteen original read events; no worker output artifact",
+    "Exact original server terminal and quota/fallback errors independently inspected",
+    "Repository-wide production TunerLaunchContext caller search",
+    "Editor/notifier/repository/rules/live permission contract independently reviewed"
+  ],
+  "remaining": [
+    "TUNER-E/P/L bounded implementation",
+    "GH-179-V and FINAL-TEST",
+    "device/actual sync/human acceptance"
+  ],
+  "provider_blocker": "Luna HTTP 429; runtime attempted unrequested fallback, connection failed. Do not redispatch or accept substituted model."
+}

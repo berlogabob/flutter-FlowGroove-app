@@ -1,0 +1,24 @@
+# GH-179 tuner authority — CODE review, 2026-10-25
+
+Accepted by Hermes after failed original Luna turn. Not a product fix, device observation or deployed-policy verification.
+
+## Original attempt / handoff
+
+Original session `local-a5d4f0549dd8b6fadc3706a4d214360eaaadfa697e25d30b7ebf9a4bead6370f` performed fourteen read calls, wrote no report, and lost its CLI connection. Exact server evidence, not PID disappearance, resolves handoff: 21:12:16.967 UTC final exhausted connection error; 21:12:30.271 UTC gateway response ready; duplicate user turn skipped at 21:12:32.749 UTC. Logs show requested Luna hit HTTP 429 usage limit, then runtime automatically attempted an unrequested `custom:unsloth` model and failed connection. No result from that fallback is accepted; controller did not change routing, credentials or replay the prompt. Luna route is not healthy for another dispatch.
+
+## Confirmed source paths / criteria
+
+1. `lib/widgets/tuner/custom_tuning_editor.dart:255-260,269-307`: account scope always offered; band/song depend only on non-null IDs. Save has no live permission/identity guard. It does catch failure and presents a sync hint. Keep local editing/saving available without an account. Criterion: offer only authorized mutations, and recheck retained callbacks when identity/role changes.
+2. `lib/providers/tuner_provider.dart:922-958,974-985`: custom save/remove reaches repository without permission checks. Save updates in-memory state only after repository success, which must be preserved. `lib/repositories/tuner_preset_repository.dart:38-65,68-82` checks Firebase and signed-in identity for synced save, not demo/band authority. Local persistence is separate. Criterion: public notifier callers must not bypass UI gates; fail closed before remote writes, without breaking device-only presets.
+3. `firestore.rules:212-245`: synced account writes require non-demo owner; band requires global editor/admin; song requires non-demo personal owner when bandId null, otherwise band editor/admin. Update requires authority on old and new data and immutable owner. Do not loosen these rules or confuse read membership with edit permission. Client permission helpers already exist in `lib/providers/permissions_provider.dart:53-60,128-147`.
+4. `lib/screens/tuner_screen.dart:227-235,290-323`: link availability is callback presence, not live authorization. Local custom presets correctly cannot link; keep this. Link awaits callback without local error recovery. Setlist callback is conditional support, not proof of a current setlist launch path.
+5. `lib/widgets/unified_item/song_card_actions.dart:270-293`: only production construction of `TunerLaunchContext` found by repository-wide search. Signed-in user is captured at opening; callback saves band copy or personal uid without rechecking current identity/permission. Explicit `bandId` is not passed to launch context despite `songActionsBandId` determining mutation target; effectiveBandId falls back to song metadata. Preserve actual band-copy target and reject stale callbacks instead of writing another user's library.
+6. `lib/models/tuner_launch_context.dart:20-39`: setlist override wins, then song default; band precedence explicit → setlist → song. These are data contracts, not permission grants.
+
+## Bounded implementation decomposition
+
+- **GH-179-TUNER-E**: existing editor + existing rendered editor test. Public seam `CustomTuningEditor`: local remains available; synced choices follow current same-identity app/band permission; retained Save rechecks authority; changing permission must not leave a dropdown selected value absent from its items. Fixture must use real permission providers/explicit user and band states, not override away the authorization under test. Actual denied-scope RED before code, positive authorized/local controls, loading/error/revocation.
+- **GH-179-TUNER-P**: notifier + existing provider test. Public add/remove methods reject unauthorized synced operations before repository transport; preserve local behavior and no in-memory success on write failure. Preflight repository injection and identity fixtures before writes; editor acceptance alone does not close this.
+- **GH-179-TUNER-L**: launcher callback + existing public caller regression fixture (must be located before assigning a write pair). Verify retained callback after identity change, band viewer/demo and permitted editor, correct target band/personal uid, and pass actual scope context. Screen link/error handling is a separately bounded file/test pair if required. Existing model tests cannot prove rendered link authority. Keep setlist support conditional and do not invent a currently reachable path.
+
+All slices gate TUNER-I aggregate and GH-179-V/FINAL-TEST. No audio/microphone, actual sync, human usability, device or release acceptance. Scope growth remains explicit; no broad provider/auth/rules rewrite.

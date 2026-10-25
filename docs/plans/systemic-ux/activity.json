@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T20:54:25.901012+00:00",
+  "updated_at": "2026-10-25T21:53:16.821776+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -334,7 +334,10 @@
         "GH-179-LAB-S1",
         "GH-179-REC-S1A",
         "GH-179-REC-S1B",
-        "GH-179-REC-S6"
+        "GH-179-REC-S6",
+        "GH-179-TUNER-E",
+        "GH-179-TUNER-P",
+        "GH-179-TUNER-L"
       ],
       "resolution": null
     },
@@ -5250,7 +5253,7 @@
     {
       "id": "GH-179-AUDIO-R",
       "title": "Resolve Storage audio authorization and demo identity contract",
-      "status": "running",
+      "status": "verified",
       "executor": "luna",
       "kind": "research",
       "issue": "GH-179",
@@ -5275,32 +5278,37 @@
         "id": "GH-179-AUDIO-R-LUNA-20261025-205156",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "phase": "model_source_review",
-        "active_actor": "luna",
+        "phase": "accepted_source_review",
+        "active_actor": "hermes",
         "started_at": "2026-10-25T20:51:56.250880+00:00",
-        "phase_started_at": "2026-10-25T20:53:38.316+00:00",
+        "phase_started_at": "2026-10-25T21:04:56.655693+00:00",
         "deadline_at": "2026-10-25T21:09:56.250880+00:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
-        "file_lease": [
-          "docs/plans/systemic-ux/reviews/GH-179-audio.md"
-        ],
+        "file_lease": [],
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-AUDIO-R-LUNA-20261025-205156/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-AUDIO-R-LUNA-20261025-205156/process.json",
         "expected_artifact": "docs/plans/systemic-ux/reviews/GH-179-audio.md",
         "next_action": "Launch once and verify original server admission; source-only research unlocks named Storage/demo/shared-capture authority blocker.",
-        "user_status": "Очередь удаления исправлена и интегрирована: 56 связанных тестов прошли. Luna проверяет права Storage и demo-ограничения; фактический запуск и чтение исходников подтверждены.",
+        "user_status": "Принята проверка прав Storage: ограничения demo в Storage и Firestore используют разные данные; исправление политики требует утверждения. Аудио и устройство ещё не проверены.",
         "needs_reconciliation": false,
-        "worker_active": true,
+        "worker_active": false,
         "process": "proc_e16ca0e5789f",
         "pid": 35920,
         "session_id": "local-2383ace0549c00df0481a9a01a9599ec496e793eba3694cdffa7e60f96f954b5",
         "actual_provider": "openai-codex",
         "actual_model": "gpt-6-luna",
-        "last_observed_at": "2026-10-25T20:54:25.901012+00:00",
-        "last_meaningful_progress": "2026-10-25 20:54:02,221 INFO [local-2383ace0549c00df0481a9a01a9599ec496e793eba3694cdffa7e60f96f954b5] agent.conversation_loop: API call #5: model=gpt-6-luna provider=openai-codex in=20554 out=1846 total=22400 latency=15.7s cache=19072/20554 (93%) id=resp_077d1ac4af5f800d016ade6c5afff48191bb43ae99c4e573e2",
-        "controller_next_run_observed": "2026-10-25T20:54:29.054894+00:00"
+        "last_observed_at": "2026-10-25T21:04:56.655693+00:00",
+        "last_meaningful_progress": "Four source identities and actual rule/async boundaries independently checked; corrected source contract accepted; no production change.",
+        "controller_next_run_observed": "2026-10-25T20:54:29.054894+00:00",
+        "server_terminal": "2026-10-25T20:54:32.448Z text_response(stop), 6 API calls; nonempty CLI result exit 0"
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "572a3b541c253d81cd9fd00f8e031c174de1c750",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-179-AUDIO-R.json"
+        ]
+      }
     },
     {
       "id": "GH-179-AUDIO-I",
@@ -5761,8 +5769,8 @@
     {
       "id": "GH-179-TUNER-R",
       "title": "Trace tuner sync/link callbacks and authorized scopes",
-      "status": "queued",
-      "executor": "luna",
+      "status": "verified",
+      "executor": "hermes direct fallback after reconciled Luna quota/runtime failure",
       "kind": "research",
       "issue": "GH-179",
       "after": [
@@ -5772,7 +5780,17 @@
         "lib/widgets/tuner/custom_tuning_editor.dart",
         "lib/screens/tuner_screen.dart",
         "lib/providers/tuner_provider.dart",
-        "lib/models/tuner_launch_context.dart"
+        "lib/models/tuner_launch_context.dart",
+        "lib/widgets/unified_item/song_card_actions.dart",
+        "lib/providers/permissions_provider.dart",
+        "lib/providers/auth/auth_provider.dart",
+        "lib/repositories/tuner_preset_repository.dart",
+        "lib/models/tuner_preset.dart",
+        "firestore.rules",
+        "test/widgets/tuner/custom_tuning_editor_test.dart",
+        "test/providers/tuner_provider_test.dart",
+        "test/models/tuner_launch_context_test.dart",
+        "test/repositories/tuner_preset_repository_test.dart"
       ],
       "allowed_files": [
         "docs/plans/systemic-ux/reviews/GH-179-tuner.md"
@@ -5782,8 +5800,62 @@
       ],
       "timeout_s": 1080,
       "max_attempts": 1,
-      "run": null,
-      "verification": null
+      "run": {
+        "id": "GH-179-TUNER-R-LUNA-20261025-210456",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "accepted_source_review",
+        "active_actor": "hermes",
+        "started_at": "2026-10-25T21:04:56.655693+00:00",
+        "phase_started_at": "2026-10-25T21:53:16.821776+00:00",
+        "deadline_at": "2026-10-25T21:22:56.655693+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": [],
+        "test_lane": null,
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-R-LUNA-20261025-210456/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-R-LUNA-20261025-210456/process.json",
+        "expected_artifact": "docs/plans/systemic-ux/reviews/GH-179-tuner.md",
+        "next_action": "Parent directly preflights existing public editor seam; Luna quota/runtime route blocked, no prompt replay.",
+        "user_status": "Проверка прав тюнера завершена по исходникам после сбоя Luna. Исправления разделены на редактор, общий провайдер и привязку песни; устройство ещё не проверено.",
+        "needs_reconciliation": false,
+        "worker_active": false,
+        "last_observed_at": "2026-10-25T21:53:16.821776+00:00",
+        "last_progress_at": "2026-10-25T21:53:16.821776+00:00",
+        "session_id": "local-a5d4f0549dd8b6fadc3706a4d214360eaaadfa697e25d30b7ebf9a4bead6370f",
+        "server_terminal": "2026-10-25T21:12:16.967Z exhausted connection error; gateway response ready 21:12:30.271Z; duplicate skipped 21:12:32.749Z"
+      },
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "572a3b541c253d81cd9fd00f8e031c174de1c750",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-179-TUNER-R.json"
+        ]
+      },
+      "attempt_history": [
+        {
+          "id": "GH-179-TUNER-R-LUNA-20261025-210456",
+          "requested_provider": "openai-codex",
+          "requested_model": "gpt-6-luna",
+          "phase": "parent_dispatch_preflight",
+          "active_actor": "hermes",
+          "started_at": "2026-10-25T21:04:56.655693+00:00",
+          "phase_started_at": "2026-10-25T21:04:56.655693+00:00",
+          "deadline_at": "2026-10-25T21:22:56.655693+00:00",
+          "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+          "file_lease": [],
+          "test_lane": null,
+          "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-R-LUNA-20261025-210456/hermes.jsonl",
+          "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-R-LUNA-20261025-210456/process.json",
+          "expected_artifact": "docs/plans/systemic-ux/reviews/GH-179-tuner.md",
+          "next_action": "Launch once, reconcile original runtime/model, independently review named tuner authorization blocker. No implementation or test lease.",
+          "user_status": "Проверка прав Storage принята как анализ исходников. Подготовлена проверка синхронизации и привязки пресетов тюнера; запуск ещё не подтверждён.",
+          "needs_reconciliation": true,
+          "worker_active": false,
+          "outcome": "failed_quota_and_unrequested_runtime_fallback",
+          "session_id": "local-a5d4f0549dd8b6fadc3706a4d214360eaaadfa697e25d30b7ebf9a4bead6370f",
+          "server_terminal": "2026-10-25T21:12:16.967Z exhausted connection error; gateway response ready 21:12:30.271Z; duplicate skipped 21:12:32.749Z"
+        }
+      ]
     },
     {
       "id": "GH-179-TUNER-I",
@@ -5793,7 +5865,10 @@
       "kind": "implementation",
       "issue": "GH-179",
       "after": [
-        "GH-179-TUNER-R"
+        "GH-179-TUNER-R",
+        "GH-179-TUNER-E",
+        "GH-179-TUNER-P",
+        "GH-179-TUNER-L"
       ],
       "read_files": [],
       "allowed_files": [],
@@ -5804,7 +5879,7 @@
       "max_attempts": 1,
       "run": null,
       "verification": null,
-      "blocked_reason": "Trace real caller authority and register bounded editor/provider/link slices and public tests first."
+      "blocked_reason": "Aggregate only: editor, public notifier and linking caller slices must all pass; no device credit from source review."
     },
     {
       "id": "GH-179-VOTE",
@@ -6334,6 +6409,120 @@
       "run": null,
       "verification": null,
       "blocked_reason": "Public persistence-failure and restart fixture/contract must be preflighted before a bounded implementation lease. S5 only accepts sweep snapshot races, not durable cancellation failure."
+    },
+    {
+      "executor": "hermes",
+      "kind": "implementation",
+      "issue": "GH-179",
+      "after": [
+        "GH-179-TUNER-R"
+      ],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": {
+        "id": "GH-179-TUNER-E-PARENT-20261025-215316",
+        "phase": "parent_baseline_preflight",
+        "active_actor": "hermes",
+        "started_at": "2026-10-25T21:53:16.821776+00:00",
+        "phase_started_at": "2026-10-25T21:53:16.821776+00:00",
+        "last_observed_at": "2026-10-25T21:54:44.068878+00:00",
+        "last_progress_at": "2026-10-25T21:53:16.821776+00:00",
+        "deadline_at": "2026-10-25T22:28:16.821776+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "file_lease": [
+          "lib/widgets/tuner/custom_tuning_editor.dart",
+          "test/widgets/tuner/custom_tuning_editor_test.dart"
+        ],
+        "test_lane": "sole controlled Flutter lane",
+        "worker_active": false,
+        "needs_reconciliation": true,
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-E-PARENT-20261025-215316/process.json",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-E-PARENT-20261025-215316/baseline.log",
+        "expected_artifact": "Existing public editor baseline JSON report, then vertical RED/GREEN and exact pair",
+        "next_action": "Read baseline result; controller directly implements existing editor public-seam slice after baseline. No Luna replay while route unhealthy.",
+        "user_status": "Hermes начал исходную проверку редактора тюнера перед исправлением доступных областей сохранения. Luna ограничена квотой; повторного запуска нет.",
+        "process": "proc_d3ed4a57c969",
+        "pid": 39373,
+        "last_observed_activity": "Existing public editor baseline command observed running"
+      },
+      "verification": null,
+      "id": "GH-179-TUNER-E",
+      "title": "Tuning editor synced scope choices and live Save authority; preserve device-local tuning",
+      "status": "running",
+      "read_files": [
+        "lib/widgets/tuner/custom_tuning_editor.dart",
+        "lib/screens/tuner_screen.dart",
+        "lib/providers/tuner_provider.dart",
+        "lib/models/tuner_launch_context.dart",
+        "lib/widgets/unified_item/song_card_actions.dart",
+        "lib/providers/permissions_provider.dart",
+        "lib/providers/auth/auth_provider.dart",
+        "lib/repositories/tuner_preset_repository.dart",
+        "lib/models/tuner_preset.dart",
+        "firestore.rules",
+        "test/widgets/tuner/custom_tuning_editor_test.dart",
+        "test/providers/tuner_provider_test.dart",
+        "test/models/tuner_launch_context_test.dart",
+        "test/repositories/tuner_preset_repository_test.dart"
+      ],
+      "allowed_files": [
+        "lib/widgets/tuner/custom_tuning_editor.dart",
+        "test/widgets/tuner/custom_tuning_editor_test.dart"
+      ],
+      "acceptance": [
+        "Existing public CustomTuningEditor seam. Same-identity non-demo account/band authority, authorized/local controls, loading/error and stale Save revocation. Real behavior RED before source edit; no dropdown missing-value assertion after role change. No provider/link/device credit."
+      ]
+    },
+    {
+      "executor": "hermes",
+      "kind": "implementation",
+      "issue": "GH-179",
+      "after": [
+        "GH-179-TUNER-R"
+      ],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null,
+      "id": "GH-179-TUNER-P",
+      "title": "Public tuner notifier synced save/remove authority preserving local presets",
+      "status": "blocked",
+      "read_files": [
+        "lib/providers/tuner_provider.dart",
+        "test/providers/tuner_provider_test.dart",
+        "lib/repositories/tuner_preset_repository.dart",
+        "lib/providers/permissions_provider.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Preflight injected repository and explicit same-identity fixture, then assign notifier/test pair. Public add/remove must reject denied synced operations before transport; preserve local/no-state-on-failure."
+      ],
+      "blocked_reason": "Repository injection/public transport fixture and exact scope authority must be preflighted before write lease."
+    },
+    {
+      "executor": "hermes",
+      "kind": "implementation",
+      "issue": "GH-179",
+      "after": [
+        "GH-179-TUNER-R"
+      ],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null,
+      "id": "GH-179-TUNER-L",
+      "title": "Live-authorized tuner song linking callbacks and actual band-copy scope",
+      "status": "blocked",
+      "read_files": [
+        "lib/widgets/unified_item/song_card_actions.dart",
+        "lib/screens/tuner_screen.dart",
+        "lib/models/tuner_launch_context.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Locate existing public caller/screen tests and register bounded write pairs. Stale identity/role callbacks reject writes; permitted caller retains correct target and passes actual band context. Preserve local-link prohibition; exercise failed save feedback. Setlist path conditional, not proven reachable."
+      ],
+      "blocked_reason": "Existing public caller and screen fixtures must be located before bounded writes; model-only tests insufficient."
     }
   ],
   "worker_lanes": {
