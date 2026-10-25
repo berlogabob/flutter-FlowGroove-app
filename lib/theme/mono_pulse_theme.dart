@@ -2,46 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Mono Pulse Design System
-///
-/// Core Philosophy: Clean. Confident. Premium-minimal.
-/// Inspirations: Teenage Engineering, Nothing, Notion, Revolut
-///
-/// Color System: Strict monochrome + one hero accent (orange)
+/// PlayNote visual system: warm paper, confident instrument controls,
+/// and a restrained orange transport accent.
 
 class MonoPulseColors {
-  // Base - True Black
-  static const Color black = Color(0xFF000000);
-  static const Color blackSurface = Color(0xFF0A0A0A);
-  static const Color blackElevated = Color(0xFF111111);
-
-  // Surface / Cards
-  static const Color surface = Color(0xFF121212);
-  static const Color surfaceRaised = Color(0xFF1A1A1A);
-  static const Color surfaceOverlay = Color(0xFF1E1E1E);
-
-  // Borders & Dividers
-  static const Color borderSubtle = Color(0xFF222222);
-  static const Color borderDefault = Color(0xFF333333);
-  static const Color borderStrong = Color(0xFF444444);
-
-  // Text - Primary
-  static const Color textPrimary = Color(0xFFF5F5F5);
-  static const Color textHighEmphasis = Color(0xFFEDEDED);
-
-  // Text - Secondary
-  static const Color textSecondary = Color(0xFFA0A0A5);
-  static const Color textTertiary = Color(0xFF8A8A8F);
-  static const Color textDisabled = Color(0xFF555555);
+  // Dark palette retained for users who choose dark appearance.
+  static const Color black = Color(0xFF171714);
+  static const Color blackSurface = Color(0xFF201F1B);
+  static const Color blackElevated = Color(0xFF292823);
+  static const Color surface = Color(0xFF24231F);
+  static const Color surfaceRaised = Color(0xFF302F29);
+  static const Color surfaceOverlay = Color(0xFF393831);
+  static const Color borderSubtle = Color(0xFF3A3932);
+  static const Color borderDefault = Color(0xFF504F46);
+  static const Color borderStrong = Color(0xFF6B695E);
+  static const Color textPrimary = Color(0xFFF5F1E8);
+  static const Color textHighEmphasis = Color(0xFFFFFCF5);
+  static const Color textSecondary = Color(0xFFC2BDAF);
+  static const Color textTertiary = Color(0xFFAAA494);
+  static const Color textDisabled = Color(0xFF797568);
 
   // Brand Accent - Orange (used surgically)
-  static const Color accentOrange = Color(0xFFFF5E00);
-  static const Color accentOrangeLight = Color(0xFFFF6B1A);
-  static const Color accentOrangeDark = Color(0xFFE64E00);
-  static const Color accentOrange10 = Color(0x1AFF5E00); // 10% opacity
+  static const Color accentOrange = Color(0xFFCA5425);
+  static const Color accentOrangeLight = Color(0xFFE16A36);
+  static const Color accentOrangeDark = Color(0xFF9E3F1C);
+  static const Color selection = Color(0xFFDCE7DF);
+  static const Color selectionInk = Color(0xFF25483F);
+  static const Color accentOrange10 = Color(0x1ACA5425); // 10% opacity
 
   // Beat Mode Colors
-  static const Color beatModeNormal = Color(0xFFFF5E00); // Orange
+  static const Color beatModeNormal = accentOrange;
   static const Color beatModeAccent = Color(0xFF00BCD4); // Cyan
   static const Color beatModeSilent = Color(0xFFE91E63); // Magenta
 
@@ -102,12 +92,12 @@ class MonoPulseColors {
   static const Color error30 = Color(0x4DFF2D55); // 30%
 
   // Orange opacity variants
-  static const Color orangeSubtle5 = Color(0x0DFF5E00); // 5%
+  static const Color orangeSubtle5 = Color(0x0DCA5425); // 5%
 
   // Accent orange opacity variants (for UI elements) — canonical naming.
-  static const Color accentOrange15 = Color(0x26FF5E00); // 15%
-  static const Color accentOrange20 = Color(0x33FF5E00); // 20%
-  static const Color accentOrange30 = Color(0x4DFF5E00); // 30%
+  static const Color accentOrange15 = Color(0x26CA5425); // 15%
+  static const Color accentOrange20 = Color(0x33CA5425); // 20%
+  static const Color accentOrange30 = Color(0x4DCA5425); // 30%
 
   // Border opacity variants
   static const Color borderSubtle30 = Color(0x4D222222); // 30%
@@ -121,10 +111,10 @@ class MonoPulseColors {
     0x0AFFFFFF,
   ); // White @ 4% (subtle hover highlight)
   static const Color stateFocus = Color(
-    0x1EFF5E00,
+    0x1ECA5425,
   ); // Orange @ 12% (accent-colored focus ring)
   static const Color statePressed = Color(
-    0x29FF5E00,
+    0x29CA5425,
   ); // Orange @ 16% (darker press state)
   static const Color stateDisabled = Color(
     0x4D555555,
@@ -247,23 +237,22 @@ class MonoPulsePalette extends ThemeExtension<MonoPulsePalette> {
     textDisabled: MonoPulseColors.textDisabled,
   );
 
-  /// Light MonoPulse: warm paper, white cards, warm-gray borders/inks —
-  /// same surgical orange accent.
+/// Light PlayNote: warm paper, warm-gray dividers, and high-contrast ink.
   static const light = MonoPulsePalette(
-    black: Color(0xFFFAF8F5),
-    blackSurface: Color(0xFFF5F2EE),
-    blackElevated: Color(0xFFF0EDE8),
-    surface: Color(0xFFFFFFFF),
-    surfaceRaised: Color(0xFFF5F2EE),
-    surfaceOverlay: Color(0xFFEFECE7),
-    borderSubtle: Color(0xFFE8E4DE),
-    borderDefault: Color(0xFFD8D3CB),
-    borderStrong: Color(0xFFC0BAB0),
-    textPrimary: Color(0xFF1A1815),
-    textHighEmphasis: Color(0xFF000000),
-    textSecondary: Color(0xFF5F5B54),
-    textTertiary: Color(0xFF7A756C),
-    textDisabled: Color(0xFFB5B0A7),
+    black: Color(0xFFF5F0E6),
+    blackSurface: Color(0xFFEDE6D9),
+    blackElevated: Color(0xFFE5DDCE),
+    surface: Color(0xFFFAF7F0),
+    surfaceRaised: Color(0xFFF0E9DC),
+    surfaceOverlay: Color(0xFFE9E1D3),
+    borderSubtle: Color(0xFFE3DACA),
+    borderDefault: Color(0xFFCFC5B4),
+    borderStrong: Color(0xFFAAA08F),
+    textPrimary: Color(0xFF282720),
+    textHighEmphasis: Color(0xFF171713),
+    textSecondary: Color(0xFF555349),
+    textTertiary: Color(0xFF6C695D),
+    textDisabled: Color(0xFF898578),
   );
 
   @override
@@ -344,6 +333,8 @@ class MonoPulseTypography {
   // hundreds of call sites. The Inter family is loaded once in the theme via
   // GoogleFonts.interTextTheme(), after which `fontFamily: 'Inter'` resolves.
   static const String fontFamily = 'Inter';
+  // Gorton is not bundled or licensed in this repository; Inter is the
+  // existing runtime fallback for display and interface text.
   static const String fontFamilyDisplay = 'Inter';
 
   // Weights
@@ -630,8 +621,8 @@ class MonoPulseTheme {
             horizontal: MonoPulseSpacing.xl,
             vertical: MonoPulseSpacing.lg,
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(2)),
           ),
           textStyle: MonoPulseTypography.labelLarge,
         ).copyWith(overlayColor: _stateOverlay(hover)),
@@ -646,8 +637,8 @@ class MonoPulseTheme {
             horizontal: MonoPulseSpacing.xl,
             vertical: MonoPulseSpacing.lg,
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(2)),
           ),
           textStyle: MonoPulseTypography.labelLarge,
         ).copyWith(overlayColor: _stateOverlay(hover)),
@@ -723,7 +714,7 @@ class MonoPulseTheme {
       // Bottom Navigation
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: p.black,
-        selectedItemColor: MonoPulseColors.accentOrange,
+        selectedItemColor: MonoPulseColors.selectionInk,
         unselectedItemColor: p.textTertiary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -732,11 +723,15 @@ class MonoPulseTheme {
       // Navigation Bar (Material 3)
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: p.black,
-        indicatorColor: MonoPulseColors.accentOrange10,
+        indicatorColor: dark
+            ? MonoPulseColors.accentOrange10
+            : MonoPulseColors.selection,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return MonoPulseTypography.labelSmall.copyWith(
-              color: MonoPulseColors.accentOrange,
+              color: dark
+                  ? MonoPulseColors.accentOrange
+                  : MonoPulseColors.selectionInk,
             );
           }
           return MonoPulseTypography.labelSmall.copyWith(color: p.textTertiary);
