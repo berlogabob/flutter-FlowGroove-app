@@ -132,7 +132,7 @@ Registry изменяет только один родительский про�
   - После: UX-004-R. Scope corrected after accepted source review: `lib/screens/setlists/setlist_view_screen.dart`, `test/screens/setlists/setlist_view_screen_test.dart`; shared row unchanged. Live run/lease in activity.json.
 - [ ] **UX-004-V** · hermes · Независимая приёмка и device recheck: UX-004
   - После: UX-004-I. Scope: проверка/решение без production edits.
-- [ ] **UX-005-R** · ornith · Повторно проверить: Нет видимого единого входа для продолжения конкретного рабочего контекста
+- [x] **UX-005-R** · luna + independent Hermes source acceptance · Повторно проверить: Нет видимого единого входа для продолжения конкретного рабочего контекста
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/UX-005.md`.
 - [ ] **UX-005-I** · ornith · Минимальное исправление/проверка решения: Нет видимого единого входа для продолжения конкретного рабочего контекста
   - После: UX-005-R, DESIGN-01. Scope: `lib/screens/home_screen.dart`, `test/domain/metronome_practice_features_test.dart`.

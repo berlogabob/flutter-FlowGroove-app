@@ -1,0 +1,15 @@
+{
+  "task": "UX-005-R",
+  "reviewer": "hermes",
+  "tested_commit": "780cd1178986360ce855145b8a2d5369a61fc339",
+  "scope": "source-only acceptance, no product fix/device/human acceptance",
+  "worker": {"provider": "openai-codex", "actual_model": "gpt-6-luna", "exit_code": 0, "duration_ms": 74186, "reads": 2, "writes": 1, "allowed_paths_only": true, "session_id": "local-4341a9fd5683350ee026b5caf307d508b0814d8b57e37fa271e13fa3d39dec9a"},
+  "source_identical_to_worker": true,
+  "source_sha256": {
+    "lib/screens/home_screen.dart": "eb419fd78ca5d2f5043d371bb7cc59de143e3a9a06ca0492ed96096fbc29cec2",
+    "test/domain/metronome_practice_features_test.dart": "3c6bd0eb222ac733e676d1fcbc59f83f76d0f66aa7ebf3ad4b3d975a293f31d7"
+  },
+  "corrections": ["Home caller absence is not a rendered inventory of composed widgets.", "ConsumerWidget and local-state comments do not establish provider state absence.", "Looping controller fixture is not observed user workflow."],
+  "tests": "not run: no executable change",
+  "remaining": ["actual resume state-owner evidence", "owner DESIGN-01 decision", "implementation and rendered regression", "device/human checks", "issue remains open"]
+}

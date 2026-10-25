@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T01:28:00+01:00",
+  "updated_at": "2026-10-25T01:44:00+01:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -967,7 +967,7 @@
     {
       "id": "UX-005-R",
       "title": "Повторно проверить: Нет видимого единого входа для продолжения конкретного рабочего контекста",
-      "status": "review",
+      "status": "verified",
       "executor": "luna",
       "kind": "research",
       "after": [
@@ -989,8 +989,8 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": {"id":"UX-005-R-LUNA-20261025-0125","started_at":"2026-10-25T01:25:30+01:00","deadline_at":"2026-10-25T01:35:30+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","process":"proc_673c612ca5c9","pid":13489,"cli_started_at":"2026-10-25T01:26:52.739237+01:00","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"hermes","phase":"parent_source_review_pending","worker_exit_code":0,"duration_ms":74186,"session_id":"local-4341a9fd5683350ee026b5caf307d508b0814d8b57e37fa271e13fa3d39dec9a","needs_reconciliation":false,"file_lease":["docs/plans/systemic-ux/reviews/UX-005.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-005-R-LUNA-20261025-0125/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-005-R-LUNA-20261025-0125/process.json","selection_reason":"No ready implementation: nav gated DESIGN-01, UX-008 blocked on rendered preflight. UX-005-R resolves remaining named DESIGN-01 research dependency. UX-004-I terminal pending independent acceptance; source lease remains untouched."},
-      "verification": null
+      "run": {"id":"UX-005-R-LUNA-20261025-0125","started_at":"2026-10-25T01:25:30+01:00","deadline_at":"2026-10-25T01:35:30+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","process":"proc_673c612ca5c9","pid":13489,"cli_started_at":"2026-10-25T01:26:52.739237+01:00","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"hermes","phase":"accepted_source_review","worker_exit_code":0,"duration_ms":74186,"session_id":"local-4341a9fd5683350ee026b5caf307d508b0814d8b57e37fa271e13fa3d39dec9a","needs_reconciliation":false,"file_lease":["docs/plans/systemic-ux/reviews/UX-005.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-005-R-LUNA-20261025-0125/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-005-R-LUNA-20261025-0125/process.json","selection_reason":"No ready implementation: nav gated DESIGN-01, UX-008 blocked on rendered preflight. UX-005-R resolves remaining named DESIGN-01 research dependency. UX-004-I terminal pending independent acceptance; source lease remains untouched."},
+      "verification": {"reviewer":"hermes","tested_commit":"780cd1178986360ce855145b8a2d5369a61fc339","evidence":["docs/plans/systemic-ux/reviews/UX-005.md","docs/plans/systemic-ux/verification/UX-005-R.json"]}
     },
     {
       "id": "UX-005-I",
@@ -1763,8 +1763,8 @@
     {
       "id": "GH-189-R",
       "title": "Повторная проверка GitHub #189: [P6] Event sharing: /event deep links + analytics",
-      "status": "queued",
-      "executor": "ornith",
+      "status": "running",
+      "executor": "luna",
       "kind": "research",
       "after": [
         "OPS-LAN",
@@ -1772,7 +1772,19 @@
       ],
       "issue": "GH-189",
       "read_files": [
-        "EVENT_SHARING_BACKLOG.md"
+        "EVENT_SHARING_BACKLOG.md",
+        "android/app/src/main/AndroidManifest.xml",
+        "ios/Runner/Info.plist",
+        "ios/Runner/AppDelegate.swift",
+        "ios/Runner.xcodeproj/project.pbxproj",
+        "firebase.json",
+        "lib/router/app_router.dart",
+        "lib/services/analytics_service.dart",
+        "lib/services/analytics_events.dart",
+        "lib/services/event_share_service.dart",
+        "lib/screens/setlists/event_kit_editor_screen.dart",
+        "lib/screens/setlists/event_share_screen.dart",
+        "test/router/event_share_redirect_test.dart"
       ],
       "allowed_files": [
         "docs/plans/systemic-ux/reviews/GH-189.md"
@@ -1785,7 +1797,7 @@
       ],
       "timeout_s": 600,
       "max_attempts": 1,
-      "run": null,
+      "run": {"id":"GH-189-R-LUNA-20261025-0142","process":"proc_aa9862f1fc25","pid":16652,"cli_started_at":"2026-10-25T01:43:08.478541+01:00","started_at":"2026-10-25T01:42:00+01:00","deadline_at":"2026-10-25T01:52:00+01:00","requested_provider":"openai-codex","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","worktree":"/Users/berloga/Documents/GitHub/flutter_repsync_luna","active_actor":"luna","phase":"model_source_review","needs_reconciliation":false,"file_lease":["docs/plans/systemic-ux/reviews/GH-189.md"],"log":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-R-LUNA-20261025-0142/hermes.jsonl","worker_process_file":"/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-R-LUNA-20261025-0142/process.json","selection_reason":"First queued dependency-ready source task; implementations gated by owner DESIGN-01 or rendered UX-008 preflight, UX-004 implementation awaiting independent acceptance. Fresh GitHub issue/comments read by parent; explicit cross-platform read-only window expanded for this one finding, single report write, no tests/builds."},
       "verification": null
     },
     {
@@ -2441,7 +2453,8 @@
     {
       "id": "DESIGN-01",
       "title": "Утвердить UX-контракты и первый тонкий срез",
-      "status": "queued",
+      "status": "blocked",
+      "blocked_reason": "All source research dependencies accepted; owner decision and low-fi task validation for Practice/Progress, view/Edit and global More remain unperformed. Scheduled controller cannot invent product approval.",
       "executor": "owner+hermes",
       "kind": "decision",
       "after": [
