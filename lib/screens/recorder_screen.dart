@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/song.dart';
 import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
+import '../providers/auth/auth_provider.dart';
+
 import '../router/app_router.dart';
 import '../services/idea_recorder.dart';
 import '../services/pending_storage_deletes.dart';
@@ -13,6 +15,16 @@ import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
 import 'songs/components/lab_recording_sheet.dart';
 import '../widgets/tools/tool_scaffold.dart';
+
+String? _editableUid(WidgetRef ref) {
+  final user = ref.read(appUserProvider);
+  if (user.isLoading || user.hasError) return null;
+  final value = user.value;
+  if (value == null || value.accessRole == 'demo') return null;
+  return ref.read(firebaseAuthProvider).currentUser?.uid == value.uid
+      ? value.uid
+      : null;
+}
 
 /// Recorder (#145): the one home for audio captures. Record on top, every
 /// unlinked take listed below — play it, link it to a song (it moves into
@@ -35,13 +47,18 @@ class _RecorderScreenState extends ConsumerState<RecorderScreen> {
     super.initState();
     if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) captureIdea(context, ref, autoStart: true);
+        if (mounted && _editableUid(ref) != null) {
+          captureIdea(context, ref, autoStart: true);
+        }
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(appUserProvider);
+    ref.watch(firebaseAuthProvider);
+    final uid = _editableUid(ref);
     final recordings =
         ref.watch(labEntriesProvider((ideaInboxSongId, null))).asData?.value ??
         const <SongLabEntry>[];
@@ -59,7 +76,13 @@ class _RecorderScreenState extends ConsumerState<RecorderScreen> {
                 vertical: MonoPulseSpacing.lg,
               ),
             ),
-            onPressed: () => captureIdea(context, ref),
+            onPressed: uid == null
+                ? null
+                : () {
+                    if (context.mounted && _editableUid(ref) == uid) {
+                      captureIdea(context, ref);
+                    }
+                  },
             icon: const Icon(Icons.mic),
             label: const Text('Record'),
           ),
@@ -96,6 +119,9 @@ class _RecordingCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(appUserProvider);
+    ref.watch(firebaseAuthProvider);
+    final uid = _editableUid(ref);
     final d = recording.createdAt;
     return Card(
       margin: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
@@ -124,24 +150,33 @@ class _RecordingCard extends ConsumerWidget {
               LabAudioPlayer(url: recording.attachmentIds.first),
           ],
         ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (v) => switch (v) {
-            'edit' => context.goAudioNote(recording),
-            'link' => _linkToSong(context, ref),
-            'delete' => _delete(context, ref),
-            _ => null,
-          },
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'edit', child: Text('Trim & notes…')),
-            PopupMenuItem(value: 'link', child: Text('Link to song…')),
-            PopupMenuItem(value: 'delete', child: Text('Delete')),
-          ],
-        ),
+        trailing: uid == null
+            ? null
+            : PopupMenuButton<String>(
+                onSelected: (v) {
+                  if (!context.mounted || _editableUid(ref) != uid) return;
+                  switch (v) {
+                    case 'edit':
+                      context.goAudioNote(recording);
+                    case 'link':
+                      _linkToSong(context, ref);
+                    case 'delete':
+                      _delete(context, ref);
+                  }
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Trim & notes…')),
+                  PopupMenuItem(value: 'link', child: Text('Link to song…')),
+                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                ],
+              ),
       ),
     );
   }
 
   Future<void> _linkToSong(BuildContext context, WidgetRef ref) async {
+    final uid = _editableUid(ref);
+    if (uid == null) return;
     final songId = await showModalBottomSheet<String>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -161,7 +196,7 @@ class _RecordingCard extends ConsumerWidget {
         ),
       ),
     );
-    if (songId == null || !context.mounted) return;
+    if (songId == null || !context.mounted || _editableUid(ref) != uid) return;
     await linkIdeaToSong(ref, recording, songId: songId);
     if (context.mounted) {
       showAppSnackBar(context, "Linked — see the song's Lab timeline");
@@ -169,6 +204,11 @@ class _RecordingCard extends ConsumerWidget {
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final uid = _editableUid(ref);
+    if (uid == null) return;
+    // The card disappears on deletion; Undo must read the surviving scope.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final auth = ref.read(firebaseAuthProvider);
     final repo = ref.read(labRepositoryProvider);
     final pending = ref.read(pendingStorageDeletesProvider);
     // Undo restores the document, and its audio URL only still resolves
@@ -186,6 +226,13 @@ class _RecordingCard extends ConsumerWidget {
         'Recording deleted',
         actionLabel: 'Undo',
         onAction: () {
+          final user = container.read(appUserProvider);
+          if (user.isLoading ||
+              user.hasError ||
+              user.value?.uid != uid ||
+              user.value?.accessRole == 'demo' ||
+              auth.currentUser?.uid != uid)
+            return;
           repo.saveEntry(recording);
           if (url != null) pending.cancel(url);
         },

@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/user.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:mockito/mockito.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
@@ -78,7 +81,13 @@ void main() {
   Future<_InMemoryLabRepo> pump(
     WidgetTester tester, {
     List<SongLabEntry> inbox = const [],
+    _Identity? identity,
+    bool autoStart = false,
   }) async {
+    final auth = MockFirebaseAuth();
+    final user = MockUser();
+    when(user.uid).thenReturn('u1');
+    when(auth.currentUser).thenReturn(user);
     final repo = _InMemoryLabRepo();
     for (final e in inbox) {
       repo.entries.putIfAbsent(e.songId, () => []).add(e);
@@ -86,10 +95,12 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          firebaseAuthProvider.overrideWith((ref) => auth),
+          appUserProvider.overrideWith(() => identity ?? _Identity()),
           labRepositoryProvider.overrideWithValue(repo),
           songsProvider.overrideWith((ref) => Stream.value([song])),
         ],
-        child: const MaterialApp(home: RecorderScreen()),
+        child: MaterialApp(home: RecorderScreen(autoStart: autoStart)),
       ),
     );
     await tester.pump();
@@ -98,6 +109,111 @@ void main() {
   }
 
   group('RecorderScreen (#145)', () {
+    final authorized = AsyncValue<AppUser?>.data(
+      AppUser(uid: 'u1', createdAt: DateTime(2026)),
+    );
+    final denied = <String, AsyncValue<AppUser?>>{
+      'signed out': const AsyncValue.data(null),
+      'loading': const AsyncValue.loading(),
+      'error': AsyncValue.error(StateError('offline'), StackTrace.current),
+      // Construct the cached refresh state Riverpod supplies in production.
+      // ignore: invalid_use_of_internal_member
+      'cached loading': const AsyncValue<AppUser?>.loading().copyWithPrevious(
+        authorized,
+      ),
+      'cached error': AsyncValue<AppUser?>.error(
+        StateError('offline'),
+        StackTrace.current,
+        // ignore: invalid_use_of_internal_member
+      ).copyWithPrevious(authorized),
+      'different identity': AsyncValue.data(
+        AppUser(uid: 'other', createdAt: DateTime(2026)),
+      ),
+    };
+    for (final entry in denied.entries) {
+      testWidgets(
+        '${entry.key} blocks autoStart and mutation controls while preserving reading',
+        (tester) async {
+          await pump(
+            tester,
+            inbox: [recording()],
+            identity: _Identity(entry.value),
+            autoStart: true,
+          );
+          await tester.pumpAndSettle();
+          expect(find.text('Riff in E'), findsOneWidget);
+          expect(
+            tester
+                .widget<FilledButton>(
+                  find.widgetWithText(FilledButton, 'Record'),
+                )
+                .onPressed,
+            isNull,
+          );
+          expect(find.byType(PopupMenuButton<String>), findsNothing);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+    testWidgets(
+      'stale Record and open menu cannot mutate after identity change',
+      (tester) async {
+        final identity = _Identity();
+        final repo = await pump(
+          tester,
+          inbox: [recording()],
+          identity: identity,
+        );
+        final record = tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Record'))
+            .onPressed!;
+        final menu = tester
+            .widget<PopupMenuButton<String>>(
+              find.byType(PopupMenuButton<String>),
+            )
+            .onSelected!;
+        identity.change(denied['different identity']!);
+        record();
+        menu('delete');
+        await tester.pumpAndSettle();
+        expect(repo.entries[ideaInboxSongId], hasLength(1));
+        expect(tester.takeException(), isNull);
+      },
+    );
+    testWidgets('revoked selection cannot link a recording', (tester) async {
+      final identity = _Identity();
+      final repo = await pump(tester, inbox: [recording()], identity: identity);
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Link to song…'));
+      await tester.pumpAndSettle();
+      identity.change(denied['different identity']!);
+      await tester.tap(find.text('Hey Joe'));
+      await tester.pumpAndSettle();
+      expect(repo.entries[ideaInboxSongId], hasLength(1));
+      expect(repo.entries['s1'], isNull);
+    });
+    testWidgets('demo can read recordings but cannot record or mutate', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        inbox: [recording()],
+        identity: _Identity(
+          AsyncValue.data(
+            AppUser(uid: 'u1', accessRole: 'demo', createdAt: DateTime(2026)),
+          ),
+        ),
+      );
+      expect(find.text('Riff in E'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Record'))
+            .onPressed,
+        isNull,
+      );
+      expect(find.byType(PopupMenuButton<String>), findsNothing);
+    });
     testWidgets('record button on top, quiet empty state', (tester) async {
       await pump(tester);
 
@@ -132,6 +248,21 @@ void main() {
       expect(find.textContaining('Linked'), findsOneWidget);
     });
 
+    testWidgets('Undo cannot restore a recording after identity change', (
+      tester,
+    ) async {
+      final identity = _Identity();
+      final repo = await pump(tester, inbox: [recording()], identity: identity);
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      expect(repo.entries[ideaInboxSongId], isEmpty);
+      identity.change(denied['different identity']!);
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(repo.entries[ideaInboxSongId], isEmpty);
+    });
     testWidgets('delete removes the recording with an Undo', (tester) async {
       final repo = await pump(tester, inbox: [recording()]);
 
@@ -147,4 +278,13 @@ void main() {
       expect(repo.entries[ideaInboxSongId], hasLength(1));
     });
   });
+}
+
+class _Identity extends AppUserNotifier {
+  _Identity([this.initial]);
+  final AsyncValue<AppUser?>? initial;
+  void change(AsyncValue<AppUser?> value) => state = value;
+  @override
+  AsyncValue<AppUser?> build() =>
+      initial ?? AsyncValue.data(AppUser(uid: 'u1', createdAt: DateTime(2026)));
 }
