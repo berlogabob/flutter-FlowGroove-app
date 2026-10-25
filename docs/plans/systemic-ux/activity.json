@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T20:27:11.918947+00:00",
+  "updated_at": "2026-10-25T20:54:25.901012+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -333,7 +333,8 @@
         "GH-179-V",
         "GH-179-LAB-S1",
         "GH-179-REC-S1A",
-        "GH-179-REC-S1B"
+        "GH-179-REC-S1B",
+        "GH-179-REC-S6"
       ],
       "resolution": null
     },
@@ -5249,7 +5250,7 @@
     {
       "id": "GH-179-AUDIO-R",
       "title": "Resolve Storage audio authorization and demo identity contract",
-      "status": "queued",
+      "status": "running",
       "executor": "luna",
       "kind": "research",
       "issue": "GH-179",
@@ -5270,7 +5271,35 @@
       ],
       "timeout_s": 1080,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-179-AUDIO-R-LUNA-20261025-205156",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "model_source_review",
+        "active_actor": "luna",
+        "started_at": "2026-10-25T20:51:56.250880+00:00",
+        "phase_started_at": "2026-10-25T20:53:38.316+00:00",
+        "deadline_at": "2026-10-25T21:09:56.250880+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": [
+          "docs/plans/systemic-ux/reviews/GH-179-audio.md"
+        ],
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-AUDIO-R-LUNA-20261025-205156/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-AUDIO-R-LUNA-20261025-205156/process.json",
+        "expected_artifact": "docs/plans/systemic-ux/reviews/GH-179-audio.md",
+        "next_action": "Launch once and verify original server admission; source-only research unlocks named Storage/demo/shared-capture authority blocker.",
+        "user_status": "Очередь удаления исправлена и интегрирована: 56 связанных тестов прошли. Luna проверяет права Storage и demo-ограничения; фактический запуск и чтение исходников подтверждены.",
+        "needs_reconciliation": false,
+        "worker_active": true,
+        "process": "proc_e16ca0e5789f",
+        "pid": 35920,
+        "session_id": "local-2383ace0549c00df0481a9a01a9599ec496e793eba3694cdffa7e60f96f954b5",
+        "actual_provider": "openai-codex",
+        "actual_model": "gpt-6-luna",
+        "last_observed_at": "2026-10-25T20:54:25.901012+00:00",
+        "last_meaningful_progress": "2026-10-25 20:54:02,221 INFO [local-2383ace0549c00df0481a9a01a9599ec496e793eba3694cdffa7e60f96f954b5] agent.conversation_loop: API call #5: model=gpt-6-luna provider=openai-codex in=20554 out=1846 total=22400 latency=15.7s cache=19072/20554 (93%) id=resp_077d1ac4af5f800d016ade6c5afff48191bb43ae99c4e573e2",
+        "controller_next_run_observed": "2026-10-25T20:54:29.054894+00:00"
+      },
       "verification": null
     },
     {
@@ -5605,7 +5634,9 @@
       "verification": {
         "reviewer": "hermes",
         "tested_commit": "3faa61f81476d2ce774b1bcecec7d49365cdc197",
-        "evidence": ["docs/plans/systemic-ux/verification/GH-179-REC-S4.json"]
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-179-REC-S4.json"
+        ]
       },
       "attempt_history": [
         {
@@ -5638,7 +5669,7 @@
     {
       "id": "GH-179-REC-S5",
       "title": "Pending audio delete queue cancellation and sweep concurrency",
-      "status": "running",
+      "status": "verified",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-179",
@@ -5663,31 +5694,41 @@
         "id": "GH-179-REC-S5-LUNA-20261025-202448",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "phase": "model_implementation",
-        "active_actor": "luna",
+        "phase": "accepted_primary_implementation_parent_simplified",
+        "active_actor": "hermes",
         "started_at": "2026-10-25T20:24:48.854909+00:00",
-        "phase_started_at": "2026-10-25T20:26:20.664000+00:00",
+        "phase_started_at": "2026-10-25T20:51:56.250880+00:00",
         "deadline_at": "2026-10-25T20:59:48.854909+00:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
-        "file_lease": ["lib/services/pending_storage_deletes.dart", "test/services/pending_storage_deletes_test.dart"],
+        "file_lease": [
+          "lib/services/pending_storage_deletes.dart",
+          "test/services/pending_storage_deletes_test.dart"
+        ],
         "test_lane": "sole controlled Flutter lane",
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S5-LUNA-20261025-202448/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S5-LUNA-20261025-202448/process.json",
         "expected_artifact": "Two-file queue concurrency patch with public RED/GREEN and explicit persistence limits",
-        "next_action": "Reconcile original session outcome before acceptance; retain two-file/test lease while actual admitted worker runs. No prompt replay.",
-        "user_status": "Song Lab исправлен: 54 связанных теста прошли. Luna работает над гонками очереди удаления аудио; запуск и первое выполнение тестов подтверждены.",
+        "next_action": "REC-S6 persistence safety preflight and remaining shared recorder gates; no device/audio acceptance.",
+        "user_status": "Исправлены гонки очереди удаления аудио: отменённый следующий файл не удаляется, новые элементы не теряются. 56 связанных тестов прошли; код интегрирован.",
         "needs_reconciliation": false,
         "process": "proc_f1b2f9ebb74d",
         "pid": 33565,
         "session_id": "local-4303a145d867b4578811610653164ac2491d730c2a6c42e86668dbea66d5b89a",
         "actual_provider": "openai-codex",
         "actual_model": "gpt-6-luna",
-        "worker_active": true,
-        "last_observed_at": "2026-10-25T20:27:11.918947+00:00",
-        "last_meaningful_progress": "Exact-model original server turn_context admitted 20:26:20.664 UTC. Three allowed source reads, git status/date and existing targeted Flutter invocation at 20:27:03.951 observed. No RED/GREEN or acceptance yet.",
-        "controller_next_run_observed": "2026-10-25T20:26:18.139840+00:00"
+        "worker_active": false,
+        "last_observed_at": "2026-10-25T20:51:56.250880+00:00",
+        "last_meaningful_progress": "Integrated 5034cc89: actual parent original-source RED, 56 primary combined tests PASS, analyzer one info/no warnings/errors, format/diff PASS.",
+        "controller_next_run_observed": "2026-10-25T20:41:39.568837+00:00",
+        "server_ended_at": "2026-10-25T20:39:43.136+00:00"
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "5034cc893574af23b7b817630649cae3cb7acfd2",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-179-REC-S5.json"
+        ]
+      }
     },
     {
       "id": "GH-179-REC-I",
@@ -5702,7 +5743,8 @@
         "GH-179-REC-S2",
         "GH-179-REC-S3",
         "GH-179-REC-S4",
-        "GH-179-REC-S5"
+        "GH-179-REC-S5",
+        "GH-179-REC-S6"
       ],
       "read_files": [],
       "allowed_files": [],
@@ -5714,7 +5756,7 @@
       "max_attempts": 1,
       "run": null,
       "verification": null,
-      "blocked_reason": "Aggregate only: requires all REC-S1 through REC-S5; no product/audio acceptance from source review or first screen fix."
+      "blocked_reason": "Aggregate only: requires all REC-S1 through REC-S6, including persistence failure safety; no device/audio acceptance from partial code fixes."
     },
     {
       "id": "GH-179-TUNER-R",
@@ -5902,7 +5944,8 @@
         "GH-179-AVATAR",
         "GH-179-DEMO-R",
         "GH-179-LEGACY-R",
-        "GH-179-DELETE-OWNER"
+        "GH-179-DELETE-OWNER",
+        "GH-179-REC-S6"
       ],
       "read_files": [],
       "allowed_files": [],
@@ -6267,6 +6310,30 @@
           "note": "Targeted test timeouts/compile failures retained; no accepted GREEN. No replay."
         }
       ]
+    },
+    {
+      "id": "GH-179-REC-S6",
+      "title": "Pending audio cancellation persistence failure safety",
+      "status": "blocked",
+      "executor": "hermes",
+      "kind": "implementation",
+      "issue": "GH-179",
+      "after": [
+        "GH-179-REC-S5"
+      ],
+      "read_files": [
+        "lib/services/pending_storage_deletes.dart",
+        "test/services/pending_storage_deletes_test.dart"
+      ],
+      "allowed_files": [],
+      "acceptance": [
+        "Preflight public SharedPreferences failure/restart seam; register exact source/test pair before writes. Explicitly handle cancel persistence false/throw without claiming restored documents are safe while deletion remains durable. Preserve retry and no-delete-before-cancel boundary; no migration or real Storage deletion."
+      ],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": null,
+      "verification": null,
+      "blocked_reason": "Public persistence-failure and restart fixture/contract must be preflighted before a bounded implementation lease. S5 only accepts sweep snapshot races, not durable cancellation failure."
     }
   ],
   "worker_lanes": {
