@@ -10,6 +10,7 @@ import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/member_label.dart';
 import '../../utils/music_role_icon.dart';
@@ -195,6 +196,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
           );
       final link = 'https://app.flowgroove.app/#/event?t=$token';
       await Clipboard.setData(ClipboardData(text: link));
+      await AnalyticsService.logEventShareCreated();
       if (!mounted) return;
       showAppSnackBar(
         context,

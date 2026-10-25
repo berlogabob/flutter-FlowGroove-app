@@ -1,10 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+// Firebase Core's installed test mocks; no production dependency is needed.
+// ignore: depend_on_referenced_packages
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flowgroove/models/event_kit.dart';
-import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
+import 'package:flowgroove/services/analytics_service.dart';
+import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +19,12 @@ import 'package:mockito/mockito.dart';
 import '../../helpers/mocks.mocks.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    setupFirebaseCoreMocks();
+    await Firebase.initializeApp();
+  });
+
   final setlist = Setlist(
     id: 'sl1',
     bandId: '',
@@ -87,6 +98,24 @@ void main() {
   testWidgets(
     'personal owner shares with free-form people without band members',
     (tester) async {
+      const analyticsChannel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.logEvent',
+        StandardMessageCodec(),
+      );
+      final analyticsEvents = <Object?>[];
+      AnalyticsService.enabled = true;
+      tester.binding.defaultBinaryMessenger
+          .setMockDecodedMessageHandler<Object?>(analyticsChannel, (
+            message,
+          ) async {
+            analyticsEvents.add(message);
+            return <Object?>[null];
+          });
+      addTearDown(() {
+        AnalyticsService.enabled = true;
+        tester.binding.defaultBinaryMessenger
+            .setMockDecodedMessageHandler<Object?>(analyticsChannel, null);
+      });
       final calls = <Map<String, dynamic>>[];
       String? copiedLink;
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -142,6 +171,11 @@ void main() {
         copiedLink,
         'https://app.flowgroove.app/#/event?t=personal.secret',
       );
+      expect(analyticsEvents, [
+        [
+          {'eventName': 'event_share_created', 'parameters': null},
+        ],
+      ]);
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(ListTile, 'Ana'));
@@ -160,6 +194,118 @@ void main() {
       expect(edited['access'], added['access']);
     },
   );
+
+  for (final scenario in [
+    'service failure',
+    'clipboard failure',
+    'consent off',
+    'analytics failure',
+    'no access',
+    'guest',
+  ]) {
+    testWidgets('share analytics respects $scenario', (tester) async {
+      const channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.logEvent',
+        StandardMessageCodec(),
+      );
+      final events = <Object?>[];
+      var creates = 0;
+      String? copied;
+      AnalyticsService.enabled = scenario != 'consent off';
+      tester.binding.defaultBinaryMessenger
+          .setMockDecodedMessageHandler<Object?>(channel, (message) async {
+            events.add(message);
+            if (scenario == 'analytics failure') {
+              return <Object?>['unavailable', 'SDK unavailable', null];
+            }
+            return <Object?>[null];
+          });
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            if (scenario == 'clipboard failure') {
+              throw PlatformException(code: 'clipboard-unavailable');
+            }
+            copied = (call.arguments as Map)['text'] as String;
+          }
+          return null;
+        },
+      );
+      addTearDown(() {
+        AnalyticsService.enabled = true;
+        tester.binding.defaultBinaryMessenger
+            .setMockDecodedMessageHandler<Object?>(channel, null);
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        );
+      });
+      await pump(
+        tester,
+        personal: true,
+        ownerUid: scenario == 'guest' ? 'another-owner' : 'u1',
+        isMember: false,
+        access: const {'rider': 'view'},
+        withSetlist: setlist.copyWith(
+          eventKit: EventKit(
+            people: [
+              EventPerson(
+                id: 'p1',
+                name: 'Ana',
+                role: 'client',
+                access: scenario == 'no access'
+                    ? const {}
+                    : const {'eventInfo': 'view'},
+              ),
+            ],
+          ),
+        ),
+        shareService: EventShareService(
+          invoker: (name, args) async {
+            creates++;
+            if (scenario == 'service failure') {
+              throw PlatformException(code: 'permission-denied');
+            }
+            return {'token': 'private.secret'};
+          },
+        ),
+      );
+      final share = find.byTooltip('Share this event with Ana');
+      if (scenario == 'guest') {
+        expect(share, findsNothing);
+      } else {
+        await tester.ensureVisible(share);
+        await tester.tap(share);
+        await tester.pumpAndSettle();
+      }
+      expect(creates, scenario == 'guest' || scenario == 'no access' ? 0 : 1);
+      if (scenario == 'analytics failure' || scenario == 'consent off') {
+        expect(copied, 'https://app.flowgroove.app/#/event?t=private.secret');
+        expect(find.textContaining('Link for Ana copied'), findsOneWidget);
+      } else {
+        expect(copied, isNull);
+      }
+      expect(
+        events,
+        scenario == 'analytics failure'
+            ? [
+                [
+                  {'eventName': 'event_share_created', 'parameters': null},
+                ],
+              ]
+            : isEmpty,
+      );
+      if (scenario == 'service failure' || scenario == 'clipboard failure') {
+        expect(
+          find.textContaining('Could not create the link:'),
+          findsOneWidget,
+        );
+      }
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+    });
+  }
 
   testWidgets('personal guest keeps their area grant and writes to the owner', (
     tester,
