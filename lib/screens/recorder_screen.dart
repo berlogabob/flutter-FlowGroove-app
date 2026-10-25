@@ -217,8 +217,26 @@ class _RecordingCard extends ConsumerWidget {
     final url = recording.attachmentIds.isEmpty
         ? null
         : recording.attachmentIds.first;
-    if (url != null) await pending.enqueue(url);
-    await repo.deleteEntry(ideaInboxSongId, recording.id);
+    try {
+      if (url != null) await pending.enqueue(url);
+      if (!context.mounted || _editableUid(ref) != uid) {
+        if (url != null) await pending.cancel(url);
+        return;
+      }
+      await repo.deleteEntry(ideaInboxSongId, recording.id);
+    } catch (_) {
+      if (url != null) {
+        try {
+          await pending.cancel(url);
+        } catch (_) {
+          // shortcut: persistence failure can leave the URL queued; REC-S5 must address recovery.
+        }
+      }
+      if (context.mounted) {
+        showAppSnackBar(context, 'Could not delete recording');
+      }
+      return;
+    }
     if (url != null) unawaited(pending.flushAfter(url, undoGracePeriod));
     if (context.mounted) {
       showAppSnackBar(

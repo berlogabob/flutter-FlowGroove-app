@@ -9,6 +9,7 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/recorder_screen.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
+import 'package:flowgroove/services/pending_storage_deletes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,8 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
   // Entries keyed by songId — the inbox and linked songs are separate lists,
   // matching the Firestore subcollection layout.
   final entries = <String, List<SongLabEntry>>{};
+  bool failDelete = false;
+  int deleteAttempts = 0;
   final _controllers = <String, StreamController<List<SongLabEntry>>>{};
 
   StreamController<List<SongLabEntry>> _controller(String songId) =>
@@ -53,8 +56,35 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
     String entryId, {
     String? bandId,
   }) async {
+    deleteAttempts++;
+    if (failDelete) throw StateError('secret delete failure');
     entries[songId]?.removeWhere((e) => e.id == entryId);
     _emit(songId);
+  }
+}
+
+class _PausedPendingDeletes extends PendingStorageDeletes {
+  final release = Completer<void>();
+  final enqueued = <String>[];
+  final flushed = <String>[];
+  final cancelled = <String>[];
+  final gracePeriods = <Duration>[];
+
+  @override
+  Future<void> enqueue(String url) async {
+    enqueued.add(url);
+    await release.future;
+  }
+
+  @override
+  Future<void> cancel(String url) async {
+    cancelled.add(url);
+  }
+
+  @override
+  Future<void> flushAfter(String url, Duration grace) async {
+    flushed.add(url);
+    gracePeriods.add(grace);
   }
 }
 
@@ -73,6 +103,7 @@ void main() {
     type: LabEntryType.recording,
     title: 'Riff in E',
     body: 'hummed on the bus',
+    attachmentIds: ['https://example.test/audio.aac?token=private'],
     authorId: 'u1',
     createdAt: DateTime(2026, 7, 16),
     updatedAt: DateTime(2026, 7, 16),
@@ -82,6 +113,7 @@ void main() {
     WidgetTester tester, {
     List<SongLabEntry> inbox = const [],
     _Identity? identity,
+    _PausedPendingDeletes? pending,
     bool autoStart = false,
   }) async {
     final auth = MockFirebaseAuth();
@@ -98,6 +130,9 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => auth),
           appUserProvider.overrideWith(() => identity ?? _Identity()),
           labRepositoryProvider.overrideWithValue(repo),
+          pendingStorageDeletesProvider.overrideWithValue(
+            pending ?? (_PausedPendingDeletes()..release.complete()),
+          ),
           songsProvider.overrideWith((ref) => Stream.value([song])),
         ],
         child: MaterialApp(home: RecorderScreen(autoStart: autoStart)),
@@ -263,8 +298,68 @@ void main() {
       await tester.pumpAndSettle();
       expect(repo.entries[ideaInboxSongId], isEmpty);
     });
+    testWidgets('enqueue completion after identity revocation cancels URL', (
+      tester,
+    ) async {
+      final identity = _Identity();
+      final pending = _PausedPendingDeletes();
+      final repo = await pump(
+        tester,
+        inbox: [recording()],
+        identity: identity,
+        pending: pending,
+      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      expect(pending.enqueued, recording().attachmentIds);
+      identity.change(denied['different identity']!);
+      pending.release.complete();
+      await tester.pumpAndSettle();
+      expect(repo.deleteAttempts, 0);
+      expect(repo.entries[ideaInboxSongId], hasLength(1));
+      expect(pending.cancelled, recording().attachmentIds);
+      expect(pending.flushed, isEmpty);
+      expect(find.text('Recording deleted'), findsNothing);
+    });
+    testWidgets('enqueue completion after unmount cancels URL', (tester) async {
+      final pending = _PausedPendingDeletes();
+      final repo = await pump(tester, inbox: [recording()], pending: pending);
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      expect(pending.enqueued, recording().attachmentIds);
+      await tester.pumpWidget(const SizedBox.shrink());
+      pending.release.complete();
+      await tester.pumpAndSettle();
+      expect(repo.deleteAttempts, 0);
+      expect(repo.entries[ideaInboxSongId], hasLength(1));
+      expect(pending.cancelled, recording().attachmentIds);
+      expect(pending.flushed, isEmpty);
+    });
+    testWidgets('document deletion failure cancels URL and stays private', (
+      tester,
+    ) async {
+      final pending = _PausedPendingDeletes()..release.complete();
+      final repo = await pump(tester, inbox: [recording()], pending: pending);
+      repo.failDelete = true;
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      expect(repo.entries[ideaInboxSongId], hasLength(1));
+      expect(pending.cancelled, recording().attachmentIds);
+      expect(pending.flushed, isEmpty);
+      expect(find.text('Recording deleted'), findsNothing);
+      expect(find.text('Could not delete recording'), findsOneWidget);
+      expect(find.textContaining('secret'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
     testWidgets('delete removes the recording with an Undo', (tester) async {
-      final repo = await pump(tester, inbox: [recording()]);
+      final pending = _PausedPendingDeletes()..release.complete();
+      final repo = await pump(tester, inbox: [recording()], pending: pending);
 
       await tester.tap(find.byType(PopupMenuButton<String>));
       await tester.pumpAndSettle();
@@ -273,9 +368,12 @@ void main() {
 
       expect(repo.entries[ideaInboxSongId], isEmpty);
 
+      expect(pending.flushed, recording().attachmentIds);
+      expect(pending.gracePeriods, [const Duration(seconds: 8)]);
       await tester.tap(find.text('Undo'));
       await tester.pumpAndSettle();
       expect(repo.entries[ideaInboxSongId], hasLength(1));
+      expect(pending.cancelled, recording().attachmentIds);
     });
   });
 }
