@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T05:15:00+00:00",
+  "updated_at": "2026-10-25T05:27:00+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -2196,7 +2196,18 @@
         "requested_model": "gpt-6-luna",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
         "active_actor": "luna",
-        "phase": "model_implementation",
+        "phase": "model_implementation_gateway_continues_cli_disconnected",
+        "session_id": "local-3ded22748ccf697d4ee83f72e023ee610b20a765c440b8e150f751ac30974f8a",
+        "needs_reconciliation": true,
+        "controller_observation": {
+          "last_api_call": 9,
+          "last_api_at": "2026-10-25T05:22:38.677+00:00",
+          "controlled_check_pid": 52182,
+          "controlled_check": "worker green EventKitEditorScreen regression",
+          "baseline_visible_passes": 15,
+          "red_done_success": false,
+          "decision": "Server continued after CLI disappeared; retain source/test lease and occupied Luna/test slots. No resend or conflicting dispatch; worker tests are not independent acceptance."
+        },
         "file_lease": ["lib/screens/setlists/event_kit_editor_screen.dart", "test/screens/setlists/event_kit_editor_test.dart"],
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A2-LUNA-20261025-0515/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A2-LUNA-20261025-0515/process.json",
@@ -2233,7 +2244,7 @@
     {
       "id": "GH-189-L0",
       "title": "Resolve canonical URL, legacy compatibility and association source paths",
-      "status": "review",
+      "status": "verified",
       "executor": "luna",
       "kind": "research",
       "issue": "GH-189",
@@ -2271,7 +2282,7 @@
         "requested_model": "gpt-6-luna",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
         "active_actor": "hermes",
-        "phase": "parent_source_review_pending",
+        "phase": "accepted_parent_source_preflight_with_corrections",
         "session_id": "local-3a09bd073eb6ea2c079dbe5d960249fea5e6abede1aa91a1ff16c65a2c96f446",
         "actual_model": "gpt-6-luna",
         "needs_reconciliation": false,
@@ -2282,9 +2293,17 @@
         "file_lease": ["docs/plans/systemic-ux/reviews/GH-189-links.md"],
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-L0-LUNA-20261025-0436/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-L0-LUNA-20261025-0436/process.json",
-        "selection_reason": "A1 rejected admission/no-code turn is controller-owned direct fallback, existing baseline uses sole test lane in separate research checkout. L0 is next dependency-ready worker slice and unlocks exact L1-L4 contract/signing blockers. Read-only file tools; no test/build lane."
+        "selection_reason": "A1 rejected admission/no-code turn is controller-owned direct fallback, existing baseline uses sole test lane in separate research checkout. L0 is next dependency-ready worker slice and unlocks exact L1-L4 contract/signing blockers. Read-only file tools; no test/build lane.",
+        "acceptance_phase": "accepted_parent_source_preflight_with_corrections"
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "87b76c24",
+        "evidence": [
+          "docs/plans/systemic-ux/reviews/GH-189-links.md",
+          "docs/plans/systemic-ux/verification/GH-189-L0.json"
+        ]
+      }
     },
     {
       "id": "GH-189-L1",

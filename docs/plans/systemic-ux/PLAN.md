@@ -167,7 +167,8 @@ Registry изменяет только один родительский про�
 - [x] **GH-189-A0** · centralized event-sharing names only; integrated af6be538, primary analyzer/format/diff PASS. No instrumentation/GA4 credit.
 - [x] **GH-189-A1** · Hermes direct fallback after retained Luna admission failure · Parameterless consent-safe methods; integrated `dcccc355`, 27 targeted / 33 consent-combined tests PASS. Exact SDK transport names/null payload, consent-off suppression and nonfatal SDK errors checked; no caller/device/GA4 credit.
 - [ ] **GH-189-A2/A3** · successful create → once-per-link-open/successful suggestion. A2 dispatched to Luna in warm ux006, exclusive editor/test lease, `proc_0e91bb7632e4`, deadline 05:45 UTC; A3 blocked on fixture/lifecycle preflight.
-- [ ] **GH-189-L0/L1/L2/L3/L4** · canonical host/legacy/association preflight → URL compatibility → Android → iOS/Hosting source configuration. L1–L4 blocked until exact contract/signing/paths established; no deployment.
+- [x] **GH-189-L0** · independent source preflight accepted with parent corrections; ten source identities checked, legacy hash contract and association gaps recorded. Not device/signing/ownership acceptance.
+- [ ] **GH-189-L1/L2/L3/L4** · URL compatibility → Android → iOS/Hosting configuration. Blocked on deliberate native URL policy, signing identity and actual source/output mapping; no deployment.
 - [ ] **GH-189-V** · integrated permission/privacy/legacy regressions + actual Android/iOS opening and GA4 Realtime. Added to FINAL-TEST dependencies; no release waiver.
 - [x] **GH-188-R** · luna + independent Hermes source acceptance · GitHub #188: per-person access ticks UI
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-188.md`. Source-only; missing controls confirmed; issue stays OPEN.
