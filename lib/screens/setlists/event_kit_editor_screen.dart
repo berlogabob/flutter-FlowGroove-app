@@ -1019,22 +1019,22 @@ const _suggestedRoles = [
   'manager',
 ];
 
-/// "They will see…" for the role currently typed.
+/// "They will see…" for the person's effective event access.
 class _AccessPreview extends StatelessWidget {
-  const _AccessPreview({required this.role});
+  const _AccessPreview({required this.access, required this.canSuggest});
 
-  final String role;
+  final Map<String, String> access;
+  final bool canSuggest;
 
   @override
   Widget build(BuildContext context) {
-    final preset = presetForRole(role);
     final granted = [
       for (final area in EventArea.all)
-        if (canViewArea(preset.access, area)) area,
+        if (canViewArea(access, area)) area,
     ];
     final hidden = [
       for (final area in EventArea.all)
-        if (!canViewArea(preset.access, area)) area,
+        if (!canViewArea(access, area)) area,
     ];
     return Container(
       width: double.infinity,
@@ -1050,7 +1050,7 @@ class _AccessPreview extends StatelessWidget {
           const SizedBox(height: 4),
           for (final area in granted)
             Text(
-              canEditArea(preset.access, area)
+              canEditArea(access, area)
                   ? '+ ${EventArea.label(area)}  — can edit'
                   : '+ ${EventArea.label(area)}',
               style: MonoPulseTypography.bodySmall,
@@ -1064,7 +1064,7 @@ class _AccessPreview extends StatelessWidget {
                 color: context.mp.textTertiary,
               ),
             ),
-          if (preset.canSuggest) ...[
+          if (canSuggest) ...[
             const SizedBox(height: 4),
             Text(
               'Can suggest changes (the band decides).',
@@ -1092,6 +1092,26 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
   late final _name = TextEditingController(text: widget.person?.name);
   late final _role = TextEditingController(text: widget.person?.role);
   late final _notes = TextEditingController(text: widget.person?.notes);
+  late Map<String, String> _access;
+  late bool _canSuggest;
+  late String _presetRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _presetRole = _role.text.trim();
+    final preset = presetForRole(_presetRole);
+    _access = Map.of(widget.person?.access ?? preset.access);
+    _canSuggest = widget.person?.canSuggest ?? preset.canSuggest;
+  }
+
+  void _resetForRole(String role) {
+    if (role.trim() == _presetRole) return;
+    final preset = presetForRole(role.trim());
+    _presetRole = role.trim();
+    _access = Map.of(preset.access);
+    _canSuggest = preset.canSuggest;
+  }
 
   @override
   void dispose() {
@@ -1129,7 +1149,7 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
             const SizedBox(height: MonoPulseSpacing.md),
             TextField(
               controller: _role,
-              onChanged: (_) => setState(() {}),
+              onChanged: (role) => setState(() => _resetForRole(role)),
               decoration: const InputDecoration(
                 labelText: 'Role (Photographer, Manager, +1…)',
                 border: OutlineInputBorder(),
@@ -1143,7 +1163,10 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
                 for (final role in _suggestedRoles)
                   ActionChip(
                     label: Text(MusicRoleIcon.getDisplayWithIcon(role)),
-                    onPressed: () => setState(() => _role.text = role),
+                    onPressed: () => setState(() {
+                      _role.text = role;
+                      _resetForRole(role);
+                    }),
                   ),
               ],
             ),
@@ -1152,7 +1175,42 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
             // made. Sharing a whole event with someone who only needs the
             // running order is both a leak and a support call ("I don't
             // understand this"), so the grant is never invisible.
-            _AccessPreview(role: _role.text),
+            Text(
+              'Access for this event',
+              style: MonoPulseTypography.labelMedium,
+            ),
+            for (final area in EventArea.all)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    EventArea.label(area),
+                    style: MonoPulseTypography.bodySmall,
+                  ),
+                  SegmentedButton<String>(
+                    key: ValueKey('access-$area'),
+                    segments: const [
+                      ButtonSegment(value: 'hidden', label: Text('Hidden')),
+                      ButtonSegment(value: 'view', label: Text('View')),
+                      ButtonSegment(value: 'edit', label: Text('Edit')),
+                    ],
+                    selected: {_access[area] ?? 'hidden'},
+                    onSelectionChanged: (selection) => setState(() {
+                      final level = selection.single;
+                      if (level == 'hidden') {
+                        _access.remove(area);
+                      } else {
+                        _access[area] = level;
+                      }
+                    }),
+                  ),
+                ],
+              ),
+            Text(
+              'Role changes reset custom access to the role defaults.',
+              style: MonoPulseTypography.bodySmall,
+            ),
+            _AccessPreview(access: _access, canSuggest: _canSuggest),
             const SizedBox(height: MonoPulseSpacing.md),
             TextField(
               controller: _notes,
@@ -1181,12 +1239,8 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
                       EventPerson(
                         id: widget.person?.id ?? const Uuid().v4(),
                         uid: widget.person?.uid,
-                        access: widget.person?.role == _role.text.trim()
-                            ? widget.person!.access
-                            : presetForRole(_role.text.trim()).access,
-                        canSuggest: widget.person?.role == _role.text.trim()
-                            ? widget.person!.canSuggest
-                            : presetForRole(_role.text.trim()).canSuggest,
+                        access: _access,
+                        canSuggest: _canSuggest,
                         name: name,
                         role: _role.text.trim(),
                         notes: _notes.text.trim().isEmpty

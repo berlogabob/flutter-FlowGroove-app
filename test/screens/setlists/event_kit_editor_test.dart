@@ -125,6 +125,7 @@ void main() {
         find.widgetWithText(TextField, 'Role (Photographer, Manager, +1…)'),
         'Photographer',
       );
+      await tester.ensureVisible(find.text('Add'));
       await tester.tap(find.text('Add'));
       await tester.pumpAndSettle();
       final added =
@@ -149,6 +150,7 @@ void main() {
         find.widgetWithText(TextField, 'Name'),
         'Ana Maria',
       );
+      await tester.ensureVisible(find.text('Save'));
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       final edited =
@@ -187,6 +189,218 @@ void main() {
   });
 
   group('EventKitEditorScreen (#53)', () {
+    testWidgets('person access is editable and saved per area', (tester) async {
+      final firestore = await pump(tester);
+      await tester.tap(find.text('Add person'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextField, 'Name'), 'Ana');
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Role (Photographer, Manager, +1…)'),
+        'client',
+      );
+      expect(
+        find.text('+ Event info (date, venue, call time)'),
+        findsOneWidget,
+      );
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('access-eventInfo')),
+      );
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const ValueKey('access-eventInfo')),
+          matching: find.text('Edit'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text('+ Event info (date, venue, call time)  — can edit'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Role changes reset custom access to the role defaults.'),
+        findsOneWidget,
+      );
+      await tester.ensureVisible(find.text('Add'));
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+      final person =
+          (writesTo(firestore, 'people').single! as List).single as Map;
+      expect(person['access'], {'eventInfo': 'edit', 'runningOrder': 'view'});
+      expect(person['canSuggest'], isTrue);
+    });
+
+    testWidgets(
+      'saved overrides drive preview, preserve identity and cancel safely',
+      (tester) async {
+        final firestore = await pump(
+          tester,
+          withSetlist: setlist.copyWith(
+            eventKit: const EventKit(
+              people: [
+                EventPerson(
+                  id: 'p1',
+                  uid: 'guest1',
+                  name: 'Ana',
+                  role: 'client',
+                  notes: 'Keep this',
+                  access: {'stage': 'edit'},
+                  canSuggest: false,
+                ),
+              ],
+            ),
+          ),
+        );
+        await tester.tap(find.widgetWithText(ListTile, 'Ana'));
+        await tester.pumpAndSettle();
+        expect(find.text('+ Stage plot  — can edit'), findsOneWidget);
+        expect(
+          find.text('Can suggest changes (the band decides).'),
+          findsNothing,
+        );
+        for (final area in [
+          'eventInfo',
+          'runningOrder',
+          'songDetail',
+          'stage',
+          'rider',
+        ]) {
+          final control = find.byKey(ValueKey('access-$area'));
+          await tester.ensureVisible(control);
+          await tester.tap(
+            find.descendant(of: control, matching: find.text('View')),
+          );
+          await tester.pumpAndSettle();
+        }
+        final stage = find.byKey(const ValueKey('access-stage'));
+        await tester.ensureVisible(stage);
+        await tester.tap(
+          find.descendant(of: stage, matching: find.text('Hidden')),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('− Stage plot'), findsOneWidget);
+        await tester.ensureVisible(find.text('Save'));
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        final saved =
+            (writesTo(firestore, 'people').single! as List).single as Map;
+        expect(saved, containsPair('id', 'p1'));
+        expect(saved, containsPair('uid', 'guest1'));
+        expect(saved, containsPair('notes', 'Keep this'));
+        expect(saved.containsKey('canSuggest'), isFalse);
+        expect(saved['access'], {
+          'eventInfo': 'view',
+          'runningOrder': 'view',
+          'songDetail': 'view',
+          'rider': 'view',
+        });
+        await tester.tap(find.widgetWithText(ListTile, 'Ana'));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Name'),
+          'Discard me',
+        );
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        verifyNever(
+          firestore.updateEventKitArea(
+            setlistId: anyNamed('setlistId'),
+            area: 'people',
+            value: anyNamed('value'),
+            bandId: anyNamed('bandId'),
+            uid: anyNamed('uid'),
+          ),
+        );
+        expect(find.widgetWithText(ListTile, 'Ana'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'typed and chip role changes reset overrides without changing next person defaults',
+      (tester) async {
+        final firestore = await pump(tester);
+        await tester.tap(find.text('Add person'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.widgetWithText(TextField, 'Name'), 'Ana');
+        final role = find.widgetWithText(
+          TextField,
+          'Role (Photographer, Manager, +1…)',
+        );
+        await tester.enterText(role, 'client');
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Can suggest changes (the band decides).'),
+          findsOneWidget,
+        );
+        final eventInfo = find.byKey(const ValueKey('access-eventInfo'));
+        await tester.ensureVisible(eventInfo);
+        await tester.tap(
+          find.descendant(of: eventInfo, matching: find.text('Hidden')),
+        );
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(role);
+        await tester.enterText(role, 'Photographer');
+        await tester.pumpAndSettle();
+        expect(
+          find.text('+ Event info (date, venue, call time)'),
+          findsOneWidget,
+        );
+        expect(find.text('+ Equipment / rider  — can edit'), findsOneWidget);
+        expect(
+          find.text('Can suggest changes (the band decides).'),
+          findsNothing,
+        );
+        final manager = find.byWidgetPredicate(
+          (w) =>
+              w is ActionChip &&
+              w.label is Text &&
+              ((w.label as Text).data?.contains('Manager') ?? false),
+        );
+        await tester.ensureVisible(manager);
+        await tester.tap(manager);
+        await tester.pumpAndSettle();
+        expect(find.text('+ Lyrics, chords, key & BPM'), findsOneWidget);
+        expect(
+          find.text('Can suggest changes (the band decides).'),
+          findsOneWidget,
+        );
+        await tester.ensureVisible(find.text('Add'));
+        await tester.tap(find.text('Add'));
+        await tester.pumpAndSettle();
+        final saved =
+            (writesTo(firestore, 'people').single! as List).single as Map;
+        expect(saved['access'], {
+          'eventInfo': 'view',
+          'runningOrder': 'view',
+          'songDetail': 'view',
+          'stage': 'view',
+          'rider': 'view',
+        });
+        expect(saved['canSuggest'], isTrue);
+        await tester.tap(find.text('Add person'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text('+ Event info (date, venue, call time)'),
+          findsOneWidget,
+        );
+        expect(find.text('− Stage plot'), findsOneWidget);
+        expect(
+          find.text('Can suggest changes (the band decides).'),
+          findsNothing,
+        );
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        verifyNever(
+          firestore.updateEventKitArea(
+            setlistId: anyNamed('setlistId'),
+            area: 'people',
+            value: anyNamed('value'),
+            bandId: anyNamed('bandId'),
+            uid: anyNamed('uid'),
+          ),
+        );
+      },
+    );
+
     testWidgets('renders the 9-zone grid and sections', (tester) async {
       await pump(tester);
       expect(find.text('Stage plot'), findsOneWidget);
@@ -291,6 +505,7 @@ void main() {
         find.widgetWithText(TextField, 'Role (Photographer, Manager, +1…)'),
         'Photographer',
       );
+      await tester.ensureVisible(find.text('Add'));
       await tester.tap(find.text('Add'));
       await tester.pumpAndSettle();
 
