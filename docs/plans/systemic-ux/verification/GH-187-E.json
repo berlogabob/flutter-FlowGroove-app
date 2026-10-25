@@ -1,0 +1,36 @@
+{
+  "task": "GH-187-E",
+  "reviewer": "hermes",
+  "scope": "Source/callable integration only; not device, UI or issue acceptance",
+  "tested_commit": "df4c4c39",
+  "worker": {
+    "provider": "openai-codex",
+    "model": "gpt-6-luna",
+    "session_id": "local-64ffe2a8cfbb600d1c16934609fd838d1b9700436e321ac121384c6a4ea2aacb",
+    "terminal_at": "2026-10-25T12:38:25.245+00:00",
+    "terminal_reason": "text_response(stop), 25 calls",
+    "outcome": "Incomplete final fixture; parent completed directly, no replay. Disconnected CLI and earlier fixture/assertion errors preserved privately."
+  },
+  "checks": {
+    "primary_behavioral_red": "Original source with final test: 0 passing, one assertion failure because runningOrder absent; emulator exit 1",
+    "warm_callable_green": "82 passing, exit 0",
+    "primary_combined_green": "90 passing, exit 0: callable-event-share.test.js + callable-security-fixes.test.js",
+    "syntax": "node --check production and test: exit 0",
+    "whitespace": "git diff --check: exit 0",
+    "exact_primary_warm_bytes": true
+  },
+  "coverage": [
+    "Authorized anonymous token, claimed guest, band member and personal scope; existing owner and guest equality regressions retained",
+    "Duplicate song occurrences and breaks retain stable identities and exact v1 fingerprint",
+    "Only explicit proposal fields exposed; opaque fields, chart contents and tokens not leaked",
+    "No runningOrder/items/songs for stage-only access",
+    "Missing, empty, null-item, missing-ID and duplicate-ID legacy orders marked unready without writes",
+    "Existing permission, demo, quota, atomic resolution and security regressions"
+  ],
+  "sha256": {
+    "functions/src/events.js": "40600b07511433ea9eb164cc9e4acf2ceb92bb2022a5966065051f37767f0b0c",
+    "functions/test/callable-event-share.test.js": "44ffa0be66cea71ecfcf7300d3a5e757a536aabad0196ed9976403c560dd68c4"
+  },
+  "private_evidence_directory": "audit/2026-10-23-systemic-ux/workers/GH-187-E-LUNA-20261025-1230",
+  "remaining": "GH-187-C/U/I2/V, device/human and final Graphify/release gates. No deployment, install, migration or issue closure."
+}
