@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T19:08:41.194954+00:00",
+  "updated_at": "2026-10-25T20:27:11.918947+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -5530,8 +5530,8 @@
     {
       "id": "GH-179-REC-S4",
       "title": "Song Lab recording queue cancellation and failed-delete recovery",
-      "status": "running",
-      "executor": "luna",
+      "status": "verified",
+      "executor": "hermes (fallback after failed Luna admission)",
       "kind": "implementation",
       "issue": "GH-179",
       "after": [
@@ -5564,7 +5564,7 @@
         "id": "GH-179-REC-S4-LUNA-20261025-200510",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "phase": "parent_fallback_due_after_admission_failure",
+        "phase": "integrated",
         "active_actor": "hermes",
         "started_at": "2026-10-25T20:05:10.694627+00:00",
         "phase_started_at": "2026-10-25T20:09:10.023307+00:00",
@@ -5578,16 +5578,16 @@
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S4-LUNA-20261025-200510/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S4-LUNA-20261025-200510/process.json",
         "expected_artifact": "Song Lab recording deletion cancellation two-file patch with public rendered RED/GREEN",
-        "next_action": "Controller direct fallback on REC-S4 after confirming no server turn/admitted tool events; do not replay original prompt. Exclusive source/test lease retained for parent handoff.",
-        "user_status": "Исправление Recorder принято. Следующий запуск Song Lab не начался из-за тайм-аута шлюза; нужна прямая работа Hermes, повторный запрос Luna запрещён.",
-        "needs_reconciliation": true,
-        "last_observed_at": "2026-10-25T20:09:10.023307+00:00",
+        "next_action": "Accepted source slice; dispatch independent REC-S5. Device/audio and aggregate gates remain open.",
+        "user_status": "В Song Lab исправлена отмена удаления аудио при ошибке удаления записи; 54 связанных теста прошли, код интегрирован. Очередь и устройство ещё не приняты.",
+        "needs_reconciliation": false,
+        "last_observed_at": "2026-10-25T20:23:55.832391+00:00",
         "process": "proc_66d5c0a0a3b0",
         "pid": 32040,
         "session_id": null,
         "cli_exit": 1,
         "worker_active": false,
-        "last_meaningful_progress": "Worker did not admit a server turn: empty session, zero tokens, Gateway starting: deadline. CLI terminal recorded; supervised gateway process exists but does not prove RPC readiness. No prompt replay.",
+        "last_meaningful_progress": "Controller direct completion: actual failed-delete RED/GREEN, 54 combined visible PASS, scoped analyzer 5 infos/no warnings/errors, final format/diff PASS. Integrated 3faa61f81476d2ce774b1bcecec7d49365cdc197; prior failed admission retained.",
         "scheduler_readback": {
           "id": "748ba92c74d8",
           "enabled": true,
@@ -5599,9 +5599,14 @@
             "by": "Berlogas-MBP:10669:b876118c96b94474bfb7427171450397"
           }
         },
-        "controller_next_run_observed": "2026-10-25T20:10:32.789069+00:00"
+        "controller_next_run_observed": "2026-10-25T20:26:18.139840+00:00",
+        "lease_released_at": "2026-10-25T20:23:55.832391+00:00"
       },
-      "verification": null,
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "3faa61f81476d2ce774b1bcecec7d49365cdc197",
+        "evidence": ["docs/plans/systemic-ux/verification/GH-179-REC-S4.json"]
+      },
       "attempt_history": [
         {
           "actor": "luna",
@@ -5633,7 +5638,7 @@
     {
       "id": "GH-179-REC-S5",
       "title": "Pending audio delete queue cancellation and sweep concurrency",
-      "status": "queued",
+      "status": "running",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-179",
@@ -5642,7 +5647,8 @@
       ],
       "read_files": [
         "lib/services/pending_storage_deletes.dart",
-        "test/services/pending_storage_deletes_test.dart"
+        "test/services/pending_storage_deletes_test.dart",
+        "lib/services/storage_service.dart"
       ],
       "allowed_files": [
         "lib/services/pending_storage_deletes.dart",
@@ -5653,7 +5659,34 @@
       ],
       "timeout_s": 2100,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-179-REC-S5-LUNA-20261025-202448",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "model_implementation",
+        "active_actor": "luna",
+        "started_at": "2026-10-25T20:24:48.854909+00:00",
+        "phase_started_at": "2026-10-25T20:26:20.664000+00:00",
+        "deadline_at": "2026-10-25T20:59:48.854909+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": ["lib/services/pending_storage_deletes.dart", "test/services/pending_storage_deletes_test.dart"],
+        "test_lane": "sole controlled Flutter lane",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S5-LUNA-20261025-202448/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S5-LUNA-20261025-202448/process.json",
+        "expected_artifact": "Two-file queue concurrency patch with public RED/GREEN and explicit persistence limits",
+        "next_action": "Reconcile original session outcome before acceptance; retain two-file/test lease while actual admitted worker runs. No prompt replay.",
+        "user_status": "Song Lab исправлен: 54 связанных теста прошли. Luna работает над гонками очереди удаления аудио; запуск и первое выполнение тестов подтверждены.",
+        "needs_reconciliation": false,
+        "process": "proc_f1b2f9ebb74d",
+        "pid": 33565,
+        "session_id": "local-4303a145d867b4578811610653164ac2491d730c2a6c42e86668dbea66d5b89a",
+        "actual_provider": "openai-codex",
+        "actual_model": "gpt-6-luna",
+        "worker_active": true,
+        "last_observed_at": "2026-10-25T20:27:11.918947+00:00",
+        "last_meaningful_progress": "Exact-model original server turn_context admitted 20:26:20.664 UTC. Three allowed source reads, git status/date and existing targeted Flutter invocation at 20:27:03.951 observed. No RED/GREEN or acceptance yet.",
+        "controller_next_run_observed": "2026-10-25T20:26:18.139840+00:00"
+      },
       "verification": null
     },
     {
