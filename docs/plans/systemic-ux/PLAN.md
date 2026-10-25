@@ -165,7 +165,8 @@ Registry изменяет только один родительский про�
 - [x] **GH-189-R** · luna + independent Hermes source acceptance · Event deep links and analytics; partial stream deviations retained, not device/GA4 acceptance.
   - Scope: `reviews/GH-189.md`, `verification/GH-189-R.json`; exact source identity checked against 13e054c0. Remote issue OPEN.
 - [x] **GH-189-A0** · centralized event-sharing names only; integrated af6be538, primary analyzer/format/diff PASS. No instrumentation/GA4 credit.
-- [ ] **GH-189-A1/A2/A3** · consent-safe service → successful create → once-per-link-open/successful suggestion. Existing public fixtures; A2 waits GH-188-I lease; A3 blocked on fixture/lifecycle preflight.
+- [x] **GH-189-A1** · Hermes direct fallback after retained Luna admission failure · Parameterless consent-safe methods; integrated `dcccc355`, 27 targeted / 33 consent-combined tests PASS. Exact SDK transport names/null payload, consent-off suppression and nonfatal SDK errors checked; no caller/device/GA4 credit.
+- [ ] **GH-189-A2/A3** · successful create → once-per-link-open/successful suggestion. A2 dispatched to Luna in warm ux006, exclusive editor/test lease, `proc_0e91bb7632e4`, deadline 05:45 UTC; A3 blocked on fixture/lifecycle preflight.
 - [ ] **GH-189-L0/L1/L2/L3/L4** · canonical host/legacy/association preflight → URL compatibility → Android → iOS/Hosting source configuration. L1–L4 blocked until exact contract/signing/paths established; no deployment.
 - [ ] **GH-189-V** · integrated permission/privacy/legacy regressions + actual Android/iOS opening and GA4 Realtime. Added to FINAL-TEST dependencies; no release waiver.
 - [x] **GH-188-R** · luna + independent Hermes source acceptance · GitHub #188: per-person access ticks UI

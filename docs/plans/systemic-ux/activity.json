@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T04:40:00+00:00",
+  "updated_at": "2026-10-25T05:15:00+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -2098,7 +2098,7 @@
     {
       "id": "GH-189-A1",
       "title": "Consent-safe event-sharing analytics methods",
-      "status": "review",
+      "status": "verified",
       "executor": "hermes direct fallback after bounded Luna admission failure",
       "kind": "implementation",
       "issue": "GH-189",
@@ -2131,7 +2131,11 @@
         "requested_model": "gpt-6-luna",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
         "active_actor": "hermes",
-        "phase": "parent_baseline_passed_direct_implementation_pending",
+        "phase": "accepted_primary_direct_fallback",
+        "primary_commit": "dcccc355a7f13021ad9d940c5668fdd93fb6923b",
+        "primary_targeted_tests_passed": 27,
+        "primary_combined_tests_passed": 33,
+        "parent_read_window_extension": "Installed Firebase Analytics Pigeon logEvent transport and firebase_core_platform_interface/test.dart mock setup; no new dependency. Existing public AnalyticsService seam remains approved.",
         "parent_baseline_result": {"exit_code": 0, "visible_tests_passed": 18, "done_success": true, "implementation_accepted": false},
         "session_id": "local-8491fdbc357dfc5d6fabf957fadd6a73b3a08d9291123c9501ad2f6e0330f6d1",
         "gateway_turn_status": "terminal_text_response_stop_2026-10-25T03:20:30.517+00:00",
@@ -2148,12 +2152,16 @@
         "needs_reconciliation": false,
         "test_admission": "No tests/analyze/format before parent test-lane.free marker. At most 600-second foreground wait, otherwise report blocked."
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "dcccc355a7f13021ad9d940c5668fdd93fb6923b",
+        "evidence": ["docs/plans/systemic-ux/verification/GH-189-A1.json"]
+      }
     },
     {
       "id": "GH-189-A2",
       "title": "Record successful event share creation",
-      "status": "queued",
+      "status": "running",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-189",
@@ -2164,7 +2172,9 @@
       "read_files": [
         "lib/screens/setlists/event_kit_editor_screen.dart",
         "test/screens/setlists/event_kit_editor_test.dart",
-        "lib/services/analytics_service.dart"
+        "lib/services/analytics_service.dart",
+        "lib/services/analytics_events.dart",
+        "test/services/analytics_service_test.dart"
       ],
       "allowed_files": [
         "lib/screens/setlists/event_kit_editor_screen.dart",
@@ -2175,7 +2185,23 @@
       ],
       "timeout_s": 1800,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-189-A2-LUNA-20261025-0515",
+        "started_at": "2026-10-25T05:14:14.523511+00:00",
+        "process": "proc_0e91bb7632e4",
+        "pid": 50573,
+        "actual_model": "gpt-6-luna",
+        "deadline_at": "2026-10-25T05:45:00+00:00",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_ux006",
+        "active_actor": "luna",
+        "phase": "model_implementation",
+        "file_lease": ["lib/screens/setlists/event_kit_editor_screen.dart", "test/screens/setlists/event_kit_editor_test.dart"],
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A2-LUNA-20261025-0515/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-189-A2-LUNA-20261025-0515/process.json",
+        "selection_reason": "A1 accepted and GH-188 integrated; highest-priority dependency-ready implementation. Transfer sole Luna/test lane to warm ux006; accepted dirty GH-188 source/test bytes match primary and are retained as baseline, not reset. L0 review remains for next cycle."
+      },
       "verification": null
     },
     {
