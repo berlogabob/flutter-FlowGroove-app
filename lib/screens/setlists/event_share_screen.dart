@@ -6,6 +6,7 @@ import '../../models/event_access.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/analytics_service.dart';
+
 import '../../services/event_share_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
@@ -102,12 +103,14 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
   Future<void> _suggest() async {
     final view = _view;
     if (view == null) return;
-    final text = await showModalBottomSheet<String>(
+    final result = await showModalBottomSheet<_SuggestionDraft>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => const _SuggestSheet(),
+      builder: (_) => _SuggestSheet(view: view),
     );
-    if (text == null || text.trim().isEmpty) return;
+    if (result == null ||
+        (result.proposal == null && result.text.trim().isEmpty))
+      return;
     try {
       await ref
           .read(eventShareServiceProvider)
@@ -116,8 +119,9 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
             bandId: widget.bandId,
             ownerUid: widget.ownerUid,
             setlistId: widget.setlistId,
-            type: 'note',
-            text: text,
+            type: result.proposal?['kind'] as String? ?? 'note',
+            text: result.text,
+            proposal: result.proposal,
           );
       await AnalyticsService.logEventSuggestionSubmitted();
       if (mounted) showAppSnackBar(context, 'Sent to the band. Thanks!');
@@ -424,8 +428,15 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
   }
 }
 
+class _SuggestionDraft {
+  const _SuggestionDraft(this.text, [this.proposal]);
+  final String text;
+  final Map<String, dynamic>? proposal;
+}
+
 class _SuggestSheet extends StatefulWidget {
-  const _SuggestSheet();
+  const _SuggestSheet({required this.view});
+  final EventView view;
 
   @override
   State<_SuggestSheet> createState() => _SuggestSheetState();
@@ -433,6 +444,9 @@ class _SuggestSheet extends StatefulWidget {
 
 class _SuggestSheetState extends State<_SuggestSheet> {
   final _controller = TextEditingController();
+  String? _selectedItemId;
+  String _kind = 'note';
+  late List<Map<String, dynamic>> _items = [...?widget.view.runningOrderItems];
 
   @override
   void dispose() {
@@ -440,48 +454,137 @@ class _SuggestSheetState extends State<_SuggestSheet> {
     super.dispose();
   }
 
+  String _titleFor(Map<String, dynamic> item) {
+    final songId = item['songId'];
+    final song = widget.view.songs.where((s) => s['id'] == songId).firstOrNull;
+    return song?['title'] as String? ?? 'Song';
+  }
+
   @override
   Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-    child: Padding(
-      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Suggest a change',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: MonoPulseSpacing.sm),
-          Text(
-            'Ask for a different order, a song added or dropped, or a word '
-            'changed. The band decides — nothing changes automatically.',
-            style: MonoPulseTypography.bodySmall,
-          ),
-          const SizedBox(height: MonoPulseSpacing.md),
-          TextField(
-            controller: _controller,
-            autofocus: true,
-            maxLines: 4,
-            decoration: const InputDecoration(border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: MonoPulseSpacing.lg),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+    child: SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Suggest a change',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: MonoPulseSpacing.sm),
+            Text(
+              widget.view.canSee(EventArea.runningOrder) &&
+                      widget.view.runningOrderReady
+                  ? 'Choose a change to suggest. The band decides — nothing changes automatically.'
+                  : 'Ask the band about a change. The band decides — nothing changes automatically.',
+              style: MonoPulseTypography.bodySmall,
+            ),
+            if (widget.view.canSee(EventArea.runningOrder) &&
+                widget.view.runningOrderReady) ...[
+              const SizedBox(height: MonoPulseSpacing.md),
+              DropdownButtonFormField<String>(
+                initialValue: _kind,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Change type'),
+                items: const [
+                  DropdownMenuItem(value: 'note', child: Text('Note')),
+                  DropdownMenuItem(
+                    value: 'remove',
+                    child: Text('Remove a song occurrence'),
+                  ),
+                  DropdownMenuItem(value: 'reorder', child: Text('Reorder')),
+                ],
+                onChanged: (value) => setState(() => _kind = value!),
               ),
-              const SizedBox(width: MonoPulseSpacing.sm),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, _controller.text),
-                child: const Text('Send'),
+              if (_kind == 'remove')
+                for (final (index, item) in _items.indexed)
+                  if (item['type'] == 'song')
+                    RadioListTile<String>(
+                      title: Text('${index + 1}. ${_titleFor(item)}'),
+                      value: item['id'] as String,
+                      groupValue: _selectedItemId,
+                      onChanged: (value) =>
+                          setState(() => _selectedItemId = value),
+                    ),
+              if (_kind == 'reorder')
+                ReorderableListView(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onReorder: (oldIndex, newIndex) => setState(() {
+                    final target = newIndex > oldIndex
+                        ? newIndex - 1
+                        : newIndex;
+                    _items.insert(target, _items.removeAt(oldIndex));
+                  }),
+                  children: [
+                    for (final item in _items)
+                      ListTile(
+                        key: ValueKey(item['id']),
+                        title: Text(
+                          item['type'] == 'break'
+                              ? '— ${(item['breakLabel'] as String? ?? 'Break')} —'
+                              : _titleFor(item),
+                        ),
+                        leading: const Icon(Icons.drag_handle),
+                      ),
+                  ],
+                ),
+            ] else ...[
+              const SizedBox(height: MonoPulseSpacing.sm),
+              Text(
+                'Typed running-order options are unavailable until the shared order is ready. You can still send a note.',
+                style: MonoPulseTypography.bodySmall,
               ),
             ],
-          ),
-        ],
+            const SizedBox(height: MonoPulseSpacing.md),
+            if (_kind == 'note' || !widget.view.runningOrderReady)
+              TextField(
+                controller: _controller,
+                autofocus: true,
+                maxLines: 4,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+              ),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: MonoPulseSpacing.sm),
+                ElevatedButton(
+                  onPressed: () {
+                    final proposal = switch (_kind) {
+                      'remove' when _selectedItemId != null => {
+                        'version': 1,
+                        'kind': 'remove',
+                        'baseFingerprint': widget.view.baseFingerprint,
+                        'itemId': _selectedItemId,
+                      },
+                      'reorder' => {
+                        'version': 1,
+                        'kind': 'reorder',
+                        'baseFingerprint': widget.view.baseFingerprint,
+                        'itemIds': [for (final item in _items) item['id']],
+                      },
+                      _ => null,
+                    };
+                    if (_kind == 'remove' && proposal == null) return;
+                    Navigator.pop(
+                      context,
+                      _SuggestionDraft(_controller.text, proposal),
+                    );
+                  },
+                  child: const Text('Send'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     ),
   );

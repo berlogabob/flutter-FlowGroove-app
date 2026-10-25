@@ -31,6 +31,7 @@ class FakeEventShareService implements EventShareService {
 
   final EventView view;
   final List<String> suggestions = [];
+  final List<Map<String, dynamic>> submissions = [];
   bool failSubmit = false;
   bool failLoad = false;
   int loads = 0;
@@ -65,6 +66,15 @@ class FakeEventShareService implements EventShareService {
   }) async {
     if (failSubmit) throw StateError('failed');
     suggestions.add(text ?? '');
+    submissions.add({
+      'token': token,
+      'bandId': bandId,
+      'ownerUid': ownerUid,
+      'setlistId': setlistId,
+      'type': type,
+      'text': text,
+      'proposal': proposal,
+    });
   }
 
   @override
@@ -76,6 +86,7 @@ EventView _view({
   required Map<String, String> access,
   bool canSuggest = false,
   bool withChart = false,
+  bool ready = false,
 }) => EventView(
   setlistId: 'sl1',
   ownerUid: 'owner',
@@ -98,6 +109,15 @@ EventView _view({
     },
   ],
   people: const [],
+  runningOrderReady: ready,
+  baseFingerprint: ready ? 'f' * 64 : null,
+  runningOrderItems: ready
+      ? const [
+          {'id': 'occ-1', 'songId': 's1', 'type': 'song'},
+          {'id': 'break-1', 'type': 'break', 'breakLabel': 'Dinner'},
+          {'id': 'occ-2', 'songId': 's1', 'type': 'song'},
+        ]
+      : null,
 );
 
 void main() {
@@ -412,7 +432,227 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(fake.suggestions, ['Please drop the last song']);
+    expect(fake.submissions.single, {
+      'token': 't.s',
+      'bandId': null,
+      'ownerUid': null,
+      'setlistId': null,
+      'type': 'note',
+      'text': 'Please drop the last song',
+      'proposal': null,
+    });
   });
+
+  testWidgets('ready granted order can propose removing one occurrence', (
+    tester,
+  ) async {
+    final fake = await pump(
+      tester,
+      _view(
+        access: const {EventArea.runningOrder: EventAccessLevel.view},
+        canSuggest: true,
+        ready: true,
+      ),
+    );
+    await tester.tap(find.text('Suggest a change'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove a song occurrence'));
+    await tester.pumpAndSettle();
+    expect(find.text('Dinner'), findsNothing);
+    expect(find.text('1. visto'), findsOneWidget);
+    expect(find.text('3. visto'), findsOneWidget);
+    await tester.tap(find.text('1. visto'));
+    await tester.tap(find.text('Send'));
+    await tester.pumpAndSettle();
+    expect(fake.submissions.single, {
+      'token': 't.s',
+      'bandId': null,
+      'ownerUid': null,
+      'setlistId': null,
+      'type': 'remove',
+      'text': '',
+      'proposal': {
+        'version': 1,
+        'kind': 'remove',
+        'baseFingerprint': 'f' * 64,
+        'itemId': 'occ-1',
+      },
+    });
+  });
+
+  testWidgets('reorder submits the dragged permutation including breaks', (
+    tester,
+  ) async {
+    final fake = await pump(
+      tester,
+      _view(
+        access: const {EventArea.runningOrder: EventAccessLevel.view},
+        canSuggest: true,
+        ready: true,
+      ),
+      direct: true,
+    );
+    await tester.tap(find.text('Suggest a change'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reorder').last);
+    await tester.pumpAndSettle();
+    expect(find.byType(ReorderableListView), findsOneWidget);
+    final rows = find.descendant(
+      of: find.byType(ReorderableListView),
+      matching: find.byType(ListTile),
+    );
+    final first = rows.at(0);
+    final last = rows.at(2);
+    final target = tester.getCenter(last) + const Offset(0, 35);
+    final gesture = await tester.startGesture(tester.getCenter(first));
+    await tester.pump(const Duration(seconds: 1));
+    await gesture.moveTo(target);
+    await tester.pump(const Duration(seconds: 1));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Send'));
+    await tester.tap(find.text('Send'));
+    await tester.pumpAndSettle();
+    expect(fake.submissions.single, {
+      'token': null,
+      'bandId': null,
+      'ownerUid': 'owner',
+      'setlistId': 'sl1',
+      'type': 'reorder',
+      'text': '',
+      'proposal': {
+        'version': 1,
+        'kind': 'reorder',
+        'baseFingerprint': 'f' * 64,
+        'itemIds': ['break-1', 'occ-1', 'occ-2'],
+      },
+    });
+    expect(analyticsEvents.last, [
+      {'eventName': 'event_suggestion_submitted', 'parameters': null},
+    ]);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final ready in [false, true]) {
+    testWidgets('ungranted order ready=$ready keeps note-only route', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _view(access: const {}, canSuggest: true, ready: ready),
+      );
+      await tester.tap(find.text('Suggest a change'));
+      await tester.pumpAndSettle();
+      expect(find.text('Change type'), findsNothing);
+      expect(find.textContaining('unavailable'), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+    });
+  }
+
+  for (final outcome in ['send', 'cancel', 'failure']) {
+    testWidgets(
+      'second duplicate removal $outcome preserves exact occurrence and scope',
+      (tester) async {
+        final fake = await pump(
+          tester,
+          _view(
+            access: const {EventArea.runningOrder: EventAccessLevel.view},
+            canSuggest: true,
+            ready: true,
+          ),
+        );
+        fake.failSubmit = outcome == 'failure';
+        analyticsEvents.clear();
+        await tester.tap(find.text('Suggest a change'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(DropdownButtonFormField<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Remove a song occurrence'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('3. visto'));
+        await tester.tap(find.text(outcome == 'cancel' ? 'Cancel' : 'Send'));
+        await tester.pumpAndSettle();
+        if (outcome == 'send') {
+          expect(fake.submissions.single['proposal'], {
+            'version': 1,
+            'kind': 'remove',
+            'baseFingerprint': 'f' * 64,
+            'itemId': 'occ-2',
+          });
+          expect(fake.submissions.single['token'], 't.s');
+          expect(analyticsEvents, [
+            [
+              {'eventName': 'event_suggestion_submitted', 'parameters': null},
+            ],
+          ]);
+        } else {
+          expect(fake.submissions, isEmpty);
+          expect(analyticsEvents, isEmpty);
+        }
+        if (outcome == 'failure')
+          expect(find.textContaining('Could not send that:'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('ready order without suggestion permission has no affordance', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      _view(
+        access: const {EventArea.runningOrder: EventAccessLevel.view},
+        ready: true,
+      ),
+    );
+    expect(find.text('Suggest a change'), findsNothing);
+  });
+
+  testWidgets(
+    'long order remains selectable and sendable on a small viewport',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(360, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final fake = await pump(
+        tester,
+        EventView(
+          setlistId: 'sl1',
+          name: 'Gig',
+          access: const {EventArea.runningOrder: EventAccessLevel.view},
+          canSuggest: true,
+          runningOrderReady: true,
+          baseFingerprint: 'f' * 64,
+          songs: const [
+            {'id': 's1', 'title': 'Song'},
+          ],
+          runningOrderItems: [
+            for (var i = 1; i <= 20; i++)
+              {'id': 'occ-$i', 'type': 'song', 'songId': 's1'},
+          ],
+        ),
+      );
+      await tester.tap(find.text('Suggest a change'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove a song occurrence'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('20. Song'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('20. Song'));
+      await tester.ensureVisible(find.text('Send'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Send'));
+      await tester.pumpAndSettle();
+      expect((fake.submissions.single['proposal'] as Map)['itemId'], 'occ-20');
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('a granted stage plot renders for the person who holds it', (
     tester,
