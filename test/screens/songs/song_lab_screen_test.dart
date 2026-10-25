@@ -10,6 +10,7 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/songs/song_lab_screen.dart';
+import 'package:flowgroove/services/pending_storage_deletes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,6 +27,8 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
   final versions = <SongVersion>[];
   int currentVersionWrites = 0;
   void Function()? afterVersionSave;
+  bool failDelete = false;
+  int deleteAttempts = 0;
 
   @override
   Future<void> saveVersion(SongVersion version, {String? bandId}) async {
@@ -90,6 +93,8 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
     String entryId, {
     String? bandId,
   }) async {
+    deleteAttempts++;
+    if (failDelete) throw StateError('private backend detail');
     entries.removeWhere((e) => e.id == entryId);
     _emit();
   }
@@ -111,6 +116,7 @@ void main() {
     String? role,
     bool embedded = false,
     _AuthorizedUserNotifier? identity,
+    PendingStorageDeletes? pending,
   }) async {
     final repo = _InMemoryLabRepo();
     final auth = MockFirebaseAuth();
@@ -125,6 +131,8 @@ void main() {
           appUserProvider.overrideWith(
             () => identity ?? _AuthorizedUserNotifier(),
           ),
+          if (pending != null)
+            pendingStorageDeletesProvider.overrideWithValue(pending),
           bandsProvider.overrideWith(
             (ref) => Stream.value([
               Band(
@@ -154,6 +162,107 @@ void main() {
   }
 
   group('SongLabScreen (#67)', () {
+    Future<void> showRecording(
+      WidgetTester tester,
+      _InMemoryLabRepo repo,
+    ) async {
+      await repo.saveEntry(
+        SongLabEntry(
+          id: 'audio',
+          songId: song.id,
+          type: LabEntryType.recording,
+          title: 'Take',
+          authorId: 'u1',
+          attachmentIds: const ['audio-url'],
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'failed recording delete cancels queued audio and reports safely',
+      (tester) async {
+        final pending = _PausedPendingDeletes();
+        final repo = await pump(tester, pending: pending);
+        repo.failDelete = true;
+        await showRecording(tester, repo);
+        pending.release.complete();
+        await tester.pumpAndSettle();
+        expect(repo.deleteAttempts, 1);
+        expect(repo.entries, hasLength(1));
+        expect(pending.cancelled, ['audio-url']);
+        expect(pending.flushed, isEmpty);
+        expect(find.text('Could not delete entry. Try again.'), findsOneWidget);
+        expect(find.textContaining('private backend'), findsNothing);
+      },
+    );
+    for (final interruption in ['revoked', 'unmounted']) {
+      testWidgets('recording enqueue $interruption cancels without deleting', (
+        tester,
+      ) async {
+        final pending = _PausedPendingDeletes();
+        final identity = _AuthorizedUserNotifier();
+        final repo = await pump(tester, pending: pending, identity: identity);
+        await showRecording(tester, repo);
+        expect(pending.enqueued, ['audio-url']);
+        if (interruption == 'revoked') {
+          identity.change(const AsyncValue.data(null));
+        } else {
+          await tester.pumpWidget(const SizedBox.shrink());
+        }
+        pending.release.complete();
+        await tester.pumpAndSettle();
+        expect(repo.deleteAttempts, 0);
+        expect(repo.entries, hasLength(1));
+        expect(pending.cancelled, ['audio-url']);
+        expect(pending.flushed, isEmpty);
+      });
+    }
+    for (final permission in ['authorized', 'revoked', 'author viewer']) {
+      testWidgets(
+        'recording delete $permission preserves Undo permissions and grace',
+        (tester) async {
+          final pending = _PausedPendingDeletes();
+          final identity = _AuthorizedUserNotifier();
+          final repo = await pump(
+            tester,
+            pending: pending,
+            identity: identity,
+            role: permission == 'author viewer' ? 'viewer' : null,
+          );
+          await showRecording(tester, repo);
+          pending.release.complete();
+          await tester.pumpAndSettle();
+          expect(repo.deleteAttempts, 1);
+          expect(repo.entries, isEmpty);
+          expect(pending.flushed, ['audio-url']);
+          expect(pending.gracePeriods, [undoGracePeriod]);
+          expect(pending.cancelled, isEmpty);
+          if (permission == 'author viewer') {
+            expect(find.text('Undo'), findsNothing);
+          } else {
+            if (permission == 'revoked')
+              identity.change(const AsyncValue.data(null));
+            await tester.tap(find.text('Undo'));
+            await tester.pumpAndSettle();
+            expect(
+              repo.entries,
+              permission == 'authorized' ? hasLength(1) : isEmpty,
+            );
+            expect(
+              pending.cancelled,
+              permission == 'authorized' ? ['audio-url'] : isEmpty,
+            );
+          }
+        },
+      );
+    }
     for (final role in ['viewer', 'editor', 'admin']) {
       for (final embedded in [false, true]) {
         testWidgets(
@@ -542,6 +651,29 @@ void main() {
       expect(repo.entries.single.body, 'capo on 2');
     });
   });
+}
+
+class _PausedPendingDeletes extends PendingStorageDeletes {
+  final release = Completer<void>();
+  final enqueued = <String>[];
+  final cancelled = <String>[];
+  final flushed = <String>[];
+  final gracePeriods = <Duration>[];
+
+  @override
+  Future<void> enqueue(String url) async {
+    enqueued.add(url);
+    await release.future;
+  }
+
+  @override
+  Future<void> cancel(String url) async => cancelled.add(url);
+
+  @override
+  Future<void> flushAfter(String url, Duration grace) async {
+    flushed.add(url);
+    gracePeriods.add(grace);
+  }
 }
 
 class _AuthorizedUserNotifier extends AppUserNotifier {

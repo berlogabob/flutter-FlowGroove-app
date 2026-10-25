@@ -214,7 +214,14 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
       if (url != null) await pending.cancel(url);
       return;
     }
-    await repo.deleteEntry(widget.song.id, entry.id, bandId: widget.bandId);
+    try {
+      await repo.deleteEntry(widget.song.id, entry.id, bandId: widget.bandId);
+    } catch (_) {
+      if (url != null) await pending.cancel(url);
+      if (mounted)
+        showAppSnackBar(context, 'Could not delete entry. Try again.');
+      return;
+    }
     if (url != null) unawaited(pending.flushAfter(url, undoGracePeriod));
     if (!mounted) return;
     showAppSnackBar(
