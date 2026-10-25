@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../models/event_access.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../services/analytics_service.dart';
 import '../../services/event_share_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
@@ -43,6 +44,7 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
   EventView? _view;
   String? _error;
   bool _loading = true;
+  bool _linkOpenLogged = false;
 
   @override
   void initState() {
@@ -69,6 +71,10 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
         _view = view;
         _loading = false;
       });
+      if (widget.token != null && !_linkOpenLogged) {
+        _linkOpenLogged = true;
+        await AnalyticsService.logEventLinkOpened();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -113,6 +119,7 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
             type: 'note',
             text: text,
           );
+      await AnalyticsService.logEventSuggestionSubmitted();
       if (mounted) showAppSnackBar(context, 'Sent to the band. Thanks!');
     } catch (e) {
       if (mounted) showAppSnackBar(context, 'Could not send that: $e');
