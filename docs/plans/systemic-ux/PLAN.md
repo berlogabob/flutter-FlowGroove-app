@@ -199,7 +199,9 @@ Registry изменяет только один родительский про�
   - [ ] **GH-179-LAB** — aggregate remains open: screen slice accepted separately, shared recording authority/cancellation awaits GH-179-REC-R/I.
   - [x] **GH-179-LAB-S1** — screen-owned task/entry/version gates and current-permission callbacks; integrated `ba1c8a45`, 22 Song Lab / 40 combined tests PASS. No full LAB/audio/device acceptance.
   - [x] **GH-179-REC-R** — independent source contract accepted; corrected demo-claim and queue-race recommendations. Research only, no audio fix credit.
-  - [ ] **GH-179-REC-S1/S2/S3/S4/S5 → REC-I** — Recorder screen gates → shared identity/authority → conservative save reconciliation; Song Lab delete cancellation and queue concurrency remain separate registered slices. Status/leases in activity.json.
+  - [x] **GH-179-REC-S1A** — Recorder personal action/identity entry guards, post-selection link and live Undo; integrated `5ff203e0`, 45 combined tests PASS (14 Recorder), scoped analyzer no warnings/errors. Original Luna baseline-only attempt retained; Hermes direct completion.
+  - [ ] **GH-179-REC-S1B** — pending-delete cancellation after revocation/unmount and failed document deletion; separate two-file worker lease, no shared audio acceptance yet.
+  - [ ] **GH-179-REC-S1/S2/S3/S4/S5 → REC-I** — S1 aggregate retains A+B; shared identity/authority → conservative save reconciliation; Song Lab delete cancellation and queue concurrency remain separate registered slices. Status/leases in activity.json.
   - [ ] **GH-179-AUDIO-R/I, TUNER-R/I, VOTE, AVATAR, DEMO-R, LEGACY-R, DELETE-OWNER, V** — все остаточные срезы и решения зарегистрированы в activity.json; V блокирует FINAL-TEST. Никакого закрытия issue по одному UI fix.
 - [ ] **GH-178-R** · ornith · Повторная проверка GitHub #178: refactor(metronome): extract live setlist/song sync out of MetronomeNotifier
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-178.md`.
