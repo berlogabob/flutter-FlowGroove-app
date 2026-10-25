@@ -255,6 +255,89 @@ describe("event sharing callables", function () {
     });
   });
 
+  describe("listEventShares", () => {
+    it("lists metadata for an authorized band writer", async () => {
+      const { tokenId } = await call(events.createEventShare)(req({ bandId: BAND, setlistId: SETLIST, participantId: "p-couple" }, "member"));
+      const result = await call(events.listEventShares)(req({ bandId: BAND, setlistId: SETLIST }, "member"));
+      assert.equal(result.shares[0].tokenId, tokenId);
+    });
+
+    it("authorizes before lookup and validates scope ids and cursors", async () => {
+      const list = (data, uid = "member") => call(events.listEventShares)(req(data, uid));
+      for (const [data, uid, code] of [
+        [{ bandId: BAND, setlistId: SETLIST }, "ordinary", "permission-denied"],
+        [{ bandId: BAND, setlistId: SETLIST }, "stranger", "permission-denied"],
+        [{ bandId: BAND, setlistId: SETLIST }, null, "unauthenticated"],
+        [{ bandId: BAND, ownerUid: "x", setlistId: SETLIST }, "member", "invalid-argument"],
+        [{ bandId: "bad/id", setlistId: SETLIST }, "member", "invalid-argument"],
+        [{ bandId: BAND, setlistId: "bad/id" }, "member", "invalid-argument"],
+        [{ bandId: BAND, setlistId: SETLIST, cursor: "bad/id" }, "member", "invalid-argument"],
+        [{ bandId: BAND, setlistId: SETLIST }, "demo-user", "failed-precondition"],
+      ]) {
+        if (uid === "ordinary") await db.doc(`bands/${BAND}`).update({ memberUids: ["member", "ordinary"], adminUids: [], editorUids: [] });
+        if (uid === "demo-user") await db.doc("users/demo-user").set({ accessRole: "demo" });
+        await assert.rejects(list(data, uid), (error) => error.code === code);
+        if (uid === "ordinary") await db.doc(`bands/${BAND}`).update({ adminUids: ["member"], editorUids: ["member"] });
+      }
+    });
+    it("projects current roster metadata and walks bounded pages without writes", async () => {
+      await db.doc(`bands/${BAND}/setlists/${SETLIST}`).update({ "eventKit.people": [
+        { id: "listed", name: "Current name", role: "Current role", access: { stage: "edit", secretArea: "edit" } },
+      ] });
+      const col = db.collection("eventShares");
+      const now = new Date().toISOString();
+      const ids = Array.from({ length: 52 }, (_, i) => `list-${String(i).padStart(2, "0")}`);
+      await Promise.all(ids.map((id, i) => col.doc(id).set({ tokenId: id, bandId: BAND, setlistId: SETLIST,
+        participantId: i === 51 ? "missing" : "listed", createdBy: "private-uid", secretHash: "PRIVATE_HASH",
+        arbitrary: "PRIVATE_FIELD", createdAt: now, expiresAt: i === 0 ? new Date(0).toISOString() : null,
+        revoked: i === 1 })));
+      const before = await col.get();
+      const collected = [];
+      let cursor;
+      let page;
+      do {
+        page = await call(events.listEventShares)(req({ bandId: BAND, setlistId: SETLIST, ...(cursor ? { cursor } : {}) }, "member"));
+        collected.push(...page.shares);
+        cursor = page.nextCursor;
+      } while (page.hasMore);
+      assert.equal(collected.length, 52);
+      assert.equal(new Set(collected.map((s) => s.tokenId)).size, 52);
+      assert.equal(collected[0].state, "expired");
+      assert.equal(collected[1].state, "revoked");
+      assert.equal(collected[2].state, "active");
+      assert.deepEqual(collected[2].access, { stage: "edit" });
+      assert.equal(collected[51].state, "unavailable");
+      assert.deepEqual(collected[51].access, {});
+      assert.deepEqual(Object.keys(collected[2]).sort(), ["access", "createdAt", "expiresAt", "name", "participantId", "role", "state", "tokenId"]);
+      assert.ok(!JSON.stringify(collected).includes("PRIVATE"));
+      assert.equal(page.nextCursor, null);
+      assert.equal((await col.get()).size, before.size);
+      assert.ok((await col.doc(ids[0]).get()).updateTime.isEqual(before.docs.find((d) => d.id === ids[0]).updateTime));
+    });
+
+    it("lists personal owner scope and isolates other scope and event records", async () => {
+      const ownerUid = "list-owner";
+      const setlistId = "list-event";
+      await db.doc(`users/${ownerUid}/setlists/${setlistId}`).set({ eventKit: { people: PEOPLE }, name: "personal" });
+      await db.doc("eventShares/personal-listed").set({ tokenId: "personal-listed", ownerUid, setlistId, participantId: "p-couple" });
+      await db.doc("eventShares/other-event").set({ bandId: BAND, setlistId: "elsewhere", participantId: "p-couple" });
+      await db.doc("eventShares/other-scope").set({ ownerUid: "other-owner", setlistId: "not-this-event", participantId: "p-couple" });
+      const result = await call(events.listEventShares)(req({ ownerUid, setlistId }, ownerUid));
+      assert.deepEqual(result.shares.map((s) => s.tokenId), ["personal-listed"]);
+      assert.equal(result.shares[0].name, "Ana & Rui");
+    });
+    it("revoking one listed link leaves another live and reports only its state change", async () => {
+      const first = await call(events.createEventShare)(req({ bandId: BAND, setlistId: SETLIST, participantId: "p-couple" }, "member"));
+      const second = await call(events.createEventShare)(req({ bandId: BAND, setlistId: SETLIST, participantId: "p-eng" }, "member"));
+      await call(events.revokeEventShare)(req({ tokenId: first.tokenId }, "member"));
+      await assert.rejects(call(events.getEventView)(req({ token: first.token })), (error) => error.code === "permission-denied");
+      assert.equal((await call(events.getEventView)(req({ token: second.token }))).name, "Sputnik Bar");
+      const listed = await call(events.listEventShares)(req({ bandId: BAND, setlistId: SETLIST }, "member"));
+      assert.equal(listed.shares.find((share) => share.tokenId === first.tokenId).state, "revoked");
+      assert.equal(listed.shares.find((share) => share.tokenId === second.tokenId).state, "active");
+    });
+  });
+
   describe("writeGrants", () => {
     const grantIds = async () => {
       const snap = await db

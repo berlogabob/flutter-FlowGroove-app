@@ -433,6 +433,40 @@ exports.revokeEventShare = functions.https.onCall(async (request) => {
   return { revoked: true };
 });
 
+exports.listEventShares = functions.https.onCall(async (request) => {
+  const uid = requireAuth(request);
+  const scope = parseScope(request.data);
+  const { setlistId, cursor } = request.data || {};
+  const validId = (value) => typeof value === "string" && value.length > 0 && value.length <= 128 && !/[\\/]/.test(value);
+  if (!validId(scope.bandId || scope.ownerUid) || !validId(setlistId) || (cursor !== undefined && !validId(cursor))) {
+    throw new functions.https.HttpsError("invalid-argument", "Valid scope, setlistId, and cursor are required.");
+  }
+  await refuseDemo(request, "list event links");
+  await requireScopeWriter(scope, uid);
+  const setlist = await loadSetlist(scope, setlistId);
+  let query = db.collection("eventShares")
+    .where(scope.bandId ? "bandId" : "ownerUid", "==", scope.bandId || scope.ownerUid)
+    .where("setlistId", "==", setlistId)
+    .orderBy(admin.firestore.FieldPath.documentId())
+    .limit(51);
+  if (cursor !== undefined) query = query.startAfter(cursor);
+  const snap = await query.get();
+  const hasMore = snap.docs.length > 50;
+  const docs = snap.docs.slice(0, 50);
+  const people = (setlist.eventKit && setlist.eventKit.people) || [];
+  const shares = docs.map((doc) => {
+    const data = doc.data();
+    const person = people.find((p) => p && p.id === data.participantId);
+    const expired = !!data.expiresAt && Date.parse(data.expiresAt) <= Date.now();
+    return { tokenId: doc.id, participantId: data.participantId || "",
+      name: person ? person.name || "" : "", role: person ? person.role || "" : "",
+      access: person ? sanitizeAccess(person.access) : {}, createdAt: data.createdAt || null,
+      expiresAt: data.expiresAt || null,
+      state: data.revoked ? "revoked" : expired ? "expired" : person ? "active" : "unavailable" };
+  });
+  return { shares, hasMore, nextCursor: hasMore ? docs[docs.length - 1].id : null };
+});
+
 // ---------------------------------------------------------------------------
 // Reading an event
 // ---------------------------------------------------------------------------
