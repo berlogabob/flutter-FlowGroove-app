@@ -39,6 +39,45 @@ const db = admin.firestore();
 const AREAS = ["eventInfo", "runningOrder", "songDetail", "stage", "rider"];
 const SUGGESTION_TYPES = ["reorder", "add", "remove", "note"];
 
+function proposalFingerprint(items) {
+  if (!Array.isArray(items) || items.length === 0) return null;
+  const ids = new Set();
+  const tuples = [];
+  for (const item of items) {
+    if (!item || typeof item !== "object" || Array.isArray(item) ||
+        typeof item.id !== "string" || !item.id || item.id.includes("/") || ids.has(item.id)) return null;
+    ids.add(item.id);
+    const type = item.type || (item.songId ? "song" : "");
+    if (typeof type !== "string" || (item.type != null && !["song", "break"].includes(item.type)) ||
+      (type === "song" && (typeof item.songId !== "string" || !item.songId || item.songId.includes("/"))) ||
+      (type !== "song" && type !== "break") ||
+      (type === "break" && item.songId != null) ||
+      (item.tuningPresetId != null && (typeof item.tuningPresetId !== "string" || item.tuningPresetId.includes("/"))) ||
+      (item.breakType != null && typeof item.breakType !== "string") ||
+      (item.breakLabel != null && typeof item.breakLabel !== "string") ||
+      (item.performerIds != null && (!Array.isArray(item.performerIds) || item.performerIds.some((id) => typeof id !== "string" || !id || id.includes("/"))))) {
+      return null;
+    }
+    tuples.push([item.id, type, type === "song" ? item.songId : "", item.tuningPresetId ?? null,
+      item.breakType ?? null, item.breakLabel ?? null, item.performerIds ?? []]);
+  }
+  return crypto.createHash("sha256").update(JSON.stringify(tuples), "utf8").digest("hex");
+}
+
+function validProposal(proposal, kind) {
+  if (!proposal || typeof proposal !== "object" || Array.isArray(proposal) ||
+      proposal.version !== 1 || proposal.kind !== kind ||
+      typeof proposal.baseFingerprint !== "string" || !/^[a-f0-9]{64}$/.test(proposal.baseFingerprint)) return false;
+  const fields = { add: ["version", "kind", "baseFingerprint", "songId", "beforeItemId"],
+    remove: ["version", "kind", "baseFingerprint", "itemId"],
+    reorder: ["version", "kind", "baseFingerprint", "itemIds"] }[kind];
+  if (!fields || Object.keys(proposal).some((key) => !fields.includes(key))) return false;
+  const id = (value) => typeof value === "string" && value.length > 0 && !value.includes("/");
+  if (kind === "add") return id(proposal.songId) && (proposal.beforeItemId === undefined || id(proposal.beforeItemId));
+  if (kind === "remove") return id(proposal.itemId);
+  return Array.isArray(proposal.itemIds) && proposal.itemIds.every(id) && new Set(proposal.itemIds).size === proposal.itemIds.length;
+}
+
 // A capability URL should not be valid forever — anyone who ever saw the link
 // keeps the access it carries, and links leak through screenshots, chat logs
 // and browser history. W3C "Good Practices for Capability URLs" §2.4.
@@ -780,28 +819,85 @@ exports.submitSuggestion = functions.https.onCall(async (request) => {
   return { id };
 });
 
-/** Band-side accept/decline. Applying the change itself stays in the app. */
+/** Band-side accept/decline, with typed proposals applied atomically. */
 exports.resolveSuggestion = functions.https.onCall(async (request) => {
   const uid = requireAuth(request);
   const scope = parseScope(request.data);
   const { setlistId, suggestionId, accept } = request.data || {};
-  if (!setlistId || !suggestionId) {
+  const safeId = (value) => typeof value === "string" && value.length > 0 && !value.includes("/");
+  if (!safeId(setlistId) || !safeId(suggestionId) || typeof accept !== "boolean") {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "setlistId and suggestionId are required.",
+      "Valid setlistId, suggestionId, and boolean accept are required.",
     );
   }
   await refuseDemo(request, "resolve suggestions");
-  await requireScopeWriter(scope, uid);
-  await setlistRef(scope, cleanString(setlistId))
-    .collection("suggestions")
-    .doc(cleanString(suggestionId))
-    .update({
-      status: accept === true ? "accepted" : "declined",
-      resolvedBy: uid,
-      resolvedAt: new Date().toISOString(),
-    });
-  return { status: accept === true ? "accepted" : "declined" };
+  const parentRef = setlistRef(scope, setlistId);
+  const suggestionRef = parentRef.collection("suggestions").doc(suggestionId);
+  const newItemId = crypto.randomUUID();
+  return db.runTransaction(async (tx) => {
+    const [parentSnap, suggestionSnap, bandSnap] = await Promise.all([
+      tx.get(parentRef), tx.get(suggestionRef), scope.bandId ? tx.get(scopeRef(scope)) : Promise.resolve(null),
+    ]);
+    if (scope.bandId) {
+      if (!bandSnap.exists) throw new functions.https.HttpsError("not-found", "Band not found.");
+      requireBandWriter(bandSnap.data(), uid);
+    } else if (uid !== scope.ownerUid) {
+      throw new functions.https.HttpsError("permission-denied", "Only the owner can manage personal event sharing.");
+    }
+    if (!parentSnap.exists || !suggestionSnap.exists) {
+      throw new functions.https.HttpsError("not-found", "Event or suggestion not found.");
+    }
+    const suggestion = suggestionSnap.data();
+    if (suggestion.status !== "open") {
+      throw new functions.https.HttpsError("failed-precondition", "Suggestion is no longer open.");
+    }
+    const updates = { status: accept ? "accepted" : "declined", resolvedBy: uid, resolvedAt: new Date().toISOString() };
+    let contentUpdates;
+    if (accept && suggestion.proposal !== undefined) {
+      const proposal = suggestion.proposal;
+      if (!SUGGESTION_TYPES.includes(suggestion.type) || suggestion.type === "note" || !validProposal(proposal, suggestion.type)) {
+        throw new functions.https.HttpsError("failed-precondition", "Malformed typed proposal.");
+      }
+      const setlist = parentSnap.data();
+      const items = setlist.items;
+      const fingerprint = proposalFingerprint(items);
+      if (!fingerprint || fingerprint !== proposal.baseFingerprint) {
+        throw new functions.https.HttpsError("failed-precondition", "Running order changed or has ambiguous identities.");
+      }
+      const next = items.slice();
+      if (suggestion.type === "remove") {
+        const index = next.findIndex((item) => item.id === proposal.itemId && (item.type || "song") === "song");
+        if (index < 0) throw new functions.https.HttpsError("failed-precondition", "Removal target is unavailable.");
+        next.splice(index, 1);
+      } else if (suggestion.type === "reorder") {
+        if (proposal.itemIds.length !== items.length || !proposal.itemIds.every((id) => fingerprint && items.some((item) => item.id === id))) {
+          throw new functions.https.HttpsError("failed-precondition", "Reorder must include every current item exactly once.");
+        }
+        const byId = new Map(items.map((item) => [item.id, item]));
+        next.splice(0, next.length, ...proposal.itemIds.map((id) => byId.get(id)));
+      } else if (suggestion.type === "add") {
+        const songRef = scopeRef(scope).collection("songs").doc(proposal.songId);
+        const songSnap = await tx.get(songRef);
+        if (!songSnap.exists) throw new functions.https.HttpsError("failed-precondition", "Proposed song is unavailable.");
+        const item = { id: newItemId, songId: proposal.songId, type: "song" };
+        if (proposal.beforeItemId === undefined) next.push(item);
+        else {
+          const index = next.findIndex((entry) => entry.id === proposal.beforeItemId);
+          if (index < 0) throw new functions.https.HttpsError("failed-precondition", "Insertion anchor is unavailable.");
+          next.splice(index, 0, item);
+        }
+      }
+      contentUpdates = {
+        items: next,
+        songIds: next.filter((item) => (item.type || "song") === "song").map((item) => item.songId),
+        updatedAt: updates.resolvedAt,
+      };
+    }
+    tx.update(suggestionRef, updates);
+    if (contentUpdates) tx.update(parentRef, contentUpdates);
+    return { status: updates.status };
+  });
 });
 
 // ---------------------------------------------------------------------------

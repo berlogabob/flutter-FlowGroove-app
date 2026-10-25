@@ -201,7 +201,7 @@ describe("event sharing callables", function () {
       const { tokenId } = await create();
       await denied(call(events.createEventShare)(req({ ...data, participantId: "p-couple" }, "member")), "permission-denied");
       await denied(call(events.revokeEventShare)(req({ tokenId }, "member")), "permission-denied");
-      await denied(call(events.resolveSuggestion)(req({ ...data, suggestionId: "x" }, "member")), "permission-denied");
+      await denied(call(events.resolveSuggestion)(req({ ...data, suggestionId: "x", accept: true }, "member")), "permission-denied");
       await denied(call(events.getEventView)(req(data, "member")), "permission-denied");
       await denied(call(events.submitSuggestion)(req({ ...data, text: "x" }, "member")), "permission-denied");
     });
@@ -212,7 +212,7 @@ describe("event sharing callables", function () {
       for (const [fn, args] of [
         [events.createEventShare, { ...data, participantId: "p-couple" }],
         [events.revokeEventShare, { tokenId }],
-        [events.resolveSuggestion, { ...data, suggestionId: "x" }],
+        [events.resolveSuggestion, { ...data, suggestionId: "x", accept: true }],
         [events.submitSuggestion, { ...data, text: "x" }],
         [events.claimEventShare, { token }],
       ]) {
@@ -225,7 +225,7 @@ describe("event sharing callables", function () {
     it("rejects both and neither scopes, including blank and non-string ids", async () => {
       for (const scope of [{ bandId: BAND, ownerUid }, {}, { bandId: " ", ownerUid: 12 }]) {
         for (const fn of [events.createEventShare, events.resolveSuggestion, events.getEventView, events.submitSuggestion]) {
-          await denied(call(fn)(req({ ...scope, setlistId, participantId: "p-couple", suggestionId: "x", text: "x" }, ownerUid)), "invalid-argument");
+          await denied(call(fn)(req({ ...scope, setlistId, participantId: "p-couple", suggestionId: "x", accept: true, text: "x" }, ownerUid)), "invalid-argument");
         }
       }
       const { token } = await call(events.createEventShare)(req({ ownerUid: ` ${ownerUid} `, setlistId, participantId: "p-couple" }, ownerUid));
@@ -883,6 +883,166 @@ describe("event sharing callables", function () {
   });
 
   describe("suggestions", () => {
+    it("typed remove deletes exactly one duplicate song reference and preserves break metadata", async () => {
+      const path = `bands/${BAND}/setlists/${SETLIST}`;
+      const items = [
+        { id: "song-a", type: "song", songId: "song-1", performerIds: ["p"], opaque: { keep: true } },
+        { id: "break", type: "break", breakType: "intermission", breakLabel: "Keep this" },
+        { id: "song-b", type: "song", songId: "song-1" },
+      ];
+      await db.doc(path).update({ items, songIds: ["song-1", "song-1"] });
+      const fingerprint = require("node:crypto").createHash("sha256").update(JSON.stringify([
+        ["song-a", "song", "song-1", null, null, null, ["p"]],
+        ["break", "break", "", null, "intermission", "Keep this", []],
+        ["song-b", "song", "song-1", null, null, null, []],
+      ])).digest("hex");
+      const suggestionId = "typed-remove";
+      await db.doc(`${path}/suggestions/${suggestionId}`).set({
+        id: suggestionId, type: "remove", proposal: { version: 1, kind: "remove", baseFingerprint: fingerprint, itemId: "song-a" }, status: "open",
+      });
+      await call(events.resolveSuggestion)(req({ bandId: BAND, setlistId: SETLIST, suggestionId, accept: true }, "member"));
+      const saved = (await db.doc(path).get()).data();
+      assert.deepEqual(saved.items, [items[1], items[2]]);
+      assert.deepEqual(saved.songIds, ["song-1"]);
+      const resolved = (await db.doc(`${path}/suggestions/${suggestionId}`).get()).data();
+      assert.equal(resolved.status, "accepted");
+      assert.equal(Object.hasOwn(resolved, "items"), false, "suggestions must not duplicate private running-order items");
+      assert.equal(Object.hasOwn(resolved, "songIds"), false);
+    });
+
+    it("adds a scoped existing song and reorders exact item identities", async () => {
+      const path = `bands/${BAND}/setlists/${SETLIST}`;
+      const items = [
+        { id: "first", songId: "song-1", type: "song", extra: "kept" },
+        { id: "pause", type: "break", breakLabel: "Pause" },
+      ];
+      await db.doc(path).update({ items, songIds: ["song-1"] });
+      const fingerprint = require("node:crypto").createHash("sha256").update(JSON.stringify([
+        ["first", "song", "song-1", null, null, null, []], ["pause", "break", "", null, null, "Pause", []],
+      ])).digest("hex");
+      const col = db.collection(`${path}/suggestions`);
+      await col.doc("add").set({ type: "add", status: "open", proposal: { version: 1, kind: "add", baseFingerprint: fingerprint, songId: "song-1", beforeItemId: "pause" } });
+      await call(events.resolveSuggestion)(req({ bandId: BAND, setlistId: SETLIST, suggestionId: "add", accept: true }, "member"));
+      let saved = (await db.doc(path).get()).data();
+      assert.equal(saved.items.length, 3);
+      assert.deepEqual(saved.items[0], items[0]);
+      assert.deepEqual(saved.items[2], items[1]);
+      assert.deepEqual(saved.songIds, ["song-1", "song-1"]);
+      const ordered = [saved.items[2].id, saved.items[1].id, saved.items[0].id];
+      const reorderFingerprint = require("node:crypto").createHash("sha256").update(JSON.stringify([
+        [saved.items[0].id, "song", "song-1", null, null, null, []],
+        [saved.items[1].id, "song", "song-1", null, null, null, []],
+        [saved.items[2].id, "break", "", null, null, "Pause", []],
+      ])).digest("hex");
+      await col.doc("reorder").set({ type: "reorder", status: "open", proposal: { version: 1, kind: "reorder", baseFingerprint: reorderFingerprint, itemIds: ordered } });
+      await call(events.resolveSuggestion)(req({ bandId: BAND, setlistId: SETLIST, suggestionId: "reorder", accept: true }, "member"));
+      saved = (await db.doc(path).get()).data();
+      assert.deepEqual(saved.items.map((item) => item.id), ordered);
+      assert.equal(saved.items.find((item) => item.id === "first").extra, "kept");
+    });
+
+    it("fails closed on stale, malformed, legacy, replayed, and unauthorized resolutions", async () => {
+      const path = `bands/${BAND}/setlists/${SETLIST}`;
+      const items = [{ id: "one", songId: "song-1", type: "song" }];
+      await db.doc(path).update({ items, songIds: ["song-1"] });
+      const fingerprint = require("node:crypto").createHash("sha256").update(JSON.stringify([
+        ["one", "song", "song-1", null, null, null, []],
+      ])).digest("hex");
+      const col = db.collection(`${path}/suggestions`);
+      const seedTyped = (id, proposal) => col.doc(id).set({ type: "remove", status: "open", proposal });
+      await seedTyped("stale", { version: 1, kind: "remove", baseFingerprint: "0".repeat(64), itemId: "one" });
+      await seedTyped("bad", { version: 1, kind: "remove", baseFingerprint: fingerprint, itemId: "../one" });
+      await col.doc("legacy").set({ type: "note", status: "open" });
+      await seedTyped("valid", { version: 1, kind: "remove", baseFingerprint: fingerprint, itemId: "one" });
+      const resolve = (id, accept = true, uid = "member") => call(events.resolveSuggestion)(req({ bandId: BAND, setlistId: SETLIST, suggestionId: id, accept }, uid));
+      for (const [id, code, uid] of [["stale", "failed-precondition", "member"], ["bad", "failed-precondition", "member"], ["missing", "not-found", "member"], ["valid", "permission-denied", "stranger"]]) {
+        await assert.rejects(resolve(id, true, uid), (error) => error.code === code);
+      }
+      await resolve("legacy", true);
+      assert.equal((await col.doc("legacy").get()).data().status, "accepted");
+      await resolve("valid", false);
+      await assert.rejects(resolve("valid"), (error) => error.code === "failed-precondition");
+      const saved = (await db.doc(path).get()).data();
+      assert.deepEqual(saved.items, items);
+      assert.deepEqual(saved.songIds, ["song-1"]);
+      assert.equal((await col.doc("valid").get()).data().status, "declined");
+      assert.equal((await col.doc("stale").get()).data().status, "open");
+    });
+
+    it("rejects missing item identities and songIds-only legacy data without writes", async () => {
+      const path = `bands/${BAND}/setlists/${SETLIST}`;
+      const col = db.collection(`${path}/suggestions`);
+      const proposal = { version: 1, kind: "remove", baseFingerprint: "0".repeat(64), itemId: "one" };
+      await col.doc("missing-id").set({ type: "remove", status: "open", proposal });
+      await db.doc(path).update({ items: [{ songId: "song-1", type: "song" }], songIds: ["song-1"] });
+      await assert.rejects(call(events.resolveSuggestion)(req({ bandId: BAND, setlistId: SETLIST, suggestionId: "missing-id", accept: true }, "member")), (error) => error.code === "failed-precondition");
+      await col.doc("legacy-items").set({ type: "remove", status: "open", proposal });
+      await db.doc(path).update({ items: admin.firestore.FieldValue.delete(), songIds: ["song-1"] });
+      await assert.rejects(call(events.resolveSuggestion)(req({ bandId: BAND, setlistId: SETLIST, suggestionId: "legacy-items", accept: true }, "member")), (error) => error.code === "failed-precondition");
+      assert.deepEqual((await db.doc(path).get()).data().songIds, ["song-1"]);
+      assert.equal((await col.doc("legacy-items").get()).data().status, "open");
+    });
+
+    it("rejects invalid typed targets without changing either document", async () => {
+      const path = `bands/${BAND}/setlists/${SETLIST}`;
+      const items = [{ id: "one", songId: "song-1", type: "song" }];
+      const baseFingerprint = require("node:crypto").createHash("sha256")
+        .update(JSON.stringify([["one", "song", "song-1", null, null, null, []]])).digest("hex");
+      await db.doc(path).update({ items, songIds: ["song-1"] });
+      const before = (await db.doc(path).get()).data();
+      for (const [kind, fields] of [
+        ["add", { songId: "missing" }],
+        ["add", { songId: "song-1", beforeItemId: "missing" }],
+        ["remove", { itemId: "missing" }],
+        ["reorder", { itemIds: [] }],
+        ["reorder", { itemIds: ["one", "one"] }],
+        ["remove", { itemId: "one", unexpected: true }],
+        ["note", {}],
+      ]) {
+        const ref = db.doc(`${path}/suggestions/invalid`);
+        const record = { type: kind, status: "open", proposal: { version: 1, kind, baseFingerprint, ...fields } };
+        await ref.set(record);
+        await assert.rejects(call(events.resolveSuggestion)(req({ bandId: BAND, setlistId: SETLIST,
+          suggestionId: "invalid", accept: true }, "member")), (error) => error.code === "failed-precondition");
+        assert.deepEqual((await db.doc(path).get()).data(), before);
+        assert.deepEqual((await ref.get()).data(), record);
+      }
+    });
+
+    it("applies a personal owner's typed change only in the personal scope", async () => {
+      const path = "users/personal-owner/setlists/personal-typed";
+      const items = [{ id: "one", songId: "song-1", type: "song" }];
+      await db.doc(path).set({ items, songIds: ["song-1"], privateField: "preserved" });
+      const ref = db.doc(`${path}/suggestions/typed`);
+      const baseFingerprint = require("node:crypto").createHash("sha256")
+        .update(JSON.stringify([["one", "song", "song-1", null, null, null, []]])).digest("hex");
+      await ref.set({ type: "remove", status: "open", proposal: { version: 1, kind: "remove", baseFingerprint, itemId: "one" } });
+      const args = { ownerUid: "personal-owner", setlistId: "personal-typed", suggestionId: "typed", accept: true };
+      await assert.rejects(call(events.resolveSuggestion)(req(args, "member")), (error) => error.code === "permission-denied");
+      assert.deepEqual((await db.doc(path).get()).data().items, items);
+      await call(events.resolveSuggestion)(req(args, "personal-owner"));
+      const saved = (await db.doc(path).get()).data();
+      assert.deepEqual(saved.items, []);
+      assert.deepEqual(saved.songIds, []);
+      assert.equal(saved.privateField, "preserved");
+      assert.equal((await ref.get()).data().resolvedBy, "personal-owner");
+      assert.equal((await db.doc(`bands/${BAND}/setlists/${SETLIST}`).get()).exists, true);
+    });
+
+    it("allows one winner in concurrent typed resolutions", async () => {
+      const path = `bands/${BAND}/setlists/${SETLIST}`;
+      await db.doc(path).update({ items: [{ id: "one", songId: "song-1", type: "song" }], songIds: ["song-1"] });
+      const fingerprint = require("node:crypto").createHash("sha256").update(JSON.stringify([["one", "song", "song-1", null, null, null, []]])).digest("hex");
+      await db.doc(`${path}/suggestions/concurrent`).set({ type: "remove", status: "open", proposal: { version: 1, kind: "remove", baseFingerprint: fingerprint, itemId: "one" } });
+      const results = await Promise.allSettled([
+        call(events.resolveSuggestion)(req({ bandId: BAND, setlistId: SETLIST, suggestionId: "concurrent", accept: true }, "member")),
+        call(events.resolveSuggestion)(req({ bandId: BAND, setlistId: SETLIST, suggestionId: "concurrent", accept: true }, "member")),
+      ]);
+      assert.equal(results.filter((result) => result.status === "fulfilled").length, 1);
+      assert.equal((await db.doc(`${path}/suggestions/concurrent`).get()).data().status, "accepted");
+      assert.deepEqual((await db.doc(path).get()).data().items, []);
+    });
+
     it("accepts an anonymous suggestion attributed to the assigned name", async () => {
       const token = await shareFor("p-couple");
       await call(events.submitSuggestion)(
