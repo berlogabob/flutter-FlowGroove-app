@@ -179,7 +179,7 @@ Registry изменяет только один родительский про�
   - Evidence: `reviews/GH-187.md`, `verification/GH-187-R.json`. Issue OPEN, original failed attempt preserved.
 - [ ] **GH-187-P** · bounded typed-application contract: stable identity, duplicates/breaks, atomic/stale/replay semantics; exact I1/I2 scope before code.
 - [ ] **GH-187-I1/I2** · backend actual application → structured client flow; blocked on P, no free-text execution.
-- [ ] **GH-187-I3** · inbox loading/error/retry through existing public widget/test pair; cached requests/roles/scope preserved.
+- [x] **GH-187-I3** · inbox loading/error/retry through existing public widget/test pair; cached requests/roles/scope preserved. Integrated `37490537`; 11 warm / 54 primary combined tests PASS. Original Luna lease-loss failure retained, controller completed directly. GH-187-V/device remains open.
 - [ ] **GH-187-V** · fresh combined regression and safe device/guest round trip; gates FINAL-TEST.
 - [ ] **GH-186-R** · ornith · Повторная проверка GitHub #186: [P3] Event sharing: list and revoke active share links
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-186.md`.
