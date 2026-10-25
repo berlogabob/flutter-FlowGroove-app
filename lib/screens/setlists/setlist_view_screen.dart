@@ -183,6 +183,7 @@ class SetlistViewScreen extends ConsumerWidget {
               const [],
               canEdit: canEdit,
               isMember: isMember,
+              loadFailed: true,
               ownerUid: bandId == null
                   ? ref.watch(currentUserProvider).value?.uid
                   : null,
@@ -220,6 +221,7 @@ class SetlistViewScreen extends ConsumerWidget {
     required bool canEdit,
     required bool isMember,
     String? ownerUid,
+    bool loadFailed = false,
   }) {
     final songsById = {for (final song in allSongs) song.id: song};
     final items = setlist.effectiveItems;
@@ -263,13 +265,43 @@ class SetlistViewScreen extends ConsumerWidget {
       }
     }
 
+    final hasNotice =
+        loadFailed ||
+        items.any(
+          (item) => !item.isBreak && !songsById.containsKey(item.songId),
+        );
     return ListView.builder(
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      // One extra leading row for the requests inbox.
-      itemCount: items.length + 1,
+      // Leading inbox and, when needed, an unavailable-songs notice.
+      itemCount: items.length + 1 + (hasNotice ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == 0) return inbox;
-        final item = items[index - 1];
+        if (hasNotice && index == 1) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
+                child: Text(
+                  loadFailed
+                      ? 'Could not load songs. Try again later.'
+                      : 'Some songs are unavailable in the current library.',
+                ),
+              ),
+              if (!loadFailed && canEdit)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: MonoPulseSpacing.md),
+                  child: Text(
+                    'Use Menu → Edit Setlist to review these entries.',
+                  ),
+                )
+              else
+                const SizedBox(height: MonoPulseSpacing.md),
+            ],
+          );
+        }
+        final itemIndex = index - 1 - (hasNotice ? 1 : 0);
+        final item = items[itemIndex];
         if (item.isBreak) {
           return SetlistBreakRow(
             breakType: item.breakType,
@@ -278,7 +310,7 @@ class SetlistViewScreen extends ConsumerWidget {
         }
         final song = songsById[item.songId];
         return SetlistSongRow(
-          index: numbers[index - 1],
+          index: numbers[itemIndex],
           song: song,
           performers: performerLabel(item.performerIds, lineup),
           trailing: song == null ? null : _badgesFor(song),
