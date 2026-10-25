@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T14:44:11.536920+00:00",
+  "updated_at": "2026-10-25T15:08:33.952550+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -4904,8 +4904,8 @@
     {
       "id": "GH-186-C",
       "title": "Share inventory typed transport and bounded page decoding",
-      "status": "running",
-      "executor": "luna",
+      "status": "verified",
+      "executor": "hermes direct fallback after incomplete Luna attempt",
       "kind": "implementation",
       "issue": "GH-186",
       "after": [
@@ -4928,37 +4928,54 @@
         "id": "GH-186-C-LUNA-20261025-144255",
         "requested_provider": "openai-codex",
         "requested_model": "gpt-6-luna",
-        "phase": "model_implementation",
-        "active_actor": "luna",
+        "phase": "accepted_primary_transport",
+        "active_actor": "hermes",
         "started_at": "2026-10-25T14:42:55.213148+00:00",
-        "phase_started_at": "2026-10-25T14:42:55.213148+00:00",
+        "phase_started_at": "2026-10-25T15:04:13.677775+00:00",
         "deadline_at": "2026-10-25T15:17:55.213148+00:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
-        "file_lease": [
-          "lib/services/event_share_service.dart",
-          "test/services/event_share_service_test.dart"
-        ],
+        "file_lease": [],
         "test_lane": "exclusive Flutter service test lane",
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-C-LUNA-20261025-144255/hermes.jsonl",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-C-LUNA-20261025-144255/process.json",
         "expected_artifact": "typed service and public invoker RED/GREEN",
-        "next_action": "Reconcile original server terminal; independently verify exact bytes",
-        "user_status": "Серверная часть принята; запущена клиентская загрузка страниц списка ссылок.",
-        "last_observed_activity": "2026-10-25T14:44:11.536920+00:00",
-        "last_meaningful_progress": "Accepted backend prerequisite; exact client source synchronized",
+        "next_action": "Dispatch GH-186-U writer-only inventory/revoke screen",
+        "gateway_turn_status": "terminal_text_response_stop_at_2026-10-25T14:46:39.805Z_incomplete_no_inventory_changes",
+        "needs_reconciliation": false,
+        "handoff_actor": "hermes",
+        "handoff_at": "2026-10-25T14:50:20.033501+00:00",
+        "user_status": "Клиентская загрузка списка ссылок принята: 67 совместных тестов прошли; экран ещё впереди.",
+        "last_observed_activity": "2026-10-25T15:04:13.677775+00:00",
+        "last_meaningful_progress": "67 primary combined tests passed; client transport integrated",
         "pid": 8680,
         "process": "proc_73c549878e57",
         "session_id": "local-5cf749588bf250a3ecac25096d3e0415743a7bfa61cf9c6cfcde12673de63eb2",
         "actual_model": "gpt-6-luna",
         "actual_provider": "openai-codex",
-        "controller_next_run_observed": "2026-10-25T14:44:31.456734+00:00"
+        "controller_next_run_observed": "2026-10-25T14:44:31.456734+00:00",
+        "primary_commit": "546d2b3963ec590e21d39dfb999afb3cad08e769",
+        "primary_tests_passed": 67
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "546d2b3963ec590e21d39dfb999afb3cad08e769",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-186-C.json"
+        ]
+      },
+      "attempts": [
+        {
+          "actor": "luna",
+          "outcome": "incomplete_terminal_stop_no_inventory_patch",
+          "terminal_at": "2026-10-25T14:46:39.805Z",
+          "prompt_replayed": false
+        }
+      ]
     },
     {
       "id": "GH-186-U",
       "title": "Writer-only event link inventory and isolated revoke in existing editor",
-      "status": "queued",
+      "status": "running",
       "executor": "luna",
       "kind": "implementation",
       "issue": "GH-186",
@@ -4968,7 +4985,8 @@
       "read_files": [
         "lib/screens/setlists/event_kit_editor_screen.dart",
         "test/screens/setlists/event_kit_editor_test.dart",
-        "lib/services/event_share_service.dart"
+        "lib/services/event_share_service.dart",
+        "lib/providers/permissions_provider.dart"
       ],
       "allowed_files": [
         "lib/screens/setlists/event_kit_editor_screen.dart",
@@ -4979,7 +4997,36 @@
       ],
       "timeout_s": 2100,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-186-U-LUNA-20261025-150703",
+        "requested_provider": "openai-codex",
+        "requested_model": "gpt-6-luna",
+        "phase": "model_implementation",
+        "active_actor": "luna",
+        "started_at": "2026-10-25T15:07:03.078826+00:00",
+        "phase_started_at": "2026-10-25T15:07:03.078826+00:00",
+        "deadline_at": "2026-10-25T15:42:03.078826+00:00",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_luna",
+        "file_lease": [
+          "lib/screens/setlists/event_kit_editor_screen.dart",
+          "test/screens/setlists/event_kit_editor_test.dart"
+        ],
+        "test_lane": "exclusive Flutter rendered editor test lane",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-U-LUNA-20261025-150703/hermes.jsonl",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-186-U-LUNA-20261025-150703/process.json",
+        "expected_artifact": "writer-only paged link inventory and isolated revoke, rendered RED/GREEN",
+        "next_action": "Reconcile original terminal and independently verify exact source/tests",
+        "user_status": "Клиентская загрузка принята; исполнитель делает экран списка ссылок и выборочный отзыв.",
+        "last_observed_activity": "2026-10-25T15:08:33.952550+00:00",
+        "last_meaningful_progress": "2026-10-25 15:08:03,778 INFO [local-e9b2df18677495b61f757312d3113f74d549420d9dfb5dffbb0e393a900a2d8d] agent.conversation_loop: API call #2: model=gpt-6-luna provider=openai-codex in=6793 out=269 total=7062 latency=3.1s cache=6272/6793 (92%) id=resp_0c59f9dd322f07ec016ade1b513a1c8191ae70699f1f778d96",
+        "pid": 11283,
+        "process": "proc_76f912108060",
+        "session_id": "local-e9b2df18677495b61f757312d3113f74d549420d9dfb5dffbb0e393a900a2d8d",
+        "actual_model": "gpt-6-luna",
+        "actual_provider": "openai-codex",
+        "controller_next_run_observed": "2026-10-25T15:09:56.395526+00:00",
+        "needs_reconciliation": true
+      },
       "verification": null
     },
     {

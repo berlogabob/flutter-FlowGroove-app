@@ -189,7 +189,8 @@ Registry изменяет только один родительский про�
 - [ ] **GH-187-V** · fresh combined regression and safe device/guest round trip; gates FINAL-TEST.
 - [x] **GH-186-R** · luna + independent Hermes source acceptance · Missing inventory confirmed; required export/writer/pagination/URL gates registered. Source review only.
 - [x] **GH-186-B** · Luna draft + Hermes direct completion · Authorized metadata inventory/export integrated `8cfa0698`; 87 warm / 95 primary callable+security tests PASS. Original 32-turn incomplete worker retained; no client/UI/device credit.
-- [ ] **GH-186-C/U/URL/V** · Typed client → writer-only inventory/revoke; URL waits GH-189-L1; combined/device final gate retained.
+- [x] **GH-186-C** · Hermes direct fallback after reconciled incomplete Luna terminal · Typed immutable metadata pages integrated `546d2b39`; public runtime/date RED and final 67 primary combined tests PASS; scoped analyzer has 20 infos/no warnings/errors, format/diff PASS. No UI/device credit.
+- [ ] **GH-186-U/URL/V** · Writer-only inventory/revoke UI next; URL waits GH-189-L1; combined/device final gate retained.
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-186.md`.
 - [ ] **GH-180-R** · ornith · Повторная проверка GitHub #180: [epic] Event participants: scoped event sharing for non-members
   - После: OPS-LAN, OPS-RUNNER. Scope: `docs/plans/systemic-ux/reviews/GH-180.md`.
