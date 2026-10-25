@@ -883,6 +883,55 @@ describe("event sharing callables", function () {
   });
 
   describe("suggestions", () => {
+    it("persists validated typed proposals without charging rejected submissions", async () => {
+      const path = `bands/${BAND}/setlists/${SETLIST}`;
+      const items = [{ id: "one", songId: "song-1", type: "song" }];
+      await db.doc(path).set({ items }, { merge: true });
+      const baseFingerprint = require("node:crypto").createHash("sha256")
+        .update(JSON.stringify([["one", "song", "song-1", null, null, null, []]])).digest("hex");
+      const token = await shareFor("p-couple");
+      const tokenId = token.split(".")[0];
+      const proposal = { version: 1, kind: "remove", baseFingerprint, itemId: "one" };
+      const submit = (extra) => call(events.submitSuggestion)(req({ token, type: "remove", proposal, ...extra }));
+      for (const extra of [
+        { proposal: { ...proposal, extra: true } },
+        { proposal: { ...proposal, kind: "add" } },
+        { proposal: { ...proposal, itemId: "../one" } },
+        { proposal: { ...proposal, baseFingerprint: "0".repeat(64) } },
+        { proposal: null },
+        { proposal: { ...proposal, itemId: "missing" } },
+        { type: "add", proposal: { version: 1, kind: "add", baseFingerprint, songId: "missing" } },
+        { type: "add", proposal: { version: 1, kind: "add", baseFingerprint, songId: "song-1", beforeItemId: "missing" } },
+        { type: "reorder", proposal: { version: 1, kind: "reorder", baseFingerprint, itemIds: [] } },
+        { type: "reorder", proposal: { version: 1, kind: "reorder", baseFingerprint, itemIds: ["one", "one"] } },
+      ]) {
+        await assert.rejects(submit(extra));
+        assert.equal((await db.doc(`eventShares/${tokenId}`).get()).data().suggestionCount, 0);
+        assert.equal((await db.collection(`${path}/suggestions`).get()).size, 0);
+      }
+      await assert.rejects(call(events.submitSuggestion)(req({ token, type: "note", text: "note", proposal })));
+      const { id } = await submit({});
+      assert.deepEqual((await db.doc(`${path}/suggestions/${id}`).get()).data().proposal, proposal);
+      assert.equal((await db.doc(`eventShares/${tokenId}`).get()).data().suggestionCount, 1);
+      for (const typed of [
+        { version: 1, kind: "add", baseFingerprint, songId: "song-1", beforeItemId: "one" },
+        { version: 1, kind: "add", baseFingerprint, songId: "song-1" },
+        { version: 1, kind: "reorder", baseFingerprint, itemIds: ["one"] },
+      ]) {
+        const saved = await submit({ type: typed.kind, proposal: typed });
+        assert.deepEqual((await db.doc(`${path}/suggestions/${saved.id}`).get()).data().proposal, typed);
+      }
+      assert.deepEqual((await db.doc(path).get()).data().items, items, "submission must not execute proposals");
+
+      const ownerUid = "personal-owner";
+      const personalPath = `users/${ownerUid}/setlists/personal-event`;
+      await db.doc(personalPath).set({ items }, { merge: true });
+      const personalToken = await call(events.createEventShare)(req({ ownerUid, setlistId: "personal-event", participantId: "p-couple" }, ownerUid));
+      const personalProposal = { ...proposal, baseFingerprint };
+      const personalResult = await call(events.submitSuggestion)(req({ token: personalToken.token, type: "remove", proposal: personalProposal }));
+      assert.deepEqual((await db.doc(`${personalPath}/suggestions/${personalResult.id}`).get()).data().proposal, personalProposal);
+    });
+
     it("typed remove deletes exactly one duplicate song reference and preserves break metadata", async () => {
       const path = `bands/${BAND}/setlists/${SETLIST}`;
       const items = [
@@ -1045,8 +1094,10 @@ describe("event sharing callables", function () {
 
     it("accepts an anonymous suggestion attributed to the assigned name", async () => {
       const token = await shareFor("p-couple");
+      const baseFingerprint = require("node:crypto").createHash("sha256")
+        .update(JSON.stringify([["i1", "song", "song-1", null, null, null, []]])).digest("hex");
       await call(events.submitSuggestion)(
-        req({ token, type: "remove", songId: "song-1", text: "Not this one" }),
+        req({ token, type: "remove", proposal: { version: 1, kind: "remove", baseFingerprint, itemId: "i1" }, text: "Not this one" }),
       );
       const snap = await db
         .collection(`bands/${BAND}/setlists/${SETLIST}/suggestions`)

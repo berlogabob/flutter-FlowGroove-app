@@ -749,7 +749,7 @@ exports.claimEventShare = functions.https.onCall(async (request) => {
  */
 exports.submitSuggestion = functions.https.onCall(async (request) => {
   await refuseDemo(request, "suggest changes");
-  const { token, bandId, ownerUid, setlistId, type, songId, text } = request.data || {};
+  const { token, bandId, ownerUid, setlistId, type, songId, text, proposal } = request.data || {};
   const viewer = await resolveViewer({
     token: cleanString(token),
     bandId: cleanString(bandId),
@@ -777,6 +777,34 @@ exports.submitSuggestion = functions.https.onCall(async (request) => {
       "invalid-argument",
       "A note needs some text.",
     );
+  }
+
+  const hasProposal = Object.prototype.hasOwnProperty.call(request.data || {}, "proposal");
+  if (kind === "note" && hasProposal) {
+    throw new functions.https.HttpsError("invalid-argument", "Notes cannot include a proposal.");
+  }
+  if (kind !== "note" && hasProposal && !validProposal(proposal, kind)) {
+    throw new functions.https.HttpsError("invalid-argument", "A valid typed proposal is required.");
+  }
+  if (hasProposal) {
+    const items = viewer.setlist.items;
+    const fingerprint = proposalFingerprint(items);
+    if (!fingerprint || fingerprint !== proposal.baseFingerprint) {
+      throw new functions.https.HttpsError("failed-precondition", "Running order changed or has ambiguous identities.");
+    }
+    if (kind === "remove" && !items.some((item) => item.id === proposal.itemId && (item.type || "song") === "song")) {
+      throw new functions.https.HttpsError("failed-precondition", "Removal target is unavailable.");
+    }
+    if (kind === "reorder" && (proposal.itemIds.length !== items.length || !proposal.itemIds.every((id) => items.some((item) => item.id === id)))) {
+      throw new functions.https.HttpsError("failed-precondition", "Reorder must include every current item exactly once.");
+    }
+    if (kind === "add") {
+      if (proposal.beforeItemId !== undefined && !items.some((item) => item.id === proposal.beforeItemId)) {
+        throw new functions.https.HttpsError("failed-precondition", "Insertion anchor is unavailable.");
+      }
+      const song = await scopeRef(viewer.scope).collection("songs").doc(proposal.songId).get();
+      if (!song.exists) throw new functions.https.HttpsError("failed-precondition", "Proposed song is unavailable.");
+    }
   }
 
   // Per-token cap. Members are not counted: they are already trusted to write
@@ -807,6 +835,7 @@ exports.submitSuggestion = functions.https.onCall(async (request) => {
       type: kind,
       songId: cleanString(songId) || null,
       text: body.slice(0, 2000),
+      ...(hasProposal ? { proposal } : {}),
       // Attributed to the name the band assigned when sharing, so an anonymous
       // link still produces "Sputnik — Ana asked to…" rather than a bare token.
       authorName: viewer.name || "Guest",
