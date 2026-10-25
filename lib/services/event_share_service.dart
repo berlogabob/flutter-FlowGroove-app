@@ -219,6 +219,101 @@ typedef CallableInvoker =
       Map<String, dynamic> args,
     );
 
+/// Metadata only: raw link tokens, account IDs and hashes are not retained.
+class EventShareSummary {
+  const EventShareSummary({
+    required this.tokenId,
+    required this.participantId,
+    required this.name,
+    required this.role,
+    required this.access,
+    required this.createdAt,
+    required this.expiresAt,
+    required this.state,
+  });
+
+  final String tokenId, participantId, name, role, state;
+  final Map<String, String> access;
+  final DateTime? createdAt, expiresAt;
+}
+
+class EventSharePage {
+  const EventSharePage({required this.shares, required this.nextCursor});
+
+  final List<EventShareSummary> shares;
+  final String? nextCursor;
+  bool get hasMore => nextCursor != null;
+
+  factory EventSharePage.fromMap(Map<String, dynamic> map) {
+    Never invalid() => throw const FormatException('Invalid event share page');
+    bool validId(Object? value) =>
+        value is String &&
+        value.isNotEmpty &&
+        value.length <= 128 &&
+        !value.contains(RegExp(r'[\\/]'));
+    DateTime? date(Object? value) {
+      if (value == null) return null;
+      if (value is! String || !RegExp(r'^\d{4}-\d{2}-\d{2}T').hasMatch(value))
+        invalid();
+      final parsed = DateTime.tryParse(value);
+      if (parsed == null || parsed.toUtc().toIso8601String() != value)
+        invalid();
+      return parsed;
+    }
+
+    final rows = map['shares'];
+    final more = map['hasMore'];
+    final cursor = map['nextCursor'];
+    if (rows is! List ||
+        rows.length > 50 ||
+        more is! bool ||
+        (more ? !validId(cursor) || rows.isEmpty : cursor != null))
+      invalid();
+    final seen = <String>{};
+    final shares = <EventShareSummary>[];
+    for (final row in rows) {
+      if (row is! Map ||
+          !validId(row['tokenId']) ||
+          row['participantId'] is! String ||
+          row['name'] is! String ||
+          row['role'] is! String ||
+          row['access'] is! Map ||
+          !const [
+            'active',
+            'revoked',
+            'expired',
+            'unavailable',
+          ].contains(row['state']))
+        invalid();
+      final id = row['tokenId'] as String;
+      if (!seen.add(id)) invalid();
+      final access = row['access'] as Map;
+      if (access.keys.any((k) => k is! String) ||
+          access.values.any((v) => v is! String))
+        invalid();
+      shares.add(
+        EventShareSummary(
+          tokenId: id,
+          participantId: row['participantId'] as String,
+          name: row['name'] as String,
+          role: row['role'] as String,
+          access: Map.unmodifiable(
+            sanitizeAccess(Map<String, String>.from(access)),
+          ),
+          createdAt: date(row['createdAt']),
+          expiresAt: date(row['expiresAt']),
+          state: row['state'] as String,
+        ),
+      );
+    }
+    if (more && cursor != shares.last.tokenId) invalid();
+    return EventSharePage(
+      shares: List.unmodifiable(shares),
+      nextCursor: cursor as String?,
+    );
+  }
+}
+
 class EventShareService {
   EventShareService({FirebaseFunctions? functions, CallableInvoker? invoker})
     : _functions = functions,
@@ -271,6 +366,27 @@ class EventShareService {
       'participantId': participantId,
     });
     return out['token'] as String? ?? '';
+  }
+
+  Future<EventSharePage> listShares({
+    String? bandId,
+    String? ownerUid,
+    required String setlistId,
+    String? cursor,
+  }) async {
+    final out = await _call('listEventShares', {
+      'bandId': bandId,
+      'ownerUid': ownerUid,
+      'setlistId': setlistId,
+      'cursor': cursor,
+    });
+    final page = EventSharePage.fromMap(out);
+    if (cursor != null &&
+        page.hasMore &&
+        page.nextCursor!.compareTo(cursor) <= 0) {
+      throw const FormatException('Event share cursor did not advance');
+    }
+    return page;
   }
 
   Future<void> revokeShare(String tokenId) =>

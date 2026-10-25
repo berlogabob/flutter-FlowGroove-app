@@ -203,6 +203,229 @@ void main() {
     }
   });
 
+  test(
+    'listShares decodes a safe bounded inventory page and exact scope',
+    () async {
+      final invoker = _RecordingInvoker({
+        'shares': [
+          {
+            'tokenId': 'link-1',
+            'participantId': 'person-1',
+            'name': 'Engineer',
+            'role': 'Sound',
+            'access': {'stage': 'view', 'rider': 'edit', 'secret': 'edit'},
+            'createdAt': '2026-10-25T10:00:00.000Z',
+            'expiresAt': null,
+            'state': 'active',
+            'token': 'must-not-retain',
+            'uid': 'private',
+          },
+        ],
+        'hasMore': true,
+        'nextCursor': 'link-1',
+      });
+      final service = EventShareService(invoker: invoker.call);
+      final page = await service.listShares(
+        bandId: 'band-1',
+        setlistId: 'event-1',
+      );
+      expect(invoker.calls.single.name, 'listEventShares');
+      expect(invoker.calls.single.args, {
+        'bandId': 'band-1',
+        'setlistId': 'event-1',
+      });
+      expect(page.hasMore, isTrue);
+      expect(page.nextCursor, 'link-1');
+      expect(page.shares.single.tokenId, 'link-1');
+      expect(page.shares.single.participantId, 'person-1');
+      expect(page.shares.single.name, 'Engineer');
+      expect(page.shares.single.role, 'Sound');
+      expect(page.shares.single.access, {'stage': 'view', 'rider': 'edit'});
+      expect(page.shares.single.createdAt, DateTime.utc(2026, 10, 25, 10));
+      expect(page.shares.single.expiresAt, isNull);
+      expect(page.shares.single.state, 'active');
+    },
+  );
+
+  test(
+    'listShares rejects malformed inventory instead of silently dropping rows',
+    () async {
+      final row = <String, dynamic>{
+        'tokenId': 'link-2',
+        'participantId': '',
+        'name': '',
+        'role': '',
+        'access': <String, String>{},
+        'createdAt': null,
+        'expiresAt': null,
+        'state': 'unavailable',
+      };
+      final valid = <String, dynamic>{
+        'shares': [row],
+        'hasMore': false,
+        'nextCursor': null,
+      };
+      for (final bad in <Map<String, dynamic>>[
+        {},
+        {...valid, 'shares': null},
+        {
+          ...valid,
+          'shares': [null],
+        },
+        {...valid, 'shares': List.filled(51, row)},
+        {
+          ...valid,
+          'shares': [row, row],
+        },
+        {...valid, 'hasMore': 'false'},
+        {...valid, 'nextCursor': 'unexpected'},
+        {...valid, 'hasMore': true, 'nextCursor': null},
+        {...valid, 'hasMore': true, 'nextCursor': 'other'},
+        {'shares': <Object?>[], 'hasMore': true, 'nextCursor': 'link-2'},
+        for (final field in <Map<String, dynamic>>[
+          {'tokenId': ''},
+          {'tokenId': 'bad/id'},
+          {'participantId': 1},
+          {'name': null},
+          {'role': false},
+          {'access': <Object?>[]},
+          {
+            'access': {'stage': 5},
+          },
+          {'state': 'unknown'},
+          {'createdAt': 'not a date'},
+          {'expiresAt': 17},
+          {'createdAt': '2026-02-31T10:00:00.000Z'},
+        ])
+          {
+            ...valid,
+            'shares': [
+              {...row, ...field},
+            ],
+          },
+      ]) {
+        final invoker = _RecordingInvoker(bad);
+        await expectLater(
+          EventShareService(
+            invoker: invoker.call,
+          ).listShares(ownerUid: 'owner', setlistId: 'event'),
+          throwsFormatException,
+          reason: '$bad',
+        );
+      }
+    },
+  );
+
+  test(
+    'listShares traverses both scopes, all states and an empty terminal page',
+    () async {
+      final calls = <Map<String, dynamic>>[];
+      final service = EventShareService(
+        invoker: (name, args) async {
+          expect(name, 'listEventShares');
+          calls.add(args);
+          if (args['cursor'] != null)
+            return {
+              'shares': <Object?>[],
+              'hasMore': false,
+              'nextCursor': null,
+            };
+          return {
+            'shares': [
+              for (final state in [
+                'active',
+                'revoked',
+                'expired',
+                'unavailable',
+              ])
+                {
+                  'tokenId': 'link-$state',
+                  'participantId': 'person',
+                  'name': 'Person',
+                  'role': 'Guest',
+                  'access': <String, String>{},
+                  'createdAt': null,
+                  'expiresAt': '2026-10-26T00:00:00.000Z',
+                  'state': state,
+                },
+            ],
+            'hasMore': true,
+            'nextCursor': 'link-unavailable',
+          };
+        },
+      );
+      for (final personal in [false, true]) {
+        final page = await service.listShares(
+          bandId: personal ? null : 'band',
+          ownerUid: personal ? 'owner' : null,
+          setlistId: 'event',
+        );
+        expect(page.shares.map((s) => s.state), [
+          'active',
+          'revoked',
+          'expired',
+          'unavailable',
+        ]);
+        expect(page.shares.last.expiresAt, DateTime.utc(2026, 10, 26));
+        expect(() => page.shares.clear(), throwsUnsupportedError);
+        expect(() => page.shares.first.access.clear(), throwsUnsupportedError);
+        final end = await service.listShares(
+          bandId: personal ? null : 'band',
+          ownerUid: personal ? 'owner' : null,
+          setlistId: 'event',
+          cursor: page.nextCursor,
+        );
+        expect(end.shares, isEmpty);
+        expect(end.hasMore, isFalse);
+        expect(end.nextCursor, isNull);
+        final scope = personal ? {'ownerUid': 'owner'} : {'bandId': 'band'};
+        expect(calls[calls.length - 2], {...scope, 'setlistId': 'event'});
+        expect(calls.last, {
+          ...scope,
+          'setlistId': 'event',
+          'cursor': 'link-unavailable',
+        });
+      }
+      final failure = StateError('permission denied');
+      await expectLater(
+        EventShareService(
+          invoker: (_, _) async => throw failure,
+        ).listShares(ownerUid: 'owner', setlistId: 'event'),
+        throwsA(same(failure)),
+      );
+    },
+  );
+
+  test(
+    'listShares rejects a page that does not advance the requested cursor',
+    () async {
+      final invoker = _RecordingInvoker({
+        'shares': [
+          {
+            'tokenId': 'link-2',
+            'participantId': '',
+            'name': '',
+            'role': '',
+            'access': <String, String>{},
+            'createdAt': null,
+            'expiresAt': null,
+            'state': 'unavailable',
+          },
+        ],
+        'hasMore': true,
+        'nextCursor': 'link-2',
+      });
+      for (final cursor in ['link-2', 'link-3']) {
+        await expectLater(
+          EventShareService(
+            invoker: invoker.call,
+          ).listShares(bandId: 'band', setlistId: 'event', cursor: cursor),
+          throwsFormatException,
+        );
+      }
+    },
+  );
+
   group('write wrappers', () {
     ProviderContainer containerWith(_RecordingInvoker invoker) {
       final container = ProviderContainer(

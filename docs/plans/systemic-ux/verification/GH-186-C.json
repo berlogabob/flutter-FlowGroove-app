@@ -1,0 +1,47 @@
+{
+  "task": "GH-186-C",
+  "reviewer": "hermes",
+  "at": "2026-10-25T15:04:13.677775+00:00",
+  "scope": "client transport code acceptance, not UI/device",
+  "actor": "Hermes direct fallback after incomplete original Luna terminal",
+  "original_worker": {
+    "provider": "openai-codex",
+    "model": "gpt-6-luna",
+    "terminal_at": "2026-10-25T14:46:39.805Z",
+    "outcome": "text_response(stop), nine calls; no inventory source changes; attempted patch validation failed",
+    "prompt_replayed": false,
+    "limitations": "Worker red.json was passing baseline, not RED. Unknown/disconnected CLI reconciled against original server logs before handoff."
+  },
+  "checks": {
+    "public_red": "Runtime NoSuchMethodError listShares; done.success=false, exit 1",
+    "date_red": "Impossible February 31 accepted by DateTime normalization; done.success=false, exit 1",
+    "primary_final_combined": {
+      "visible_passed": 67,
+      "exit_code": 0,
+      "done_success": true,
+      "suites": [
+        "test/services/event_share_service_test.dart",
+        "test/screens/setlists/event_kit_editor_test.dart",
+        "test/screens/setlists/event_share_render_test.dart"
+      ]
+    },
+    "analyze": "exit 1, 20 infos; no warnings/errors",
+    "format": "2 files, zero changes, exit 0",
+    "diff": "exit 0"
+  },
+  "behavior": [
+    "Typed immutable metadata page/summary; sanitized grants and no raw token/uid/hash storage",
+    "Exact personal/band scope and cursor omission/forwarding; errors propagated",
+    "Maximum 50 entries, strict page/state/type/date validation; duplicate IDs and nonadvancing cursor rejected",
+    "Four lifecycle states, empty terminal page, canonical server UTC ISO timestamps (JavaScript toISOString contract)"
+  ],
+  "hashes": {
+    "lib/services/event_share_service.dart": "a6722f2339f70b9e4927ede9c364b30788a14c5147b61d0ba00513dd3980c0eb",
+    "test/services/event_share_service_test.dart": "793e558d16e78a14b18ecfd0fe95179cd732b1776ddd472ddf30e90af1ebd651"
+  },
+  "limitations": [
+    "First parent tracer compile failed due sanitizeAccess map type; corrected and raw attempt retained",
+    "No device, full suite, full Graphify refresh, release or remote issue closure",
+    "URL policy and UI/device gates remain open"
+  ]
+}
