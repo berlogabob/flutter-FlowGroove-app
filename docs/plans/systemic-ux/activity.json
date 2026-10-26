@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-26T03:43:43.669161+00:00",
+  "updated_at": "2026-10-26T07:13:00+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -5918,25 +5918,42 @@
     {
       "id": "GH-179-AVATAR",
       "title": "Both avatar callables reject demo before any Storage or Firestore mutation",
-      "status": "blocked",
-      "executor": "luna",
+      "status": "running",
+      "executor": "hermes",
       "kind": "implementation",
       "issue": "GH-179",
-      "after": [
-        "GH-179-R"
-      ],
-      "read_files": [
-        "functions/src/band_avatar.js"
-      ],
+      "after": ["GH-179-R"],
+      "read_files": ["functions/src/band_avatar.js", "functions/test/callable-band-avatar.test.js", "functions/src/avatars.js", "functions/index.js", "functions/package.json", "firebase.json"],
       "allowed_files": [],
       "acceptance": [
-        "Both avatar callables reject demo before any Storage or Firestore mutation; register exact scope/public regression before edits; no issue/device credit."
+        "Public setBandAvatar/removeBandAvatar callable seam, existing emulator fixture and injected fake Storage only. Preflight baseline first; then register exact source/test lease before RED or production edits. Token demo and server users.accessRole demo must reject before Storage or band mutation; authenticated non-demo admin controls preserved. No deployment or real Storage mutation."
       ],
       "timeout_s": 2100,
       "max_attempts": 1,
-      "run": null,
-      "verification": null,
-      "blocked_reason": "Preflight public callable tests, server role lookup and production exports before exact source/test lease; no deploy authorization."
+      "run": {
+        "id": "GH-179-AVATAR-PARENT-20261026-0707",
+        "started_at": "2026-10-26T07:07:20+00:00",
+        "deadline_at": "2026-10-26T07:42:20+00:00",
+        "active_actor": "hermes",
+        "phase": "parent_regression_preparation",
+        "phase_started_at": "2026-10-26T07:14:53.432236+00:00",
+        "baseline_exit_code": 0,
+        "baseline_tests_passed": 5,
+        "last_meaningful_progress": "Existing public callable baseline 5 PASS; exact source/test hashes unchanged, emulator shut down. No source/test write lease yet.",
+        "worker_active": false,
+        "needs_reconciliation": true,
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "file_lease": [],
+        "test_lane": null,
+        "process": "proc_d72d9bcfc197",
+        "log": "audit/2026-10-23-systemic-ux/workers/GH-179-AVATAR-PARENT-20261026-0707/baseline-cli.log",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-AVATAR-PARENT-20261026-0707/baseline-cli-process.json",
+        "attempt_history": [{"process": "proc_cd7b235f5358", "metadata": "process.json", "log": "baseline.log", "exit_code": 1, "outcome": "Java prerequisite rejected before tests; retained. Explicit installed JDK26 only for next command, no global changes."}, {"process": "proc_762c2997cbe6", "metadata": "baseline-jdk26-process.json", "log": "baseline-jdk26.log", "exit_code": 1, "outcome": "Emulator started and stopped; node -e consumed test path, zero tests. Corrected CLI only, no production/test edits."}],
+        "expected_artifact": "Existing five callable tests baseline, terminal process outcome and source hashes",
+        "next_action": "Read exact original baseline outcome; inspect existing personal avatar demo policy and caller authority, register sole source/test pair before RED. No Luna replay while route unhealthy.",
+        "user_status": "Исходные 5 тестов аватара группы прошли; следующий шаг — regression на запрет изменений для demo. Сам запрет ещё не исправлен."
+      },
+      "verification": null
     },
     {
       "id": "GH-179-DEMO-R",
@@ -6429,7 +6446,7 @@
       "id": "GH-179-REC-S6-R", "title": "Recorder cancellation before Undo restore and failure feedback", "status": "verified", "executor": "hermes", "kind": "implementation", "issue": "GH-179", "after": ["GH-179-REC-S6-Q"], "read_files": ["lib/screens/recorder_screen.dart", "test/screens/recorder_screen_test.dart"], "allowed_files": ["lib/screens/recorder_screen.dart", "test/screens/recorder_screen_test.dart"], "acceptance": ["Public Recorder Undo awaits cancellation before restore; false/throw rejects restore and reports safe retry; failed-delete durable recovery remains explicit."], "run": {"id": "GH-179-REC-S6-R-PARENT-20261026-0500", "started_at": "2026-10-26T05:01:07.288742+00:00", "deadline_at": "2026-10-26T05:36:07.288742+00:00", "process": "proc_8d10cc56c0b2", "active_actor": "hermes", "phase": "accepted_integrated", "worker_active": false, "needs_reconciliation": false, "file_lease": [], "test_lane": null, "log": "audit/2026-10-23-systemic-ux/workers/GH-179-REC-S6-R-PARENT-20261026-0500/green-final.log", "primary_tests_passed": 63, "next_action": "Song Lab L public Undo regression; shared restart recovery F still blocked", "user_status": "Undo в Recorder исправлен: восстановление ждёт отмены удаления, ошибки дают повторную попытку; 63 связанных теста прошли."}, "verification": {"reviewer": "hermes", "tested_commit": "b9bc5920578416955e1abdda0680c5d6b5d7658a", "evidence": ["docs/plans/systemic-ux/verification/GH-179-REC-S6-R.json"]}
     },
     {
-      "id": "GH-179-REC-S6-L", "title": "Song Lab cancellation before Undo restore and failure feedback", "status": "running", "executor": "hermes", "kind": "implementation", "issue": "GH-179", "after": ["GH-179-REC-S6-Q"], "read_files": ["lib/screens/songs/song_lab_screen.dart", "test/screens/songs/song_lab_screen_test.dart"], "allowed_files": ["lib/screens/songs/song_lab_screen.dart", "test/screens/songs/song_lab_screen_test.dart"], "acceptance": ["Public Song Lab Undo awaits cancellation before restore; cancellation errors handled without false success; preserve permissions and retry."], "run": {"id": "GH-179-REC-S6-L-PARENT-20261026-0550", "started_at": "2026-10-26T05:50:50.587741+00:00", "deadline_at": "2026-10-26T06:25:50.587741+00:00", "process": "proc_8602415a821c", "pid": 69140, "active_actor": "hermes", "phase": "parent_baseline_preflight", "worker_active": false, "needs_reconciliation": true, "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app", "file_lease": ["lib/screens/songs/song_lab_screen.dart", "test/screens/songs/song_lab_screen_test.dart"], "test_lane": "owned_flutter_regression", "log": "audit/2026-10-23-systemic-ux/workers/GH-179-REC-S6-L-PARENT-20261026-0550/baseline.log", "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S6-L-PARENT-20261026-0550/process.json", "expected_artifact": "Public Song Lab baseline report and source hashes", "next_action": "Read original outcome, inspect existing public Undo fixture and authority across await, obtain RED before production edits. No Luna replay while route unhealthy.", "user_status": "Запущена проверка Undo в Song Lab; после исходных тестов — порядок отмены удаления и безопасная повторная попытка."}, "verification": null
+      "id": "GH-179-REC-S6-L", "title": "Song Lab cancellation before Undo restore and failure feedback", "status": "verified", "executor": "hermes", "kind": "implementation", "issue": "GH-179", "after": ["GH-179-REC-S6-Q"], "read_files": ["lib/screens/songs/song_lab_screen.dart", "test/screens/songs/song_lab_screen_test.dart"], "allowed_files": ["lib/screens/songs/song_lab_screen.dart", "test/screens/songs/song_lab_screen_test.dart"], "acceptance": ["Public Song Lab Undo awaits cancellation before restore; cancellation errors handled without false success; preserve permissions and retry."], "run": {"id": "GH-179-REC-S6-L-PARENT-20261026-0550", "started_at": "2026-10-26T05:50:50.587741+00:00", "deadline_at": "2026-10-26T06:25:50.587741+00:00", "process": "proc_8602415a821c", "active_actor": "hermes", "phase": "accepted_integrated", "worker_active": false, "needs_reconciliation": false, "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app", "file_lease": [], "test_lane": null, "log": "audit/2026-10-23-systemic-ux/workers/GH-179-REC-S6-L-PARENT-20261026-0550/green-final.log", "primary_tests_passed": 70, "expected_artifact": "verification/GH-179-REC-S6-L.json", "next_action": "Shared recovery F/S2/S3 remain blocked; independent avatar callable baseline next", "user_status": "Undo в Song Lab исправлен: восстановление ждёт отмены удаления, ошибки дают Retry; 70 связанных тестов прошли."}, "verification": {"reviewer": "hermes", "tested_commit": "fee384ec9a4a1a0b1354bb65ff327ce7862e877a", "evidence": ["docs/plans/systemic-ux/verification/GH-179-REC-S6-L.json"]}
     },
     {
       "id": "GH-179-REC-S6-F", "title": "Shared restore and durable failed-cancel recovery contract", "status": "blocked", "executor": "hermes", "kind": "implementation", "issue": "GH-179", "after": ["GH-179-REC-S6-P"], "read_files": ["lib/repositories/firestore_lab_repository.dart", "lib/services/pending_storage_deletes.dart"], "allowed_files": [], "acceptance": ["Preflight shared saveEntry attachment cancellation and conservative next-launch deletion when cancellation persistence fails; exact public repository/restart test seam before writes. No migration or unconditional durable-safety claim."], "blocked_reason": "Existing URL-only sweep cannot prove owning document absent after failed cancellation; needs REC-S2/S3 authority/reconciliation contract and exact public test seam.", "run": null, "verification": null
