@@ -125,3 +125,8 @@ html{scroll-padding-top:84px}
 .text-link span{display:inline-flex;align-items:center;font:inherit;line-height:1;height:1.2em;text-decoration:none}
 .text-link:hover{color:var(--orange-dark);border-color:var(--orange-dark);text-decoration:none}
 @media(max-width:680px){.nav-cta,.button,.text-link{font-size:12px}}
+.author{min-height:94px}
+.author-socials{display:flex;align-items:center;gap:14px;margin-top:6px}
+.author-socials a{display:inline-flex;align-items:center;gap:4px;color:var(--petrol);font:700 11px/1.2 Arial,Helvetica,sans-serif;text-decoration:none}
+.author-socials a:hover{color:var(--orange-dark);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:680px){.author{min-height:94px}.author-socials{gap:12px}.author-socials a{font-size:11px}}
