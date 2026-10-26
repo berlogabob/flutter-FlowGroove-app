@@ -120,11 +120,12 @@ html{scroll-padding-top:84px}
 @media(prefers-reduced-motion:reduce){.topbar{transition:none}}
 .nav>a:not(.nav-cta){text-decoration:none;text-underline-offset:4px}
 .nav>a:not(.nav-cta):hover,.nav>a:not(.nav-cta):focus-visible{text-decoration:underline}
-.nav-cta,.button{font-size:12px}
-.text-link{display:inline-flex;align-items:center;gap:5px;width:max-content;padding-bottom:2px;border-bottom:1px solid currentColor;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;line-height:1.2;letter-spacing:normal;word-spacing:normal;text-decoration:none;white-space:nowrap}
+.nav>a:not(.nav-cta){font-family:'Marcellus',Georgia,serif;font-size:13px;font-weight:400}
+.nav-cta,.button{font-size:14px}
+.text-link{display:inline-flex;align-items:center;gap:5px;width:max-content;padding-bottom:2px;border-bottom:1px solid transparent;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;line-height:1.2;letter-spacing:normal;word-spacing:normal;text-decoration:none;white-space:nowrap;transition:color .16s ease,border-color .16s ease}
 .text-link span{display:inline-flex;align-items:center;font:inherit;line-height:1;height:1.2em;text-decoration:none}
 .text-link:hover{color:var(--orange-dark);border-color:var(--orange-dark);text-decoration:none}
-@media(max-width:680px){.nav-cta,.button,.text-link{font-size:12px}}
+@media(max-width:680px){.nav-cta,.button,.text-link{font-size:14px}.nav>a:not(.nav-cta){font-size:13px}}
 .author{min-height:94px}
 .author-socials{display:flex;align-items:center;gap:14px;margin-top:6px}
 .author-socials a{display:inline-flex;align-items:center;gap:5px;padding:4px 0 3px;border-bottom:1px solid var(--charcoal);color:var(--charcoal);font:700 12px/1.2 Arial,Helvetica,sans-serif;text-decoration:none}
