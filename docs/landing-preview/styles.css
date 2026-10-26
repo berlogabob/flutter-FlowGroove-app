@@ -118,3 +118,8 @@ html{scroll-padding-top:84px}
 .nav>a:not(.nav-cta):hover,.text-link:hover{text-decoration-thickness:2px}
 @media(max-width:680px){.topbar{height:65px;padding-inline:16px}.nav>a:not(.nav-cta),.text-link{font-size:15px}}
 @media(prefers-reduced-motion:reduce){.topbar{transition:none}}
+.nav>a:not(.nav-cta){text-decoration:none;text-underline-offset:4px}
+.nav>a:not(.nav-cta):hover,.nav>a:not(.nav-cta):focus-visible{text-decoration:underline}
+.text-link{display:inline-flex;align-items:center;gap:5px;width:max-content;padding-bottom:2px;border-bottom:1px solid currentColor;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:600;line-height:1.2;letter-spacing:normal;word-spacing:normal;text-decoration:none;white-space:nowrap}
+.text-link span{display:inline-flex;align-items:center;font:inherit;line-height:1;height:1.2em;text-decoration:none}
+.text-link:hover{border-bottom-width:2px;text-decoration:none}
