@@ -13,6 +13,7 @@ import '../../models/tuner_launch_context.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
+import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import 'unified_item_model.dart';
@@ -268,28 +269,66 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   void openInTuner(Song song) {
-    final user = ref.read(currentUserProvider).value;
+    final user = ref.read(currentUserProvider).asData?.value;
     final bandId = songActionsBandId;
+    bool canSave() {
+      if (!mounted || user == null) return false;
+      final auth = ref.read(currentUserProvider);
+      final appUser = ref.read(appUserProvider);
+      if (auth.isLoading ||
+          auth.hasError ||
+          appUser.isLoading ||
+          appUser.hasError ||
+          auth.asData?.value?.uid != user.uid ||
+          appUser.asData?.value?.uid != user.uid ||
+          !ref.read(canEditProvider))
+        return false;
+      if (bandId == null) return true;
+      final bands = ref.read(bandsProvider);
+      return !bands.isLoading &&
+          !bands.hasError &&
+          ref.read(canEditBandProvider(bandId));
+    }
+
+    // Offstage library Consumers pause streams while the tuner route is open.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final authority = [
+      container.listen(currentUserProvider, (_, _) {}),
+      container.listen(appUserProvider, (_, _) {}),
+      if (bandId != null) container.listen(bandsProvider, (_, _) {}),
+    ];
     unawaited(
-      context.pushNamed<void>(
-        'tuner',
-        extra: TunerLaunchContext(
-          song: song,
-          saveSong: user == null
-              ? null
-              : (updatedSong) async {
-                  final repo = ref.read(songRepositoryProvider);
-                  if (bandId != null) {
-                    // Band songs are copies — save to the band copy, not the
-                    // personal library.
-                    await repo.updateBandSong(updatedSong, bandId);
-                  } else {
-                    await repo.saveSong(updatedSong, uid: user.uid);
-                    ref.invalidate(songsProvider);
-                  }
-                },
-        ),
-      ),
+      context
+          .pushNamed<void>(
+            'tuner',
+            extra: TunerLaunchContext(
+              song: song,
+              bandId: bandId,
+              saveSong: !canSave()
+                  ? null
+                  : (updatedSong) async {
+                      if (!canSave() || updatedSong.id != song.id) {
+                        throw StateError(
+                          'Check your permissions before linking this song',
+                        );
+                      }
+                      final repo = ref.read(songRepositoryProvider);
+                      if (bandId != null) {
+                        // Band songs are copies — save to the band copy, not the
+                        // personal library.
+                        await repo.updateBandSong(updatedSong, bandId);
+                      } else {
+                        await repo.saveSong(updatedSong, uid: user!.uid);
+                        if (mounted) ref.invalidate(songsProvider);
+                      }
+                    },
+            ),
+          )
+          .whenComplete(() {
+            for (final subscription in authority) {
+              subscription.close();
+            }
+          }),
     );
   }
 }

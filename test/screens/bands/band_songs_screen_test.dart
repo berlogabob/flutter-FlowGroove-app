@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/tuner_launch_context.dart';
+import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/bands/band_songs_screen.dart';
+import 'package:flowgroove/screens/songs/songs_list_screen.dart';
 import 'package:flowgroove/services/firestore_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,8 +19,159 @@ import 'package:mockito/mockito.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/mocks.mocks.dart';
 import '../../helpers/routed_test_harness.dart';
+import '../../providers/data_providers_test.mocks.dart' as repositories;
+
+class _LiveUser extends TestAppUserNotifier {
+  _LiveUser(super.user);
+
+  void update(AsyncValue<AppUser?> value) => state = value;
+}
 
 void main() {
+  for (final bandScope in [false, true]) {
+    testWidgets(
+      'tuner callback keeps ${bandScope ? 'band' : 'personal'} target and rejects stale authority',
+      (tester) async {
+        tester.view.physicalSize = const Size(1000, 1200);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final user = MockDataHelper.createMockAppUser();
+        final liveUser = _LiveUser(user);
+        final firebaseUser = MockUser();
+        when(firebaseUser.uid).thenReturn(user.uid);
+        final band = MockDataHelper.createMockBand(
+          id: 'band-123',
+          members: [BandMember(uid: user.uid, role: BandMember.roleEditor)],
+        );
+        // Stale/missing metadata must not override the actual library scope.
+        final song = MockDataHelper.createMockSong(
+          id: 'song-1',
+          title: 'Tuner Song',
+          bandId: 'old-band',
+        );
+        final updated = song.copyWith(
+          defaultTuningPresetId: 'builtin:guitar-standard',
+        );
+        final repo = repositories.MockSongRepository();
+        when(repo.saveSong(any, uid: anyNamed('uid'))).thenAnswer((_) async {});
+        when(repo.updateBandSong(any, any)).thenAnswer((_) async {});
+        final bands = StreamController<List<Band>>();
+        addTearDown(bands.close);
+        AsyncValue<User?> auth = AsyncData(firebaseUser);
+        final container = ProviderContainer(
+          overrides: [
+            appUserProvider.overrideWith(() => liveUser),
+            currentUserProvider.overrideWith((ref) => auth),
+            bandsProvider.overrideWith((ref) => bands.stream),
+            songsProvider.overrideWith((ref) => Stream.value([song])),
+            bandSongsProvider.overrideWith((ref, id) => Stream.value([song])),
+            songRepositoryProvider.overrideWithValue(repo),
+          ],
+        );
+        addTearDown(container.dispose);
+        TunerLaunchContext? launch;
+        final router = createRoutedTestRouter(
+          initialLocation: '/library',
+          routes: [
+            GoRoute(
+              path: '/library',
+              builder: (_, _) => bandScope
+                  ? BandSongsScreen(band: band)
+                  : const SongsListScreen(),
+            ),
+            GoRoute(
+              path: '/tuner',
+              name: 'tuner',
+              builder: (_, state) {
+                launch = state.extra! as TunerLaunchContext;
+                return const TestRouteMarker('tuner');
+              },
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        bands.add([band]);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('More').first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Open in Tuner'));
+        await tester.pumpAndSettle();
+        expect(launch, isNotNull);
+        expect(launch!.bandId, bandScope ? 'band-123' : null);
+        final save = launch!.saveSong!;
+        await save(updated);
+        if (bandScope) {
+          verify(repo.updateBandSong(updated, 'band-123')).called(1);
+          verifyNever(repo.saveSong(any, uid: anyNamed('uid')));
+        } else {
+          verify(repo.saveSong(updated, uid: user.uid)).called(1);
+          verifyNever(repo.updateBandSong(any, any));
+        }
+        clearInteractions(repo);
+        await expectLater(
+          save(updated.copyWith(id: 'other-song')),
+          throwsStateError,
+        );
+        liveUser.update(
+          AsyncData(MockDataHelper.createMockAppUser(uid: 'other-user')),
+        );
+        await expectLater(save(updated), throwsStateError);
+        liveUser.update(const AsyncLoading());
+        await expectLater(save(updated), throwsStateError);
+        liveUser.update(AsyncError(StateError('offline'), StackTrace.current));
+        await expectLater(save(updated), throwsStateError);
+        liveUser.update(AsyncData(user.copyWith(accessRole: 'demo')));
+        await expectLater(save(updated), throwsStateError);
+        liveUser.update(AsyncData(user));
+        final otherUser = MockUser();
+        when(otherUser.uid).thenReturn('other-user');
+        for (final value in <AsyncValue<User?>>[
+          const AsyncData(null),
+          AsyncData(otherUser),
+          const AsyncLoading(),
+          AsyncError(StateError('offline'), StackTrace.current),
+        ]) {
+          auth = value;
+          container.invalidate(currentUserProvider);
+          await expectLater(save(updated), throwsStateError);
+        }
+        auth = AsyncData(firebaseUser);
+        container.invalidate(currentUserProvider);
+        if (bandScope) {
+          bands.add([]);
+          await tester.pumpAndSettle();
+          expect(container.read(bandsProvider).asData?.value, isEmpty);
+          await expectLater(save(updated), throwsStateError);
+          bands.addError(StateError('offline'));
+          await tester.pump();
+          await expectLater(save(updated), throwsStateError);
+        }
+        verifyNever(repo.saveSong(any, uid: anyNamed('uid')));
+        verifyNever(repo.updateBandSong(any, any));
+        bands.add([band]);
+        liveUser.update(AsyncData(user.copyWith(accessRole: 'demo')));
+        router.pop();
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('More').first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Open in Tuner'));
+        await tester.pumpAndSettle();
+        expect(launch!.saveSong, isNull);
+        liveUser.update(AsyncData(user));
+        await tester.pumpAndSettle();
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+        await expectLater(save(updated), throwsStateError);
+      },
+    );
+  }
   group('BandSongsScreen', () {
     testWidgets('Add Song opens the song form scoped to the band, and Back '
         'returns to the band', (tester) async {

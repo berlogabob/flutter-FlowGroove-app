@@ -1,0 +1,35 @@
+{
+  "task": "GH-179-TUNER-L",
+  "reviewer": "hermes",
+  "scope": "Rendered personal and band libraries export real TunerLaunchContext; public callback checks current authority and original song identity before repository transport",
+  "recovery": "Interrupted parent source/test edits preserved. Original baseline incomplete, no baseline credit; no owned process remained. No worker replay or route substitution.",
+  "source_sha256": "7ed8eca924960e20b326f21727d4804719cb6b96e9ba9054445db02fe8e0e60e",
+  "test_sha256": "34517f2c8abae75c22ece08d7097f7ccd204c6c71ad6b7237705bc742e07d6d4",
+  "private_evidence_directory": "audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-PARENT-20261026-0025",
+  "red": {
+    "report": "red.jsonl",
+    "done_success": false,
+    "expected_failures": ["Personal callback completed instead of throwing StateError", "Band launch bandId null instead of band-123"],
+    "limit": "Earlier retained regression precedes later stream/fixture refinements; not claimed as a fresh final-fixture baseline replay"
+  },
+  "green": {
+    "report": "controller-recovery.jsonl",
+    "exit_code": 0,
+    "visible_successes": 105,
+    "done_success": true,
+    "files": ["test/screens/songs/songs_list_screen_test.dart", "test/screens/bands/band_songs_screen_test.dart", "test/providers/tuner_provider_test.dart", "test/widgets/tuner/custom_tuning_editor_test.dart", "test/models/tuner_launch_context_test.dart", "test/repositories/tuner_preset_repository_test.dart"],
+    "coverage": "Authorized personal/band repository target; stale song ID; app identity/demo/loading/error; auth sign-out/mismatch/loading/error; live band removal/error while origin route offstage; demo launch has no callback; unmounted origin rejects retained callback"
+  },
+  "checks": {
+    "analyze": "flutter analyze --no-pub --no-fatal-infos lib/widgets/unified_item/song_card_actions.dart test/screens/bands/band_songs_screen_test.dart",
+    "analyze_exit_code": 0,
+    "analyze_infos": 3,
+    "warnings_or_errors": false,
+    "format_exit_code": 0,
+    "format_changed_files": 0,
+    "diff_check_exit_code": 0,
+    "hashes_unchanged_after_checks": true
+  },
+  "retained_failures": ["Incomplete baseline", "green.jsonl, green-fixture-check.jsonl and green-fixture-fixed.jsonl fail during fixture/paused-stream investigation; green-live-stream.jsonl subsequently passes"],
+  "limits": ["No real cloud writes/security enforcement, audio/device/human acceptance", "Live authority streams intentionally retained for pushed route lifetime", "TunerScreen callback failures currently escape without safe feedback: required GH-179-TUNER-L-S", "Personal launch effectiveBandId still falls back to stale song.bandId: required GH-179-TUNER-L-C", "No aggregate GH-179 or release acceptance; full Graphify remains pending"]
+}
