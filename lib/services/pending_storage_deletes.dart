@@ -43,10 +43,18 @@ class PendingStorageDeletes {
     final prefs = await _p;
     final queued = prefs.getStringList(_key);
     if (queued == null || !queued.contains(url)) return;
-    await prefs.setStringList(_key, [
-      for (final u in queued)
-        if (u != url) u,
-    ]);
+    try {
+      if (!await prefs.setStringList(_key, [
+        for (final u in queued)
+          if (u != url) u,
+      ])) {
+        throw StateError('Could not persist pending deletion cancellation');
+      }
+    } catch (_) {
+      // Failed writes still change the plugin cache; reload before a retry.
+      await prefs.reload();
+      rethrow;
+    }
   }
 
   /// Deletes [url] now unless [cancel] removed it before deletion starts.

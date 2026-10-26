@@ -4,6 +4,24 @@ import 'package:flowgroove/services/pending_storage_deletes.dart';
 import 'package:flowgroove/services/storage_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// ignore: depend_on_referenced_packages
+import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+
+class _FailingPreferences extends InMemorySharedPreferencesStore {
+  _FailingPreferences({required this.throwOnWrite}) : super.empty();
+
+  final bool throwOnWrite;
+  bool fail = false;
+
+  @override
+  Future<bool> setValue(String valueType, String key, Object value) async {
+    if (fail) {
+      if (throwOnWrite) throw StateError('Preference write failed');
+      return false;
+    }
+    return super.setValue(valueType, key, value);
+  }
+}
 
 /// Records what it was asked to delete; [failing] simulates being offline.
 class _FakeStorage extends StorageService {
@@ -62,6 +80,31 @@ void main() {
     expect(await _queued(), isEmpty);
     expect(storage.deleted, isEmpty, reason: 'the audio must survive an undo');
   });
+
+  for (final throwOnWrite in [false, true]) {
+    test(
+      'failed cancel rejects and retry survives reload ($throwOnWrite)',
+      () async {
+        final original = SharedPreferencesStorePlatform.instance;
+        addTearDown(() => SharedPreferencesStorePlatform.instance = original);
+        final platform = _FailingPreferences(throwOnWrite: throwOnWrite);
+        SharedPreferencesStorePlatform.instance = platform;
+        final prefs = await SharedPreferences.getInstance();
+        final storage = _FakeStorage();
+        final pending = PendingStorageDeletes(prefs: prefs, storage: storage);
+        await pending.enqueue(_a);
+        platform.fail = true;
+        await expectLater(pending.cancel(_a), throwsStateError);
+        expect(storage.deleted, isEmpty);
+        platform.fail = false;
+        await pending.cancel(_a);
+        await prefs.reload();
+        expect(prefs.getStringList('pending_storage_deletes'), isEmpty);
+        await PendingStorageDeletes(prefs: prefs, storage: storage).sweep();
+        expect(storage.deleted, isEmpty);
+      },
+    );
+  }
 
   test('flush deletes and clears the entry', () async {
     final storage = _FakeStorage();
