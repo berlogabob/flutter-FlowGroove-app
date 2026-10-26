@@ -18,8 +18,7 @@ async function isDemoUser(uid, token) {
 }
 
 /**
- * Recomputes the derived UID arrays from a members array so that
- * memberUids / adminUids / editorUids never drift out of sync with members.
+ * Supplies legacy defaults only when a permission array is missing or invalid.
  */
 function deriveUidArrays(members) {
   const memberUids = members.map((m) => m.uid);
@@ -30,6 +29,20 @@ function deriveUidArrays(members) {
     .filter((m) => m.role === "editor")
     .map((m) => m.uid);
   return { memberUids, adminUids, editorUids };
+}
+
+function effectiveUidArrays(band, members) {
+  const arrays = {};
+  let fallback;
+  for (const field of ["memberUids", "adminUids", "editorUids"]) {
+    if (Array.isArray(band[field])) {
+      arrays[field] = [...band[field]];
+    } else {
+      fallback = fallback || deriveUidArrays(members);
+      arrays[field] = fallback[field];
+    }
+  }
+  return arrays;
 }
 
 /**
@@ -81,8 +94,8 @@ exports.getBandInviteInfo = functions.https.onCall((request) =>
  * Input: { code } (invite code) or { bandId }.
  * - Validates the invite code / band id.
  * - If the caller is already a member, returns { alreadyMember: true } (no error).
- * - Otherwise atomically appends the caller as an `editor` member and rewrites
- *   the derived memberUids/adminUids/editorUids arrays, then registers the band
+ * - Otherwise atomically appends the caller as an `editor` member and adds
+ *   their UID to the permission arrays, then registers the band
  *   under users/{uid}/bands/{bandId}.
  * - Demo users are rejected.
  */
@@ -151,10 +164,18 @@ exports.joinBand = functions.https.onCall(async (request) => {
     const members = Array.isArray(band.members) ? band.members : [];
     const bandName = band.name || "";
 
-    const alreadyMember = members.some((m) => m && m.uid === uid);
-    if (alreadyMember) {
-      // Self-heal derived arrays in case they drifted, but do not add a duplicate.
-      transaction.set(bandRef, deriveUidArrays(members), { merge: true });
+    const arrays = effectiveUidArrays(band, members);
+    const existingMember = members.find((m) => m && m.uid === uid);
+    const joinRole = existingMember ? existingMember.role : "editor";
+    if (!arrays.memberUids.includes(uid)) arrays.memberUids.push(uid);
+    if (joinRole === "admin" && !arrays.adminUids.includes(uid)) {
+      arrays.adminUids.push(uid);
+    }
+    if (joinRole === "editor" && !arrays.editorUids.includes(uid)) {
+      arrays.editorUids.push(uid);
+    }
+    if (existingMember) {
+      transaction.set(bandRef, arrays, { merge: true });
       transaction.set(
         userRef,
         { bandId: bandRef.id, joinedAt: admin.firestore.FieldValue.serverTimestamp() },
@@ -174,7 +195,7 @@ exports.joinBand = functions.https.onCall(async (request) => {
 
     transaction.set(
       bandRef,
-      { members: newMembers, ...deriveUidArrays(newMembers) },
+      { members: newMembers, ...arrays },
       { merge: true },
     );
     transaction.set(
@@ -199,8 +220,8 @@ const VALID_ROLES = ["admin", "editor", "viewer"];
  *   action = "setMusicRoles"  -> replace targetUid's musicRoles (requires musicRoles[])
  *   action = "remove"         -> remove targetUid from the band
  *
- * The caller must be an admin of the band. The members array and the derived
- * memberUids/adminUids/editorUids arrays are rewritten atomically; removing a
+ * The caller must be an effective admin, except for self-removal. Members and
+ * affected permission array entries are updated atomically; removing a
  * member also deletes their users/{uid}/bands/{bandId} reference.
  */
 exports.updateBandMember = functions.https.onCall(async (request) => {
@@ -268,9 +289,8 @@ exports.updateBandMember = functions.https.onCall(async (request) => {
 
     // Authorize: admins can manage any member. A non-admin member may still
     // remove *themselves* (leave the band) — the only self-service action.
-    const callerIsAdmin = members.some(
-      (m) => m && m.uid === callerUid && m.role === "admin",
-    );
+    const arrays = effectiveUidArrays(band, members);
+    const callerIsAdmin = arrays.adminUids.includes(callerUid);
     const isSelfRemoval = action === "remove" && targetUid === callerUid;
     if (!callerIsAdmin && !isSelfRemoval) {
       throw new functions.https.HttpsError(
@@ -287,7 +307,8 @@ exports.updateBandMember = functions.https.onCall(async (request) => {
       );
     }
 
-    const adminCount = members.filter((m) => m && m.role === "admin").length;
+    const adminCount = arrays.adminUids.length;
+    const targetIsAdmin = arrays.adminUids.includes(targetUid);
     const target = { ...members[targetIndex] };
 
     if (action === "remove") {
@@ -302,17 +323,20 @@ exports.updateBandMember = functions.https.onCall(async (request) => {
         transaction.delete(targetPersonalRef);
         return;
       }
-      if (target.role === "admin" && adminCount <= 1) {
+      if (targetIsAdmin && adminCount <= 1) {
         throw new functions.https.HttpsError(
           "failed-precondition",
           "Cannot remove the last admin. Assign another admin first.",
         );
       }
       members.splice(targetIndex, 1);
+      for (const field of ["memberUids", "adminUids", "editorUids"]) {
+        arrays[field] = arrays[field].filter((uid) => uid !== targetUid);
+      }
       transaction.delete(targetPersonalRef);
     } else if (action === "setRole") {
       if (
-        target.role === "admin" &&
+        targetIsAdmin &&
         role !== "admin" &&
         adminCount <= 1
       ) {
@@ -320,6 +344,10 @@ exports.updateBandMember = functions.https.onCall(async (request) => {
           "failed-precondition",
           "A band must keep at least one admin.",
         );
+      }
+      for (const [field, arrayRole] of [["adminUids", "admin"], ["editorUids", "editor"]]) {
+        arrays[field] = arrays[field].filter((uid) => uid !== targetUid);
+        if (role === arrayRole) arrays[field].push(targetUid);
       }
       target.role = role;
       members[targetIndex] = target;
@@ -330,7 +358,7 @@ exports.updateBandMember = functions.https.onCall(async (request) => {
 
     transaction.set(
       bandRef,
-      { members, ...deriveUidArrays(members) },
+      { members, ...arrays },
       { merge: true },
     );
   });

@@ -10,13 +10,14 @@ process.env.FIREBASE_CONFIG =
   process.env.FIREBASE_CONFIG || JSON.stringify({ projectId });
 
 const functionsTest = functionsTestFactory({ projectId });
-const { joinBand } = require("../src/bands");
+const { joinBand, updateBandMember } = require("../src/bands");
 const { createTelegramLinkToken, consumeTelegramLinkToken } =
   require("../src/telegram/linkToken");
 const { runTool } = require("../src/mcp/tools");
 const db = admin.firestore();
 
 const join = functionsTest.wrap(joinBand);
+const update = functionsTest.wrap(updateBandMember);
 const mint = functionsTest.wrap(createTelegramLinkToken);
 const call = (fn, uid, data) => fn({ data, auth: { uid, token: {} } });
 
@@ -54,6 +55,117 @@ describe("audit security fixes", function () {
     const out = await call(join, "outsider", { code: "abc123", bandId: "b1" });
     assert.equal(out.bandId, "b1");
     assert.ok((await db.collection("bands").doc("b1").get()).data().memberUids.includes("outsider"));
+  });
+
+  for (const action of ["setRole", "remove"]) {
+    it(`rejects a role-only admin attempting ${action}`, async () => {
+      await db.collection("bands").doc("b1").update({
+        members: [{ uid: "own", role: "admin" }, { uid: "target", role: "viewer" }],
+        memberUids: ["own", "target"], adminUids: ["target"],
+      });
+      await assert.rejects(call(update, "own", {
+        bandId: "b1", targetUid: "target", action, role: "editor",
+      }), { code: "permission-denied" });
+    });
+  }
+
+  it("allows an effective array admin to change a target role", async () => {
+    await db.collection("bands").doc("b1").update({
+      members: [{ uid: "own", role: "member" }, { uid: "target", role: "viewer" }],
+      memberUids: ["own", "target"],
+    });
+    await call(update, "own", {
+      bandId: "b1", targetUid: "target", action: "setRole", role: "editor",
+    });
+    const band = (await db.collection("bands").doc("b1").get()).data();
+    assert.equal(band.members.find((m) => m.uid === "target").role, "editor");
+    assert.deepEqual(band.adminUids, ["own"]);
+    assert.deepEqual(band.editorUids, ["target"]);
+  });
+
+  it("preserves unrelated array grants across music edits, leaves and invite joins", async () => {
+    const ref = db.collection("bands").doc("b1");
+    await ref.update({
+      members: [
+        { uid: "own", role: "admin" },
+        { uid: "legacy", role: "viewer" },
+        { uid: "leaver", role: "viewer" },
+      ],
+      memberUids: ["own", "legacy", "leaver"], editorUids: ["legacy"],
+    });
+    await call(update, "own", {
+      bandId: "b1", targetUid: "legacy", action: "setMusicRoles", musicRoles: ["bass"],
+    });
+    assert.deepEqual((await ref.get()).data().editorUids, ["legacy"]);
+    await call(update, "leaver", { bandId: "b1", targetUid: "leaver", action: "remove" });
+    assert.deepEqual((await ref.get()).data().editorUids, ["legacy"]);
+    assert.deepEqual((await ref.get()).data().memberUids, ["own", "legacy"]);
+    const joined = await call(join, "outsider", { code: "ABC123" });
+    assert.equal(joined.alreadyMember, false);
+    assert.deepEqual((await ref.get()).data().editorUids, ["legacy", "outsider"]);
+    const repeated = await call(join, "outsider", { code: "ABC123" });
+    assert.equal(repeated.alreadyMember, true);
+    assert.deepEqual((await ref.get()).data().editorUids, ["legacy", "outsider"]);
+    assert.deepEqual((await ref.get()).data().memberUids, ["own", "legacy", "outsider"]);
+    assert.deepEqual((await ref.get()).data().adminUids, ["own"]);
+  });
+
+  for (const action of ["setRole", "remove"]) {
+    it(`protects the last effective admin from ${action}`, async () => {
+      await db.collection("bands").doc("b1").update({
+        members: [{ uid: "own", role: "admin" }, { uid: "legacy", role: "admin" }],
+        memberUids: ["own", "legacy"],
+      });
+      await assert.rejects(call(update, "own", {
+        bandId: "b1", targetUid: "own", action, role: "viewer",
+      }), { code: "failed-precondition" });
+    });
+  }
+
+  it("an existing invite join restores only the joining member's grants", async () => {
+    const ref = db.collection("bands").doc("b1");
+    await ref.update({
+      members: [{ uid: "own", role: "admin" }, { uid: "legacy", role: "viewer" }],
+      memberUids: ["legacy"], adminUids: [], editorUids: ["legacy"],
+    });
+    const out = await call(join, "own", { code: "ABC123" });
+    assert.equal(out.alreadyMember, true);
+    const band = (await ref.get()).data();
+    assert.equal(band.members.length, 2);
+    assert.deepEqual(band.memberUids, ["legacy", "own"]);
+    assert.deepEqual(band.adminUids, ["own"]);
+    assert.deepEqual(band.editorUids, ["legacy"]);
+  });
+
+  for (const action of ["setRole", "remove"]) {
+    it(`protects an array-only last admin from ${action}`, async () => {
+      await db.collection("bands").doc("b1").update({
+        members: [{ uid: "own", role: "member" }, { uid: "legacy", role: "admin" }],
+        memberUids: ["own", "legacy"],
+      });
+      await assert.rejects(call(update, "own", {
+        bandId: "b1", targetUid: "own", action, role: "viewer",
+      }), { code: "failed-precondition" });
+    });
+  }
+
+  it("uses role defaults only for missing or invalid array fields", async () => {
+    const ref = db.collection("bands").doc("b1");
+    await ref.set({
+      inviteCode: "ABC123",
+      members: [{ uid: "own", role: "admin" }, { uid: "legacy", role: "viewer" }],
+      adminUids: ["own"], editorUids: null,
+    });
+    await call(join, "outsider", { code: "ABC123" });
+    const band = (await ref.get()).data();
+    assert.deepEqual(band.memberUids, ["own", "legacy", "outsider"]);
+    assert.deepEqual(band.adminUids, ["own"]);
+    assert.deepEqual(band.editorUids, ["outsider"]);
+  });
+
+  it("still dissolves the band when its last member leaves", async () => {
+    await call(update, "own", { bandId: "b1", targetUid: "own", action: "remove" });
+    assert.equal((await db.collection("bands").doc("b1").get()).exists, false);
   });
 
   it("telegram link token is single-use, user-bound, and rejects raw uids", async () => {
