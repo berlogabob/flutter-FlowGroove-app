@@ -1,0 +1,27 @@
+{
+  "task": "GH-179-REC-S6-Q",
+  "reviewer": "hermes",
+  "type": "CODE_AND_AUTOMATED_TESTS_ONLY",
+  "tested_commit": "2264dadf62007f07431bdb36f9e8e1ab9d94437a",
+  "source_sha256": {
+    "lib/services/pending_storage_deletes.dart": "707b9daae35d4f1bbcae910b67d0fcfcdb13d67365343610d8470899025912c7",
+    "test/services/pending_storage_deletes_test.dart": "13cff20f3e9d3f24fb9cabb40da5743ef973c9e04524659cb270a5a4710607ea"
+  },
+  "red": {"report": "red.jsonl", "done_success": false, "controls_passed": 11, "expected_failures": 2},
+  "green": {"report": "green-reconciled.jsonl", "done_success": true, "visible_passed": 58, "errors": 0},
+  "reconciliation": "Original green.jsonl is incomplete (30 passing assertions, no done). Retained green-reconciled.jsonl has 58 visible passes and terminal done.success=true; current source hashes match original run metadata. No owned live test remains. No model worker or gateway turn was involved. Missing original process PID alone was not acceptance evidence.",
+  "checks": {
+    "suite": "flutter test --no-pub --concurrency=1 test/services/pending_storage_deletes_test.dart test/screens/recorder_screen_test.dart test/screens/songs/song_lab_screen_test.dart",
+    "analyze": "flutter analyze --no-pub --no-fatal-infos lib/services/pending_storage_deletes.dart test/services/pending_storage_deletes_test.dart",
+    "analyze_result": "One baseline prefer_initializing_formals info, no warnings/errors; command completed.",
+    "format": "dart format --output=none --set-exit-if-changed: 2 files, 0 changed",
+    "diff_check": "PASS"
+  },
+  "private_evidence": "audit/2026-10-23-systemic-ux/workers/GH-179-REC-S6-Q-PARENT-20261026-0408",
+  "limits": [
+    "Accepts cancellation false/throw rejection and successful retry after cache reload only.",
+    "A failed reload or application death before retry does not establish durable recovery. Shared authority/restart recovery REC-S6-F remains blocked.",
+    "Recorder and Song Lab Undo still require separate cancellation-before-restore fixes REC-S6-R/L.",
+    "No device, real Storage/audio, human usability, full suite or full Graphify acceptance. No release/push/deploy/install."
+  ]
+}
