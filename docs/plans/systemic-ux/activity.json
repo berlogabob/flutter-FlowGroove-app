@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-26T08:33:36.485597+00:00",
+  "updated_at": "2026-10-26T08:35:08.373678+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -6040,22 +6040,26 @@
         "started_at": "2026-10-26T08:33:36.485597+00:00",
         "deadline_at": "2026-10-26T08:51:36.485597+00:00",
         "active_actor": "hermes",
-        "phase": "parent_public_account_baseline_preflight",
+        "phase": "parent_role_source_review_pending",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
         "process": "proc_722055449313",
         "pid": 77106,
         "log": "audit/2026-10-23-systemic-ux/workers/GH-179-AVATAR-PARENT-20261026-0707/next-legacy-baseline.log",
         "file_lease": [],
-        "test_lane": "firestore emulator, fake Auth/Storage only",
+        "test_lane": null,
         "needs_reconciliation": true,
         "expected_artifact": "Existing public deleteAccount baseline JSON; source review not yet accepted",
         "next_action": "Read exact baseline outcome before reviewing role drift in account.js/bands.js; do not repeat launcher while live. No source edits assigned.",
-        "user_status": "Проверяется исходный callable-сценарий удаления аккаунта в эмуляторе; далее — проверка устаревших ролей, без рабочих данных.",
+        "user_status": "Исходные 8 тестов удаления аккаунта прошли; проверка устаревших ролей ещё не завершена.",
         "source_hashes": {
           "functions/src/account.js": "be99b23a14c146fc0b591b633a357817495525929ecaf660a245bb190000eecd",
           "functions/src/bands.js": "987524773c33a5359ba659aab4c82866160a340ecde9f5689daaa8c5e2ab7e19",
           "functions/test/callable-delete-account.test.js": "b2c173417021b802be7387730d107d8e3b6fa7a0113557a0ad562ae4fbcb8382"
-        }
+        },
+        "baseline_tests_passed": 8,
+        "baseline_failures": 0,
+        "worker_active": false,
+        "last_meaningful_progress": "Terminal Mocha baseline: 8/8 PASS at 08:33:50.148Z, emulator stopped. Source triage not accepted."
       },
       "verification": null
     },
