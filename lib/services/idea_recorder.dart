@@ -7,9 +7,9 @@ import 'package:uuid/uuid.dart';
 import '../models/song_lab.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
+import '../providers/permissions_provider.dart';
 import '../screens/songs/components/lab_recording_sheet.dart';
 import '../services/analytics_service.dart';
-import '../services/storage_service.dart';
 import '../utils/snackbar.dart';
 
 /// The virtual song id holding unlinked audio ideas (#145). The parent doc
@@ -18,6 +18,24 @@ import '../utils/snackbar.dart';
 const ideaInboxSongId = '_inbox';
 
 const _uuid = Uuid();
+
+const _accessChanged =
+    'Recording stopped because access changed. Please try again.';
+
+bool _hasAuthority(WidgetRef ref, String? uid, String? bandId) {
+  final user = ref.read(appUserProvider);
+  final bands = bandId == null ? null : ref.read(bandsProvider);
+  return uid != null &&
+      uid.isNotEmpty &&
+      !user.isLoading &&
+      !user.hasError &&
+      user.asData?.value?.uid == uid &&
+      !ref.read(isDemoUserProvider) &&
+      (bandId == null ||
+          (!bands!.isLoading &&
+              !bands.hasError &&
+              ref.read(canEditBandProvider(bandId))));
+}
 
 /// One capture path for everywhere a mic button lives (#69/#145): opens the
 /// recording sheet, uploads, and saves a `recording` Lab entry — under a song
@@ -29,31 +47,42 @@ Future<void> captureIdea(
   String? bandId,
   bool autoStart = false,
 }) async {
+  final uid = ref.read(appUserProvider).asData?.value?.uid;
+  final targetSongId = songId ?? ideaInboxSongId;
+  final targetBandId = bandId;
+  bool authorized() {
+    if (!context.mounted) return false;
+    if (_hasAuthority(ref, uid, targetBandId)) return true;
+    showAppSnackBar(context, _accessChanged);
+    return false;
+  }
+
+  if (!authorized()) return;
   final result = await showModalBottomSheet<LabRecordingResult>(
     context: context,
     isScrollControlled: true,
     builder: (_) => LabRecordingSheet(autoStart: autoStart),
   );
-  if (result == null || !context.mounted) return;
-
-  final targetSongId = songId ?? ideaInboxSongId;
+  if (result == null || !authorized()) return;
   final entryId = _uuid.v4();
   try {
-    final url = await StorageService().uploadLabAudio(
-      result.bytes,
-      bandId: bandId,
-      songId: targetSongId,
-      entryId: entryId,
-      ext: result.ext,
-      contentType: switch (result.ext) {
-        'aac' => 'audio/aac',
-        'wav' => 'audio/wav',
-        'mp3' => 'audio/mpeg',
-        'ogg' => 'audio/ogg',
-        _ => 'audio/mp4',
-      },
-    );
-    final uid = ref.read(firebaseAuthProvider).currentUser?.uid ?? '';
+    final url = await ref
+        .read(storageServiceProvider)
+        .uploadLabAudio(
+          result.bytes,
+          bandId: targetBandId,
+          songId: targetSongId,
+          entryId: entryId,
+          ext: result.ext,
+          contentType: switch (result.ext) {
+            'aac' => 'audio/aac',
+            'wav' => 'audio/wav',
+            'mp3' => 'audio/mpeg',
+            'ogg' => 'audio/ogg',
+            _ => 'audio/mp4',
+          },
+        );
+    if (!authorized()) return;
     final now = DateTime.now();
     await ref
         .read(labRepositoryProvider)
@@ -61,18 +90,19 @@ Future<void> captureIdea(
           SongLabEntry(
             id: entryId,
             songId: targetSongId,
-            bandId: bandId,
+            bandId: targetBandId,
             type: LabEntryType.recording,
             title: result.title,
             body: result.notes,
-            authorId: uid,
+            authorId: uid!,
             createdAt: now,
             updatedAt: now,
             attachmentIds: [url],
             peaks: result.peaks,
           ),
-          bandId: bandId,
+          bandId: targetBandId,
         );
+    if (!authorized()) return;
     unawaited(
       AnalyticsService.logLabEntryAdded(type: LabEntryType.recording.name),
     );
@@ -96,6 +126,10 @@ Future<void> linkIdeaToSong(
   SongLabEntry idea, {
   required String songId,
 }) async {
+  final uid = ref.read(appUserProvider).asData?.value?.uid;
+  if (!_hasAuthority(ref, uid, null) || idea.authorId != uid) {
+    throw StateError(_accessChanged);
+  }
   final repo = ref.read(labRepositoryProvider);
   final now = DateTime.now();
   await repo.saveEntry(
@@ -112,5 +146,6 @@ Future<void> linkIdeaToSong(
       peaks: idea.peaks,
     ),
   );
+  if (!_hasAuthority(ref, uid, null)) throw StateError(_accessChanged);
   await repo.deleteEntry(ideaInboxSongId, idea.id);
 }
