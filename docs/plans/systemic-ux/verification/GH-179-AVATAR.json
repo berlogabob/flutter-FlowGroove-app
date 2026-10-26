@@ -1,0 +1,13 @@
+{
+  "task": "GH-179-AVATAR",
+  "reviewer": "hermes",
+  "scope": "Public setBandAvatar/removeBandAvatar demo guard, Firestore emulator and injected fake Storage only",
+  "baseline": {"tests": 5, "passes": 5, "exit_code": 0},
+  "red": {"tests": 9, "passes": 5, "failures": 4, "exit_code": 4, "reason": "Both operations reached Storage for token-demo and server-profile-demo admins"},
+  "green": {"tests": 9, "passes": 9, "failures": 0, "ended_at": "2026-10-26T08:30:03.208Z"},
+  "checks": ["node --check functions/src/band_avatar.js: exit 0", "node --check functions/test/callable-band-avatar.test.js: exit 0", "git diff --check: exit 0"],
+  "source_review": ["Both callers of assertBandAdmin updated together", "Existing personal-avatar policy uses failed-precondition and token.demo/users.accessRole", "functions/index.js exports inspected by source search", "AvatarFunctionService and TheBandScreen callers retain payload and success/error behavior"],
+  "private_evidence": "audit/2026-10-23-systemic-ux/workers/GH-179-AVATAR-PARENT-20261026-0707/{baseline-cli-process.json,red.log,green.log}",
+  "not_verified": ["deployed functions", "real Storage", "device", "whole issue", "human testing", "full Graphify integration gate"],
+  "limitations": "Request-time authorization, not atomic with later Storage/Firestore writes; no deployment performed."
+}

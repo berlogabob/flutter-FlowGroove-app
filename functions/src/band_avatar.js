@@ -19,7 +19,16 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 const MAX_BYTES = 5 * 1024 * 1024;
 
-async function assertBandAdmin(bandId, uid) {
+async function assertBandAdmin(bandId, auth) {
+  const uid = auth.uid;
+  const user = await db.collection("users").doc(uid).get();
+  if ((auth.token || {}).demo === true ||
+      (user.exists && user.data().accessRole === "demo")) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Demo accounts cannot change the band avatar.",
+    );
+  }
   const doc = await db.collection("bands").doc(bandId).get();
   if (!doc.exists) {
     throw new functions.https.HttpsError("not-found", "Band not found.");
@@ -44,7 +53,6 @@ function makeSetBandAvatar({ getBucket } = {}) {
         "Request must be authenticated.",
       );
     }
-    const uid = context.auth.uid;
     const bandId =
       data && typeof data.bandId === "string" ? data.bandId.trim() : "";
     const imageBase64 =
@@ -56,7 +64,7 @@ function makeSetBandAvatar({ getBucket } = {}) {
       );
     }
 
-    await assertBandAdmin(bandId, uid);
+    await assertBandAdmin(bandId, context.auth);
 
     const buffer = Buffer.from(imageBase64, "base64");
     if (buffer.length === 0 || buffer.length > MAX_BYTES) {
@@ -101,7 +109,6 @@ function makeRemoveBandAvatar({ getBucket } = {}) {
         "Request must be authenticated.",
       );
     }
-    const uid = context.auth.uid;
     const bandId =
       data && typeof data.bandId === "string" ? data.bandId.trim() : "";
     if (!bandId) {
@@ -111,7 +118,7 @@ function makeRemoveBandAvatar({ getBucket } = {}) {
       );
     }
 
-    await assertBandAdmin(bandId, uid);
+    await assertBandAdmin(bandId, context.auth);
 
     const bucket = (getBucket || (() => admin.storage().bucket()))();
     try {
