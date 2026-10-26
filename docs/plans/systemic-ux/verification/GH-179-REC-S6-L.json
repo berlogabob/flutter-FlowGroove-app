@@ -1,0 +1,29 @@
+{
+  "task": "GH-179-REC-S6-L",
+  "reviewer": "hermes",
+  "scope": "Public Song Lab Undo waits for cancellation before restore, handles cancellation/save errors with generic Retry, and rechecks identity, target and mounted state after cancellation.",
+  "reconciliation": "Interrupted parent changes preserved; original baseline process metadata is stale, no live owned test or model process. Actual green-final-process.json has terminal exit 0. Current source/test SHA256 exactly match that command. No worker replay.",
+  "red": {
+    "reports": ["red-order.jsonl", "red-retry.jsonl"],
+    "done_success": false,
+    "expected_failures": ["Restore occurs before cancellation completes", "Cancellation/save rejection escapes and safe retry feedback is absent"],
+    "note": "Baseline-reconciled and incomplete green-order reports retained privately, not substituted for final results."
+  },
+  "tests": {
+    "command": "flutter test --no-pub --concurrency=1 test/screens/songs/song_lab_screen_test.dart test/screens/recorder_screen_test.dart test/services/pending_storage_deletes_test.dart --reporter expanded --file-reporter json:<run>/green-final.jsonl",
+    "exit_code": 0,
+    "visible_passes": 70,
+    "done_success": true,
+    "report": "audit/2026-10-23-systemic-ux/workers/GH-179-REC-S6-L-PARENT-20261026-0550/green-final.jsonl",
+    "ended_at": "2026-10-26T06:50:05.849251+00:00"
+  },
+  "source_hashes": {
+    "lib/screens/songs/song_lab_screen.dart": "2f47e9de6ab017216d394c0b8b139d6f2f35407ed4c7c7bbb73d1ed4c6483aed",
+    "test/screens/songs/song_lab_screen_test.dart": "b71381ebd7887fe631e992c40c631b9e506144038d52f7c7764ef137a8c85eb1"
+  },
+  "analyze": {"command": "dart analyze lib/screens/songs/song_lab_screen.dart test/screens/songs/song_lab_screen_test.dart", "exit_code": 0, "infos": 5, "warnings": 0, "errors": 0, "failed_attempt": "Unsupported dart --no-fatal-infos rejected before analysis; rerun without flag."},
+  "format": {"exit_code": 0, "changed": 0},
+  "diff_check": {"exit_code": 0},
+  "remaining": ["Shared restore/durable failed-cancel restart recovery F", "Authority/reconciliation S2/S3", "Device/audio/human checks", "Full integration Graphify refresh"],
+  "release_accepted": false
+}

@@ -203,6 +203,14 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
     if (!_canDeleteEntry(entry)) return;
     final repo = ref.read(labRepositoryProvider);
     final pending = ref.read(pendingStorageDeletesProvider);
+    final uid = ref.read(appUserProvider).value?.uid;
+    final key = _key;
+    bool canRestore() =>
+        mounted &&
+        _key == key &&
+        _canEditNow() &&
+        ref.read(appUserProvider).value?.uid == uid &&
+        ref.read(firebaseAuthProvider).currentUser?.uid == uid;
     // A recording's audio has to outlive the snackbar for Undo's restored
     // entry to still play; delete it only once the undo window shuts.
     final url =
@@ -224,15 +232,30 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
     }
     if (url != null) unawaited(pending.flushAfter(url, undoGracePeriod));
     if (!mounted) return;
+    Future<void> undo() async {
+      if (!canRestore()) return;
+      try {
+        if (url != null) await pending.cancel(url);
+        if (!canRestore()) return;
+        await repo.saveEntry(entry, bandId: key.$2);
+      } catch (_) {
+        if (mounted) {
+          showAppSnackBar(
+            context,
+            'Could not restore entry. Try again.',
+            error: true,
+            actionLabel: canRestore() ? 'Retry' : null,
+            onAction: undo,
+          );
+        }
+      }
+    }
+
     showAppSnackBar(
       context,
       'Entry deleted',
-      actionLabel: _canEditNow() ? 'Undo' : null,
-      onAction: () {
-        if (!_canEditNow()) return;
-        repo.saveEntry(entry, bandId: widget.bandId);
-        if (url != null) pending.cancel(url);
-      },
+      actionLabel: canRestore() ? 'Undo' : null,
+      onAction: undo,
     );
   }
 

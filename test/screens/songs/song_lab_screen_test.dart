@@ -28,6 +28,7 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
   int currentVersionWrites = 0;
   void Function()? afterVersionSave;
   bool failDelete = false;
+  bool failSave = false;
   int deleteAttempts = 0;
 
   @override
@@ -82,6 +83,7 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
 
   @override
   Future<void> saveEntry(SongLabEntry entry, {String? bandId}) async {
+    if (failSave) throw StateError('private backend detail');
     entries.removeWhere((e) => e.id == entry.id);
     entries.insert(0, entry);
     _emit();
@@ -262,6 +264,79 @@ void main() {
           }
         },
       );
+    }
+    for (final interruption in ['none', 'identity changed', 'unmounted']) {
+      testWidgets('recording Undo awaits cancellation: $interruption', (
+        tester,
+      ) async {
+        final pending = _PausedPendingDeletes()
+          ..cancelRelease = Completer<void>();
+        final identity = _AuthorizedUserNotifier();
+        final repo = await pump(tester, pending: pending, identity: identity);
+        await showRecording(tester, repo);
+        pending.release.complete();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Undo'));
+        await tester.pumpAndSettle();
+        expect(pending.cancelled, ['audio-url']);
+        expect(
+          repo.entries,
+          isEmpty,
+          reason: 'Restore must wait for cancellation',
+        );
+        if (interruption == 'identity changed') {
+          identity.change(
+            AsyncValue.data(AppUser(uid: 'u2', createdAt: DateTime(2026))),
+          );
+        } else if (interruption == 'unmounted') {
+          await tester.pumpWidget(const SizedBox.shrink());
+        }
+        pending.cancelRelease!.complete();
+        await tester.pumpAndSettle();
+        expect(repo.entries, interruption == 'none' ? hasLength(1) : isEmpty);
+        expect(tester.takeException(), isNull);
+      });
+    }
+    for (final failure in ['cancel', 'restore']) {
+      for (final revoked in [false, true]) {
+        testWidgets(
+          'recording Undo $failure failure permits safe Retry: revoked=$revoked',
+          (tester) async {
+            final pending = _PausedPendingDeletes();
+            final identity = _AuthorizedUserNotifier();
+            final repo = await pump(
+              tester,
+              pending: pending,
+              identity: identity,
+            );
+            await showRecording(tester, repo);
+            pending.release.complete();
+            await tester.pumpAndSettle();
+            pending.failCancel = failure == 'cancel';
+            repo.failSave = failure == 'restore';
+            await tester.tap(find.text('Undo'));
+            await tester.pumpAndSettle();
+            expect(tester.takeException(), isNull);
+            expect(repo.entries, isEmpty);
+            expect(
+              find.text('Could not restore entry. Try again.'),
+              findsOneWidget,
+            );
+            expect(find.textContaining('private backend'), findsNothing);
+            pending.failCancel = false;
+            repo.failSave = false;
+            if (revoked) identity.change(const AsyncValue.data(null));
+            await tester.tap(find.text('Retry'));
+            await tester.pumpAndSettle();
+            expect(repo.entries, revoked ? isEmpty : hasLength(1));
+            expect(
+              pending.cancelled,
+              revoked ? ['audio-url'] : ['audio-url', 'audio-url'],
+            );
+            expect(tester.takeException(), isNull);
+          },
+        );
+      }
     }
     for (final role in ['viewer', 'editor', 'admin']) {
       for (final embedded in [false, true]) {
@@ -666,8 +741,15 @@ class _PausedPendingDeletes extends PendingStorageDeletes {
     await release.future;
   }
 
+  Completer<void>? cancelRelease;
+  bool failCancel = false;
+
   @override
-  Future<void> cancel(String url) async => cancelled.add(url);
+  Future<void> cancel(String url) async {
+    cancelled.add(url);
+    if (failCancel) throw StateError('private backend detail');
+    await cancelRelease?.future;
+  }
 
   @override
   Future<void> flushAfter(String url, Duration grace) async {
