@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
-import '../haptics_provider.dart';
 import '../../models/beat_mode.dart';
 import '../../models/metronome_preset.dart';
 import '../../models/metronome_runtime_state.dart';
@@ -21,8 +20,10 @@ import '../../providers/wakelock_provider.dart';
 import '../../repositories/metronome_session_repository.dart';
 import '../../services/analytics_service.dart';
 import '../../services/audio/audio_focus_manager.dart';
+import '../../services/last_practice_context.dart';
 import '../../services/metronome_preferences.dart';
 import '../../services/wakelock_controller.dart';
+import '../haptics_provider.dart';
 import 'data_providers.dart';
 
 /// Metronome Notifier class
@@ -839,6 +840,25 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   void _startSession() {
+    final song = state.activeSong;
+    if (song != null) {
+      unawaited(
+        LastPracticeContextStore()
+            .save(
+              LastPracticeContext(
+                songId: song.id,
+                bandId: state.sourceBandId,
+                title: song.title,
+                bpm: state.bpm,
+                updatedAt: DateTime.now(),
+              ),
+            )
+            .then((_) {
+              if (ref.mounted) ref.invalidate(lastPracticeContextProvider);
+            })
+            .catchError((Object _) {}),
+      );
+    }
     _sessionStopwatch = Stopwatch()..start();
     _activeSession = MetronomeSession(
       id: const Uuid().v4(),

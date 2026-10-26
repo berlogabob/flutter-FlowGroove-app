@@ -45,6 +45,7 @@ class HapticsEnabled extends Notifier<bool> {
       value ??= true;
       await prefs.setBool(_hapticsKey, value);
     }
+    if (!ref.mounted) return;
     state = value;
   }
 

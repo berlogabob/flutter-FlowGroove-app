@@ -3,8 +3,10 @@ import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/time_signature.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
+import 'package:flowgroove/services/last_practice_context.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 
@@ -1076,6 +1078,31 @@ void main() {
         final state = container.read(metronomeProvider);
         expect(state.accentBeats, 2);
       });
+    });
+
+    test('starting a song remembers its practice context', () async {
+      SharedPreferences.setMockInitialValues({});
+      final container = createContainer();
+      final metronome = container.read(metronomeProvider.notifier);
+      metronome.loadSongTempo(
+        Song(
+          id: 'resume-song',
+          title: 'Blue',
+          artist: '',
+          ourBPM: 123,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+        sourceBandId: 'band',
+      );
+      expect(await LastPracticeContextStore().load(), isNull);
+      metronome.start();
+      await Future<void>.delayed(Duration.zero);
+      final saved = await LastPracticeContextStore().load();
+      expect(saved?.songId, 'resume-song');
+      expect(saved?.title, 'Blue');
+      expect(saved?.bandId, 'band');
+      expect(saved?.bpm, 123);
     });
 
     group('Playback Controls', () {

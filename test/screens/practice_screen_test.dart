@@ -7,6 +7,7 @@ import 'package:flowgroove/providers/homework_provider.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/screens/practice_screen.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
+import 'package:flowgroove/services/last_practice_context.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -24,6 +25,14 @@ void main() {
         tester,
         initialLocation: '/practice-test',
         overrides: [
+          lastPracticeContextProvider.overrideWith(
+            (ref) async => LastPracticeContext(
+              songId: 'resume',
+              title: 'Resume practice song',
+              bpm: 112,
+              updatedAt: DateTime(2026),
+            ),
+          ),
           offlineProvider.overrideWithValue(false),
           practiceStatsProvider.overrideWith(
             (ref) async => const PracticeStats(
@@ -57,6 +66,8 @@ void main() {
       );
       await tester.pump();
       await tester.pump();
+      expect(find.text('Resume practice song · 112 BPM'), findsOneWidget);
+      expect(find.text('Continue'), findsOneWidget);
       expect(find.text('Loading song…'), findsNWidgets(2));
       expect(find.text('Removed song'), findsNothing);
       events.addError(StateError('private title failure'));

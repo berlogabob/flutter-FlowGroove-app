@@ -14,6 +14,7 @@ import '../../services/audio/midi/backing_stem_builder.dart';
 import '../../services/audio/midi/diagnostic_stem.dart';
 import '../../services/audio/midi/drum_loop_renderer.dart';
 import '../../services/audio/midi/drum_samples.dart';
+import '../../services/last_practice_context.dart';
 import '../../utils/bar_math.dart';
 import '../../utils/pad_state.dart';
 import '../../utils/play_mode.dart';
@@ -464,6 +465,29 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     _commands[command.token] = (command: command, id: sectionId);
     state = state.copyWith(queuedId: sectionId);
     await _engine.command(command);
+    final entry = _entry;
+    if (entry != null) {
+      final activeSong = ref.read(metronomeProvider).activeSong;
+      final song = activeSong?.id == entry.songId ? activeSong : null;
+      if (song != null) {
+        unawaited(
+          LastPracticeContextStore()
+              .save(
+                LastPracticeContext(
+                  songId: song.id,
+                  bandId: entry.bandId,
+                  title: song.title,
+                  bpm: ref.read(metronomeProvider).bpm,
+                  updatedAt: DateTime.now(),
+                ),
+              )
+              .then((_) {
+                if (ref.mounted) ref.invalidate(lastPracticeContextProvider);
+              })
+              .catchError((Object _) {}),
+        );
+      }
+    }
   }
 
   void _onState(BackingState event) {

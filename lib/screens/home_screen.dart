@@ -8,6 +8,7 @@ import '../providers/permissions_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/dashboard_grid.dart';
 import '../widgets/practice_dashboard_card.dart';
+import '../widgets/practice_resume_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/standard_screen_scaffold.dart';
 import '../widgets/tool_button.dart';
@@ -30,7 +31,9 @@ class HomeScreen extends ConsumerWidget {
     // Home leads with actions (#97): no greeting card, no stat counters —
     // the top slot carries the practice dashboard instead (#133).
     return DashboardGrid(
-      greetingCard: const PracticeDashboardCard(),
+      greetingCard: const Column(
+        children: [PracticeDashboardCard(), PracticeResumeCard()],
+      ),
       statistics: const [],
       quickActions: [
         QuickActionButton(

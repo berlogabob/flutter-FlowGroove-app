@@ -2,6 +2,7 @@ import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/home_screen.dart';
+import 'package:flowgroove/services/last_practice_context.dart';
 import 'package:flowgroove/widgets/dashboard_grid.dart';
 import 'package:flowgroove/widgets/quick_action_button.dart';
 import 'package:flowgroove/widgets/stat_card.dart';
@@ -36,6 +37,14 @@ Future<void> pumpHomeScreen(
         data: const MediaQueryData(size: Size(600, 1024)), // Tablet size
         child: ProviderScope(
           overrides: [
+            lastPracticeContextProvider.overrideWith(
+              (ref) async => LastPracticeContext(
+                songId: 'resume',
+                title: 'Resume home song',
+                bpm: 112,
+                updatedAt: DateTime(2026),
+              ),
+            ),
             firebaseAuthProvider.overrideWith((ref) => mockAuth),
             appUserProvider.overrideWith(() => TestAppUserNotifier(user)),
             songsProvider.overrideWith((ref) => Stream.value([])),
@@ -69,6 +78,8 @@ void main() {
       await pumpHomeScreen(tester, mockAuth: mockAuth);
 
       expect(find.byType(DashboardGrid), findsOneWidget);
+      expect(find.text('Resume home song · 112 BPM'), findsOneWidget);
+      expect(find.text('Continue'), findsOneWidget);
     });
 
     testWidgets('shows no greeting card or stat counters (#97)', (

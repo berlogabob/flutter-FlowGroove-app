@@ -9,6 +9,7 @@ import '../providers/homework_provider.dart';
 import '../providers/practice_stats_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/practice_dashboard_card.dart';
+import '../widgets/practice_resume_card.dart';
 import '../widgets/tools/tool_scaffold.dart';
 
 /// Practice screen v1 (#133): the workbook-lite — weekly stats, where the
@@ -40,6 +41,7 @@ class PracticeScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [
           const PracticeDashboardCard(tappable: false),
+          const PracticeResumeCard(),
           if (!stats.isEmptyWeek) ...[
             const SizedBox(height: MonoPulseSpacing.lg),
             _sectionTitle(context, 'Where your time went'),
