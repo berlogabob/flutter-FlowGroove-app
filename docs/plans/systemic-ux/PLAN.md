@@ -5,7 +5,8 @@
 ## Источник истины
 
 - [x] GH-179-TUNER-P: принят 86a6cade; свежие 79 combined tests PASS, scoped analyze exit 0 (style infos), format/diff PASS.
-- [ ] GH-179-TUNER-L: **текущий шаг — public fixture preflight**; исходные тесты личной/групповой библиотеки запущены, production-правки ещё не назначены. Актуальные процессы и результаты — только в activity.json.
+- [x] GH-179-TUNER-L: принят c8ca71bb; актуальные права callback и цель личной/групповой записи проверены, 105 combined tests PASS, scoped analyze/format/diff PASS.
+- [ ] **Текущий шаг — GH-179-TUNER-L-S**: запущен public screen regression preflight обработки отказа привязки; production пока не менялся. GH-179-TUNER-L-C отдельно сохраняет риск устаревшего bandId личной песни. Актуальные процессы и результаты — только в activity.json.
 
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 

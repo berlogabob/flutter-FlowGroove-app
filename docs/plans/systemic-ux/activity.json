@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-26T00:26:59+00:00",
+  "updated_at": "2026-10-26T01:27:16+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -337,7 +337,9 @@
         "GH-179-REC-S6",
         "GH-179-TUNER-E",
         "GH-179-TUNER-P",
-        "GH-179-TUNER-L"
+        "GH-179-TUNER-L",
+        "GH-179-TUNER-L-S",
+        "GH-179-TUNER-L-C"
       ],
       "resolution": null
     },
@@ -5868,7 +5870,9 @@
         "GH-179-TUNER-R",
         "GH-179-TUNER-E",
         "GH-179-TUNER-P",
-        "GH-179-TUNER-L"
+        "GH-179-TUNER-L",
+        "GH-179-TUNER-L-S",
+        "GH-179-TUNER-L-C"
       ],
       "read_files": [],
       "allowed_files": [],
@@ -6546,28 +6550,32 @@
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-PARENT-20261026-0025/baseline.log",
         "started_at": "2026-10-26T00:25:38+00:00",
         "phase_started_at": "2026-10-26T00:25:38+00:00",
-        "last_observed_at": "2026-10-26T00:26:59+00:00",
-        "last_progress_at": "2026-10-26T00:25:38+00:00",
+        "last_observed_at": "2026-10-26T01:24:20+00:00",
+        "last_progress_at": "2026-10-26T01:24:20+00:00",
         "deadline_at": "2026-10-26T00:45:38+00:00",
-        "phase": "parent_linking_public_fixture_preflight",
+        "phase": "accepted_linking_caller_slice",
         "process": "proc_3b99ff6185a5",
         "pid": 48726,
-        "last_observed_activity": "Actual project uv Python process and owned Flutter child observed; baseline process.json running at 00:26:42 UTC. No production/test writes assigned.",
+        "primary_commit": "c8ca71bb",
+        "primary_tests_passed": 105,
+        "reconciled_at": "2026-10-26T01:24:20+00:00",
+        "last_observed_activity": "Historical baseline process ended without baseline assertions. Interrupted parent implementation recovered; fresh 105 combined tests PASS, scoped analyze/format/diff PASS. No live caller lease.",
         "active_actor": "hermes",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
         "file_lease": [],
-        "test_lane": "sole controlled Flutter lane",
+        "test_lane": null,
         "worker_active": false,
         "needs_reconciliation": false,
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-PARENT-20261026-0025/process.json",
         "expected_artifact": "Existing SongsListScreen and BandSongsScreen public baseline reports; route captures need real TunerLaunchContext, not marker-only assertions",
-        "next_action": "Read bounded baseline result; preflight routed tuner callback capture and repository injection, then register caller/screen write slices before RED. No Luna dispatch while route unhealthy.",
-        "user_status": "Проверка прав общего провайдера тюнера принята: 79 тестов прошли. Запущены исходные тесты личной и групповой библиотеки перед исправлением привязки строя к песне."
+        "next_action": "Caller accepted c8ca71bb. Direct TunerScreen feedback public fixture preflight next; personal stale metadata scope separately registered. No model replay while route unhealthy.",
+        "user_status": "Привязка строя из личной и групповой библиотеки проверяет актуальные права; 105 тестов прошли. Следом проверяется обработка отказа сохранения на экране тюнера.",
+        "test_lane_released": true
       },
-      "verification": null,
+      "verification": {"reviewer": "hermes", "tested_commit": "c8ca71bb", "evidence": ["docs/plans/systemic-ux/verification/GH-179-TUNER-L.json"]},
       "id": "GH-179-TUNER-L",
       "title": "Live-authorized tuner song linking callbacks and actual band-copy scope",
-      "status": "running",
+      "status": "verified",
       "read_files": [
         "lib/widgets/unified_item/song_card_actions.dart",
         "lib/screens/tuner_screen.dart",
@@ -6576,11 +6584,66 @@
         "test/screens/bands/band_songs_screen_test.dart",
         "test/helpers/routed_test_harness.dart"
       ],
-      "allowed_files": [],
+      "allowed_files": ["lib/widgets/unified_item/song_card_actions.dart", "test/screens/bands/band_songs_screen_test.dart"],
       "acceptance": [
-        "Locate existing public caller/screen tests and register bounded write pairs. Stale identity/role callbacks reject writes; permitted caller retains correct target and passes actual band context. Preserve local-link prohibition; exercise failed save feedback. Setlist path conditional, not proven reachable."
+        "Public rendered SongsListScreen/BandSongsScreen route captures actual TunerLaunchContext and invokes its exported callback. Reject stale identity, demo, loading/error and band-role revocation before repository writes; preserve permitted personal/band target and pass explicit launch bandId. Screen feedback/local-link behavior remains a separate required slice GH-179-TUNER-L-S."
       ],
-      "preflight_constraint": "Existing personal/band rendered fixtures located; baseline running. Caller callback capture and actual tuner screen fixture must be registered before bounded production writes; model-only tests insufficient."
+      "preflight_constraint": "Existing public router supports extra capture; existing generated MockSongRepository supports transport assertions. Original baseline was interrupted before any assertions and has no done event; no RED/baseline PASS credit. No owned process remains; retain original logs."
+    },
+    {
+      "id": "GH-179-TUNER-L-S",
+      "title": "Tuner screen handles failed song/setlist linking and preserves local-preset prohibition",
+      "status": "running",
+      "executor": "hermes",
+      "kind": "implementation",
+      "issue": "GH-179",
+      "after": ["GH-179-TUNER-L"],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "read_files": ["lib/screens/tuner_screen.dart", "lib/models/tuner_launch_context.dart", "lib/providers/tuner_provider.dart", "test/widgets/tuner/custom_tuning_editor_test.dart"],
+      "allowed_files": ["lib/screens/tuner_screen.dart", "test/screens/tuner_screen_test.dart"],
+      "acceptance": ["Public rendered TunerScreen Use for song/item: failed callback is handled with safe retry feedback and no linked success; local custom preset never calls save; authorized callback receives selected preset. Phone-sized layout must not overflow. Preflight a real public fixture before production edits."],
+      "verification": null,
+      "run": {
+        "id": "GH-179-TUNER-L-S-PARENT-20261026-0130",
+        "started_at": "2026-10-26T01:27:07.537369+00:00",
+        "deadline_at": "2026-10-26T02:02:07.537369+00:00",
+        "phase_started_at": "2026-10-26T01:27:07.537369+00:00",
+        "last_observed_at": "2026-10-26T01:27:16+00:00",
+        "last_progress_at": "2026-10-26T01:27:07.537369+00:00",
+        "process": "proc_23c2b5ba183b",
+        "pid": 52878,
+        "last_observed_activity": "Actual project uv Python runner process.json running and OS PID independently observed. 480-second bounded Flutter child checks rendered screen regression; no production edits yet.",
+        "phase": "parent_screen_public_regression_preflight",
+        "active_actor": "hermes",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "file_lease": ["lib/screens/tuner_screen.dart", "test/screens/tuner_screen_test.dart"],
+        "test_lane": "sole controlled Flutter lane",
+        "worker_active": false,
+        "needs_reconciliation": false,
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-S-PARENT-20261026-0130/red.log",
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-S-PARENT-20261026-0130/process.json",
+        "expected_artifact": "Actual rendered screen callback-error regression report; fixture failures are not RED credit",
+        "next_action": "Read exact retained report/process outcome before editing production. Complete directly; no Luna replay while quota/runtime route unhealthy.",
+        "user_status": "Исправление вызова привязки принято: 105 тестов прошли. Проверяется отказ сохранения на самом экране тюнера; релиз запрещён."
+      }
+    },
+    {
+      "id": "GH-179-TUNER-L-C",
+      "title": "Personal tuner context must not inherit stale band metadata",
+      "status": "blocked",
+      "executor": "hermes",
+      "kind": "implementation",
+      "issue": "GH-179",
+      "after": ["GH-179-TUNER-L"],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "read_files": ["lib/models/tuner_launch_context.dart", "lib/widgets/unified_item/song_card_actions.dart", "test/models/tuner_launch_context_test.dart", "test/screens/bands/band_songs_screen_test.dart"],
+      "allowed_files": [],
+      "acceptance": ["Personal caller context must not expose stale song.bandId as actual band scope; retain explicit band and legacy/setlist behavior. Preflight smallest public model/caller contract and register bounded production/test pair before RED."],
+      "blocked_reason": "Source review: effectiveBandId falls back to song.bandId for personal caller's null bandId; source/test contract needs preflight after current screen lease. Not covered by caller transport acceptance.",
+      "run": null,
+      "verification": null
     }
   ],
   "worker_lanes": {
