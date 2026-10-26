@@ -1,0 +1,24 @@
+{
+  "task": "GH-179-LEGACY-R",
+  "reviewer": "hermes",
+  "tested_commit": "719af418",
+  "evidence_type": "CODE + existing canonical-data emulator baseline",
+  "baseline": {
+    "tests": 8,
+    "passes": 8,
+    "failures": 0,
+    "ended_at": "2026-10-26T08:33:50.148Z",
+    "log": "audit/2026-10-23-systemic-ux/workers/GH-179-AVATAR-PARENT-20261026-0707/next-legacy-baseline.log",
+    "replayed": false
+  },
+  "unchanged_source_sha256": {
+    "functions/src/account.js": "be99b23a14c146fc0b591b633a357817495525929ecaf660a245bb190000eecd",
+    "functions/src/bands.js": "987524773c33a5359ba659aab4c82866160a340ecde9f5689daaa8c5e2ab7e19",
+    "functions/test/callable-delete-account.test.js": "b2c173417021b802be7387730d107d8e3b6fa7a0113557a0ad562ae4fbcb8382"
+  },
+  "review": "docs/plans/systemic-ux/reviews/GH-179-legacy.md",
+  "findings": ["Roster-role authorization disagrees with effective rule arrays", "Join/member updates can reconstruct unrelated privileges from drifted roles", "Account deletion can change surviving effective privileges and misses roster-only membership", "Band-about last-admin UI guards still use roster roles"],
+  "followups": ["GH-179-LEGACY-M", "GH-179-LEGACY-A", "GH-179-LEGACY-U"],
+  "not_verified": ["Runtime role-drift regression", "Legacy prevalence", "Deployed functions/rules", "Device and human acceptance", "Product fix or issue closure"],
+  "acceptance": "Source review only; all followups gate GH-179-V and FINAL-TEST."
+}
