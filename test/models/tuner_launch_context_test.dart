@@ -47,4 +47,11 @@ void main() {
     expect(context.initialPresetId, 'guitar:drop_d');
     expect(context.effectiveBandId, 'explicit-band');
   });
+
+  test(
+    'legacy song scope remains inferred without an explicit caller scope',
+    () {
+      expect(TunerLaunchContext(song: song).effectiveBandId, 'song-band');
+    },
+  );
 }

@@ -1,0 +1,19 @@
+{
+  "task": "GH-179-TUNER-L-C",
+  "reviewer": "hermes",
+  "accepted_at": "2026-10-26T03:38:46+00:00",
+  "scope": "Personal library tuner launch suppresses stale song band metadata; explicit band and legacy song/setlist inference remain available.",
+  "reconciliation": "Original baseline process no longer exists. Interrupted caller regression preserved. Fresh parent RED reproduced expected null versus old-band before production edits; outer shell timed out after visible failing test summary. No prompt replay or worker/model invocation.",
+  "red": {"log": "audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-C-PARENT-20261026-0155/parent-red.log", "assertion": "Personal effectiveBandId expected null, actual old-band; band control passed", "outer_exit": 124},
+  "green": {"report": "audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-C-PARENT-20261026-0155/parent-green.jsonl", "process": "proc_e980a1c18f96", "exit_code": 0, "visible_passed": 108, "done_success": true, "errors": 0, "files": ["test/models/tuner_launch_context_test.dart", "test/screens/bands/band_songs_screen_test.dart", "test/screens/songs/songs_list_screen_test.dart", "test/screens/tuner_screen_test.dart", "test/providers/tuner_provider_test.dart", "test/widgets/tuner/custom_tuning_editor_test.dart", "test/repositories/tuner_preset_repository_test.dart"]},
+  "analyze": {"process": "proc_366aec51f8c3", "exit_code": 0, "flag": "--no-fatal-infos", "infos": 3, "warnings": 0, "errors": 0, "log": "audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-C-PARENT-20261026-0155/parent-analyze.log"},
+  "format": "Four changed Dart files, zero changes, exit 0 after formatting test",
+  "diff_check": "PASS",
+  "source_hashes": {
+    "lib/models/tuner_launch_context.dart": "dfdedf3c25f73fc665422b96bd841f0528dea5462cc7407102172a46df56e231",
+    "lib/widgets/unified_item/song_card_actions.dart": "b28ba06883f3a4ade8ba1944f1153a00df770a1f863d14d4504b4635a9ef885b",
+    "test/models/tuner_launch_context_test.dart": "93bf61bd26a3e4d481308ce5e564d913f81c10edc8f32d076a9a0e0d30b568aa",
+    "test/screens/bands/band_songs_screen_test.dart": "2a7b5abcec126542510aa18247fc79bfd1a091ea050dcc6eacbc1ce5cc49c1b6"
+  },
+  "limits": ["No device, real cloud/audio, human or release acceptance", "No full Graphify refresh; final integration gate remains open", "Luna route not retried after retained quota/runtime failure"]
+}

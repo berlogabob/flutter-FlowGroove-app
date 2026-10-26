@@ -105,6 +105,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(launch, isNotNull);
         expect(launch!.bandId, bandScope ? 'band-123' : null);
+        expect(launch!.effectiveBandId, bandScope ? 'band-123' : null);
         final save = launch!.saveSong!;
         await save(updated);
         if (bandScope) {

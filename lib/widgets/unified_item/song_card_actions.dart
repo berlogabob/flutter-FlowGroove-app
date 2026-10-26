@@ -304,6 +304,7 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             extra: TunerLaunchContext(
               song: song,
               bandId: bandId,
+              inferBandId: false,
               saveSong: !canSave()
                   ? null
                   : (updatedSong) async {
