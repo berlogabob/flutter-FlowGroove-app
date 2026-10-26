@@ -211,6 +211,7 @@ class _RecordingCard extends ConsumerWidget {
     final auth = ref.read(firebaseAuthProvider);
     final repo = ref.read(labRepositoryProvider);
     final pending = ref.read(pendingStorageDeletesProvider);
+    final messenger = ScaffoldMessenger.of(context);
     // Undo restores the document, and its audio URL only still resolves
     // because the object outlives the snackbar. Queue the object now, delete
     // it when the undo window shuts, and drop it from the queue if Undo wins.
@@ -239,21 +240,42 @@ class _RecordingCard extends ConsumerWidget {
     }
     if (url != null) unawaited(pending.flushAfter(url, undoGracePeriod));
     if (context.mounted) {
+      bool canRestore() {
+        if (!messenger.mounted) return false;
+        final user = container.read(appUserProvider);
+        return !user.isLoading &&
+            !user.hasError &&
+            user.value?.uid == uid &&
+            user.value?.accessRole != 'demo' &&
+            auth.currentUser?.uid == uid;
+      }
+
+      Future<void> undo() async {
+        if (!canRestore()) return;
+        try {
+          if (url != null) await pending.cancel(url);
+          if (!canRestore()) return;
+          await repo.saveEntry(recording);
+        } catch (_) {
+          if (messenger.mounted) {
+            messenger
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: const Text('Could not restore recording'),
+                  backgroundColor: MonoPulseColors.error,
+                  action: SnackBarAction(label: 'Retry', onPressed: undo),
+                ),
+              );
+          }
+        }
+      }
+
       showAppSnackBar(
         context,
         'Recording deleted',
         actionLabel: 'Undo',
-        onAction: () {
-          final user = container.read(appUserProvider);
-          if (user.isLoading ||
-              user.hasError ||
-              user.value?.uid != uid ||
-              user.value?.accessRole == 'demo' ||
-              auth.currentUser?.uid != uid)
-            return;
-          repo.saveEntry(recording);
-          if (url != null) pending.cancel(url);
-        },
+        onAction: undo,
       );
     }
   }

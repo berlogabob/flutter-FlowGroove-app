@@ -24,6 +24,7 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
   // matching the Firestore subcollection layout.
   final entries = <String, List<SongLabEntry>>{};
   bool failDelete = false;
+  bool failSave = false;
   int deleteAttempts = 0;
   final _controllers = <String, StreamController<List<SongLabEntry>>>{};
 
@@ -44,6 +45,7 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
 
   @override
   Future<void> saveEntry(SongLabEntry entry, {String? bandId}) async {
+    if (failSave) throw StateError('secret restore failure');
     final list = entries.putIfAbsent(entry.songId, () => []);
     list.removeWhere((e) => e.id == entry.id);
     list.insert(0, entry);
@@ -69,6 +71,8 @@ class _PausedPendingDeletes extends PendingStorageDeletes {
   final flushed = <String>[];
   final cancelled = <String>[];
   final gracePeriods = <Duration>[];
+  Completer<void>? cancelRelease;
+  bool failCancel = false;
 
   @override
   Future<void> enqueue(String url) async {
@@ -79,6 +83,8 @@ class _PausedPendingDeletes extends PendingStorageDeletes {
   @override
   Future<void> cancel(String url) async {
     cancelled.add(url);
+    await cancelRelease?.future;
+    if (failCancel) throw StateError('secret cancellation failure');
   }
 
   @override
@@ -357,6 +363,87 @@ void main() {
       expect(find.textContaining('secret'), findsNothing);
       expect(tester.takeException(), isNull);
     });
+    testWidgets('Undo waits for cancellation before restoring recording', (
+      tester,
+    ) async {
+      final pending = _PausedPendingDeletes()
+        ..release.complete()
+        ..cancelRelease = Completer<void>();
+      final repo = await pump(tester, inbox: [recording()], pending: pending);
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(pending.cancelled, recording().attachmentIds);
+      expect(repo.entries[ideaInboxSongId], isEmpty);
+      pending.cancelRelease!.complete();
+      await tester.pumpAndSettle();
+      expect(find.text('Riff in E'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+    for (final loss in ['identity', 'unmount']) {
+      testWidgets('Undo cancellation completing after $loss cannot restore', (
+        tester,
+      ) async {
+        final pending = _PausedPendingDeletes()
+          ..release.complete()
+          ..cancelRelease = Completer<void>();
+        final identity = _Identity();
+        final repo = await pump(
+          tester,
+          inbox: [recording()],
+          pending: pending,
+          identity: identity,
+        );
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Undo'));
+        await tester.pumpAndSettle();
+        if (loss == 'identity') {
+          identity.change(denied['different identity']!);
+        } else {
+          await tester.pumpWidget(const SizedBox.shrink());
+        }
+        pending.cancelRelease!.complete();
+        await tester.pumpAndSettle();
+        expect(repo.entries[ideaInboxSongId], isEmpty);
+        expect(tester.takeException(), isNull);
+      });
+    }
+    for (final failure in ['cancellation', 'restore']) {
+      testWidgets('Undo $failure failure stays private and offers retry', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(360, 780);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final pending = _PausedPendingDeletes()..release.complete();
+        final repo = await pump(tester, inbox: [recording()], pending: pending);
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+        pending.failCancel = failure == 'cancellation';
+        repo.failSave = failure == 'restore';
+        await tester.tap(find.text('Undo'));
+        await tester.pumpAndSettle();
+        expect(repo.entries[ideaInboxSongId], isEmpty);
+        expect(find.text('Could not restore recording'), findsOneWidget);
+        expect(find.textContaining('secret'), findsNothing);
+        expect(tester.takeException(), isNull);
+        pending.failCancel = false;
+        repo.failSave = false;
+        await tester.tap(find.text('Retry'));
+        await tester.pumpAndSettle();
+        expect(find.text('Riff in E'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
     testWidgets('delete removes the recording with an Undo', (tester) async {
       final pending = _PausedPendingDeletes()..release.complete();
       final repo = await pump(tester, inbox: [recording()], pending: pending);
