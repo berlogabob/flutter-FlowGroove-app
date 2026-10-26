@@ -425,10 +425,26 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     );
   }
 
-  /// Number of admins currently in the band (used to prevent removing/demoting
-  /// the last admin and locking everyone out of management).
-  int get _adminCount =>
-      _band.members.where((m) => m.role == BandMember.roleAdmin).length;
+  Band? get _liveBand => ref
+      .read(bandsProvider)
+      .asData
+      ?.value
+      .where((band) => band.id == _band.id)
+      .firstOrNull;
+
+  /// Count live array admins so legacy member roles cannot bypass protection.
+  int get _adminCount => _liveBand?.adminUids.length ?? 0;
+
+  String _effectiveRole(BandMember member) {
+    final band = _liveBand;
+    if (band?.adminUids.contains(member.uid) == true) {
+      return BandMember.roleAdmin;
+    }
+    if (band?.editorUids.contains(member.uid) == true) {
+      return BandMember.roleEditor;
+    }
+    return BandMember.roleViewer;
+  }
 
   Widget _buildMemberTile(BandMember member, int index, bool canManageMembers) {
     return ListTile(
@@ -453,7 +469,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _formatRole(member.role),
+            _formatRole(_effectiveRole(member)),
             style: TextStyle(color: context.mp.textSecondary),
           ),
           if (member.musicRoles.isNotEmpty) ...[
@@ -519,10 +535,10 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
               ])
                 ListTile(
                   leading: Icon(
-                    member.role == role
+                    _effectiveRole(member) == role
                         ? Icons.radio_button_checked
                         : Icons.radio_button_unchecked,
-                    color: member.role == role
+                    color: _effectiveRole(member) == role
                         ? MonoPulseColors.accentOrange
                         : context.mp.textSecondary,
                   ),
@@ -564,10 +580,11 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
 
   Future<void> _changeMemberRole(int index, String newRole) async {
     final member = _band.members[index];
-    if (member.role == newRole) return;
+    if (!ref.read(canManageBandMembersProvider(_band.id))) return;
+    if (_effectiveRole(member) == newRole) return;
 
     // Don't allow demoting the last admin (would lock out member management).
-    if (member.role == BandMember.roleAdmin &&
+    if (_effectiveRole(member) == BandMember.roleAdmin &&
         newRole != BandMember.roleAdmin &&
         _adminCount <= 1) {
       _showMessage('A band must keep at least one admin.');
@@ -617,9 +634,10 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   }
 
   Future<void> _removeMember(int index) async {
+    if (!ref.read(canManageBandMembersProvider(_band.id))) return;
     final member = _band.members[index];
 
-    if (member.role == BandMember.roleAdmin && _adminCount <= 1) {
+    if (_effectiveRole(member) == BandMember.roleAdmin && _adminCount <= 1) {
       _showMessage('You cannot remove the last admin.');
       return;
     }
