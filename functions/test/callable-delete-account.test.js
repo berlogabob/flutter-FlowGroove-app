@@ -171,4 +171,98 @@ describe("deleteAccount callable", function () {
     assert.deepEqual(band.adminUids, ["u2"]);
     assert.equal(band.members.length, 1);
   });
+
+  it("removes a role-only admin without replacing the effective admin", async () => {
+    const ref = db.doc("bands/role-only-admin");
+    await ref.set({
+      members: [{ uid: "u1", role: "admin" }, { uid: "u2", role: "editor" }],
+      memberUids: ["u1", "u2"],
+      adminUids: ["u3"],
+      editorUids: ["u2"],
+    });
+    const { fn } = build();
+
+    await fn(req("u1"));
+
+    const band = (await ref.get()).data();
+    assert.deepEqual(band.members, [{ uid: "u2", role: "editor" }]);
+    assert.deepEqual(band.adminUids, ["u3"]);
+    assert.deepEqual(band.editorUids, ["u2"]);
+  });
+
+  it("promotes a remaining member when the sole array-only admin leaves", async () => {
+    const ref = db.doc("bands/array-only-admin");
+    await ref.set({
+      members: [{ uid: "u2", role: "editor" }, { uid: "u3", role: "admin" }],
+      memberUids: ["u2", "u3"],
+      adminUids: ["u1"],
+      editorUids: ["u2"],
+    });
+    const { fn } = build();
+
+    await fn(req("u1"));
+
+    const band = (await ref.get()).data();
+    assert.deepEqual(band.adminUids, ["u2"]);
+    assert.deepEqual(band.memberUids, ["u2", "u3"]);
+    assert.deepEqual(band.editorUids, ["u2"]);
+    assert.equal(band.members[0].role, "admin");
+  });
+
+  it("cleans dangling memberUids-only membership and preserves other grants", async () => {
+    const ref = db.doc("bands/dangling-member");
+    await ref.set({
+      members: [{ uid: "u2", role: "viewer" }],
+      memberUids: ["u1", "u2", "u3"],
+      adminUids: ["u4"],
+      editorUids: ["u1", "u5"],
+    });
+    const { fn } = build();
+
+    await fn(req("u1"));
+
+    const band = (await ref.get()).data();
+    assert.deepEqual(band.members, [{ uid: "u2", role: "viewer" }]);
+    assert.deepEqual(band.memberUids, ["u2", "u3"]);
+    assert.deepEqual(band.adminUids, ["u4"]);
+    assert.deepEqual(band.editorUids, ["u5"]);
+  });
+
+  it("finds editorUids-only membership without deleting unrelated array-only grants", async () => {
+    const ref = db.doc("bands/array-only-grants");
+    await ref.set({
+      members: [],
+      memberUids: ["u2"],
+      adminUids: ["u3"],
+      editorUids: ["u1", "u4"],
+    });
+    const { fn } = build();
+
+    await fn(req("u1"));
+
+    const band = (await ref.get()).data();
+    assert.deepEqual(band.members, []);
+    assert.deepEqual(band.memberUids, ["u2"]);
+    assert.deepEqual(band.adminUids, ["u3"]);
+    assert.deepEqual(band.editorUids, ["u4"]);
+  });
+
+  it("removes a roster member missing from memberUids via their editor grant", async () => {
+    const ref = db.doc("bands/drifted-roster");
+    await ref.set({
+      members: [{ uid: "u1", role: "editor" }, { uid: "u2", role: "admin" }],
+      memberUids: ["u2"],
+      adminUids: ["u2"],
+      editorUids: ["u1", "u3"],
+    });
+    const { fn } = build();
+
+    await fn(req("u1"));
+
+    const band = (await ref.get()).data();
+    assert.deepEqual(band.members, [{ uid: "u2", role: "admin" }]);
+    assert.deepEqual(band.memberUids, ["u2"]);
+    assert.deepEqual(band.adminUids, ["u2"]);
+    assert.deepEqual(band.editorUids, ["u3"]);
+  });
 });

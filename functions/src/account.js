@@ -18,15 +18,6 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 const { purgeUserGrants, purgePersonalEventGrants } = require("./events");
 
-// Duplicated from src/bands.js — a 4-line helper not worth a shared module.
-function deriveUidArrays(members) {
-  return {
-    memberUids: members.map((m) => m.uid),
-    adminUids: members.filter((m) => m.role === "admin").map((m) => m.uid),
-    editorUids: members.filter((m) => m.role === "editor").map((m) => m.uid),
-  };
-}
-
 async function isDemoUser(uid, token) {
   if (token && token.demo === true) return true;
   const userDoc = await db.collection("users").doc(uid).get();
@@ -35,8 +26,8 @@ async function isDemoUser(uid, token) {
 
 /**
  * Removes `uid` from every band. Per band, in a transaction:
- *  - drop them from members + the derived uid arrays;
- *  - if the band is left with no members, delete it (its songs/setlists
+ *  - drop them from members + all effective uid arrays;
+ *  - if the band is left with no members or grants, delete it (its songs/setlists
  *    subcollections are cascaded afterwards with recursiveDelete);
  *  - if the band is left with members but no admin, promote the first remaining
  *    member so the band is never orphaned.
@@ -44,13 +35,16 @@ async function isDemoUser(uid, token) {
  *    explicit owner-succession prompt if bands need a say in who inherits admin.
  */
 async function removeFromAllBands(uid) {
-  const snap = await db
-    .collection("bands")
-    .where("memberUids", "array-contains", uid)
-    .get();
+  const fields = ["memberUids", "adminUids", "editorUids"];
+  const snapshots = await Promise.all(fields.map((field) =>
+    db.collection("bands").where(field, "array-contains", uid).get(),
+  ));
+  const bandRefs = new Map();
+  for (const snap of snapshots) {
+    for (const doc of snap.docs) bandRefs.set(doc.id, doc.ref);
+  }
   const emptied = [];
-  for (const doc of snap.docs) {
-    const bandRef = doc.ref;
+  for (const bandRef of bandRefs.values()) {
     const wasEmptied = await db.runTransaction(async (tx) => {
       const bandDoc = await tx.get(bandRef);
       if (!bandDoc.exists) return false;
@@ -58,14 +52,21 @@ async function removeFromAllBands(uid) {
       const members = (Array.isArray(band.members) ? band.members : []).filter(
         (m) => m && m.uid !== uid,
       );
-      if (members.length === 0) {
+      const arrays = {};
+      for (const field of fields) {
+        arrays[field] = (Array.isArray(band[field]) ? band[field] : []).filter(
+          (memberUid) => memberUid !== uid,
+        );
+      }
+      if (members.length === 0 && fields.every((field) => arrays[field].length === 0)) {
         tx.delete(bandRef);
         return true;
       }
-      if (!members.some((m) => m.role === "admin")) {
+      if (members.length > 0 && arrays.adminUids.length === 0) {
         members[0] = { ...members[0], role: "admin" };
+        arrays.adminUids.push(members[0].uid);
       }
-      tx.set(bandRef, { members, ...deriveUidArrays(members) }, { merge: true });
+      tx.set(bandRef, { members, ...arrays }, { merge: true });
       return false;
     });
     if (wasEmptied) emptied.push(bandRef);
