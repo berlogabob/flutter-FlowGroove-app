@@ -7,7 +7,9 @@
 - [x] GH-179-TUNER-P: принят 86a6cade; свежие 79 combined tests PASS, scoped analyze exit 0 (style infos), format/diff PASS.
 - [x] GH-179-TUNER-L: принят c8ca71bb; актуальные права callback и цель личной/групповой записи проверены, 105 combined tests PASS, scoped analyze/format/diff PASS.
 - [x] GH-179-TUNER-L-S: принят 58be5329; экран обрабатывает отказ без ложного успеха, повторная попытка и запрет local проверены для песни/элемента. 105 combined tests PASS; analyze с одним baseline info, format/diff PASS. При unmount исправлен обнаруженный unsafe ref.read.
-- [ ] **Текущий шаг — GH-179-TUNER-L-C**: запущен baseline публичного контекста и caller для устаревшего bandId личной песни. Production не меняется до контракта и RED. Актуальные процессы и результаты — только в activity.json.
+- [x] GH-179-TUNER-L-C: принят 0590206d; личный контекст не наследует старый bandId, explicit band и legacy/setlist сохранены. 108 combined tests PASS; scoped analyze/format/diff PASS.
+- [x] **GH-179-REC-S6-P**: source preflight завершён; SharedPreferences меняет кеш до результата записи, а Undo запускает restore параллельно cancel. Это исследование, не исправление.
+- [ ] **Текущий шаг — GH-179-REC-S6-Q**: RED подтверждён (2 ожидаемых отказа, 11 controls PASS); минимальная queue-правка готова, combined queue/Recorder/Song Lab проверка запущена. Далее отдельные Recorder/Song Lab/shared recovery срезы; S6 остаётся заблокированным до полной безопасности. Актуальные процессы и результаты — только в activity.json.
 
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 

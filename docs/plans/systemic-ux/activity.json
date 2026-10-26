@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-26T01:57:50+00:00",
+  "updated_at": "2026-10-26T03:43:43.669161+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -335,6 +335,11 @@
         "GH-179-REC-S1A",
         "GH-179-REC-S1B",
         "GH-179-REC-S6",
+        "GH-179-REC-S6-P",
+        "GH-179-REC-S6-Q",
+        "GH-179-REC-S6-R",
+        "GH-179-REC-S6-L",
+        "GH-179-REC-S6-F",
         "GH-179-TUNER-E",
         "GH-179-TUNER-P",
         "GH-179-TUNER-L",
@@ -6391,6 +6396,45 @@
       ]
     },
     {
+      "id": "GH-179-REC-S6-P",
+      "title": "Cancellation persistence and caller contract preflight",
+      "status": "verified",
+      "executor": "hermes",
+      "kind": "research",
+      "issue": "GH-179",
+      "after": ["GH-179-REC-S5"],
+      "read_files": ["lib/services/pending_storage_deletes.dart", "lib/screens/recorder_screen.dart", "lib/screens/songs/song_lab_screen.dart", "lib/repositories/firestore_lab_repository.dart"],
+      "allowed_files": ["docs/plans/systemic-ux/reviews/GH-179-REC-S6-preflight.md"],
+      "acceptance": ["Inspect actual plugin failure/cache behavior and all cancellation callers; register bounded slices without product acceptance."],
+      "run": {"active_actor": "hermes", "phase": "accepted_source_preflight", "worker_active": false, "user_status": "Выявлен риск: отказ сохранения отмены скрывается кешем; Undo также запускает восстановление раньше отмены. Зарегистрированы отдельные исправления, общая безопасность ещё не подтверждена."},
+      "verification": {"reviewer": "hermes", "tested_commit": "0590206d78ca597b2a5bc8dff04510ab703f68b7", "evidence": ["docs/plans/systemic-ux/reviews/GH-179-REC-S6-preflight.md"]}
+    },
+    {
+      "id": "GH-179-REC-S6-Q",
+      "title": "Reject failed cancellation persistence and retain a working retry",
+      "status": "running",
+      "executor": "hermes",
+      "kind": "implementation",
+      "issue": "GH-179",
+      "after": ["GH-179-REC-S6-P"],
+      "read_files": ["lib/services/pending_storage_deletes.dart", "test/services/pending_storage_deletes_test.dart"],
+      "allowed_files": ["lib/services/pending_storage_deletes.dart", "test/services/pending_storage_deletes_test.dart"],
+      "acceptance": ["Agreed public queue seam: false/throw from platform cancellation must reject; retry must repair durable queue after plugin cache mutation; reload plus fresh queue sweep deletes no cancelled audio. Does not close restart recovery or caller gates."],
+      "timeout_s": 2100,
+      "max_attempts": 1,
+      "run": {"id": "GH-179-REC-S6-Q-PARENT-20261026-0408", "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S6-Q-PARENT-20261026-0408/red.log", "process": "proc_727e996a2c1d", "red_process": "proc_68cbb9547440", "red_exit_code": 1, "red_control_pass": 11, "red_regression_failures": 2, "pid": 63379, "last_observed_at": "2026-10-26T04:14:42.143656+00:00", "test_lane": "owned_flutter_regression", "active_actor": "hermes", "phase": "parent_public_regression_green", "worker_active": false, "needs_reconciliation": true, "started_at": "2026-10-26T04:08:00+00:00", "deadline_at": "2026-10-26T04:43:00+00:00", "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app", "file_lease": ["lib/services/pending_storage_deletes.dart", "test/services/pending_storage_deletes_test.dart"], "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S6-Q-PARENT-20261026-0408/process.json", "expected_artifact": "Combined queue/Recorder/Song Lab GREEN JSON and tested hashes; final analyze still required", "next_action": "Read combined outcome, final scoped analyze/format/diff and accept Q only if checks pass; caller/durable recovery remain open", "user_status": "Два регрессионных теста воспроизвели дефект; 11 прежних тестов прошли. Минимальная правка готова, идёт общая проверка очереди и экранов записи."},
+      "verification": null
+    },
+    {
+      "id": "GH-179-REC-S6-R", "title": "Recorder cancellation before Undo restore and failure feedback", "status": "queued", "executor": "hermes", "kind": "implementation", "issue": "GH-179", "after": ["GH-179-REC-S6-Q"], "read_files": ["lib/screens/recorder_screen.dart", "test/screens/recorder_screen_test.dart"], "allowed_files": ["lib/screens/recorder_screen.dart", "test/screens/recorder_screen_test.dart"], "acceptance": ["Public Recorder Undo awaits cancellation before restore; false/throw rejects restore and reports safe retry; failed-delete durable recovery remains explicit."], "run": null, "verification": null
+    },
+    {
+      "id": "GH-179-REC-S6-L", "title": "Song Lab cancellation before Undo restore and failure feedback", "status": "queued", "executor": "hermes", "kind": "implementation", "issue": "GH-179", "after": ["GH-179-REC-S6-Q"], "read_files": ["lib/screens/songs/song_lab_screen.dart", "test/screens/songs/song_lab_screen_test.dart"], "allowed_files": ["lib/screens/songs/song_lab_screen.dart", "test/screens/songs/song_lab_screen_test.dart"], "acceptance": ["Public Song Lab Undo awaits cancellation before restore; cancellation errors handled without false success; preserve permissions and retry."], "run": null, "verification": null
+    },
+    {
+      "id": "GH-179-REC-S6-F", "title": "Shared restore and durable failed-cancel recovery contract", "status": "blocked", "executor": "hermes", "kind": "implementation", "issue": "GH-179", "after": ["GH-179-REC-S6-P"], "read_files": ["lib/repositories/firestore_lab_repository.dart", "lib/services/pending_storage_deletes.dart"], "allowed_files": [], "acceptance": ["Preflight shared saveEntry attachment cancellation and conservative next-launch deletion when cancellation persistence fails; exact public repository/restart test seam before writes. No migration or unconditional durable-safety claim."], "blocked_reason": "Existing URL-only sweep cannot prove owning document absent after failed cancellation; needs REC-S2/S3 authority/reconciliation contract and exact public test seam.", "run": null, "verification": null
+    },
+    {
       "id": "GH-179-REC-S6",
       "title": "Pending audio cancellation persistence failure safety",
       "status": "blocked",
@@ -6398,7 +6442,11 @@
       "kind": "implementation",
       "issue": "GH-179",
       "after": [
-        "GH-179-REC-S5"
+        "GH-179-REC-S5",
+        "GH-179-REC-S6-Q",
+        "GH-179-REC-S6-R",
+        "GH-179-REC-S6-L",
+        "GH-179-REC-S6-F"
       ],
       "read_files": [
         "lib/services/pending_storage_deletes.dart",
@@ -6410,7 +6458,30 @@
       ],
       "timeout_s": 2100,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-179-REC-S6-PARENT-20261026-0340",
+        "phase": "preflight_accepted_as_REC_S6_P",
+        "active_actor": "hermes",
+        "started_at": "2026-10-26T03:41:49.668450+00:00",
+        "phase_started_at": "2026-10-26T03:43:43.669161+00:00",
+        "last_observed_at": "2026-10-26T03:44:25.642993+00:00",
+        "deadline_at": "2026-10-26T04:01:43.669161+00:00",
+        "process": "proc_a147a6f5dde8",
+        "pid": 60336,
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "file_lease": [],
+        "worker_active": false,
+        "needs_reconciliation": false,
+        "test_lane": null,
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S6-PARENT-20261026-0340/process.json",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-REC-S6-PARENT-20261026-0340/baseline.log",
+        "expected_artifact": "Existing queue public baseline JSON and source hashes, then persistence failure/restart fixture contract before edits",
+        "next_action": "Baseline complete: controller must preflight false/throw/restart public fixture and all cancellation callers before registering implementation slice. No code acceptance.",
+        "user_status": "Контекст тюнера исправлен, 108 тестов прошли. Исходные 11 тестов очереди удаления тоже прошли; проверка отказа сохранения ещё впереди.",
+        "last_observed_activity": "Exact bounded baseline exited 0 at 03:43:11 UTC; 11 visible PASS/done.success=true. No live test or model remains.",
+        "baseline_exit_code": 0,
+        "baseline_tests_passed": 11
+      },
       "verification": null,
       "blocked_reason": "Public persistence-failure and restart fixture/contract must be preflighted before a bounded implementation lease. S5 only accepts sweep snapshot races, not durable cancellation failure."
     },
@@ -6517,7 +6588,9 @@
       "verification": {
         "reviewer": "hermes",
         "tested_commit": "86a6cade",
-        "evidence": ["docs/plans/systemic-ux/verification/GH-179-TUNER-P.json"]
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-179-TUNER-P.json"
+        ]
       },
       "id": "GH-179-TUNER-P",
       "title": "Public tuner notifier synced save/remove authority preserving local presets",
@@ -6572,7 +6645,13 @@
         "user_status": "Привязка строя из личной и групповой библиотеки проверяет актуальные права; 105 тестов прошли. Следом проверяется обработка отказа сохранения на экране тюнера.",
         "test_lane_released": true
       },
-      "verification": {"reviewer": "hermes", "tested_commit": "c8ca71bb", "evidence": ["docs/plans/systemic-ux/verification/GH-179-TUNER-L.json"]},
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "c8ca71bb",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-179-TUNER-L.json"
+        ]
+      },
       "id": "GH-179-TUNER-L",
       "title": "Live-authorized tuner song linking callbacks and actual band-copy scope",
       "status": "verified",
@@ -6584,7 +6663,10 @@
         "test/screens/bands/band_songs_screen_test.dart",
         "test/helpers/routed_test_harness.dart"
       ],
-      "allowed_files": ["lib/widgets/unified_item/song_card_actions.dart", "test/screens/bands/band_songs_screen_test.dart"],
+      "allowed_files": [
+        "lib/widgets/unified_item/song_card_actions.dart",
+        "test/screens/bands/band_songs_screen_test.dart"
+      ],
       "acceptance": [
         "Public rendered SongsListScreen/BandSongsScreen route captures actual TunerLaunchContext and invokes its exported callback. Reject stale identity, demo, loading/error and band-role revocation before repository writes; preserve permitted personal/band target and pass explicit launch bandId. Screen feedback/local-link behavior remains a separate required slice GH-179-TUNER-L-S."
       ],
@@ -6597,16 +6679,30 @@
       "executor": "hermes",
       "kind": "implementation",
       "issue": "GH-179",
-      "after": ["GH-179-TUNER-L"],
+      "after": [
+        "GH-179-TUNER-L"
+      ],
       "timeout_s": 2100,
       "max_attempts": 1,
-      "read_files": ["lib/screens/tuner_screen.dart", "lib/models/tuner_launch_context.dart", "lib/providers/tuner_provider.dart", "test/widgets/tuner/custom_tuning_editor_test.dart"],
-      "allowed_files": ["lib/screens/tuner_screen.dart", "test/screens/tuner_screen_test.dart"],
-      "acceptance": ["Public rendered TunerScreen Use for song/item: failed callback is handled with safe retry feedback and no linked success; local custom preset never calls save; authorized callback receives selected preset. Phone-sized layout must not overflow. Preflight a real public fixture before production edits."],
+      "read_files": [
+        "lib/screens/tuner_screen.dart",
+        "lib/models/tuner_launch_context.dart",
+        "lib/providers/tuner_provider.dart",
+        "test/widgets/tuner/custom_tuning_editor_test.dart"
+      ],
+      "allowed_files": [
+        "lib/screens/tuner_screen.dart",
+        "test/screens/tuner_screen_test.dart"
+      ],
+      "acceptance": [
+        "Public rendered TunerScreen Use for song/item: failed callback is handled with safe retry feedback and no linked success; local custom preset never calls save; authorized callback receives selected preset. Phone-sized layout must not overflow. Preflight a real public fixture before production edits."
+      ],
       "verification": {
         "reviewer": "hermes",
         "tested_commit": "58be53298dff8ced90b73c3618a0d16a6aedaaf2",
-        "evidence": ["docs/plans/systemic-ux/verification/GH-179-TUNER-L-S.json"]
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-179-TUNER-L-S.json"
+        ]
       },
       "run": {
         "id": "GH-179-TUNER-L-S-PARENT-20261026-0130",
@@ -6625,7 +6721,10 @@
         "primary_tests_passed": 105,
         "reconciliation": "Prior process absent and log loading-only, no assertion result. Fresh original-source RED reproduced; intermediate unmount regression recorded and fixed in same screen. No worker prompt replay.",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
-        "file_lease": ["lib/screens/tuner_screen.dart", "test/screens/tuner_screen_test.dart"],
+        "file_lease": [
+          "lib/screens/tuner_screen.dart",
+          "test/screens/tuner_screen_test.dart"
+        ],
         "test_lane": "sole controlled Flutter lane",
         "worker_active": false,
         "needs_reconciliation": false,
@@ -6639,41 +6738,106 @@
     {
       "id": "GH-179-TUNER-L-C",
       "title": "Personal tuner context must not inherit stale band metadata",
-      "status": "running",
+      "status": "verified",
       "executor": "hermes",
       "kind": "implementation",
       "issue": "GH-179",
-      "after": ["GH-179-TUNER-L"],
+      "after": [
+        "GH-179-TUNER-L"
+      ],
       "timeout_s": 2100,
       "max_attempts": 1,
-      "read_files": ["lib/models/tuner_launch_context.dart", "lib/widgets/unified_item/song_card_actions.dart", "test/models/tuner_launch_context_test.dart", "test/screens/bands/band_songs_screen_test.dart"],
-      "allowed_files": [],
-      "acceptance": ["Personal caller context must not expose stale song.bandId as actual band scope; retain explicit band and legacy/setlist behavior. Preflight smallest public model/caller contract and register bounded production/test pair before RED."],
+      "read_files": [
+        "lib/models/tuner_launch_context.dart",
+        "lib/widgets/unified_item/song_card_actions.dart",
+        "test/models/tuner_launch_context_test.dart",
+        "test/screens/bands/band_songs_screen_test.dart"
+      ],
+      "allowed_files": [
+        "lib/models/tuner_launch_context.dart",
+        "lib/widgets/unified_item/song_card_actions.dart",
+        "test/models/tuner_launch_context_test.dart",
+        "test/screens/bands/band_songs_screen_test.dart"
+      ],
+      "acceptance": [
+        "Public seams: existing rendered personal/band library route payload and TunerLaunchContext.effectiveBandId. Explicit caller scope must suppress stale song metadata while legacy constructors retain song/setlist fallback. Controller preflight approved these existing seams for autonomous execution; cohesive model+caller change is required. Exact write scope: lib/models/tuner_launch_context.dart, lib/widgets/unified_item/song_card_actions.dart, test/models/tuner_launch_context_test.dart, test/screens/bands/band_songs_screen_test.dart. RED first on existing caller; preserve explicit band, setlist and legacy behavior."
+      ],
       "blocked_reason": null,
       "run": {
         "id": "GH-179-TUNER-L-C-PARENT-20261026-0155",
-        "process": "proc_81c334c027a9",
-        "pid": 55177,
-        "last_observed_at": "2026-10-26T01:57:50.448215+00:00",
-        "last_progress_at": "2026-10-26T01:57:50.448215+00:00",
-        "phase_started_at": "2026-10-26T01:57:50.448215+00:00",
-        "last_observed_activity": "Project-owned uv runner metadata independently read: PID 55177, status running, actual baseline command and four hashes retained. Initial absent metadata was startup race, not completion.",
+        "process": "proc_e980a1c18f96",
+        "pid": 58448,
+        "reconciliation": "Original parent PID absent; retained red.log reproduces stale old-band. Fresh parent-red.log reproduces same assertion; outer command timed out after test summary, not baseline PASS. Useful interrupted test assertion preserved; no model replay.",
+        "current_observed_at": "2026-10-26T03:37:54+00:00",
+        "current_log": "audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-C-PARENT-20261026-0155/parent-green.log",
+        "current_expected_artifact": "parent-green.jsonl complete done event plus scoped analyze result",
+        "current_file_lease": [],
+        "analyze_process": "proc_366aec51f8c3",
+        "last_observed_at": "2026-10-26T03:41:03.595642+00:00",
+        "last_progress_at": "2026-10-26T03:41:03.595642+00:00",
+        "phase_started_at": "2026-10-26T03:41:03.595642+00:00",
+        "last_observed_activity": "Fresh 108 combined PASS, scoped analyze exit 0 with three infos, format/diff PASS; committed exact source hashes.",
         "active_actor": "hermes",
-        "phase": "parent_context_public_baseline",
+        "phase": "accepted_integrated",
         "started_at": "2026-10-26T01:55:09+00:00",
         "deadline_at": "2026-10-26T02:30:09+00:00",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
         "file_lease": [],
         "worker_active": false,
         "needs_reconciliation": false,
-        "test_lane": "sole controlled Flutter lane",
+        "test_lane": null,
         "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-C-PARENT-20261026-0155/baseline.log",
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-C-PARENT-20261026-0155/process.json",
         "expected_artifact": "Existing public model + caller baseline, retained outcome and hashes; no production edits or RED credit yet",
-        "next_action": "Read actual baseline result, agree explicit personal-vs-legacy contract from sole caller, register bounded model/caller slices before RED; preserve legacy and setlist fallback.",
-        "user_status": "Проверяется контекст личной песни со старым bandId; обработка отказа привязки уже принята. Релиз запрещён."
+        "next_action": "REC-S6 existing public persistence baseline and failure/restart fixture preflight; no source lease before contract.",
+        "user_status": "Исправлен контекст личной песни со старым bandId; 108 связанных тестов прошли. Проверяется безопасность отмены удаления аудио.",
+        "primary_commit": "0590206d78ca597b2a5bc8dff04510ab703f68b7",
+        "primary_tests_passed": 108
       },
-      "verification": null
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "0590206d78ca597b2a5bc8dff04510ab703f68b7",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-179-TUNER-L-C.json"
+        ]
+      },
+      "attempt_history": [
+        {
+          "id": "GH-179-TUNER-L-C-PARENT-20261026-0155",
+          "process": "proc_e980a1c18f96",
+          "pid": 58448,
+          "reconciliation": "Original parent PID absent; retained red.log reproduces stale old-band. Fresh parent-red.log reproduces same assertion; outer command timed out after test summary, not baseline PASS. Useful interrupted test assertion preserved; no model replay.",
+          "current_phase": "parent_verification",
+          "current_observed_at": "2026-10-26T03:37:54+00:00",
+          "current_log": "audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-C-PARENT-20261026-0155/parent-green.log",
+          "current_expected_artifact": "parent-green.jsonl complete done event plus scoped analyze result",
+          "current_file_lease": [
+            "lib/models/tuner_launch_context.dart",
+            "lib/widgets/unified_item/song_card_actions.dart",
+            "test/models/tuner_launch_context_test.dart",
+            "test/screens/bands/band_songs_screen_test.dart"
+          ],
+          "analyze_process": "proc_366aec51f8c3",
+          "last_observed_at": "2026-10-26T01:57:50.448215+00:00",
+          "last_progress_at": "2026-10-26T01:57:50.448215+00:00",
+          "phase_started_at": "2026-10-26T01:57:50.448215+00:00",
+          "last_observed_activity": "Project-owned uv runner metadata independently read: PID 55177, status running, actual baseline command and four hashes retained. Initial absent metadata was startup race, not completion.",
+          "active_actor": "hermes",
+          "phase": "parent_context_public_baseline",
+          "started_at": "2026-10-26T01:55:09+00:00",
+          "deadline_at": "2026-10-26T02:30:09+00:00",
+          "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+          "file_lease": [],
+          "worker_active": false,
+          "needs_reconciliation": false,
+          "test_lane": "sole controlled Flutter lane",
+          "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-C-PARENT-20261026-0155/baseline.log",
+          "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-C-PARENT-20261026-0155/process.json",
+          "expected_artifact": "Existing public model + caller baseline, retained outcome and hashes; no production edits or RED credit yet",
+          "next_action": "Read actual baseline result, agree explicit personal-vs-legacy contract from sole caller, register bounded model/caller slices before RED; preserve legacy and setlist fallback.",
+          "user_status": "Проверяется контекст личной песни со старым bandId; обработка отказа привязки уже принята. Релиз запрещён."
+        }
+      ]
     }
   ],
   "worker_lanes": {
