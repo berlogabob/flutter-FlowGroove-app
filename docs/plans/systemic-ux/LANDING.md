@@ -8,7 +8,7 @@ Executor: Claude verifies/commits, Codex edits. Gate per slice: RED→GREEN, ful
 - [x] UX-005 89d46e32 · last-practice-context record + Resume card (no autoplay)
 - [x] UX-008 microtext onto shared type scale
 - [ ] UX-002 stable global More menu
-- [ ] UX-003 view-first song open (supersedes Edit-first, owner-approved via DESIGN-01)
+- [x] UX-003 view-first song open (supersedes Edit-first, owner-approved via DESIGN-01)
 - [ ] UX-001 Practice entry consolidation
 
 ## Event sharing (host: app.flowgroove.app)

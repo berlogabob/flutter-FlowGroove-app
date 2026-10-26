@@ -47,7 +47,7 @@ class SongPageScreen extends ConsumerStatefulWidget {
 
   final String? bandId;
 
-  /// 'edit' (default) | 'sheet' | 'lab'.
+  /// 'edit' | 'sheet' (default) | 'lab'.
   final String? initialTab;
 
   @override
@@ -57,9 +57,9 @@ class SongPageScreen extends ConsumerStatefulWidget {
 class _SongPageScreenState extends ConsumerState<SongPageScreen>
     with SongCardActions<SongPageScreen> {
   late _SongTab _tab = switch (widget.initialTab) {
-    'sheet' => _SongTab.sheet,
+    'edit' => _SongTab.edit,
     'lab' => _SongTab.lab,
-    _ => ref.read(isDemoUserProvider) ? _SongTab.sheet : _SongTab.edit,
+    _ => _SongTab.sheet,
   };
 
   /// Tabs are built lazily on first visit and kept alive after (IndexedStack),
@@ -362,9 +362,9 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
     }
 
     // Band copies hide the Edit tab from non-editors (the save would only be
-    // rules-denied); personal songs keep the default Edit-first behavior.
+    // rules-denied).
     // Derived per build — NOT written back to _tab — so an editor whose
-    // permissions are still loading (gate temporarily false) lands on Edit
+    // permissions are still loading (gate temporarily false) can open Edit
     // once the bands stream emits.
     final editVisible = widget.bandId == null || _canEditSong();
     final activeTab = !editVisible && _tab == _SongTab.edit

@@ -91,12 +91,37 @@ void main() {
       initialTab: initialTab,
     );
 
-    testWidgets('defaults to the Edit tab', (tester) async {
+    testWidgets('defaults to Sheet and keeps Edit reachable', (tester) async {
       await pumpAppWidget(tester, page(), overrides: overrides());
       await tester.pumpAndSettle();
 
+      expect(find.byType(PerformanceSheetView), findsOneWidget);
+      expect(find.byType(AddSongScreen), findsNothing);
+      expect(find.text('Edit'), findsOneWidget);
+      final tabs = tester.widget<SegmentedButton<dynamic>>(
+        find.byWidgetPredicate((widget) => widget is SegmentedButton),
+      );
+      expect(
+        tabs.segments
+            .singleWhere((segment) => tabs.selected.contains(segment.value))
+            .label,
+        isA<Text>().having((text) => text.data, 'label', 'Sheet'),
+      );
+
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
       expect(find.byType(AddSongScreen), findsOneWidget);
-      // Sheet tab is lazy — never visited, so its view is not built.
+    });
+
+    testWidgets('explicit initialTab edit opens Edit', (tester) async {
+      await pumpAppWidget(
+        tester,
+        page(initialTab: 'edit'),
+        overrides: overrides(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddSongScreen), findsOneWidget);
       expect(find.byType(PerformanceSheetView), findsNothing);
     });
 
@@ -258,6 +283,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Edit'), findsOneWidget);
+      expect(find.byType(PerformanceSheetView), findsOneWidget);
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
       expect(find.byType(AddSongScreen), findsOneWidget);
     });
   });
