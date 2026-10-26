@@ -285,23 +285,21 @@ class _CalibrationButton extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: context.mp.borderSubtle, width: 1.5),
             ),
-            child: Stack(
-              alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(
                   Icons.tune,
                   color: MonoPulseColors.accentOrange,
-                  size: 22,
+                  size: 18,
                 ),
-                Positioned(
-                  bottom: 4,
-                  child: Text(
-                    'A4 ${referenceHz.round()}',
-                    style: MonoPulseTypography.labelSmall.copyWith(
-                      color: MonoPulseColors.accentOrange,
-                      fontSize: 7,
-                      fontWeight: MonoPulseTypography.medium,
-                    ),
+                Text(
+                  'A4 ${referenceHz.round()}',
+                  maxLines: 1,
+                  style: MonoPulseTypography.labelSmall.copyWith(
+                    color: MonoPulseColors.accentOrange,
+                    fontWeight: MonoPulseTypography.medium,
                   ),
                 ),
               ],

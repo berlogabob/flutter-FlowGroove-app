@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/widgets/practice_dashboard_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -180,6 +181,20 @@ void main() {
         ),
       );
 
+      final dayLabels = find.descendant(
+        of: find.byType(PracticeDashboardCard),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              RegExp(r'^[MTWFS]$').hasMatch(widget.data ?? ''),
+        ),
+      );
+      expect(dayLabels, findsNWidgets(7));
+      for (final element in dayLabels.evaluate()) {
+        final paragraph = element.findRenderObject()! as RenderParagraph;
+        expect(paragraph.text.style!.fontSize, greaterThanOrEqualTo(11));
+      }
+      expect(tester.takeException(), isNull);
       expect(find.text('2h 22m'), findsOneWidget);
       expect(find.textContaining('5 sessions'), findsOneWidget);
       expect(find.textContaining('3-day streak'), findsOneWidget);

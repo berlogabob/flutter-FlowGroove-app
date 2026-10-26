@@ -189,8 +189,7 @@ class _WeekBars extends StatelessWidget {
                   // is non-negative for a positive divisor.
                   letters[(today - 1 - (6 - i)) % 7],
                   textAlign: TextAlign.center,
-                  style: MonoPulseTypography.bodySmall.copyWith(
-                    fontSize: 9,
+                  style: MonoPulseTypography.labelSmall.copyWith(
                     color: i == 6
                         ? MonoPulseColors.accentOrange
                         : context.mp.textSecondary,

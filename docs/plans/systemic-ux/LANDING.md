@@ -5,8 +5,8 @@ Executor: Claude verifies/commits, Codex edits. Gate per slice: RED→GREEN, ful
 - [x] VOTE 6c902a29 · LEGACY-M 4bcc3931 · LEGACY-A e6fb043f · LEGACY-U 06bcfc12 · REC-S2 4ae08e59
 
 ## UX (DESIGN-01 approved as written 2026-10-26)
-- [ ] UX-005 last-practice-context record + Resume card (no autoplay)
-- [ ] UX-008 microtext onto shared type scale
+- [x] UX-005 89d46e32 · last-practice-context record + Resume card (no autoplay)
+- [x] UX-008 microtext onto shared type scale
 - [ ] UX-002 stable global More menu
 - [ ] UX-003 view-first song open (supersedes Edit-first, owner-approved via DESIGN-01)
 - [ ] UX-001 Practice entry consolidation
