@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-25T23:17:34+00:00",
+  "updated_at": "2026-10-26T00:26:59+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -6442,7 +6442,13 @@
         "pid": 39373,
         "last_observed_activity": "Reconciled final combined 64 PASS; analyzer exit 0, format/diff PASS. Original metadata retained as history, not live execution."
       },
-      "verification": {"reviewer": "hermes", "tested_commit": "b7ad107a", "evidence": ["docs/plans/systemic-ux/verification/GH-179-TUNER-E.json"]},
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "b7ad107a",
+        "evidence": [
+          "docs/plans/systemic-ux/verification/GH-179-TUNER-E.json"
+        ]
+      },
       "id": "GH-179-TUNER-E",
       "title": "Tuning editor synced scope choices and live Save authority; preserve device-local tuning",
       "status": "verified",
@@ -6482,38 +6488,49 @@
       "run": {
         "id": "GH-179-TUNER-P-PARENT-20261025",
         "started_at": "2026-10-25T23:17:14.699082+00:00",
-        "phase_started_at": "2026-10-25T23:17:14.699082+00:00",
-        "last_observed_at": "2026-10-25T23:17:34+00:00",
-        "deadline_at": "2026-10-25T23:22:14.699082+00:00",
-        "phase": "parent_provider_baseline_preflight",
+        "phase_started_at": "2026-10-26T00:25:38+00:00",
+        "last_observed_at": "2026-10-26T00:25:38+00:00",
+        "deadline_at": "2026-10-26T00:03:12.464613+00:00",
+        "phase": "accepted_public_notifier_slice",
         "active_actor": "hermes",
         "process": "proc_a7ae1c726a31",
         "pid": 44268,
+        "last_observed_activity": "Historical baseline process completed; interrupted implementation recovered, fresh combined 79 PASS and scoped analyze/format/diff accepted. No active provider lease.",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
         "file_lease": [],
-        "test_lane": "sole controlled Flutter lane",
-        "needs_reconciliation": true,
+        "test_lane": null,
+        "needs_reconciliation": false,
         "worker_active": false,
         "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-P-PARENT-20261025/process.json",
-        "expected_artifact": "Existing public provider baseline and repository injection preflight before write lease",
-        "next_action": "Read bounded 300-second baseline result, inspect injected TunerPresetRepository constructor and explicit auth fixtures, then register exact production/test pair before RED/GREEN.",
-        "user_status": "Начата исходная проверка общего провайдера тюнера. Исправление редактора принято; доступ к синхронизации через провайдер ещё не исправлен."
+        "expected_artifact": "docs/plans/systemic-ux/verification/GH-179-TUNER-P.json",
+        "next_action": "Accepted 86a6cade: 79 combined tests PASS, scoped analyze/format/diff PASS. Linking caller preflight next; no Luna replay while route unhealthy.",
+        "user_status": "Общий провайдер тюнера исправлен: синхронизация проверяет актуальные права, локальные настройки сохранены. 79 тестов прошли; проверяется привязка строя к песне.",
+        "primary_commit": "86a6cade",
+        "primary_tests_passed": 79,
+        "last_progress_at": "2026-10-25T23:28:12.464613+00:00",
+        "baseline_exit_code": 0
       },
-      "verification": null,
+      "verification": {
+        "reviewer": "hermes",
+        "tested_commit": "86a6cade",
+        "evidence": ["docs/plans/systemic-ux/verification/GH-179-TUNER-P.json"]
+      },
       "id": "GH-179-TUNER-P",
       "title": "Public tuner notifier synced save/remove authority preserving local presets",
-      "status": "blocked",
+      "status": "verified",
       "read_files": [
         "lib/providers/tuner_provider.dart",
         "test/providers/tuner_provider_test.dart",
         "lib/repositories/tuner_preset_repository.dart",
         "lib/providers/permissions_provider.dart"
       ],
-      "allowed_files": [],
+      "allowed_files": [
+        "lib/providers/tuner_provider.dart",
+        "test/providers/tuner_provider_test.dart"
+      ],
       "acceptance": [
         "Preflight injected repository and explicit same-identity fixture, then assign notifier/test pair. Public add/remove must reject denied synced operations before transport; preserve local/no-state-on-failure."
-      ],
-      "blocked_reason": "Repository injection/public transport fixture and exact scope authority must be preflighted before write lease."
+      ]
     },
     {
       "executor": "hermes",
@@ -6524,21 +6541,46 @@
       ],
       "timeout_s": 2100,
       "max_attempts": 1,
-      "run": null,
+      "run": {
+        "id": "GH-179-TUNER-L-PARENT-20261026-0025",
+        "log": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-PARENT-20261026-0025/baseline.log",
+        "started_at": "2026-10-26T00:25:38+00:00",
+        "phase_started_at": "2026-10-26T00:25:38+00:00",
+        "last_observed_at": "2026-10-26T00:26:59+00:00",
+        "last_progress_at": "2026-10-26T00:25:38+00:00",
+        "deadline_at": "2026-10-26T00:45:38+00:00",
+        "phase": "parent_linking_public_fixture_preflight",
+        "process": "proc_3b99ff6185a5",
+        "pid": 48726,
+        "last_observed_activity": "Actual project uv Python process and owned Flutter child observed; baseline process.json running at 00:26:42 UTC. No production/test writes assigned.",
+        "active_actor": "hermes",
+        "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
+        "file_lease": [],
+        "test_lane": "sole controlled Flutter lane",
+        "worker_active": false,
+        "needs_reconciliation": false,
+        "worker_process_file": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-PARENT-20261026-0025/process.json",
+        "expected_artifact": "Existing SongsListScreen and BandSongsScreen public baseline reports; route captures need real TunerLaunchContext, not marker-only assertions",
+        "next_action": "Read bounded baseline result; preflight routed tuner callback capture and repository injection, then register caller/screen write slices before RED. No Luna dispatch while route unhealthy.",
+        "user_status": "Проверка прав общего провайдера тюнера принята: 79 тестов прошли. Запущены исходные тесты личной и групповой библиотеки перед исправлением привязки строя к песне."
+      },
       "verification": null,
       "id": "GH-179-TUNER-L",
       "title": "Live-authorized tuner song linking callbacks and actual band-copy scope",
-      "status": "blocked",
+      "status": "running",
       "read_files": [
         "lib/widgets/unified_item/song_card_actions.dart",
         "lib/screens/tuner_screen.dart",
-        "lib/models/tuner_launch_context.dart"
+        "lib/models/tuner_launch_context.dart",
+        "test/screens/songs/songs_list_screen_test.dart",
+        "test/screens/bands/band_songs_screen_test.dart",
+        "test/helpers/routed_test_harness.dart"
       ],
       "allowed_files": [],
       "acceptance": [
         "Locate existing public caller/screen tests and register bounded write pairs. Stale identity/role callbacks reject writes; permitted caller retains correct target and passes actual band context. Preserve local-link prohibition; exercise failed save feedback. Setlist path conditional, not proven reachable."
       ],
-      "blocked_reason": "Existing public caller and screen fixtures must be located before bounded writes; model-only tests insufficient."
+      "preflight_constraint": "Existing personal/band rendered fixtures located; baseline running. Caller callback capture and actual tuner screen fixture must be registered before bounded production writes; model-only tests insufficient."
     }
   ],
   "worker_lanes": {
