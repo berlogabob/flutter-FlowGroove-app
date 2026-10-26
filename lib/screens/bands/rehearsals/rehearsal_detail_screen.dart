@@ -168,7 +168,8 @@ class _Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final uid = ref.read(currentUserProvider).value?.uid;
+    final isDemo = ref.watch(isDemoUserProvider);
+    final uid = isDemo ? null : ref.read(currentUserProvider).value?.uid;
     final scores = {for (final s in scoreSlots(rehearsal, votes)) s.slotId: s};
     final best = bestSlot(rehearsal, votes);
     final confirmed = rehearsal.status == Rehearsal.statusConfirmed;
