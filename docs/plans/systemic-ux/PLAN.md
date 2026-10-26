@@ -12,7 +12,8 @@
 - [x] **GH-179-REC-S6-Q**: принят 2264dadf; 2 ожидаемых RED, 11 controls PASS; reconciled combined queue/Recorder/Song Lab — 58 PASS, scoped analyze (1 baseline info)/format/diff PASS. Отказ отмены теперь отклоняется, повторная попытка восстанавливает durable queue после изменения кеша.
 - [x] **GH-179-REC-S6-R**: принят b9bc5920; Undo ждёт отмены, ошибки дают Retry, после ожидания проверяются identity/unmount. 63 combined tests PASS; analyze (10 infos, no warnings/errors), format/diff PASS.
 - [x] **GH-179-REC-S6-L**: принят fee384ec; Undo в Song Lab ждёт cancel, ошибки дают безопасный Retry, identity/unmount проверяются после ожидания. 70 combined tests PASS; scoped analyze (5 infos, no warnings/errors), format/diff PASS. Shared recovery F остаётся открытым; S6 не закрыт.
-- [ ] **Текущий шаг — GH-179-AVATAR**: public callable baseline 5 PASS в Firestore emulator с fake Storage; следующий шаг — policy/caller preflight, регистрация source/test lease и RED. Emulator остановлен; нового исправления пока нет. Актуальные процессы и результаты — только в activity.json.
+- [x] **GH-179-AVATAR**: принят 0ea74fc6; четыре ожидаемых RED, затем 9/9 callable-тестов PASS. Demo token/profile блокируют обе команды до Storage/Firestore mutation; без deployment/device acceptance.
+- [ ] **Текущий шаг — GH-179-LEGACY-R**: запущен исходный public deleteAccount baseline в эмуляторе с fake Auth/Storage; затем source review role drift. Актуальный процесс/артефакт — в activity.json; source write lease не назначен.
 
 **activity.json — единственный текущий реестр проблем, задач, зависимостей и состояния.** Этот PLAN — правила и маршрут чтения, не второй независимый backlog. BASELINE.md фиксирует исходные 9 findings; прежние планы/аудиты остаются историей. Ничего не закрывать только по старому FINAL/галочке/коммиту.
 
