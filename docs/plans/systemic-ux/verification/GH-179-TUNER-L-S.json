@@ -1,0 +1,23 @@
+{
+  "task": "GH-179-TUNER-L-S",
+  "reviewer": "hermes",
+  "scope": "CODE + rendered public TunerScreen; not device/cloud/audio acceptance",
+  "source_sha256": "4f9a6beb0a50f2ed62c306f170fe3514d94e5c75d48f4b7aad83522662389469",
+  "test_sha256": "5ec3d8d7fd608d47ddd51085483b5de1fceaea9a7b4661ce6fd87b5a84ba8e0d",
+  "reconciliation": "Previous owned process absent; retained red.log stopped at loading without assertions. Not RED or completion. Recovered public test executed against untouched source and failed with uncaught private backend StateError plus absent SnackBar. No delegated worker or prompt replay.",
+  "root_cause": "Shared screen link handler awaited song/setlist callbacks without catching failures. Catch only persistence callbacks, show cause-neutral retry feedback, return before success analytics/message.",
+  "expanded_scope": "New fixture unmount exposed existing dispose-time ref.read failure, recorded in green.log. Same screen now captures its notifier while mounted and stops it without reading widget ref during disposal. This teardown regression is included in both public screen cases; no additional file lease.",
+  "checks": [
+    {"command": "flutter test --no-pub test/screens/tuner_screen_test.dart --reporter expanded (original source)", "exit_code": 1, "result": "Intended uncaught save callback and missing feedback RED", "log": "red-recovered.log"},
+    {"command": "flutter test --no-pub test/screens/tuner_screen_test.dart (expanded fixture, intermediate)", "exit_code": 1, "result": "Both behavior paths reached teardown, which failed due to disposed widget ref", "log": "green.log"},
+    {"command": "flutter test --no-pub test/screens/tuner_screen_test.dart test/widgets/tuner/custom_tuning_editor_test.dart test/providers/tuner_provider_test.dart test/models/tuner_launch_context_test.dart test/screens/songs/songs_list_screen_test.dart test/screens/bands/band_songs_screen_test.dart --reporter expanded", "exit_code": 0, "tests_passed": 105, "log": "combined.log"},
+    {"command": "flutter analyze --no-pub lib/screens/tuner_screen.dart test/screens/tuner_screen_test.dart", "exit_code": 1, "result": "One pre-existing prefer_const_constructors info; no warnings/errors"},
+    {"command": "flutter analyze --no-pub --no-fatal-infos lib/screens/tuner_screen.dart test/screens/tuner_screen_test.dart", "exit_code": 0, "result": "Same one nonblocking style info"},
+    {"command": "dart format --output=none --set-exit-if-changed lib/screens/tuner_screen.dart test/screens/tuner_screen_test.dart", "exit_code": 0, "result": "Zero changes"},
+    {"command": "git diff --check", "exit_code": 0}
+  ],
+  "public_behavior": ["Song and setlist-item save failures handled without success or private backend detail", "Second tap retries and sends the selected preset to the original target", "Local preset blocks both callbacks", "360x780 layout and complete widget unmount without exceptions"],
+  "private_evidence_directory": "audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-L-S-PARENT-20261026-0130",
+  "remaining": ["GH-179-TUNER-L-C personal stale band metadata", "Aggregate permission/device/cloud verification", "Full Graphify integration checkpoint", "Release hold unchanged"],
+  "diagnostics": "Combined suite retains existing handled analytics no-Firebase and provider async-disposal diagnostics; all assertions pass. No actual transport/audio claim."
+}
