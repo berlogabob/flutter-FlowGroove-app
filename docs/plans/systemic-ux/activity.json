@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-26T08:53:06.021804+00:00",
+  "updated_at": "2026-10-26T09:01:04.532592+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -6067,19 +6067,31 @@
       "verification": {
         "reviewer": "hermes",
         "tested_commit": "719af418",
-        "evidence": ["docs/plans/systemic-ux/reviews/GH-179-legacy.md", "docs/plans/systemic-ux/verification/GH-179-LEGACY-R.json"]
+        "evidence": [
+          "docs/plans/systemic-ux/reviews/GH-179-legacy.md",
+          "docs/plans/systemic-ux/verification/GH-179-LEGACY-R.json"
+        ]
       }
     },
     {
       "id": "GH-179-LEGACY-M",
       "title": "Band membership callables preserve effective array permissions under role drift",
-      "status": "running",
+      "status": "blocked",
       "executor": "hermes",
       "kind": "implementation",
       "issue": "GH-179",
-      "after": ["GH-179-LEGACY-R"],
-      "read_files": ["functions/src/bands.js", "functions/test/callable-security-fixes.test.js", "firestore.rules"],
-      "allowed_files": ["functions/src/bands.js", "functions/test/callable-security-fixes.test.js"],
+      "after": [
+        "GH-179-LEGACY-R"
+      ],
+      "read_files": [
+        "functions/src/bands.js",
+        "functions/test/callable-security-fixes.test.js",
+        "firestore.rules"
+      ],
+      "allowed_files": [
+        "functions/src/bands.js",
+        "functions/test/callable-security-fixes.test.js"
+      ],
       "acceptance": [
         "Public wrapped updateBandMember/joinBand through loopback emulator; RED before production edit. Reject role-only admin, accept effective array admin; unrelated effective grants must survive music edits, self-leave and existing/new invite join. Explicit authorized setRole changes only target; preserve last effective admin, demo/auth/invite/transaction/idempotence controls. No automatic privilege migration.",
         "Final targeted and combined callable regressions, node syntax/diff checks and exact hashes. No deployed-policy/device/whole-issue credit."
@@ -6091,7 +6103,7 @@
         "started_at": "2026-10-26T08:52:10.968134+00:00",
         "deadline_at": "2026-10-26T09:27:10.968134+00:00",
         "active_actor": "hermes",
-        "phase": "parent_membership_regression_preparation",
+        "phase": "paused_by_user_before_regression",
         "worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_app",
         "process": "proc_7c0ba670181f",
         "pid": 79756,
@@ -6099,16 +6111,20 @@
         "worker_process_file": "audit/2026-10-23-systemic-ux/workers/GH-179-LEGACY-M-PARENT-20261026-0850/baseline-jdk-process.json",
         "file_lease": [],
         "test_lane": null,
-        "needs_reconciliation": true,
+        "needs_reconciliation": false,
         "baseline_tests_passed": 8,
         "baseline_exit_code": 0,
         "worker_active": false,
         "expected_artifact": "Existing callable-security-fixes terminal JSON 8/8 PASS; no drift RED yet",
-        "next_action": "Baseline terminal verified; extend existing public wrapped callable fixture vertically before production edits. Controller scheduler observed paused/disabled at 08:53:06 UTC; no next run guaranteed.",
-        "user_status": "Исходные 8 callable-тестов прошли; регрессии рассогласованных ролей ещё впереди. Автоконтроллер обнаружен на паузе.",
-        "previous_attempt": "process.json: Java prerequisite rejected before tests; corrected per-invocation PATH/JAVA_HOME, no model call or credentials change."
+        "next_action": "Do not resume automatically. After explicit approval read baseline-jdk-process.json/log and verify source hashes, then prepare public role-drift regression. No baseline replay without invalidation.",
+        "user_status": "Работа остановлена пользователем. Исходные 8 тестов прошли; исправление рассогласованных ролей не начиналось.",
+        "previous_attempt": "process.json: Java prerequisite rejected before tests; corrected per-invocation PATH/JAVA_HOME, no model call or credentials change.",
+        "phase_before_freeze": "parent_membership_regression_preparation",
+        "paused_at": "2026-10-26T09:01:04.532592+00:00",
+        "last_observed_at": "2026-10-26T09:01:04.532592+00:00"
       },
-      "verification": null
+      "verification": null,
+      "blocked_reason": "User-requested project freeze for reboot/cleanup on 2026-10-26; baseline complete, no drift regression or production fix accepted."
     },
     {
       "id": "GH-179-LEGACY-A",
@@ -6117,10 +6133,17 @@
       "executor": "hermes",
       "kind": "implementation",
       "issue": "GH-179",
-      "after": ["GH-179-LEGACY-R"],
-      "read_files": ["functions/src/account.js", "functions/test/callable-delete-account.test.js"],
+      "after": [
+        "GH-179-LEGACY-R"
+      ],
+      "read_files": [
+        "functions/src/account.js",
+        "functions/test/callable-delete-account.test.js"
+      ],
       "allowed_files": [],
-      "acceptance": ["Preflight public deleteAccount fake Auth/Storage seam for role drift, last effective admin and missing memberUids. Register exact bounded write pair/recovery contract before RED; no global scan or silent migration/data deletion."],
+      "acceptance": [
+        "Preflight public deleteAccount fake Auth/Storage seam for role drift, last effective admin and missing memberUids. Register exact bounded write pair/recovery contract before RED; no global scan or silent migration/data deletion."
+      ],
       "blocked_reason": "Source contract needed for roster-only membership discovery and dangling-array recovery; canonical baseline is not drift coverage. Independently executable source preflight, not an assumed owner waiver.",
       "timeout_s": 2100,
       "max_attempts": 1,
@@ -6134,10 +6157,17 @@
       "executor": "hermes",
       "kind": "implementation",
       "issue": "GH-179",
-      "after": ["GH-179-LEGACY-M"],
-      "read_files": ["lib/screens/bands/band_about_screen.dart", "lib/services/band_function_service.dart"],
+      "after": [
+        "GH-179-LEGACY-M"
+      ],
+      "read_files": [
+        "lib/screens/bands/band_about_screen.dart",
+        "lib/services/band_function_service.dart"
+      ],
       "allowed_files": [],
-      "acceptance": ["Recover existing public rendered BandAboutScreen fixture; register exact source/test pair before RED. Match effective array authority for last-admin controls while preserving routes/payloads and demo restrictions."],
+      "acceptance": [
+        "Recover existing public rendered BandAboutScreen fixture; register exact source/test pair before RED. Match effective array authority for last-admin controls while preserving routes/payloads and demo restrictions."
+      ],
       "blocked_reason": "Existing public fixture and full screen entry/role-count flow must be read before assigning write pair; backend M first.",
       "timeout_s": 2100,
       "max_attempts": 1,
@@ -7193,6 +7223,8 @@
     "status_job": "d173a844e136",
     "max_luna_workers": 1,
     "owner": "scheduled Hermes controller; foreground must honor file leases",
-    "enabled_after_verification": true
+    "enabled_after_verification": false,
+    "paused_by_user_at": "2026-10-26T09:01:04.532592+00:00",
+    "resume_requires": "Explicit user approval; no automatic resume after reboot"
   }
 }

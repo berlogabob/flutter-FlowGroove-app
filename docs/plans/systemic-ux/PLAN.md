@@ -330,3 +330,15 @@ See PARALLEL-LANES.md for revised verification/checkpoint cadence; release hold 
 - [x] First controller cycle accepted UX-002-R; next accepted UX-008-R and reconciled terminal UX-009-I. Source-review acceptances are not product-fix counts.
 
 Status-only job d173a844e136 remains every 10m. Controller owns registry/dispatch/acceptance; foreground honors file leases. Limits: one Luna and one controlled test lane; no unauthorized cleanup, global config changes or release.
+
+
+## User freeze — 2026-10-26T09:01:04.532592+00:00
+
+- [x] Both FlowGroove cron jobs paused; no automatic restart.
+- [x] Last in-flight controller turn ended; baseline process absent, terminal 8/8 retained.
+- [x] GH-179-LEGACY-M parked blocked by user, no code acceptance claimed.
+- [x] Private checkpoint and recovery matrix saved outside cache.
+- [ ] Copy checkpoint to independent storage before aggressive cleanup.
+- [ ] Device/integration/release gates remain open.
+
+Full analysis: finalization/2026-10-26/REPORT.md. No cleanup/reboot/release executed.
