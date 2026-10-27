@@ -9,7 +9,7 @@ Executor: Claude verifies/commits, Codex edits. Gate per slice: RED→GREEN, ful
 - [x] UX-008 microtext onto shared type scale
 - [x] UX-002 stable global More menu
 - [x] UX-003 view-first song open (supersedes Edit-first, owner-approved via DESIGN-01)
-- [ ] UX-001 Practice entry consolidation
+- [x] UX-001 Practice entry consolidation (Progress title, Start practice, Tools)
 
 ## Event sharing (host: app.flowgroove.app)
 - [x] GH-186-URL central base-URL helper (lib/utils/event_share_url.dart)
@@ -17,7 +17,7 @@ Executor: Claude verifies/commits, Codex edits. Gate per slice: RED→GREEN, ful
 - [ ] GH-187 proposals wiring (I2, U, U2 needs owner policy)
 
 ## GH-179 remaining
-- [ ] REC-S3 · REC-S6 · REC-S6-F · LAB aggregate · TUNER-I aggregate
+- [x] REC-S3 9f31bd30 · REC-S6 2ebb6b5a · REC-S6-F fe5ed3c2 · [ ] LAB aggregate · TUNER-I aggregate
 - [ ] AUDIO-I, DELETE-OWNER (owner decision)
 
 ## Final

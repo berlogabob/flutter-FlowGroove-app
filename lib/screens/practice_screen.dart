@@ -12,7 +12,7 @@ import '../widgets/practice_dashboard_card.dart';
 import '../widgets/practice_resume_card.dart';
 import '../widgets/tools/tool_scaffold.dart';
 
-/// Practice screen v1 (#133): the workbook-lite — weekly stats, where the
+/// Progress journal (#133): the workbook-lite — weekly stats, where the
 /// time went per song, homework (open Song Lab tasks across the library),
 /// and the session logbook. Exercises/goals wait for the teacher-workbook
 /// vision (AUDIT_addition.md); mood/reflection lives in Song Lab notes.
@@ -36,15 +36,21 @@ class PracticeScreen extends ConsumerWidget {
         : 'Loading song…';
 
     return ToolScreenScaffold(
-      title: 'Practice',
+      title: 'Progress',
       mainWidget: ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [
-          const PracticeDashboardCard(tappable: false),
           const PracticeResumeCard(),
+          FilledButton.icon(
+            onPressed: () => context.pushNamed('metronome'),
+            icon: const Icon(Icons.play_arrow),
+            label: const Text('Start practice'),
+          ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          const PracticeDashboardCard(tappable: false),
           if (!stats.isEmptyWeek) ...[
             const SizedBox(height: MonoPulseSpacing.lg),
-            _sectionTitle(context, 'Where your time went'),
+            _sectionTitle(context, 'Practice time by song'),
             _TimePerSong(
               stats: stats,
               titles: titles,
@@ -78,7 +84,7 @@ class PracticeScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
-          _sectionTitle(context, 'Quick start'),
+          _sectionTitle(context, 'Tools'),
           Row(
             children: [
               _quickStartButton(

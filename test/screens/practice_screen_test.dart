@@ -12,12 +12,69 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../helpers/metronome_test_runtime.dart';
 import '../helpers/routed_test_harness.dart';
 
 void main() {
+  testWidgets(
+    'practice route shows Progress and opens practice without playback',
+    (tester) async {
+      final runtime = MetronomeTestRuntime();
+      try {
+        await pumpRoutedTestApp(
+          tester,
+          initialLocation: '/main/practice',
+          overrides: [
+            ...runtime.overrides,
+            lastPracticeContextProvider.overrideWith((ref) async => null),
+            offlineProvider.overrideWithValue(false),
+            practiceStatsProvider.overrideWith(
+              (ref) async => PracticeStats.empty,
+            ),
+            practiceSessionsProvider.overrideWith((ref) async => []),
+            myHomeworkProvider.overrideWith((ref) async => []),
+            songsProvider.overrideWith((ref) => Stream.value([])),
+          ],
+          routes: [
+            GoRoute(
+              path: '/main/practice',
+              name: 'practice',
+              builder: (_, _) => const PracticeScreen(),
+            ),
+            GoRoute(
+              path: '/metronome',
+              name: 'metronome',
+              builder: (_, _) =>
+                  const Scaffold(body: Text('Metronome destination')),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Progress'), findsOneWidget);
+        expect(find.text('Tools'), findsOneWidget);
+        expect(find.text('Quick start'), findsNothing);
+        final start = find.widgetWithText(FilledButton, 'Start practice');
+        expect(start, findsOneWidget);
+        await tester.tap(start);
+        await tester.pumpAndSettle();
+        expect(find.text('Metronome destination'), findsOneWidget);
+        expect(runtime.playback.startCalls, 0);
+        expect(runtime.audio.playClickCalls, 0);
+        expect(runtime.audio.playTestCalls, 0);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+        await runtime.dispose();
+      }
+    },
+  );
+
   testWidgets('song lookup failure and confirmed missing song stay distinct', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(800, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final events = StreamController<List<Song>>();
     final now = DateTime(2026, 10, 25);
     try {
