@@ -24,4 +24,4 @@ Registry: `docs/plans/systemic-ux/activity.json` issue `PRACTICE-REGIONS`.
 - [x] MPC-SLICE Auto slice: suggest grid, every N bars, chop by transients — `f4d9d2d6`
 - [x] MPC-PADS region pads, tap = loop, hold+tap = run — `673ca935`
 - [x] MPC-JOG jog wheel in fine-tune (speed-scaled ms, beat mode)
-- [ ] MPC-RELEASE 0.30.2 web + Android
+- [x] MPC-RELEASE 0.30.2+371 web (app.flowgroove.app) + Android (GitHub release, P30 launch)

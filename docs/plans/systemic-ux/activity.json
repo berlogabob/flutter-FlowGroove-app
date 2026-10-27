@@ -7632,7 +7632,7 @@
     {
       "id": "MPC-RELEASE",
       "title": "Release + deploy (web + Android) after full suite green",
-      "status": "running",
+      "status": "review",
       "executor": "claude",
       "kind": "verification",
       "issue": "PRACTICE-MPC",
