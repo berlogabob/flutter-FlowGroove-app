@@ -17,6 +17,8 @@ class MetronomeSession {
     this.usedTempoRamp = false,
     this.usedCountIn = false,
     this.completion,
+    this.regionName,
+    this.loopReps = 0,
   });
 
   factory MetronomeSession.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,8 @@ class MetronomeSession {
       usedTapTempo: json['usedTapTempo'] as bool? ?? false,
       usedTempoRamp: json['usedTempoRamp'] as bool? ?? false,
       usedCountIn: json['usedCountIn'] as bool? ?? false,
+      regionName: json['regionName'] as String?,
+      loopReps: (json['loopReps'] as num?)?.toInt() ?? 0,
       completion: json['completion'] == null
           ? null
           : MetronomeSessionCompletion.values.firstWhere(
@@ -61,6 +65,12 @@ class MetronomeSession {
   final bool usedCountIn;
   final MetronomeSessionCompletion? completion;
 
+  /// Practice-regions loop this session drilled ("Verse 2 → Chorus").
+  final String? regionName;
+
+  /// Completed passes of that loop.
+  final int loopReps;
+
   Map<String, dynamic> toJson() => <String, dynamic>{
     'id': id,
     'startedAt': startedAt.toIso8601String(),
@@ -77,6 +87,8 @@ class MetronomeSession {
     'usedTempoRamp': usedTempoRamp,
     'usedCountIn': usedCountIn,
     if (completion != null) 'completion': completion!.name,
+    if (regionName != null) 'regionName': regionName,
+    if (loopReps > 0) 'loopReps': loopReps,
   };
 
   MetronomeSession copyWith({
@@ -95,6 +107,8 @@ class MetronomeSession {
     bool? usedTempoRamp,
     bool? usedCountIn,
     MetronomeSessionCompletion? completion,
+    String? regionName,
+    int? loopReps,
   }) {
     return MetronomeSession(
       id: id ?? this.id,
@@ -112,6 +126,8 @@ class MetronomeSession {
       usedTempoRamp: usedTempoRamp ?? this.usedTempoRamp,
       usedCountIn: usedCountIn ?? this.usedCountIn,
       completion: completion ?? this.completion,
+      regionName: regionName ?? this.regionName,
+      loopReps: loopReps ?? this.loopReps,
     );
   }
 }

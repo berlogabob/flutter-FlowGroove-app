@@ -4,7 +4,10 @@ import 'dart:typed_data';
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/models/metronome_session.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
+import 'package:flowgroove/providers/practice_stats_provider.dart';
+import 'package:flowgroove/repositories/metronome_session_repository.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
@@ -153,6 +156,13 @@ class _FakeJustAudio extends JustAudioPlatform {
   }
 }
 
+class _SessionLog extends MetronomeSessionRepository {
+  final saved = <MetronomeSession>[];
+
+  @override
+  Future<void> save(MetronomeSession session) async => saved.add(session);
+}
+
 /// In-memory stand-in so saves are observable without Firestore.
 class _InMemoryLabRepo extends FirestoreLabRepository {
   // The base constructor resolves `.instance` when given nulls, which needs a
@@ -202,6 +212,7 @@ void main() {
   late _InMemoryLabRepo repo;
   late JustAudioPlatform previousPlatform;
   late List<String> fetched;
+  late _SessionLog sessions;
 
   setUp(() {
     previousPlatform = JustAudioPlatform.instance;
@@ -209,6 +220,7 @@ void main() {
     JustAudioPlatform.instance = audio;
     repo = _InMemoryLabRepo();
     fetched = [];
+    sessions = _SessionLog();
     // Real-time pumps let the scaffold's connectivity stream subscribe.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
@@ -241,6 +253,7 @@ void main() {
         overrides: [
           labRepositoryProvider.overrideWithValue(repo),
           isDemoUserProvider.overrideWithValue(demo),
+          metronomeSessionRepositoryProvider.overrideWithValue(sessions),
           audioBytesFetcherProvider.overrideWithValue((url) async {
             fetched.add(url);
             return bytes ?? Uint8List(0);
@@ -364,5 +377,33 @@ void main() {
     expect(fetched, ['https://example.com/take.wav']);
     expect(repo.saved.single.peaks, isNotEmpty);
     expect(repo.saved.single.regions, hasLength(2));
+  });
+
+  testWidgets('a practised loop is logged with its name and passes', (
+    tester,
+  ) async {
+    PracticeRegionsScreen.minLoggedMs = 0;
+    addTearDown(() => PracticeRegionsScreen.minLoggedMs = 10000);
+    await pump(tester, _entry());
+    await tester.tap(find.byKey(const ValueKey('verse')));
+    await settleAudio(tester);
+    await tester.tap(find.byKey(const ValueKey('chorus')));
+    await settleAudio(tester);
+    await tester.tap(find.byTooltip('Play'));
+    await settleAudio(tester);
+    final player = audio.players.values.single;
+    for (final ms in [15000, 1000, 15000, 500]) {
+      player
+        ..position = Duration(milliseconds: ms)
+        ..emit();
+      await settleAudio(tester);
+    }
+    // Shrinking the run ends this loop's session.
+    await tester.tap(find.byKey(const ValueKey('chorus')));
+    await settleAudio(tester);
+    final logged = sessions.saved.single;
+    expect(logged.regionName, 'Verse 2 → Chorus');
+    expect(logged.loopReps, 2);
+    expect(logged.songId, isNull); // inbox takes have no song
   });
 }

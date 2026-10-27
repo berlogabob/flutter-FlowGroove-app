@@ -5,10 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../models/audio_region.dart';
+import '../models/metronome_session.dart';
 import '../models/section.dart';
 import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
 import '../providers/permissions_provider.dart';
+import '../providers/practice_stats_provider.dart';
+import '../repositories/metronome_session_repository.dart';
 import '../services/audio/audio_note_edit.dart';
 import '../services/audio/song_peaks.dart';
 import '../theme/mono_pulse_theme.dart';
@@ -27,6 +30,11 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
 
   final SongLabEntry entry;
   final String? bandId;
+
+  /// Loops played for less than this are taps and previews, not practice,
+  /// and stay out of the practice log.
+  @visibleForTesting
+  static int minLoggedMs = 10000;
 
   /// Allows widget tests to supply a player without native audio.
   final AudioPlayer? player;
@@ -56,6 +64,16 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   double _dragMs = 0;
   List<AudioRegion>? _beforeDrag;
 
+  // Practice log: one session per loop selection, written when it changes or
+  // the screen closes. Captured in initState because ref is gone by dispose.
+  late final MetronomeSessionRepository _sessions;
+  late final bool _logSessions;
+  DateTime? _sessionStart;
+  DateTime? _playingSince;
+  int _playedMs = 0;
+  int _reps = 0;
+  int _lastPosMs = 0;
+
   int get _durationMs => _duration.inMilliseconds;
   int get _positionMs => _clipStart + _position.inMilliseconds;
   int get _preRollMs => _entry.grid == null
@@ -72,6 +90,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     _entry = widget.entry;
     _snap = _entry.grid != null;
     _player = widget.player ?? AudioPlayer();
+    _sessions = ref.read(metronomeSessionRepositoryProvider);
+    _logSessions = !ref.read(isDemoUserProvider);
     unawaited(_load());
     unawaited(_backfillPeaks());
   }
@@ -117,10 +137,22 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           setState(() => _duration = duration);
         }),
         _player.positionStream.listen((position) {
-          if (mounted) setState(() => _position = position);
+          if (!mounted) return;
+          // A looping clip jumps back to its start: count the pass.
+          final ms = position.inMilliseconds;
+          if (_playing && _clipEnd != null && ms + 1000 < _lastPosMs) _reps++;
+          _lastPosMs = ms;
+          setState(() => _position = position);
         }),
         _player.playerStateStream.listen((state) {
-          if (mounted) setState(() => _playing = state.playing);
+          if (!mounted) return;
+          if (state.playing) {
+            _playingSince ??= DateTime.now();
+            _sessionStart ??= _playingSince;
+          } else {
+            _stopClock();
+          }
+          setState(() => _playing = state.playing);
         }),
       ]);
       await _applyLoop();
@@ -131,8 +163,58 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
+  void _stopClock() {
+    final since = _playingSince;
+    if (since == null) return;
+    _playedMs += DateTime.now().difference(since).inMilliseconds;
+    _playingSince = null;
+  }
+
+  String? _loopLabel() {
+    final selection = _selection;
+    if (selection == null) return null;
+    final (a, b) = selection;
+    final regions = _entry.regions;
+    return a == b
+        ? _name(regions[a])
+        : '${_name(regions[a])} → ${_name(regions[b])}';
+  }
+
+  /// Writes the current loop's practice to the log and starts a fresh one.
+  void _flushSession() {
+    _stopClock();
+    final start = _sessionStart;
+    if (_logSessions &&
+        start != null &&
+        _playedMs >= PracticeRegionsScreen.minLoggedMs) {
+      final songId = _entry.songId;
+      unawaited(
+        _sessions
+            .save(
+              MetronomeSession(
+                id: 'regions_${DateTime.now().microsecondsSinceEpoch}',
+                startedAt: start,
+                endedAt: DateTime.now(),
+                startBpm: _entry.grid?.bpm.round() ?? 0,
+                songId: songId.isEmpty || songId == '_inbox' ? null : songId,
+                elapsedSeconds: _playedMs ~/ 1000,
+                regionName: _loopLabel() ?? 'Whole song',
+                loopReps: _reps,
+              ),
+            )
+            .catchError((Object _) {}),
+      );
+    }
+    _playedMs = 0;
+    _reps = 0;
+    _lastPosMs = 0;
+    _sessionStart = null;
+    if (_playing) _playingSince = _sessionStart = DateTime.now();
+  }
+
   @override
   void dispose() {
+    _flushSession();
     for (final sub in _subs) {
       unawaited(sub.cancel());
     }
@@ -207,6 +289,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           _clipStart = start;
           _clipEnd = end;
           _position = Duration.zero;
+          _lastPosMs = 0;
         });
         await _player.setClip(
           start: Duration(milliseconds: start),
@@ -480,6 +563,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 alpha: 0.18,
               ),
               onTap: () {
+                _flushSession();
                 setState(() => _selection = toggleSelection(_selection, i));
                 unawaited(_applyLoop());
               },

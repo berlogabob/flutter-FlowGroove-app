@@ -274,10 +274,16 @@ class PracticeScreen extends ConsumerWidget {
           children: [
             Icon(Icons.music_note, size: 16, color: context.mp.textSecondary),
             const SizedBox(width: MonoPulseSpacing.sm),
-            Expanded(child: Text(song, overflow: TextOverflow.ellipsis)),
+            Expanded(
+              child: Text(
+                s.regionName == null ? song : '$song · ${s.regionName}',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             Text(
               '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'
-              ' · ${s.startBpm} BPM',
+              '${s.loopReps > 0 ? ' · ${s.loopReps} loops' : ''}'
+              '${s.startBpm > 0 ? ' · ${s.startBpm} BPM' : ''}',
               style: MonoPulseTypography.bodySmall.copyWith(
                 color: context.mp.textSecondary,
               ),
