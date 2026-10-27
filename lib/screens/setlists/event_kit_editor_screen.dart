@@ -1,3 +1,4 @@
+import '../../utils/event_share_url.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -226,7 +227,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
             setlistId: widget.setlist.id,
             participantId: person.id,
           );
-      final link = 'https://app.flowgroove.app/#/event?t=$token';
+      final link = eventShareUrl(token);
       await Clipboard.setData(ClipboardData(text: link));
       await AnalyticsService.logEventShareCreated();
       if (!mounted) return;

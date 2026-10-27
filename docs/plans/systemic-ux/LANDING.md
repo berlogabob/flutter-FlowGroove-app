@@ -12,8 +12,8 @@ Executor: Claude verifies/commits, Codex edits. Gate per slice: RED→GREEN, ful
 - [ ] UX-001 Practice entry consolidation
 
 ## Event sharing (host: app.flowgroove.app)
-- [ ] GH-186-URL central base-URL helper
-- [ ] GH-189 L1 canonical URL · L2 assetlinks · L3 iOS entitlement · L4 hosting AASA
+- [x] GH-186-URL central base-URL helper (lib/utils/event_share_url.dart)
+- [x] GH-189 L1 canonical URL (hash form kept, origin app.flowgroove.app) · [ ] L2 assetlinks · L3 iOS entitlement · L4 hosting AASA
 - [ ] GH-187 proposals wiring (I2, U, U2 needs owner policy)
 
 ## GH-179 remaining
