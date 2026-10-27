@@ -96,6 +96,24 @@ void main() {
     );
   });
 
+  test('remapSelection follows regions, not indices, across a split', () {
+    const before = [
+      AudioRegion(id: 'a', name: 'Intro', startMs: 0, endMs: 4000),
+      AudioRegion(id: 'b', name: 'Verse', startMs: 4000, endMs: 8000),
+    ];
+    var n = 0;
+    String id() => 'n${n++}';
+    // Split before the loop: Verse moves from index 1 to 2.
+    final early = splitRegions(before, atMs: 2000, durationMs: 8000, newId: id);
+    expect(remapSelection(before, early, (1, 1)), (2, 2));
+    // Split inside the loop: the run covers both halves, same span.
+    final inside = splitRegions(before, atMs: 6000, durationMs: 8000, newId: id);
+    expect(remapSelection(before, inside, (1, 1)), (1, 2));
+    expect(remapSelection(before, mergeRegion(before, 1), (0, 0)), (0, 0));
+    expect(remapSelection(before, mergeRegion(before, 1), (1, 1)), null);
+    expect(remapSelection(before, const [], (0, 1)), null);
+  });
+
   test('toggleSelection builds contiguous runs', () {
     expect(toggleSelection(null, 2), (2, 2));
     expect(toggleSelection((2, 2), 3), (2, 3)); // transition drill

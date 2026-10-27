@@ -284,6 +284,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Future<void> _changeRegions(List<AudioRegion> regions) async {
     if (!_canEdit) return;
     setState(() {
+      _selection = remapSelection(_entry.regions, regions, _selection);
       _entry = _entry.copyWith(regions: regions);
       _clampSelection();
     });
@@ -316,6 +317,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           selection,
           preRollMs: _preRollMs,
         );
+        // Renames and edits outside the loop keep the same span: reloading
+        // the clip would restart playback mid-pass.
+        if (start == _clipStart && end == _clipEnd) return;
         setState(() {
           _clipStart = start;
           _clipEnd = end;

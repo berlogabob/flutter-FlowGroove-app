@@ -177,6 +177,24 @@ List<AudioRegion> mergeRegion(List<AudioRegion> regions, int index) {
   return (tapped, tapped);
 }
 
+/// Carries a selection across an edit by region, not by index: a split before
+/// the loop shifts every index, and a split inside it must keep the same span
+/// (start by the left region's id, end by its end time). Null when the
+/// selected regions are gone.
+(int, int)? remapSelection(
+  List<AudioRegion> before,
+  List<AudioRegion> after,
+  (int, int)? selection,
+) {
+  if (selection == null) return null;
+  final first = before[selection.$1];
+  final last = before[selection.$2];
+  final a = after.indexWhere((r) => r.id == first.id);
+  var b = after.indexWhere((r) => r.endMs == last.endMs);
+  if (b < 0) b = after.indexWhere((r) => r.id == last.id);
+  return a < 0 || b < a ? null : (a, b);
+}
+
 /// Time span of the selection with [preRollMs] of lead-in before it.
 (int, int) loopSpan(
   List<AudioRegion> regions,
