@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-27T22:06:19+00:00",
+  "updated_at": "2026-10-27T23:00:15+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -684,6 +684,27 @@
         "PM-ZOOM",
         "PM-AUTO",
         "PM-DEVICE"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "PRACTICE-MPC",
+      "title": "Practice regions: MPC-style control, on-device auto slicer, region-select stutter",
+      "severity": 3,
+      "status": "open",
+      "source": "owner request 2026-10-27 (0.30.1 feedback)",
+      "evidence_type": "OWNER",
+      "summary": "Stutter right after selecting a region on phone (setClip re-buffers the streamed mp3). Owner approved plan: local playback, grid slicer + suggest grid, transient chop, region pads, jog wheel, release.",
+      "source_locations": [
+        "lib/screens/practice_regions_screen.dart"
+      ],
+      "tasks": [
+        "MPC-LOCAL",
+        "MPC-ANALYSIS",
+        "MPC-SLICE",
+        "MPC-PADS",
+        "MPC-JOG",
+        "MPC-RELEASE"
       ],
       "resolution": null
     }
@@ -7494,6 +7515,142 @@
       ],
       "blocked_reason": null,
       "run": null,
+      "verification": null
+    },
+    {
+      "id": "MPC-LOCAL",
+      "title": "Stutter on selecting a region: play from a local copy, not the streamed URL",
+      "status": "review",
+      "executor": "codex",
+      "kind": "implementation",
+      "issue": "PRACTICE-MPC",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/screens/practice_regions_screen.dart",
+        "test/screens/practice_regions_screen_test.dart"
+      ],
+      "acceptance": [
+        "Native: bytes cached to a temp file, setFilePath; setClip no longer re-buffers from network; web keeps URL; widget tests green; owner hears no stutter on region select"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "MPC-ANALYSIS",
+      "title": "On-device analysis: estimateGrid (BPM+first downbeat) and detectOnsets from PCM",
+      "status": "review",
+      "executor": "ornith",
+      "kind": "implementation",
+      "issue": "PRACTICE-MPC",
+      "after": [],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/services/audio/audio_analysis.dart",
+        "test/services/audio/audio_analysis_test.dart"
+      ],
+      "acceptance": [
+        "Pure Dart in audio_analysis.dart; unit tests on synthetic click tracks: 120 BPM +-0.5, downbeat +-20 ms; onsets within +-15 ms"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "MPC-SLICE",
+      "title": "Auto slicer: Suggest grid + slice every N bars + transient chop",
+      "status": "review",
+      "executor": "codex",
+      "kind": "implementation",
+      "issue": "PRACTICE-MPC",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/screens/practice_regions_screen.dart",
+        "test/screens/practice_regions_screen_test.dart",
+        "lib/models/audio_region.dart",
+        "test/models/audio_region_test.dart"
+      ],
+      "acceptance": [
+        "Buttons in tempo card/markers: Suggest grid fills AudioGrid from estimateGrid; Slice every N bars replaces markers on the grid; Chop by transients with sensitivity; all undoable via one confirm; tests"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "MPC-PADS",
+      "title": "Region pads (4x4, MPC style): tap = loop region, hold+tap = run; bar-quantized in click mode",
+      "status": "review",
+      "executor": "codex",
+      "kind": "implementation",
+      "issue": "PRACTICE-MPC",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/screens/practice_regions_screen.dart",
+        "test/screens/practice_regions_screen_test.dart"
+      ],
+      "acceptance": [
+        "Pads view toggle next to lists; reuses launchpad styling; widget test tap pad selects region, hold+tap selects run"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "MPC-JOG",
+      "title": "Jog wheel fine-tune: rotate moves marker, speed-scaled steps, scrub preview, Shift beat/ms",
+      "status": "review",
+      "executor": "codex",
+      "kind": "implementation",
+      "issue": "PRACTICE-MPC",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/screens/practice_regions_screen.dart",
+        "test/screens/practice_regions_screen_test.dart"
+      ],
+      "acceptance": [
+        "Jog widget in fine-tune sheet replaces nudge row (keeps buttons as fallback); unit test for angle->ms mapping"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "MPC-RELEASE",
+      "title": "Release + deploy (web + Android) after full suite green",
+      "status": "running",
+      "executor": "claude",
+      "kind": "verification",
+      "issue": "PRACTICE-MPC",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Full flutter test green, web deployed to app.flowgroove.app, APK/AAB on GitHub release, P30 launch check"
+      ],
+      "blocked_reason": null,
+      "run": {
+        "id": "release-0.30.2",
+        "log": "docs/plans/practice-regions/PLAN.md",
+        "started_at": "2026-10-28",
+        "deadline_at": "2026-10-28"
+      },
       "verification": null
     }
   ],

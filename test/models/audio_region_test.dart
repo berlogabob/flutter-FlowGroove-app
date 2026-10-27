@@ -11,6 +11,60 @@ void main() {
   String id() => 'r${n++}';
   setUp(() => n = 0);
 
+  group('jogDeltaMs', () {
+    const detent = math.pi / 12;
+
+    test('slow motion moves one ms per detent, preserving fractions', () {
+      expect(
+        jogDeltaMs(detent, math.pi / 2, beatMode: false),
+        closeTo(1, 1e-9),
+      );
+      expect(jogDeltaMs(detent / 4, 0, beatMode: false), closeTo(0.25, 1e-9));
+    });
+
+    test('fast motion moves ten ms per detent and blends linearly', () {
+      expect(
+        jogDeltaMs(detent, 3 * math.pi, beatMode: false),
+        closeTo(10, 1e-9),
+      );
+      expect(
+        jogDeltaMs(detent, 4 * math.pi, beatMode: false),
+        closeTo(10, 1e-9),
+      );
+      expect(
+        jogDeltaMs(detent, 2 * math.pi, beatMode: false),
+        closeTo(5.5, 1e-9),
+      );
+    });
+
+    test('beat motion moves one beat per detent at any speed', () {
+      for (final speed in [0.0, 4 * math.pi]) {
+        expect(
+          jogDeltaMs(detent, speed, beatMode: true, beatMs: 500),
+          closeTo(500, 1e-9),
+        );
+      }
+    });
+
+    test(
+      'direction comes from angle, with acceleration using absolute speed',
+      () {
+        expect(
+          jogDeltaMs(-detent, -3 * math.pi, beatMode: false),
+          closeTo(-10, 1e-9),
+        );
+        expect(
+          jogDeltaMs(-detent, -math.pi / 2, beatMode: false),
+          closeTo(-1, 1e-9),
+        );
+        expect(
+          jogDeltaMs(-detent, 0, beatMode: true, beatMs: 500),
+          closeTo(-500, 1e-9),
+        );
+      },
+    );
+  });
+
   group('regionsFromCuts', () {
     test('sorts and drops duplicate, out-of-range and nearby cuts', () {
       final cuts = [3500, 1000, -100, 100, 1000, 1200, 500, 3900, 4500];

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -789,7 +790,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
-  Future<void> _audition(int ms) async {
+  Future<void> _audition(
+    int ms, {
+    int preRollMs = 1000,
+    int windowMs = 2000,
+  }) async {
     _auditionTimer?.cancel();
     if (_sync) await _setSync(false);
     if (!mounted) return;
@@ -800,10 +805,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     await _player.setSpeed(1);
     if (!mounted) return;
     setState(() => _speed = 1);
-    await _seekTo(ms - 1000);
+    await _seekTo(ms - preRollMs);
     if (!mounted) return;
     unawaited(_player.play());
-    _auditionTimer = Timer(const Duration(seconds: 2), () {
+    _auditionTimer = Timer(Duration(milliseconds: windowMs), () {
       if (mounted) unawaited(_player.pause());
     });
   }
@@ -817,6 +822,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     var ms = _entry.regions[boundaryIndex].endMs;
     var dragMs = ms.toDouble();
     var snap = BoundarySnap.off;
+    var beatMode = false;
+    var jogAngle = 0.0;
+    var jogPendingMs = 0.0;
+    var detentAngle = 0.0;
+    var previousAngle = 0.0;
+    Duration? previousTime;
+    final beatMs = grid == null ? null : grid.barMs / grid.beatsPerBar;
     int constrain(int value) =>
         moveBoundary(_entry.regions, boundaryIndex, value)[boundaryIndex].endMs;
     int snapped(int value) => constrain(switch (snap) {
@@ -880,26 +892,119 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                           );
                         },
                       ),
-                    Wrap(
-                      spacing: MonoPulseSpacing.sm,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        for (final delta in [-10, -1, 1, 10])
-                          TextButton(
-                            onPressed: () => nudge(delta),
-                            child: Text(
-                              '${delta > 0 ? '+' : '−'}${delta.abs()} ms',
+                        Semantics(
+                          label: 'Jog wheel',
+                          child: GestureDetector(
+                            key: const ValueKey('marker-jog-wheel'),
+                            behavior: HitTestBehavior.opaque,
+                            onPanStart: (details) {
+                              final offset =
+                                  details.localPosition - const Offset(80, 80);
+                              previousAngle = math.atan2(offset.dy, offset.dx);
+                              previousTime = details.sourceTimeStamp;
+                              jogPendingMs = 0;
+                              detentAngle = 0;
+                            },
+                            onPanUpdate: (details) {
+                              final offset =
+                                  details.localPosition - const Offset(80, 80);
+                              final angle = math.atan2(offset.dy, offset.dx);
+                              final delta = math.atan2(
+                                math.sin(angle - previousAngle),
+                                math.cos(angle - previousAngle),
+                              );
+                              final time = details.sourceTimeStamp;
+                              final elapsed =
+                                  time != null && previousTime != null
+                                  ? (time - previousTime!).inMicroseconds /
+                                        1000000
+                                  : 0.0;
+                              previousAngle = angle;
+                              previousTime = time;
+                              sheetSetState(() {
+                                jogAngle += delta;
+                                jogPendingMs += jogDeltaMs(
+                                  delta,
+                                  elapsed > 0 ? delta / elapsed : 0,
+                                  beatMode: beatMode,
+                                  beatMs: beatMs,
+                                );
+                                final step = beatMode
+                                    ? (jogPendingMs / beatMs!).truncate() *
+                                          beatMs
+                                    : jogPendingMs.roundToDouble();
+                                jogPendingMs -= step;
+                                ms = constrain(ms + step.round());
+                                detentAngle += delta;
+                                final detents = (detentAngle / (math.pi / 12))
+                                    .truncate();
+                                detentAngle -= detents * (math.pi / 12);
+                                for (var i = 0; i < detents.abs(); i++) {
+                                  unawaited(HapticFeedback.selectionClick());
+                                }
+                              });
+                            },
+                            onPanEnd: (_) {
+                              sheetSetState(() => ms = snapped(ms));
+                              if (_loaded) {
+                                unawaited(
+                                  _audition(ms, preRollMs: 0, windowMs: 300),
+                                );
+                              }
+                            },
+                            child: CustomPaint(
+                              size: const Size(160, 160),
+                              painter: _JogWheelPainter(
+                                angle: jogAngle,
+                                surface: context.mp.blackSurface,
+                                outline: context.mp.textSecondary,
+                              ),
                             ),
                           ),
-                        if (grid != null)
-                          for (final direction in [-1, 1])
-                            TextButton(
-                              onPressed: () => nudge(
-                                (direction * grid.barMs / grid.beatsPerBar)
-                                    .round(),
+                        ),
+                        const SizedBox(width: MonoPulseSpacing.sm),
+                        Column(
+                          children: [
+                            for (final mode in [false, if (grid != null) true])
+                              ChoiceChip(
+                                label: Text(mode ? 'beat' : 'ms'),
+                                selected: beatMode == mode,
+                                onSelected: (_) => sheetSetState(() {
+                                  beatMode = mode;
+                                  jogPendingMs = 0;
+                                }),
                               ),
-                              child: Text('${direction > 0 ? '+' : '−'}1 beat'),
-                            ),
+                          ],
+                        ),
                       ],
+                    ),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          for (final delta in [-10, -1, 1, 10])
+                            TextButton(
+                              onPressed: () => nudge(delta),
+                              child: Text(
+                                '${delta > 0 ? '+' : '−'}${delta.abs()} ms',
+                              ),
+                            ),
+                          if (grid != null)
+                            for (final direction in [-1, 1])
+                              TextButton(
+                                onPressed: () => nudge(
+                                  (direction * grid.barMs / grid.beatsPerBar)
+                                      .round(),
+                                ),
+                                child: Text(
+                                  '${direction > 0 ? '+' : '−'}1 beat',
+                                ),
+                              ),
+                        ],
+                      ),
                     ),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -1618,6 +1723,48 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 }
 
 /// Paint in file coordinates even while just_audio plays a relative clip.
+class _JogWheelPainter extends CustomPainter {
+  _JogWheelPainter({
+    required this.angle,
+    required this.surface,
+    required this.outline,
+  });
+
+  final double angle;
+  final Color surface;
+  final Color outline;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2 - 4;
+    canvas.drawCircle(center, radius, Paint()..color = surface);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = outline
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+    final direction = Offset(math.sin(angle), -math.cos(angle));
+    canvas.drawLine(
+      center + direction * (radius - 20),
+      center + direction * (radius - 4),
+      Paint()
+        ..color = MonoPulseColors.accentOrange
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_JogWheelPainter oldDelegate) =>
+      angle != oldDelegate.angle ||
+      surface != oldDelegate.surface ||
+      outline != oldDelegate.outline;
+}
+
 class _RegionsPainter extends CustomPainter {
   _RegionsPainter({
     required this.entry,

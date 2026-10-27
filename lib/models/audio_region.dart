@@ -7,6 +7,7 @@
 /// re-setting the grid never corrupts the regions.
 library;
 
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'section.dart';
@@ -54,6 +55,21 @@ class AudioGrid {
 
 /// Snapping available when editing a region boundary.
 enum BoundarySnap { off, bar, beat, zeroCrossing }
+
+/// Signed jog motion: 15° detents, with speed acceleration only in ms mode.
+double jogDeltaMs(
+  double radians,
+  double radiansPerSecond, {
+  required bool beatMode,
+  double? beatMs,
+}) {
+  assert(!beatMode || (beatMs != null && beatMs > 0));
+  final blend = ((radiansPerSecond.abs() - math.pi) / (2 * math.pi)).clamp(
+    0.0,
+    1.0,
+  );
+  return radians / (math.pi / 12) * (beatMode ? beatMs! : 1 + 9 * blend);
+}
 
 /// Nearest beat line, including the grid's downbeat offset.
 int snapToBeat(AudioGrid grid, int ms, {required int durationMs}) {

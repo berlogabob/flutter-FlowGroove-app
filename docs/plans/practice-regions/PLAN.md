@@ -17,3 +17,11 @@ Registry: `docs/plans/systemic-ux/activity.json` issue `PRACTICE-REGIONS`.
 - [x] PM-ZOOM Fine-tune sheet: ±1 s zoom, drag, ±1/10 ms, ±1 beat, snap off/bar/beat/zero-crossing, audition
 - [ ] PM-AUTO auto grid + sections: grid works (librosa), sections weak; allin1 needs Linux
 - [ ] PM-DEVICE owner by-ear check
+
+## MPC control (PRACTICE-MPC)
+- [x] MPC-LOCAL no stutter on region select: local temp copy, pause→clip→play — `59418f29`
+- [x] MPC-ANALYSIS on-device estimateGrid + detectOnsets (Back to Black 123.5 BPM) — `3e1393d4`
+- [x] MPC-SLICE Auto slice: suggest grid, every N bars, chop by transients — `f4d9d2d6`
+- [x] MPC-PADS region pads, tap = loop, hold+tap = run — `673ca935`
+- [x] MPC-JOG jog wheel in fine-tune (speed-scaled ms, beat mode)
+- [ ] MPC-RELEASE 0.30.2 web + Android

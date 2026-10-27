@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flowgroove/models/audio_region.dart';
@@ -695,12 +696,15 @@ void main() {
     await tester.tap(find.byTooltip('Fine-tune'));
     await settleAudio(tester);
     expect(find.text('Fine-tune M1'), findsOneWidget);
+    await tester.ensureVisible(find.text('+10 ms'));
     await tester.tap(find.text('+10 ms'));
     await tester.pump();
+    await tester.ensureVisible(find.text('+10 ms'));
     await tester.tap(find.text('+10 ms'));
     await tester.pump();
     expect(find.text('00:10.020'), findsOneWidget);
     expect(repo.saved, isEmpty);
+    await tester.ensureVisible(find.text('Done'));
     await tester.tap(find.text('Done'));
     await settleAudio(tester);
     expect(repo.saved.single.regions[0].endMs, 10020);
@@ -710,6 +714,7 @@ void main() {
     await settleAudio(tester);
     expect(decodes, 1);
     expect(fetched, ['https://example.com/take.wav']);
+    await tester.ensureVisible(find.text('+10 ms'));
     await tester.tap(find.text('+10 ms'));
     await tester.pump();
     // Dismissing the sheet discards its local preview.
@@ -717,6 +722,42 @@ void main() {
     await settleAudio(tester);
     expect(repo.saved, hasLength(1));
     expect(find.text('00:10.020'), findsOneWidget);
+  });
+
+  testWidgets('Fine-tune jog wheel moves clockwise and saves on Done', (
+    tester,
+  ) async {
+    final previousDecode = PracticeRegionsScreen.decodePcm;
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async => null;
+    addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
+    await pump(tester, _entry());
+    await tester.tap(find.text('Markers'));
+    await settleAudio(tester);
+    await tester.tap(find.byTooltip('Fine-tune'));
+    await settleAudio(tester);
+    final wheel = find.byKey(const ValueKey('marker-jog-wheel'));
+    await tester.ensureVisible(wheel);
+    final center = tester.getCenter(wheel);
+    final gesture = await tester.startGesture(center + const Offset(0, -65));
+    for (var i = 1; i <= 12; i++) {
+      final angle = i * math.pi / 24;
+      await tester.pump(const Duration(milliseconds: 100));
+      await gesture.moveTo(
+        center + Offset(math.sin(angle) * 65, -math.cos(angle) * 65),
+        timeStamp: Duration(milliseconds: i * 100),
+      );
+    }
+    await gesture.up();
+    await settleAudio(tester);
+    expect(repo.saved, isEmpty);
+    await tester.ensureVisible(find.text('Done'));
+    await tester.tap(find.text('Done'));
+    await settleAudio(tester);
+    final delta = repo.saved.single.regions[0].endMs - 10000;
+    expect(delta, greaterThan(0));
+    expect(delta, lessThan(100));
+    expect(repo.saved.single.regions[1].startMs, 10000 + delta);
   });
 
   testWidgets('Fine-tune stays available when PCM decoding fails', (
@@ -739,8 +780,10 @@ void main() {
           .every((s) => !s.enabled),
       isTrue,
     );
+    await tester.ensureVisible(find.text('+1 ms'));
     await tester.tap(find.text('+1 ms'));
     await tester.pump();
+    await tester.ensureVisible(find.text('Done'));
     await tester.tap(find.text('Done'));
     await settleAudio(tester);
     expect(repo.saved.single.regions[0].endMs, 10001);
@@ -761,6 +804,7 @@ void main() {
       await settleAudio(tester);
       final player = audio.players.values.single;
       final plays = player.playCalls;
+      await tester.ensureVisible(find.text('Audition'));
       await tester.tap(find.text('Audition'));
       await settleAudio(tester);
       expect(player.clip, isNull);
