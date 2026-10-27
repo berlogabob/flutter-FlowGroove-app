@@ -409,6 +409,10 @@ service cloud.firestore {
     // access). NEVER writable by a client — the events callables use the admin
     // SDK, which bypasses these rules. This is the whole point of the design:
     // no app build, however stale, can delete or widen a grant.
+    match /bands/{bandId}/setlists/{setlistId}/eventPublication/{doc} {
+      allow read, write: if false;
+    }
+
     match /bands/{bandId}/setlists/{setlistId}/grants/{grantUid} {
       allow read: if isAuthenticated() &&
         (request.auth.uid == grantUid || isGlobalBandMember(bandId));
@@ -573,6 +577,10 @@ service cloud.firestore {
             hasPersonalEventArea(userId, setlistId, 'eventInfo', 'edit')) &&
           touchesOnlyEventFields();
 
+        match /eventPublication/{doc} {
+          allow read, write: if false;
+        }
+
         match /grants/{grantUid} {
           allow read: if isAuthenticated() && request.auth.uid == grantUid;
           allow write: if false;
@@ -582,6 +590,7 @@ service cloud.firestore {
           allow read: if isAuthenticated() && isOwner(userId);
           allow create: if isAuthenticated() &&
             isNotDemo(request.auth.uid) &&
+            !request.resource.data.keys().hasAny(['proposal']) &&
             (isOwner(userId) || (
               exists(/databases/$(database)/documents/users/$(userId)/setlists/$(setlistId)/grants/$(request.auth.uid)) &&
               get(/databases/$(database)/documents/users/$(userId)/setlists/$(setlistId)/grants/$(request.auth.uid)).data.get('canSuggest', false) == true

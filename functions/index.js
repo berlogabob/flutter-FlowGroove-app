@@ -41,6 +41,7 @@ const events = require("./src/events");
 exports.createEventShare = events.createEventShare;
 exports.revokeEventShare = events.revokeEventShare;
 exports.listEventShares = events.listEventShares;
+exports.setEventSuggestionCandidate = events.setEventSuggestionCandidate;
 exports.getEventView = events.getEventView;
 exports.claimEventShare = events.claimEventShare;
 exports.submitSuggestion = events.submitSuggestion;

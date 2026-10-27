@@ -99,6 +99,26 @@ describe("Event guest Firestore rules", function () {
 
   const as = (uid) => testEnv.authenticatedContext(uid).firestore();
 
+  describe("server-owned event publication", () => {
+    for (const path of [`bands/${BAND}/setlists/${SETLIST}`, "users/member/setlists/private-1"]) {
+      it(`denies all client reads and writes at ${path}/eventPublication`, async () => {
+        await testEnv.withSecurityRulesDisabled(async (context) => {
+          await context.firestore().doc(`${path}/eventPublication/candidates`).set({ candidates: [] });
+        });
+        for (const db of [as("member"), as("guest"), as("manager"), as("stranger"), testEnv.unauthenticatedContext().firestore()]) {
+          const col = db.collection(`${path}/eventPublication`);
+          const ref = col.doc("candidates");
+          await assertFails(ref.get());
+          await assertFails(col.get());
+          await assertFails(ref.set({ candidates: [] }));
+          await assertFails(ref.update({ candidates: [] }));
+          await assertFails(ref.delete());
+          await assertFails(col.doc("other").set({ candidates: [] }));
+        }
+      });
+    }
+  });
+
   describe("reading the event", () => {
     it("does NOT let even a granted guest read the setlist document", async () => {
       // Firestore reads whole documents. Letting a guest read this one hands
@@ -474,6 +494,16 @@ describe("Event guest Firestore rules", function () {
       await assertFails(suggestionsRef(as("guest")).set(suggestion("guest", { status: "accepted" })));
       await assertFails(suggestionsRef(as("member")).set(suggestion("guest")));
       await assertFails(suggestionsRef(as("member")).set(suggestion("member", { status: "accepted" })));
+      await assertSucceeds(suggestionsRef(as("guest")).set(suggestion("guest")));
+    });
+
+    it("requires typed personal proposals to use the callable while keeping plain notes", async () => {
+      await assertSucceeds(suggestionsRef(as("member")).delete());
+      for (const uid of ["guest", "member"]) {
+        for (const proposal of [null, { version: 1, kind: "add", songId: "private-song", baseFingerprint: "0".repeat(64) }]) {
+          await assertFails(suggestionsRef(as(uid)).set(suggestion(uid, { proposal })));
+        }
+      }
       await assertSucceeds(suggestionsRef(as("guest")).set(suggestion("guest")));
     });
 

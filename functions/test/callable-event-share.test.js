@@ -118,6 +118,7 @@ describe("event sharing callables", function () {
       db.collection("eventShares"),
       db.collection(`bands/${BAND}/setlists/${SETLIST}/grants`),
       db.collection(`bands/${BAND}/setlists/${SETLIST}/suggestions`),
+      db.collection(`bands/${BAND}/setlists/${SETLIST}/eventPublication`),
     ]) {
       const snap = await col.get();
       await Promise.all(snap.docs.map((d) => d.ref.delete()));
@@ -129,6 +130,138 @@ describe("event sharing callables", function () {
   });
 
   after(() => functionsTest.cleanup());
+
+  for (const scope of [{ bandId: BAND }, { ownerUid: "candidate-owner" }]) {
+    describe(`suggestion publication (${scope.bandId ? "band" : "personal"})`, () => {
+      const root = scope.bandId ? `bands/${BAND}` : `users/${scope.ownerUid}`;
+      const path = `${root}/setlists/${SETLIST}`;
+      const args = { ...scope, setlistId: SETLIST, songId: "song-1", published: true };
+      const writer = scope.ownerUid || "member";
+      const publish = (extra = {}, uid = writer) => call(events.setEventSuggestionCandidate)(req({ ...args, ...extra }, uid));
+      const view = (data = { ...scope, setlistId: SETLIST }, uid = writer) => call(events.getEventView)(req(data, uid));
+      const candidates = () => db.doc(`${path}/eventPublication/candidates`).get();
+      beforeEach(async () => {
+        if (scope.ownerUid) {
+          await db.recursiveDelete(db.doc(root));
+          const event = (await db.doc(`bands/${BAND}/setlists/${SETLIST}`).get()).data();
+          await db.doc(path).set(event);
+          await events.writeGrants(scope, SETLIST, PEOPLE);
+        }
+        await db.doc(`${path}/eventPublication/candidates`).delete();
+        await db.doc(`${root}/songs/song-1`).set({ title: "Fallback", materialized: {
+          title: "Published title", artist: "Published artist", notes: "PRIVATE", sections: ["PRIVATE"],
+        } });
+      });
+
+      it("publishes server metadata once and unpublishes idempotently", async () => {
+        await publish({ title: "Forged", artist: "Forged" });
+        await publish();
+        const expected = [{ id: "song-1", title: "Published title", artist: "Published artist" }];
+        assert.deepEqual((await candidates()).data().candidates, expected);
+        assert.deepEqual((await view()).suggestionCandidates, expected);
+        await publish({ published: false });
+        await publish({ published: false });
+        assert.deepEqual((await view()).suggestionCandidates, []);
+      });
+
+      it("uses plain song metadata when materialized data is absent", async () => {
+        await db.doc(`${root}/songs/song-1`).set({ title: "Plain title", artist: "Plain artist", notes: "PRIVATE" });
+        await publish();
+        assert.deepEqual((await view()).suggestionCandidates,
+          [{ id: "song-1", title: "Plain title", artist: "Plain artist" }]);
+      });
+
+      if (scope.bandId) {
+        it("allows band editors and admins to publish and see candidates", async () => {
+          await db.doc(`bands/${BAND}`).update({ adminUids: ["admin"], editorUids: ["editor"] });
+          await publish({}, "editor");
+          assert.equal((await view(undefined, "editor")).suggestionCandidates.length, 1);
+          await publish({ published: false }, "admin");
+          assert.deepEqual((await view(undefined, "admin")).suggestionCandidates, []);
+        });
+      }
+
+      it("allows 50 unique candidates, duplicates at capacity, and rejects the 51st", async () => {
+        for (let i = 0; i < 51; i++) {
+          await db.doc(`${root}/songs/cap-${i}`).set({ title: `Title ${i}`, artist: "Artist" });
+        }
+        for (let i = 0; i < 50; i++) await publish({ songId: `cap-${i}` });
+        await publish({ songId: "cap-0" });
+        await assert.rejects(publish({ songId: "cap-50" }), (e) => e.code === "failed-precondition");
+        assert.equal((await candidates()).data().candidates.length, 50);
+        await publish({ songId: "cap-0", published: false });
+        await publish({ songId: "cap-50" });
+      });
+
+      it("rejects foreign or missing songs, malformed input and missing events", async () => {
+        await db.doc("bands/foreign/songs/foreign-song").set({ title: "Private" });
+        for (const songId of ["foreign-song", "nonexistent"]) {
+          await assert.rejects(publish({ songId }), (e) => e.code === "not-found");
+        }
+        for (const extra of [{ songId: "a/b" }, { setlistId: "a/b" }, { published: "true" },
+          { bandId: BAND, ownerUid: "candidate-owner" }, { ...scope, [scope.bandId ? "bandId" : "ownerUid"]: "a/b" }]) {
+          await assert.rejects(publish(extra), (e) => e.code === "invalid-argument");
+        }
+        await assert.rejects(publish({ setlistId: "missing" }), (e) => e.code === "not-found");
+      });
+
+      it("denies ordinary members, area editors, guests, demos and anonymous callers", async () => {
+        await db.doc(`bands/${BAND}`).update({ memberUids: ["member", "ordinary"] });
+        await db.doc(`${path}/grants/area-editor`).set({ access: { runningOrder: "edit" }, canSuggest: true });
+        for (const uid of ["ordinary", "area-editor", "roume"]) {
+          await assert.rejects(publish({}, uid), (e) => e.code === "permission-denied");
+        }
+        await assert.rejects(publish({}, null), (e) => e.code === "unauthenticated");
+        await assert.rejects(call(events.setEventSuggestionCandidate)({ data: args,
+          auth: { uid: writer, token: { demo: true } } }), (e) => e.code === "failed-precondition");
+      });
+
+      it("projects candidates only to eligible guests and writers, dropping deleted songs", async () => {
+        assert.deepEqual((await view()).suggestionCandidates, []);
+        await publish();
+        const tokenFor = async (participantId) => (await call(events.createEventShare)(req({ ...scope,
+          setlistId: SETLIST, participantId }, writer))).token;
+        const token = await tokenFor("p-couple");
+        assert.deepEqual((await view({ token }, null)).suggestionCandidates,
+          [{ id: "song-1", title: "Published title", artist: "Published artist" }]);
+        assert.equal(Object.hasOwn(await view({ token: await tokenFor("p-eng") }, null), "suggestionCandidates"), false);
+        await db.doc(`${path}/grants/limited`).set({ access: { stage: "edit" }, canSuggest: true });
+        assert.equal(Object.hasOwn(await view(undefined, "limited"), "suggestionCandidates"), false);
+        if (scope.bandId) {
+          await db.doc(`bands/${BAND}`).update({ memberUids: ["member", "ordinary"] });
+          assert.equal(Object.hasOwn(await view(undefined, "ordinary"), "suggestionCandidates"), false);
+        }
+        await db.doc(path).update({ items: [] });
+        assert.equal(Object.hasOwn(await view({ token }, null), "suggestionCandidates"), false);
+        assert.equal((await view()).suggestionCandidates.length, 1);
+        await db.doc(`${root}/songs/song-1`).delete();
+        assert.deepEqual((await view()).suggestionCandidates, []);
+      });
+
+      it("charges only published adds and rejects adds after unpublishing for token and uid guests", async () => {
+        const { token, tokenId } = await call(events.createEventShare)(req({ ...scope,
+          setlistId: SETLIST, participantId: "p-couple" }, writer));
+        const { baseFingerprint } = (await view({ token }, null)).runningOrder;
+        const proposal = { version: 1, kind: "add", baseFingerprint, songId: "song-1" };
+        const submit = () => call(events.submitSuggestion)(req({ token, type: "add", proposal }));
+        const rejected = async () => {
+          await assert.rejects(submit(), (e) => e.code === "failed-precondition" && e.message === "Proposed song is unavailable.");
+        };
+        await rejected();
+        assert.equal((await db.doc(`eventShares/${tokenId}`).get()).data().suggestionCount, 0);
+        assert.equal((await db.collection(`${path}/suggestions`).get()).size, 0);
+        await publish();
+        await submit();
+        await db.doc(`${path}/grants/suggester`).set({ access: { runningOrder: "view" }, canSuggest: true });
+        await call(events.submitSuggestion)(req({ ...scope, setlistId: SETLIST, type: "add", proposal }, "suggester"));
+        await publish({ published: false });
+        await rejected();
+        await assert.rejects(call(events.submitSuggestion)(req({ ...scope, setlistId: SETLIST, type: "add", proposal }, "suggester")), /Proposed song is unavailable/);
+        assert.equal((await db.doc(`eventShares/${tokenId}`).get()).data().suggestionCount, 1);
+        assert.equal((await db.collection(`${path}/suggestions`).get()).size, 2);
+      });
+    });
+  }
 
   describe("personal event sharing", () => {
     const ownerUid = "personal-owner";
@@ -1045,6 +1178,7 @@ describe("event sharing callables", function () {
       const { id } = await submit({});
       assert.deepEqual((await db.doc(`${path}/suggestions/${id}`).get()).data().proposal, proposal);
       assert.equal((await db.doc(`eventShares/${tokenId}`).get()).data().suggestionCount, 1);
+      await call(events.setEventSuggestionCandidate)(req({ bandId: BAND, setlistId: SETLIST, songId: "song-1", published: true }, "member"));
       for (const typed of [
         { version: 1, kind: "add", baseFingerprint, songId: "song-1", beforeItemId: "one" },
         { version: 1, kind: "add", baseFingerprint, songId: "song-1" },

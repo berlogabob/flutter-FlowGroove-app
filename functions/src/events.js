@@ -433,6 +433,42 @@ exports.revokeEventShare = functions.https.onCall(async (request) => {
   return { revoked: true };
 });
 
+exports.setEventSuggestionCandidate = functions.https.onCall(async (request) => {
+  const uid = requireAuth(request);
+  const scope = parseScope(request.data);
+  const { setlistId, songId, published } = request.data || {};
+  const validId = (value) => typeof value === "string" && value.length > 0 && value.length <= 128 && !/[\\/]/.test(value);
+  if (!validId(scope.bandId || scope.ownerUid) || !validId(setlistId) || !validId(songId) || typeof published !== "boolean") {
+    throw new functions.https.HttpsError("invalid-argument", "Valid scope, setlistId, songId and boolean published are required.");
+  }
+  await refuseDemo(request, "publish suggestion candidates");
+  await requireScopeWriter(scope, uid);
+  const parent = setlistRef(scope, setlistId);
+  const publication = parent.collection("eventPublication").doc("candidates");
+  await db.runTransaction(async (tx) => {
+    const event = await tx.get(parent);
+    if (!event.exists) throw new functions.https.HttpsError("not-found", "Event not found.");
+    const snap = await tx.get(publication);
+    const candidates = snap.exists ? snap.data().candidates || [] : [];
+    const present = candidates.some((entry) => entry.id === songId);
+    if (present === published) return;
+    if (!published) {
+      tx.set(publication, { candidates: candidates.filter((entry) => entry.id !== songId) });
+      return;
+    }
+    const song = await tx.get(scopeRef(scope).collection("songs").doc(songId));
+    if (!song.exists) throw new functions.https.HttpsError("not-found", "Song not found.");
+    if (candidates.length >= 50) {
+      throw new functions.https.HttpsError("failed-precondition", "An event can publish at most 50 suggestion candidates.");
+    }
+    const metadata = song.data().materialized || song.data();
+    tx.set(publication, { candidates: [...candidates, {
+      id: songId, title: metadata.title || "", artist: metadata.artist || "",
+    }] });
+  });
+  return { published };
+});
+
 exports.listEventShares = functions.https.onCall(async (request) => {
   const uid = requireAuth(request);
   const scope = parseScope(request.data);
@@ -516,7 +552,8 @@ async function resolveViewer({ token, bandId, ownerUid, setlistId, uid }) {
   const band = scope.bandId ? await loadBand(scope.bandId) : null;
   const setlist = await loadSetlist(scope, setlistId);
 
-  if (scope.ownerUid === uid || (band && (band.memberUids || []).includes(uid))) {
+  if (scope.ownerUid === uid || (band && [...(band.memberUids || []),
+    ...(band.adminUids || []), ...(band.editorUids || [])].includes(uid))) {
     return {
       scope,
       setlistId,
@@ -699,6 +736,19 @@ exports.getEventView = functions.https.onCall(async (request) => {
     view.songs = songs;
   }
 
+  const band = viewer.scope.bandId ? await loadBand(viewer.scope.bandId) : null;
+  const isWriter = viewer.uid && (viewer.uid === viewer.scope.ownerUid ||
+    (band && [...(band.adminUids || []), ...(band.editorUids || [])].includes(viewer.uid)));
+  if (isWriter || (viewer.canSuggest && view.runningOrder && view.runningOrder.ready)) {
+    const publication = await setlistRef(viewer.scope, viewer.setlistId)
+      .collection("eventPublication").doc("candidates").get();
+    const candidates = publication.exists ? publication.data().candidates || [] : [];
+    const docs = candidates.length ? await db.getAll(...candidates.map((entry) =>
+      scopeRef(viewer.scope).collection("songs").doc(entry.id))) : [];
+    view.suggestionCandidates = candidates.filter((entry, index) => docs[index].exists)
+      .map(({ id, title, artist }) => ({ id, title, artist }));
+  }
+
   // The person's OWN suggestions and what the band decided about them.
   //
   // The suggestions subcollection is readable only by band members, so without
@@ -848,35 +898,31 @@ exports.submitSuggestion = functions.https.onCall(async (request) => {
       if (proposal.beforeItemId !== undefined && !items.some((item) => item.id === proposal.beforeItemId)) {
         throw new functions.https.HttpsError("failed-precondition", "Insertion anchor is unavailable.");
       }
-      const song = await scopeRef(viewer.scope).collection("songs").doc(proposal.songId).get();
-      if (!song.exists) throw new functions.https.HttpsError("failed-precondition", "Proposed song is unavailable.");
     }
   }
 
-  // Per-token cap. Members are not counted: they are already trusted to write
-  // the setlist directly, so a limit on them would only be theatre. The counter
-  // lives on the share document and is bumped in the same transaction that
-  // checks it, so two concurrent submissions cannot both slip past the cap.
-  if (viewer.tokenId) {
-    const shareRef = db.collection("eventShares").doc(viewer.tokenId);
-    await db.runTransaction(async (tx) => {
+  const id = crypto.randomUUID();
+  await db.runTransaction(async (tx) => {
+    if (hasProposal && kind === "add") {
+      const publication = await tx.get(setlistRef(viewer.scope, viewer.setlistId)
+        .collection("eventPublication").doc("candidates"));
+      const candidates = publication.exists ? publication.data().candidates || [] : [];
+      const song = await tx.get(scopeRef(viewer.scope).collection("songs").doc(proposal.songId));
+      if (!candidates.some((entry) => entry.id === proposal.songId) || !song.exists) {
+        throw new functions.https.HttpsError("failed-precondition", "Proposed song is unavailable.");
+      }
+    }
+    // Publication checks, quota use and creation commit together.
+    if (viewer.tokenId) {
+      const shareRef = db.collection("eventShares").doc(viewer.tokenId);
       const snap = await tx.get(shareRef);
       const used = (snap.exists && snap.data().suggestionCount) || 0;
       if (used >= MAX_SUGGESTIONS_PER_TOKEN) {
-        throw new functions.https.HttpsError(
-          "resource-exhausted",
-          "This link has reached its suggestion limit.",
-        );
+        throw new functions.https.HttpsError("resource-exhausted", "This link has reached its suggestion limit.");
       }
       tx.update(shareRef, { suggestionCount: used + 1 });
-    });
-  }
-
-  const id = crypto.randomUUID();
-  await setlistRef(viewer.scope, viewer.setlistId)
-    .collection("suggestions")
-    .doc(id)
-    .set({
+    }
+    tx.set(setlistRef(viewer.scope, viewer.setlistId).collection("suggestions").doc(id), {
       id,
       type: kind,
       songId: cleanString(songId) || null,
@@ -890,6 +936,7 @@ exports.submitSuggestion = functions.https.onCall(async (request) => {
       status: "open",
       createdAt: new Date().toISOString(),
     });
+  });
 
   return { id };
 });
