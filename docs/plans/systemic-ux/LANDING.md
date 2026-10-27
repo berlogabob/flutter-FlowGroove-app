@@ -14,7 +14,7 @@ Executor: Claude verifies/commits, Codex edits. Gate per slice: RED→GREEN, ful
 ## Event sharing (host: app.flowgroove.app)
 - [x] GH-186-URL central base-URL helper (lib/utils/event_share_url.dart)
 - [x] GH-189 L1 canonical URL (hash form kept, origin app.flowgroove.app) · [ ] L2 assetlinks · L3 iOS entitlement · L4 hosting AASA
-- [ ] GH-187 proposals wiring (I2, U, U2 needs owner policy)
+- [x] GH-187 proposals wiring: S1 80794e78 (candidates backend) · S2/S3 0eb9a29b (publisher toggles, guest picker) · S4 (typed proposals in inbox) — owner policy: publisher-picked list. NOT deployed (needs functions+rules deploy)
 
 ## GH-179 remaining
 - [x] REC-S3 9f31bd30 · REC-S6 2ebb6b5a · REC-S6-F fe5ed3c2 · [ ] LAB aggregate · TUNER-I aggregate
