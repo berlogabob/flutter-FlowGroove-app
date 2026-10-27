@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/auth/auth_provider.dart';
 import '../services/analytics_service.dart';
 import '../theme/mono_pulse_theme.dart';
+import 'support_sheet.dart';
 import 'user_avatar.dart';
 
 /// One row in an [showAppMenuSheet] bottom sheet.
@@ -106,6 +107,14 @@ Future<void> showAppMenuSheet(
                         Divider(height: 1, color: sheetContext.mp.borderSubtle),
                         _ProfileRow(ref: ref, sheetContext: sheetContext),
                         _SettingsRow(sheetContext: sheetContext),
+                        _AppMenuRow(
+                          sheetContext: sheetContext,
+                          item: AppMenuItem(
+                            icon: Icons.help_outline,
+                            label: 'Support',
+                            onTap: () => showSupportSheet(context),
+                          ),
+                        ),
                       ],
                     ],
                   ),

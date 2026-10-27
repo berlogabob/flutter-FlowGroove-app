@@ -1,12 +1,12 @@
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
-import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/unified_item/song_card_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,6 +67,72 @@ void main() {
 
     setUp(() {
       mockUser = createTestUser();
+    });
+
+    testWidgets('four roots expose the same global More items', (tester) async {
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/home',
+        overrides: [
+          ...overridesFor(songs: Stream.value([])),
+          setlistsProvider.overrideWith(
+            (ref) => Stream<List<Setlist>>.value([]),
+          ),
+          guestEventsProvider.overrideWith(
+            (ref) => Stream<List<Setlist>>.value([]),
+          ),
+        ],
+      );
+      for (final tab in ['Home', 'Songs', 'Bands', 'Setlists']) {
+        await tester.tap(find.text(tab));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('More'));
+        await tester.pumpAndSettle();
+        expect(
+          tester
+              .widgetList<ListTile>(find.byType(ListTile))
+              .map((tile) => (tile.title! as Text).data)
+              .toList(),
+          [
+            'Metronome',
+            'Tuner',
+            'Recorder',
+            'Progress / history',
+            'Test User',
+            'Settings',
+            'Support',
+          ],
+        );
+        Navigator.of(tester.element(find.text('Support'))).pop();
+        await tester.pumpAndSettle();
+      }
+    });
+
+    testWidgets('empty library disables duplicate search and CSV export', (
+      tester,
+    ) async {
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream.value([])),
+      );
+      await tester.tap(find.byTooltip('Library actions'));
+      await tester.pumpAndSettle();
+      for (final label in ['Find duplicates', 'Export to CSV']) {
+        expect(
+          tester
+              .widget<PopupMenuItem<VoidCallback>>(
+                find.ancestor(
+                  of: find.text(label),
+                  matching: find.byType(PopupMenuItem<VoidCallback>),
+                ),
+              )
+              .enabled,
+          isFalse,
+        );
+      }
+      expect(find.text('Browse catalog'), findsOneWidget);
+      expect(find.text('Import from CSV'), findsOneWidget);
     });
 
     testWidgets('renders songs list screen with title and search', (
@@ -414,7 +480,7 @@ void main() {
     });
 
     testWidgets(
-      'root menu survives the branch first mounting under a child route',
+      'library actions survive the branch first mounting under a child route',
       (tester) async {
         // Regression (device 2026-07-16): entering the songs branch for the
         // first time BELOW its root (e.g. Practice → a song's Lab) made the
@@ -433,7 +499,7 @@ void main() {
         // Back to the songs root, open the bottom-bar menu.
         await tester.tap(find.byIcon(Icons.arrow_back));
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.more_horiz));
+        await tester.tap(find.byTooltip('Library actions'));
         await tester.pumpAndSettle();
 
         expect(find.text('Find duplicates'), findsOneWidget);
@@ -469,14 +535,14 @@ void main() {
       expect(find.text('route:add-song'), findsOneWidget);
     });
 
-    testWidgets('opens CSV import dialog from app bar menu', (tester) async {
+    testWidgets('opens CSV import dialog from library actions', (tester) async {
       await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/songs',
         overrides: overridesFor(songs: Stream<List<Song>>.value([])),
       );
 
-      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.tap(find.byTooltip('Library actions'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Import from CSV'));
       await tester.pump();
@@ -487,7 +553,7 @@ void main() {
       expect(find.text('Paste from clipboard'), findsOneWidget);
     });
 
-    testWidgets('opens CSV export dialog from app bar menu', (tester) async {
+    testWidgets('opens CSV export dialog from library actions', (tester) async {
       final songs = [
         createTestSong(id: '1', title: 'Song One', artist: 'Artist One'),
       ];
@@ -498,7 +564,7 @@ void main() {
         overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
       );
 
-      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.tap(find.byTooltip('Library actions'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Export to CSV'));
       await tester.pump();

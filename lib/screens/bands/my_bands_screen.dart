@@ -14,7 +14,6 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
-import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
@@ -236,18 +235,6 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     return StandardScreenScaffold(
       title: 'My Bands',
       showBackButton: false, // Hide back button for main tabs
-      menuItems: [
-        AppMenuItem(
-          icon: Icons.add,
-          label: 'Create Band',
-          onTap: () => context.goNamed('create-band'),
-        ),
-        AppMenuItem(
-          icon: Icons.group_add_outlined,
-          label: 'Join band',
-          onTap: () => context.pushNamed('join-band'),
-        ),
-      ],
       floatingActionButton: SingleFab(
         icon: Icons.add,
         tooltip: 'Create band',
@@ -326,6 +313,12 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
             ),
           ),
         ],
+        if (bands.isNotEmpty)
+          OutlinedButton.icon(
+            icon: const Icon(Icons.group_add_outlined),
+            label: const Text('Join band'),
+            onPressed: () => context.pushNamed('join-band'),
+          ),
         // Unified filter/sort widget
         Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),

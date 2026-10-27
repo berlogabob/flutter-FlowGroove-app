@@ -98,7 +98,7 @@ class AppBottomBar extends StatelessWidget {
             item: const (
               icon: Icons.more_horiz,
               selectedIcon: Icons.more_horiz,
-              label: 'Menu',
+              label: 'More',
             ),
             selected: menuSelected,
             showBadge: menuHasBadge,

@@ -14,7 +14,6 @@ import '../../services/export/setlist_export_sheet.dart';
 import '../../services/export/setlist_share.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
-import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
@@ -189,14 +188,6 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     return StandardScreenScaffold(
       title: 'Setlists',
       showBackButton: false, // Hide back button for main tabs
-      menuItems: [
-        if (canEdit)
-          AppMenuItem(
-            icon: Icons.playlist_add,
-            label: 'Create Setlist',
-            onTap: () => context.goNamed('create-setlist'),
-          ),
-      ],
       floatingActionButton: canEdit
           ? SingleFab(
               icon: Icons.add,

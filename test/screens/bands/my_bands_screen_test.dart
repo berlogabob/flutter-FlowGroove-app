@@ -163,7 +163,9 @@ void main() {
       expect(find.text('route:join-band'), findsOneWidget);
     });
 
-    testWidgets('navigates to join band from the screen menu', (tester) async {
+    testWidgets('navigates to join band from the populated list', (
+      tester,
+    ) async {
       await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/bands',
@@ -174,8 +176,6 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byIcon(Icons.more_horiz));
-      await tester.pumpAndSettle();
       await tester.tap(find.text('Join band'));
       await tester.pumpAndSettle();
 

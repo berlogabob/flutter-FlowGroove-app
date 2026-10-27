@@ -9,7 +9,7 @@ import '../widgets/demo_mode_banner.dart';
 import '../widgets/menu_items_scope.dart';
 
 /// The 4 branch tabs shown in root mode. Profile isn't a tab — its slot is
-/// replaced by Menu (tapping Menu opens a sheet with a Profile row instead of
+/// replaced by More (tapping More opens a sheet with a Profile row instead of
 /// navigating there directly); the branch itself (index 4) is still reached
 /// via that row, or by any `context.go('/main/profile')` elsewhere.
 const List<AppNavItem> _tabs = [
@@ -43,9 +43,8 @@ const List<String> _branchRootLocations = [
 ///
 /// The bottom bar has two mutually exclusive modes (see [AppBottomBar]):
 /// - Root mode (on one of the 5 branch roots): the Home/Songs/Bands/Setlists
-///   tabs plus a Menu slot. Menu replaces the old Profile tab; it opens a
-///   bottom sheet (never navigates) with the current screen's contextual
-///   actions plus a Profile row.
+///   tabs plus a More slot, which opens the same global tools, Profile,
+///   Settings, and Support sheet from every root.
 /// - Pushed mode (any pushed route inside the shell — a branch child like
 ///   edit-song): `[← Back] [screen title] [⋮ Menu]`.
 ///
@@ -81,13 +80,6 @@ class _MainShellState extends ConsumerState<MainShell> {
       context,
     )?.routerDelegate.currentConfiguration.uri.toString();
     return uri != null && !_branchRootLocations.contains(uri);
-  }
-
-  String get _branchRoot {
-    final i = widget.navigationShell.currentIndex;
-    return i >= 0 && i < _branchRootLocations.length
-        ? _branchRootLocations[i]
-        : _branchRootLocations.first;
   }
 
   @override
@@ -187,10 +179,10 @@ class _MainShellState extends ConsumerState<MainShell> {
               Padding(
                 padding: const EdgeInsets.only(bottom: MonoPulseSpacing.lg),
                 child: NavTab(
-                  item: const (
+                  item: (
                     icon: Icons.more_horiz,
                     selectedIcon: Icons.more_horiz,
-                    label: 'Menu',
+                    label: _pushed ? 'Menu' : 'More',
                   ),
                   selected: !_pushed && safeIndex == 4,
                   showBadge: _currentMenu()?.items.isNotEmpty ?? false,
@@ -237,20 +229,38 @@ class _MainShellState extends ConsumerState<MainShell> {
             branch,
             roots: _branchRootLocations.toSet(),
           )
-        : MenuScopeRegistry.forLocation(_branchRoot);
+        : null;
   }
 
   void _openMenu(BuildContext context) {
     final entry = _currentMenu();
-    // Use a screen's contextual title only when it actually contributes menu
-    // items (e.g. Songs → "Browse catalog"…). A title-only entry like the Home
-    // root is just the app menu, so it reads as "Menu" — not "Home", which
-    // looked like the wrong location (UX audit F-003).
-    final hasItems = entry != null && entry.items.isNotEmpty;
     showAppMenuSheet(
       context,
-      title: hasItems ? entry.title : 'Menu',
-      items: entry?.items ?? const [],
+      title: _pushed ? (entry?.title ?? 'Menu') : 'More',
+      items: _pushed
+          ? (entry?.items ?? const [])
+          : [
+              AppMenuItem(
+                icon: Icons.timer_outlined,
+                label: 'Metronome',
+                onTap: () => context.pushNamed('metronome'),
+              ),
+              AppMenuItem(
+                icon: Icons.tune,
+                label: 'Tuner',
+                onTap: () => context.pushNamed('tuner'),
+              ),
+              AppMenuItem(
+                icon: Icons.mic_outlined,
+                label: 'Recorder',
+                onTap: () => context.pushNamed('recorder'),
+              ),
+              AppMenuItem(
+                icon: Icons.history,
+                label: 'Progress / history',
+                onTap: () => context.pushNamed('practice'),
+              ),
+            ],
       showProfileRow: !_pushed,
       ref: ref,
     );

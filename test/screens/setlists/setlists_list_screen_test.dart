@@ -4,10 +4,10 @@ import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flowgroove/screens/setlists/setlists_list_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../helpers/mocks.dart';
 import '../../helpers/routed_test_harness.dart';
@@ -121,6 +121,15 @@ void main() {
         ],
       );
       expect(find.byType(FloatingActionButton), findsNothing);
+      await tester.tap(find.text('More'));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text('Create Setlist'),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('displays empty state when no setlists exist', (tester) async {
