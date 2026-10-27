@@ -36,6 +36,8 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   ClippingAudioSourceMessage? clip;
   LoopModeMessage? loopMode;
   int playCalls = 0;
+  int pauseCalls = 0;
+  int loadCalls = 0;
 
   static const duration = Duration(seconds: 20);
 
@@ -57,6 +59,7 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
 
   @override
   Future<LoadResponse> load(LoadRequest request) async {
+    loadCalls++;
     var source = request.audioSourceMessage;
     if (source is ConcatenatingAudioSourceMessage) {
       source = source.children.single;
@@ -80,7 +83,10 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   }
 
   @override
-  Future<PauseResponse> pause(PauseRequest request) async => PauseResponse();
+  Future<PauseResponse> pause(PauseRequest request) async {
+    pauseCalls++;
+    return PauseResponse();
+  }
 
   // just_audio configures the player on every activation and the base class
   // throws for anything unimplemented, which would fail the load before it
@@ -283,27 +289,133 @@ void main() {
     expect(audio.players.values.single.playCalls, 0);
   });
 
-  testWidgets('Split at ten seconds saves two regions and opens naming', (
+  testWidgets(
+    'Add marker saves an unnamed boundary without interrupting play',
+    (tester) async {
+      // Snap to an exact boundary even as playback advances during settling.
+      const grid = AudioGrid(bpm: 120, offsetMs: 240);
+      await pump(tester, _entry(regions: const [], grid: grid));
+      final player = audio.players.values.single;
+      await tester.tap(find.byTooltip('Play'));
+      await settleAudio(tester);
+      player
+        ..position = const Duration(seconds: 10)
+        ..emit();
+      await settleAudio(tester);
+
+      final loads = player.loadCalls;
+      final pauses = player.pauseCalls;
+      await tester.tap(find.text('Add marker'));
+      await settleAudio(tester);
+      expect(repo.saved, hasLength(1));
+      expect(repo.saved.single.regions, hasLength(2));
+      final boundaryMs = grid.snap(
+        10000,
+        durationMs: _FakeAudioPlayer.duration.inMilliseconds,
+      );
+      expect(repo.saved.single.regions[0].endMs, boundaryMs);
+      expect(repo.saved.single.regions[1].startMs, boundaryMs);
+      expect(repo.saved.single.regions[1].name, isEmpty);
+      expect(find.text('Unnamed'), findsNWidgets(2));
+      expect(find.text('Region name'), findsNothing);
+      expect(find.byTooltip('Pause'), findsOneWidget);
+      expect(player.loadCalls, loads);
+      expect(player.pauseCalls, pauses);
+
+      final region = find.byKey(ValueKey(repo.saved.single.regions[1].id));
+      await tester.tap(
+        find.descendant(of: region, matching: find.byTooltip('Edit region')),
+      );
+      await settleAudio(tester);
+      expect(find.text('Region name'), findsOneWidget);
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Chorus'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await settleAudio(tester);
+      expect(repo.saved.last.regions[1].name, 'Chorus');
+    },
+  );
+
+  testWidgets('Markers lists boundaries and deletes into the left region', (
     tester,
   ) async {
-    await pump(tester, _entry(regions: const []));
-    final player = audio.players.values.single;
-    player
-      ..position = const Duration(seconds: 10)
-      ..emit();
+    await pump(tester, _entry());
+    await tester.tap(find.text('Markers'));
     await settleAudio(tester);
+    expect(find.text('M1'), findsOneWidget);
+    expect(find.text('00:10.000'), findsOneWidget);
+    expect(find.text('M2'), findsNothing);
 
-    await tester.tap(find.text('Split'));
+    await tester.tap(find.byTooltip('Delete marker'));
     await settleAudio(tester);
-    expect(repo.saved, hasLength(1));
-    expect(repo.saved.single.regions, hasLength(2));
-    expect(repo.saved.single.regions[0].endMs, 10000);
-    expect(repo.saved.single.regions[1].startMs, 10000);
-    expect(find.text('Region name'), findsOneWidget);
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Chorus'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    expect(find.text('M1'), findsNothing);
+    final merged = repo.saved.single.regions.single;
+    expect(merged.id, 'verse');
+    expect(merged.name, 'Verse 2');
+    expect((merged.startMs, merged.endMs), (0, 20000));
+  });
+
+  testWidgets('marker outside the loop clears the clip before seeking', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      _entry(
+        regions: const [
+          AudioRegion(id: 'intro', name: 'Intro', startMs: 0, endMs: 5000),
+          AudioRegion(id: 'verse', name: 'Verse', startMs: 5000, endMs: 10000),
+          AudioRegion(
+            id: 'chorus',
+            name: 'Chorus',
+            startMs: 10000,
+            endMs: 20000,
+          ),
+        ],
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('chorus')));
     await settleAudio(tester);
-    expect(repo.saved.last.regions[1].name, 'Chorus');
+    await tester.tap(find.text('Markers'));
+    await settleAudio(tester);
+    await tester.tap(find.text('M1'));
+    await settleAudio(tester);
+    final player = audio.players.values.single;
+    expect(player.clip, isNull);
+    expect(player.loopMode, LoopModeMessage.off);
+    expect(player.position, const Duration(seconds: 5));
+    expect(find.textContaining('Looping'), findsNothing);
+    expect(repo.saved, isEmpty);
+  });
+
+  testWidgets('Regions row highlights the same loop as the timeline', (
+    tester,
+  ) async {
+    await pump(tester, _entry());
+    await tester.tap(find.text('Markers'));
+    await settleAudio(tester);
+    await tester.tap(find.text('Regions'));
+    await settleAudio(tester);
+    final row = find.byKey(const ValueKey('verse'));
+    await tester.tap(row);
+    await settleAudio(tester);
+    final tile = tester.widget<ListTile>(row);
+    expect(tile.selected, isTrue);
+    expect(tile.selectedTileColor, isNotNull);
+    expect(find.text('Looping Verse 2').hitTestable(), findsOneWidget);
+    final player = audio.players.values.single;
+    expect(player.clip?.start, Duration.zero);
+    expect(player.clip?.end, const Duration(seconds: 10));
+
+    final timeline = find.byWidgetPredicate(
+      (widget) =>
+          widget is CustomPaint &&
+          widget.painter.runtimeType.toString() == '_RegionsPainter',
+    );
+    final rect = tester.getRect(timeline);
+    await tester.tapAt(Offset(rect.left + rect.width / 4, rect.center.dy));
+    await settleAudio(tester);
+    expect(tester.widget<ListTile>(row).selected, isFalse);
+    expect(player.clip, isNull);
+    expect(find.textContaining('Looping'), findsNothing);
   });
 
   testWidgets('selecting adjacent regions loops both names', (tester) async {
@@ -312,7 +424,7 @@ void main() {
     await settleAudio(tester);
     await tester.tap(find.byKey(const ValueKey('chorus')));
     await settleAudio(tester);
-    expect(find.text('Looping Verse 2 → Chorus'), findsOneWidget);
+    expect(find.text('Looping Verse 2 → Chorus').hitTestable(), findsOneWidget);
     final player = audio.players.values.single;
     expect(player.clip?.start, Duration.zero);
     expect(player.clip?.end, const Duration(seconds: 20));
@@ -345,14 +457,18 @@ void main() {
     await pump(tester, _entry(), demo: true);
     expect(
       tester
-          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Split'))
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Add marker'))
           .onPressed,
       isNull,
     );
-    expect(find.byType(PopupMenuButton<String>), findsNothing);
+    expect(find.byTooltip('Edit region'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('verse')));
     await settleAudio(tester);
-    expect(find.text('Looping Verse 2'), findsOneWidget);
+    expect(find.text('Looping Verse 2').hitTestable(), findsOneWidget);
+    await tester.tap(find.text('Markers'));
+    await settleAudio(tester);
+    expect(find.text('M1'), findsOneWidget);
+    expect(find.byTooltip('Delete marker'), findsNothing);
     expect(repo.saved, isEmpty);
   });
 

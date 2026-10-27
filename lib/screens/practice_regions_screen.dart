@@ -69,6 +69,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Duration _position = Duration.zero;
   bool _playing = false;
   bool _loaded = false;
+  bool _showMarkers = false;
   late bool _snap;
   double _speed = 1;
   int _preRoll = 0;
@@ -353,6 +354,24 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     ),
   );
 
+  Future<void> _seekMarker(int ms) async {
+    if (_clipEnd != null && (ms < _clipStart || ms >= _clipEnd!)) {
+      _flushSession();
+      setState(() => _selection = null);
+      await _applyLoop();
+      if (!mounted) return;
+      if (_sync) _syncLaunch(startIfStopped: false);
+    }
+    await _seekTo(ms);
+  }
+
+  void _toggleRegion(int index) {
+    _flushSession();
+    setState(() => _selection = toggleSelection(_selection, index));
+    if (_sync) _syncLaunch(startIfStopped: false);
+    unawaited(_applyLoop());
+  }
+
   // --- click & drums ----------------------------------------------------
 
   /// Launchable spans: each region, the whole song, and the selected run.
@@ -490,7 +509,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
-  Future<void> _split() async {
+  Future<void> _addMarker() async {
     if (!_canEdit) return;
     final at = _snapped(_positionMs);
     final regions = splitRegions(
@@ -500,9 +519,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       newId: () => '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}',
     );
     if (identical(regions, _entry.regions)) return;
-    final right = regions.firstWhere((region) => region.startMs == at);
     await _changeRegions(regions);
-    if (mounted) await _rename(right.id);
   }
 
   Future<void> _rename(String id) async {
@@ -669,6 +686,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   String _name(AudioRegion region) =>
       region.name.isEmpty ? 'Unnamed' : region.name;
   String _time(int ms) => formatTimestamp(ms, padMinutes: false);
+  String _preciseTime(int ms) =>
+      '${formatTimestamp(ms)}.${(ms % 1000).toString().padLeft(3, '0')}';
 
   @override
   Widget build(BuildContext context) {
@@ -719,53 +738,75 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               ),
               FilledButton.icon(
                 onPressed: canEdit && _loaded && _durationMs >= 2 * minRegionMs
-                    ? _split
+                    ? _addMarker
                     : null,
-                icon: const Icon(Icons.content_cut),
-                label: const Text('Split'),
+                icon: const Icon(Icons.add_location_alt_outlined),
+                label: const Text('Add marker'),
               ),
             ],
           ),
-          for (var i = 0; i < regions.length; i++)
-            ListTile(
-              key: ValueKey(regions[i].id),
-              title: Text(_name(regions[i])),
-              subtitle: Text(
-                '${_time(regions[i].startMs)}–${_time(regions[i].endMs)}'
-                '${grid == null ? '' : ' · bars ${grid.barAt(regions[i].startMs).round() + 1}–${grid.barAt(regions[i].endMs).round() + 1}'}',
+          if (selection != null)
+            Text(
+              'Looping ${_name(regions[selection.$1])}'
+              '${selection.$1 == selection.$2 ? '' : ' → ${_name(regions[selection.$2])}'}',
+              style: MonoPulseTypography.bodyMedium.copyWith(
+                color: MonoPulseColors.accentOrange,
               ),
-              selected:
-                  selection != null && i >= selection.$1 && i <= selection.$2,
-              selectedTileColor: MonoPulseColors.accentOrange.withValues(
-                alpha: 0.18,
-              ),
-              onTap: () {
-                _flushSession();
-                setState(() => _selection = toggleSelection(_selection, i));
-                if (_sync) _syncLaunch(startIfStopped: false);
-                unawaited(_applyLoop());
-              },
-              trailing: canEdit
-                  ? PopupMenuButton<String>(
-                      onSelected: (action) {
-                        if (action == 'rename') {
-                          unawaited(_rename(regions[i].id));
-                        } else {
-                          unawaited(
-                            _changeRegions(mergeRegion(_entry.regions, i)),
-                          );
-                        }
-                      },
-                      itemBuilder: (_) => const [
-                        PopupMenuItem(value: 'rename', child: Text('Rename')),
-                        PopupMenuItem(
-                          value: 'remove',
-                          child: Text('Remove boundary'),
-                        ),
-                      ],
-                    )
-                  : null,
             ),
+          const SizedBox(height: MonoPulseSpacing.md),
+          SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(value: true, label: Text('Markers')),
+              ButtonSegment(value: false, label: Text('Regions')),
+            ],
+            selected: {_showMarkers},
+            onSelectionChanged: (value) =>
+                setState(() => _showMarkers = value.single),
+          ),
+          if (_showMarkers)
+            for (var i = 0; i < regions.length - 1; i++)
+              ListTile(
+                title: Text('M${i + 1}'),
+                subtitle: Text(_preciseTime(regions[i].endMs)),
+                onTap: () => _seekMarker(regions[i].endMs),
+                trailing: canEdit
+                    ? IconButton(
+                        tooltip: 'Delete marker',
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () =>
+                            _changeRegions(mergeRegion(regions, i + 1)),
+                      )
+                    : null,
+              )
+          else
+            for (var i = 0; i < regions.length; i++)
+              ListTile(
+                key: ValueKey(regions[i].id),
+                leading: Icon(
+                  Icons.circle,
+                  color: MonoPulseColors.sectionColors[i % 6],
+                  size: 12,
+                ),
+                title: Text(_name(regions[i])),
+                subtitle: Text(
+                  '${_preciseTime(regions[i].startMs)}–${_preciseTime(regions[i].endMs)}'
+                  ' · ${_preciseTime(regions[i].lengthMs)}'
+                  '${grid == null ? '' : ' · bars ${grid.barAt(regions[i].startMs).round() + 1}–${grid.barAt(regions[i].endMs).round() + 1}'}',
+                ),
+                selected:
+                    selection != null && i >= selection.$1 && i <= selection.$2,
+                selectedTileColor: MonoPulseColors.accentOrange.withValues(
+                  alpha: 0.18,
+                ),
+                onTap: () => _toggleRegion(i),
+                trailing: canEdit
+                    ? IconButton(
+                        tooltip: 'Edit region',
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: () => _rename(regions[i].id),
+                      )
+                    : null,
+              ),
           const SizedBox(height: MonoPulseSpacing.md),
           Text(
             'Speed ${(_speed * 100).round()}%',
@@ -799,14 +840,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 ),
             ],
           ),
-          if (selection != null)
-            Text(
-              'Looping ${_name(regions[selection.$1])}'
-              '${selection.$1 == selection.$2 ? '' : ' → ${_name(regions[selection.$2])}'}',
-              style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.accentOrange,
-              ),
-            ),
           const SizedBox(height: MonoPulseSpacing.md),
           Card(
             color: context.mp.surface,
@@ -916,10 +949,20 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTapUp: _loaded && _durationMs > 0
-                      ? (details) => _seekTo(
-                          (details.localPosition.dx / width * _durationMs)
-                              .round(),
-                        )
+                      ? (details) {
+                          final ms =
+                              (details.localPosition.dx / width * _durationMs)
+                                  .round();
+                          final index = _entry.regions.indexWhere(
+                            (region) =>
+                                ms >= region.startMs && ms < region.endMs,
+                          );
+                          if (index >= 0) {
+                            _toggleRegion(index);
+                          } else {
+                            unawaited(_seekTo(ms));
+                          }
+                        }
                       : null,
                   child: CustomPaint(
                     painter: _RegionsPainter(
