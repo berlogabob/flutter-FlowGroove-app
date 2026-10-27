@@ -9,7 +9,7 @@ import '../services/pending_storage_deletes.dart';
 /// Firestore access for Song Lab subcollections (#66) under a song doc:
 /// `labEntries`, `tasks`, `versions` — for personal songs
 /// (`users/{uid}/songs/{songId}`) and band songs
-/// (`bands/{bandId}/songs/{songId}`), selected by [bandId].
+/// (`bands/{bandId}/songs/{songId}`), selected by `bandId`.
 ///
 /// ponytail: single concrete class, no interface — one implementation exists.
 class FirestoreLabRepository {
@@ -59,6 +59,24 @@ class FirestoreLabRepository {
           .map(
             (s) => s.docs.map((d) => SongLabEntry.fromJson(d.data())).toList(),
           );
+
+  /// Reconciles uncertain writes against the server; errors are not absence.
+  Future<SongLabEntry?> readEntryFromServer(
+    String songId,
+    String entryId, {
+    String? bandId,
+  }) async {
+    final snapshot = await _songDoc(songId, bandId: bandId)
+        .collection('labEntries')
+        .doc(entryId)
+        .get(const GetOptions(source: Source.server));
+    // Source.server still overlays local pending writes (latency compensation).
+    if (snapshot.metadata.hasPendingWrites || snapshot.metadata.isFromCache) {
+      throw StateError('Entry is not confirmed by the server');
+    }
+    if (!snapshot.exists) return null;
+    return SongLabEntry.fromJson(snapshot.data()!);
+  }
 
   Future<void> saveEntry(SongLabEntry entry, {String? bandId}) async {
     final url = entry.midiSong?.fileUrl;

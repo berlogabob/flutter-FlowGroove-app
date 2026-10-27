@@ -65,8 +65,9 @@ Future<void> captureIdea(
   );
   if (result == null || !authorized()) return;
   final entryId = _uuid.v4();
+  final String url;
   try {
-    final url = await ref
+    url = await ref
         .read(storageServiceProvider)
         .uploadLabAudio(
           result.bytes,
@@ -82,39 +83,95 @@ Future<void> captureIdea(
             _ => 'audio/mp4',
           },
         );
-    if (!authorized()) return;
-    final now = DateTime.now();
-    await ref
-        .read(labRepositoryProvider)
-        .saveEntry(
-          SongLabEntry(
-            id: entryId,
-            songId: targetSongId,
-            bandId: targetBandId,
-            type: LabEntryType.recording,
-            title: result.title,
-            body: result.notes,
-            authorId: uid!,
-            createdAt: now,
-            updatedAt: now,
-            attachmentIds: [url],
-            peaks: result.peaks,
-          ),
-          bandId: targetBandId,
-        );
-    if (!authorized()) return;
+  } catch (_) {
+    if (context.mounted && authorized()) {
+      showAppSnackBar(context, "Couldn't upload the recording");
+    }
+    return;
+  }
+  if (!authorized()) return;
+  final now = DateTime.now();
+  final entry = SongLabEntry(
+    id: entryId,
+    songId: targetSongId,
+    bandId: targetBandId,
+    type: LabEntryType.recording,
+    title: result.title,
+    body: result.notes,
+    authorId: uid!,
+    createdAt: now,
+    updatedAt: now,
+    attachmentIds: [url],
+    peaks: result.peaks,
+  );
+  // Offline Firestore writes can stay pending indefinitely.
+  const confirmationTimeout = Duration(seconds: 10);
+  var busy = false;
+
+  void saved() {
     unawaited(
       AnalyticsService.logLabEntryAdded(type: LabEntryType.recording.name),
     );
-    if (context.mounted && songId == null) {
+    if (songId == null) {
       showAppSnackBar(
         context,
         'Saved — link it to a song from the Recorder list',
       );
     }
-  } catch (e) {
-    if (context.mounted) showAppSnackBar(context, 'Upload failed: $e');
   }
+
+  Future<void> attempt({bool reconcileOnly = false}) async {
+    if (busy || !authorized()) return;
+    busy = true;
+    try {
+      if (!reconcileOnly) {
+        try {
+          await ref
+              .read(labRepositoryProvider)
+              .saveEntry(entry, bandId: targetBandId)
+              .timeout(confirmationTimeout);
+          if (!authorized()) return;
+          saved();
+          return;
+        } catch (_) {
+          if (!authorized()) return;
+        }
+      }
+      // A thrown/timed-out write may still have committed. Keep its audio and
+      // identity, and never infer absence from cache or a failed server read.
+      final SongLabEntry? confirmed;
+      try {
+        confirmed = await ref
+            .read(labRepositoryProvider)
+            .readEntryFromServer(targetSongId, entryId, bandId: targetBandId)
+            .timeout(confirmationTimeout);
+      } catch (_) {
+        if (!context.mounted || !authorized()) return;
+        showAppSnackBar(
+          context,
+          'Not confirmed — check connection',
+          actionLabel: 'Retry',
+          onAction: () => unawaited(attempt(reconcileOnly: true)),
+        );
+        return;
+      }
+      if (!context.mounted || !authorized()) return;
+      if (confirmed != null) {
+        saved();
+      } else {
+        showAppSnackBar(
+          context,
+          'Recording uploaded but not saved yet',
+          actionLabel: 'Retry',
+          onAction: () => unawaited(attempt()),
+        );
+      }
+    } finally {
+      busy = false;
+    }
+  }
+
+  await attempt();
 }
 
 /// Links an inbox idea to a song: same entry (and id — the Storage object
