@@ -1,4 +1,5 @@
 import 'package:flowgroove/models/audio_region.dart';
+import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -138,5 +139,37 @@ void main() {
     expect(back.grid!.beatsPerBar, 3);
     expect(back.regions.single.name, 'Chorus');
     expect(back.regions.single.sectionId, 'sec1');
+  });
+
+  group('linkToSongMap', () {
+    const regions = [
+      AudioRegion(id: 'a', name: 'Intro', startMs: 0, endMs: 1000),
+      AudioRegion(id: 'b', name: 'Chorus', startMs: 1000, endMs: 2000),
+      AudioRegion(id: 'c', name: '', startMs: 2000, endMs: 3000),
+      AudioRegion(id: 'd', name: 'chorus', startMs: 3000, endMs: 4000),
+    ];
+
+    test('builds a map in play order when the song has none', () {
+      final r = linkToSongMap(regions, const [], newId: id);
+      expect(r.created!.map((s) => s.name), ['Intro', 'Chorus', 'chorus']);
+      expect(r.regions[2].sectionId, isNull);
+      expect([
+        r.regions[0].sectionId,
+        r.regions[1].sectionId,
+        r.regions[3].sectionId,
+      ], r.created!.map((s) => s.id).toList());
+    });
+
+    test('links the n-th occurrence and never rewrites an existing map', () {
+      final sections = [
+        Section(id: 's1', name: 'Chorus'),
+        Section(id: 's2', name: 'Verse'),
+        Section(id: 's3', name: 'Chorus'),
+      ];
+      final r = linkToSongMap(regions, sections, newId: id);
+      expect(r.created, isNull);
+      expect(r.regions.map((x) => x.sectionId), [null, 's1', null, 's3']);
+      expect(r.unmatched, 1); // Intro has no counterpart
+    });
   });
 }

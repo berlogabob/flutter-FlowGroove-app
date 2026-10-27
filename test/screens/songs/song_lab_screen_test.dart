@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/widgets/standard_screen_scaffold.dart';
@@ -620,6 +621,41 @@ void main() {
       expect(find.text('Add task'), findsNothing);
       expect(repo.tasks, isEmpty);
     });
+    testWidgets('recording with regions links them to the song map', (
+      tester,
+    ) async {
+      final repo = await pump(tester);
+      await repo.saveEntry(
+        SongLabEntry(
+          id: 'audio',
+          songId: song.id,
+          type: LabEntryType.recording,
+          title: 'Flor demo',
+          authorId: 'u1',
+          attachmentIds: const ['audio-url'],
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+          regions: const [
+            AudioRegion(id: 'r1', name: 'verse', startMs: 0, endMs: 4000),
+            AudioRegion(id: 'r2', name: 'Chorus', startMs: 4000, endMs: 8000),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('2 regions'), findsOneWidget);
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      expect(find.text('Practice regions'), findsOneWidget);
+      await tester.tap(find.text('Use as song map'));
+      await tester.pumpAndSettle();
+      final saved = repo.entries.single.regions;
+      expect(saved.map((r) => r.sectionId), ['sec1', null]);
+      expect(
+        find.text('Linked; 1 region has no matching section'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('shows Add menu and empty state', (tester) async {
       await pump(tester);
 

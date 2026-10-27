@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-26T09:01:04.532592+00:00",
+  "updated_at": "2026-10-27T19:03:44.640811+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -640,6 +640,28 @@
         "NEW-003-R",
         "NEW-003-I",
         "NEW-003-V"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "PRACTICE-REGIONS",
+      "title": "Practice regions on song audio: remaining work after P1 (a2ac67a4)",
+      "severity": 3,
+      "status": "open",
+      "source": "/Users/berloga/.claude/plans/go-check-what-was-mutable-sketch.md",
+      "evidence_type": "PLAN",
+      "summary": "P1 shipped (split/name/loop/speed/pre-roll/grid). Remaining: entry point, song-map link, imported waveform, drum sync, practice log, device check.",
+      "source_locations": [
+        "lib/screens/practice_regions_screen.dart",
+        "lib/models/audio_region.dart"
+      ],
+      "tasks": [
+        "PR-ENTRY",
+        "PR-MAP",
+        "PR-WAVE",
+        "PR-SYNC",
+        "PR-LOG",
+        "PR-DEVICE"
       ],
       "resolution": null
     }
@@ -7198,6 +7220,127 @@
           "user_status": "Проверяется контекст личной песни со старым bandId; обработка отказа привязки уже принята. Релиз запрещён."
         }
       ]
+    },
+    {
+      "id": "PR-ENTRY",
+      "title": "Song page \"Song audio\" entry opens Practice regions",
+      "status": "review",
+      "executor": "claude",
+      "kind": "implementation",
+      "issue": "PRACTICE-REGIONS",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Song page lists recording entries with regions/imported audio and opens practice-regions; widget test."
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PR-MAP",
+      "title": "Use regions as song map (link/create Song.sections, sectionId)",
+      "status": "review",
+      "executor": "claude",
+      "kind": "implementation",
+      "issue": "PRACTICE-REGIONS",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Unlinked regions match or create Song.sections by name in order; sectionId saved; Section.duration untouched; test."
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PR-WAVE",
+      "title": "Waveform peaks for imported song files",
+      "status": "queued",
+      "executor": "claude",
+      "kind": "implementation",
+      "issue": "PRACTICE-REGIONS",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Imported mp3/m4a/wav gets 200 peaks (web decodeAudioData, wav parser; native path decided); test for wav path."
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PR-SYNC",
+      "title": "Song audio as backing stem locked to drums/click (100% speed, grid files)",
+      "status": "queued",
+      "executor": "claude",
+      "kind": "implementation",
+      "issue": "PRACTICE-REGIONS",
+      "after": [
+        "PR-MAP"
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Decoded PCM loads into BackingMixer with renderBpm=grid.bpm and offset; region loop maps to backingCommand(fromBar,bars,loop); unit test of ms->bar span mapping; device timing check recorded."
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PR-LOG",
+      "title": "Practice log records region loops and reps",
+      "status": "queued",
+      "executor": "claude",
+      "kind": "implementation",
+      "issue": "PRACTICE-REGIONS",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Practice session stores regionId/name and loop reps; Continue card reopens the region; test."
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PR-DEVICE",
+      "title": "Device verification of practice regions (P30 + Chrome, by ear)",
+      "status": "queued",
+      "executor": "owner",
+      "kind": "verification",
+      "issue": "PRACTICE-REGIONS",
+      "after": [
+        "PR-ENTRY",
+        "PR-MAP",
+        "PR-WAVE",
+        "PR-LOG"
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Owner confirms loop seam, 70% speed, two-region transition, band sharing on second account."
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
     }
   ],
   "worker_lanes": {

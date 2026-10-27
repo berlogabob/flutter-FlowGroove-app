@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../models/audio_region.dart';
 import '../../models/band.dart';
 import '../../models/song.dart';
 import '../../models/song_lab.dart';
@@ -196,6 +197,47 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
       );
     } finally {
       if (mounted) setState(() => _importingMidi = false);
+    }
+  }
+
+  /// Links the take's named regions to the song's structure (building one
+  /// when the song has none), so the drums and launchpad can share the map.
+  Future<void> _useAsSongMap(SongLabEntry entry) async {
+    if (!_canEditNow()) return;
+    final song = widget.song;
+    final result = linkToSongMap(entry.regions, song.sections, newId: _uuid.v4);
+    try {
+      if (result.created case final sections?) {
+        final updated = song.copyWith(sections: sections);
+        final repo = ref.read(songRepositoryProvider);
+        if (widget.bandId case final b?) {
+          await repo.updateBandSong(updated, b);
+        } else {
+          await repo.updateSong(
+            updated,
+            uid: ref.read(currentUserProvider).value?.uid,
+          );
+        }
+      }
+      await ref
+          .read(labRepositoryProvider)
+          .saveEntry(
+            entry.copyWith(regions: result.regions),
+            bandId: widget.bandId,
+          );
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        result.created != null
+            ? 'Song map built from ${result.created!.length} regions'
+            : result.unmatched == 0
+            ? 'Regions linked to the song map'
+            : result.unmatched == 1
+            ? 'Linked; 1 region has no matching section'
+            : 'Linked; ${result.unmatched} regions have no matching section',
+      );
+    } catch (e) {
+      if (mounted) showAppSnackBar(context, 'Save failed: $e', error: true);
     }
   }
 
@@ -767,6 +809,8 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
                 _typeLabel(e.type),
                 if (e.status != null) e.status!,
                 if (section.isNotEmpty) section,
+                if (e.regions.isNotEmpty)
+                  '${e.regions.length} region${e.regions.length == 1 ? '' : 's'}',
                 '${e.createdAt.day}/${e.createdAt.month}/${e.createdAt.year}',
               ].join(' · '),
               style: MonoPulseTypography.bodySmall.copyWith(
@@ -781,9 +825,21 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
             'supersede' => _setStatus(e, 'superseded'),
             'accepted' || 'rejected' || 'tried' => _setStatus(e, v),
             'delete' => _delete(e),
+            'practice' => context.goPracticeRegions(e, bandId: widget.bandId),
+            'songmap' => _useAsSongMap(e),
             _ => null,
           },
           itemBuilder: (_) => [
+            if (e.type == LabEntryType.recording && e.attachmentIds.isNotEmpty)
+              const PopupMenuItem(
+                value: 'practice',
+                child: Text('Practice regions'),
+              ),
+            if (canEdit && e.regions.any((r) => r.name.trim().isNotEmpty))
+              const PopupMenuItem(
+                value: 'songmap',
+                child: Text('Use as song map'),
+              ),
             if (canEdit)
               const PopupMenuItem(value: 'edit', child: Text('Edit')),
             if (canEdit &&

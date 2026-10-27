@@ -7,6 +7,8 @@
 /// re-setting the grid never corrupts the regions.
 library;
 
+import 'section.dart';
+
 class AudioGrid {
   const AudioGrid({required this.bpm, this.offsetMs = 0, this.beatsPerBar = 4});
 
@@ -69,7 +71,8 @@ class AudioRegion {
   final int startMs;
   final int endMs;
 
-  /// Link into the song map ([Section.id]); repeated choruses share one.
+  /// Link into the song map ([Section.id]); each occurrence (Chorus 1,
+  /// Chorus 2) is its own section, as in the song's structure list.
   final String? sectionId;
 
   int get lengthMs => endMs - startMs;
@@ -82,12 +85,17 @@ class AudioRegion {
     if (sectionId != null) 'sectionId': sectionId,
   };
 
-  AudioRegion copyWith({String? name, int? startMs, int? endMs}) => AudioRegion(
+  AudioRegion copyWith({
+    String? name,
+    int? startMs,
+    int? endMs,
+    String? sectionId,
+  }) => AudioRegion(
     id: id,
     name: name ?? this.name,
     startMs: startMs ?? this.startMs,
     endMs: endMs ?? this.endMs,
-    sectionId: sectionId,
+    sectionId: sectionId ?? this.sectionId,
   );
 }
 
@@ -175,4 +183,54 @@ List<AudioRegion> mergeRegion(List<AudioRegion> regions, int index) {
   final (a, b) = selection;
   final start = regions[a].startMs - preRollMs;
   return (start < 0 ? 0 : start, regions[b].endMs);
+}
+
+/// Links named regions to the song map ([Song.sections], one entry per
+/// occurrence, in play order).
+///
+/// A song without sections gets one built from the named regions, in order,
+/// with default durations — bars stay on the regions, because whether
+/// `Section.duration` means phrases or bars is still undecided. A song that
+/// already has a structure is never rewritten: the n-th "Chorus" region links
+/// to the n-th "Chorus" section (names compared case-insensitively), and
+/// regions with no counterpart are counted in `unmatched`.
+({List<AudioRegion> regions, List<Section>? created, int unmatched})
+linkToSongMap(
+  List<AudioRegion> regions,
+  List<Section> sections, {
+  required String Function() newId,
+}) {
+  String key(String name) => name.trim().toLowerCase();
+  final build = sections.isEmpty;
+  final created = <Section>[];
+  final seen = <String, int>{};
+  var unmatched = 0;
+  final linked = <AudioRegion>[];
+  for (final r in regions) {
+    if (r.name.trim().isEmpty) {
+      linked.add(r);
+    } else if (build) {
+      final section = Section(id: newId(), name: r.name.trim());
+      created.add(section);
+      linked.add(r.copyWith(sectionId: section.id));
+    } else {
+      final k = key(r.name);
+      final n = seen[k] = (seen[k] ?? 0) + 1;
+      final matches = [
+        for (final s in sections)
+          if (key(s.name) == k) s,
+      ];
+      if (matches.length < n) {
+        unmatched++;
+        linked.add(r);
+      } else {
+        linked.add(r.copyWith(sectionId: matches[n - 1].id));
+      }
+    }
+  }
+  return (
+    regions: linked,
+    created: created.isEmpty ? null : created,
+    unmatched: unmatched,
+  );
 }
