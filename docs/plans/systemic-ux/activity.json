@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-27T19:12:19.222475+00:00",
+  "updated_at": "2026-10-27T19:20:18.682769+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -7281,13 +7281,11 @@
     {
       "id": "PR-SYNC",
       "title": "Song audio as backing stem locked to drums/click (100% speed, grid files)",
-      "status": "queued",
+      "status": "review",
       "executor": "claude",
       "kind": "implementation",
       "issue": "PRACTICE-REGIONS",
-      "after": [
-        "PR-MAP"
-      ],
+      "after": [],
       "timeout_s": null,
       "max_attempts": 1,
       "read_files": [],
@@ -7329,14 +7327,15 @@
         "PR-ENTRY",
         "PR-MAP",
         "PR-WAVE",
-        "PR-LOG"
+        "PR-LOG",
+        "PR-SYNC"
       ],
       "timeout_s": null,
       "max_attempts": 1,
       "read_files": [],
       "allowed_files": [],
       "acceptance": [
-        "Owner confirms loop seam, 70% speed, two-region transition, band sharing on second account."
+        "Owner confirms on P30 + Chrome with a real song file: loop seam, 70% speed, two-region transition, band sharing on a second account, imported mp3 waveform, logbook row, click & drums mode stays in time over 2 min (sox capture within ±5 ms)."
       ],
       "blocked_reason": null,
       "run": null,

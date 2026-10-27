@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/song_lab.dart';
@@ -170,6 +172,34 @@ void main() {
       expect(r.created, isNull);
       expect(r.regions.map((x) => x.sectionId), [null, 's1', null, 's3']);
       expect(r.unmatched, 1); // Intro has no counterpart
+    });
+  });
+
+  group('click sync', () {
+    test('only whole-BPM grids sync', () {
+      expect(canSyncToClick(null), isFalse);
+      expect(canSyncToClick(const AudioGrid(bpm: 120)), isTrue);
+      expect(canSyncToClick(const AudioGrid(bpm: 98.5)), isFalse);
+    });
+
+    test('regionSpans maps regions to bars from the downbeat', () {
+      const grid = AudioGrid(bpm: 120, offsetMs: 1000); // 2000 ms bars
+      final spans = regionSpans(const [
+        AudioRegion(id: 'pickup', name: '', startMs: 0, endMs: 1000),
+        AudioRegion(id: 'intro', name: '', startMs: 1000, endMs: 9000),
+        AudioRegion(id: 'verse', name: '', startMs: 9000, endMs: 25100),
+      ], grid);
+      expect(
+        [for (final s in spans) (s.sectionId, s.startBar, s.bars)],
+        [('intro', 0, 4), ('verse', 4, 8)],
+      );
+    });
+
+    test('alignToDownbeat drops a pickup or pads silence', () {
+      final pcm = Int16List.fromList(List.generate(10, (i) => i + 1));
+      expect(alignToDownbeat(pcm, 3, 1000), [4, 5, 6, 7, 8, 9, 10]);
+      expect(alignToDownbeat(pcm, -2, 1000).take(4), [0, 0, 1, 2]);
+      expect(alignToDownbeat(pcm, 0, 1000), same(pcm));
     });
   });
 }

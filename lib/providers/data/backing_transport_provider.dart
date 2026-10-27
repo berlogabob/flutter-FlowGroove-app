@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -231,6 +232,74 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       songBar: 0,
       mode: PlayMode.loop,
     );
+  }
+
+  Future<int> engineSampleRate() => _engine.engineSampleRate();
+
+  /// Song audio as a backing stem on the click grid (practice regions).
+  ///
+  /// [audio] is mono PCM at [engineSampleRate] with its first downbeat on
+  /// frame 0, and the click must already run at the song's tempo — the mixer
+  /// only sounds stems rendered at the engine bpm. [drums], when given, is a
+  /// pattern tiled under the whole song at that tempo.
+  Future<void> attachAudio({
+    required Int16List audio,
+    required List<SectionSpan> spans,
+    MidiPattern? drums,
+  }) async {
+    _clearPattern();
+    _entry = null;
+    _resumeId = null;
+    _muted.clear();
+    _volume.clear();
+    _solo = null;
+    final generation = _beginRender();
+    final metro = ref.read(metronomeProvider);
+    final ticks = metro.timeSignature.numerator * metro.regularBeats;
+    final interval = (60000000 / metro.bpm / metro.regularBeats).round();
+    final sampleRate = await _engine.engineSampleRate();
+    if (drums != null) await preloadDrumSamples();
+    if (!ref.mounted || generation != _generation) return;
+    final stems = BackingStems(
+      stems: [
+        audio,
+        if (drums != null)
+          renderDrumLoop(
+            drums,
+            metro.bpm.toDouble(),
+            sampleRate: sampleRate,
+            frames: audio.length,
+          ),
+      ],
+      names: [
+        'Song',
+        if (drums != null) 'Drums',
+      ],
+      sampleRate: sampleRate,
+      renderBpm: metro.bpm.toDouble(),
+      ticksPerBar: ticks,
+      intervalMicros: interval,
+    );
+    await _serialize(() async {
+      if (!ref.mounted || generation != _generation) return;
+      await _engine.load(stems);
+    });
+    if (!ref.mounted || generation != _generation) return;
+    _names = stems.names;
+    _applyGains();
+    state = state.copyWith(
+      rendering: false,
+      spans: List.unmodifiable(spans),
+      songBar: 0,
+      mode: PlayMode.loop,
+    );
+  }
+
+  /// Replaces the launchable spans without re-rendering, e.g. when the loop
+  /// selection or the regions change over an already loaded song.
+  void setSpans(List<SectionSpan> spans) {
+    if (state.rendering) return;
+    state = state.copyWith(spans: List.unmodifiable(spans));
   }
 
   Future<void> attach(SongLabEntry entry, List<Section> sections) async {

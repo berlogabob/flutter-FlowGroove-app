@@ -5,12 +5,16 @@ import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/models/metronome_session.dart';
+import 'package:flowgroove/providers/data/backing_transport_provider.dart';
+import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
+import 'package:flowgroove/services/audio/backing_engine.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/repositories/metronome_session_repository.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
+import 'package:flowgroove/services/audio/song_peaks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +22,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
 
 import '../helpers/mocks.mocks.dart';
+import '../providers/backing_transport_test.dart'
+    show FakeBackingEngine, FakeMetronome;
 
 /// A platform player that loads instantly and reports a fixed duration, so the
 /// screen can be built without any of just_audio's native plumbing.
@@ -213,6 +219,7 @@ void main() {
   late JustAudioPlatform previousPlatform;
   late List<String> fetched;
   late _SessionLog sessions;
+  late FakeBackingEngine engine;
 
   setUp(() {
     previousPlatform = JustAudioPlatform.instance;
@@ -221,6 +228,7 @@ void main() {
     repo = _InMemoryLabRepo();
     fetched = [];
     sessions = _SessionLog();
+    engine = FakeBackingEngine();
     // Real-time pumps let the scaffold's connectivity stream subscribe.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
@@ -254,6 +262,8 @@ void main() {
           labRepositoryProvider.overrideWithValue(repo),
           isDemoUserProvider.overrideWithValue(demo),
           metronomeSessionRepositoryProvider.overrideWithValue(sessions),
+          backingEngineProvider.overrideWithValue(engine),
+          metronomeProvider.overrideWith(FakeMetronome.new),
           audioBytesFetcherProvider.overrideWithValue((url) async {
             fetched.add(url);
             return bytes ?? Uint8List(0);
@@ -405,5 +415,37 @@ void main() {
     expect(logged.regionName, 'Verse 2 → Chorus');
     expect(logged.loopReps, 2);
     expect(logged.songId, isNull); // inbox takes have no song
+  });
+
+  testWidgets('click & drums mode loops a region on the bar grid', (
+    tester,
+  ) async {
+    final decoded = <int>[];
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async {
+          decoded.add(sampleRate);
+          return Int16List(sampleRate * durationMs ~/ 1000);
+        };
+    addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
+    await pump(tester, _entry(grid: const AudioGrid(bpm: 120)));
+    await tester.scrollUntilVisible(find.text('Play with click & drums'), 200);
+    tester
+        .widget<SwitchListTile>(
+          find.widgetWithText(SwitchListTile, 'Play with click & drums'),
+        )
+        .onChanged!(true);
+    await settleAudio(tester);
+    expect(decoded, hasLength(1));
+    expect(engine.loads.single.names, ['Song']);
+
+    tester.widget<ListTile>(find.byKey(const ValueKey('chorus'))).onTap!();
+    await settleAudio(tester);
+    expect(engine.commands, isEmpty); // selecting doesn't start playback
+    await tester.scrollUntilVisible(find.byTooltip('Play'), -200);
+    await tester.tap(find.byTooltip('Play'));
+    await settleAudio(tester);
+    final launch = engine.commands.single;
+    expect(launch.kind, BackingKind.launch);
+    expect((launch.fromBar, launch.bars, launch.loop), (5, 5, true));
   });
 }

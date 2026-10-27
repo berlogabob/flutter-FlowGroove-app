@@ -20,3 +20,25 @@ Future<List<int>?> decodeSongPeaks(Uint8List bytes) async {
     return null;
   }
 }
+
+/// The whole song as mono 16-bit PCM at [sampleRate], for playing it inside
+/// the click engine. Null when it can't be decoded (AAC/m4a natively).
+///
+/// SoLoud returns samples equally spaced in time, so asking for exactly
+/// duration × rate samples doubles as the resample to the engine rate.
+/// ponytail: nearest-sample resampling, fine for a practice backing; a real
+/// resampler if anyone hears aliasing.
+Future<Int16List?> decodeSongPcm(
+  Uint8List bytes, {
+  required int sampleRate,
+  required int durationMs,
+}) async {
+  try {
+    final count = durationMs * sampleRate ~/ 1000;
+    if (count <= 0) return null;
+    final samples = await SoLoud.instance.readSamplesFromMem(bytes, count);
+    return samples.isEmpty ? null : pcm16FromFloats(samples);
+  } catch (_) {
+    return null;
+  }
+}

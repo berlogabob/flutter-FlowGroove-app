@@ -20,3 +20,22 @@ Future<List<int>?> decodeSongPeaks(Uint8List bytes) async {
     return null;
   }
 }
+
+/// The whole song as mono 16-bit PCM at [sampleRate], for playing it inside
+/// the click engine. The browser decodes and resamples to the context rate.
+Future<Int16List?> decodeSongPcm(
+  Uint8List bytes, {
+  required int sampleRate,
+  required int durationMs,
+}) async {
+  final context = web.OfflineAudioContext(1.toJS, 1, sampleRate);
+  try {
+    final buffer = await context
+        .decodeAudioData(Uint8List.fromList(bytes).buffer.toJS)
+        .toDart;
+    final samples = buffer.getChannelData(0).toDart;
+    return samples.isEmpty ? null : pcm16FromFloats(samples);
+  } catch (_) {
+    return null;
+  }
+}

@@ -350,6 +350,15 @@ List<int> peaksFromFloats(
   return out;
 }
 
+/// Float samples (-1..1) to clamped 16-bit PCM.
+Int16List pcm16FromFloats(Float32List samples) {
+  final out = Int16List(samples.length);
+  for (var i = 0; i < samples.length; i++) {
+    out[i] = (samples[i].clamp(-1.0, 1.0) * 32767).round();
+  }
+  return out;
+}
+
 /// Reslices a stored peak array to the same window a trim applied to the audio,
 /// so committing a trim doesn't need the bytes re-downloaded to redraw.
 List<int> trimPeaks(List<int> peaks, double startFrac, double endFrac) {

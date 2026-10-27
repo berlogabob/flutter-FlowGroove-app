@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,15 +7,21 @@ import 'package:just_audio/just_audio.dart';
 
 import '../models/audio_region.dart';
 import '../models/metronome_session.dart';
+import '../models/midi_pattern.dart';
 import '../models/section.dart';
+import '../models/section_span.dart';
 import '../models/song_lab.dart';
+import '../models/time_signature.dart';
+import '../providers/data/backing_transport_provider.dart';
 import '../providers/data/data_providers.dart';
+import '../providers/data/metronome_provider.dart';
 import '../providers/permissions_provider.dart';
 import '../providers/practice_stats_provider.dart';
 import '../repositories/metronome_session_repository.dart';
 import '../services/audio/audio_note_edit.dart';
 import '../services/audio/song_peaks.dart';
 import '../theme/mono_pulse_theme.dart';
+import '../utils/play_mode.dart';
 import '../utils/snackbar.dart';
 import '../widgets/audio/waveform_painter.dart';
 import '../widgets/tools/tool_scaffold.dart';
@@ -35,6 +42,16 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
   /// and stay out of the practice log.
   @visibleForTesting
   static int minLoggedMs = 10000;
+
+  /// Decoder for click & drums mode; tests swap it, since SoLoud's native
+  /// decoder isn't loaded there.
+  @visibleForTesting
+  static Future<Int16List?> Function(
+    Uint8List bytes, {
+    required int sampleRate,
+    required int durationMs,
+  })
+  decodePcm = decodeSongPcm;
 
   /// Allows widget tests to supply a player without native audio.
   final AudioPlayer? player;
@@ -74,6 +91,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   int _reps = 0;
   int _lastPosMs = 0;
 
+  // Click & drums mode: the song plays as a backing stem inside the click
+  // engine (sample-locked, 100% speed) instead of through just_audio.
+  bool _sync = false;
+  bool _preparingSync = false;
+  String? _drumsName;
+  late final MetronomeNotifier _metronome;
+
   int get _durationMs => _duration.inMilliseconds;
   int get _positionMs => _clipStart + _position.inMilliseconds;
   int get _preRollMs => _entry.grid == null
@@ -92,6 +116,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     _player = widget.player ?? AudioPlayer();
     _sessions = ref.read(metronomeSessionRepositoryProvider);
     _logSessions = !ref.read(isDemoUserProvider);
+    _metronome = ref.read(metronomeProvider.notifier);
     unawaited(_load());
     unawaited(_backfillPeaks());
   }
@@ -146,12 +171,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         }),
         _player.playerStateStream.listen((state) {
           if (!mounted) return;
-          if (state.playing) {
-            _playingSince ??= DateTime.now();
-            _sessionStart ??= _playingSince;
-          } else {
-            _stopClock();
-          }
+          if (!_sync) _clock(state.playing);
           setState(() => _playing = state.playing);
         }),
       ]);
@@ -160,6 +180,15 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       if (mounted) {
         showAppSnackBar(context, "Couldn't load audio: $e", error: true);
       }
+    }
+  }
+
+  void _clock(bool playing) {
+    if (playing) {
+      _playingSince ??= DateTime.now();
+      _sessionStart ??= _playingSince;
+    } else {
+      _stopClock();
     }
   }
 
@@ -215,6 +244,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   @override
   void dispose() {
     _flushSession();
+    if (_sync) _metronome.stop();
     for (final sub in _subs) {
       unawaited(sub.cancel());
     }
@@ -258,6 +288,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       _clampSelection();
     });
     final loop = _applyLoop();
+    if (_sync) _syncLaunch(startIfStopped: false);
     await _save(_entry);
     await loop;
   }
@@ -318,7 +349,133 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     ),
   );
 
+  // --- click & drums ----------------------------------------------------
+
+  /// Launchable spans: each region, the whole song, and the selected run.
+  List<SectionSpan> _syncSpans() {
+    final grid = _entry.grid!;
+    final spans = regionSpans(_entry.regions, grid);
+    final songBars = grid.barAt(_durationMs).ceil();
+    final selection = _selection;
+    return [
+      ...spans,
+      if (songBars > 0)
+        SectionSpan(sectionId: 'song', startBar: 0, bars: songBars),
+      if (selection != null && selection.$1 != selection.$2)
+        SectionSpan(
+          sectionId: 'run',
+          startBar: grid.barAt(_entry.regions[selection.$1].startMs).round(),
+          bars:
+              grid.barAt(_entry.regions[selection.$2].endMs).round() -
+              grid.barAt(_entry.regions[selection.$1].startMs).round(),
+        ),
+    ];
+  }
+
+  String get _syncTarget {
+    final selection = _selection;
+    if (selection == null) return 'song';
+    return selection.$1 == selection.$2
+        ? _entry.regions[selection.$1].id
+        : 'run';
+  }
+
+  /// Points the transport at the current selection; a running loop switches
+  /// on the next bar line.
+  void _syncLaunch({bool startIfStopped = true}) {
+    final transport = ref.read(backingTransportProvider.notifier)
+      ..setSpans(_syncSpans())
+      ..setMode(PlayMode.loop);
+    if (ref.read(metronomeProvider).isPlaying || startIfStopped) {
+      unawaited(transport.launch(_syncTarget));
+    }
+  }
+
+  Future<void> _setSync(bool on) async {
+    final grid = _entry.grid;
+    if (!on || grid == null) {
+      _flushSession();
+      _metronome.stop();
+      setState(() => _sync = false);
+      return;
+    }
+    setState(() => _preparingSync = true);
+    try {
+      await _player.pause();
+      _flushSession();
+      _metronome
+        ..stop()
+        ..setBpm(grid.bpm.round())
+        ..setTimeSignature(
+          TimeSignature(numerator: grid.beatsPerBar, denominator: 4),
+        );
+      final transport = ref.read(backingTransportProvider.notifier);
+      final rate = await transport.engineSampleRate();
+      final bytes = await ref.read(audioBytesFetcherProvider)(
+        _entry.attachmentIds.first,
+      );
+      final pcm = await PracticeRegionsScreen.decodePcm(
+        bytes,
+        sampleRate: rate,
+        durationMs: _durationMs,
+      );
+      if (!mounted) return;
+      if (pcm == null) {
+        showAppSnackBar(
+          context,
+          "This file can't play with the click here — use mp3 or wav",
+          error: true,
+        );
+        return;
+      }
+      final drums = await _songDrums();
+      await transport.attachAudio(
+        audio: alignToDownbeat(pcm, grid.offsetMs, rate),
+        spans: _syncSpans(),
+        drums: drums,
+      );
+      if (!mounted) return;
+      setState(() {
+        _sync = true;
+        _drumsName = drums?.name;
+      });
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(
+          context,
+          "Couldn't start click & drums: $e",
+          error: true,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _preparingSync = false);
+    }
+  }
+
+  /// The song's first drum pattern from its Lab, if it has one.
+  Future<MidiPattern?> _songDrums() async {
+    try {
+      final entries = await ref
+          .read(labRepositoryProvider)
+          .watchEntries(_entry.songId, bandId: widget.bandId)
+          .first
+          .timeout(const Duration(seconds: 5));
+      for (final e in entries) {
+        if (e.type == LabEntryType.midi && e.midi != null) return e.pattern;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   Future<void> _togglePlay() async {
+    if (_sync) {
+      if (ref.read(metronomeProvider).isPlaying) {
+        _metronome.stop();
+      } else {
+        _syncLaunch();
+      }
+      return;
+    }
     if (_playing) {
       await _player.pause();
     } else {
@@ -417,6 +574,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   Future<void> _setGrid(AudioGrid? grid) async {
     if (!_canEdit) return;
+    // The loaded stem was aligned to the old grid.
+    if (_sync) await _setSync(false);
     if ((_entry.grid == null) != (grid == null)) {
       setState(() {
         _preRoll = 0;
@@ -516,6 +675,18 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final regions = _entry.regions;
     final grid = _entry.grid;
     final selection = _selection;
+    final syncPlaying =
+        _sync && ref.watch(metronomeProvider.select((m) => m.isPlaying));
+    final syncBar = _sync
+        ? ref.watch(backingTransportProvider.select((t) => t.songBar))
+        : 0;
+    ref.listen(metronomeProvider.select((m) => m.isPlaying), (_, playing) {
+      if (_sync) _clock(playing);
+    });
+    final playing = _sync ? syncPlaying : _playing;
+    final positionMs = _sync && grid != null
+        ? grid.msOfBar(syncBar)
+        : _positionMs;
     return ToolScreenScaffold(
       title: 'Practice regions',
       mainWidget: ListView(
@@ -526,15 +697,17 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           Row(
             children: [
               IconButton(
-                tooltip: _playing ? 'Pause' : 'Play',
+                tooltip: playing ? 'Pause' : 'Play',
                 iconSize: 48,
-                icon: Icon(_playing ? Icons.pause_circle : Icons.play_circle),
+                icon: Icon(playing ? Icons.pause_circle : Icons.play_circle),
                 color: MonoPulseColors.accentOrange,
                 onPressed: _loaded && _durationMs > 0 ? _togglePlay : null,
               ),
               Expanded(
                 child: Text(
-                  '${_time(_positionMs)} / ${_time(_durationMs)}',
+                  _sync
+                      ? 'Bar ${syncBar + 1} · click & drums'
+                      : '${_time(positionMs)} / ${_time(_durationMs)}',
                   style: MonoPulseTypography.bodySmall.copyWith(
                     color: context.mp.textSecondary,
                   ),
@@ -565,6 +738,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               onTap: () {
                 _flushSession();
                 setState(() => _selection = toggleSelection(_selection, i));
+                if (_sync) _syncLaunch(startIfStopped: false);
                 unawaited(_applyLoop());
               },
               trailing: canEdit
@@ -598,10 +772,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             min: 0.5,
             divisions: 10,
             label: '${(_speed * 100).round()}%',
-            onChanged: (value) {
-              setState(() => _speed = value);
-              unawaited(_player.setSpeed(value));
-            },
+            // The engine plays stems at their rendered tempo only.
+            onChanged: _sync
+                ? null
+                : (value) {
+                    setState(() => _speed = value);
+                    unawaited(_player.setSpeed(value));
+                  },
           ),
           const Text('Pre-roll'),
           Wrap(
@@ -686,6 +863,24 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
+                      title: const Text('Play with click & drums'),
+                      subtitle: Text(
+                        !canSyncToClick(grid)
+                            ? 'Needs a whole-number BPM'
+                            : _sync
+                            ? '100% speed · count-in from metronome settings'
+                                  '${_drumsName == null ? '' : ' · drums: $_drumsName'}'
+                            : "Song locked to the click, with the song's drum "
+                                  'pattern if it has one',
+                      ),
+                      value: _sync,
+                      onChanged:
+                          canSyncToClick(grid) && _loaded && !_preparingSync
+                          ? (value) => unawaited(_setSync(value))
+                          : null,
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
                       title: const Text('Snap to bar'),
                       value: _snap,
                       onChanged: canEdit
@@ -726,7 +921,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     painter: _RegionsPainter(
                       entry: _entry,
                       durationMs: _durationMs,
-                      positionMs: _positionMs,
+                      positionMs: _sync && _entry.grid != null
+                          ? _entry.grid!.msOfBar(
+                              ref.read(backingTransportProvider).songBar,
+                            )
+                          : _positionMs,
                       selection: _selection,
                       dim: context.mp.textSecondary,
                       textColor: context.mp.textPrimary,

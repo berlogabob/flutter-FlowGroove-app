@@ -7,7 +7,10 @@
 /// re-setting the grid never corrupts the regions.
 library;
 
+import 'dart:typed_data';
+
 import 'section.dart';
+import 'section_span.dart';
 
 class AudioGrid {
   const AudioGrid({required this.bpm, this.offsetMs = 0, this.beatsPerBar = 4});
@@ -233,4 +236,37 @@ linkToSongMap(
     created: created.isEmpty ? null : created,
     unmatched: unmatched,
   );
+}
+
+/// Whether the song can play locked to the click: the engine runs on whole
+/// BPM and the backing mixer has no time-stretch, so a fractional grid would
+/// drift against the drums.
+bool canSyncToClick(AudioGrid? grid) =>
+    grid != null && (grid.bpm - grid.bpm.round()).abs() < 0.001;
+
+/// Regions as bar spans on the click grid, bar 0 = the grid's first downbeat.
+/// A region that rounds to no whole bar, or lies before the downbeat, gets no
+/// span (it can't be launched in sync).
+List<SectionSpan> regionSpans(List<AudioRegion> regions, AudioGrid grid) => [
+  for (final r in regions)
+    if (grid.barAt(r.startMs).round() >= 0 &&
+        grid.barAt(r.endMs).round() > grid.barAt(r.startMs).round())
+      SectionSpan(
+        sectionId: r.id,
+        startBar: grid.barAt(r.startMs).round(),
+        bars: grid.barAt(r.endMs).round() - grid.barAt(r.startMs).round(),
+      ),
+];
+
+/// Moves the song so its first downbeat sits on frame 0, as the backing
+/// mixer expects: audio before it (a pickup) is dropped; a negative offset is
+/// padded with silence.
+Int16List alignToDownbeat(Int16List pcm, int offsetMs, int sampleRate) {
+  final frames = (offsetMs * sampleRate / 1000).round();
+  if (frames == 0) return pcm;
+  if (frames > 0) {
+    return frames >= pcm.length ? Int16List(0) : pcm.sublist(frames);
+  }
+  return Int16List(pcm.length - frames)
+    ..setRange(-frames, pcm.length - frames, pcm);
 }
