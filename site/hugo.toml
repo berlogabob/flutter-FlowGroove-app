@@ -1,15 +1,17 @@
 baseURL = "https://flowgroove.app/"
 title = "FlowGroove"
-theme = "PaperMod"
+theme = ["flowgroove", "PaperMod"]
 languageCode = "en-us"
 defaultContentLanguage = "en"
 enableRobotsTXT = true
 enableEmoji = true
 
 # Performance
-paginate = 6
 summaryLength = 20
 timeout = 30000
+
+[pagination]
+  pagerSize = 6
 
 [params]
   env = "production"
@@ -18,9 +20,6 @@ timeout = 30000
   author = "Sounding Doubts - Unipessoal Lda"
   DateFormat = "January 2, 2006"
 
-  # Dark-only theme (musicians need AMOLED black, not light mode on stage)
-  defaultTheme = "dark"
-  disableThemeToggle = true
   disableSpecial1stPost = true
   disableScrollToTop = false
   ShowReadingTime = false
@@ -104,11 +103,18 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
   category = "categories"
 
 [outputs]
-  home = ["HTML", "RSS"]
+  home = ["HTML", "RSS", "notfound"]
   page = ["HTML", "embed"]
   section = ["HTML"]
   taxonomy = ["HTML"]
   term = ["HTML"]
+
+# Emit the host's error document even though content/404.md is a regular page.
+[outputFormats.notfound]
+  mediaType = "text/html"
+  isHTML = true
+  baseName = "404"
+  notAlternative = true
 
 # Stripped in-app embed: every page also renders <page>/embed.html (no nav/header).
 [outputFormats.embed]

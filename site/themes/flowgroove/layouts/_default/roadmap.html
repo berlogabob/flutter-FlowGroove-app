@@ -1,0 +1,32 @@
+{{- define "main" }}
+{{- $rm := hugo.Data.roadmap }}
+<article class="roadmap-page">
+  {{ partial "page-heading.html" . }}
+  {{- with .Content }}<div class="prose post-content">{{ . }}</div>{{- end }}
+
+  {{- if $rm }}
+  <p class="roadmap-snapshot">Snapshot of our <a href="https://github.com/users/berlogabob/projects/8" target="_blank" rel="noopener">GitHub project board</a> — updates on each site deploy.</p>
+  <div class="roadmap-board">
+    {{- range $col := $rm.order }}
+    {{- $items := where $rm.items "status" $col }}
+    {{- if $items }}
+    <div class="roadmap-col">
+      <h3>{{ $col }} <span class="cnt">{{ len $items }}</span></h3>
+      {{- range $items }}
+      {{- if .url }}
+      <a class="roadmap-card" href="{{ .url }}" target="_blank" rel="noopener">{{ .title }}
+        <span class="roadmap-meta">#{{ .number }} · {{ .type }}{{ with .state }} · {{ . }}{{ end }}</span>
+      </a>
+      {{- else }}
+      <div class="roadmap-card">{{ .title }}<span class="roadmap-meta">idea</span></div>
+      {{- end }}
+      {{- end }}
+    </div>
+    {{- end }}
+    {{- end }}
+  </div>
+  {{- else }}
+  <p>Roadmap snapshot not available yet.</p>
+  {{- end }}
+</article>
+{{- end }}

@@ -1,0 +1,4 @@
+{{ define "head" }}{{ with site.GetPage "/404" }}{{ partial "head.html" . }}{{ end }}{{ end }}
+{{ define "main" }}
+<article class="single">{{ with site.GetPage "/404" }}{{ partial "page-heading.html" . }}<div class="prose">{{ .Content }}</div>{{ else }}<h1>404 — Page not found</h1><p><a href="{{ "" | relURL }}">Return to the notebook</a></p>{{ end }}</article>
+{{ end }}

@@ -1,0 +1,6 @@
+name = "FlowGroove"
+license = "MIT"
+description = "A shared music notebook: paper, ink and hardware details, in light and dark."
+min_version = "0.146.0"
+[author]
+  name = "FlowGroove"

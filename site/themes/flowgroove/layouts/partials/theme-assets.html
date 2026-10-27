@@ -1,0 +1,4 @@
+{{- $css := resources.Get "css/fg.css" | resources.ExecuteAsTemplate "css/fg.css" . | minify | fingerprint -}}
+<link rel="stylesheet" href="{{ $css.Permalink }}" integrity="{{ $css.Data.Integrity }}">
+{{- $js := resources.Get "js/fg.js" | minify | fingerprint -}}
+<script defer src="{{ $js.Permalink }}" integrity="{{ $js.Data.Integrity }}"></script>

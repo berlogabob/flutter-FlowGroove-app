@@ -1,0 +1,14 @@
+{{- $href := .Destination -}}
+{{- $parsed := urls.Parse $href -}}
+{{- if and $parsed.Host (eq $parsed.Host (urls.Parse site.BaseURL).Host) -}}
+  {{- $href = $parsed.RequestURI -}}
+{{- end -}}
+{{- if not (findRE `^[a-zA-Z][a-zA-Z0-9+.-]*:|^//|^#` $href) -}}
+  {{- if strings.HasPrefix $href "/" -}}
+    {{- $href = strings.TrimPrefix "/" $href | relURL -}}
+  {{- else -}}
+    {{- $base := urls.Parse .Page.Permalink -}}
+    {{- $href = ($base.ResolveReference (urls.Parse $href)).String -}}
+  {{- end -}}
+{{- end -}}
+<a href="{{ $href }}"{{ with .Title }} title="{{ . }}"{{ end }}>{{ .Text | safeHTML }}</a>

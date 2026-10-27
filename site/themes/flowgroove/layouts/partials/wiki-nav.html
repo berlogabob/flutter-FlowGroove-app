@@ -1,0 +1,8 @@
+{{ if eq .Section "wiki" }}
+<aside class="wiki-nav" aria-label="Wiki navigation">
+<details open><summary>Wiki guides</summary>
+<nav aria-label="Wiki guides"><a href="{{ "wiki/" | relURL }}"{{ if eq .RelPermalink ("wiki/" | relURL) }} aria-current="page"{{ end }}>Overview</a>
+{{ $current := .RelPermalink }}{{ with site.GetPage "/wiki" }}{{ range .RegularPages.ByWeight }}<a href="{{ .RelPermalink }}"{{ if eq .RelPermalink $current }} aria-current="page"{{ end }}>{{ .Title }}</a>{{ end }}{{ end }}
+</nav></details>
+</aside>
+{{ end }}

@@ -1,0 +1,1 @@
+{{ define "main" }}<article class="single">{{ partial "page-heading.html" . }}<div class="prose">{{ if .Content }}{{ .Content }}{{ else }}<p>This page has hit a wrong note.</p><p><a href="{{ "" | relURL }}">Return to the notebook →</a></p>{{ end }}</div></article>{{ end }}

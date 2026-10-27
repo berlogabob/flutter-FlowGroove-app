@@ -1,0 +1,33 @@
+{{ define "main" }}
+<div class="{{ if eq .Section "wiki" }}wiki-layout{{ end }}">
+{{ partial "wiki-nav.html" . }}
+<section class="listing">
+{{ partial "page-heading.html" . }}
+{{ if and .IsHome site.Params.profileMode.enabled }}
+{{ with site.Params.profileMode }}<div class="prose"><h2>{{ .title }}</h2><p>{{ .subtitle }}</p>{{ range .buttons }}<a class="button" href="{{ .url | relURL }}">{{ .name }}</a>{{ end }}</div>{{ end }}
+{{ end }}
+{{ with .Content }}<div class="prose post-content list-intro">{{ . }}</div>{{ end }}
+{{ $pages := union .RegularPages .Sections }}
+{{ if .IsHome }}{{ $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}{{ $pages = where $pages "Params.hiddenInHomeList" "!=" "true" }}{{ end }}
+{{ $paginator := .Paginate $pages }}
+{{ if and .IsHome site.Params.homeInfoParams (eq $paginator.PageNumber 1) }}{{ with site.Params.homeInfoParams }}<div class="prose home-info"><h2>{{ .Title }}</h2>{{ .Content | markdownify }}</div>{{ end }}{{ end }}
+<div class="cards">
+{{ range $paginator.Pages }}
+<article class="post-card">
+{{ $coverAlt := .Params.cover.alt | default "" }}
+{{ $hidden := (.Param "cover.hiddenInList") | default (.Param "cover.hidden") | default false }}
+{{ if not $hidden }}{{ with .Params.cover.image }}<img class="card-cover" src="{{ . | absURL }}" alt="{{ $coverAlt }}" loading="lazy">{{ end }}{{ end }}
+<h2><a href="{{ .RelPermalink }}">{{ .Title }}{{ if .Draft }} <span class="post-meta">(Draft)</span>{{ end }}</a></h2>
+{{ if ne (.Param "hideSummary") true }}<p>{{ .Summary | plainify | htmlUnescape }}{{ if .Truncated }}…{{ end }}</p>{{ end }}
+{{ if and (not (.Param "hideMeta")) (not .Date.IsZero) }}<p class="post-meta"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format (site.Params.DateFormat | default "January 2, 2006") }}</time></p>{{ end }}
+</article>
+{{ end }}
+</div>
+{{ if gt $paginator.TotalPages 1 }}<nav class="pagination" aria-label="Pagination">
+{{ if $paginator.HasPrev }}<a class="button" rel="prev" href="{{ $paginator.Prev.URL | relURL }}">← Previous</a>{{ end }}
+<span>Page {{ $paginator.PageNumber }} of {{ $paginator.TotalPages }}</span>
+{{ if $paginator.HasNext }}<a class="button" rel="next" href="{{ $paginator.Next.URL | relURL }}">Next →</a>{{ end }}
+</nav>{{ end }}
+</section>
+</div>
+{{ end }}

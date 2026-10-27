@@ -1,32 +1,28 @@
 {{/* Standalone landing: seo supplies metadata; emit the title here instead of PaperMod head. */}}
 <!doctype html>
-<html lang="{{ site.LanguageCode | default "en" }}">
+<html lang="{{ site.LanguageCode | default "en" }}" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#f6f5f0">
+  {{ partial "theme-head.html" . }}
   <title>FlowGroove — Your shared setlist notebook</title>
   {{ partial "seo.html" . }}
   {{ partial "analytics.html" . }}
-  <link rel="icon" href="{{ "favicon.ico" | relURL }}">
-  <link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | relURL }}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ "favicon-16x16.png" | relURL }}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon-32x32.png" | relURL }}">
-  <link rel="icon" type="image/svg+xml" href="{{ "images/favicon.svg" | relURL }}">
-  <link rel="icon" type="image/svg+xml" href="{{ "landing/flowgroove-favicon.svg" | relURL | strings.TrimPrefix site.Home.RelPermalink }}">
-  <link rel="stylesheet" href="{{ "landing/styles.css" | relURL | strings.TrimPrefix site.Home.RelPermalink }}">
+  <link rel="icon" href="{{ "favicon.ico" | absURL }}">
+  <link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | absURL }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ "favicon-16x16.png" | absURL }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon-32x32.png" | absURL }}">
+  <link rel="icon" type="image/svg+xml" href="{{ "images/favicon.svg" | absURL }}">
+  <link rel="icon" type="image/svg+xml" href="{{ "landing/flowgroove-favicon.svg" | absURL }}">
+  <link rel="stylesheet" href="{{ "landing/styles.css" | absURL }}">
+  {{ partial "theme-assets.html" . }}
 </head>
-<body>
-  <header class="shell topbar">
-    <a class="brand" href="#top" aria-label="FlowGroove home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M2 9c2-4.5 4.5-4.5 7 0s5 4.5 7 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="wordmark">FlowGroove</span><span class="brand-tag">Shared setlists + song notes<br>for rehearsal prep</span></a>
-    <button class="mobile-toggle" aria-label="Open navigation" aria-expanded="false">☰</button>
-    <nav class="nav" aria-label="Main navigation"><a href="#screens">The notebook</a><a href="#features">Features</a><a href="#about">The authors</a><a class="nav-cta primary" data-ev="open_app" href="https://app.flowgroove.app/" target="_blank" rel="noopener noreferrer">Go to App <span>↘</span></a></nav>
-  </header>
-  <main id="top">
+<body id="top" class="fg-landing">
+  {{ partial "header.html" . }}
+  <main id="main" tabindex="-1">
     <section class="shell hero">
       <div class="hero-copyblock"><div class="street-label">FlowGroove / Shared music notebook</div><h1>Your shared setlist notebook</h1><p class="hero-copy">Keep the whole set in one place: song order, breaks, key, tempo and more. Add the details for each song too—structure, keys, tempo, synced lyrics, chords, drum patterns, and all the notes your band needs to prepare for rehearsal.</p><div class="hero-actions"><a data-ev="open_app" href="https://app.flowgroove.app/" target="_blank" rel="noopener noreferrer" class="button primary">Start your setlist <span>↘</span></a><a href="#how" class="text-link">How it helps at rehearsal <span>→</span></a></div><p class="hero-foot"><span class="tiny-led"></span><b>One shared reference</b><span>for practice, rehearsal and the set.</span></p></div>
-      <figure class="hero-visual"><img src="{{ "landing/band-rehearsal.webp" | relURL | strings.TrimPrefix site.Home.RelPermalink }}" alt="Band rehearsing with FlowGroove setlist notes on a phone"><figcaption><span>01 / Rehearsal room</span><span>Everyone has the same notes.</span></figcaption></figure>
+      <figure class="hero-visual"><img src="{{ "landing/band-rehearsal.webp" | absURL }}" alt="Band rehearsing with FlowGroove setlist notes on a phone"><figcaption><span>01 / Rehearsal room</span><span>Everyone has the same notes.</span></figcaption></figure>
     </section>
 
     <section class="section screens-section" id="screens">
@@ -48,17 +44,14 @@
       <article class="feature-unit"><div class="unit-top"><span>06 / SYNC</span><i></i></div><h3>Ready offline</h3><p>Keep the shared reference available when the connection drops; changes sync back later.</p></article>
     </div></div></section>
 
-    <section class="shell practice-section"><figure class="practice-visual"><img src="{{ "landing/piano-practice.webp" | relURL | strings.TrimPrefix site.Home.RelPermalink }}" alt="Pianist practicing with FlowGroove song notes on a tablet"><figcaption>02 / Practice between rehearsals</figcaption></figure><div class="practice-copy"><span class="section-label">A quiet practice, with the same notes</span><h2>Practice between rehearsals.</h2><p>Leave the torn pages behind. Keep song structure, chords and lyrics on the song screen beside the keys.</p><a href="#screens" class="text-link">See song notes <span>↗</span></a></div></section>
+    <section class="shell practice-section"><figure class="practice-visual"><img src="{{ "landing/piano-practice.webp" | absURL }}" alt="Pianist practicing with FlowGroove song notes on a tablet"><figcaption>02 / Practice between rehearsals</figcaption></figure><div class="practice-copy"><span class="section-label">A quiet practice, with the same notes</span><h2>Practice between rehearsals.</h2><p>Leave the torn pages behind. Keep song structure, chords and lyrics on the song screen beside the keys.</p><a href="#screens" class="text-link">See song notes <span>↗</span></a></div></section>
     <section class="shell how-section" id="how"><div class="workflow"><div class="workflow-copy"><span class="section-label">Made for rehearsal</span><h2>Prepare together.</h2><p>FlowGroove gives everyone a shared place to learn the set, add the band's own cues, and arrive ready to rehearse.</p></div><div class="steps"><div class="step"><span class="step-no">01</span><div><b>Build the set</b><small>Order songs, plan breaks and check the overall flow.</small></div></div><div class="step"><span class="step-no">02</span><div><b>Fill in each song</b><small>Add structure, keys, tempo, lyrics, chords and patterns.</small></div></div><div class="step"><span class="step-no">03</span><div><b>Prepare from one version</b><small>Keep the whole band on the same page between rehearsals and gigs.</small></div></div></div></div></section>
 
     <section class="shell authors-section" id="about"><div class="authors-heading"><span class="section-label">Behind the notebook</span><h2>Made by musicians.</h2><p>FlowGroove brings together the people who write the songs, design the tools and keep time in the band.</p></div><div class="author-panel"><article class="author"><span class="author-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 5l-4 14"/></svg></span><div class="author-details"><h3>Andrey Dyakov</h3><p>Author · developer · drummer</p><div class="author-socials"><a href="https://github.com/berlogabob" target="_blank" rel="noopener noreferrer" aria-label="Andrey Dyakov on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" d="M8 1.25a6.75 6.75 0 0 0-2.13 13.15c.34.06.46-.15.46-.33v-1.15c-1.87.41-2.27-.9-2.27-.9-.31-.78-.75-.99-.75-.99-.61-.42.05-.41.05-.41.68.05 1.03.7 1.03.7.6 1.03 1.58.73 1.97.56.06-.44.23-.73.43-.9-1.5-.17-3.07-.75-3.07-3.34 0-.74.26-1.34.69-1.81-.07-.17-.3-.86.07-1.79 0 0 .57-.18 1.86.69a6.45 6.45 0 0 1 3.38 0c1.29-.87 1.85-.69 1.85-.69.37.93.14 1.62.07 1.79.43.47.7 1.08.7 1.81 0 2.59-1.58 3.16-3.08 3.33.24.21.46.62.46 1.25v1.85c0 .18.12.39.46.32A6.75 6.75 0 0 0 8 1.25Z"/></svg>GitHub</a><a href="https://www.instagram.com/poplar.bear/" target="_blank" rel="noopener noreferrer" aria-label="Andrey Dyakov on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.5" cy="6.8" r=".9" class="icon-dot"/></svg>Instagram</a></div></div><span class="author-index">01</span></article><article class="author"><span class="author-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 2-2c0-.6-.2-1-.6-1.4a2 2 0 0 1 1.4-3.4H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3Z"/><circle cx="7.5" cy="10" r=".8"/><circle cx="10" cy="6.5" r=".8"/><circle cx="14" cy="6.5" r=".8"/><circle cx="17" cy="10" r=".8"/></svg></span><div class="author-details"><h3>Roman Zagumennov <span>(Roumé)</span></h3><p>Co-author · designer · pianist · composer</p><div class="author-socials"><a href="https://github.com/roume0" target="_blank" rel="noopener noreferrer" aria-label="Roman Zagumennov on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" d="M8 1.25a6.75 6.75 0 0 0-2.13 13.15c.34.06.46-.15.46-.33v-1.15c-1.87.41-2.27-.9-2.27-.9-.31-.78-.75-.99-.75-.99-.61-.42.05-.41.05-.41.68.05 1.03.7 1.03.7.6 1.03 1.58.73 1.97.56.06-.44.23-.73.43-.9-1.5-.17-3.07-.75-3.07-3.34 0-.74.26-1.34.69-1.81-.07-.17-.3-.86.07-1.79 0 0 .57-.18 1.86.69a6.45 6.45 0 0 1 3.38 0c1.29-.87 1.85-.69 1.85-.69.37.93.14 1.62.07 1.79.43.47.7 1.08.7 1.81 0 2.59-1.58 3.16-3.08 3.33.24.21.46.62.46 1.25v1.85c0 .18.12.39.46.32A6.75 6.75 0 0 0 8 1.25Z"/></svg>GitHub</a><a href="https://www.instagram.com/roume.music/" target="_blank" rel="noopener noreferrer" aria-label="Roman Zagumennov on Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.5" cy="6.8" r=".9" class="icon-dot"/></svg>Instagram</a></div></div><span class="author-index">02</span></article></div></section>
 
     <section class="shell closing"><div><span class="section-label">FlowGroove / shared music notebook</span><h2>Ready for rehearsal.</h2><p>FlowGroove is free and open source. No venture capital. Support the dev ☕</p></div><a data-ev="open_app" href="https://app.flowgroove.app/" target="_blank" rel="noopener noreferrer" class="button primary">Start your setlist <span>↗</span></a><a href="https://ko-fi.com/flowgroove" data-ev="kofi_click" target="_blank" rel="noopener noreferrer" class="button">Support on Ko-fi ☕</a></section>
   </main>
-  <footer class="shell footer"><a class="brand" href="#top" aria-label="FlowGroove home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M2 9c2-4.5 4.5-4.5 7 0s5 4.5 7 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="wordmark">FlowGroove</span><span class="brand-tag">Shared setlists + song notes<br>for rehearsal prep</span></a><span>One notebook for the band.</span><div class="footer-links"><a href="#screens">The notebook</a><a href="#features">Features</a><a href="#about">The authors</a><a href="#top">Back to top ↑</a></div><div class="footer-links"><a href="{{ "privacy/" | relURL }}">Privacy</a><a href="{{ "terms/" | relURL }}">Terms</a><a href="{{ "blog/" | relURL }}">Blog</a><a href="{{ "wiki/" | relURL }}">Wiki</a><a href="{{ "faq/" | relURL }}">FAQ</a><a href="{{ "about/" | relURL }}">About</a><a href="{{ "roadmap/" | relURL }}">Roadmap</a></div><div class="footer-links social-links"><a href="https://github.com/berlogabob/flutter-FlowGroove-app" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://ko-fi.com/flowgroove" data-ev="kofi_click" target="_blank" rel="noopener noreferrer">Ko-fi</a><a href="https://t.me/flowgrooveapp" target="_blank" rel="noopener noreferrer">Telegram</a><a href="https://www.reddit.com/r/flowgroove/" target="_blank" rel="noopener noreferrer">Reddit</a></div><a href="https://tinylaunch.com/launch/17075/" target="_blank" rel="noopener noreferrer" aria-label="FlowGroove took 2nd place on TinyLaunch"><img src="{{ "images/tinylaunch-badge-2nd.svg" | relURL }}" alt="FlowGroove — 2nd place on TinyLaunch" width="202" height="61" loading="lazy"></a><p class="footer-legal">© {{ now.Year }} FlowGroove · Sounding Doubts - Unipessoal Lda, Portugal</p></footer>
-  <script>
-    const toggle=document.querySelector('.mobile-toggle'),nav=document.querySelector('.nav'),header=document.querySelector('.topbar');toggle.addEventListener('click',()=>{const open=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',open?'Close navigation':'Open navigation');toggle.textContent=open?'×':'☰'});nav.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>{nav.classList.remove('open');toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-label','Open navigation');toggle.textContent='☰'}));const syncHeader=()=>header.classList.toggle('is-scrolled',window.scrollY>12);syncHeader();window.addEventListener('scroll',syncHeader,{passive:true});
-    document.querySelectorAll('[data-ev]').forEach(link=>link.addEventListener('click',()=>{if(typeof window.gtag==='function')window.gtag('event',link.dataset.ev,{event_category:'engagement'});}));
-  </script>
+  {{ partial "footer.html" . }}
+
 </body>
 </html>
