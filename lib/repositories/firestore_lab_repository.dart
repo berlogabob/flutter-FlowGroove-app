@@ -78,10 +78,51 @@ class FirestoreLabRepository {
     return SongLabEntry.fromJson(snapshot.data()!);
   }
 
+  /// Searches by URL because linked inbox recordings keep their original path.
+  /// Errors (including denied collection-group reads) must not imply absence.
+  Future<bool> isStorageUrlReferenced(String url) async {
+    final entries = _firestore.collectionGroup('labEntries');
+    for (final query in [
+      entries.where('attachmentIds', arrayContains: url),
+      entries.where('midiSong.fileUrl', isEqualTo: url),
+    ]) {
+      final snapshot = await query.get(const GetOptions(source: Source.server));
+      if (snapshot.metadata.isFromCache || snapshot.metadata.hasPendingWrites) {
+        throw StateError('References are not confirmed by the server');
+      }
+      for (final doc in snapshot.docs) {
+        final path = doc.reference.path.split('/');
+        if (path.length != 6 ||
+            path[2] != 'songs' ||
+            path[4] != 'labEntries' ||
+            (path[0] != 'bands' && path[0] != 'users') ||
+            (path[0] == 'users' && path[1] != _uid)) {
+          throw StateError('Cannot confirm entry ownership');
+        }
+        final entry = await readEntryFromServer(
+          path[3],
+          path[5],
+          bandId: path[0] == 'bands' ? path[1] : null,
+        );
+        if (entry != null &&
+            (entry.attachmentIds.contains(url) ||
+                entry.midiSong?.fileUrl == url)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   Future<void> saveEntry(SongLabEntry entry, {String? bandId}) async {
-    final url = entry.midiSong?.fileUrl;
-    // Undo restores the entry through this method, so preserve its MIDI file.
-    if (url != null) await _pendingStorageDeletes.cancel(url);
+    // Every restore path must preserve the files before publishing the entry.
+    final urls = {
+      ?entry.midiSong?.fileUrl,
+      if (entry.type == LabEntryType.recording) ...entry.attachmentIds,
+    };
+    for (final url in urls) {
+      await _pendingStorageDeletes.cancel(url);
+    }
     await _songDoc(entry.songId, bandId: bandId)
         .collection('labEntries')
         .doc(entry.id)

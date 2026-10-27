@@ -7,8 +7,20 @@ import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/services/pending_storage_deletes.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+// ignore: depend_on_referenced_packages
+import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 import '../helpers/mocks.mocks.dart';
+
+// Firestore marks snapshots sealed; this boundary fake supplies only reference.
+// ignore: subtype_of_sealed_class
+class _QueryEntry extends Fake
+    implements QueryDocumentSnapshot<Map<String, dynamic>> {
+  _QueryEntry(this.reference);
+  @override
+  final DocumentReference<Map<String, dynamic>> reference;
+}
 
 class _Metadata extends Fake implements SnapshotMetadata {
   _Metadata({this.hasPendingWrites = false, this.isFromCache = false});
@@ -17,6 +29,21 @@ class _Metadata extends Fake implements SnapshotMetadata {
   final bool hasPendingWrites;
   @override
   final bool isFromCache;
+}
+
+class _FailingPreferences extends InMemorySharedPreferencesStore {
+  _FailingPreferences({required this.throwOnWrite}) : super.empty();
+  final bool throwOnWrite;
+  bool fail = false;
+
+  @override
+  Future<bool> setValue(String valueType, String key, Object value) async {
+    if (fail) {
+      if (throwOnWrite) throw StateError('write failed');
+      return false;
+    }
+    return super.setValue(valueType, key, value);
+  }
 }
 
 class _PendingDeletes extends PendingStorageDeletes {
@@ -55,6 +82,7 @@ void main() {
     }
     when(doc.collection('songs')).thenReturn(collection);
     when(doc.collection('labEntries')).thenReturn(collection);
+    when(doc.set(any, any)).thenAnswer((_) async {});
     when(doc.get()).thenAnswer((_) async => snapshot);
     when(snapshot.data()).thenReturn(
       SongLabEntry(
@@ -161,6 +189,136 @@ void main() {
         expect(pending.calls, isEmpty);
       },
     );
+  }
+
+  group('storage URL reference check', () {
+    late MockQuerySnapshot<Map<String, dynamic>> matches;
+    late MockDocumentSnapshot<Map<String, dynamic>> confirmed;
+
+    setUp(() {
+      matches = MockQuerySnapshot<Map<String, dynamic>>();
+      confirmed = MockDocumentSnapshot<Map<String, dynamic>>();
+      when(firestore.collectionGroup('labEntries')).thenReturn(collection);
+      when(
+        collection.where('attachmentIds', arrayContains: url),
+      ).thenReturn(collection);
+      when(
+        collection.where('midiSong.fileUrl', isEqualTo: url),
+      ).thenReturn(collection);
+      when(collection.get(any)).thenAnswer((_) async => matches);
+      when(matches.metadata).thenReturn(_Metadata());
+      when(matches.docs).thenReturn([]);
+      when(doc.get(any)).thenAnswer((_) async => confirmed);
+      when(confirmed.metadata).thenReturn(_Metadata());
+      when(confirmed.exists).thenReturn(true);
+    });
+
+    test('server absence permits cleanup', () async {
+      expect(await repository.isStorageUrlReferenced(url), isFalse);
+      final options = verify(
+        collection.get(captureAny),
+      ).captured.cast<GetOptions>();
+      expect(options, hasLength(2));
+      expect(options.every((o) => o.source == Source.server), isTrue);
+    });
+
+    for (final owner in ['users/user', 'bands/band']) {
+      test('live reference under $owner is rechecked on server', () async {
+        when(doc.path).thenReturn('$owner/songs/song/labEntries/entry');
+        when(matches.docs).thenReturn([_QueryEntry(doc)]);
+        when(confirmed.data()).thenReturn({
+          'id': 'entry',
+          'songId': 'song',
+          'type': 'recording',
+          'attachmentIds': [url],
+        });
+        expect(await repository.isStorageUrlReferenced(url), isTrue);
+        final options =
+            verify(doc.get(captureAny)).captured.single as GetOptions;
+        expect(options.source, Source.server);
+      });
+    }
+
+    test('entry read failure cannot authorize deletion', () async {
+      when(doc.path).thenReturn('users/user/songs/song/labEntries/entry');
+      when(matches.docs).thenReturn([_QueryEntry(doc)]);
+      when(doc.get(any)).thenAnswer((_) async => throw StateError('offline'));
+      await expectLater(
+        repository.isStorageUrlReferenced(url),
+        throwsStateError,
+      );
+    });
+
+    test('query failure cannot authorize deletion', () async {
+      when(
+        collection.get(any),
+      ).thenAnswer((_) async => throw StateError('denied'));
+      await expectLater(
+        repository.isStorageUrlReferenced(url),
+        throwsStateError,
+      );
+    });
+
+    for (final metadata in [
+      _Metadata(isFromCache: true),
+      _Metadata(hasPendingWrites: true),
+    ]) {
+      test(
+        'unconfirmed query cannot authorize deletion: ${metadata.isFromCache}',
+        () async {
+          when(matches.metadata).thenReturn(metadata);
+          await expectLater(
+            repository.isStorageUrlReferenced(url),
+            throwsStateError,
+          );
+        },
+      );
+    }
+  });
+
+  for (final bandId in <String?>[null, 'band']) {
+    for (final throwOnWrite in [false, true]) {
+      test(
+        'recording restore requires durable cancellation: $bandId/$throwOnWrite',
+        () async {
+          SharedPreferences.setMockInitialValues({});
+          final original = SharedPreferencesStorePlatform.instance;
+          addTearDown(() => SharedPreferencesStorePlatform.instance = original);
+          final platform = _FailingPreferences(throwOnWrite: throwOnWrite);
+          SharedPreferencesStorePlatform.instance = platform;
+          final prefs = await SharedPreferences.getInstance();
+          final queue = PendingStorageDeletes(prefs: prefs);
+          await queue.enqueue(url);
+          final repo = FirestoreLabRepository(
+            firestore: firestore,
+            auth: auth,
+            pendingStorageDeletes: queue,
+          );
+          final entry = SongLabEntry(
+            id: 'entry',
+            songId: 'song',
+            type: LabEntryType.recording,
+            authorId: 'user',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+            attachmentIds: [url],
+          );
+          platform.fail = true;
+          await expectLater(
+            repo.saveEntry(entry, bandId: bandId),
+            throwsStateError,
+          );
+          verifyNever(doc.set(any, any));
+          platform.fail = false;
+          await prefs.reload();
+          expect(prefs.getStringList('pending_storage_deletes'), [url]);
+          await repo.saveEntry(entry, bandId: bandId);
+          await prefs.reload();
+          expect(prefs.getStringList('pending_storage_deletes'), isEmpty);
+          verify(doc.set(entry.toJson(), any)).called(1);
+        },
+      );
+    }
   }
 
   test('queues MIDI cleanup only after document deletion succeeds', () async {

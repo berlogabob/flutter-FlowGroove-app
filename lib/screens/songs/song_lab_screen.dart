@@ -242,7 +242,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
         if (mounted) {
           showAppSnackBar(
             context,
-            'Could not restore entry. Try again.',
+            "Couldn't restore — try again",
             error: true,
             actionLabel: canRestore() ? 'Retry' : null,
             onAction: undo,

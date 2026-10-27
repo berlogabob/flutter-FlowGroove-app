@@ -273,7 +273,15 @@ Licensed under the LGPL. lamejs is loaded as a separate, unmodified script
       analytics.logLogin(loginMethod: 'auto');
       // Audio objects whose undo window closed while the app was gone. Failures
       // stay queued, so this is safe to fire and forget.
-      unawaited(rootContainer.read(pendingStorageDeletesProvider).sweep());
+      unawaited(
+        rootContainer
+            .read(pendingStorageDeletesProvider)
+            .sweep(
+              isReferenced: rootContainer
+                  .read(labRepositoryProvider)
+                  .isStorageUrlReferenced,
+            ),
+      );
       // One-shot lift of pre-Firestore practice sessions out of the Hive box.
       // Only cold start with a restored session: anyone who still has local
       // history is by definition an existing signed-in user, and the flag

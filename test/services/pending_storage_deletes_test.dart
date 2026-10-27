@@ -101,6 +101,8 @@ void main() {
         await pending.enqueue(_a);
         platform.fail = true;
         await expectLater(pending.cancel(_a), throwsStateError);
+        // A live document still protects audio if dropping the item also fails.
+        await pending.sweep(isReferenced: (_) async => true);
         expect(storage.deleted, isEmpty);
         expect(prefs.getStringList('pending_storage_deletes'), [_a]);
         platform.fail = false;
@@ -124,7 +126,10 @@ void main() {
         await pending.cancel(_a);
         await prefs.reload();
         expect(prefs.getStringList('pending_storage_deletes'), isEmpty);
-        await PendingStorageDeletes(prefs: prefs, storage: storage).sweep();
+        await PendingStorageDeletes(
+          prefs: prefs,
+          storage: storage,
+        ).sweep(isReferenced: (_) async => false);
         expect(storage.deleted, isEmpty);
       },
     );
@@ -170,12 +175,50 @@ void main() {
     expect(await _queued(), [_a], reason: 'and will try again');
   });
 
+  for (final outcome in ['live', 'unknown', 'error', 'unavailable']) {
+    test('sweep preserves audio when reference check is $outcome', () async {
+      final storage = _FakeStorage();
+      final pending = PendingStorageDeletes(storage: storage);
+      await pending.enqueue(_a);
+      await pending.sweep(
+        isReferenced: outcome == 'unavailable'
+            ? null
+            : (_) async {
+                if (outcome == 'error') throw StateError('offline');
+                return outcome == 'live' ? true : null;
+              },
+      );
+      expect(storage.deleted, isEmpty);
+      expect(await _queued(), outcome == 'live' ? isEmpty : [_a]);
+    });
+  }
+
+  test('cancellation during server check prevents deletion', () async {
+    final storage = _FakeStorage();
+    final pending = PendingStorageDeletes(storage: storage);
+    final started = Completer<void>();
+    final release = Completer<bool?>();
+    await pending.enqueue(_a);
+    final sweeping = pending.sweep(
+      isReferenced: (_) {
+        started.complete();
+        return release.future;
+      },
+    );
+    await started.future;
+    await pending.cancel(_a);
+    release.complete(false);
+    await sweeping;
+    expect(storage.deleted, isEmpty);
+    expect(await _queued(), isEmpty);
+  });
+
   test('sweep clears everything it manages to delete', () async {
     final storage = _FakeStorage();
     final pending = PendingStorageDeletes(storage: storage);
     await pending.enqueue(_a);
     await pending.enqueue(_b);
-    await pending.sweep();
+    await pending.sweep(isReferenced: (_) async => false);
     expect(storage.deleted, [_a, _b]);
     expect(await _queued(), isEmpty);
   });
@@ -183,13 +226,15 @@ void main() {
   test('sweep keeps what it could not delete', () async {
     final pending = PendingStorageDeletes(storage: _FakeStorage(failing: true));
     await pending.enqueue(_a);
-    await pending.sweep();
+    await pending.sweep(isReferenced: (_) async => false);
     expect(await _queued(), [_a]);
   });
 
   test('sweep on an empty queue touches nothing', () async {
     final storage = _FakeStorage();
-    await PendingStorageDeletes(storage: storage).sweep();
+    await PendingStorageDeletes(
+      storage: storage,
+    ).sweep(isReferenced: (_) async => false);
     expect(storage.deleted, isEmpty);
   });
 
@@ -198,7 +243,7 @@ void main() {
     final pending = PendingStorageDeletes(storage: storage);
     await pending.enqueue(_a);
     await pending.enqueue(_b);
-    final sweeping = pending.sweep();
+    final sweeping = pending.sweep(isReferenced: (_) async => false);
     expect(await storage.started.future, _a);
     await pending.cancel(_b);
     storage.release.complete();
@@ -212,7 +257,7 @@ void main() {
     final pending = PendingStorageDeletes(storage: storage);
     const c = 'https://example.test/c.aac?token=3';
     await pending.enqueue(_a);
-    final sweeping = pending.sweep();
+    final sweeping = pending.sweep(isReferenced: (_) async => false);
     await storage.started.future;
     await pending.enqueue(c);
     storage.release.complete();

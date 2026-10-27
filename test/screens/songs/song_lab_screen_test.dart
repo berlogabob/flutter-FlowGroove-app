@@ -318,10 +318,7 @@ void main() {
             await tester.pumpAndSettle();
             expect(tester.takeException(), isNull);
             expect(repo.entries, isEmpty);
-            expect(
-              find.text('Could not restore entry. Try again.'),
-              findsOneWidget,
-            );
+            expect(find.text("Couldn't restore — try again"), findsOneWidget);
             expect(find.textContaining('private backend'), findsNothing);
             pending.failCancel = false;
             repo.failSave = false;

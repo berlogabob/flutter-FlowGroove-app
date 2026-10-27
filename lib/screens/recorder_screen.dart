@@ -262,7 +262,7 @@ class _RecordingCard extends ConsumerWidget {
               ..hideCurrentSnackBar()
               ..showSnackBar(
                 SnackBar(
-                  content: const Text('Could not restore recording'),
+                  content: const Text("Couldn't restore — try again"),
                   backgroundColor: MonoPulseColors.error,
                   action: SnackBarAction(label: 'Retry', onPressed: undo),
                 ),

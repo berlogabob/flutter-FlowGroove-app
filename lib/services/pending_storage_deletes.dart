@@ -81,13 +81,27 @@ class PendingStorageDeletes {
     await flush(url);
   }
 
-  /// Retries the URLs present at sweep start. Failures stay queued for retry.
-  Future<void> sweep() async {
+  /// Retries the URLs present at sweep start, only after confirmed server absence.
+  /// Missing, failed or inconclusive checks leave the URL queued for retry.
+  Future<void> sweep({Future<bool?> Function(String url)? isReferenced}) async {
     final prefs = await _p;
     final queued = prefs.getStringList(_key) ?? const <String>[];
     if (queued.isEmpty) return;
     for (final url in queued) {
-      await flush(url);
+      if (!(prefs.getStringList(_key) ?? const []).contains(url)) continue;
+      try {
+        final referenced = await isReferenced
+            ?.call(url)
+            .timeout(const Duration(seconds: 10));
+        if (referenced == true) {
+          await cancel(url);
+        } else if (referenced == false) {
+          // Recheck membership after the server await: Undo may have won.
+          await flush(url);
+        }
+      } catch (_) {
+        // Reference checks and queue persistence can both fail; retry later.
+      }
     }
   }
 }

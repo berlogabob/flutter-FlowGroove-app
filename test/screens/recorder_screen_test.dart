@@ -433,7 +433,7 @@ void main() {
         await tester.tap(find.text('Undo'));
         await tester.pumpAndSettle();
         expect(repo.entries[ideaInboxSongId], isEmpty);
-        expect(find.text('Could not restore recording'), findsOneWidget);
+        expect(find.text("Couldn't restore — try again"), findsOneWidget);
         expect(find.textContaining('secret'), findsNothing);
         expect(tester.takeException(), isNull);
         pending.failCancel = false;
