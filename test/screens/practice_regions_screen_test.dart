@@ -17,7 +17,6 @@ import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
 import 'package:flowgroove/services/audio/song_peaks.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
@@ -264,12 +263,6 @@ void main() {
     fetched = [];
     sessions = _SessionLog();
     engine = FakeBackingEngine();
-    // Real-time pumps let the scaffold's connectivity stream subscribe.
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-          const MethodChannel('dev.fluttercommunity.plus/connectivity_status'),
-          (_) async => null,
-        );
   });
 
   tearDown(() => JustAudioPlatform.instance = previousPlatform);
@@ -289,7 +282,6 @@ void main() {
     WidgetTester tester,
     SongLabEntry entry, {
     bool demo = false,
-    bool showRegions = true,
     Uint8List? bytes,
   }) async {
     await tester.pumpWidget(
@@ -309,26 +301,73 @@ void main() {
       ),
     );
     await settleAudio(tester);
-    if (showRegions) {
-      await tester.tap(find.text('Regions'));
-      await tester.pumpAndSettle();
-    }
   }
 
-  testWidgets('Markers stays the default view with regions', (tester) async {
-    await pump(tester, _entry(), showRegions: false);
-    expect(find.text('M1'), findsOneWidget);
+  Future<void> openMore(WidgetTester tester, String label) async {
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(label));
+    await settleAudio(tester);
+  }
+
+  Future<void> selectRun(WidgetTester tester) async {
+    final hold = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey('region-pad-verse'))),
+      pointer: 1,
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(
+      find.byKey(const ValueKey('region-pad-chorus')),
+      pointer: 2,
+    );
+    await hold.up();
+    await settleAudio(tester);
+  }
+
+  Finder timeline() => find.byWidgetPredicate(
+    (widget) =>
+        widget is CustomPaint &&
+        widget.painter.runtimeType.toString() == '_RegionsPainter',
+  );
+
+  testWidgets('practice shows pads and discloses marker editing until Done', (
+    tester,
+  ) async {
+    await pump(tester, _entry());
+    expect(find.byType(GridView), findsOneWidget);
+    expect(find.text('Add marker'), findsNothing);
+    expect(find.text('Snap to bar'), findsNothing);
+    expect(find.byKey(const ValueKey('marker-handle-0')), findsNothing);
+    await tester.tap(find.byTooltip('Edit sections'));
+    await tester.pumpAndSettle();
+    expect(find.text('Editing sections'), findsOneWidget);
+    expect(find.text('Add marker'), findsOneWidget);
     expect(find.byType(GridView), findsNothing);
-    expect(find.byKey(const ValueKey('verse')), findsNothing);
-    expect(find.text('Pads'), findsOneWidget);
+    expect(find.byKey(const ValueKey('marker-handle-0')), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'Done'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add marker'), findsNothing);
+    expect(find.byType(GridView), findsOneWidget);
+  });
+
+  testWidgets('empty practice offers section setup to editors', (tester) async {
+    await pump(tester, _entry(regions: const []));
+    expect(find.text('No sections yet'), findsOneWidget);
+    await tester.tap(find.text('Set up sections'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add marker'), findsOneWidget);
+  });
+
+  testWidgets('Re-run setup shows the placeholder', (tester) async {
+    await pump(tester, _entry());
+    await openMore(tester, 'Re-run setup');
+    expect(find.text('Setup wizard coming'), findsOneWidget);
   });
 
   testWidgets(
     'tapping a pad loops only Chorus and tapping again keeps playing',
     (tester) async {
-      await pump(tester, _entry(), showRegions: false);
-      await tester.tap(find.text('Pads'));
-      await tester.pumpAndSettle();
+      await pump(tester, _entry());
       final pads = tester.widget<GridView>(find.byType(GridView));
       expect(pads.shrinkWrap, isTrue);
       expect(pads.physics, isA<NeverScrollableScrollPhysics>());
@@ -361,9 +400,7 @@ void main() {
   testWidgets(
     'holding Verse 2 and tapping Chorus loops the run for demo users',
     (tester) async {
-      await pump(tester, _entry(), demo: true, showRegions: false);
-      await tester.tap(find.text('Pads'));
-      await tester.pumpAndSettle();
+      await pump(tester, _entry(), demo: true);
       final hold = await tester.startGesture(
         tester.getCenter(find.text('Verse 2')),
         pointer: 1,
@@ -407,9 +444,9 @@ void main() {
       audio.players.values.single.loadedUri,
       'file:///tmp/practice_e1.wav',
     );
-    await tester.tap(find.text('Markers'));
+    await tester.tap(find.byTooltip('Edit sections'));
     await settleAudio(tester);
-    await tester.tap(find.byTooltip('Fine-tune'));
+    await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
     expect(fetched, [url]);
   });
@@ -437,7 +474,7 @@ void main() {
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry());
     expect(decodes, 0);
-    await tester.tap(find.byTooltip('Auto slice'));
+    await openMore(tester, 'Auto slice');
     await settleAudio(tester);
     await tester.tap(find.widgetWithText(ChoiceChip, 'Suggest tempo grid'));
     await settleAudio(tester);
@@ -448,7 +485,7 @@ void main() {
     expect(repo.saved.single.grid!.offsetMs, closeTo(300, 20));
     expect(repo.saved.single.grid!.beatsPerBar, 4);
     expect(repo.saved.single.regions, hasLength(2));
-    await tester.tap(find.byTooltip('Auto slice'));
+    await openMore(tester, 'Auto slice');
     await settleAudio(tester);
     expect(decodes, 1);
     expect(fetched, ['https://example.com/take.wav']);
@@ -465,7 +502,7 @@ void main() {
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     const grid = AudioGrid(bpm: 120, offsetMs: 1000);
     await pump(tester, _entry(grid: grid));
-    await tester.tap(find.byTooltip('Auto slice'));
+    await openMore(tester, 'Auto slice');
     await settleAudio(tester);
     await tester.tap(find.widgetWithText(ChoiceChip, 'Slice every N bars'));
     await tester.pump();
@@ -501,7 +538,7 @@ void main() {
       addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
       await pump(tester, _entry(grid: const AudioGrid(bpm: 120)));
       Future<void> preview() async {
-        await tester.tap(find.byTooltip('Auto slice'));
+        await openMore(tester, 'Auto slice');
         await settleAudio(tester);
         await tester.tap(find.widgetWithText(ChoiceChip, 'Chop by transients'));
         await tester.pump();
@@ -545,7 +582,7 @@ void main() {
           (bytes, {required sampleRate, required durationMs}) => decoded.future;
       addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
       await pump(tester, _entry(regions: const []));
-      await tester.tap(find.byTooltip('Auto slice'));
+      await openMore(tester, 'Auto slice');
       await settleAudio(tester);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       decoded.complete(null);
@@ -593,7 +630,7 @@ void main() {
     await settleAudio(tester);
     final player = audio.players.values.single;
     player.calls.clear();
-    await tester.tap(find.byKey(const ValueKey('chorus')));
+    await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
     await settleAudio(tester);
     expect(player.calls, ['pause', 'setClip', 'seek', 'play']);
     expect(player.position, Duration.zero);
@@ -622,6 +659,8 @@ void main() {
         ..emit();
       await settleAudio(tester);
 
+      await tester.tap(find.byTooltip('Edit sections'));
+      await tester.pumpAndSettle();
       final loads = player.loadCalls;
       final pauses = player.pauseCalls;
       await tester.tap(find.text('Add marker'));
@@ -635,16 +674,14 @@ void main() {
       expect(repo.saved.single.regions[0].endMs, boundaryMs);
       expect(repo.saved.single.regions[1].startMs, boundaryMs);
       expect(repo.saved.single.regions[1].name, isEmpty);
-      expect(find.text('Unnamed'), findsNWidgets(2));
+      expect(find.byKey(const ValueKey('marker-handle-0')), findsOneWidget);
       expect(find.text('Region name'), findsNothing);
       expect(find.byTooltip('Pause'), findsOneWidget);
       expect(player.loadCalls, loads);
       expect(player.pauseCalls, pauses);
 
-      final region = find.byKey(ValueKey(repo.saved.single.regions[1].id));
-      await tester.tap(
-        find.descendant(of: region, matching: find.byTooltip('Edit region')),
-      );
+      final rect = tester.getRect(timeline());
+      await tester.tapAt(Offset(rect.left + rect.width * .75, rect.center.dy));
       await settleAudio(tester);
       expect(find.text('Region name'), findsOneWidget);
       await tester.tap(find.widgetWithText(ChoiceChip, 'Chorus'));
@@ -653,25 +690,6 @@ void main() {
       expect(repo.saved.last.regions[1].name, 'Chorus');
     },
   );
-
-  testWidgets('Markers lists boundaries and deletes into the left region', (
-    tester,
-  ) async {
-    await pump(tester, _entry());
-    await tester.tap(find.text('Markers'));
-    await settleAudio(tester);
-    expect(find.text('M1'), findsOneWidget);
-    expect(find.text('00:10.000'), findsOneWidget);
-    expect(find.text('M2'), findsNothing);
-
-    await tester.tap(find.byTooltip('Delete marker'));
-    await settleAudio(tester);
-    expect(find.text('M1'), findsNothing);
-    final merged = repo.saved.single.regions.single;
-    expect(merged.id, 'verse');
-    expect(merged.name, 'Verse 2');
-    expect((merged.startMs, merged.endMs), (0, 20000));
-  });
 
   testWidgets('Fine-tune nudges M1 locally and saves on Done, decoding once', (
     tester,
@@ -691,9 +709,9 @@ void main() {
         };
     addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
     await pump(tester, _entry());
-    await tester.tap(find.text('Markers'));
+    await tester.tap(find.byTooltip('Edit sections'));
     await settleAudio(tester);
-    await tester.tap(find.byTooltip('Fine-tune'));
+    await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
     expect(find.text('Fine-tune M1'), findsOneWidget);
     await tester.ensureVisible(find.text('+10 ms'));
@@ -704,13 +722,13 @@ void main() {
     await tester.pump();
     expect(find.text('00:10.020'), findsOneWidget);
     expect(repo.saved, isEmpty);
-    await tester.ensureVisible(find.text('Done'));
-    await tester.tap(find.text('Done'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Done'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await settleAudio(tester);
     expect(repo.saved.single.regions[0].endMs, 10020);
     expect(repo.saved.single.regions[1].startMs, 10020);
 
-    await tester.tap(find.byTooltip('Fine-tune'));
+    await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
     expect(decodes, 1);
     expect(fetched, ['https://example.com/take.wav']);
@@ -718,10 +736,18 @@ void main() {
     await tester.tap(find.text('+10 ms'));
     await tester.pump();
     // Dismissing the sheet discards its local preview.
-    Navigator.of(tester.element(find.text('Done'))).pop();
+    Navigator.of(
+      tester.element(find.widgetWithText(FilledButton, 'Done')),
+    ).pop();
     await settleAudio(tester);
     expect(repo.saved, hasLength(1));
+    await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
+    await settleAudio(tester);
     expect(find.text('00:10.020'), findsOneWidget);
+    Navigator.of(
+      tester.element(find.widgetWithText(FilledButton, 'Done')),
+    ).pop();
+    await settleAudio(tester);
   });
 
   testWidgets('Fine-tune jog wheel moves clockwise and saves on Done', (
@@ -732,9 +758,9 @@ void main() {
         (bytes, {required sampleRate, required durationMs}) async => null;
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry());
-    await tester.tap(find.text('Markers'));
+    await tester.tap(find.byTooltip('Edit sections'));
     await settleAudio(tester);
-    await tester.tap(find.byTooltip('Fine-tune'));
+    await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
     final wheel = find.byKey(const ValueKey('marker-jog-wheel'));
     await tester.ensureVisible(wheel);
@@ -751,8 +777,8 @@ void main() {
     await gesture.up();
     await settleAudio(tester);
     expect(repo.saved, isEmpty);
-    await tester.ensureVisible(find.text('Done'));
-    await tester.tap(find.text('Done'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Done'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await settleAudio(tester);
     final delta = repo.saved.single.regions[0].endMs - 10000;
     expect(delta, greaterThan(0));
@@ -767,9 +793,9 @@ void main() {
         (bytes, {required sampleRate, required durationMs}) async => null;
     addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
     await pump(tester, _entry());
-    await tester.tap(find.text('Markers'));
+    await tester.tap(find.byTooltip('Edit sections'));
     await settleAudio(tester);
-    await tester.tap(find.byTooltip('Fine-tune'));
+    await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
     final snap = tester.widget<SegmentedButton<BoundarySnap>>(
       find.byType(SegmentedButton<BoundarySnap>),
@@ -783,8 +809,8 @@ void main() {
     await tester.ensureVisible(find.text('+1 ms'));
     await tester.tap(find.text('+1 ms'));
     await tester.pump();
-    await tester.ensureVisible(find.text('Done'));
-    await tester.tap(find.text('Done'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Done'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await settleAudio(tester);
     expect(repo.saved.single.regions[0].endMs, 10001);
   });
@@ -796,11 +822,11 @@ void main() {
           (bytes, {required sampleRate, required durationMs}) async => null;
       addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
       await pump(tester, _entry());
-      await tester.tap(find.byKey(const ValueKey('chorus')));
+      await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
       await settleAudio(tester);
-      await tester.tap(find.text('Markers'));
+      await tester.tap(find.byTooltip('Edit sections'));
       await settleAudio(tester);
-      await tester.tap(find.byTooltip('Fine-tune'));
+      await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
       await settleAudio(tester);
       final player = audio.players.values.single;
       final plays = player.playCalls;
@@ -816,12 +842,14 @@ void main() {
       await settleAudio(tester);
       expect(player.pauseCalls, pauses + 1);
       expect(repo.saved, isEmpty);
-      Navigator.of(tester.element(find.text('Done'))).pop();
+      Navigator.of(
+        tester.element(find.widgetWithText(FilledButton, 'Done')),
+      ).pop();
       await settleAudio(tester);
     },
   );
 
-  testWidgets('marker outside the loop clears the clip before seeking', (
+  testWidgets('practice timeline seeks outside the loop and clears the clip', (
     tester,
   ) async {
     await pump(
@@ -839,11 +867,10 @@ void main() {
         ],
       ),
     );
-    await tester.tap(find.byKey(const ValueKey('chorus')));
+    await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
     await settleAudio(tester);
-    await tester.tap(find.text('Markers'));
-    await settleAudio(tester);
-    await tester.tap(find.text('M1'));
+    final rect = tester.getRect(timeline());
+    await tester.tapAt(Offset(rect.left + rect.width / 4, rect.center.dy));
     await settleAudio(tester);
     final player = audio.players.values.single;
     expect(player.clip, isNull);
@@ -853,44 +880,23 @@ void main() {
     expect(repo.saved, isEmpty);
   });
 
-  testWidgets('Regions row highlights the same loop as the timeline', (
+  testWidgets('practice timeline seeks within a section without selecting it', (
     tester,
   ) async {
     await pump(tester, _entry());
-    await tester.tap(find.text('Markers'));
-    await settleAudio(tester);
-    await tester.tap(find.text('Regions'));
-    await settleAudio(tester);
-    final row = find.byKey(const ValueKey('verse'));
-    await tester.tap(row);
-    await settleAudio(tester);
-    final tile = tester.widget<ListTile>(row);
-    expect(tile.selected, isTrue);
-    expect(tile.selectedTileColor, isNotNull);
-    expect(find.text('Looping Verse 2').hitTestable(), findsOneWidget);
-    final player = audio.players.values.single;
-    expect(player.clip?.start, Duration.zero);
-    expect(player.clip?.end, const Duration(seconds: 10));
-
-    final timeline = find.byWidgetPredicate(
-      (widget) =>
-          widget is CustomPaint &&
-          widget.painter.runtimeType.toString() == '_RegionsPainter',
-    );
-    final rect = tester.getRect(timeline);
+    final rect = tester.getRect(timeline());
     await tester.tapAt(Offset(rect.left + rect.width / 4, rect.center.dy));
     await settleAudio(tester);
-    expect(tester.widget<ListTile>(row).selected, isFalse);
+    final player = audio.players.values.single;
+    expect(player.position, const Duration(seconds: 5));
     expect(player.clip, isNull);
     expect(find.textContaining('Looping'), findsNothing);
+    expect(repo.saved, isEmpty);
   });
 
   testWidgets('selecting adjacent regions loops both names', (tester) async {
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('verse')));
-    await settleAudio(tester);
-    await tester.tap(find.byKey(const ValueKey('chorus')));
-    await settleAudio(tester);
+    await selectRun(tester);
     expect(find.text('Looping Verse 2 → Chorus').hitTestable(), findsOneWidget);
     final player = audio.players.values.single;
     expect(player.clip?.start, Duration.zero);
@@ -905,7 +911,7 @@ void main() {
     tester,
   ) async {
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('chorus')));
+    await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
     await settleAudio(tester);
     final player = audio.players.values.single;
     player
@@ -915,48 +921,80 @@ void main() {
     expect(find.text('0:12 / 0:20'), findsOneWidget);
     expect(player.clip?.start, const Duration(seconds: 10));
 
-    await tester.tap(find.byKey(const ValueKey('chorus')));
+    await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
     await settleAudio(tester);
     expect(find.textContaining('Looping'), findsNothing);
     expect(player.clip, isNull);
     expect(player.loopMode, LoopModeMessage.off);
   });
 
-  testWidgets('demo users can loop but cannot edit', (tester) async {
+  testWidgets('demo viewers see no pencil or overflow and can loop', (
+    tester,
+  ) async {
     await pump(tester, _entry(), demo: true);
+    expect(find.byTooltip('Edit sections'), findsNothing);
+    expect(find.byTooltip('More'), findsNothing);
+    expect(find.text('Add marker'), findsNothing);
+    expect(find.byKey(const ValueKey('marker-handle-0')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
+    await settleAudio(tester);
+    expect(find.text('Looping Verse 2').hitTestable(), findsOneWidget);
+    expect(repo.saved, isEmpty);
+  });
+
+  testWidgets('Edit handles still drag and save boundaries', (tester) async {
+    await pump(tester, _entry());
+    await tester.tap(find.byTooltip('Edit sections'));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byKey(const ValueKey('marker-handle-0')),
+      const Offset(60, 0),
+    );
+    await settleAudio(tester);
+    expect(repo.saved, hasLength(1));
+    final regions = repo.saved.single.regions;
+    expect(regions.first.endMs, greaterThan(10000));
+    expect(regions.first.endMs, regions.last.startMs);
+  });
+
+  testWidgets('Tempo grid menu keeps downbeat editing in the dialog', (
+    tester,
+  ) async {
+    await pump(tester, _entry(grid: const AudioGrid(bpm: 120)));
+    expect(find.text('Tempo grid'), findsNothing);
+    await openMore(tester, 'Tempo grid');
+    await tester.tap(find.text('+10 ms'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await settleAudio(tester);
+    expect(repo.saved.single.grid!.offsetMs, 10);
+    expect(repo.saved.single.regions, hasLength(2));
+  });
+
+  testWidgets('Click & drums is disabled without a whole-BPM grid', (
+    tester,
+  ) async {
+    await pump(tester, _entry(grid: const AudioGrid(bpm: 120.5)));
     expect(
       tester
-          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Add marker'))
+          .widget<TextButton>(find.widgetWithText(TextButton, 'Click & drums'))
           .onPressed,
       isNull,
     );
-    expect(find.byTooltip('Edit region'), findsNothing);
-    expect(find.byTooltip('Auto slice'), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('verse')));
-    await settleAudio(tester);
-    expect(find.text('Looping Verse 2').hitTestable(), findsOneWidget);
-    await tester.tap(find.text('Markers'));
-    await settleAudio(tester);
-    expect(find.text('M1'), findsOneWidget);
-    expect(find.byTooltip('Delete marker'), findsNothing);
-    expect(find.byTooltip('Fine-tune'), findsNothing);
-    expect(repo.saved, isEmpty);
+    expect(find.byTooltip('Needs a whole-number BPM grid'), findsOneWidget);
   });
 
   testWidgets('removing the grid saves null without losing regions', (
     tester,
   ) async {
     await pump(tester, _entry(grid: const AudioGrid(bpm: 120)));
-    await tester.scrollUntilVisible(find.text('Remove grid'), 200);
-    // The scaffold's bottom bar overlaps the end of the list in the test
-    // viewport, so press the button directly.
-    tester
-        .widget<TextButton>(find.widgetWithText(TextButton, 'Remove grid'))
-        .onPressed!();
+    await openMore(tester, 'Tempo grid');
+    await tester.tap(find.widgetWithText(TextButton, 'Remove grid'));
     await settleAudio(tester);
     expect(repo.saved.single.grid, isNull);
     expect(repo.saved.single.regions, hasLength(2));
-    expect(find.text('Set tempo grid'), findsOneWidget);
+    await tester.tap(find.byTooltip('Edit sections'));
+    await tester.pumpAndSettle();
+    expect(find.text('Snap to bar'), findsNothing);
   });
 
   testWidgets('an imported file without peaks gets a waveform, once', (
@@ -982,10 +1020,7 @@ void main() {
     PracticeRegionsScreen.minLoggedMs = 0;
     addTearDown(() => PracticeRegionsScreen.minLoggedMs = 10000);
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('verse')));
-    await settleAudio(tester);
-    await tester.tap(find.byKey(const ValueKey('chorus')));
-    await settleAudio(tester);
+    await selectRun(tester);
     await tester.tap(find.byTooltip('Play'));
     await settleAudio(tester);
     final player = audio.players.values.single;
@@ -996,7 +1031,7 @@ void main() {
       await settleAudio(tester);
     }
     // Shrinking the run ends this loop's session.
-    await tester.tap(find.byKey(const ValueKey('chorus')));
+    await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
     await settleAudio(tester);
     final logged = sessions.saved.single;
     expect(logged.regionName, 'Verse 2 → Chorus');
@@ -1015,21 +1050,18 @@ void main() {
         };
     addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
     await pump(tester, _entry(grid: const AudioGrid(bpm: 120)));
-    await tester.scrollUntilVisible(find.text('Play with click & drums'), 200);
-    tester
-        .widget<SwitchListTile>(
-          find.widgetWithText(SwitchListTile, 'Play with click & drums'),
-        )
-        .onChanged!(true);
+    final toggle = find.widgetWithText(TextButton, 'Click & drums');
+    await tester.ensureVisible(toggle);
+    await tester.tap(toggle);
     await settleAudio(tester);
     expect(decoded, hasLength(1));
     expect(fetched, ['https://example.com/take.wav']);
     expect(engine.loads.single.names, ['Song']);
 
-    tester.widget<ListTile>(find.byKey(const ValueKey('chorus'))).onTap!();
+    await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
     await settleAudio(tester);
     expect(engine.commands, isEmpty); // selecting doesn't start playback
-    await tester.scrollUntilVisible(find.byTooltip('Play'), -200);
+    await tester.ensureVisible(find.byTooltip('Play'));
     await tester.tap(find.byTooltip('Play'));
     await settleAudio(tester);
     final launch = engine.commands.single;

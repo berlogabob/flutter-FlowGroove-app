@@ -30,7 +30,6 @@ import '../theme/mono_pulse_theme.dart';
 import '../utils/play_mode.dart';
 import '../utils/snackbar.dart';
 import '../widgets/audio/waveform_painter.dart';
-import '../widgets/tools/tool_scaffold.dart';
 
 Future<String?> _defaultCacheAudioFile(Uint8List bytes, String name) async {
   final file = File('${(await getTemporaryDirectory()).path}/$name');
@@ -79,8 +78,6 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
       _PracticeRegionsScreenState();
 }
 
-enum _RegionView { markers, regions, pads }
-
 class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   late SongLabEntry _entry;
   late final AudioPlayer _player;
@@ -89,7 +86,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Duration _position = Duration.zero;
   bool _playing = false;
   bool _loaded = false;
-  _RegionView _view = _RegionView.markers;
+  bool _editing = false;
   int? _heldPad;
   late bool _snap;
   double _speed = 1;
@@ -123,7 +120,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   // engine (sample-locked, 100% speed) instead of through just_audio.
   bool _sync = false;
   bool _preparingSync = false;
-  String? _drumsName;
   late final MetronomeNotifier _metronome;
 
   int get _durationMs => _duration.inMilliseconds;
@@ -405,7 +401,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     ),
   );
 
-  Future<void> _seekMarker(int ms) async {
+  Future<void> _seekTimeline(int ms) async {
     if (_clipEnd != null && (ms < _clipStart || ms >= _clipEnd!)) {
       _flushSession();
       setState(() => _selection = null);
@@ -414,10 +410,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       if (_sync) _syncLaunch(startIfStopped: false);
     }
     await _seekTo(ms);
-  }
-
-  void _toggleRegion(int index) {
-    _selectRegions(toggleSelection(_selection, index));
   }
 
   void _selectRegions((int, int)? selection) {
@@ -515,7 +507,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       if (!mounted) return;
       setState(() {
         _sync = true;
-        _drumsName = drums?.name;
       });
     } catch (e) {
       if (mounted) {
@@ -1154,6 +1145,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (!_canEdit) return;
     final bpm = TextEditingController(text: '${_entry.grid?.bpm ?? 120}');
     var beats = _entry.grid?.beatsPerBar ?? 4;
+    var offsetMs = _entry.grid?.offsetMs ?? 0;
     String? error;
     ModalRoute<dynamic>? dialogRoute;
     final grid = await showDialog<AudioGrid>(
@@ -1164,33 +1156,66 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           builder: (context, dialogSetState) => AlertDialog(
             backgroundColor: context.mp.surface,
             title: const Text('Tempo grid'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: bpm,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: bpm,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: 'BPM',
+                      errorText: error,
+                    ),
                   ),
-                  decoration: InputDecoration(
-                    labelText: 'BPM',
-                    errorText: error,
-                  ),
-                ),
-                DropdownButton<int>(
-                  value: beats,
-                  items: [
-                    for (var n = 2; n <= 7; n++)
-                      DropdownMenuItem(
-                        value: n,
-                        child: Text('$n beats per bar'),
+                  Wrap(
+                    children: [
+                      TextButton(
+                        onPressed: () => dialogSetState(() {
+                          final value = double.tryParse(bpm.text.trim());
+                          if (value != null && value.isFinite && value > 0) {
+                            offsetMs = (_positionMs % (60000 / value * beats))
+                                .round();
+                          }
+                        }),
+                        child: const Text('Downbeat here'),
                       ),
-                  ],
-                  onChanged: (value) => dialogSetState(() => beats = value!),
-                ),
-              ],
+                      TextButton(
+                        onPressed: () => dialogSetState(() => offsetMs -= 10),
+                        child: const Text('-10 ms'),
+                      ),
+                      TextButton(
+                        onPressed: () => dialogSetState(() => offsetMs += 10),
+                        child: const Text('+10 ms'),
+                      ),
+                    ],
+                  ),
+                  Text('Downbeat ${_preciseTime(offsetMs)}'),
+                  DropdownButton<int>(
+                    value: beats,
+                    items: [
+                      for (var n = 2; n <= 7; n++)
+                        DropdownMenuItem(
+                          value: n,
+                          child: Text('$n beats per bar'),
+                        ),
+                    ],
+                    onChanged: (value) => dialogSetState(() => beats = value!),
+                  ),
+                ],
+              ),
             ),
             actions: [
+              if (_entry.grid != null)
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    unawaited(_setGrid(null));
+                  },
+                  child: const Text('Remove grid'),
+                ),
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
                 child: const Text('Cancel'),
@@ -1207,7 +1232,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     AudioGrid(
                       bpm: value,
                       beatsPerBar: beats,
-                      offsetMs: _entry.grid?.offsetMs ?? 0,
+                      offsetMs: offsetMs,
                     ),
                   );
                 },
@@ -1346,6 +1371,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     );
   }
 
+  void _rerunSetup() => showAppSnackBar(context, 'Setup wizard coming');
+
   @override
   Widget build(BuildContext context) {
     final canEdit =
@@ -1367,254 +1394,192 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final positionMs = _sync && grid != null
         ? grid.msOfBar(syncBar)
         : _positionMs;
-    return ToolScreenScaffold(
-      title: 'Practice regions',
-      mainWidget: ListView(
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-        children: [
-          _timeline(canEdit),
-          const SizedBox(height: MonoPulseSpacing.md),
-          Row(
-            children: [
-              IconButton(
-                tooltip: playing ? 'Pause' : 'Play',
-                iconSize: 48,
-                icon: Icon(playing ? Icons.pause_circle : Icons.play_circle),
-                color: MonoPulseColors.accentOrange,
-                onPressed: _loaded && _durationMs > 0 ? _togglePlay : null,
-              ),
-              Expanded(
-                child: Text(
-                  _sync
-                      ? 'Bar ${syncBar + 1} · click & drums'
-                      : '${_time(positionMs)} / ${_time(_durationMs)}',
-                  style: MonoPulseTypography.bodySmall.copyWith(
-                    color: context.mp.textSecondary,
-                  ),
+    final editing = canEdit && _editing;
+    return Scaffold(
+      backgroundColor: context.mp.black,
+      appBar: AppBar(
+        title: Text(
+          editing ? 'Editing sections' : _entry.title ?? 'Practice regions',
+        ),
+        actions: [
+          if (editing)
+            TextButton(
+              onPressed: () => setState(() => _editing = false),
+              child: const Text('Done'),
+            )
+          else if (canEdit) ...[
+            IconButton(
+              tooltip: 'Edit sections',
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => setState(() {
+                _editing = true;
+                _heldPad = null;
+              }),
+            ),
+            PopupMenuButton<String>(
+              tooltip: 'More',
+              onSelected: (value) {
+                switch (value) {
+                  case 'grid':
+                    unawaited(_editGrid());
+                  case 'slice':
+                    unawaited(_autoSlice());
+                  case 'setup':
+                    _rerunSetup();
+                }
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(value: 'grid', child: Text('Tempo grid')),
+                PopupMenuItem(
+                  value: 'slice',
+                  enabled: _loaded && _durationMs > 0,
+                  child: const Text('Auto slice'),
                 ),
-              ),
-              if (canEdit)
-                IconButton(
-                  tooltip: 'Auto slice',
-                  icon: const Icon(Icons.auto_fix_high),
-                  onPressed: _loaded && _durationMs > 0 ? _autoSlice : null,
+                const PopupMenuItem(
+                  value: 'setup',
+                  child: Text('Re-run setup'),
                 ),
+              ],
+            ),
+          ],
+        ],
+      ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          children: [
+            _timeline(editing),
+            const SizedBox(height: MonoPulseSpacing.md),
+            if (editing) ...[
+              const Text(
+                'Drag a marker · tap a marker to fine-tune · tap a section to rename',
+              ),
+              const SizedBox(height: MonoPulseSpacing.sm),
               FilledButton.icon(
-                onPressed: canEdit && _loaded && _durationMs >= 2 * minRegionMs
+                onPressed: _loaded && _durationMs >= 2 * minRegionMs
                     ? _addMarker
                     : null,
                 icon: const Icon(Icons.add_location_alt_outlined),
                 label: const Text('Add marker'),
               ),
-            ],
-          ),
-          if (selection != null)
-            Text(
-              'Looping ${_name(regions[selection.$1])}'
-              '${selection.$1 == selection.$2 ? '' : ' → ${_name(regions[selection.$2])}'}',
-              style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.accentOrange,
-              ),
-            ),
-          const SizedBox(height: MonoPulseSpacing.md),
-          SegmentedButton<_RegionView>(
-            segments: const [
-              ButtonSegment(value: _RegionView.markers, label: Text('Markers')),
-              ButtonSegment(value: _RegionView.regions, label: Text('Regions')),
-              ButtonSegment(value: _RegionView.pads, label: Text('Pads')),
-            ],
-            selected: {_view},
-            onSelectionChanged: (value) => setState(() {
-              _view = value.single;
-              _heldPad = null;
-            }),
-          ),
-          if (_view == _RegionView.pads)
-            _pads()
-          else if (_view == _RegionView.markers)
-            for (var i = 0; i < regions.length - 1; i++)
-              ListTile(
-                title: Text('M${i + 1}'),
-                subtitle: Text(_preciseTime(regions[i].endMs)),
-                onTap: () => _seekMarker(regions[i].endMs),
-                trailing: canEdit
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            tooltip: 'Fine-tune',
-                            icon: const Icon(Icons.tune),
-                            onPressed: () => _fineTune(i),
-                          ),
-                          IconButton(
-                            tooltip: 'Delete marker',
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () =>
-                                _changeRegions(mergeRegion(regions, i + 1)),
-                          ),
-                        ],
-                      )
-                    : null,
-              )
-          else
-            for (var i = 0; i < regions.length; i++)
-              ListTile(
-                key: ValueKey(regions[i].id),
-                leading: Icon(
-                  Icons.circle,
-                  color: MonoPulseColors.sectionColors[i % 6],
-                  size: 12,
+              if (grid != null)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Snap to bar'),
+                  value: _snap,
+                  onChanged: (value) => setState(() => _snap = value),
                 ),
-                title: Text(_name(regions[i])),
-                subtitle: Text(
-                  '${_preciseTime(regions[i].startMs)}–${_preciseTime(regions[i].endMs)}'
-                  ' · ${_preciseTime(regions[i].lengthMs)}'
-                  '${grid == null ? '' : ' · bars ${grid.barAt(regions[i].startMs).round() + 1}–${grid.barAt(regions[i].endMs).round() + 1}'}',
-                ),
-                selected:
-                    selection != null && i >= selection.$1 && i <= selection.$2,
-                selectedTileColor: MonoPulseColors.accentOrange.withValues(
-                  alpha: 0.18,
-                ),
-                onTap: () => _toggleRegion(i),
-                trailing: canEdit
-                    ? IconButton(
-                        tooltip: 'Edit region',
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () => _rename(regions[i].id),
-                      )
-                    : null,
-              ),
-          const SizedBox(height: MonoPulseSpacing.md),
-          Text(
-            'Speed ${(_speed * 100).round()}%',
-            style: MonoPulseTypography.titleMedium,
-          ),
-          Slider(
-            value: _speed,
-            min: 0.5,
-            divisions: 10,
-            label: '${(_speed * 100).round()}%',
-            // The engine plays stems at their rendered tempo only.
-            onChanged: _sync
-                ? null
-                : (value) {
-                    setState(() => _speed = value);
-                    unawaited(_player.setSpeed(value));
-                  },
-          ),
-          const Text('Pre-roll'),
-          Wrap(
-            spacing: MonoPulseSpacing.sm,
-            children: [
-              for (final value in grid == null ? [0, 2, 4] : [0, 1, 2])
-                ChoiceChip(
-                  label: Text(grid == null ? '$value s' : '$value bars'),
-                  selected: _preRoll == value,
-                  onSelected: (_) {
-                    setState(() => _preRoll = value);
-                    unawaited(_applyLoop());
-                  },
-                ),
-            ],
-          ),
-          const SizedBox(height: MonoPulseSpacing.md),
-          Card(
-            color: context.mp.surface,
-            child: Padding(
-              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Tempo grid',
-                    style: MonoPulseTypography.titleMedium,
+            ] else if (regions.isEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                  child: Column(
+                    children: [
+                      const Text('No sections yet'),
+                      if (canEdit)
+                        FilledButton(
+                          onPressed: () => setState(() => _editing = true),
+                          child: const Text('Set up sections'),
+                        ),
+                    ],
                   ),
-                  if (grid == null)
-                    TextButton(
-                      onPressed: canEdit ? _editGrid : null,
-                      child: const Text('Set tempo grid'),
-                    )
-                  else ...[
-                    Text('BPM ${grid.bpm} · ${grid.beatsPerBar}/4'),
-                    Wrap(
-                      children: [
-                        TextButton(
-                          onPressed: canEdit
-                              ? () => _setGrid(
-                                  grid.copyWith(
-                                    offsetMs: (_positionMs % grid.barMs)
-                                        .round(),
-                                  ),
-                                )
-                              : null,
-                          child: const Text('Downbeat here'),
-                        ),
-                        TextButton(
-                          onPressed: canEdit
-                              ? () => _setGrid(
-                                  grid.copyWith(offsetMs: grid.offsetMs - 10),
-                                )
-                              : null,
-                          child: const Text('-10 ms'),
-                        ),
-                        TextButton(
-                          onPressed: canEdit
-                              ? () => _setGrid(
-                                  grid.copyWith(offsetMs: grid.offsetMs + 10),
-                                )
-                              : null,
-                          child: const Text('+10 ms'),
-                        ),
-                        TextButton(
-                          onPressed: canEdit ? _editGrid : null,
-                          child: const Text('Edit'),
-                        ),
-                        TextButton(
-                          onPressed: canEdit ? () => _setGrid(null) : null,
-                          child: const Text('Remove grid'),
-                        ),
+                ),
+              )
+            else
+              _pads(),
+            const SizedBox(height: MonoPulseSpacing.md),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  IconButton(
+                    tooltip: playing ? 'Pause' : 'Play',
+                    icon: Icon(
+                      playing ? Icons.pause_circle : Icons.play_circle,
+                    ),
+                    color: MonoPulseColors.accentOrange,
+                    onPressed: _loaded && _durationMs > 0 ? _togglePlay : null,
+                  ),
+                  Text(
+                    _sync
+                        ? 'Bar ${syncBar + 1} · click & drums'
+                        : '${_time(positionMs)} / ${_time(_durationMs)}',
+                    style: MonoPulseTypography.bodySmall,
+                  ),
+                  if (!editing) ...[
+                    PopupMenuButton<double>(
+                      tooltip: 'Speed',
+                      enabled: !_sync,
+                      initialValue: _speed,
+                      onSelected: (value) {
+                        setState(() => _speed = value);
+                        unawaited(_player.setSpeed(value));
+                      },
+                      itemBuilder: (_) => [
+                        for (var percent = 50; percent <= 100; percent += 5)
+                          PopupMenuItem(
+                            value: percent / 100,
+                            child: Text('$percent%'),
+                          ),
                       ],
-                    ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('Play with click & drums'),
-                      subtitle: Text(
-                        !canSyncToClick(grid)
-                            ? 'Needs a whole-number BPM'
-                            : _sync
-                            ? '100% speed · count-in from metronome settings'
-                                  '${_drumsName == null ? '' : ' · drums: $_drumsName'}'
-                            : "Song locked to the click, with the song's drum "
-                                  'pattern if it has one',
+                      child: Padding(
+                        padding: const EdgeInsets.all(MonoPulseSpacing.sm),
+                        child: Text('Speed ${(_speed * 100).round()}%'),
                       ),
-                      value: _sync,
-                      onChanged:
-                          canSyncToClick(grid) && _loaded && !_preparingSync
-                          ? (value) => unawaited(_setSync(value))
-                          : null,
                     ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('Snap to bar'),
-                      value: _snap,
-                      onChanged: canEdit
-                          ? (value) => setState(() => _snap = value)
-                          : null,
+                    PopupMenuButton<int>(
+                      tooltip: 'Pre-roll',
+                      initialValue: _preRoll,
+                      onSelected: (value) {
+                        setState(() => _preRoll = value);
+                        unawaited(_applyLoop());
+                      },
+                      itemBuilder: (_) => [
+                        for (final value in [0, 1, 2])
+                          PopupMenuItem(
+                            value: value,
+                            child: Text(
+                              grid == null ? '$value s' : '$value bars',
+                            ),
+                          ),
+                      ],
+                      child: Padding(
+                        padding: const EdgeInsets.all(MonoPulseSpacing.sm),
+                        child: Text('Pre-roll $_preRoll'),
+                      ),
+                    ),
+                    Tooltip(
+                      message: canSyncToClick(grid)
+                          ? 'Play with click & drums'
+                          : 'Needs a whole-number BPM grid',
+                      child: TextButton.icon(
+                        onPressed:
+                            canSyncToClick(grid) && _loaded && !_preparingSync
+                            ? () => unawaited(_setSync(!_sync))
+                            : null,
+                        icon: Icon(_sync ? Icons.toggle_on : Icons.toggle_off),
+                        label: const Text('Click & drums'),
+                      ),
                     ),
                   ],
                 ],
               ),
             ),
-          ),
-          // Clear the scaffold's bottom bar, as the audio note editor does.
-          const SizedBox(height: 96),
-        ],
+            if (selection != null)
+              Text(
+                'Looping ${_name(regions[selection.$1])}'
+                '${selection.$1 == selection.$2 ? '' : ' → ${_name(regions[selection.$2])}'}',
+                style: MonoPulseTypography.bodyMedium.copyWith(
+                  color: MonoPulseColors.accentOrange,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _timeline(bool canEdit) => Padding(
+  Widget _timeline(bool editing) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 24),
     child: LayoutBuilder(
       builder: (context, constraints) {
@@ -1635,10 +1600,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                             (region) =>
                                 ms >= region.startMs && ms < region.endMs,
                           );
-                          if (index >= 0) {
-                            _toggleRegion(index);
-                          } else {
-                            unawaited(_seekTo(ms));
+                          if (editing && index >= 0) {
+                            unawaited(_rename(_entry.regions[index].id));
+                          } else if (!editing) {
+                            unawaited(_seekTimeline(ms));
                           }
                         }
                       : null,
@@ -1658,7 +1623,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   ),
                 ),
               ),
-              if (canEdit && _durationMs > 0)
+              if (editing && _durationMs > 0)
                 for (var i = 0; i < _entry.regions.length - 1; i++)
                   _boundaryHandle(i, width),
             ],
@@ -1680,7 +1645,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       bottom: 0,
       width: 48,
       child: GestureDetector(
+        key: ValueKey('marker-handle-$index'),
         behavior: HitTestBehavior.opaque,
+        onTap: () => _fineTune(index),
         onHorizontalDragStart: (_) {
           _beforeDrag = _entry.regions;
           _dragMs = _entry.regions[index].endMs.toDouble();
