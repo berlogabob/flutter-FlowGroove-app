@@ -14,10 +14,10 @@ h1,h2,h3,p{margin:0}
 h1,h2,h3,.section-label,.phone-caption b{font-family:Marcellus,Georgia,'Times New Roman',serif;font-weight:700;text-transform:uppercase;letter-spacing:.005em}
 .shell{width:min(1180px,calc(100% - 48px));margin:auto}
 .text-link:hover{color:var(--orange-dark)}
-.button{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:11px 15px;border:1px solid #85847b;border-radius:3px;background:linear-gradient(180deg,#f4f3ed 0%,#ceccc2 100%);box-shadow:inset 0 11px 0 #ffffffd9,0 11px 0 #8c8b82,0 11px 5px #1e1e1c1c;color:var(--charcoal);font:700 11px Marcellus,Georgia,'Times New Roman',serif;text-transform:uppercase;letter-spacing:.05em;transition:transform .1s,box-shadow .1s,filter .1s}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 16px;border:1px solid #85847b;border-radius:3px;background:linear-gradient(180deg,#f4f3ed 0%,#ceccc2 100%);box-shadow:inset 0 1px 0 #ffffffd9,0 2px 0 #8c8b82,0 3px 5px #1e1e1c1c;color:var(--charcoal);font:700 11px Marcellus,Georgia,'Times New Roman',serif;text-transform:uppercase;letter-spacing:.05em;transition:transform .1s,box-shadow .1s,filter .1s}
 .button:hover{filter:brightness(1.04)}
-.button:active{transform:translateY(2px);box-shadow:inset 0 11px 2px #3333,0 0 0 #777}
-.button.primary{border-color:#b13a19;background:linear-gradient(180deg,#ff7045 0%,var(--orange) 58%,#df461c 100%);box-shadow:inset 0 11px 0 #ffffffb0,0 11px 0 var(--orange-dark),0 11px 6px #1e1e1c22;color:#0a0a09}
+.button:active{transform:translateY(2px);box-shadow:inset 0 1px 2px #3333,0 0 0 #777}
+.button.primary{border-color:#b13a19;background:linear-gradient(180deg,#ff7045 0%,var(--orange) 58%,#df461c 100%);box-shadow:inset 0 1px 0 #ffffffb0,0 2px 0 var(--orange-dark),0 4px 6px #1e1e1c22;color:#0a0a09}
 .hero{padding:55px 0 58px;display:grid;grid-template-columns:.86fr 1.14fr;gap:38px;align-items:center}
 .street-label,.section-label{display:flex;align-items:center;gap:8px;color:#55554f;font:700 11px Marcellus,Georgia,'Times New Roman',serif;text-transform:uppercase;letter-spacing:.095em}
 .street-label:before{content:'P';width:20px;height:20px;display:grid;place-items:center;background:var(--orange);border:1px solid var(--charcoal);border-radius:3px;color:var(--charcoal);font-size:11px}
@@ -30,7 +30,7 @@ h1,h2,h3,.section-label,.phone-caption b{font-family:Marcellus,Georgia,'Times Ne
 .hero-foot{display:flex;align-items:center;gap:7px;margin-top:19px;color:#4d4d46;font-size:11px}
 .hero-foot b{color:var(--charcoal);font:700 11px Marcellus,Georgia,'Times New Roman',serif;text-transform:uppercase;letter-spacing:.04em}
 .tiny-led{width:7px;height:7px;border-radius:50%;background:var(--sage);box-shadow:0 0 0 2px #8a917f30}
-.hero-visual{margin:0;position:relative;background:#e6e4db;overflow:hidden;border:1px solid #cfcdc3;box-shadow:inset 0 1px #fff,0 11px 0 #b7b5aa,0 11px 18px #1e1e1c18}
+.hero-visual{margin:0;position:relative;background:#e6e4db;overflow:hidden;border:1px solid #cfcdc3;box-shadow:inset 0 1px #fff,0 3px 0 #b7b5aa,0 9px 18px #1e1e1c18}
 .hero-visual:before{content:'PLAYNOTE / REHEARSAL 01';position:absolute;z-index:2;top:11px;left:13px;padding:5px 7px;background:#f6f5f0d9;border:1px solid #b9b6ab;color:#42423d;font:700 11px Marcellus,Georgia,'Times New Roman',serif;letter-spacing:.08em}
 .hero-visual img{display:block;width:100%;height:auto;mix-blend-mode:multiply}
 .hero-visual figcaption{display:flex;justify-content:space-between;gap:10px;padding:9px 13px;background:var(--screen);border-top:1px solid #c2bfb5;color:#4e4e48;font-size:11px}
@@ -44,15 +44,15 @@ h1,h2,h3,.section-label,.phone-caption b{font-family:Marcellus,Georgia,'Times Ne
 .phones{display:flex;align-items:flex-start;justify-content:center;gap:21px;padding:4px 0 9px}
 .phone{width:222px;flex:0 0 222px}
 .phone-song{margin-top:19px}
-.phone-frame{padding:6px;background:linear-gradient(145deg,#343432,#10100f 72%);border:1px solid #070706;border-radius:30px;box-shadow:inset 0 11px 1px #ffffff62,0 11px 0 #0b0b0a,0 11px 16px #1e1e1c2a}
-.phone-screen{min-height:432px;overflow:hidden;position:relative;padding:9px 11px 12px;background:#f1efe7;border:1px solid #848178;border-radius:24px;box-shadow:inset 0 11px 7px #1e1e1c13;color:#22221f}
+.phone-frame{padding:6px;background:linear-gradient(145deg,#343432,#10100f 72%);border:1px solid #070706;border-radius:30px;box-shadow:inset 0 1px 1px #ffffff62,0 3px 0 #0b0b0a,0 9px 16px #1e1e1c2a}
+.phone-screen{min-height:432px;overflow:hidden;position:relative;padding:9px 10px 12px;background:#f1efe7;border:1px solid #848178;border-radius:24px;box-shadow:inset 0 2px 7px #1e1e1c13;color:#22221f}
 .status{height:17px;display:flex;align-items:center;justify-content:space-between;font:600 11px Inter,sans-serif;color:#222}
 .island{width:58px;height:13px;border-radius:10px;background:#10100f;margin-left:15px;margin-right:auto}
 .app-bar{height:30px;display:flex;align-items:center;justify-content:space-between}
 .app-logo{font:700 13px Marcellus,Georgia,'Times New Roman',serif;letter-spacing:-.04em}
-.app-button{display:inline-flex;align-items:center;justify-content:center;border:1px solid #aaa79d;border-radius:3px;background:linear-gradient(#f5f3ec,#d4d2c8);box-shadow:inset 0 1px #fff,0 11px 0 #aaa79d;color:#22221f;font:700 11px Marcellus,Georgia,'Times New Roman',serif;letter-spacing:.02em}
+.app-button{display:inline-flex;align-items:center;justify-content:center;border:1px solid #aaa79d;border-radius:3px;background:linear-gradient(#f5f3ec,#d4d2c8);box-shadow:inset 0 1px #fff,0 2px 0 #aaa79d;color:#22221f;font:700 11px Marcellus,Georgia,'Times New Roman',serif;letter-spacing:.02em}
 .app-button.small{width:24px;height:22px;font-size:11px}
-.tabs{display:flex;justify-content:space-between;padding:7px 11px 6px;border-bottom:1px solid #cac7bc;font:700 11px Marcellus,Georgia,'Times New Roman',serif;letter-spacing:.04em}
+.tabs{display:flex;justify-content:space-between;padding:7px 1px 6px;border-bottom:1px solid #cac7bc;font:700 11px Marcellus,Georgia,'Times New Roman',serif;letter-spacing:.04em}
 .tabs b{position:relative}
 .tabs b:after{content:'';position:absolute;left:0;right:0;bottom:-7px;height:2px;background:var(--orange)}
 .screen-kicker{margin-top:10px;color:#68675f;font:700 11px Marcellus,Georgia,'Times New Roman',serif;letter-spacing:.08em}
@@ -69,8 +69,8 @@ h1,h2,h3,.section-label,.phone-caption b{font-family:Marcellus,Georgia,'Times Ne
 .phone-stats span:last-child{border:0}
 .phone-stats b,.bottom-info b{display:block;font:700 11px Marcellus,Georgia,'Times New Roman',serif}
 .phone-stats small,.bottom-info small{display:block;color:#67665f;font:700 11px Marcellus,Georgia,'Times New Roman',serif;letter-spacing:.04em}
-.app-button.start-set{width:100%;height:29px;margin-top:10px;background:linear-gradient(#ff7045,var(--orange) 62%,#e4471d);border-color:#ad3618;box-shadow:inset 0 1px #ffffffa8,0 11px 0 #a72e12;font-size:11px}
-.back-button{height:23px;width:24px;padding:0;border:1px solid #b6b3a9;border-radius:3px;background:linear-gradient(#f5f3ec,#d4d2c8);box-shadow:inset 0 1px #fff,0 11px 0 #aaa79d;font-size:17px;line-height:1}
+.app-button.start-set{width:100%;height:29px;margin-top:10px;background:linear-gradient(#ff7045,var(--orange) 62%,#e4471d);border-color:#ad3618;box-shadow:inset 0 1px #ffffffa8,0 2px 0 #a72e12;font-size:11px}
+.back-button{height:23px;width:24px;padding:0;border:1px solid #b6b3a9;border-radius:3px;background:linear-gradient(#f5f3ec,#d4d2c8);box-shadow:inset 0 1px #fff,0 2px 0 #aaa79d;font-size:17px;line-height:1}
 .app-bar .screen-kicker{margin:0 auto 0 7px}
 .song-title{font-size:16px!important;margin:10px 0 1px!important}
 .artist{font-size:11px;color:#65645e}
@@ -101,14 +101,14 @@ h1,h2,h3,.section-label,.phone-caption b{font-family:Marcellus,Georgia,'Times Ne
 .lyric-current .chord-row{margin-bottom:2px}
 .phone-controls{display:flex;justify-content:center;gap:9px;margin:10px 0}
 .phone-controls .app-button{width:36px;height:31px}
-.phone-controls .play{width:58px;height:35px;background:linear-gradient(#ff7045,var(--orange));border-color:#b13a19;box-shadow:inset 0 1px #fff9,0 11px 0 #a72e12}
+.phone-controls .play{width:58px;height:35px;background:linear-gradient(#ff7045,var(--orange));border-color:#b13a19;box-shadow:inset 0 1px #fff9,0 2px 0 #a72e12}
 .bottom-info{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #c6c3b9;text-align:center}
 .bottom-info span{padding:5px;border-right:1px solid #c6c3b9}
 .bottom-info span:last-child{border:0}
-.phone-caption{display:grid;gap:2px;padding:9px 11px 0;text-align:center;color:#626159;font-size:11px}
+.phone-caption{display:grid;gap:2px;padding:9px 4px 0;text-align:center;color:#626159;font-size:11px}
 .phone-caption b{font-size:11px;color:#32322d;letter-spacing:.07em}
 .how-section{padding:73px 0 64px}
-.workflow{position:relative;padding:34px 37px;background:linear-gradient(145deg,#292927,#1e1e1c);color:var(--paper);border:1px solid #111;border-radius:5px;box-shadow:inset 0 11px 1px #ffffff45,0 11px 0 #111,0 11px 20px #1e1e1c20;display:grid;grid-template-columns:.9fr 1.1fr;gap:35px;align-items:center}
+.workflow{position:relative;padding:34px 37px;background:linear-gradient(145deg,#292927,#1e1e1c);color:var(--paper);border:1px solid #111;border-radius:5px;box-shadow:inset 0 1px 1px #ffffff45,0 3px 0 #111,0 10px 20px #1e1e1c20;display:grid;grid-template-columns:.9fr 1.1fr;gap:35px;align-items:center}
 .workflow:before,.workflow:after{content:'';position:absolute;top:9px;width:7px;height:7px;border:1px solid #111;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d3d1c7,#73726a 72%)}
 .workflow:before{left:10px}
 .workflow:after{right:10px}
@@ -116,8 +116,8 @@ h1,h2,h3,.section-label,.phone-caption b{font-family:Marcellus,Georgia,'Times Ne
 .workflow h2{font-size:clamp(24px,3.2vw,34px);line-height:1.25;margin:12px 0}
 .workflow p{max-width:380px;color:#cfcdc4;font-size:11px;line-height:1.7}
 .steps{display:grid;gap:8px}
-.step{display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:center;padding:8px 10px;background:linear-gradient(#eeece4,#d5d3c9);border:1px solid #89877f;border-radius:3px;box-shadow:inset 0 1px #fff,0 11px 0 #96948b;color:var(--charcoal)}
-.step-no{height:25px;width:25px;display:grid;place-items:center;background:linear-gradient(#ff7045,var(--orange));border:1px solid #aa3619;box-shadow:inset 0 1px #ffffffa0,0 11px 0 #9b2d13;border-radius:3px;font:700 11px Marcellus,Georgia,'Times New Roman',serif}
+.step{display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:center;padding:8px 10px;background:linear-gradient(#eeece4,#d5d3c9);border:1px solid #89877f;border-radius:3px;box-shadow:inset 0 1px #fff,0 2px 0 #96948b;color:var(--charcoal)}
+.step-no{height:25px;width:25px;display:grid;place-items:center;background:linear-gradient(#ff7045,var(--orange));border:1px solid #aa3619;box-shadow:inset 0 1px #ffffffa0,0 2px 0 #9b2d13;border-radius:3px;font:700 11px Marcellus,Georgia,'Times New Roman',serif}
 .step b{font:700 11px Marcellus,Georgia,'Times New Roman',serif;text-transform:uppercase;letter-spacing:.02em}
 .step small{display:block;margin-top:3px;color:#4d4d46;font-size:11px;line-height:1.45}
 .closing{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:23px 0 39px;border-top:1px solid var(--rule)}
@@ -145,7 +145,7 @@ h1,h2,h3,.section-label,.phone-caption b{font-family:Marcellus,Georgia,'Times Ne
 .section-head{margin-bottom:23px}
 .section-head h2{font-size:26px}
 .section-head p{font-size:11px}
-.phones{justify-content:flex-start;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 11px 16px;margin-right:-16px}
+.phones{justify-content:flex-start;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 1px 16px;margin-right:-16px}
 .phone,.phone-song{width:208px;flex-basis:208px;margin-top:0;scroll-snap-align:start}
 .phone-screen{min-height:416px}
 .how-section{padding:55px 0 48px}
@@ -163,7 +163,7 @@ h1,h2,h3,.section-label,.phone-caption b{letter-spacing:normal}
 .button{gap:4px;letter-spacing:normal;word-spacing:normal}
 .app-button{letter-spacing:-.02em}
 .practice-section{display:grid;grid-template-columns:1.1fr .9fr;gap:53px;align-items:center;padding:25px 0 74px}
-.practice-visual{margin:0;position:relative;background:#e7e5dc;border:1px solid #cfcdc3;box-shadow:inset 0 1px #fff,0 11px 0 #b7b5aa,0 11px 18px #1e1e1c18}
+.practice-visual{margin:0;position:relative;background:#e7e5dc;border:1px solid #cfcdc3;box-shadow:inset 0 1px #fff,0 3px 0 #b7b5aa,0 9px 18px #1e1e1c18}
 .practice-visual img{display:block;width:100%;height:auto;mix-blend-mode:multiply}
 .practice-visual figcaption{padding:8px 11px;background:var(--screen);border-top:1px solid #c2bfb5;color:#4e4e48;font:700 11px Marcellus,Georgia,'Times New Roman',serif;letter-spacing:0;text-transform:uppercase}
 .practice-copy .section-label{font-size:11px;line-height:1.5}
@@ -178,8 +178,8 @@ h1,h2,h3,.section-label,.phone-caption b{letter-spacing:normal}
 .practice-copy p{font-size:11px}}
 h1,h2,h3,.section-label,.section-head .section-label,.street-label,.button,.hero-visual:before,.hero-visual figcaption span:first-child,.phone-caption b,.app-logo,.app-button,.tabs,.screen-kicker,.screen-meta,.phone-row i,.phone-row small,.phone-stats b,.phone-stats small,.song-facts span,.song-tabs,.chord-row,.step-no,.step b,.practice-visual figcaption,.unit-top,.feature-unit h3,.author h3,.author-mark{letter-spacing:normal;word-spacing:normal}
 .features-section{padding:63px 0 71px;background:#e8e6de;border-top:1px solid #d2d0c6;border-bottom:1px solid #d2d0c6}
-.feature-rack{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;padding:1px;background:#4d4d46;border:1px solid #4d4d46;border-radius:5px;box-shadow:inset 0 1px #fff,0 11px 0 #aaa89f,0 11px 16px #1e1e1c18}
-.feature-unit{min-height:142px;padding:14px 15px 13px;background:linear-gradient(155deg,#e5e3da,#cbc9bf);box-shadow:inset 0 11px 0 #ffffffc4;position:relative}
+.feature-rack{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;padding:1px;background:#77766e;border:1px solid #77766e;border-radius:5px;box-shadow:inset 0 1px #fff,0 3px 0 #aaa89f,0 8px 16px #1e1e1c18}
+.feature-unit{min-height:142px;padding:14px 15px 13px;background:linear-gradient(155deg,#e5e3da,#cbc9bf);box-shadow:inset 0 1px 0 #ffffffc4;position:relative}
 .unit-top{display:flex;align-items:center;justify-content:space-between;color:#52524b;font:700 11px Marcellus,Georgia,'Times New Roman',serif;text-transform:uppercase;letter-spacing:.035em}
 .unit-top i{width:7px;height:7px;border-radius:50%;background:var(--sage);border:1px solid #64695b;box-shadow:0 0 0 2px #8a917f22}
 .feature-unit:nth-child(2n) .unit-top i{background:var(--orange);border-color:#a53b20;box-shadow:0 0 0 2px #f3552422}
@@ -189,13 +189,13 @@ h1,h2,h3,.section-label,.section-head .section-label,.street-label,.button,.hero
 .authors-heading .section-label{font-size:11px}
 .authors-heading h2{margin:11px 0 7px;color:var(--charcoal);font-size:clamp(25px,3vw,33px)}
 .authors-heading p{max-width:330px;color:#5e5e57;font-size:11px;line-height:1.7}
-.author-panel{padding:7px;background:linear-gradient(145deg,#353532,#1e1e1c);border:1px solid #10100f;border-radius:5px;box-shadow:inset 0 11px 1px #ffffff5c,0 11px 0 #0e0e0d,0 11px 16px #1e1e1c22;position:relative}
+.author-panel{padding:7px;background:linear-gradient(145deg,#353532,#1e1e1c);border:1px solid #10100f;border-radius:5px;box-shadow:inset 0 1px 1px #ffffff5c,0 3px 0 #0e0e0d,0 9px 16px #1e1e1c22;position:relative}
 .author-panel:before,.author-panel:after{content:'';position:absolute;top:5px;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9d7ce,#73726c 70%);border:1px solid #111}
 .author-panel:before{left:6px}
 .author-panel:after{right:6px}
 .author{min-height:74px;display:grid;grid-template-columns:39px minmax(0,1fr) 24px;align-items:center;gap:11px;padding:9px 11px;background:linear-gradient(#e8e6de,#d4d2c8);border:1px solid #aaa79d;box-shadow:inset 0 1px #fff;position:relative}
 .author+.author{margin-top:6px}
-.author-mark{width:31px;height:31px;display:grid;place-items:center;border:1px solid #4d4d46;border-radius:3px;background:linear-gradient(#f4f2ea,#c8c6bc);box-shadow:inset 0 1px #fff,0 11px 0 #a6a49a;color:var(--petrol);font:700 11px Marcellus,Georgia,'Times New Roman',serif}
+.author-mark{width:31px;height:31px;display:grid;place-items:center;border:1px solid #77766e;border-radius:3px;background:linear-gradient(#f4f2ea,#c8c6bc);box-shadow:inset 0 1px #fff,0 2px 0 #a6a49a;color:var(--petrol);font:700 11px Marcellus,Georgia,'Times New Roman',serif}
 .author h3{font-size:11px;line-height:1.45;color:var(--charcoal)}
 .author h3 span{white-space:nowrap}
 .author p{margin-top:3px;color:#4d4d46;font-size:11px;line-height:1.5}
@@ -302,7 +302,7 @@ h1,h2,h3,.hero h1,.section-head h2,.workflow h2,.closing h2,.practice-copy h2,.a
 .street-label:before{display:none}
 .hero-visual:before{content:'FLOWGROOVE / REHEARSAL 01'}
 .app-logo{display:inline-flex;align-items:center;gap:5px}
-.app-logo-mark{width:17px;height:17px;flex:0 0 17px;display:grid;place-items:center;background:var(--orange);border:1px solid var(--charcoal);border-radius:3px;box-shadow:0 11px 0 var(--charcoal);color:var(--charcoal)}
+.app-logo-mark{width:17px;height:17px;flex:0 0 17px;display:grid;place-items:center;background:var(--orange);border:1px solid var(--charcoal);border-radius:3px;box-shadow:0 1px 0 var(--charcoal);color:var(--charcoal)}
 .app-logo-mark svg{display:block;width:12px;height:12px}
 .phone-controls .app-button{padding:0;display:grid;place-items:center;line-height:1}
 .phone-controls .app-button svg{display:block;width:14px;height:14px;fill:currentColor}
@@ -403,9 +403,9 @@ html[data-theme=dark] .fg-landing .screens-section,
 html[data-theme=dark] .fg-landing .features-section{background:#171716;border-color:var(--rule)}
 html[data-theme=dark] .fg-landing .feature-unit,
 html[data-theme=dark] .fg-landing .author{background:linear-gradient(155deg,#2b2b28,#20201f);border-color:var(--rule);box-shadow:inset 0 1px #ffffff30}
-html[data-theme=dark] .fg-landing .feature-rack{background:var(--rule);border-color:var(--rule);box-shadow:0 11px #141413}
+html[data-theme=dark] .fg-landing .feature-rack{background:var(--rule);border-color:var(--rule);box-shadow:0 3px #141413}
 html[data-theme=dark] .fg-landing .hero-visual,
-html[data-theme=dark] .fg-landing .practice-visual{background:var(--screen);border-color:var(--rule);box-shadow:0 11px #141413}
+html[data-theme=dark] .fg-landing .practice-visual{background:var(--screen);border-color:var(--rule);box-shadow:0 3px #141413}
 html[data-theme=dark] .fg-landing .practice-visual img{mix-blend-mode:normal}
 html[data-theme=dark] .fg-landing .hero-visual:before{background:#20201fe8;color:var(--ink);border-color:var(--rule)}
 html[data-theme=dark] .fg-landing .hero-visual figcaption,
@@ -469,3 +469,9 @@ html[data-theme=dark] .fg-landing .workflow{color:var(--ink)}
 /* Dark: captions sit on the page, mockup controls sit on light phone screens. */
 [data-theme=dark] .phone-caption b{color:#e8e6dd}
 [data-theme=dark] .phone-screen .back-button,[data-theme=dark] .phone-screen .app-button{color:#22221f}
+
+/* Designer final body face: Source Serif 4 for copy; controls stay Arial. */
+body{font-family:'Source Serif 4',Georgia,serif;font-optical-sizing:auto;font-weight:400}
+.section-head p{font-family:'Source Serif 4',Georgia,serif;font-size:17px;font-style:italic;line-height:normal}
+.nav>a:not(.nav-cta),.text-link{font-family:'Source Serif 4',Georgia,serif}
+.status,.lyric-sheet{font-family:Inter,sans-serif}
