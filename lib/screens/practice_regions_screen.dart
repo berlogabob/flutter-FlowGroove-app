@@ -10,6 +10,7 @@ import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
 import '../providers/permissions_provider.dart';
 import '../services/audio/audio_note_edit.dart';
+import '../services/audio/song_peaks.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
 import '../widgets/audio/waveform_painter.dart';
@@ -72,6 +73,27 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     _snap = _entry.grid != null;
     _player = widget.player ?? AudioPlayer();
     unawaited(_load());
+    unawaited(_backfillPeaks());
+  }
+
+  /// Imported song files arrive without peaks; decode once so regions can be
+  /// marked against the waveform. Saved for editors, shown locally for
+  /// everyone else. Silent on failure — the plain strip still works.
+  Future<void> _backfillPeaks() async {
+    if (_entry.peaks.isNotEmpty || _entry.attachmentIds.isEmpty) return;
+    try {
+      final bytes = await ref.read(audioBytesFetcherProvider)(
+        _entry.attachmentIds.first,
+      );
+      final peaks = await decodeSongPeaks(bytes);
+      if (peaks == null || !mounted || _entry.peaks.isNotEmpty) return;
+      final updated = _entry.copyWith(peaks: peaks);
+      if (_canEdit) {
+        await _save(updated);
+      } else {
+        setState(() => _entry = updated);
+      }
+    } catch (_) {}
   }
 
   Future<void> _load() async {

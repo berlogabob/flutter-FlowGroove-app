@@ -539,4 +539,15 @@ void main() {
       expect(activeMarkerIndex([(ms: 5000, text: 'a')], 100), -1);
     });
   });
+
+  test('peaksFromFloats takes the loudest sample per bar', () {
+    final samples = Float32List(1000);
+    samples[10] = -0.5; // first bar
+    samples[995] = 1.0; // last bar
+    final peaks = peaksFromFloats(samples, buckets: 10);
+    expect(peaks, hasLength(10));
+    expect(peaks.first, 128);
+    expect(peaks.last, 255);
+    expect(peaks[5], 0);
+  });
 }

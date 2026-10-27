@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-27T19:03:44.640811+00:00",
+  "updated_at": "2026-10-27T19:08:16.291936+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -7262,7 +7262,7 @@
     {
       "id": "PR-WAVE",
       "title": "Waveform peaks for imported song files",
-      "status": "queued",
+      "status": "review",
       "executor": "claude",
       "kind": "implementation",
       "issue": "PRACTICE-REGIONS",

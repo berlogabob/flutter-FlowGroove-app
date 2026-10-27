@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/song_lab.dart';
@@ -6,6 +7,7 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
+import 'package:flowgroove/services/audio/audio_note_recorder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -199,12 +201,14 @@ void main() {
   late _FakeJustAudio audio;
   late _InMemoryLabRepo repo;
   late JustAudioPlatform previousPlatform;
+  late List<String> fetched;
 
   setUp(() {
     previousPlatform = JustAudioPlatform.instance;
     audio = _FakeJustAudio();
     JustAudioPlatform.instance = audio;
     repo = _InMemoryLabRepo();
+    fetched = [];
     // Real-time pumps let the scaffold's connectivity stream subscribe.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
@@ -230,12 +234,17 @@ void main() {
     WidgetTester tester,
     SongLabEntry entry, {
     bool demo = false,
+    Uint8List? bytes,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           labRepositoryProvider.overrideWithValue(repo),
           isDemoUserProvider.overrideWithValue(demo),
+          audioBytesFetcherProvider.overrideWithValue((url) async {
+            fetched.add(url);
+            return bytes ?? Uint8List(0);
+          }),
         ],
         child: MaterialApp(home: PracticeRegionsScreen(entry: entry)),
       ),
@@ -338,5 +347,22 @@ void main() {
     expect(repo.saved.single.grid, isNull);
     expect(repo.saved.single.regions, hasLength(2));
     expect(find.text('Set tempo grid'), findsOneWidget);
+  });
+
+  testWidgets('an imported file without peaks gets a waveform, once', (
+    tester,
+  ) async {
+    final pcm = ByteData(16000 * 2);
+    for (var i = 0; i < 16000; i++) {
+      pcm.setInt16(i * 2, i.isEven ? 16000 : -16000, Endian.little);
+    }
+    await pump(
+      tester,
+      _entry(),
+      bytes: wavFromPcm16(pcm.buffer.asUint8List(), sampleRate: 16000),
+    );
+    expect(fetched, ['https://example.com/take.wav']);
+    expect(repo.saved.single.peaks, isNotEmpty);
+    expect(repo.saved.single.regions, hasLength(2));
   });
 }

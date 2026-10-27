@@ -326,6 +326,30 @@ List<int>? peaksFromWav(Uint8List wav, {int buckets = waveformPeakCount}) {
   return out;
 }
 
+/// Reduces decoded float samples (-1..1) to [buckets] bars in 0..255 by the
+/// loudest sample near each bar. Used for imported song files, which arrive
+/// as mp3/m4a/flac and are decoded by the platform rather than parsed here.
+List<int> peaksFromFloats(
+  Float32List samples, {
+  int buckets = waveformPeakCount,
+}) {
+  if (samples.isEmpty || buckets <= 0) return const [];
+  final out = List<int>.filled(math.min(buckets, samples.length), 0);
+  const maxReadsPerBucket = 256;
+  for (var i = 0; i < out.length; i++) {
+    final start = i * samples.length ~/ out.length;
+    final end = math.max(start + 1, (i + 1) * samples.length ~/ out.length);
+    final step = math.max(1, (end - start) ~/ maxReadsPerBucket);
+    var peak = 0.0;
+    for (var j = start; j < end; j += step) {
+      final v = samples[j].abs();
+      if (v > peak) peak = v;
+    }
+    out[i] = (peak * 255).round().clamp(0, 255);
+  }
+  return out;
+}
+
 /// Reslices a stored peak array to the same window a trim applied to the audio,
 /// so committing a trim doesn't need the bytes re-downloaded to redraw.
 List<int> trimPeaks(List<int> peaks, double startFrac, double endFrac) {
