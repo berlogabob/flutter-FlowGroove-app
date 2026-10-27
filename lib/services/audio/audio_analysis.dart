@@ -1,0 +1,122 @@
+/// On-device song analysis for the practice-regions auto slicer: transient
+/// onsets (MPC-style chop) and a tempo grid suggestion (BPM + first downbeat).
+/// Pure Dart over mono PCM; run on the decoded song the screen already holds.
+library;
+
+import 'dart:math';
+import 'dart:typed_data';
+
+/// Analysis block in samples (~11.6 ms at 22.05 kHz, ~5.8 ms at 44.1 kHz).
+const _hop = 256;
+
+/// Onset strength per [_hop] block: positive change in log energy.
+List<double> onsetEnvelope(Int16List pcm) {
+  final n = pcm.length ~/ _hop;
+  final env = List<double>.filled(n, 0);
+  var prev = 0.0;
+  for (var i = 0; i < n; i++) {
+    var energy = 0.0;
+    for (var j = i * _hop; j < (i + 1) * _hop; j++) {
+      energy += pcm[j] * pcm[j];
+    }
+    final level = log(1 + energy / _hop);
+    if (i > 0) env[i] = max(0, level - prev);
+    prev = level;
+  }
+  return env;
+}
+
+double _blockMs(num block, int sampleRate) =>
+    (block * _hop + _hop / 2) * 1000 / sampleRate;
+
+/// Onset times in ms: local envelope peaks above mean + [sensitivity] × σ,
+/// at least [minGapMs] apart. Higher sensitivity = fewer, stronger hits.
+List<int> detectOnsets(
+  Int16List pcm,
+  int sampleRate, {
+  double sensitivity = 1.5,
+  int minGapMs = 80,
+}) {
+  final env = onsetEnvelope(pcm);
+  if (env.length < 3) return const [];
+  final mean = env.reduce((a, b) => a + b) / env.length;
+  final sd = sqrt(
+    env.map((e) => (e - mean) * (e - mean)).reduce((a, b) => a + b) /
+        env.length,
+  );
+  final threshold = mean + sensitivity * sd;
+  final onsets = <int>[];
+  for (var i = 1; i < env.length - 1; i++) {
+    if (env[i] <= threshold || env[i] < env[i - 1] || env[i] < env[i + 1]) {
+      continue;
+    }
+    final ms = _blockMs(i, sampleRate).round();
+    if (onsets.isEmpty || ms - onsets.last >= minGapMs) onsets.add(ms);
+  }
+  return onsets;
+}
+
+/// Tempo grid suggestion, 4/4 assumed. BPM from the envelope's
+/// autocorrelation peak in 70–180 BPM, refined ±4 BPM on a beat comb; phase and
+/// downbeat from where the envelope is strongest on that comb. Null for
+/// clips under 4 s.
+/// ponytail: one global tempo; songs that drift need the manual grid.
+({double bpm, int firstDownbeatMs})? estimateGrid(
+  Int16List pcm,
+  int sampleRate,
+) {
+  if (pcm.length < sampleRate * 4) return null;
+  final env = onsetEnvelope(pcm);
+  final mean = env.reduce((a, b) => a + b) / env.length;
+  final x = [for (final e in env) e - mean];
+
+  double ac(int lag) {
+    var s = 0.0;
+    for (var j = lag; j < x.length; j++) {
+      s += x[j] * x[j - lag];
+    }
+    return s;
+  }
+
+  double lagOf(double bpm) => 60 * sampleRate / (bpm * _hop);
+  final lo = lagOf(180).floor(), hi = lagOf(70).ceil();
+  var best = lo;
+  for (var lag = lo + 1; lag <= hi; lag++) {
+    if (ac(lag) > ac(best)) best = lag;
+  }
+  // Mean envelope on a beat comb; averaging over the whole song makes a
+  // fine BPM search far more precise than the autocorrelation lag alone.
+  double comb(double start, double step) {
+    var s = 0.0;
+    var n = 0;
+    for (var t = start; t.round() < env.length; t += step, n++) {
+      // ±1 block: a hit can round into the neighbouring block.
+      final i = t.round();
+      s += max(
+        env[i],
+        max(i > 0 ? env[i - 1] : 0, i + 1 < env.length ? env[i + 1] : 0),
+      );
+    }
+    return n == 0 ? 0 : s / n;
+  }
+
+  final coarse = 60 * sampleRate / (best * _hop);
+  var period = best.toDouble(), phase = 0.0, score = -1.0;
+  for (var bpm = coarse - 4; bpm <= coarse + 4; bpm += 0.05) {
+    final p = lagOf(bpm);
+    for (var o = 0; o < p; o++) {
+      final v = comb(o.toDouble(), p);
+      if (v > score) (score, period, phase) = (v, p, o.toDouble());
+    }
+  }
+  var down = phase;
+  for (var k = 1; k < 4; k++) {
+    final o = phase + k * period;
+    if (comb(o, 4 * period) > comb(down, 4 * period)) down = o;
+  }
+  final bpm = 60 * sampleRate / (period * _hop);
+  return (
+    bpm: (bpm * 10).round() / 10,
+    firstDownbeatMs: _blockMs(down, sampleRate).round(),
+  );
+}
