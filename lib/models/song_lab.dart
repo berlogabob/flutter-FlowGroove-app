@@ -7,6 +7,7 @@
 /// timestamps as local ISO-8601 strings, enums stored by `.name`.
 library;
 
+import 'audio_region.dart';
 import 'midi_pattern.dart';
 import 'midi_song.dart';
 
@@ -81,6 +82,8 @@ class SongLabEntry {
     this.peaks = const [],
     this.midi,
     this.midiSong,
+    this.grid,
+    this.regions = const [],
   });
 
   factory SongLabEntry.fromJson(Map<String, dynamic> json) => SongLabEntry(
@@ -109,6 +112,15 @@ class SongLabEntry {
         const [],
     midi: json['midi'] as Map<String, dynamic>?,
     midiSong: _parseMidiSong(json['midiSong']),
+    grid: json['grid'] is Map<String, dynamic>
+        ? AudioGrid.fromJson(json['grid'] as Map<String, dynamic>)
+        : null,
+    regions:
+        (json['regions'] as List?)
+            ?.whereType<Map<String, dynamic>>()
+            .map(AudioRegion.fromJson)
+            .toList() ??
+        const [],
   );
 
   final String id;
@@ -148,6 +160,12 @@ class SongLabEntry {
 
   final MidiSongMeta? midiSong;
 
+  /// Tempo grid for a `recording`'s practice regions; null = seconds only.
+  final AudioGrid? grid;
+
+  /// Named practice regions on a `recording`, sorted and gapless.
+  final List<AudioRegion> regions;
+
   MidiPattern? get pattern => midi == null ? null : MidiPattern.fromJson(midi!);
 
   Map<String, dynamic> toJson() => {
@@ -169,6 +187,11 @@ class SongLabEntry {
     if (peaks.isNotEmpty) 'peaks': peaks,
     if (midi != null) 'midi': midi,
     if (midiSong != null) 'midiSong': midiSong!.toJson(),
+    if (grid != null) 'grid': grid!.toJson(),
+    // Written on every recording save: saves merge, so an emptied list must
+    // overwrite the stored one.
+    if (type == LabEntryType.recording)
+      'regions': [for (final r in regions) r.toJson()],
   };
 
   SongLabEntry copyWith({
@@ -179,6 +202,9 @@ class SongLabEntry {
     List<int>? peaks,
     Map<String, dynamic>? midi,
     MidiSongMeta? midiSong,
+    AudioGrid? grid,
+    bool clearGrid = false,
+    List<AudioRegion>? regions,
   }) => SongLabEntry(
     id: id,
     songId: songId,
@@ -198,6 +224,8 @@ class SongLabEntry {
     peaks: peaks ?? this.peaks,
     midi: midi ?? this.midi,
     midiSong: midiSong ?? this.midiSong,
+    grid: clearGrid ? null : grid ?? this.grid,
+    regions: regions ?? this.regions,
   );
 }
 

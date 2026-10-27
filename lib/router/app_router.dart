@@ -37,6 +37,7 @@ import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/main_shell.dart';
 import '../screens/metronome_screen.dart';
+import '../screens/practice_regions_screen.dart';
 import '../screens/practice_screen.dart';
 import '../screens/recorder_screen.dart';
 import '../screens/profile_screen.dart';
@@ -694,6 +695,24 @@ List<RouteBase> _buildAppRoutes() {
       },
     ),
     GoRoute(
+      path: '/main/practice-regions/:id',
+      name: 'practice-regions',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final extra = _extraAs<Map<Object?, Object?>>(state);
+        final rawEntry = extra?['entry'];
+        final rawBandId = extra?['bandId'];
+        // extra doesn't survive a refresh, a deep link, or browser history
+        // restoration (which hands back decoded JSON); there's no id-only
+        // lookup for a lab entry, so send them back to the list.
+        if (rawEntry is! SongLabEntry) return const RecorderScreen();
+        return PracticeRegionsScreen(
+          entry: rawEntry,
+          bandId: rawBandId is String ? rawBandId : null,
+        );
+      },
+    ),
+    GoRoute(
       path: '/main/tuner',
       name: 'tuner',
       parentNavigatorKey: _rootNavigatorKey,
@@ -830,6 +849,13 @@ extension GoRouterExtension on BuildContext {
   /// Open a recording in the audio note editor (trim, waveform, notes, share).
   void goAudioNote(SongLabEntry entry, {String? bandId}) => pushNamed(
     'audio-note',
+    pathParameters: {'id': entry.id},
+    extra: {'entry': entry, 'bandId': bandId},
+  );
+
+  /// Open named regions for looping a recording or a transition.
+  void goPracticeRegions(SongLabEntry entry, {String? bandId}) => pushNamed(
+    'practice-regions',
     pathParameters: {'id': entry.id},
     extra: {'entry': entry, 'bandId': bandId},
   );

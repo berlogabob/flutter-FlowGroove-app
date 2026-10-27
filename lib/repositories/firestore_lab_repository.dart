@@ -123,10 +123,14 @@ class FirestoreLabRepository {
     for (final url in urls) {
       await _pendingStorageDeletes.cancel(url);
     }
-    await _songDoc(entry.songId, bandId: bandId)
-        .collection('labEntries')
-        .doc(entry.id)
-        .set(entry.toJson(), SetOptions(merge: true));
+    await _songDoc(
+      entry.songId,
+      bandId: bandId,
+    ).collection('labEntries').doc(entry.id).set({
+      ...entry.toJson(),
+      // A merged save must clear a removed tempo grid in Firestore too.
+      if (entry.type == LabEntryType.recording) 'grid': entry.grid?.toJson(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> deleteEntry(

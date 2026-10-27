@@ -1,0 +1,142 @@
+import 'package:flowgroove/models/audio_region.dart';
+import 'package:flowgroove/models/song_lab.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  var n = 0;
+  String id() => 'r${n++}';
+  setUp(() => n = 0);
+
+  group('AudioGrid', () {
+    const grid = AudioGrid(bpm: 120, offsetMs: 500); // 2000 ms bars
+
+    test('bar math round-trips', () {
+      expect(grid.barMs, 2000);
+      expect(grid.barAt(4500), 2);
+      expect(grid.msOfBar(2), 4500);
+      expect(grid.barAt(0), -0.25);
+    });
+
+    test('snap goes to the nearest bar line inside the file', () {
+      expect(grid.snap(5300, durationMs: 60000), 4500);
+      expect(grid.snap(5600, durationMs: 60000), 6500);
+      expect(grid.snap(100, durationMs: 60000), 500);
+      expect(grid.snap(59900, durationMs: 60000), 60000);
+    });
+  });
+
+  group('splitRegions', () {
+    test('first split turns the whole file into two regions', () {
+      final r = splitRegions(
+        const [],
+        atMs: 10000,
+        durationMs: 30000,
+        newId: id,
+      );
+      expect(
+        [for (final x in r) (x.startMs, x.endMs)],
+        [(0, 10000), (10000, 30000)],
+      );
+      expect(r.map((x) => x.id).toSet().length, 2);
+    });
+
+    test('cuts the region under the playhead, keeps its name left', () {
+      final start = [
+        const AudioRegion(id: 'a', name: 'Intro', startMs: 0, endMs: 8000),
+        const AudioRegion(id: 'b', name: 'Verse', startMs: 8000, endMs: 20000),
+      ];
+      final r = splitRegions(start, atMs: 14000, durationMs: 20000, newId: id);
+      expect(
+        [for (final x in r) (x.name, x.startMs, x.endMs)],
+        [('Intro', 0, 8000), ('Verse', 8000, 14000), ('', 14000, 20000)],
+      );
+    });
+
+    test('a cut too close to a boundary is ignored', () {
+      final start = [
+        const AudioRegion(id: 'a', name: '', startMs: 0, endMs: 8000),
+      ];
+      expect(
+        splitRegions(start, atMs: 200, durationMs: 8000, newId: id),
+        same(start),
+      );
+      expect(
+        splitRegions(start, atMs: 8000, durationMs: 8000, newId: id),
+        same(start),
+      );
+    });
+  });
+
+  test('moveBoundary keeps both sides at least minRegionMs', () {
+    final start = [
+      const AudioRegion(id: 'a', name: '', startMs: 0, endMs: 4000),
+      const AudioRegion(id: 'b', name: '', startMs: 4000, endMs: 8000),
+    ];
+    final r = moveBoundary(start, 0, 7900);
+    expect(r[0].endMs, 8000 - minRegionMs);
+    expect(r[1].startMs, 8000 - minRegionMs);
+  });
+
+  test('mergeRegion hands its time to a neighbour', () {
+    final start = [
+      const AudioRegion(id: 'a', name: 'A', startMs: 0, endMs: 4000),
+      const AudioRegion(id: 'b', name: 'B', startMs: 4000, endMs: 8000),
+      const AudioRegion(id: 'c', name: 'C', startMs: 8000, endMs: 9000),
+    ];
+    expect(
+      [for (final x in mergeRegion(start, 1)) (x.id, x.endMs)],
+      [('a', 8000), ('c', 9000)],
+    );
+    expect(
+      [for (final x in mergeRegion(start, 0)) (x.id, x.startMs)],
+      [('b', 0), ('c', 8000)],
+    );
+  });
+
+  test('toggleSelection builds contiguous runs', () {
+    expect(toggleSelection(null, 2), (2, 2));
+    expect(toggleSelection((2, 2), 3), (2, 3)); // transition drill
+    expect(toggleSelection((2, 3), 0), (0, 3));
+    expect(toggleSelection((0, 3), 3), (0, 2));
+    expect(toggleSelection((0, 3), 0), (1, 3));
+    expect(toggleSelection((0, 3), 1), (1, 1));
+    expect(toggleSelection((1, 1), 1), isNull);
+  });
+
+  test('loopSpan adds pre-roll without going below zero', () {
+    final regions = [
+      const AudioRegion(id: 'a', name: '', startMs: 0, endMs: 4000),
+      const AudioRegion(id: 'b', name: '', startMs: 4000, endMs: 8000),
+      const AudioRegion(id: 'c', name: '', startMs: 8000, endMs: 12000),
+    ];
+    expect(loopSpan(regions, (1, 2), preRollMs: 2000), (2000, 12000));
+    expect(loopSpan(regions, (0, 0), preRollMs: 2000), (0, 4000));
+  });
+
+  test('SongLabEntry round-trips grid and regions', () {
+    final entry = SongLabEntry(
+      id: 'e',
+      songId: 's',
+      type: LabEntryType.recording,
+      authorId: 'u',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+      grid: const AudioGrid(bpm: 98.5, offsetMs: 120, beatsPerBar: 3),
+      regions: const [
+        AudioRegion(
+          id: 'a',
+          name: 'Chorus',
+          startMs: 0,
+          endMs: 4000,
+          sectionId: 'sec1',
+        ),
+      ],
+    );
+    final back = SongLabEntry.fromJson(entry.toJson());
+    expect(back.grid!.bpm, 98.5);
+    expect(back.grid!.offsetMs, 120);
+    expect(back.grid!.beatsPerBar, 3);
+    expect(back.regions.single.name, 'Chorus');
+    expect(back.regions.single.sectionId, 'sec1');
+  });
+}

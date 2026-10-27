@@ -8,12 +8,14 @@ import 'package:share_plus/share_plus.dart';
 
 import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
+import '../router/app_router.dart';
 import '../services/audio/audio_note_edit.dart';
 import '../services/audio/m4a_muxer.dart';
 import '../services/audio/mp3_encoder.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
 import '../widgets/app_menu_sheet.dart';
+import '../widgets/audio/waveform_painter.dart';
 import '../widgets/confirmation_dialog.dart';
 import '../widgets/tools/tool_scaffold.dart';
 
@@ -428,6 +430,11 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       title: 'Audio note',
       menuItems: [
         AppMenuItem(
+          icon: Icons.repeat,
+          label: 'Practice regions',
+          onTap: () => context.goPracticeRegions(_entry, bandId: widget.bandId),
+        ),
+        AppMenuItem(
           icon: Icons.add_comment_outlined,
           label: 'Add note at playhead',
           onTap: _addMarkerAtPlayhead,
@@ -596,7 +603,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
                       );
                     },
                     child: CustomPaint(
-                      painter: _WaveformPainter(
+                      painter: WaveformPainter(
                         peaks: _entry.peaks,
                         trimStart: _trimStart,
                         trimEnd: _trimEnd,
@@ -702,69 +709,6 @@ class _TrimHandle extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Bars, dimmed outside the trim window, with marker ticks and a playhead.
-class _WaveformPainter extends CustomPainter {
-  _WaveformPainter({
-    required this.peaks,
-    required this.trimStart,
-    required this.trimEnd,
-    required this.playhead,
-    required this.markerFractions,
-    required this.dim,
-  });
-
-  final List<int> peaks;
-  final double trimStart;
-  final double trimEnd;
-  final double playhead;
-  final List<double> markerFractions;
-  final Color dim;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (peaks.isEmpty) return;
-    final step = size.width / peaks.length;
-    final mid = size.height / 2;
-    final bar = Paint()
-      ..strokeWidth = (step * 0.6).clamp(1.0, 6.0)
-      ..strokeCap = StrokeCap.round;
-
-    for (var i = 0; i < peaks.length; i++) {
-      final fraction = (i + 0.5) / peaks.length;
-      final inside = fraction >= trimStart && fraction <= trimEnd;
-      bar.color = inside
-          ? MonoPulseColors.accentOrange
-          : dim.withValues(alpha: 0.3);
-      // Keep silence visible as a hairline rather than nothing at all.
-      final h = (peaks[i] / 255).clamp(0.03, 1.0) * mid;
-      final x = i * step + step / 2;
-      canvas.drawLine(Offset(x, mid - h), Offset(x, mid + h), bar);
-    }
-
-    final tick = Paint()..color = dim;
-    for (final f in markerFractions) {
-      final x = f * size.width;
-      canvas.drawLine(Offset(x, 0), Offset(x, 6), tick);
-    }
-
-    canvas.drawLine(
-      Offset(playhead * size.width, 0),
-      Offset(playhead * size.width, size.height),
-      Paint()
-        ..color = Colors.white
-        ..strokeWidth = 1.5,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_WaveformPainter old) =>
-      old.playhead != playhead ||
-      old.trimStart != trimStart ||
-      old.trimEnd != trimEnd ||
-      old.peaks != peaks ||
-      old.markerFractions.length != markerFractions.length;
 }
 
 /// One timestamped comment; highlights while the playhead is inside it.

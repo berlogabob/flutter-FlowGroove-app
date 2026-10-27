@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/midi_song.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
@@ -107,6 +108,26 @@ void main() {
       pendingStorageDeletes: pending,
     );
   });
+
+  for (final grid in [null, const AudioGrid(bpm: 120)]) {
+    test('recording saves explicitly write the tempo grid: $grid', () async {
+      final entry = SongLabEntry(
+        id: 'entry',
+        songId: 'song',
+        type: LabEntryType.recording,
+        authorId: 'user',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        grid: grid,
+      );
+      await repository.saveEntry(entry);
+      final data =
+          verify(doc.set(captureAny, any)).captured.single
+              as Map<String, dynamic>;
+      expect(data.containsKey('grid'), isTrue);
+      expect(data['grid'], grid?.toJson());
+    });
+  }
 
   test('reads the exact entry from server, never cache', () async {
     final snapshot = MockDocumentSnapshot<Map<String, dynamic>>();
@@ -315,7 +336,7 @@ void main() {
           await repo.saveEntry(entry, bandId: bandId);
           await prefs.reload();
           expect(prefs.getStringList('pending_storage_deletes'), isEmpty);
-          verify(doc.set(entry.toJson(), any)).called(1);
+          verify(doc.set({...entry.toJson(), 'grid': null}, any)).called(1);
         },
       );
     }
