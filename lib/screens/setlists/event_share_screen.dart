@@ -126,7 +126,9 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
       await AnalyticsService.logEventSuggestionSubmitted();
       if (mounted) showAppSnackBar(context, 'Sent to the band. Thanks!');
     } catch (e) {
-      if (mounted) showAppSnackBar(context, 'Could not send that: $e');
+      if (mounted) await _load();
+      if (mounted)
+        showAppSnackBar(context, 'Could not send that: please try again.');
     }
   }
 
@@ -445,8 +447,14 @@ class _SuggestSheet extends StatefulWidget {
 class _SuggestSheetState extends State<_SuggestSheet> {
   final _controller = TextEditingController();
   String? _selectedItemId;
+  String? _selectedSongId;
   String _kind = 'note';
   late List<Map<String, dynamic>> _items = [...?widget.view.runningOrderItems];
+
+  bool get _orderReady =>
+      widget.view.canSee(EventArea.runningOrder) &&
+      widget.view.runningOrderReady &&
+      widget.view.baseFingerprint != null;
 
   @override
   void dispose() {
@@ -476,14 +484,12 @@ class _SuggestSheetState extends State<_SuggestSheet> {
             ),
             const SizedBox(height: MonoPulseSpacing.sm),
             Text(
-              widget.view.canSee(EventArea.runningOrder) &&
-                      widget.view.runningOrderReady
+              _orderReady
                   ? 'Choose a change to suggest. The band decides — nothing changes automatically.'
                   : 'Ask the band about a change. The band decides — nothing changes automatically.',
               style: MonoPulseTypography.bodySmall,
             ),
-            if (widget.view.canSee(EventArea.runningOrder) &&
-                widget.view.runningOrderReady) ...[
+            if (_orderReady) ...[
               const SizedBox(height: MonoPulseSpacing.md),
               DropdownButtonFormField<String>(
                 initialValue: _kind,
@@ -491,6 +497,7 @@ class _SuggestSheetState extends State<_SuggestSheet> {
                 decoration: const InputDecoration(labelText: 'Change type'),
                 items: const [
                   DropdownMenuItem(value: 'note', child: Text('Note')),
+                  DropdownMenuItem(value: 'add', child: Text('Add a song')),
                   DropdownMenuItem(
                     value: 'remove',
                     child: Text('Remove a song occurrence'),
@@ -499,6 +506,28 @@ class _SuggestSheetState extends State<_SuggestSheet> {
                 ],
                 onChanged: (value) => setState(() => _kind = value!),
               ),
+              if (_kind == 'add')
+                if (widget.view.suggestionCandidates.isEmpty)
+                  const Text('No songs open to suggest yet')
+                else
+                  SizedBox(
+                    height: 200,
+                    child: RadioGroup<String>(
+                      groupValue: _selectedSongId,
+                      onChanged: (value) =>
+                          setState(() => _selectedSongId = value),
+                      child: ListView(
+                        children: [
+                          for (final song in widget.view.suggestionCandidates)
+                            RadioListTile<String>(
+                              title: Text(song['title'] as String? ?? ''),
+                              subtitle: Text(song['artist'] as String? ?? ''),
+                              value: song['id'] as String,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
               if (_kind == 'remove')
                 for (final (index, item) in _items.indexed)
                   if (item['type'] == 'song')
@@ -540,7 +569,7 @@ class _SuggestSheetState extends State<_SuggestSheet> {
               ),
             ],
             const SizedBox(height: MonoPulseSpacing.md),
-            if (_kind == 'note' || !widget.view.runningOrderReady)
+            if (_kind == 'note' || _kind == 'add' || !_orderReady)
               TextField(
                 controller: _controller,
                 autofocus: true,
@@ -559,6 +588,12 @@ class _SuggestSheetState extends State<_SuggestSheet> {
                 ElevatedButton(
                   onPressed: () {
                     final proposal = switch (_kind) {
+                      'add' when _selectedSongId != null => {
+                        'version': 1,
+                        'kind': 'add',
+                        'baseFingerprint': widget.view.baseFingerprint,
+                        'songId': _selectedSongId,
+                      },
                       'remove' when _selectedItemId != null => {
                         'version': 1,
                         'kind': 'remove',
@@ -573,7 +608,10 @@ class _SuggestSheetState extends State<_SuggestSheet> {
                       },
                       _ => null,
                     };
-                    if (_kind == 'remove' && proposal == null) return;
+                    if ((_kind == 'remove' || _kind == 'add') &&
+                        proposal == null) {
+                      return;
+                    }
                     Navigator.pop(
                       context,
                       _SuggestionDraft(_controller.text, proposal),

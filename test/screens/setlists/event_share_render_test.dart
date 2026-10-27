@@ -87,6 +87,7 @@ EventView _view({
   bool canSuggest = false,
   bool withChart = false,
   bool ready = false,
+  List<Map<String, dynamic>> candidates = const [],
 }) => EventView(
   setlistId: 'sl1',
   ownerUid: 'owner',
@@ -109,6 +110,7 @@ EventView _view({
     },
   ],
   people: const [],
+  suggestionCandidates: candidates,
   runningOrderReady: ready,
   baseFingerprint: ready ? 'f' * 64 : null,
   runningOrderItems: ready
@@ -166,6 +168,16 @@ void main() {
       ProviderScope(
         overrides: [
           eventShareServiceProvider.overrideWithValue(fake),
+          songsProvider.overrideWith(
+            (ref) => throw StateError('guest read personal library'),
+          ),
+          bandSongsProvider.overrideWith(
+            (ref, id) => throw StateError('guest read band library'),
+          ),
+          setlistSongsProvider.overrideWith(
+            (ref, key) => throw StateError('guest read setlist library'),
+          ),
+
           // Signed out — the state every share link starts in.
           currentUserProvider.overrideWithValue(
             AsyncValue<User?>.data(signedIn ? user : null),
@@ -441,6 +453,130 @@ void main() {
       'text': 'Please drop the last song',
       'proposal': null,
     });
+  });
+
+  for (final outcome in ['send', 'cancel', 'failure', 'consent-off']) {
+    testWidgets(
+      'published add candidate $outcome keeps proposal and note scoped',
+      (tester) async {
+        final fake = await pump(
+          tester,
+          _view(
+            access: const {EventArea.runningOrder: EventAccessLevel.view},
+            canSuggest: true,
+            ready: true,
+            candidates: const [
+              {
+                'id': 's2',
+                'title': 'Open song',
+                'artist': 'Candidate artist',
+                'ourKey': 'Secret key',
+                'notes': 'Private chart',
+              },
+            ],
+          ),
+        );
+        fake.failSubmit = outcome == 'failure';
+        AnalyticsService.enabled = outcome != 'consent-off';
+        analyticsEvents.clear();
+        await tester.tap(find.text('Suggest a change'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), 'Optional private note');
+        await tester.tap(find.byType(DropdownButtonFormField<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Add a song'));
+        await tester.pumpAndSettle();
+        expect(find.text('Open song'), findsOneWidget);
+        expect(find.text('Candidate artist'), findsOneWidget);
+        expect(find.text('Secret key'), findsNothing);
+        expect(find.text('Private chart'), findsNothing);
+        await tester.tap(find.text('Open song'));
+        await tester.ensureVisible(
+          find.text(outcome == 'cancel' ? 'Cancel' : 'Send'),
+        );
+        await tester.tap(find.text(outcome == 'cancel' ? 'Cancel' : 'Send'));
+        await tester.pumpAndSettle();
+        if (outcome == 'send' || outcome == 'consent-off') {
+          expect(fake.submissions.single, {
+            'token': 't.s',
+            'bandId': null,
+            'ownerUid': null,
+            'setlistId': null,
+            'type': 'add',
+            'text': 'Optional private note',
+            'proposal': {
+              'version': 1,
+              'kind': 'add',
+              'baseFingerprint': 'f' * 64,
+              'songId': 's2',
+            },
+          });
+        } else {
+          expect(fake.submissions, isEmpty);
+        }
+        expect(fake.loads, outcome == 'failure' ? 2 : 1);
+        expect(
+          analyticsEvents,
+          outcome == 'send'
+              ? [
+                  [
+                    {
+                      'eventName': 'event_suggestion_submitted',
+                      'parameters': null,
+                    },
+                  ],
+                ]
+              : isEmpty,
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets(
+    'add picker has an empty state and cannot submit without a selection',
+    (tester) async {
+      final fake = await pump(
+        tester,
+        _view(
+          access: const {EventArea.runningOrder: EventAccessLevel.view},
+          canSuggest: true,
+          ready: true,
+        ),
+      );
+      await tester.tap(find.text('Suggest a change'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add a song'));
+      await tester.pumpAndSettle();
+      expect(find.text('No songs open to suggest yet'), findsOneWidget);
+      await tester.ensureVisible(find.text('Send'));
+      await tester.tap(find.text('Send'));
+      await tester.pumpAndSettle();
+      expect(fake.submissions, isEmpty);
+      expect(find.text('Cancel'), findsOneWidget);
+    },
+  );
+
+  testWidgets('legacy order hides Add a song even with candidates', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      _view(
+        access: const {EventArea.runningOrder: EventAccessLevel.view},
+        canSuggest: true,
+        candidates: const [
+          {'id': 's2', 'title': 'Open song', 'artist': 'Artist'},
+        ],
+      ),
+    );
+    await tester.tap(find.text('Suggest a change'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add a song'), findsNothing);
+    expect(find.byType(DropdownButtonFormField<String>), findsNothing);
+    expect(find.text('Open song'), findsNothing);
   });
 
   testWidgets('ready granted order can propose removing one occurrence', (

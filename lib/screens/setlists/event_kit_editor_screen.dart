@@ -283,6 +283,12 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
         child: ListView(
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           children: [
+            if (_canManageShares)
+              _SuggestionCandidatesEditor(
+                bandId: widget.bandId,
+                ownerUid: widget.bandId == null ? widget.ownerUid : null,
+                setlistId: widget.setlist.id,
+              ),
             if (_canView(EventArea.stage)) ...[
               _sectionTitle('Stage plot'),
               Text(
@@ -1314,7 +1320,8 @@ class _ShareInventoryDialog extends StatefulWidget {
 
   final EventShareService service;
   final String setlistId;
-  final String? bandId, ownerUid;
+  final String? bandId;
+  final String? ownerUid;
 
   @override
   State<_ShareInventoryDialog> createState() => _ShareInventoryDialogState();
@@ -1496,6 +1503,135 @@ class _AddRiderSheet extends StatelessWidget {
           onSubmitted: (v) => Navigator.pop(context, v.trim()),
         ),
       ),
+    );
+  }
+}
+
+class _SuggestionCandidatesEditor extends ConsumerStatefulWidget {
+  const _SuggestionCandidatesEditor({
+    required this.bandId,
+    required this.ownerUid,
+    required this.setlistId,
+  });
+
+  final String? bandId;
+  final String? ownerUid;
+  final String setlistId;
+
+  @override
+  ConsumerState<_SuggestionCandidatesEditor> createState() =>
+      _SuggestionCandidatesEditorState();
+}
+
+class _SuggestionCandidatesEditorState
+    extends ConsumerState<_SuggestionCandidatesEditor> {
+  Set<String>? _published;
+  bool _busy = false;
+  bool _failed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _busy = true;
+      _failed = false;
+    });
+    try {
+      final view = await ref
+          .read(eventShareServiceProvider)
+          .getEventView(
+            bandId: widget.bandId,
+            ownerUid: widget.ownerUid,
+            setlistId: widget.setlistId,
+          );
+      if (!mounted) return;
+      setState(
+        () => _published = {
+          for (final song in view.suggestionCandidates) song['id'] as String,
+        },
+      );
+    } catch (_) {
+      if (mounted) setState(() => _failed = true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _toggle(String songId, bool published) async {
+    setState(() {
+      _busy = true;
+      _failed = false;
+    });
+    try {
+      await ref
+          .read(eventShareServiceProvider)
+          .setSuggestionCandidate(
+            bandId: widget.bandId,
+            ownerUid: widget.ownerUid,
+            setlistId: widget.setlistId,
+            songId: songId,
+            published: published,
+          );
+      if (!mounted) return;
+      setState(() {
+        if (published) {
+          _published!.add(songId);
+        } else {
+          _published!.remove(songId);
+        }
+      });
+    } catch (_) {
+      if (mounted) setState(() => _failed = true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final published = _published;
+    final songs = widget.bandId == null
+        ? ref.watch(songsProvider)
+        : ref.watch(bandSongsProvider(widget.bandId!));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Open to suggest', style: MonoPulseTypography.titleMedium),
+        if (published != null)
+          Text('${published.length} of 50 open to suggest'),
+        if (_failed)
+          TextButton(
+            onPressed: _busy ? null : _load,
+            child: const Text("Couldn't update — try again"),
+          ),
+        if (_busy && published == null) const LinearProgressIndicator(),
+        if (published != null)
+          songs.when(
+            loading: () => const LinearProgressIndicator(),
+            error: (_, _) => const Text("Couldn't update — try again"),
+            data: (songs) => Column(
+              children: [
+                for (final song in songs)
+                  SwitchListTile(
+                    title: Text(song.title),
+                    subtitle: Text(song.artist),
+                    value: published.contains(song.id),
+                    onChanged:
+                        _busy ||
+                            (!published.contains(song.id) &&
+                                published.length >= 50)
+                        ? null
+                        : (value) => _toggle(song.id, value),
+                  ),
+              ],
+            ),
+          ),
+        const SizedBox(height: MonoPulseSpacing.lg),
+      ],
     );
   }
 }

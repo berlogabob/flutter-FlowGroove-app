@@ -103,6 +103,7 @@ class EventView {
     this.description,
     this.items = const [],
     this.songs = const [],
+    this.suggestionCandidates = const [],
     this.people = const [],
     this.stage,
     this.rider,
@@ -138,6 +139,7 @@ class EventView {
       description: map['description'] as String?,
       items: _list(map['items']),
       songs: _list(map['songs']),
+      suggestionCandidates: _list(map['suggestionCandidates']),
       people: _list(map['people']),
       stage: map.containsKey('stage') ? _map(map['stage']) : null,
       rider: map.containsKey('rider') ? _list(map['rider']) : null,
@@ -171,6 +173,7 @@ class EventView {
 
   /// Titles only, unless `songDetail` was granted — then key/BPM/sections too.
   final List<Map<String, dynamic>> songs;
+  final List<Map<String, dynamic>> suggestionCandidates;
 
   /// Names and roles of everyone on the gig. Never uids or grants.
   final List<Map<String, dynamic>> people;
@@ -413,6 +416,20 @@ class EventShareService {
   /// path. Afterwards the security rules let them work directly.
   Future<Map<String, dynamic>> claimShare(String token) =>
       _call('claimEventShare', {'token': token});
+
+  Future<void> setSuggestionCandidate({
+    required String setlistId,
+    required String songId,
+    required bool published,
+    String? bandId,
+    String? ownerUid,
+  }) => _call('setEventSuggestionCandidate', {
+    'bandId': bandId,
+    'ownerUid': ownerUid,
+    'setlistId': setlistId,
+    'songId': songId,
+    'published': published,
+  });
 
   Future<void> submitSuggestion({
     String? token,

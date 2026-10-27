@@ -23,6 +23,45 @@ class _RecordingInvoker {
 }
 
 void main() {
+  for (final scope in [
+    {'bandId': 'b1'},
+    {'ownerUid': 'u1'},
+  ]) {
+    test('publishes and unpublishes a candidate in $scope', () async {
+      final recorder = _RecordingInvoker();
+      final service = EventShareService(invoker: recorder.call);
+      for (final published in [true, false]) {
+        await service.setSuggestionCandidate(
+          bandId: scope['bandId'],
+          ownerUid: scope['ownerUid'],
+          setlistId: 'sl1',
+          songId: 's1',
+          published: published,
+        );
+        expect(recorder.calls.last.name, 'setEventSuggestionCandidate');
+        expect(recorder.calls.last.args, {
+          ...scope,
+          'setlistId': 'sl1',
+          'songId': 's1',
+          'published': published,
+        });
+      }
+    });
+  }
+
+  test('EventView decodes published candidates and defaults to empty', () {
+    const candidates = [
+      {'id': 's1', 'title': 'Open song', 'artist': 'Artist'},
+    ];
+    expect(
+      EventView.fromMap({
+        'suggestionCandidates': candidates,
+      }).suggestionCandidates,
+      candidates,
+    );
+    expect(EventView.fromMap({}).suggestionCandidates, isEmpty);
+  });
+
   group('songFromEventView', () {
     test('keeps the chart when songDetail was granted', () {
       final song = songFromEventView({

@@ -8,6 +8,7 @@ import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flowgroove/models/event_kit.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
@@ -50,6 +51,7 @@ void main() {
     AppUser? appUser,
     bool bandWriter = false,
     bool authenticated = true,
+    List<Song> songs = const [],
   }) async {
     final firestore = MockFirestoreService();
     when(
@@ -68,6 +70,10 @@ void main() {
       ProviderScope(
         overrides: [
           firestoreProvider.overrideWithValue(firestore),
+          songsProvider.overrideWith((ref) => Stream.value(songs)),
+          bandSongsProvider(
+            'band-1',
+          ).overrideWith((ref) => Stream.value(songs)),
           if (shareService != null)
             eventShareServiceProvider.overrideWithValue(shareService),
           currentUserProvider.overrideWithValue(
@@ -111,6 +117,102 @@ void main() {
     return firestore;
   }
 
+  for (final personal in [false, true]) {
+    testWidgets('writer publishes scoped candidates personal=$personal', (
+      tester,
+    ) async {
+      final calls = <Map<String, dynamic>>[];
+      var fail = false;
+      await pump(
+        tester,
+        personal: personal,
+        ownerUid: personal ? 'u1' : null,
+        bandWriter: !personal,
+        songs: [
+          for (final id in ['s1', 's2'])
+            Song(
+              id: id,
+              title: 'Song $id',
+              artist: 'Artist',
+              createdAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+        ],
+        shareService: EventShareService(
+          invoker: (name, args) async {
+            if (name == 'getEventView') {
+              expect(args, {
+                ...(personal ? {'ownerUid': 'u1'} : {'bandId': 'band-1'}),
+                'setlistId': 'sl1',
+              });
+              return {
+                'suggestionCandidates': [
+                  {'id': 's1', 'title': 'Song s1', 'artist': 'Artist'},
+                ],
+              };
+            }
+            expect(name, 'setEventSuggestionCandidate');
+            calls.add(args);
+            if (fail) throw StateError('private error');
+            return {};
+          },
+        ),
+      );
+      expect(find.text('1 of 50 open to suggest'), findsOneWidget);
+      final switches = find.byType(Switch);
+      expect(tester.widget<Switch>(switches.at(0)).value, isTrue);
+      expect(tester.widget<Switch>(switches.at(1)).value, isFalse);
+      await tester.tap(switches.at(1));
+      await tester.pumpAndSettle();
+      expect(calls.single, {
+        ...(personal ? {'ownerUid': 'u1'} : {'bandId': 'band-1'}),
+        'setlistId': 'sl1',
+        'songId': 's2',
+        'published': true,
+      });
+      expect(find.text('2 of 50 open to suggest'), findsOneWidget);
+      fail = true;
+      await tester.tap(switches.at(0));
+      await tester.pumpAndSettle();
+      expect(find.text("Couldn't update — try again"), findsOneWidget);
+      expect(find.textContaining('private error'), findsNothing);
+      expect(tester.widget<Switch>(switches.at(0)).value, isTrue);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('at 50 only published candidates can be switched off', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      personal: true,
+      ownerUid: 'u1',
+      songs: [
+        for (final id in ['s0', 'unpublished'])
+          Song(
+            id: id,
+            title: id,
+            artist: '',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+      ],
+      shareService: EventShareService(
+        invoker: (name, args) async => {
+          'suggestionCandidates': [
+            for (var i = 0; i < 50; i++)
+              {'id': 's$i', 'title': 'Song', 'artist': ''},
+          ],
+        },
+      ),
+    );
+    expect(find.text('50 of 50 open to suggest'), findsOneWidget);
+    final switches = find.byType(Switch);
+    expect(tester.widget<Switch>(switches.at(0)).onChanged, isNotNull);
+    expect(tester.widget<Switch>(switches.at(1)).onChanged, isNull);
+  });
+
   /// The last value written to [area] through the dotted-field-path writer.
   ///
   /// Asserting per-area (rather than on a whole-setlist save) is the point:
@@ -151,12 +253,14 @@ void main() {
         ),
         shareService: EventShareService(
           invoker: (name, args) async {
+            if (name == 'getEventView') return {};
             calls++;
             return {};
           },
         ),
       );
       expect(find.text('Share links inventory'), findsNothing);
+      expect(find.text('Open to suggest'), findsNothing);
       expect(calls, 0);
     });
   }
@@ -172,6 +276,7 @@ void main() {
         ownerUid: 'u1',
         shareService: EventShareService(
           invoker: (name, args) async {
+            if (name == 'getEventView') return {};
             expect(name, 'listEventShares');
             calls++;
             if (calls == 1) return first.future;
@@ -210,6 +315,7 @@ void main() {
       ownerUid: 'u1',
       shareService: EventShareService(
         invoker: (name, args) async {
+          if (name == 'getEventView') return {};
           expect(name, 'listEventShares');
           calls.add(args);
           return {'shares': <Object?>[], 'hasMore': false, 'nextCursor': null};
@@ -251,6 +357,7 @@ void main() {
         bandWriter: true,
         shareService: EventShareService(
           invoker: (name, args) async {
+            if (name == 'getEventView') return {};
             expect(name, 'listEventShares');
             calls.add(args);
             if (args['cursor'] == 'a' && !failed) {
@@ -306,6 +413,7 @@ void main() {
         ownerUid: 'u1',
         shareService: EventShareService(
           invoker: (name, args) async {
+            if (name == 'getEventView') return {};
             if (name == 'listEventShares')
               return {
                 'shares': [shareRow('a', 'Ana'), shareRow('b', 'Bob')],
@@ -392,6 +500,7 @@ void main() {
         access: const {'stage': 'view'},
         shareService: EventShareService(
           invoker: (name, args) async {
+            if (name == 'getEventView') return {};
             expect(name, 'createEventShare');
             calls.add(args);
             return {'token': 'personal.secret'};
@@ -517,6 +626,7 @@ void main() {
         ),
         shareService: EventShareService(
           invoker: (name, args) async {
+            if (name == 'getEventView') return {};
             creates++;
             if (scenario == 'service failure') {
               throw PlatformException(code: 'permission-denied');
@@ -530,6 +640,7 @@ void main() {
         expect(share, findsNothing);
       } else {
         await tester.ensureVisible(share);
+        await tester.pumpAndSettle();
         await tester.tap(share);
         await tester.pumpAndSettle();
       }
