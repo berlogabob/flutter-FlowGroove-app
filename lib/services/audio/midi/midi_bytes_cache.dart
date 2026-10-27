@@ -8,12 +8,15 @@ const _maxCachedFiles = 60;
 
 /// Stable short file name for a URL (FNV-1a, 64 bit); no extra dependency.
 String midiCacheName(String url) {
-  var hash = 0xcbf29ce484222325;
+  // BigInt keeps the 64-bit math exact on web (int literals above 2^53 do not
+  // compile to JavaScript) and yields the same names as the native int path.
+  final mask = (BigInt.one << 64) - BigInt.one;
+  final prime = BigInt.parse('100000001b3', radix: 16);
+  var hash = BigInt.parse('cbf29ce484222325', radix: 16);
   for (final unit in url.codeUnits) {
-    hash ^= unit;
-    hash *= 0x100000001b3;
+    hash = ((hash ^ BigInt.from(unit)) * prime) & mask;
   }
-  return hash.toUnsigned(64).toRadixString(16).padLeft(16, '0');
+  return hash.toRadixString(16).padLeft(16, '0');
 }
 
 bool _looksLikeMidi(Uint8List bytes) =>
