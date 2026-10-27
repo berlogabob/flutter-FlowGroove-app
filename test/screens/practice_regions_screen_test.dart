@@ -38,6 +38,8 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   int playCalls = 0;
   int pauseCalls = 0;
   int loadCalls = 0;
+  String? loadedUri;
+  final calls = <String>[];
 
   static const duration = Duration(seconds: 20);
 
@@ -65,6 +67,9 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
       source = source.children.single;
     }
     clip = source is ClippingAudioSourceMessage ? source : null;
+    calls.add(clip == null ? 'load' : 'setClip');
+    final uriSource = clip?.child ?? source;
+    loadedUri = uriSource is UriAudioSourceMessage ? uriSource.uri : null;
     loadedDuration = clip == null
         ? duration
         : (clip!.end ?? duration) - (clip!.start ?? Duration.zero);
@@ -79,12 +84,14 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   @override
   Future<PlayResponse> play(PlayRequest request) async {
     playCalls++;
+    calls.add('play');
     return PlayResponse();
   }
 
   @override
   Future<PauseResponse> pause(PauseRequest request) async {
     pauseCalls++;
+    calls.add('pause');
     return PauseResponse();
   }
 
@@ -132,6 +139,7 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
 
   @override
   Future<SeekResponse> seek(SeekRequest request) async {
+    calls.add('seek');
     position = request.position ?? Duration.zero;
     emit();
     return SeekResponse();
@@ -228,6 +236,9 @@ void main() {
   late FakeBackingEngine engine;
 
   setUp(() {
+    final previousCache = PracticeRegionsScreen.cacheAudioFile;
+    PracticeRegionsScreen.cacheAudioFile = (bytes, name) async => null;
+    addTearDown(() => PracticeRegionsScreen.cacheAudioFile = previousCache);
     previousPlatform = JustAudioPlatform.instance;
     audio = _FakeJustAudio();
     JustAudioPlatform.instance = audio;
@@ -280,6 +291,68 @@ void main() {
     );
     await settleAudio(tester);
   }
+
+  testWidgets('cached audio loads a local file and shares bytes with PCM', (
+    tester,
+  ) async {
+    final bytes = Uint8List.fromList([1, 2, 3]);
+    PracticeRegionsScreen.cacheAudioFile = (data, name) async {
+      expect(data, same(bytes));
+      expect(name, 'practice_e1.wav');
+      return '/tmp/practice_e1.wav';
+    };
+    final previousDecode = PracticeRegionsScreen.decodePcm;
+    PracticeRegionsScreen.decodePcm =
+        (data, {required sampleRate, required durationMs}) async {
+          expect(data, same(bytes));
+          return null;
+        };
+    addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
+    const url = 'https://example.com/take.wav?token=test';
+    await pump(tester, _entry().copyWith(attachmentIds: [url]), bytes: bytes);
+    expect(
+      audio.players.values.single.loadedUri,
+      'file:///tmp/practice_e1.wav',
+    );
+    await tester.tap(find.text('Markers'));
+    await settleAudio(tester);
+    await tester.tap(find.byTooltip('Fine-tune'));
+    await settleAudio(tester);
+    expect(fetched, [url]);
+  });
+
+  testWidgets('a null cache path falls back to the URL', (tester) async {
+    await pump(tester, _entry());
+    expect(
+      audio.players.values.single.loadedUri,
+      'https://example.com/take.wav',
+    );
+  });
+
+  testWidgets('cache failures fall back to the URL', (tester) async {
+    PracticeRegionsScreen.cacheAudioFile = (bytes, name) async =>
+        throw StateError('cache unavailable');
+    await pump(tester, _entry());
+    expect(
+      audio.players.values.single.loadedUri,
+      'https://example.com/take.wav',
+    );
+  });
+
+  testWidgets('selecting a region while playing pauses before reloading', (
+    tester,
+  ) async {
+    await pump(tester, _entry());
+    await tester.tap(find.byTooltip('Play'));
+    await settleAudio(tester);
+    final player = audio.players.values.single;
+    player.calls.clear();
+    await tester.tap(find.byKey(const ValueKey('chorus')));
+    await settleAudio(tester);
+    expect(player.calls, ['pause', 'setClip', 'seek', 'play']);
+    expect(player.position, Duration.zero);
+    expect(find.byTooltip('Pause'), findsOneWidget);
+  });
 
   testWidgets('renders two named regions without autoplay', (tester) async {
     await pump(tester, _entry());
@@ -391,6 +464,7 @@ void main() {
     await tester.tap(find.byTooltip('Fine-tune'));
     await settleAudio(tester);
     expect(decodes, 1);
+    expect(fetched, ['https://example.com/take.wav']);
     await tester.tap(find.text('+10 ms'));
     await tester.pump();
     // Dismissing the sheet discards its local preview.
@@ -533,6 +607,8 @@ void main() {
     expect(player.clip?.start, Duration.zero);
     expect(player.clip?.end, const Duration(seconds: 20));
     expect(player.loopMode, LoopModeMessage.one);
+    expect(player.playCalls, 0);
+    expect(player.pauseCalls, 0);
     expect(repo.saved, isEmpty);
   });
 
@@ -657,6 +733,7 @@ void main() {
         .onChanged!(true);
     await settleAudio(tester);
     expect(decoded, hasLength(1));
+    expect(fetched, ['https://example.com/take.wav']);
     expect(engine.loads.single.names, ['Song']);
 
     tester.widget<ListTile>(find.byKey(const ValueKey('chorus'))).onTap!();

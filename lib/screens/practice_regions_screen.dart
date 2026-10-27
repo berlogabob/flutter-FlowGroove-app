@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../models/audio_region.dart';
 import '../models/metronome_session.dart';
@@ -25,6 +28,14 @@ import '../utils/play_mode.dart';
 import '../utils/snackbar.dart';
 import '../widgets/audio/waveform_painter.dart';
 import '../widgets/tools/tool_scaffold.dart';
+
+Future<String?> _defaultCacheAudioFile(Uint8List bytes, String name) async {
+  final file = File('${(await getTemporaryDirectory()).path}/$name');
+  if (!await file.exists() || await file.length() != bytes.length) {
+    await file.writeAsBytes(bytes, flush: true);
+  }
+  return file.path;
+}
 
 /// Named regions keep practice loops attached to the original recording.
 class PracticeRegionsScreen extends ConsumerStatefulWidget {
@@ -52,6 +63,10 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
     required int durationMs,
   })
   decodePcm = decodeSongPcm;
+
+  @visibleForTesting
+  static Future<String?> Function(Uint8List bytes, String name) cacheAudioFile =
+      _defaultCacheAudioFile;
 
   /// Allows widget tests to supply a player without native audio.
   final AudioPlayer? player;
@@ -83,6 +98,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   List<AudioRegion>? _beforeDrag;
   Int16List? _pcm;
   Future<void>? _pcmLoad;
+  Future<Uint8List>? _bytes;
   Timer? _auditionTimer;
 
   // Practice log: one session per loop selection, written when it changes or
@@ -131,9 +147,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Future<void> _backfillPeaks() async {
     if (_entry.peaks.isNotEmpty || _entry.attachmentIds.isEmpty) return;
     try {
-      final bytes = await ref.read(audioBytesFetcherProvider)(
+      final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
         _entry.attachmentIds.first,
-      );
+      ));
       final peaks = await decodeSongPeaks(bytes);
       if (peaks == null || !mounted || _entry.peaks.isNotEmpty) return;
       final updated = _entry.copyWith(peaks: peaks);
@@ -148,7 +164,26 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Future<void> _load() async {
     if (_entry.attachmentIds.isEmpty) return;
     try {
-      final duration = await _player.setUrl(_entry.attachmentIds.first);
+      final url = _entry.attachmentIds.first;
+      String? path;
+      if (!kIsWeb) {
+        try {
+          final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
+            url,
+          ));
+          final parts = Uri.parse(url).path.split('/').last.split('.');
+          final ext = parts.length > 1 && parts.last.isNotEmpty
+              ? parts.last
+              : 'mp3';
+          path = await PracticeRegionsScreen.cacheAudioFile(
+            bytes,
+            'practice_${_entry.id}.$ext',
+          );
+        } catch (_) {}
+      }
+      final duration = path == null
+          ? await _player.setUrl(url)
+          : await _player.setFilePath(path);
       if (!mounted) return;
       setState(() {
         _duration = duration ?? Duration.zero;
@@ -304,8 +339,18 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (!mounted || !_loaded) return;
     final selection = _selection;
     if (selection == null && _clipEnd == null) return;
+    final span = selection == null
+        ? null
+        : loopSpan(_entry.regions, selection, preRollMs: _preRollMs);
+    // Renames and edits outside the loop must not restart playback mid-pass.
+    if (span != null && span.$1 == _clipStart && span.$2 == _clipEnd) return;
+    final wasPlaying = _player.playing;
+    // Leaving a loop keeps playing from where the loop was, not the top.
+    final resume = Duration(milliseconds: _positionMs);
     _changingClip = true;
     try {
+      if (wasPlaying) await _player.pause();
+      if (!mounted) return;
       if (selection == null) {
         await _player.setClip();
         if (!mounted) return;
@@ -314,17 +359,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         setState(() {
           _clipStart = 0;
           _clipEnd = null;
-          _position = _player.position;
+          _position = resume;
         });
       } else {
-        final (start, end) = loopSpan(
-          _entry.regions,
-          selection,
-          preRollMs: _preRollMs,
-        );
-        // Renames and edits outside the loop keep the same span: reloading
-        // the clip would restart playback mid-pass.
-        if (start == _clipStart && end == _clipEnd) return;
+        final (start, end) = span!;
         setState(() {
           _clipStart = start;
           _clipEnd = end;
@@ -338,8 +376,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         if (!mounted) return;
         await _player.setLoopMode(LoopMode.one);
         if (!mounted) return;
-        await _player.seek(Duration.zero);
       }
+      await _player.seek(selection == null ? resume : Duration.zero);
+      if (mounted && wasPlaying) unawaited(_player.play());
     } catch (e) {
       if (mounted) {
         showAppSnackBar(context, "Couldn't set loop: $e", error: true);
@@ -438,9 +477,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         );
       final transport = ref.read(backingTransportProvider.notifier);
       final rate = await transport.engineSampleRate();
-      final bytes = await ref.read(audioBytesFetcherProvider)(
+      final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
         _entry.attachmentIds.first,
-      );
+      ));
       final pcm = await PracticeRegionsScreen.decodePcm(
         bytes,
         sampleRate: rate,
@@ -529,9 +568,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Future<void> _loadFineTunePcm() async {
     if (_entry.attachmentIds.isEmpty) return;
     try {
-      final bytes = await ref.read(audioBytesFetcherProvider)(
+      final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
         _entry.attachmentIds.first,
-      );
+      ));
       _pcm = await PracticeRegionsScreen.decodePcm(
         bytes,
         sampleRate: 44100,
