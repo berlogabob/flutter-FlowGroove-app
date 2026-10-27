@@ -14,6 +14,12 @@ class _FailingPreferences extends InMemorySharedPreferencesStore {
   bool fail = false;
 
   @override
+  Future<Map<String, Object>> getAll() async {
+    if (fail) throw StateError('Preference read failed');
+    return super.getAll();
+  }
+
+  @override
   Future<bool> setValue(String valueType, String key, Object value) async {
     if (fail) {
       if (throwOnWrite) throw StateError('Preference write failed');
@@ -96,7 +102,25 @@ void main() {
         platform.fail = true;
         await expectLater(pending.cancel(_a), throwsStateError);
         expect(storage.deleted, isEmpty);
+        expect(prefs.getStringList('pending_storage_deletes'), [_a]);
         platform.fail = false;
+        await prefs.reload();
+        expect(prefs.getStringList('pending_storage_deletes'), [_a]);
+        final persisted = await platform.getAll();
+        SharedPreferences.setMockInitialValues(persisted);
+        final restartedPrefs = await SharedPreferences.getInstance();
+        expect(restartedPrefs.getStringList('pending_storage_deletes'), [_a]);
+        final restarted = PendingStorageDeletes(
+          prefs: restartedPrefs,
+          storage: storage,
+        );
+        await restarted.cancel(_a);
+        await restartedPrefs.reload();
+        expect(
+          restartedPrefs.getStringList('pending_storage_deletes'),
+          isEmpty,
+        );
+
         await pending.cancel(_a);
         await prefs.reload();
         expect(prefs.getStringList('pending_storage_deletes'), isEmpty);

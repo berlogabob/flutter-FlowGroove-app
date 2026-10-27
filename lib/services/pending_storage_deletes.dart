@@ -51,8 +51,12 @@ class PendingStorageDeletes {
         throw StateError('Could not persist pending deletion cancellation');
       }
     } catch (_) {
-      // Failed writes still change the plugin cache; reload before a retry.
-      await prefs.reload();
+      // The setter restores the cache even if persistence is still unavailable.
+      try {
+        await prefs.setStringList(_key, queued);
+      } catch (_) {
+        // Preserve the original cancellation failure.
+      }
       rethrow;
     }
   }
