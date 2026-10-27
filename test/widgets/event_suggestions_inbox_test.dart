@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flowgroove/models/event_suggestion.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flowgroove/widgets/event_suggestions_inbox.dart';
@@ -93,11 +95,48 @@ void main() {
     WidgetTester tester, {
     required List<EventSuggestion> suggestions,
     bool canResolve = true,
+    bool withCachedOrder = false,
   }) async {
     final recorder = _Recorder();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          if (withCachedOrder) ...[
+            bandSetlistsProvider('band-1').overrideWith(
+              (ref) => Stream.value([
+                Setlist(
+                  id: 'sl-1',
+                  bandId: 'band-1',
+                  name: 'Gig',
+                  createdAt: DateTime(2026),
+                  updatedAt: DateTime(2026),
+                  items: const [
+                    SetlistItem(id: 'first', songId: 's1'),
+                    SetlistItem(id: 'second', songId: 's2'),
+                  ],
+                ),
+              ]),
+            ),
+            setlistSongsProvider(('band-1', 'sl-1')).overrideWith(
+              (ref) => AsyncValue.data([
+                Song(
+                  id: 's1',
+                  title: 'First song',
+                  artist: '',
+                  createdAt: DateTime(2026),
+                  updatedAt: DateTime(2026),
+                ),
+                Song(
+                  id: 's2',
+                  title: 'Second song',
+                  artist: '',
+                  createdAt: DateTime(2026),
+                  updatedAt: DateTime(2026),
+                ),
+              ]),
+            ),
+          ],
+
           setlistSuggestionsProvider((
             'band-1',
             'sl-1',
@@ -106,19 +145,105 @@ void main() {
             EventShareService(invoker: recorder.call),
           ),
         ],
-        child: MaterialApp(
-          home: Scaffold(
-            body: EventSuggestionsInbox(
-              bandId: 'band-1',
-              setlistId: 'sl-1',
-              canResolve: canResolve,
-            ),
-          ),
+        child: Consumer(
+          builder: (context, ref, child) {
+            if (withCachedOrder) {
+              ref
+                ..watch(bandSetlistsProvider('band-1'))
+                ..watch(setlistSongsProvider(('band-1', 'sl-1')));
+            }
+            return MaterialApp(
+              home: Scaffold(
+                body: EventSuggestionsInbox(
+                  bandId: 'band-1',
+                  setlistId: 'sl-1',
+                  canResolve: canResolve,
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
     await tester.pump();
     return recorder;
+  }
+
+  for (final entry in [
+    ({'kind': 'add', 'songId': 'new'}, 'Add "Snapshot title"'),
+    ({'kind': 'remove', 'itemId': 'second'}, 'Remove a song'),
+    (
+      {
+        'kind': 'reorder',
+        'itemIds': ['second', 'first'],
+      },
+      'Move running order to: a song → a song',
+    ),
+  ]) {
+    testWidgets(
+      'typed inbox renders ${entry.$1['kind']} with actions and note',
+      (tester) async {
+        final recorder = await pump(
+          tester,
+          suggestions: [
+            EventSuggestion.fromJson({
+              'id': 'typed',
+              'type': entry.$1['kind'],
+              'text': 'Keep note',
+              'candidate': {'id': 'new', 'title': 'Snapshot title'},
+              'proposal': {
+                'version': 1,
+                'baseFingerprint': 'f' * 64,
+                ...entry.$1,
+              },
+            }),
+          ],
+        );
+        expect(find.text(entry.$2), findsOneWidget);
+        expect(find.text('Keep note'), findsOneWidget);
+        expect(find.text('Apply'), findsOneWidget);
+        expect(find.text('Dismiss'), findsOneWidget);
+        await tester.tap(find.text('Apply'));
+        await tester.pump();
+        expect(recorder.calls, [(suggestionId: 'typed', accept: true)]);
+      },
+    );
+  }
+
+  for (final entry in [
+    ({'kind': 'remove', 'itemId': 'second'}, 'Remove "Second song"'),
+    (
+      {
+        'kind': 'reorder',
+        'itemIds': ['second', 'first'],
+      },
+      'Move running order to: "Second song" → "First song"',
+    ),
+  ]) {
+    testWidgets('inbox uses cached order for ${entry.$1['kind']}', (
+      tester,
+    ) async {
+      final recorder = await pump(
+        tester,
+        withCachedOrder: true,
+        suggestions: [
+          EventSuggestion.fromJson({
+            'id': 'typed',
+            'type': entry.$1['kind'],
+            'proposal': {
+              'version': 1,
+              'baseFingerprint': 'f' * 64,
+              ...entry.$1,
+            },
+          }),
+        ],
+      );
+      await tester.pump();
+      expect(find.text(entry.$2), findsOneWidget);
+      await tester.tap(find.text('Dismiss'));
+      await tester.pump();
+      expect(recorder.calls, [(suggestionId: 'typed', accept: false)]);
+    });
   }
 
   testWidgets('renders nothing when nobody has asked for anything', (

@@ -638,6 +638,10 @@ async function ownSuggestions(viewer) {
         status: d.status || "open",
         createdAt: d.createdAt || null,
         resolvedAt: d.resolvedAt || null,
+        ...(validProposal(d.proposal, d.type) ? { proposal: d.proposal } : {}),
+        ...(d.candidate && typeof d.candidate.title === "string" ? {
+          candidate: { title: d.candidate.title },
+        } : {}),
       });
     }
   }

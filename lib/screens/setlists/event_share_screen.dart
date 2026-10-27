@@ -283,9 +283,14 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      s.text.isEmpty ? s.action : s.text,
+                      s.description(
+                            items: view.runningOrderItems ?? view.items,
+                            songs: view.songs,
+                          ) ??
+                          (s.text.isEmpty ? s.action : s.text),
                       style: MonoPulseTypography.bodyMedium,
                     ),
+                    if (s.proposal != null && s.text.isNotEmpty) Text(s.text),
                     Text(
                       switch (s.status) {
                         'accepted' => 'Accepted by the band',

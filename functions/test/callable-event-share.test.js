@@ -1178,6 +1178,10 @@ describe("event sharing callables", function () {
       const { id } = await submit({});
       assert.deepEqual((await db.doc(`${path}/suggestions/${id}`).get()).data().proposal, proposal);
       assert.equal((await db.doc(`eventShares/${tokenId}`).get()).data().suggestionCount, 1);
+      const ownView = await call(events.getEventView)(req({ token }));
+      assert.deepEqual(ownView.mySuggestions.find((s) => s.id === id).proposal, proposal);
+      assert.equal(ownView.mySuggestions.find((s) => s.id === id).status, "open");
+
       await call(events.setEventSuggestionCandidate)(req({ bandId: BAND, setlistId: SETLIST, songId: "song-1", published: true }, "member"));
       for (const typed of [
         { version: 1, kind: "add", baseFingerprint, songId: "song-1", beforeItemId: "one" },

@@ -23,6 +23,29 @@ class _RecordingInvoker {
 }
 
 void main() {
+  test('EventView retains typed own requests with their status and note', () {
+    final view = EventView.fromMap({
+      'mySuggestions': [
+        {
+          'type': 'add',
+          'status': 'accepted',
+          'text': 'First dance',
+          'candidate': {'id': 'new', 'title': 'Snapshot title'},
+          'proposal': {
+            'version': 1,
+            'kind': 'add',
+            'baseFingerprint': 'f' * 64,
+            'songId': 'new',
+          },
+        },
+      ],
+    });
+    final request = view.mySuggestions.single;
+    expect(request.description(), 'Add "Snapshot title"');
+    expect(request.status, 'accepted');
+    expect(request.text, 'First dance');
+  });
+
   for (final scope in [
     {'bandId': 'b1'},
     {'ownerUid': 'u1'},

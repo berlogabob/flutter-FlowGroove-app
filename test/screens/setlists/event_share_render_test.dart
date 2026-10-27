@@ -194,6 +194,89 @@ void main() {
     return fake;
   }
 
+  for (final entry in [
+    (
+      {'kind': 'add', 'songId': 'new'},
+      'Add "Snapshot title"',
+      'open',
+      'Waiting for the band',
+    ),
+    (
+      {'kind': 'remove', 'itemId': 'second'},
+      'Remove "visto"',
+      'accepted',
+      'Accepted by the band',
+    ),
+    (
+      {
+        'kind': 'reorder',
+        'itemIds': ['second', 'first'],
+      },
+      'Move running order to: "visto" → "Other"',
+      'declined',
+      'Declined',
+    ),
+  ]) {
+    testWidgets(
+      'own typed ${entry.$1['kind']} shows description, note and status',
+      (tester) async {
+        await pump(
+          tester,
+          EventView.fromMap({
+            'setlistId': 'sl1',
+            'name': 'Gig',
+            'viewer': {'access': <String, String>{}, 'canSuggest': false},
+            'items': [
+              {'id': 'first', 'songId': 's2', 'type': 'song'},
+              {'id': 'second', 'songId': 's1', 'type': 'song'},
+            ],
+            'songs': [
+              {'id': 's1', 'title': 'visto'},
+              {'id': 's2', 'title': 'Other'},
+            ],
+            'mySuggestions': [
+              {
+                'type': entry.$1['kind'],
+                'status': entry.$3,
+                'text': 'Please keep note',
+                'candidate': {'id': 'new', 'title': 'Snapshot title'},
+                'proposal': {
+                  'version': 1,
+                  'baseFingerprint': 'f' * 64,
+                  ...entry.$1,
+                },
+              },
+            ],
+          }),
+        );
+        expect(find.text(entry.$2), findsOneWidget);
+        expect(find.text('Please keep note'), findsOneWidget);
+        expect(find.text(entry.$4), findsOneWidget);
+        expect(analyticsEvents, [
+          [
+            {'eventName': 'event_link_opened', 'parameters': null},
+          ],
+        ]);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('own legacy note keeps its text and status', (tester) async {
+    await pump(
+      tester,
+      EventView.fromMap({
+        'setlistId': 'sl1',
+        'name': 'Gig',
+        'mySuggestions': [
+          {'type': 'note', 'text': 'Encore please', 'status': 'declined'},
+        ],
+      }),
+    );
+    expect(find.text('Encore please'), findsOneWidget);
+    expect(find.text('Declined'), findsOneWidget);
+  });
+
   testWidgets('a venue sees titles and NO key or BPM anywhere on the page', (
     tester,
   ) async {

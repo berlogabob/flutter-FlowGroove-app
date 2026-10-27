@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/event_suggestion.dart';
+import '../models/setlist.dart';
+import '../models/song.dart';
 import '../providers/data/data_providers.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
@@ -92,6 +94,37 @@ class _EventSuggestionsInboxState extends ConsumerState<EventSuggestionsInbox> {
     }
     if (suggestions.isEmpty) return const SizedBox.shrink();
 
+    // Reuse the parent's active providers; never start a library subscription.
+    final setlists = widget.bandId == null
+        ? setlistsProvider
+        : bandSetlistsProvider(widget.bandId!);
+    final songs = widget.bandId == null
+        ? songsProvider
+        : setlistSongsProvider((widget.bandId!, widget.setlistId));
+    final cachedSetlists = ref.exists(setlists)
+        ? ref.watch(setlists).value ?? const <Setlist>[]
+        : const <Setlist>[];
+    final cachedSongs = ref.exists(songs)
+        ? ref.watch(songs).value ?? const <Song>[]
+        : const <Song>[];
+    final items =
+        cachedSetlists
+            .where((s) => s.id == widget.setlistId)
+            .firstOrNull
+            ?.effectiveItems ??
+        const <SetlistItem>[];
+    final itemMaps = [
+      for (final i in items)
+        {
+          'id': i.id,
+          'songId': i.songId,
+          'type': i.type,
+          'breakLabel': i.breakLabel,
+        },
+    ];
+    final songMaps = [
+      for (final s in cachedSongs) {'id': s.id, 'title': s.title},
+    ];
     final open = suggestions.where((s) => s.isOpen).length;
     return Padding(
       padding: const EdgeInsets.only(bottom: MonoPulseSpacing.lg),
@@ -127,6 +160,7 @@ class _EventSuggestionsInboxState extends ConsumerState<EventSuggestionsInbox> {
           for (final s in suggestions)
             _SuggestionCard(
               suggestion: s,
+              description: s.description(items: itemMaps, songs: songMaps),
               busy: _busy.contains(s.id),
               canResolve: widget.canResolve,
               onAccept: () => _resolve(s, accept: true),
@@ -141,6 +175,7 @@ class _EventSuggestionsInboxState extends ConsumerState<EventSuggestionsInbox> {
 class _SuggestionCard extends StatelessWidget {
   const _SuggestionCard({
     required this.suggestion,
+    required this.description,
     required this.busy,
     required this.canResolve,
     required this.onAccept,
@@ -148,6 +183,7 @@ class _SuggestionCard extends StatelessWidget {
   });
 
   final EventSuggestion suggestion;
+  final String? description;
   final bool busy;
   final bool canResolve;
   final VoidCallback onAccept;
@@ -173,9 +209,10 @@ class _SuggestionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '$who ${s.action}',
+            description ?? '$who ${s.action}',
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
+          if (description != null) Text('$who ${s.action}'),
           if (s.text.isNotEmpty) ...[
             const SizedBox(height: MonoPulseSpacing.xs),
             Text(s.text),
@@ -201,9 +238,15 @@ class _SuggestionCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(onPressed: onDecline, child: const Text('Decline')),
+                TextButton(
+                  onPressed: onDecline,
+                  child: Text(s.proposal == null ? 'Decline' : 'Dismiss'),
+                ),
                 const SizedBox(width: MonoPulseSpacing.sm),
-                FilledButton(onPressed: onAccept, child: const Text('Accept')),
+                FilledButton(
+                  onPressed: onAccept,
+                  child: Text(s.proposal == null ? 'Accept' : 'Apply'),
+                ),
               ],
             ),
         ],
