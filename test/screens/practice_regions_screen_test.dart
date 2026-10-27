@@ -288,6 +288,7 @@ void main() {
     WidgetTester tester,
     SongLabEntry entry, {
     bool demo = false,
+    bool showRegions = true,
     Uint8List? bytes,
   }) async {
     await tester.pumpWidget(
@@ -307,7 +308,81 @@ void main() {
       ),
     );
     await settleAudio(tester);
+    if (showRegions) {
+      await tester.tap(find.text('Regions'));
+      await tester.pumpAndSettle();
+    }
   }
+
+  testWidgets('Markers stays the default view with regions', (tester) async {
+    await pump(tester, _entry(), showRegions: false);
+    expect(find.text('M1'), findsOneWidget);
+    expect(find.byType(GridView), findsNothing);
+    expect(find.byKey(const ValueKey('verse')), findsNothing);
+    expect(find.text('Pads'), findsOneWidget);
+  });
+
+  testWidgets(
+    'tapping a pad loops only Chorus and tapping again keeps playing',
+    (tester) async {
+      await pump(tester, _entry(), showRegions: false);
+      await tester.tap(find.text('Pads'));
+      await tester.pumpAndSettle();
+      final pads = tester.widget<GridView>(find.byType(GridView));
+      expect(pads.shrinkWrap, isTrue);
+      expect(pads.physics, isA<NeverScrollableScrollPhysics>());
+      expect(
+        (pads.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount)
+            .crossAxisCount,
+        4,
+      );
+      await tester.tap(find.text('Verse 2'));
+      await settleAudio(tester);
+      await tester.tap(find.text('Chorus'));
+      await settleAudio(tester);
+      expect(find.text('Looping Chorus'), findsOneWidget);
+      final player = audio.players.values.single;
+      expect(player.clip?.start, const Duration(seconds: 10));
+      expect(player.clip?.end, const Duration(seconds: 20));
+      expect(player.loopMode, LoopModeMessage.one);
+      await tester.tap(find.byTooltip('Play'));
+      await settleAudio(tester);
+      await tester.tap(find.text('Chorus'));
+      await settleAudio(tester);
+      expect(find.textContaining('Looping'), findsNothing);
+      expect(player.clip, isNull);
+      expect(player.loopMode, LoopModeMessage.off);
+      expect(find.byTooltip('Pause'), findsOneWidget);
+      expect(repo.saved, isEmpty);
+    },
+  );
+
+  testWidgets(
+    'holding Verse 2 and tapping Chorus loops the run for demo users',
+    (tester) async {
+      await pump(tester, _entry(), demo: true, showRegions: false);
+      await tester.tap(find.text('Pads'));
+      await tester.pumpAndSettle();
+      final hold = await tester.startGesture(
+        tester.getCenter(find.text('Verse 2')),
+        pointer: 1,
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.tap(find.text('Chorus'), pointer: 2);
+      await settleAudio(tester);
+      expect(find.text('Looping Verse 2 → Chorus'), findsOneWidget);
+      final player = audio.players.values.single;
+      expect(player.clip?.start, Duration.zero);
+      expect(player.clip?.end, const Duration(seconds: 20));
+      expect(player.loopMode, LoopModeMessage.one);
+      await hold.up();
+      await tester.pump();
+      await tester.tap(find.text('Chorus'));
+      await settleAudio(tester);
+      expect(find.text('Looping Chorus'), findsOneWidget);
+      expect(repo.saved, isEmpty);
+    },
+  );
 
   testWidgets('cached audio loads a local file and shares bytes with PCM', (
     tester,

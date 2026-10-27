@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -77,6 +78,8 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
       _PracticeRegionsScreenState();
 }
 
+enum _RegionView { markers, regions, pads }
+
 class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   late SongLabEntry _entry;
   late final AudioPlayer _player;
@@ -85,7 +88,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Duration _position = Duration.zero;
   bool _playing = false;
   bool _loaded = false;
-  bool _showMarkers = false;
+  _RegionView _view = _RegionView.markers;
+  int? _heldPad;
   late bool _snap;
   double _speed = 1;
   int _preRoll = 0;
@@ -412,8 +416,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   }
 
   void _toggleRegion(int index) {
+    _selectRegions(toggleSelection(_selection, index));
+  }
+
+  void _selectRegions((int, int)? selection) {
     _flushSession();
-    setState(() => _selection = toggleSelection(_selection, index));
+    setState(() => _selection = selection);
     if (_sync) _syncLaunch(startIfStopped: false);
     unawaited(_applyLoop());
   }
@@ -1115,6 +1123,124 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   String _preciseTime(int ms) =>
       '${formatTimestamp(ms)}.${(ms % 1000).toString().padLeft(3, '0')}';
 
+  Widget _pads() {
+    final sections = <String, Section>{};
+    if (_entry.regions.any((region) => region.sectionId != null) &&
+        _entry.songId.isNotEmpty &&
+        _entry.songId != '_inbox') {
+      final songs = ref
+          .watch(
+            widget.bandId == null
+                ? songsProvider
+                : bandSongsProvider(widget.bandId!),
+          )
+          .value;
+      final song = songs?.where((song) => song.id == _entry.songId).firstOrNull;
+      for (final section in song?.sections ?? <Section>[]) {
+        sections[section.id] = section;
+      }
+    }
+    final grid = _entry.grid;
+    return GridView.builder(
+      shrinkWrap: true,
+      primary: false,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        crossAxisSpacing: MonoPulseSpacing.sm,
+        mainAxisSpacing: MonoPulseSpacing.sm,
+      ),
+      itemCount: _entry.regions.length,
+      itemBuilder: (context, i) {
+        final region = _entry.regions[i];
+        final selection = _selection;
+        final selected =
+            selection != null && i >= selection.$1 && i <= selection.$2;
+        final color = selected
+            ? MonoPulseColors.accentOrange
+            : sections[region.sectionId]?.color ?? context.mp.blackSurface;
+        final foreground =
+            ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+            ? MonoPulseColors.white
+            : MonoPulseColors.black;
+        return Semantics(
+          button: true,
+          selected: selected,
+          // A second finger can win the gesture arena and swallow
+          // onLongPressEnd; lifting the held finger always releases it.
+          child: Listener(
+            onPointerUp: (_) {
+              if (_heldPad == i) _heldPad = null;
+            },
+            onPointerCancel: (_) {
+              if (_heldPad == i) _heldPad = null;
+            },
+            child: GestureDetector(
+              key: ValueKey('region-pad-${region.id}'),
+              onLongPressStart: (_) => _heldPad = i,
+              onLongPressEnd: (_) => _heldPad = null,
+              onLongPressCancel: () {
+                if (_heldPad == i) _heldPad = null;
+              },
+              onTap: () {
+                unawaited(HapticFeedback.selectionClick());
+                final held = _heldPad;
+                _selectRegions(
+                  held != null
+                      ? (held < i ? held : i, held > i ? held : i)
+                      : _selection == (i, i)
+                      ? null
+                      : (i, i),
+                );
+              },
+              child: Material(
+                color: color,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+                  side: BorderSide(
+                    color: selected ? MonoPulseColors.accentOrange : color,
+                    width: MonoPulseBorder.bold,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(MonoPulseSpacing.sm),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _name(region),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: MonoPulseTypography.bodyLarge.copyWith(
+                            color: foreground,
+                          ),
+                        ),
+                        Text(
+                          grid == null
+                              ? '${_time(region.startMs)}–${_time(region.endMs)}'
+                              : 'Bars ${grid.barAt(region.startMs).round() + 1}–${grid.barAt(region.endMs).round() + 1}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: MonoPulseTypography.bodySmall.copyWith(
+                            color: foreground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final canEdit =
@@ -1186,16 +1312,21 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               ),
             ),
           const SizedBox(height: MonoPulseSpacing.md),
-          SegmentedButton<bool>(
+          SegmentedButton<_RegionView>(
             segments: const [
-              ButtonSegment(value: true, label: Text('Markers')),
-              ButtonSegment(value: false, label: Text('Regions')),
+              ButtonSegment(value: _RegionView.markers, label: Text('Markers')),
+              ButtonSegment(value: _RegionView.regions, label: Text('Regions')),
+              ButtonSegment(value: _RegionView.pads, label: Text('Pads')),
             ],
-            selected: {_showMarkers},
-            onSelectionChanged: (value) =>
-                setState(() => _showMarkers = value.single),
+            selected: {_view},
+            onSelectionChanged: (value) => setState(() {
+              _view = value.single;
+              _heldPad = null;
+            }),
           ),
-          if (_showMarkers)
+          if (_view == _RegionView.pads)
+            _pads()
+          else if (_view == _RegionView.markers)
             for (var i = 0; i < regions.length - 1; i++)
               ListTile(
                 title: Text('M${i + 1}'),
