@@ -354,6 +354,110 @@ void main() {
     expect((merged.startMs, merged.endMs), (0, 20000));
   });
 
+  testWidgets('Fine-tune nudges M1 locally and saves on Done, decoding once', (
+    tester,
+  ) async {
+    var decodes = 0;
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async {
+          decodes++;
+          expect(sampleRate, 44100);
+          expect(durationMs, 20000);
+          return Int16List.fromList(
+            List.generate(
+              sampleRate * durationMs ~/ 1000,
+              (i) => i.isEven ? 1000 : -1000,
+            ),
+          );
+        };
+    addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
+    await pump(tester, _entry());
+    await tester.tap(find.text('Markers'));
+    await settleAudio(tester);
+    await tester.tap(find.byTooltip('Fine-tune'));
+    await settleAudio(tester);
+    expect(find.text('Fine-tune M1'), findsOneWidget);
+    await tester.tap(find.text('+10 ms'));
+    await tester.pump();
+    await tester.tap(find.text('+10 ms'));
+    await tester.pump();
+    expect(find.text('00:10.020'), findsOneWidget);
+    expect(repo.saved, isEmpty);
+    await tester.tap(find.text('Done'));
+    await settleAudio(tester);
+    expect(repo.saved.single.regions[0].endMs, 10020);
+    expect(repo.saved.single.regions[1].startMs, 10020);
+
+    await tester.tap(find.byTooltip('Fine-tune'));
+    await settleAudio(tester);
+    expect(decodes, 1);
+    await tester.tap(find.text('+10 ms'));
+    await tester.pump();
+    // Dismissing the sheet discards its local preview.
+    Navigator.of(tester.element(find.text('Done'))).pop();
+    await settleAudio(tester);
+    expect(repo.saved, hasLength(1));
+    expect(find.text('00:10.020'), findsOneWidget);
+  });
+
+  testWidgets('Fine-tune stays available when PCM decoding fails', (
+    tester,
+  ) async {
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async => null;
+    addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
+    await pump(tester, _entry());
+    await tester.tap(find.text('Markers'));
+    await settleAudio(tester);
+    await tester.tap(find.byTooltip('Fine-tune'));
+    await settleAudio(tester);
+    final snap = tester.widget<SegmentedButton<BoundarySnap>>(
+      find.byType(SegmentedButton<BoundarySnap>),
+    );
+    expect(
+      snap.segments
+          .where((s) => s.value != BoundarySnap.off)
+          .every((s) => !s.enabled),
+      isTrue,
+    );
+    await tester.tap(find.text('+1 ms'));
+    await tester.pump();
+    await tester.tap(find.text('Done'));
+    await settleAudio(tester);
+    expect(repo.saved.single.regions[0].endMs, 10001);
+  });
+
+  testWidgets(
+    'Audition clears the selected loop and pauses after two seconds',
+    (tester) async {
+      PracticeRegionsScreen.decodePcm =
+          (bytes, {required sampleRate, required durationMs}) async => null;
+      addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
+      await pump(tester, _entry());
+      await tester.tap(find.byKey(const ValueKey('chorus')));
+      await settleAudio(tester);
+      await tester.tap(find.text('Markers'));
+      await settleAudio(tester);
+      await tester.tap(find.byTooltip('Fine-tune'));
+      await settleAudio(tester);
+      final player = audio.players.values.single;
+      final plays = player.playCalls;
+      await tester.tap(find.text('Audition'));
+      await settleAudio(tester);
+      expect(player.clip, isNull);
+      expect(player.loopMode, LoopModeMessage.off);
+      expect(player.position, const Duration(seconds: 9));
+      expect(player.playCalls, plays + 1);
+      final pauses = player.pauseCalls;
+      await tester.pump(const Duration(seconds: 2));
+      await settleAudio(tester);
+      expect(player.pauseCalls, pauses + 1);
+      expect(repo.saved, isEmpty);
+      Navigator.of(tester.element(find.text('Done'))).pop();
+      await settleAudio(tester);
+    },
+  );
+
   testWidgets('marker outside the loop clears the clip before seeking', (
     tester,
   ) async {
@@ -469,6 +573,7 @@ void main() {
     await settleAudio(tester);
     expect(find.text('M1'), findsOneWidget);
     expect(find.byTooltip('Delete marker'), findsNothing);
+    expect(find.byTooltip('Fine-tune'), findsNothing);
     expect(repo.saved, isEmpty);
   });
 

@@ -43,7 +43,7 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
   @visibleForTesting
   static int minLoggedMs = 10000;
 
-  /// Decoder for click & drums mode; tests swap it, since SoLoud's native
+  /// Decoder for fine-tuning and click & drums mode; tests swap it, since SoLoud's native
   /// decoder isn't loaded there.
   @visibleForTesting
   static Future<Int16List?> Function(
@@ -81,6 +81,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   int _idCounter = 0;
   double _dragMs = 0;
   List<AudioRegion>? _beforeDrag;
+  Int16List? _pcm;
+  Future<void>? _pcmLoad;
+  Timer? _auditionTimer;
 
   // Practice log: one session per loop selection, written when it changes or
   // the screen closes. Captured in initState because ref is gone by dispose.
@@ -244,6 +247,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   @override
   void dispose() {
+    _auditionTimer?.cancel();
     _flushSession();
     if (_sync) _metronome.stop();
     for (final sub in _subs) {
@@ -522,6 +526,189 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     await _changeRegions(regions);
   }
 
+  Future<void> _loadFineTunePcm() async {
+    if (_entry.attachmentIds.isEmpty) return;
+    try {
+      final bytes = await ref.read(audioBytesFetcherProvider)(
+        _entry.attachmentIds.first,
+      );
+      _pcm = await PracticeRegionsScreen.decodePcm(
+        bytes,
+        sampleRate: 44100,
+        durationMs: _durationMs,
+      );
+    } catch (_) {
+      // Fine-tuning still works when the file cannot be decoded.
+    }
+  }
+
+  Future<void> _audition(int ms) async {
+    _auditionTimer?.cancel();
+    if (_sync) await _setSync(false);
+    if (!mounted) return;
+    _flushSession();
+    setState(() => _selection = null);
+    await _applyLoop();
+    if (!mounted) return;
+    await _player.setSpeed(1);
+    if (!mounted) return;
+    setState(() => _speed = 1);
+    await _seekTo(ms - 1000);
+    if (!mounted) return;
+    unawaited(_player.play());
+    _auditionTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) unawaited(_player.pause());
+    });
+  }
+
+  Future<void> _fineTune(int boundaryIndex) async {
+    if (!_canEdit) return;
+    await (_pcmLoad ??= _loadFineTunePcm());
+    if (!mounted || !_canEdit) return;
+    final grid = _entry.grid;
+    final pcm = _pcm;
+    var ms = _entry.regions[boundaryIndex].endMs;
+    var dragMs = ms.toDouble();
+    var snap = BoundarySnap.off;
+    int constrain(int value) =>
+        moveBoundary(_entry.regions, boundaryIndex, value)[boundaryIndex].endMs;
+    int snapped(int value) => constrain(switch (snap) {
+      BoundarySnap.off => value,
+      BoundarySnap.bar => grid!.snap(value, durationMs: _durationMs),
+      BoundarySnap.beat => snapToBeat(grid!, value, durationMs: _durationMs),
+      BoundarySnap.zeroCrossing => zeroCrossingNear(pcm!, 44100, value),
+    });
+    final result = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.mp.surface,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, sheetSetState) {
+          void nudge(int delta) =>
+              sheetSetState(() => ms = snapped(ms + delta));
+          return Padding(
+            padding: EdgeInsets.fromLTRB(
+              MonoPulseSpacing.lg,
+              MonoPulseSpacing.lg,
+              MonoPulseSpacing.lg,
+              MediaQuery.viewInsetsOf(context).bottom + MonoPulseSpacing.lg,
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Fine-tune M${boundaryIndex + 1}',
+                      style: MonoPulseTypography.titleLarge,
+                    ),
+                    Text(
+                      _preciseTime(ms),
+                      style: MonoPulseTypography.titleMedium,
+                    ),
+                    if (pcm != null && pcm.isNotEmpty)
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          return GestureDetector(
+                            onHorizontalDragStart: (_) =>
+                                dragMs = ms.toDouble(),
+                            onHorizontalDragUpdate: (details) =>
+                                sheetSetState(() {
+                                  dragMs +=
+                                      details.delta.dx *
+                                      2000 /
+                                      constraints.maxWidth;
+                                  ms = constrain(dragMs.round());
+                                }),
+                            onHorizontalDragEnd: (_) =>
+                                sheetSetState(() => ms = snapped(ms)),
+                            child: CustomPaint(
+                              size: Size(constraints.maxWidth, 140),
+                              painter: _BoundaryWaveformPainter(
+                                pcm: pcm,
+                                boundaryMs: ms,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    Wrap(
+                      spacing: MonoPulseSpacing.sm,
+                      children: [
+                        for (final delta in [-10, -1, 1, 10])
+                          TextButton(
+                            onPressed: () => nudge(delta),
+                            child: Text(
+                              '${delta > 0 ? '+' : '−'}${delta.abs()} ms',
+                            ),
+                          ),
+                        if (grid != null)
+                          for (final direction in [-1, 1])
+                            TextButton(
+                              onPressed: () => nudge(
+                                (direction * grid.barMs / grid.beatsPerBar)
+                                    .round(),
+                              ),
+                              child: Text('${direction > 0 ? '+' : '−'}1 beat'),
+                            ),
+                      ],
+                    ),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SegmentedButton<BoundarySnap>(
+                        segments: [
+                          const ButtonSegment(
+                            value: BoundarySnap.off,
+                            label: Text('Off'),
+                          ),
+                          ButtonSegment(
+                            value: BoundarySnap.bar,
+                            label: const Text('Bar'),
+                            enabled: grid != null,
+                          ),
+                          ButtonSegment(
+                            value: BoundarySnap.beat,
+                            label: const Text('Beat'),
+                            enabled: grid != null,
+                          ),
+                          ButtonSegment(
+                            value: BoundarySnap.zeroCrossing,
+                            label: const Text('Zero crossing'),
+                            enabled: pcm != null && pcm.isNotEmpty,
+                          ),
+                        ],
+                        selected: {snap},
+                        onSelectionChanged: (value) =>
+                            sheetSetState(() => snap = value.single),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        TextButton(
+                          onPressed: _loaded ? () => _audition(ms) : null,
+                          child: const Text('Audition'),
+                        ),
+                        const Spacer(),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(sheetContext, ms),
+                          child: const Text('Done'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (mounted && result != null) {
+      await _changeRegions(moveBoundary(_entry.regions, boundaryIndex, result));
+    }
+  }
+
   Future<void> _rename(String id) async {
     if (!_canEdit) return;
     final region = _entry.regions.firstWhere((region) => region.id == id);
@@ -770,11 +957,21 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 subtitle: Text(_preciseTime(regions[i].endMs)),
                 onTap: () => _seekMarker(regions[i].endMs),
                 trailing: canEdit
-                    ? IconButton(
-                        tooltip: 'Delete marker',
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () =>
-                            _changeRegions(mergeRegion(regions, i + 1)),
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            tooltip: 'Fine-tune',
+                            icon: const Icon(Icons.tune),
+                            onPressed: () => _fineTune(i),
+                          ),
+                          IconButton(
+                            tooltip: 'Delete marker',
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () =>
+                                _changeRegions(mergeRegion(regions, i + 1)),
+                          ),
+                        ],
                       )
                     : null,
               )
@@ -1142,4 +1339,51 @@ class _RegionsPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RegionsPainter oldDelegate) => true;
+}
+
+/// Two seconds of PCM, reduced to a min/max envelope per pixel column.
+class _BoundaryWaveformPainter extends CustomPainter {
+  const _BoundaryWaveformPainter({required this.pcm, required this.boundaryMs});
+
+  final Int16List pcm;
+  final int boundaryMs;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.width <= 0) return;
+    final wave = Paint()
+      ..color = MonoPulseColors.accentOrange.withValues(alpha: 0.6);
+    final start = (boundaryMs - 1000) * 44100 / 1000;
+    final samplesPerPixel = 88200 / size.width;
+    for (var x = 0; x < size.width.ceil(); x++) {
+      final from = (start + x * samplesPerPixel).floor().clamp(0, pcm.length);
+      final to = (start + (x + 1) * samplesPerPixel).ceil().clamp(
+        0,
+        pcm.length,
+      );
+      if (from >= to) continue;
+      var low = pcm[from];
+      var high = low;
+      for (var i = from + 1; i < to; i++) {
+        if (pcm[i] < low) low = pcm[i];
+        if (pcm[i] > high) high = pcm[i];
+      }
+      canvas.drawLine(
+        Offset(x.toDouble(), size.height / 2 - high / 32768 * size.height / 2),
+        Offset(x.toDouble(), size.height / 2 - low / 32768 * size.height / 2),
+        wave,
+      );
+    }
+    canvas.drawLine(
+      Offset(size.width / 2, 0),
+      Offset(size.width / 2, size.height),
+      Paint()
+        ..color = MonoPulseColors.accentOrange
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _BoundaryWaveformPainter oldDelegate) =>
+      pcm != oldDelegate.pcm || boundaryMs != oldDelegate.boundaryMs;
 }

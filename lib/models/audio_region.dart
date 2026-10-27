@@ -52,6 +52,46 @@ class AudioGrid {
       );
 }
 
+/// Snapping available when editing a region boundary.
+enum BoundarySnap { off, bar, beat, zeroCrossing }
+
+/// Nearest beat line, including the grid's downbeat offset.
+int snapToBeat(AudioGrid grid, int ms, {required int durationMs}) {
+  final beatMs = grid.barMs / grid.beatsPerBar;
+  return (grid.offsetMs + ((ms - grid.offsetMs) / beatMs).round() * beatMs)
+      .round()
+      .clamp(0, durationMs);
+}
+
+/// Finds the nearest crossing in samples, then rounds back to stored ms.
+int zeroCrossingNear(
+  Int16List pcm,
+  int sampleRate,
+  int ms, {
+  int searchMs = 10,
+}) {
+  if (pcm.isEmpty || sampleRate <= 0 || ms < 0 || searchMs < 0) return ms;
+  final target = ms * sampleRate / 1000;
+  if (target >= pcm.length) return ms;
+  final radius = searchMs * sampleRate / 1000;
+  final start = (target - radius).ceil().clamp(0, pcm.length - 1);
+  final end = (target + radius).floor().clamp(0, pcm.length - 1);
+  int? nearest;
+  for (var i = start > 0 ? start : 1; i <= end + 1 && i < pcm.length; i++) {
+    final a = pcm[i - 1];
+    final b = pcm[i];
+    if ((a < 0 && b >= 0) || (a > 0 && b <= 0) || (a == 0 && b != 0)) {
+      final crossing = a.abs() < b.abs() ? i - 1 : i;
+      if (crossing < start || crossing > end) continue;
+      if (nearest == null ||
+          (crossing - target).abs() < (nearest - target).abs()) {
+        nearest = crossing;
+      }
+    }
+  }
+  return nearest == null ? ms : (nearest * 1000 / sampleRate).round();
+}
+
 class AudioRegion {
   const AudioRegion({
     required this.id,

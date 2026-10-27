@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-27T19:20:18.682769+00:00",
+  "updated_at": "2026-10-27T22:06:19+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -662,6 +662,28 @@
         "PR-SYNC",
         "PR-LOG",
         "PR-DEVICE"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "PRACTICE-MARKERS",
+      "title": "Practice regions: markers-first editing, precise edit, auto-detect",
+      "severity": 3,
+      "status": "open",
+      "source": "owner request 2026-10-27",
+      "evidence_type": "OWNER",
+      "summary": "Split stuttered during playback; owner wants Reaper-style markers, marker/region lists, zoomed precise edit with zero-crossing snap, and automatic section detection.",
+      "source_locations": [
+        "lib/screens/practice_regions_screen.dart",
+        "lib/models/audio_region.dart"
+      ],
+      "tasks": [
+        "PM-STUTTER",
+        "PM-MARK",
+        "PM-LISTS",
+        "PM-ZOOM",
+        "PM-AUTO",
+        "PM-DEVICE"
       ],
       "resolution": null
     }
@@ -7336,6 +7358,139 @@
       "allowed_files": [],
       "acceptance": [
         "Owner confirms on P30 + Chrome with a real song file: loop seam, 70% speed, two-region transition, band sharing on a second account, imported mp3 waveform, logbook row, click & drums mode stays in time over 2 min (sox capture within ±5 ms)."
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PM-STUTTER",
+      "title": "Split restarted/moved the playing loop",
+      "status": "review",
+      "executor": "claude",
+      "kind": "implementation",
+      "issue": "PRACTICE-MARKERS",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/models/audio_region.dart",
+        "lib/screens/practice_regions_screen.dart"
+      ],
+      "acceptance": [
+        "Selection follows regions across edits (remapSelection); clip reloads only on span change; unit test"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PM-MARK",
+      "title": "Add marker: one tap, no dialog, playback continues; name regions later",
+      "status": "review",
+      "executor": "codex",
+      "kind": "implementation",
+      "issue": "PRACTICE-MARKERS",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/screens/practice_regions_screen.dart",
+        "test/screens/practice_regions_screen_test.dart"
+      ],
+      "acceptance": [
+        "Add marker button splits at playhead (snapped) without opening the name sheet; widget test proves no sheet and player not re-clipped"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PM-LISTS",
+      "title": "Markers list + regions list (Reaper-style), tap row seeks/loops",
+      "status": "review",
+      "executor": "codex",
+      "kind": "implementation",
+      "issue": "PRACTICE-MARKERS",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/screens/practice_regions_screen.dart",
+        "test/screens/practice_regions_screen_test.dart"
+      ],
+      "acceptance": [
+        "Markers tab: time, delete (merge), tap seeks; Regions tab: name, rename, tap loops; widget test"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PM-ZOOM",
+      "title": "Precise marker edit: zoom view, drag, nudge +-1/10 ms +-1 beat, snap off/bar/beat/zero-crossing, audition seam",
+      "status": "review",
+      "executor": "codex",
+      "kind": "implementation",
+      "issue": "PRACTICE-MARKERS",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/screens/practice_regions_screen.dart",
+        "lib/models/audio_region.dart",
+        "test/models/audio_region_test.dart"
+      ],
+      "acceptance": [
+        "Pure zeroCrossingNear(pcm,rate,ms) + beat snap unit-tested; zoom sheet edits one boundary via moveBoundary; audition plays 1 s each side"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PM-AUTO",
+      "title": "allin1/librosa trial on Back to Black: suggested grid + section markers",
+      "status": "blocked",
+      "executor": "ornith",
+      "kind": "research",
+      "issue": "PRACTICE-MARKERS",
+      "after": [],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "scripts/audio_structure/analyze.py"
+      ],
+      "acceptance": [
+        "scripts/audio_structure/analyze.py (uv) prints bpm, first downbeat ms, segments [{label,startMs,endMs}] as JSON; run on the file; compare with owner-marked regions"
+      ],
+      "blocked_reason": "librosa trial (scripts/audio_structure/analyze.py) on Back to Black: grid OK (123.0 BPM = song BPM, first downbeat 2229 ms); section boundaries weak (novelty peaks bunched late, labels mostly one cluster). allin1 (trained structure model) does not build on macOS arm64 (natten cmake fails) - needs a Linux/CUDA box (Studio PC or fedora). Grid suggestion is shippable alone.",
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "PM-DEVICE",
+      "title": "Owner by-ear check of markers + precise edit on phone",
+      "status": "queued",
+      "executor": "owner",
+      "kind": "verification",
+      "issue": "PRACTICE-MARKERS",
+      "after": [
+        "PM-MARK",
+        "PM-LISTS",
+        "PM-ZOOM"
+      ],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Owner confirms markers flow, zoom edit and a click-free loop seam on device"
       ],
       "blocked_reason": null,
       "run": null,

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flowgroove/models/audio_region.dart';
@@ -25,6 +26,55 @@ void main() {
       expect(grid.snap(5600, durationMs: 60000), 6500);
       expect(grid.snap(100, durationMs: 60000), 500);
       expect(grid.snap(59900, durationMs: 60000), 60000);
+    });
+  });
+
+  test('beat snap uses 120 BPM and a 250 ms offset, then clamps', () {
+    const grid = AudioGrid(bpm: 120, offsetMs: 250);
+    expect(snapToBeat(grid, 490, durationMs: 5000), 250);
+    expect(snapToBeat(grid, 510, durationMs: 5000), 750);
+    expect(snapToBeat(grid, 1250, durationMs: 5000), 1250);
+    expect(snapToBeat(grid, -500, durationMs: 5000), 0);
+    expect(snapToBeat(grid, 4990, durationMs: 5000), 4750);
+    expect(snapToBeat(grid, 5100, durationMs: 5000), 5000);
+  });
+
+  group('zeroCrossingNear', () {
+    test('finds rising and falling sine crossings at 44.1 kHz', () {
+      final sine = Int16List.fromList(
+        List.generate(
+          44100,
+          (i) => (16000 * math.sin(2 * math.pi * 5 * i / 44100)).round(),
+        ),
+      );
+      expect(zeroCrossingNear(sine, 44100, 97), 100);
+      expect(zeroCrossingNear(sine, 44100, 203), 200);
+      expect(zeroCrossingNear(sine, 44100, 150), 150);
+    });
+
+    test('square crossings prefer the quieter sample on either side', () {
+      final square = Int16List.fromList(
+        List.generate(100, (i) => i < 20 || i >= 60 ? -100 : 20),
+      );
+      expect(zeroCrossingNear(square, 1000, 18), 20);
+      expect(zeroCrossingNear(square, 1000, 62), 59);
+      expect(zeroCrossingNear(square, 1000, 40), 40);
+      expect(zeroCrossingNear(square, 1000, 18, searchMs: 1), 18);
+    });
+
+    test('selects nearest crossing in samples before rounding to ms', () {
+      final pcm = Int16List(4410)..fillRange(0, 4410, 100);
+      pcm.fillRange(2230, pcm.length, -10);
+      expect(zeroCrossingNear(pcm, 44100, 50), 51);
+    });
+
+    test('empty, silent, invalid and out-of-range inputs stay unchanged', () {
+      expect(zeroCrossingNear(Int16List(0), 44100, 50), 50);
+      expect(zeroCrossingNear(Int16List(100), 1000, 50), 50);
+      final pcm = Int16List.fromList([-100, 10, -100]);
+      expect(zeroCrossingNear(pcm, 1000, -1), -1);
+      expect(zeroCrossingNear(pcm, 1000, 3), 3);
+      expect(zeroCrossingNear(pcm, 0, 1), 1);
     });
   });
 
@@ -107,7 +157,12 @@ void main() {
     final early = splitRegions(before, atMs: 2000, durationMs: 8000, newId: id);
     expect(remapSelection(before, early, (1, 1)), (2, 2));
     // Split inside the loop: the run covers both halves, same span.
-    final inside = splitRegions(before, atMs: 6000, durationMs: 8000, newId: id);
+    final inside = splitRegions(
+      before,
+      atMs: 6000,
+      durationMs: 8000,
+      newId: id,
+    );
     expect(remapSelection(before, inside, (1, 1)), (1, 2));
     expect(remapSelection(before, mergeRegion(before, 1), (0, 0)), (0, 0));
     expect(remapSelection(before, mergeRegion(before, 1), (1, 1)), null);
