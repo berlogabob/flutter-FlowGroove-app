@@ -21,6 +21,7 @@ import '../providers/data/metronome_provider.dart';
 import '../providers/permissions_provider.dart';
 import '../providers/practice_stats_provider.dart';
 import '../repositories/metronome_session_repository.dart';
+import '../services/audio/audio_analysis.dart';
 import '../services/audio/audio_note_edit.dart';
 import '../services/audio/song_peaks.dart';
 import '../theme/mono_pulse_theme.dart';
@@ -98,6 +99,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   List<AudioRegion>? _beforeDrag;
   Int16List? _pcm;
   Future<void>? _pcmLoad;
+  Int16List? _analysisPcm;
+  Future<Int16List?>? _analysisPcmLoad;
   Future<Uint8List>? _bytes;
   Timer? _auditionTimer;
 
@@ -581,6 +584,203 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
+  Future<Int16List?> _ensurePcm() {
+    if (_analysisPcm != null) return Future.value(_analysisPcm);
+    return _analysisPcmLoad ??= (() async {
+      if (_entry.attachmentIds.isEmpty) return null;
+      try {
+        final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
+          _entry.attachmentIds.first,
+        ));
+        return _analysisPcm = await PracticeRegionsScreen.decodePcm(
+          bytes,
+          sampleRate: 22050,
+          durationMs: _durationMs,
+        );
+      } catch (_) {
+        return null;
+      }
+    })();
+  }
+
+  Future<void> _autoSlice() async {
+    if (!_canEdit) return;
+    var mode = 0;
+    var everyBars = 4;
+    var sensitivity = 1.5;
+    final grid = _entry.grid;
+    ({double bpm, int firstDownbeatMs})? suggestion;
+    final pcmFuture = _ensurePcm().then((pcm) {
+      if (pcm != null && pcm.isNotEmpty) suggestion = estimateGrid(pcm, 22050);
+      return pcm;
+    });
+    final result = await showModalBottomSheet<Object>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.mp.surface,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, sheetSetState) => FutureBuilder<Int16List?>(
+          future: pcmFuture,
+          builder: (context, snapshot) {
+            final loading = snapshot.connectionState != ConnectionState.done;
+            final pcm = snapshot.data;
+            final hasPcm = pcm != null && pcm.isNotEmpty;
+            final cuts = mode == 1 && grid != null
+                ? gridCuts(grid, everyBars: everyBars, durationMs: _durationMs)
+                : mode == 2 && hasPcm
+                ? detectOnsets(
+                        pcm,
+                        22050,
+                        sensitivity: sensitivity,
+                        minGapMs: 250,
+                      )
+                      .map(
+                        (ms) => _snap && grid != null
+                            ? grid.snap(ms, durationMs: _durationMs)
+                            : ms,
+                      )
+                      .toList()
+                : <int>[];
+            final count = regionsFromCuts(
+              cuts,
+              durationMs: _durationMs,
+              newId: () => '',
+            ).length;
+            final canApply = mode == 0
+                ? !loading && suggestion != null
+                : mode == 1
+                ? grid != null
+                : !loading && hasPcm;
+            return Padding(
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Auto slice',
+                        style: MonoPulseTypography.titleLarge,
+                      ),
+                      Wrap(
+                        spacing: MonoPulseSpacing.sm,
+                        children: [
+                          for (final (i, label) in [
+                            (0, 'Suggest tempo grid'),
+                            (1, 'Slice every N bars'),
+                            (2, 'Chop by transients'),
+                          ])
+                            ChoiceChip(
+                              label: Text(label),
+                              selected: mode == i,
+                              onSelected: (_) => sheetSetState(() => mode = i),
+                            ),
+                        ],
+                      ),
+                      if (loading && mode != 1)
+                        const Center(child: CircularProgressIndicator()),
+                      if (!loading && !hasPcm && mode != 1)
+                        const Text('Audio could not be decoded for analysis.'),
+                      if (mode == 0 && !loading && hasPcm)
+                        Text(
+                          suggestion == null
+                              ? 'Not enough audio to suggest a tempo grid.'
+                              : '${suggestion!.bpm.toStringAsFixed(1)} BPM · downbeat '
+                                    '${_time(suggestion!.firstDownbeatMs)}.'
+                                    '${(suggestion!.firstDownbeatMs % 1000).toString().padLeft(3, '0')}',
+                        ),
+                      if (mode == 1) ...[
+                        if (grid == null) const Text('Set a tempo grid first.'),
+                        Wrap(
+                          spacing: MonoPulseSpacing.sm,
+                          children: [
+                            for (final bars in [1, 2, 4, 8])
+                              ChoiceChip(
+                                label: Text('$bars'),
+                                selected: everyBars == bars,
+                                onSelected: grid == null
+                                    ? null
+                                    : (_) =>
+                                          sheetSetState(() => everyBars = bars),
+                              ),
+                          ],
+                        ),
+                      ],
+                      if (mode == 2) ...[
+                        Text('Sensitivity ${sensitivity.toStringAsFixed(1)}'),
+                        Slider(
+                          value: sensitivity,
+                          min: 0.5,
+                          max: 3,
+                          onChanged: hasPcm
+                              ? (value) =>
+                                    sheetSetState(() => sensitivity = value)
+                              : null,
+                        ),
+                      ],
+                      if (mode != 0 && canApply) Text('$count slices'),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: FilledButton(
+                          onPressed: !canApply
+                              ? null
+                              : () => Navigator.pop(
+                                  sheetContext,
+                                  mode == 0
+                                      ? AudioGrid(
+                                          bpm: suggestion!.bpm,
+                                          offsetMs: suggestion!.firstDownbeatMs,
+                                        )
+                                      : cuts,
+                                ),
+                          child: const Text('Apply'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    if (!mounted || !_canEdit || result == null) return;
+    if (result is AudioGrid) {
+      await _setGrid(result);
+    } else if (result is List<int>) {
+      if (_entry.regions.isNotEmpty) {
+        final replace = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Replace ${_entry.regions.length} regions?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Replace'),
+              ),
+            ],
+          ),
+        );
+        if (replace != true || !mounted || !_canEdit) return;
+      }
+      await _changeRegions(
+        regionsFromCuts(
+          result,
+          durationMs: _durationMs,
+          newId: () =>
+              '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}',
+          keepNamesFrom: _entry.regions,
+        ),
+      );
+    }
+  }
+
   Future<void> _audition(int ms) async {
     _auditionTimer?.cancel();
     if (_sync) await _setSync(false);
@@ -962,6 +1162,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   ),
                 ),
               ),
+              if (canEdit)
+                IconButton(
+                  tooltip: 'Auto slice',
+                  icon: const Icon(Icons.auto_fix_high),
+                  onPressed: _loaded && _durationMs > 0 ? _autoSlice : null,
+                ),
               FilledButton.icon(
                 onPressed: canEdit && _loaded && _durationMs >= 2 * minRegionMs
                     ? _addMarker

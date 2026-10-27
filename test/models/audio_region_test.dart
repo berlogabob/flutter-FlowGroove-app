@@ -11,6 +11,82 @@ void main() {
   String id() => 'r${n++}';
   setUp(() => n = 0);
 
+  group('regionsFromCuts', () {
+    test('sorts and drops duplicate, out-of-range and nearby cuts', () {
+      final cuts = [3500, 1000, -100, 100, 1000, 1200, 500, 3900, 4500];
+      final regions = regionsFromCuts(cuts, durationMs: 4000, newId: id);
+      expect(
+        [for (final r in regions) (r.startMs, r.endMs)],
+        [(0, 500), (500, 1000), (1000, 3500), (3500, 4000)],
+      );
+      expect(regions.every((r) => r.name.isEmpty), isTrue);
+      expect(regions.map((r) => r.id).toSet(), hasLength(4));
+      expect(cuts.first, 3500);
+    });
+
+    test('keeps names and section links only at matching starts', () {
+      final regions = regionsFromCuts(
+        [1000, 2000],
+        durationMs: 3000,
+        newId: id,
+        keepNamesFrom: const [
+          AudioRegion(
+            id: 'old',
+            name: 'Intro',
+            startMs: 0,
+            endMs: 1500,
+            sectionId: 'intro',
+          ),
+          AudioRegion(id: 'gone', name: 'Verse', startMs: 1500, endMs: 3000),
+        ],
+      );
+      expect(regions.first.name, 'Intro');
+      expect(regions.first.sectionId, 'intro');
+      expect(regions.first.id, isNot('old'));
+      expect(
+        regions.skip(1).every((r) => r.name.isEmpty && r.sectionId == null),
+        isTrue,
+      );
+    });
+
+    test('no usable cuts covers the file; no duration yields no regions', () {
+      expect(regionsFromCuts([], durationMs: 300, newId: id).single.endMs, 300);
+      expect(regionsFromCuts([], durationMs: 0, newId: id), isEmpty);
+    });
+  });
+
+  group('gridCuts', () {
+    test('four-bar cuts include the offset and exclude file endpoints', () {
+      expect(
+        gridCuts(
+          const AudioGrid(bpm: 120, offsetMs: 500),
+          everyBars: 4,
+          durationMs: 16500,
+        ),
+        [500, 8500],
+      );
+      expect(
+        gridCuts(const AudioGrid(bpm: 120), everyBars: 4, durationMs: 24000),
+        [8000, 16000],
+      );
+    });
+
+    test('negative offsets advance from bar zero into the file', () {
+      expect(
+        gridCuts(
+          const AudioGrid(bpm: 120, offsetMs: -500),
+          everyBars: 4,
+          durationMs: 16000,
+        ),
+        [7500, 15500],
+      );
+      expect(
+        gridCuts(const AudioGrid(bpm: 120), everyBars: 0, durationMs: 16000),
+        isEmpty,
+      );
+    });
+  });
+
   group('AudioGrid', () {
     const grid = AudioGrid(bpm: 120, offsetMs: 500); // 2000 ms bars
 

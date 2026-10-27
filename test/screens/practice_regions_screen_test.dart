@@ -209,6 +209,23 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
       const Stream.empty();
 }
 
+Int16List _clickTrack() {
+  const sampleRate = 22050;
+  final pcm = Int16List(sampleRate * 20);
+  var beat = 0;
+  for (
+    var t = sampleRate * 300 ~/ 1000;
+    t + 220 < pcm.length;
+    t += sampleRate ~/ 2
+  ) {
+    final value = beat++ % 4 == 0 ? 30000 : 12000;
+    for (var b = 0; b < 220; b++) {
+      pcm[t + b] = b.isEven ? value : -value;
+    }
+  }
+  return pcm;
+}
+
 const _regions = [
   AudioRegion(id: 'verse', name: 'Verse 2', startMs: 0, endMs: 10000),
   AudioRegion(id: 'chorus', name: 'Chorus', startMs: 10000, endMs: 20000),
@@ -328,6 +345,159 @@ void main() {
       'https://example.com/take.wav',
     );
   });
+
+  testWidgets('Suggest tempo grid applies a 120 BPM click track grid', (
+    tester,
+  ) async {
+    final previousDecode = PracticeRegionsScreen.decodePcm;
+    var decodes = 0;
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async {
+          decodes++;
+          expect(sampleRate, 22050);
+          expect(durationMs, 20000);
+          return _clickTrack();
+        };
+    addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
+    await pump(tester, _entry());
+    expect(decodes, 0);
+    await tester.tap(find.byTooltip('Auto slice'));
+    await settleAudio(tester);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Suggest tempo grid'));
+    await settleAudio(tester);
+    expect(find.textContaining('BPM · downbeat'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+    await settleAudio(tester);
+    expect(repo.saved.single.grid!.bpm, closeTo(120, 0.5));
+    expect(repo.saved.single.grid!.offsetMs, closeTo(300, 20));
+    expect(repo.saved.single.grid!.beatsPerBar, 4);
+    expect(repo.saved.single.regions, hasLength(2));
+    await tester.tap(find.byTooltip('Auto slice'));
+    await settleAudio(tester);
+    expect(decodes, 1);
+    expect(fetched, ['https://example.com/take.wav']);
+    Navigator.of(tester.element(find.text('Apply'))).pop();
+    await settleAudio(tester);
+  });
+
+  testWidgets('Slice every 4 bars previews and confirms replacing regions', (
+    tester,
+  ) async {
+    final previousDecode = PracticeRegionsScreen.decodePcm;
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async => null;
+    addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
+    const grid = AudioGrid(bpm: 120, offsetMs: 1000);
+    await pump(tester, _entry(grid: grid));
+    await tester.tap(find.byTooltip('Auto slice'));
+    await settleAudio(tester);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Slice every N bars'));
+    await tester.pump();
+    expect(
+      tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, '4')).selected,
+      isTrue,
+    );
+    expect(find.text('4 slices'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+    await settleAudio(tester);
+    expect(find.text('Replace 2 regions?'), findsOneWidget);
+    expect(repo.saved, isEmpty);
+    await tester.tap(find.widgetWithText(FilledButton, 'Replace'));
+    await settleAudio(tester);
+    final regions = repo.saved.single.regions;
+    expect(
+      [for (final r in regions) (r.startMs, r.endMs)],
+      [(0, 1000), (1000, 9000), (9000, 17000), (17000, 20000)],
+    );
+    for (final region in regions.skip(1)) {
+      expect((region.startMs - grid.offsetMs) % 8000, 0);
+    }
+    expect(regions.first.name, 'Verse 2');
+  });
+
+  testWidgets(
+    'transient slicing previews snapped cuts and can cancel replacement',
+    (tester) async {
+      final previousDecode = PracticeRegionsScreen.decodePcm;
+      PracticeRegionsScreen.decodePcm =
+          (bytes, {required sampleRate, required durationMs}) async =>
+              _clickTrack();
+      addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
+      await pump(tester, _entry(grid: const AudioGrid(bpm: 120)));
+      Future<void> preview() async {
+        await tester.tap(find.byTooltip('Auto slice'));
+        await settleAudio(tester);
+        await tester.tap(find.widgetWithText(ChoiceChip, 'Chop by transients'));
+        await tester.pump();
+        final slider = tester.widget<Slider>(find.byType(Slider).last);
+        expect(slider.value, 1.5);
+        expect(slider.min, 0.5);
+        expect(slider.max, 3);
+        slider.onChanged!(2);
+        await tester.pump();
+        expect(find.text('10 slices'), findsOneWidget);
+        await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+        await settleAudio(tester);
+      }
+
+      await preview();
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await settleAudio(tester);
+      expect(repo.saved, isEmpty);
+      await preview();
+      await tester.tap(find.widgetWithText(FilledButton, 'Replace'));
+      await settleAudio(tester);
+      final regions = repo.saved.single.regions;
+      expect(regions, hasLength(10));
+      expect(regions.first.startMs, 0);
+      expect(regions.last.endMs, 20000);
+      for (var i = 0; i < regions.length; i++) {
+        expect(
+          (regions[i].startMs, regions[i].endMs),
+          (i * 2000, (i + 1) * 2000),
+        );
+      }
+    },
+  );
+
+  testWidgets(
+    'auto slice shows decoding progress and disables unavailable analysis',
+    (tester) async {
+      final previousDecode = PracticeRegionsScreen.decodePcm;
+      final decoded = Completer<Int16List?>();
+      PracticeRegionsScreen.decodePcm =
+          (bytes, {required sampleRate, required durationMs}) => decoded.future;
+      addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
+      await pump(tester, _entry(regions: const []));
+      await tester.tap(find.byTooltip('Auto slice'));
+      await settleAudio(tester);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      decoded.complete(null);
+      await settleAudio(tester);
+      expect(
+        find.text('Audio could not be decoded for analysis.'),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Apply'))
+            .onPressed,
+        isNull,
+      );
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Slice every N bars'));
+      await tester.pump();
+      expect(find.text('Set a tempo grid first.'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Apply'))
+            .onPressed,
+        isNull,
+      );
+      Navigator.of(tester.element(find.text('Apply'))).pop();
+      await settleAudio(tester);
+      expect(repo.saved, isEmpty);
+    },
+  );
 
   testWidgets('cache failures fall back to the URL', (tester) async {
     PracticeRegionsScreen.cacheAudioFile = (bytes, name) async =>
@@ -642,6 +812,7 @@ void main() {
       isNull,
     );
     expect(find.byTooltip('Edit region'), findsNothing);
+    expect(find.byTooltip('Auto slice'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('verse')));
     await settleAudio(tester);
     expect(find.text('Looping Verse 2').hitTestable(), findsOneWidget);

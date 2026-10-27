@@ -145,6 +145,55 @@ class AudioRegion {
 /// Shortest region a split or drag may leave behind.
 const int minRegionMs = 500;
 
+/// Builds a gapless map, discarding cuts that would leave tiny regions.
+List<AudioRegion> regionsFromCuts(
+  List<int> cutsMs, {
+  required int durationMs,
+  required String Function() newId,
+  List<AudioRegion> keepNamesFrom = const [],
+}) {
+  if (durationMs <= 0) return [];
+  final boundaries = <int>[0];
+  for (final cut in [...cutsMs]..sort()) {
+    if (cut - boundaries.last >= minRegionMs &&
+        durationMs - cut >= minRegionMs) {
+      boundaries.add(cut);
+    }
+  }
+  boundaries.add(durationMs);
+  final names = {for (final region in keepNamesFrom) region.startMs: region};
+  return [
+    for (var i = 0; i < boundaries.length - 1; i++)
+      AudioRegion(
+        id: newId(),
+        name: names[boundaries[i]]?.name ?? '',
+        sectionId: names[boundaries[i]]?.sectionId,
+        startMs: boundaries[i],
+        endMs: boundaries[i + 1],
+      ),
+  ];
+}
+
+/// Every N bars from bar zero, excluding the file's endpoints.
+List<int> gridCuts(
+  AudioGrid grid, {
+  required int everyBars,
+  required int durationMs,
+}) {
+  final step = grid.barMs * everyBars;
+  if (everyBars <= 0 || !step.isFinite || step <= 0 || durationMs <= 0) {
+    return [];
+  }
+  final cuts = <int>[];
+  final first = ((0 - grid.offsetMs) / step).floor() + 1;
+  for (var n = first < 0 ? 0 : first; ; n++) {
+    final cut = grid.msOfBar(n * everyBars);
+    if (cut >= durationMs) break;
+    if (cut > 0) cuts.add(cut);
+  }
+  return cuts;
+}
+
 /// Splits the file at [atMs]. With no regions yet the whole file becomes two
 /// regions; otherwise the region under [atMs] is cut in two, the right half
 /// unnamed. A cut too close to an edge, or outside every region, returns
