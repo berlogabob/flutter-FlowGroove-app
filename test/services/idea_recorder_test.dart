@@ -8,6 +8,7 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/songs/components/lab_recording_sheet.dart';
+import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
 import 'package:flowgroove/services/storage_service.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,7 @@ class _Storage extends StorageService {
     required String? bandId,
     required String songId,
     required String entryId,
+    String? objectSuffix,
     String ext = 'm4a',
     String contentType = 'audio/mp4',
   }) {
@@ -126,6 +128,10 @@ Future<void> _capture(
 }
 
 void main() {
+  final defaultAudioFileCache = audioFileCache;
+  setUp(() => audioFileCache = (_, _) async => null);
+  tearDown(() => audioFileCache = defaultAudioFileCache);
+
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   Future<void> expectAudioPreserved(_Storage storage, _Repo repo) async {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -9,6 +10,7 @@ import 'package:flowgroove/models/metronome_session.dart';
 import 'package:flowgroove/providers/data/backing_transport_provider.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
+import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flowgroove/services/audio/backing_engine.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/repositories/metronome_session_repository.dart';
@@ -256,9 +258,9 @@ void main() {
     final previousAutoOpen = PracticeRegionsScreen.autoOpenSetup;
     PracticeRegionsScreen.autoOpenSetup = false;
     addTearDown(() => PracticeRegionsScreen.autoOpenSetup = previousAutoOpen);
-    final previousCache = PracticeRegionsScreen.cacheAudioFile;
-    PracticeRegionsScreen.cacheAudioFile = (bytes, name) async => null;
-    addTearDown(() => PracticeRegionsScreen.cacheAudioFile = previousCache);
+    final previousCache = audioFileCache;
+    audioFileCache = (_, _) async => null;
+    addTearDown(() => audioFileCache = previousCache);
     previousPlatform = JustAudioPlatform.instance;
     audio = _FakeJustAudio();
     JustAudioPlatform.instance = audio;
@@ -378,12 +380,13 @@ void main() {
     expect(repo.saved.last.regions, hasLength(1));
     await tester.tap(find.byTooltip('Undo'));
     await settleAudio(tester);
-    expect([for (final r in repo.saved.last.regions) r.name], [
-      'Verse 2',
-      'Chorus',
-    ]);
     expect(
-      tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.undo))
+      [for (final r in repo.saved.last.regions) r.name],
+      ['Verse 2', 'Chorus'],
+    );
+    expect(
+      tester
+          .widget<IconButton>(find.widgetWithIcon(IconButton, Icons.undo))
           .onPressed,
       isNull,
     );
@@ -406,11 +409,10 @@ void main() {
     await settleAudio(tester);
     await tester.tap(find.byKey(const ValueKey('name-chip-Chorus')));
     await settleAudio(tester);
-    expect([for (final r in repo.saved.last.regions) r.name], [
-      'Intro',
-      'Verse',
-      'Chorus',
-    ]);
+    expect(
+      [for (final r in repo.saved.last.regions) r.name],
+      ['Intro', 'Verse', 'Chorus'],
+    );
     expect(find.byKey(const ValueKey('name-chip-Verse')), findsNothing);
   });
 
@@ -658,14 +660,13 @@ void main() {
     },
   );
 
-  testWidgets('cached audio loads a local file and shares bytes with PCM', (
+  testWidgets('cached audio loads a local file and PCM can bypass disk', (
     tester,
   ) async {
     final bytes = Uint8List.fromList([1, 2, 3]);
-    PracticeRegionsScreen.cacheAudioFile = (data, name) async {
-      expect(data, same(bytes));
-      expect(name, 'practice_e1.wav');
-      return '/tmp/practice_e1.wav';
+    audioFileCache = (url, fetch) async {
+      expect(url, 'https://example.com/take.wav?token=test');
+      return File('/tmp/practice_e1.wav');
     };
     final previousDecode = PracticeRegionsScreen.decodePcm;
     PracticeRegionsScreen.decodePcm =
@@ -680,6 +681,7 @@ void main() {
       audio.players.values.single.loadedUri,
       'file:///tmp/practice_e1.wav',
     );
+    audioFileCache = (_, _) async => null;
     await tester.tap(find.byKey(const ValueKey('shift')));
     await settleAudio(tester);
     await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
@@ -849,8 +851,7 @@ void main() {
   );
 
   testWidgets('cache failures fall back to the URL', (tester) async {
-    PracticeRegionsScreen.cacheAudioFile = (bytes, name) async =>
-        throw StateError('cache unavailable');
+    audioFileCache = (_, _) async => throw StateError('cache unavailable');
     await pump(tester, _entry());
     expect(
       audio.players.values.single.loadedUri,
@@ -934,7 +935,7 @@ void main() {
     PracticeRegionsScreen.decodePcm =
         (bytes, {required sampleRate, required durationMs}) async {
           decodes++;
-          expect(sampleRate, 44100);
+          expect(sampleRate, 22050);
           expect(durationMs, 20000);
           return Int16List.fromList(
             List.generate(

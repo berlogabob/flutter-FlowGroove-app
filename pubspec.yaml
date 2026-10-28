@@ -62,6 +62,7 @@ dependencies:
 
   # Utilities
   cupertino_icons: ^2.0.0
+  crypto: ^3.0.7
   http: ^1.4.0
   intl: ^0.20.2
   json_annotation: ^4.11.0

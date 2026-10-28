@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../models/audio_region.dart';
 import '../models/metronome_session.dart';
@@ -24,6 +23,7 @@ import '../providers/permissions_provider.dart';
 import '../providers/practice_stats_provider.dart';
 import '../repositories/metronome_session_repository.dart';
 import '../services/audio/audio_analysis.dart';
+import '../services/audio/audio_file_cache.dart';
 import '../services/audio/audio_markers.dart';
 import '../services/audio/audio_note_edit.dart';
 import '../services/audio/song_peaks.dart';
@@ -32,14 +32,6 @@ import '../utils/play_mode.dart';
 import '../utils/snackbar.dart';
 import '../widgets/audio/waveform_painter.dart';
 import 'practice_setup_wizard.dart';
-
-Future<String?> _defaultCacheAudioFile(Uint8List bytes, String name) async {
-  final file = File('${(await getTemporaryDirectory()).path}/$name');
-  if (!await file.exists() || await file.length() != bytes.length) {
-    await file.writeAsBytes(bytes, flush: true);
-  }
-  return file.path;
-}
 
 /// Named regions keep practice loops attached to the original recording.
 class PracticeRegionsScreen extends ConsumerStatefulWidget {
@@ -70,10 +62,6 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
     required int durationMs,
   })
   decodePcm = decodeSongPcm;
-
-  @visibleForTesting
-  static Future<String?> Function(Uint8List bytes, String name) cacheAudioFile =
-      _defaultCacheAudioFile;
 
   /// Allows widget tests to supply a player without native audio.
   final AudioPlayer? player;
@@ -113,11 +101,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   int _idCounter = 0;
   double _dragMs = 0;
   List<AudioRegion>? _beforeDrag;
-  Int16List? _pcm;
-  Future<void>? _pcmLoad;
   Int16List? _analysisPcm;
   Future<Int16List?>? _analysisPcmLoad;
-  Future<Uint8List>? _bytes;
+  Future<Uint8List>? _uncachedBytes;
   Timer? _auditionTimer;
 
   /// Seam loop (fine-tune): clip-relative (head, tail); past the head of
@@ -194,9 +180,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Future<void> _backfillPeaks() async {
     if (_entry.peaks.isNotEmpty || _entry.attachmentIds.isEmpty) return;
     try {
-      final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
-        _entry.attachmentIds.first,
-      ));
+      final bytes = await _readAudioBytes();
       final peaks = await decodeSongPeaks(bytes);
       if (peaks == null || !mounted || _entry.peaks.isNotEmpty) return;
       final updated = _entry.copyWith(peaks: peaks);
@@ -213,21 +197,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     try {
       final url = _entry.attachmentIds.first;
       String? path;
-      if (!kIsWeb) {
-        try {
-          final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
-            url,
-          ));
-          final parts = Uri.parse(url).path.split('/').last.split('.');
-          final ext = parts.length > 1 && parts.last.isNotEmpty
-              ? parts.last
-              : 'mp3';
-          path = await PracticeRegionsScreen.cacheAudioFile(
-            bytes,
-            'practice_${_entry.id}.$ext',
-          );
-        } catch (_) {}
-      }
+      try {
+        path = (await _cachedFile())?.path;
+      } catch (_) {}
       final duration = path == null
           ? await _player.setUrl(url)
           : await _player.setFilePath(path);
@@ -542,9 +514,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         );
       final transport = ref.read(backingTransportProvider.notifier);
       final rate = await transport.engineSampleRate();
-      final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
-        _entry.attachmentIds.first,
-      ));
+      final bytes = await _readAudioBytes();
       final pcm = await PracticeRegionsScreen.decodePcm(
         bytes,
         sampleRate: rate,
@@ -629,20 +599,17 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     await _changeRegions(regions);
   }
 
-  Future<void> _loadFineTunePcm() async {
-    if (_entry.attachmentIds.isEmpty) return;
-    try {
-      final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
-        _entry.attachmentIds.first,
-      ));
-      _pcm = await PracticeRegionsScreen.decodePcm(
-        bytes,
-        sampleRate: 44100,
-        durationMs: _durationMs,
-      );
-    } catch (_) {
-      // Fine-tuning still works when the file cannot be decoded.
-    }
+  Future<File?> _cachedFile() => audioFileCache(
+    _entry.attachmentIds.first,
+    ref.read(audioBytesFetcherProvider),
+  );
+
+  Future<Uint8List> _readAudioBytes() async {
+    final file = await _cachedFile();
+    if (file != null) return file.readAsBytes();
+    return _uncachedBytes ??= ref.read(audioBytesFetcherProvider)(
+      _entry.attachmentIds.first,
+    );
   }
 
   Future<Int16List?> _ensurePcm() {
@@ -650,14 +617,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     return _analysisPcmLoad ??= (() async {
       if (_entry.attachmentIds.isEmpty) return null;
       try {
-        final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
-          _entry.attachmentIds.first,
-        ));
-        return _analysisPcm = await PracticeRegionsScreen.decodePcm(
-          bytes,
+        Future<Int16List?> decode() async => PracticeRegionsScreen.decodePcm(
+          await _readAudioBytes(),
           sampleRate: 22050,
           durationMs: _durationMs,
         );
+        return _analysisPcm = await cachedPcm22k(await _cachedFile(), decode);
       } catch (_) {
         return null;
       }
@@ -913,10 +878,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   /// it touches this marker, else the slice ending here).
   Future<void> _fineTune(int boundaryIndex, {(int, int)? loop}) async {
     if (!_canEdit) return;
-    await (_pcmLoad ??= _loadFineTunePcm());
+    final pcm = await _ensurePcm();
     if (!mounted || !_canEdit) return;
     final grid = _entry.grid;
-    final pcm = _pcm;
     var ms = _entry.regions[boundaryIndex].endMs;
     var dragMs = ms.toDouble();
     var snap = BoundarySnap.off;
@@ -933,7 +897,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       BoundarySnap.off => value,
       BoundarySnap.bar => grid!.snap(value, durationMs: _durationMs),
       BoundarySnap.beat => snapToBeat(grid!, value, durationMs: _durationMs),
-      BoundarySnap.zeroCrossing => zeroCrossingNear(pcm!, 44100, value),
+      BoundarySnap.zeroCrossing => zeroCrossingNear(pcm!, 22050, value),
     });
     final selection = _selection;
     final seamLoop =
@@ -1634,9 +1598,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         },
         fileMarkers: () async {
           try {
-            final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
-              _entry.attachmentIds.first,
-            ));
+            final bytes = await _readAudioBytes();
             return readAudioMarkers(bytes);
           } catch (_) {
             return <FileMarker>[];
@@ -2525,8 +2487,8 @@ class _BoundaryWaveformPainter extends CustomPainter {
     if (size.width <= 0) return;
     final wave = Paint()
       ..color = MonoPulseColors.accentOrange.withValues(alpha: 0.6);
-    final start = (boundaryMs - 1000) * 44100 / 1000;
-    final samplesPerPixel = 88200 / size.width;
+    final start = (boundaryMs - 1000) * 22050 / 1000;
+    final samplesPerPixel = 2 * 22050 / size.width;
     for (var x = 0; x < size.width.ceil(); x++) {
       final from = (start + x * samplesPerPixel).floor().clamp(0, pcm.length);
       final to = (start + (x + 1) * samplesPerPixel).ceil().clamp(

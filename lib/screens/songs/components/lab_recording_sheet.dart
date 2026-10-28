@@ -3,17 +3,19 @@ import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 
-import '../../../services/audio/audio_note_edit.dart';
+import '../../../services/audio/audio_file_cache.dart';
 import '../../../services/audio/audio_markers.dart';
+import '../../../services/audio/audio_note_edit.dart';
 import '../../../services/audio/audio_note_recorder.dart';
 import '../../../services/audio/song_peaks.dart';
 import '../../../theme/mono_pulse_theme.dart';
-import '../../../utils/snackbar.dart';
 import '../../../utils/picked_file.dart';
+import '../../../utils/snackbar.dart';
 
 enum _RecordingPermissionState {
   granted,
@@ -511,7 +513,18 @@ class _LabAudioPlayerState extends State<LabAudioPlayer> {
       return;
     }
     if (!_loaded) {
-      await _player.setUrl(widget.url);
+      var cached = false;
+      try {
+        final file = await audioFileCache(
+          widget.url,
+          (url) => http.readBytes(Uri.parse(url)),
+        );
+        if (file != null) {
+          await _player.setFilePath(file.path);
+          cached = true;
+        }
+      } catch (_) {}
+      if (!cached) await _player.setUrl(widget.url);
       _loaded = true;
     }
     if (_player.processingState == ProcessingState.completed) {

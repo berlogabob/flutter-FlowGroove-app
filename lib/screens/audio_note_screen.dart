@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import '../models/audio_region.dart';
 import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
 import '../router/app_router.dart';
+import '../services/audio/audio_file_cache.dart';
 import '../services/audio/audio_note_edit.dart';
 import '../services/audio/m4a_muxer.dart';
 import '../services/audio/mp3_encoder.dart';
@@ -89,11 +91,41 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
     unawaited(_backfillPeaks());
   }
 
+  Future<Uint8List> _readAudioBytes(String url) async {
+    final fetch = ref.read(audioBytesFetcherProvider);
+    try {
+      final file = await audioFileCache(url, fetch);
+      if (file != null) return await file.readAsBytes();
+    } catch (_) {}
+    return fetch(url);
+  }
+
+  Future<Duration?> _setAudioSource(String url) async {
+    try {
+      final file = await audioFileCache(
+        url,
+        ref.read(audioBytesFetcherProvider),
+      );
+      if (file != null) return await _player.setFilePath(file.path);
+    } catch (_) {}
+    return _player.setUrl(url);
+  }
+
+  Future<void> _deleteReplacedAudio(String url) async {
+    try {
+      final pending = ref.read(pendingStorageDeletesProvider);
+      await pending.enqueue(url);
+      await pending.flush(url);
+    } catch (_) {
+      // A failed deletion stays queued for the next sweep.
+    }
+  }
+
   Future<void> _load() async {
     final url = _url;
     if (url == null) return;
     try {
-      final duration = await _player.setUrl(url);
+      final duration = await _setAudioSource(url);
       if (!mounted) return;
       setState(() => _duration = duration ?? Duration.zero);
     } catch (e) {
@@ -138,7 +170,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
     if (url == null || _entry.peaks.isNotEmpty) return;
     if (_extOf(url) != 'wav') return;
     try {
-      final bytes = await ref.read(audioBytesFetcherProvider)(url);
+      final bytes = await _readAudioBytes(url);
       final peaks = peaksFromWav(bytes);
       if (peaks == null || peaks.isEmpty || !mounted) return;
       await _save(_entry.copyWith(peaks: peaks));
@@ -267,7 +299,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
     try {
       final startMs = _trimStartMs;
       final endMs = _trimEndMs;
-      final bytes = await ref.read(audioBytesFetcherProvider)(url);
+      final bytes = await _readAudioBytes(url);
       final trimmed = trimAudio(bytes, startMs: startMs, endMs: endMs);
       if (trimmed == null) {
         if (mounted) {
@@ -279,8 +311,6 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
         }
         return;
       }
-      // Re-upload under the SOURCE extension: a different one would write a
-      // second object and orphan the original rather than replacing it.
       final ext = _extOf(url);
       final newUrl = await ref
           .read(storageServiceProvider)
@@ -289,14 +319,13 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
             bandId: widget.bandId,
             songId: _entry.songId,
             entryId: _entry.id,
+            objectSuffix: const Uuid().v4(),
             ext: ext,
             contentType: _mimeOf(ext),
           );
       final newDurationMs = audioDurationMs(trimmed) ?? (endMs - startMs);
       await _save(
         _entry.copyWith(
-          // Overwriting a Storage object mints a fresh download token, so the
-          // old URL 403s — always take the one the upload handed back.
           attachmentIds: [newUrl],
           body: formatMarkers(
             shiftMarkers(_markers, startMs: startMs, durationMs: newDurationMs),
@@ -307,13 +336,14 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
           grid: _entry.grid == null ? null : cropGrid(_entry.grid!, startMs),
         ),
       );
+      await _deleteReplacedAudio(url);
       if (!mounted) return;
       setState(() {
         _trimStart = 0;
         _trimEnd = 1;
         _position = Duration.zero;
       });
-      await _player.setUrl(newUrl);
+      await _setAudioSource(newUrl);
       if (!mounted) return;
       setState(() => _duration = Duration(milliseconds: newDurationMs));
       showAppSnackBar(context, 'Trimmed');
@@ -350,7 +380,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
     setState(() => _busy = true);
     try {
       await _player.pause();
-      final bytes = await ref.read(audioBytesFetcherProvider)(url);
+      final bytes = await _readAudioBytes(url);
       final first = trimAudio(bytes, startMs: 0, endMs: at);
       final rest = trimAudio(bytes, startMs: at, endMs: total);
       if (first == null || rest == null) {
@@ -406,6 +436,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
         bandId: widget.bandId,
         songId: _entry.songId,
         entryId: _entry.id,
+        objectSuffix: const Uuid().v4(),
         ext: ext,
         contentType: _mimeOf(ext),
       );
@@ -421,13 +452,14 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
           regions: cropRegions(_entry.regions, startMs: 0, endMs: at),
         ),
       );
+      await _deleteReplacedAudio(url);
       if (!mounted) return;
       setState(() {
         _trimStart = 0;
         _trimEnd = 1;
         _position = Duration.zero;
       });
-      await _player.setUrl(firstUrl);
+      await _setAudioSource(firstUrl);
       if (!mounted) return;
       setState(() => _duration = Duration(milliseconds: firstMs));
       showAppSnackBar(context, 'Split — the rest is a new recording');
@@ -443,7 +475,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
     if (url == null || _busy) return;
     setState(() => _busy = true);
     try {
-      var bytes = await ref.read(audioBytesFetcherProvider)(url);
+      var bytes = await _readAudioBytes(url);
       var ext = _extOf(url);
       // Share what the handles show, even if the trim was never committed.
       // The format is unchanged by trimming, so the extension stays put.

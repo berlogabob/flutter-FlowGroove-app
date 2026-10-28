@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flowgroove/widgets/standard_screen_scaffold.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_lab.dart';
@@ -104,6 +105,10 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
 }
 
 void main() {
+  final defaultAudioFileCache = audioFileCache;
+  setUp(() => audioFileCache = (_, _) async => null);
+  tearDown(() => audioFileCache = defaultAudioFileCache);
+
   final song = Song(
     id: 's1',
     title: 'Hey Joe',

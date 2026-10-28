@@ -5,6 +5,9 @@ import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/audio_note_screen.dart';
+import 'package:flowgroove/services/audio/audio_file_cache.dart';
+import 'package:flowgroove/services/pending_storage_deletes.dart';
+import 'package:flowgroove/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -131,6 +134,40 @@ class _FakeJustAudio extends JustAudioPlatform {
   }
 }
 
+class _EditStorage extends StorageService {
+  String? suffix;
+
+  @override
+  Future<String> uploadLabAudio(
+    Uint8List bytes, {
+    required String? bandId,
+    required String songId,
+    required String entryId,
+    String? objectSuffix,
+    String ext = 'm4a',
+    String contentType = 'audio/mp4',
+  }) async {
+    suffix = objectSuffix;
+    return 'https://storage.test/o/new.wav?token=new';
+  }
+}
+
+class _PendingDeletes extends PendingStorageDeletes {
+  _PendingDeletes(this.repo);
+  final _InMemoryLabRepo repo;
+  final queued = <String>[];
+  final flushed = <String>[];
+
+  @override
+  Future<void> enqueue(String url) async {
+    expect(repo.saved.last.attachmentIds.first, contains('new.wav'));
+    queued.add(url);
+  }
+
+  @override
+  Future<void> flush(String url) async => flushed.add(url);
+}
+
 /// In-memory stand-in so saves are observable without Firestore.
 class _InMemoryLabRepo extends FirestoreLabRepository {
   // The base constructor resolves `.instance` when given nulls, which needs a
@@ -138,12 +175,15 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
   _InMemoryLabRepo()
     : super(firestore: MockFirebaseFirestore(), auth: MockFirebaseAuth());
 
+  Completer<void>? saveAck;
   final saved = <SongLabEntry>[];
   final deleted = <String>[];
 
   @override
-  Future<void> saveEntry(SongLabEntry entry, {String? bandId}) async =>
-      saved.add(entry);
+  Future<void> saveEntry(SongLabEntry entry, {String? bandId}) async {
+    saved.add(entry);
+    await saveAck?.future;
+  }
 
   @override
   Future<void> deleteEntry(
@@ -177,15 +217,23 @@ SongLabEntry _entry({String? body, List<int> peaks = const [], String? url}) =>
 List<int> get _peaks => List.generate(200, (i) => i % 256);
 
 void main() {
+  final defaultAudioFileCache = audioFileCache;
+  setUp(() => audioFileCache = (_, _) async => null);
+  tearDown(() => audioFileCache = defaultAudioFileCache);
+
   late _FakeJustAudio audio;
   late _InMemoryLabRepo repo;
   late List<String> fetched;
+  late _EditStorage storage;
+  late _PendingDeletes pending;
 
   setUp(() {
     audio = _FakeJustAudio();
     JustAudioPlatform.instance = audio;
     repo = _InMemoryLabRepo();
     fetched = [];
+    storage = _EditStorage();
+    pending = _PendingDeletes(repo);
   });
 
   Future<void> pump(
@@ -197,6 +245,8 @@ void main() {
       ProviderScope(
         overrides: [
           labRepositoryProvider.overrideWithValue(repo),
+          storageServiceProvider.overrideWithValue(storage),
+          pendingStorageDeletesProvider.overrideWithValue(pending),
           audioBytesFetcherProvider.overrideWithValue((url) async {
             fetched.add(url);
             return bytes ?? Uint8List(0);
@@ -313,7 +363,13 @@ void main() {
     expect(tile.onTap, isNotNull);
   });
 
-  testWidgets('deleting a marker rewrites the body without it', (tester) async {
+  testWidgets('deleting a marker updates before the save is acknowledged', (
+    tester,
+  ) async {
+    final ack = repo.saveAck = Completer<void>();
+    addTearDown(() {
+      if (!ack.isCompleted) ack.complete();
+    });
     await pump(
       tester,
       _entry(peaks: _peaks, body: '00:05 chorus entry\n00:12 tempo drops'),
@@ -332,6 +388,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     expect(repo.saved, hasLength(1));
     expect(repo.saved.single.body, '00:12 tempo drops');
+    expect(ack.isCompleted, false);
+    expect(find.text('chorus entry'), findsNothing);
+    expect(find.text('tempo drops'), findsOneWidget);
+    ack.complete();
+    await tester.pump();
   });
 }
 

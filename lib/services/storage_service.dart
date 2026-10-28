@@ -71,6 +71,7 @@ class StorageService {
     required String? bandId,
     required String songId,
     required String entryId,
+    String? objectSuffix,
     String ext = 'm4a',
     String contentType = 'audio/mp4',
   }) async {
@@ -79,10 +80,14 @@ class StorageService {
       throw Exception('Recording is larger than 100MB');
     }
     final owner = bandId == null ? 'user/$_currentUserId' : 'band/$bandId';
-    final ref = _storage.ref().child('lab_audio/$owner/$songId/$entryId.$ext');
+    final name = objectSuffix == null ? entryId : '${entryId}_$objectSuffix';
+    final ref = _storage.ref().child('lab_audio/$owner/$songId/$name.$ext');
     final snapshot = await ref.putData(
       bytes,
-      SettableMetadata(contentType: contentType),
+      SettableMetadata(
+        cacheControl: 'public, max-age=31536000',
+        contentType: contentType,
+      ),
     );
     return snapshot.ref.getDownloadURL();
   }

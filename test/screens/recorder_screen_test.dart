@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:mockito/mockito.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
@@ -95,6 +96,10 @@ class _PausedPendingDeletes extends PendingStorageDeletes {
 }
 
 void main() {
+  final defaultAudioFileCache = audioFileCache;
+  setUp(() => audioFileCache = (_, _) async => null);
+  tearDown(() => audioFileCache = defaultAudioFileCache);
+
   final song = Song(
     id: 's1',
     title: 'Hey Joe',

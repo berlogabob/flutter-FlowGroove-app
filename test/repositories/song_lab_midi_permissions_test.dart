@@ -5,6 +5,7 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/screens/songs/midi_import_screen.dart';
 import 'package:flowgroove/screens/songs/song_lab_screen.dart';
+import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +24,10 @@ class _Permission extends Notifier<bool> {
 }
 
 void main() {
+  final defaultAudioFileCache = audioFileCache;
+  setUp(() => audioFileCache = (_, _) async => null);
+  tearDown(() => audioFileCache = defaultAudioFileCache);
+
   const channel = MethodChannel('miguelruivo.flutter.plugins.filepicker');
   final song = Song(
     id: 'song',
