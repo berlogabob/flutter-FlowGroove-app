@@ -2096,56 +2096,65 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       context: context,
       backgroundColor: context.mp.surface,
       builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(_name(region), style: MonoPulseTypography.titleLarge),
-              trailing: const Icon(Icons.edit_outlined),
-              onTap: () => Navigator.pop(sheetContext, 'rename'),
-            ),
-            ListTile(
-              key: const ValueKey('slice-start'),
-              leading: const Text('Start'),
-              title: Text(_preciseTime(region.startMs)),
-              subtitle: i == 0
-                  ? null
-                  : Text('Also end of ${_name(regions[i - 1])}'),
-              enabled: i > 0,
-              trailing: const Icon(Icons.tune),
-              onTap: () => Navigator.pop(sheetContext, 'start'),
-            ),
-            ListTile(
-              key: const ValueKey('slice-end'),
-              leading: const Text('End'),
-              title: Text(_preciseTime(region.endMs)),
-              subtitle: next == null
-                  ? null
-                  : Text('Also start of ${_name(next)}'),
-              enabled: next != null,
-              trailing: const Icon(Icons.tune),
-              onTap: () => Navigator.pop(sheetContext, 'end'),
-            ),
-            SwitchListTile(
-              key: const ValueKey('slice-skip'),
-              secondary: const Icon(Icons.visibility_off_outlined),
-              title: const Text('Skip'),
-              subtitle: const Text('Hide the pad and jump over it in playback'),
-              value: region.skip,
-              onChanged: (_) => Navigator.pop(sheetContext, 'skip'),
-            ),
-            if (regions.length > 1)
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('Delete slice'),
+                title: Text(
+                  _name(region),
+                  style: MonoPulseTypography.titleLarge,
+                ),
+                trailing: const Icon(Icons.edit_outlined),
+                onTap: () => Navigator.pop(sheetContext, 'rename'),
+              ),
+              ListTile(
+                key: const ValueKey('slice-start'),
+                leading: const Text('Start'),
+                title: Text(_preciseTime(region.startMs)),
                 subtitle: Text(
                   i == 0
-                      ? 'Its time joins the next slice'
-                      : 'Its time joins the slice before it',
+                      ? 'Trim the lead-in (it becomes a skipped slice)'
+                      : 'Also end of ${_name(regions[i - 1])}',
                 ),
-                onTap: () => Navigator.pop(sheetContext, 'delete'),
+                trailing: const Icon(Icons.tune),
+                onTap: () => Navigator.pop(sheetContext, 'start'),
               ),
-          ],
+              ListTile(
+                key: const ValueKey('slice-end'),
+                leading: const Text('End'),
+                title: Text(_preciseTime(region.endMs)),
+                subtitle: Text(
+                  next == null
+                      ? 'Trim the tail (it becomes a skipped slice)'
+                      : 'Also start of ${_name(next)}',
+                ),
+                trailing: const Icon(Icons.tune),
+                onTap: () => Navigator.pop(sheetContext, 'end'),
+              ),
+              SwitchListTile(
+                key: const ValueKey('slice-skip'),
+                secondary: const Icon(Icons.visibility_off_outlined),
+                title: const Text('Skip'),
+                subtitle: const Text(
+                  'Hide the pad and jump over it in playback',
+                ),
+                value: region.skip,
+                onChanged: (_) => Navigator.pop(sheetContext, 'skip'),
+              ),
+              if (regions.length > 1)
+                ListTile(
+                  leading: const Icon(Icons.delete_outline),
+                  title: const Text('Delete slice'),
+                  subtitle: Text(
+                    i == 0
+                        ? 'Its time joins the next slice'
+                        : 'Its time joins the slice before it',
+                  ),
+                  onTap: () => Navigator.pop(sheetContext, 'delete'),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -2153,8 +2162,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     switch (action) {
       case 'rename':
         await _rename(region.id);
+      case 'start' when i == 0:
+        await _trimEdge(i, start: true);
       case 'start':
         await _fineTune(i - 1, loop: (i, i));
+      case 'end' when next == null:
+        await _trimEdge(i, start: false);
       case 'end':
         await _fineTune(i, loop: (i, i));
       case 'delete':
@@ -2164,6 +2177,32 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           for (final (j, r) in regions.indexed)
             j == i ? r.copyWith(skip: !r.skip) : r,
         ]);
+    }
+  }
+
+  /// Start of the first slice / end of the last: splits off a skipped
+  /// lead-in or tail and fine-tunes its edge. Left untouched, it is removed.
+  Future<void> _trimEdge(int i, {required bool start}) async {
+    final before = _entry.regions;
+    final r = before[i];
+    final split = splitRegions(
+      before,
+      atMs: start ? r.startMs + minEdgeMs : r.endMs - minEdgeMs,
+      durationMs: _durationMs,
+      newId: () => '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}',
+    );
+    if (identical(split, before)) return;
+    await _changeRegions(split);
+    if (!mounted) return;
+    final slice = start ? i + 1 : i;
+    await _fineTune(i, loop: (slice, slice));
+    if (!mounted) return;
+    final edge = start ? i : i + 1;
+    final now = _entry.regions;
+    if (edge < now.length && now[edge].endMs - now[edge].startMs <= minEdgeMs) {
+      await _changeRegions(mergeRegion(now, edge), undoTo: before);
+    } else {
+      setState(() => _undoRegions = before);
     }
   }
 

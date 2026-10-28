@@ -39,3 +39,7 @@ Future<Int16List?> decodeSongPcm(
     return null;
   }
 }
+
+/// Native only: the browser uploads the original file.
+Future<({Uint8List bytes, List<int> peaks, int durationMs, int primingMs})?>
+transcodeToAac(String path) async => null;

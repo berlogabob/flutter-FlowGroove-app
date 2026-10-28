@@ -8,7 +8,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 
 import '../../../services/audio/audio_note_edit.dart';
+import '../../../services/audio/audio_markers.dart';
 import '../../../services/audio/audio_note_recorder.dart';
+import '../../../services/audio/song_peaks.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/snackbar.dart';
 import '../../../utils/picked_file.dart';
@@ -28,6 +30,8 @@ class LabRecordingResult {
     this.title,
     this.notes,
     this.peaks = const [],
+    this.markers = const [],
+    this.durationMs,
   });
 
   final Uint8List bytes;
@@ -38,6 +42,12 @@ class LabRecordingResult {
   /// Waveform bars for the audio note editor. Empty for attached files, whose
   /// levels we never saw.
   final List<int> peaks;
+
+  /// Cue points / chapters read from an attached file before conversion.
+  final List<FileMarker> markers;
+
+  /// Known when an attached file was converted to AAC here.
+  final int? durationMs;
 }
 
 /// Capture-or-attach sheet for Song Lab audio ideas (#69). Capture, don't
@@ -67,6 +77,9 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   String _ext = AudioNoteRecorder.extension;
   String? _pickedName;
   List<int> _peaks = const [];
+  List<FileMarker> _markers = const [];
+  int? _durationMs;
+  bool _converting = false;
   AudioNoteRecorder? _noteRecorder;
 
   /// Stop before the 25MB Storage cap. Native records AAC (~16kB/s, so ~26 min
@@ -236,6 +249,8 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
           _ext = AudioNoteRecorder.extension;
           _peaks = peaksFromLevels(levels);
           _pickedName = null;
+          _markers = const [];
+          _durationMs = null;
         }
         _recording = false;
       });
@@ -275,16 +290,39 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   Future<void> _pickFile() async {
     final file = await FilePicker.pickFile(type: FileType.audio);
     if (file == null) return;
-    final bytes = await readPickedBytes(file);
+    final ext = (file.extension ?? 'm4a').toLowerCase();
     setState(() {
-      _bytes = bytes;
-      _ext = (file.extension ?? 'm4a').toLowerCase();
+      _bytes = null;
       _pickedName = file.name;
-      // We never saw this file's levels; the editor falls back to a plain
-      // seek bar. ponytail: compute peaks from the bytes if it ever matters.
-      _peaks = const [];
+      _converting = true;
       _recording = false;
     });
+    try {
+      final bytes = await readPickedBytes(file);
+      // Markers live in the original; the AAC copy can't carry them.
+      final markers = readAudioMarkers(bytes);
+      // Masters are huge (a 3 min 24-bit WAV is ~50MB); practice needs AAC.
+      final aac = ext == 'aac' || file.path == null
+          ? null
+          : await transcodeToAac(file.path!);
+      if (!mounted) return;
+      setState(() {
+        _bytes = aac?.bytes ?? bytes;
+        _ext = aac == null ? ext : 'aac';
+        _peaks = aac?.peaks ?? const [];
+        _durationMs = aac?.durationMs;
+        // The AAC copy starts later by the encoder's priming.
+        _markers = [
+          for (final m in markers)
+            FileMarker(
+              ms: m.ms == 0 ? 0 : m.ms + (aac?.primingMs ?? 0),
+              name: m.name,
+            ),
+        ];
+      });
+    } finally {
+      if (mounted) setState(() => _converting = false);
+    }
     if (_title.text.isEmpty && file.name.isNotEmpty) {
       _title.text = file.name.replaceAll(RegExp(r'\.\w+$'), '');
     }
@@ -299,6 +337,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
       final warning = left <= 60 ? ' · ${left}s left' : '';
       return 'Recording… $m:$s$warning';
     }
+    if (_converting) return 'Converting $_pickedName…';
     if (_bytes != null) {
       final mb = (_bytes!.length / (1024 * 1024)).toStringAsFixed(1);
       return _pickedName != null
@@ -352,7 +391,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
                 const SizedBox(width: MonoPulseSpacing.md),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _recording ? null : _pickFile,
+                    onPressed: _recording || _converting ? null : _pickFile,
                     icon: const Icon(Icons.attach_file),
                     label: const Text('Attach file'),
                   ),
@@ -400,6 +439,8 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
                                 ? null
                                 : _notes.text.trim(),
                             peaks: _peaks,
+                            markers: _markers,
+                            durationMs: _durationMs,
                           ),
                         )
                       : null,

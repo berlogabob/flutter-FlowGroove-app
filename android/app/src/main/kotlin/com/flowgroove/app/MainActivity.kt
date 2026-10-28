@@ -78,6 +78,36 @@ class MainActivity : FlutterActivity() {
             }
         }
 
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "com.flowgroove/audio"
+        ).setMethodCallHandler { call, result ->
+            val mainHandler = Handler(mainLooper)
+            // Minutes of audio: never on the platform thread.
+            Thread {
+                try {
+                    val value: Any = when (call.method) {
+                        "toAac" -> AudioTranscoder.toAac(
+                            call.argument<String>("in")!!,
+                            call.argument<String>("out")!!,
+                            call.argument<Int>("bitrate") ?: 192_000
+                        )
+                        "decodePcm" -> AudioTranscoder.decodePcm(
+                            call.argument<String>("in")!!,
+                            call.argument<Int>("sampleRate")!!
+                        )
+                        else -> {
+                            mainHandler.post { result.notImplemented() }
+                            return@Thread
+                        }
+                    }
+                    mainHandler.post { result.success(value) }
+                } catch (error: Exception) {
+                    mainHandler.post { result.error("audio_error", error.message, null) }
+                }
+            }.start()
+        }
+
         val ch = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "com.flowgroove/metronome"

@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:uuid/uuid.dart';
 
+import '../models/audio_region.dart';
 import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
 import '../router/app_router.dart';
@@ -297,6 +299,8 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
             shiftMarkers(_markers, startMs: startMs, durationMs: newDurationMs),
           ),
           peaks: trimPeaks(_entry.peaks, _trimStart, _trimEnd),
+          regions: cropRegions(_entry.regions, startMs: startMs, endMs: endMs),
+          grid: _entry.grid == null ? null : cropGrid(_entry.grid!, startMs),
         ),
       );
       if (!mounted) return;
@@ -311,6 +315,118 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       showAppSnackBar(context, 'Trimmed');
     } catch (e) {
       if (mounted) showAppSnackBar(context, 'Trim failed: $e', error: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Cuts the take in two at the playhead: this entry keeps the first part,
+  /// a new entry gets the rest (a rehearsal recording → one take per song).
+  Future<void> _splitAtPlayhead() async {
+    final url = _url;
+    final at = _position.inMilliseconds;
+    final total = _duration.inMilliseconds;
+    if (url == null || _busy || !_canTrim) return;
+    if (at < 1000 || total - at < 1000) {
+      showAppSnackBar(context, 'Move the playhead into the take to split it');
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => ConfirmationDialog(
+        title: 'Split at ${formatTimestamp(at, padMinutes: false)}?',
+        message:
+            'This take keeps the part before the playhead; the rest becomes '
+            'a new recording with its own notes.',
+        confirmLabel: 'Split',
+        icon: Icons.call_split,
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await _player.pause();
+      final bytes = await ref.read(audioBytesFetcherProvider)(url);
+      final first = trimAudio(bytes, startMs: 0, endMs: at);
+      final rest = trimAudio(bytes, startMs: at, endMs: total);
+      if (first == null || rest == null) {
+        if (mounted) {
+          showAppSnackBar(
+            context,
+            "This take's format can't be split",
+            error: true,
+          );
+        }
+        return;
+      }
+      final ext = _extOf(url);
+      final storage = ref.read(storageServiceProvider);
+      final restId = const Uuid().v4();
+      final restUrl = await storage.uploadLabAudio(
+        rest,
+        bandId: widget.bandId,
+        songId: _entry.songId,
+        entryId: restId,
+        ext: ext,
+        contentType: _mimeOf(ext),
+      );
+      final restMs = audioDurationMs(rest) ?? total - at;
+      final split = at / total;
+      final now = DateTime.now();
+      await ref
+          .read(labRepositoryProvider)
+          .saveEntry(
+            SongLabEntry(
+              id: restId,
+              songId: _entry.songId,
+              bandId: _entry.bandId,
+              type: _entry.type,
+              title: '${_entry.title ?? 'Audio note'} (2)',
+              body: formatMarkers(
+                shiftMarkers(_markers, startMs: at, durationMs: restMs),
+              ),
+              authorId: _entry.authorId,
+              visibility: _entry.visibility,
+              createdAt: now,
+              updatedAt: now,
+              attachmentIds: [restUrl],
+              peaks: trimPeaks(_entry.peaks, split, 1),
+              regions: cropRegions(_entry.regions, startMs: at, endMs: total),
+              grid: _entry.grid == null ? null : cropGrid(_entry.grid!, at),
+            ),
+            bandId: widget.bandId,
+          );
+      final firstUrl = await storage.uploadLabAudio(
+        first,
+        bandId: widget.bandId,
+        songId: _entry.songId,
+        entryId: _entry.id,
+        ext: ext,
+        contentType: _mimeOf(ext),
+      );
+      final firstMs = audioDurationMs(first) ?? at;
+      await _save(
+        _entry.copyWith(
+          attachmentIds: [firstUrl],
+          body: formatMarkers(
+            shiftMarkers(_markers, startMs: 0, durationMs: firstMs),
+          ),
+          peaks: trimPeaks(_entry.peaks, 0, split),
+          regions: cropRegions(_entry.regions, startMs: 0, endMs: at),
+        ),
+      );
+      if (!mounted) return;
+      setState(() {
+        _trimStart = 0;
+        _trimEnd = 1;
+        _position = Duration.zero;
+      });
+      await _player.setUrl(firstUrl);
+      if (!mounted) return;
+      setState(() => _duration = Duration(milliseconds: firstMs));
+      showAppSnackBar(context, 'Split — the rest is a new recording');
+    } catch (e) {
+      if (mounted) showAppSnackBar(context, 'Split failed: $e', error: true);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -439,6 +555,12 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
           label: 'Add note at playhead',
           onTap: _addMarkerAtPlayhead,
         ),
+        if (_canTrim)
+          AppMenuItem(
+            icon: Icons.call_split,
+            label: 'Split at playhead',
+            onTap: _splitAtPlayhead,
+          ),
         AppMenuItem(
           icon: Icons.delete_outline,
           label: 'Delete recording',

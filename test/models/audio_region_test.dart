@@ -235,18 +235,42 @@ void main() {
       );
     });
 
-    test('a cut too close to a boundary is ignored', () {
+    test('a cut too close to an inner boundary is ignored', () {
       final start = [
-        const AudioRegion(id: 'a', name: '', startMs: 0, endMs: 8000),
+        const AudioRegion(id: 'a', name: '', startMs: 0, endMs: 4000),
+        const AudioRegion(id: 'b', name: '', startMs: 4000, endMs: 8000),
       ];
       expect(
-        splitRegions(start, atMs: 200, durationMs: 8000, newId: id),
+        splitRegions(start, atMs: 4200, durationMs: 8000, newId: id),
         same(start),
       );
       expect(
-        splitRegions(start, atMs: 8000, durationMs: 8000, newId: id),
+        splitRegions(start, atMs: 3800, durationMs: 8000, newId: id),
         same(start),
       );
+      expect(
+        splitRegions(start, atMs: 10, durationMs: 8000, newId: id),
+        same(start),
+      );
+    });
+
+    test('a cut near the file start or end splits off a skipped edge', () {
+      final start = [
+        const AudioRegion(id: 'a', name: 'Intro', startMs: 0, endMs: 8000),
+      ];
+      final lead = splitRegions(start, atMs: 120, durationMs: 8000, newId: id);
+      expect(
+        [for (final r in lead) (r.startMs, r.endMs, r.skip)],
+        [(0, 120, true), (120, 8000, false)],
+      );
+      expect(lead[1].name, 'Intro');
+      final tail = splitRegions(lead, atMs: 7700, durationMs: 8000, newId: id);
+      expect(
+        [for (final r in tail) (r.startMs, r.endMs, r.skip)],
+        [(0, 120, true), (120, 7700, false), (7700, 8000, true)],
+      );
+      // A skipped lead-in can be nudged down to minEdgeMs.
+      expect(moveBoundary(lead, 0, 0)[0].endMs, minEdgeMs);
     });
   });
 
@@ -418,5 +442,21 @@ void main() {
     expect(skipTarget(regions, 5500), 6000);
     expect(AudioRegion.fromJson(regions.first.toJson()).skip, isTrue);
     expect(regions[2].toJson().containsKey('skip'), isFalse);
+  });
+
+  test('cropRegions keeps the window, shifted to zero', () {
+    const regions = [
+      AudioRegion(id: 'a', name: 'A', startMs: 0, endMs: 3000),
+      AudioRegion(id: 'b', name: 'B', startMs: 3000, endMs: 6000),
+      AudioRegion(id: 'c', name: 'C', startMs: 6000, endMs: 9000),
+    ];
+    final r = cropRegions(regions, startMs: 1000, endMs: 6000);
+    expect([for (final x in r) (x.name, x.startMs, x.endMs)], [
+      ('A', 0, 2000),
+      ('B', 2000, 5000),
+    ]);
+    const grid = AudioGrid(bpm: 120, offsetMs: 500, beatsPerBar: 4);
+    // Bar lines (every 2 s from 0.5 s) stay on the same audio.
+    expect(cropGrid(grid, 1000).offsetMs, 1500);
   });
 }

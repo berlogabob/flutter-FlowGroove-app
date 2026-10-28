@@ -188,6 +188,11 @@ int? skipTarget(List<AudioRegion> regions, int ms) {
 /// Shortest region a split or drag may leave behind.
 const int minRegionMs = 500;
 
+/// Shortest skipped slice: the silence before the music can be a few ms.
+const int minEdgeMs = 20;
+
+int _minLength(AudioRegion r) => r.skip ? minEdgeMs : minRegionMs;
+
 /// Builds a gapless map, discarding cuts that would leave tiny regions.
 List<AudioRegion> regionsFromCuts(
   List<int> cutsMs, {
@@ -239,7 +244,9 @@ List<int> gridCuts(
 
 /// Splits the file at [atMs]. With no regions yet the whole file becomes two
 /// regions; otherwise the region under [atMs] is cut in two, the right half
-/// unnamed. A cut too close to an edge, or outside every region, returns
+/// unnamed. A cut closer than [minRegionMs] to the file's start or end
+/// splits off a skipped lead-in or tail (the silence before the music).
+/// Any other cut too close to an edge, or outside every region, returns
 /// [regions] unchanged.
 List<AudioRegion> splitRegions(
   List<AudioRegion> regions, {
@@ -253,9 +260,31 @@ List<AudioRegion> splitRegions(
   final i = source.indexWhere((r) => atMs > r.startMs && atMs < r.endMs);
   if (i < 0) return regions;
   final r = source[i];
-  if (atMs - r.startMs < minRegionMs || r.endMs - atMs < minRegionMs) {
-    return regions;
+  final head = atMs - r.startMs;
+  final tail = r.endMs - atMs;
+  if (r.startMs == 0 && head < minRegionMs && head >= minEdgeMs) {
+    return [
+      ...source.sublist(0, i),
+      AudioRegion(id: newId(), name: '', startMs: 0, endMs: atMs, skip: true),
+      r.copyWith(startMs: atMs),
+      ...source.sublist(i + 1),
+    ];
   }
+  if (r.endMs == durationMs && tail < minRegionMs && tail >= minEdgeMs) {
+    return [
+      ...source.sublist(0, i),
+      r.copyWith(endMs: atMs),
+      AudioRegion(
+        id: newId(),
+        name: '',
+        startMs: atMs,
+        endMs: durationMs,
+        skip: true,
+      ),
+      ...source.sublist(i + 1),
+    ];
+  }
+  if (head < minRegionMs || tail < minRegionMs) return regions;
   return [
     ...source.sublist(0, i),
     r.copyWith(endMs: atMs),
@@ -265,12 +294,15 @@ List<AudioRegion> splitRegions(
 }
 
 /// Moves the boundary between region [index] and the next one to [atMs],
-/// keeping both at least [minRegionMs] long.
+/// keeping both at least [minRegionMs] long ([minEdgeMs] when skipped).
 List<AudioRegion> moveBoundary(List<AudioRegion> regions, int index, int atMs) {
   if (index < 0 || index >= regions.length - 1) return regions;
   final left = regions[index];
   final right = regions[index + 1];
-  final ms = atMs.clamp(left.startMs + minRegionMs, right.endMs - minRegionMs);
+  final ms = atMs.clamp(
+    left.startMs + _minLength(left),
+    right.endMs - _minLength(right),
+  );
   return [
     ...regions.sublist(0, index),
     left.copyWith(endMs: ms),
@@ -278,6 +310,25 @@ List<AudioRegion> moveBoundary(List<AudioRegion> regions, int index, int atMs) {
     ...regions.sublist(index + 2),
   ];
 }
+
+/// The map after the audio is cut to [startMs, endMs): regions outside are
+/// dropped, the rest clipped and shifted so the window starts at 0.
+List<AudioRegion> cropRegions(
+  List<AudioRegion> regions, {
+  required int startMs,
+  required int endMs,
+}) => [
+  for (final r in regions)
+    if (math.min(r.endMs, endMs) - math.max(r.startMs, startMs) >= minEdgeMs)
+      r.copyWith(
+        startMs: math.max(r.startMs, startMs) - startMs,
+        endMs: math.min(r.endMs, endMs) - startMs,
+      ),
+];
+
+/// The same grid for audio that now starts [startMs] later.
+AudioGrid cropGrid(AudioGrid grid, int startMs) =>
+    grid.copyWith(offsetMs: ((grid.offsetMs - startMs) % grid.barMs).round());
 
 /// Removes region [index], giving its time to the previous region (or the
 /// next one when it is first), so the map stays gapless.

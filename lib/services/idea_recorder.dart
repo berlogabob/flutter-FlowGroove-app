@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/audio_region.dart';
 import '../models/song_lab.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
@@ -18,6 +19,30 @@ import '../utils/snackbar.dart';
 const ideaInboxSongId = '_inbox';
 
 const _uuid = Uuid();
+
+/// Cue points of a converted file become its regions (they're lost from the
+/// AAC copy, and the setup wizard reads markers from the stored file).
+List<AudioRegion> _regionsFromMarkers(LabRecordingResult result) {
+  final durationMs = result.durationMs;
+  if (durationMs == null || result.markers.isEmpty) return const [];
+  final markers = [
+    for (final m in result.markers)
+      AudioRegion(
+        id: '',
+        name: m.name,
+        // A marker at the very start names the first region.
+        startMs: m.ms < minRegionMs ? 0 : m.ms,
+        endMs: 0,
+      ),
+  ];
+  final regions = regionsFromCuts(
+    [for (final m in markers) m.startMs],
+    durationMs: durationMs,
+    newId: _uuid.v4,
+    keepNamesFrom: markers,
+  );
+  return regions.length > 1 ? regions : const [];
+}
 
 const _accessChanged =
     'Recording stopped because access changed. Please try again.';
@@ -108,6 +133,7 @@ Future<void> captureIdea(
     updatedAt: now,
     attachmentIds: [url],
     peaks: result.peaks,
+    regions: _regionsFromMarkers(result),
   );
   // Offline Firestore writes can stay pending indefinitely.
   const confirmationTimeout = Duration(seconds: 10);
