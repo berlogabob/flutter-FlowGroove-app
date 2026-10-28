@@ -4,11 +4,12 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 
+import '../../../providers/data/data_providers.dart';
 import '../../../services/audio/audio_file_cache.dart';
 import '../../../services/audio/audio_markers.dart';
 import '../../../services/audio/audio_note_edit.dart';
@@ -661,16 +662,16 @@ class _RecordingWavePainter extends CustomPainter {
 }
 
 /// Minimal play/pause for a recording entry — capture, don't edit (#69).
-class LabAudioPlayer extends StatefulWidget {
+class LabAudioPlayer extends ConsumerStatefulWidget {
   const LabAudioPlayer({required this.url, super.key});
 
   final String url;
 
   @override
-  State<LabAudioPlayer> createState() => _LabAudioPlayerState();
+  ConsumerState<LabAudioPlayer> createState() => _LabAudioPlayerState();
 }
 
-class _LabAudioPlayerState extends State<LabAudioPlayer> {
+class _LabAudioPlayerState extends ConsumerState<LabAudioPlayer> {
   final _player = AudioPlayer();
   bool _loaded = false;
 
@@ -690,7 +691,7 @@ class _LabAudioPlayerState extends State<LabAudioPlayer> {
       try {
         final file = await audioFileCache(
           widget.url,
-          (url) => http.readBytes(Uri.parse(url)),
+          ref.read(audioBytesFetcherProvider),
         );
         if (file != null) {
           await _player.setFilePath(file.path);
