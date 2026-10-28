@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/audio/audio_note_edit.dart' show waveformLevels;
 import '../../theme/mono_pulse_theme.dart';
 
 /// Bars, dimmed outside the trim window, with marker ticks and a playhead.
@@ -23,6 +24,7 @@ class WaveformPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (peaks.isEmpty) return;
+    final levels = waveformLevels(peaks);
     final step = size.width / peaks.length;
     final mid = size.height / 2;
     final bar = Paint()
@@ -36,7 +38,7 @@ class WaveformPainter extends CustomPainter {
           ? MonoPulseColors.accentOrange
           : dim.withValues(alpha: 0.3);
       // Keep silence visible as a hairline rather than nothing at all.
-      final h = (peaks[i] / 255).clamp(0.03, 1.0) * mid;
+      final h = levels[i].clamp(0.03, 1.0) * mid;
       final x = i * step + step / 2;
       canvas.drawLine(Offset(x, mid - h), Offset(x, mid + h), bar);
     }

@@ -275,6 +275,24 @@ int _snap(int bytes, int frame) => bytes - (bytes % frame);
 /// is what lets the editor draw a waveform without downloading the audio.
 const waveformPeakCount = 200;
 
+/// Stretches waveform contrast above the non-zero bars' 10th percentile.
+List<double> waveformLevels(List<int> peaks) {
+  if (peaks.isEmpty) return const [];
+  final nonZero = peaks.where((peak) => peak > 0).toList()..sort();
+  if (nonZero.isEmpty) return List<double>.filled(peaks.length, 0);
+  final lo = nonZero[((nonZero.length - 1) * 0.1).floor()];
+  final max = nonZero.last;
+  return [
+    for (final peak in peaks)
+      if (peak < lo)
+        (peak / lo * 0.15).clamp(0.0, 0.15)
+      else if (max == lo)
+        1.0
+      else
+        0.15 + (peak - lo) / (max - lo) * 0.85,
+  ];
+}
+
 /// Reduces a recording's dBFS level stream to [buckets] bars in 0..255.
 ///
 /// Same -60dB floor as the live recording bars, so a take looks the same while

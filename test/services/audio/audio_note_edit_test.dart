@@ -72,6 +72,30 @@ Uint8List _adts(int count, {int freqIdx = _freqIdx44k, bool mpeg2 = false}) {
 const _frameMs = 1024 * 1000 / 44100; // 23.219...
 
 void main() {
+  group('waveformLevels', () {
+    test('stretches dense mastered bars', () {
+      final peaks = List.generate(26, (i) => 230 + i);
+      final levels = waveformLevels(peaks);
+      expect(levels[2], closeTo(0.15, 0.001));
+      expect(levels.first, closeTo(0.15, 0.01));
+      expect(levels.last, 1.0);
+      expect(levels[13], closeTo(0.56, 0.02));
+      expect(peaks.first, 230);
+    });
+
+    test('keeps silence and quiet bars below the contrast floor', () {
+      final levels = waveformLevels([0, 1, ...List.filled(20, 230), 255]);
+      expect(levels.first, 0.0);
+      expect(levels[1], lessThan(0.15));
+      expect(waveformLevels([0, 0]), [0.0, 0.0]);
+    });
+
+    test('handles empty and constant non-zero bars', () {
+      expect(waveformLevels([]), isEmpty);
+      expect(waveformLevels([0, 230, 230]), [0.0, 1.0, 1.0]);
+    });
+  });
+
   group('parseWav', () {
     test('finds the data chunk of a plain 44-byte-header WAV', () {
       final info = parseWav(_wav(100))!;
