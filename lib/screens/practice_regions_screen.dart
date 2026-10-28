@@ -96,6 +96,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   int? _heldPad;
   final _padPointers = <int>{};
 
+  /// Shift: the slice last tapped; the waveform zooms to it.
+  int? _focus;
+  (int, int)? _dragView;
+
   /// A hold + tap just made a run: swallow the taps those fingers end in.
   bool _runMade = false;
   late bool _snap;
@@ -141,6 +145,27 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   late final MetronomeNotifier _metronome;
 
   int get _durationMs => _duration.inMilliseconds;
+
+  /// Visible waveform range: the whole song, or in Shift the focused slice
+  /// plus a little of each neighbour. Frozen while a marker is dragged.
+  (int, int) get _view {
+    final drag = _dragView;
+    if (drag != null) return drag;
+    final focus = _focus;
+    if (!_editing || focus == null || focus >= _entry.regions.length) {
+      return (0, _durationMs);
+    }
+    final region = _entry.regions[focus];
+    final pad = math.max(1000, region.lengthMs ~/ 6);
+    return (
+      math.max(0, region.startMs - pad),
+      math.min(_durationMs, region.endMs + pad),
+    );
+  }
+
+  /// Under a bar (or 2 s without a grid): usually a stray tap or count-in.
+  bool _isShort(AudioRegion region) =>
+      !region.skip && region.lengthMs < (_entry.grid?.barMs ?? 2000);
   int get _positionMs => _clipStart + _position.inMilliseconds;
   int get _preRollMs => _entry.grid == null
       ? _preRoll * 1000
@@ -1459,6 +1484,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             ThemeData.estimateBrightnessForColor(color) == Brightness.dark
             ? MonoPulseColors.white
             : MonoPulseColors.black;
+        final playingHere =
+            _playing &&
+            !_sync &&
+            _positionMs >= region.startMs &&
+            _positionMs < region.endMs;
         return Semantics(
           button: true,
           selected: selected,
@@ -1493,6 +1523,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 if (_runMade) return;
                 unawaited(HapticFeedback.selectionClick());
                 if (editing) {
+                  setState(() => _focus = i);
+                  unawaited(
+                    _ensurePcm().then((_) {
+                      if (mounted) setState(() {});
+                    }),
+                  );
                   unawaited(_editSlice(i));
                   return;
                 }
@@ -1503,7 +1539,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(MonoPulseRadius.large),
                   side: BorderSide(
-                    color: selected ? MonoPulseColors.accentOrange : color,
+                    color: playingHere
+                        ? MonoPulseColors.white
+                        : selected
+                        ? MonoPulseColors.accentOrange
+                        : color,
                     width: MonoPulseBorder.bold,
                   ),
                 ),
@@ -1525,7 +1565,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                           ),
                         ),
                         Text(
-                          grid == null
+                          _isShort(region)
+                              ? '⚠ ${(region.lengthMs / 1000).toStringAsFixed(1)} s'
+                              : grid == null
                               ? '${_time(region.startMs)}–${_time(region.endMs)}'
                               // Inclusive last bar: 8 bars from bar 1 is 1–8.
                               : 'Bars ${grid.barAt(region.startMs).round() + 1}–${math.max(grid.barAt(region.startMs).round() + 1, grid.barAt(region.endMs).round())}',
@@ -1657,6 +1699,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           editing ? 'Tap a pad to edit' : _entry.title ?? 'Practice regions',
         ),
         actions: [
+          if (editing && _focus != null)
+            IconButton(
+              tooltip: 'Whole song',
+              icon: const Icon(Icons.zoom_out_map),
+              onPressed: () => setState(() => _focus = null),
+            ),
           if (editing)
             IconButton(
               tooltip: 'Undo',
@@ -1720,7 +1768,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               ),
               child: _timeline(editing),
             ),
-            if (editing && regions.any((region) => region.name.isEmpty))
+            if (editing &&
+                regions.any(
+                  (region) => region.name.isEmpty || _isShort(region),
+                ))
               _nameChips(),
             Expanded(
               child: regions.isEmpty
@@ -1796,6 +1847,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                             onPressed: () => setState(() {
                               _editing = !_editing;
                               _heldPad = null;
+                              _focus = null;
                             }),
                           )
                         : const SizedBox.shrink(),
@@ -1864,32 +1916,49 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       for (final section in song?.sections ?? <Section>[]) section.name,
       ...Section.templates,
     };
+    final shortCount = _entry.regions.where(_isShort).length;
     return SizedBox(
       height: 48,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
         children: [
-          for (final name in names)
+          if (shortCount > 0)
             Padding(
               padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
               child: ActionChip(
-                key: ValueKey('name-chip-$name'),
-                label: Text(name),
-                backgroundColor: colorForName(name),
-                onPressed: () {
-                  final i = _entry.regions.indexWhere((r) => r.name.isEmpty);
-                  if (i < 0) return;
-                  unawaited(HapticFeedback.selectionClick());
-                  unawaited(
-                    _changeRegions([
-                      for (final (j, region) in _entry.regions.indexed)
-                        j == i ? region.copyWith(name: name) : region,
-                    ]),
-                  );
-                },
+                key: const ValueKey('skip-short'),
+                avatar: const Icon(Icons.warning_amber, size: 18),
+                label: Text('Skip $shortCount short'),
+                onPressed: () => unawaited(
+                  _changeRegions([
+                    for (final region in _entry.regions)
+                      _isShort(region) ? region.copyWith(skip: true) : region,
+                  ]),
+                ),
               ),
             ),
+          if (_entry.regions.any((region) => region.name.isEmpty))
+            for (final name in names)
+              Padding(
+                padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
+                child: ActionChip(
+                  key: ValueKey('name-chip-$name'),
+                  label: Text(name),
+                  backgroundColor: colorForName(name),
+                  onPressed: () {
+                    final i = _entry.regions.indexWhere((r) => r.name.isEmpty);
+                    if (i < 0) return;
+                    unawaited(HapticFeedback.selectionClick());
+                    unawaited(
+                      _changeRegions([
+                        for (final (j, region) in _entry.regions.indexed)
+                          j == i ? region.copyWith(name: name) : region,
+                      ]),
+                    );
+                  },
+                ),
+              ),
         ],
       ),
     );
@@ -2103,6 +2172,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     child: LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
+        final (viewStart, viewEnd) = _view;
+        final span = math.max(1, viewEnd - viewStart);
         return SizedBox(
           height: 96,
           child: Stack(
@@ -2113,7 +2184,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   onTapUp: _loaded && _durationMs > 0
                       ? (details) {
                           final ms =
-                              (details.localPosition.dx / width * _durationMs)
+                              (viewStart +
+                                      details.localPosition.dx / width * span)
                                   .round();
                           final index = _entry.regions.indexWhere(
                             (region) =>
@@ -2130,6 +2202,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     painter: _RegionsPainter(
                       entry: _entry,
                       durationMs: _durationMs,
+                      viewStart: viewStart,
+                      viewEnd: viewEnd,
+                      pcm: _focus != null && editing ? _analysisPcm : null,
                       positionMs: _sync && _entry.grid != null
                           ? _entry.grid!.msOfBar(
                               ref.read(backingTransportProvider).songBar,
@@ -2144,7 +2219,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               ),
               if (editing && _durationMs > 0)
                 for (var i = 0; i < _entry.regions.length - 1; i++)
-                  _boundaryHandle(i, width),
+                  if (_entry.regions[i].endMs >= viewStart &&
+                      _entry.regions[i].endMs <= viewEnd)
+                    _boundaryHandle(i, width, viewStart, span),
             ],
           ),
         );
@@ -2152,8 +2229,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     ),
   );
 
-  Widget _boundaryHandle(int index, double width) {
-    final centre = _entry.regions[index].endMs / _durationMs * width;
+  Widget _boundaryHandle(int index, double width, int viewStart, int span) {
+    final centre = (_entry.regions[index].endMs - viewStart) / span * width;
     final left = (centre - 24).clamp(
       0.0,
       (width - 48).clamp(0.0, double.infinity),
@@ -2169,12 +2246,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         onTap: () => _fineTune(index),
         onHorizontalDragStart: (_) {
           _beforeDrag = _entry.regions;
+          _dragView = _view;
           _dragMs = _entry.regions[index].endMs.toDouble();
         },
         onHorizontalDragUpdate: (details) {
           if (!_canEdit) return;
           // Accumulate unsnapped motion, otherwise small drags stick to a bar.
-          _dragMs += details.delta.dx / width * _durationMs;
+          _dragMs += details.delta.dx / width * span;
           setState(
             () => _entry = _entry.copyWith(
               regions: moveBoundary(
@@ -2188,6 +2266,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         onHorizontalDragEnd: (_) {
           unawaited(_changeRegions(_entry.regions, undoTo: _beforeDrag));
           _beforeDrag = null;
+          _dragView = null;
         },
         onHorizontalDragCancel: () {
           final before = _beforeDrag;
@@ -2195,6 +2274,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             setState(() => _entry = _entry.copyWith(regions: before));
           }
           _beforeDrag = null;
+          _dragView = null;
         },
         child: Align(
           alignment: Alignment.centerLeft,
@@ -2255,6 +2335,9 @@ class _RegionsPainter extends CustomPainter {
   _RegionsPainter({
     required this.entry,
     required this.durationMs,
+    required this.viewStart,
+    required this.viewEnd,
+    required this.pcm,
     required this.positionMs,
     required this.selection,
     required this.dim,
@@ -2263,6 +2346,11 @@ class _RegionsPainter extends CustomPainter {
 
   final SongLabEntry entry;
   final int durationMs;
+  final int viewStart;
+  final int viewEnd;
+
+  /// Mono 22.05 kHz PCM for a sharp zoomed waveform; peaks otherwise.
+  final Int16List? pcm;
   final int positionMs;
   final (int, int)? selection;
   final Color dim;
@@ -2270,9 +2358,19 @@ class _RegionsPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (durationMs <= 0 || size.width <= 0) return;
-    double x(int ms) => (ms / durationMs).clamp(0.0, 1.0) * size.width;
-    if (entry.peaks.isNotEmpty) {
+    final span = viewEnd - viewStart;
+    if (durationMs <= 0 || span <= 0 || size.width <= 0) return;
+    double x(int ms) => ((ms - viewStart) / span).clamp(0.0, 1.0) * size.width;
+    final samples = pcm;
+    if (samples != null && samples.isNotEmpty && span < durationMs) {
+      _paintEnvelope(canvas, size, samples);
+    } else if (entry.peaks.isNotEmpty) {
+      // Paint the whole song stretched, shifted so the view fills the box.
+      final full = size.width * durationMs / span;
+      canvas
+        ..save()
+        ..clipRect(Offset.zero & size)
+        ..translate(-viewStart / durationMs * full, 0);
       WaveformPainter(
         peaks: entry.peaks,
         trimStart: 0,
@@ -2280,7 +2378,8 @@ class _RegionsPainter extends CustomPainter {
         playhead: positionMs / durationMs,
         markerFractions: const [],
         dim: dim,
-      ).paint(canvas, size);
+      ).paint(canvas, Size(full, size.height));
+      canvas.restore();
     }
     for (var i = 0; i < entry.regions.length; i++) {
       final region = entry.regions[i];
@@ -2327,13 +2426,10 @@ class _RegionsPainter extends CustomPainter {
     final grid = entry.grid;
     if (grid != null) {
       final line = Paint()..color = dim.withValues(alpha: 0.5);
-      final first = grid.barAt(0).ceil();
-      final last = grid.barAt(durationMs).floor();
+      final first = grid.barAt(viewStart).ceil();
+      final last = grid.barAt(viewEnd).floor();
       // At very high tempos, skip lines closer than a pixel to keep paint bounded.
-      final stride = (durationMs / grid.barMs / size.width).ceil().clamp(
-        1,
-        1 << 30,
-      );
+      final stride = (span / grid.barMs / size.width).ceil().clamp(1, 1 << 30);
       for (var bar = first; bar <= last; bar += stride) {
         final dx = x(grid.msOfBar(bar));
         canvas.drawLine(Offset(dx, 0), Offset(dx, size.height), line);
@@ -2346,6 +2442,32 @@ class _RegionsPainter extends CustomPainter {
         ..color = textColor
         ..strokeWidth = 1.5,
     );
+  }
+
+  void _paintEnvelope(Canvas canvas, Size size, Int16List samples) {
+    final wave = Paint()
+      ..color = MonoPulseColors.accentOrange.withValues(alpha: 0.7);
+    final mid = size.height / 2;
+    final perPixel = (viewEnd - viewStart) * 22.05 / size.width;
+    final start = viewStart * 22.05;
+    for (var px = 0; px < size.width.ceil(); px++) {
+      final from = (start + px * perPixel).floor().clamp(0, samples.length);
+      final to = (start + (px + 1) * perPixel).ceil().clamp(0, samples.length);
+      if (from >= to) continue;
+      var low = 0, high = 0;
+      // ponytail: strided scan, plenty for a phone-width column.
+      final stride = math.max(1, (to - from) ~/ 256);
+      for (var i = from; i < to; i += stride) {
+        final v = samples[i];
+        if (v < low) low = v;
+        if (v > high) high = v;
+      }
+      canvas.drawLine(
+        Offset(px.toDouble(), mid - high / 32768 * mid),
+        Offset(px.toDouble(), mid - low / 32768 * mid),
+        wave,
+      );
+    }
   }
 
   @override

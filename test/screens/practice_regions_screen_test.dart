@@ -493,6 +493,48 @@ void main() {
     expect(find.text('1 skipped'), findsOneWidget);
   });
 
+  testWidgets('Skip N short marks slices under a bar as skipped', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      _entry(
+        grid: const AudioGrid(bpm: 120),
+        regions: const [
+          AudioRegion(id: 'a', name: '', startMs: 0, endMs: 800),
+          AudioRegion(id: 'b', name: 'Verse', startMs: 800, endMs: 20000),
+        ],
+      ),
+    );
+    expect(find.text('⚠ 0.8 s'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('skip-short')));
+    await settleAudio(tester);
+    expect([for (final r in repo.saved.last.regions) r.skip], [true, false]);
+  });
+
+  testWidgets('Shift + pad zooms the waveform to that slice', (tester) async {
+    await pump(tester, _entry());
+    (int, int) view() {
+      final painter =
+          tester.widget<CustomPaint>(timeline()).painter! as dynamic;
+      return (painter.viewStart as int, painter.viewEnd as int);
+    }
+
+    expect(view(), (0, 20000));
+    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
+    await tester.pumpAndSettle();
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    expect(view(), (8334, 20000));
+    await tester.tap(find.byTooltip('Whole song'));
+    await tester.pumpAndSettle();
+    expect(view(), (0, 20000));
+  });
+
   testWidgets('a long song fits a small phone without scrolling the page', (
     tester,
   ) async {
