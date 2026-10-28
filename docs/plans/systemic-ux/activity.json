@@ -7742,7 +7742,7 @@
     {
       "id": "UX-RELEASE",
       "title": "Release + deploy after full suite green",
-      "status": "queued",
+      "status": "review",
       "executor": "claude",
       "kind": "verification",
       "issue": "PRACTICE-UX",
