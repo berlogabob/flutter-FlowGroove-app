@@ -396,10 +396,15 @@ List<AudioMarker> parseMarkers(String? body) {
   return out;
 }
 
-/// Renders markers back to the `MM:SS text` body format.
-String formatMarkers(List<AudioMarker> markers) {
+/// Renders markers back to the `MM:SS text` body format, after the plain-text
+/// lines of [keepTextFrom] (the old body), so free notes survive.
+String formatMarkers(List<AudioMarker> markers, {String? keepTextFrom}) {
   final sorted = [...markers]..sort((a, b) => a.ms.compareTo(b.ms));
-  return sorted.map((m) => '${formatTimestamp(m.ms)} ${m.text}').join('\n');
+  return [
+    for (final line in (keepTextFrom ?? '').split('\n'))
+      if (line.trim().isNotEmpty && !_markerLine.hasMatch(line)) line,
+    for (final m in sorted) '${formatTimestamp(m.ms)} ${m.text}',
+  ].join('\n');
 }
 
 /// `M:SS` for playback readouts, zero-padded `MM:SS` in marker lines.

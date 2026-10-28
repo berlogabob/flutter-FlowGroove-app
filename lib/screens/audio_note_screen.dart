@@ -232,6 +232,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       _entry.copyWith(
         body: formatMarkers(
           upsertMarker(_markers, (ms: at, text: text.trim())),
+          keepTextFrom: _entry.body,
         ),
       ),
     );
@@ -239,7 +240,9 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
 
   Future<void> _deleteMarker(AudioMarker marker) async {
     final kept = [..._markers]..removeWhere((m) => m.ms == marker.ms);
-    await _save(_entry.copyWith(body: formatMarkers(kept)));
+    await _save(
+      _entry.copyWith(body: formatMarkers(kept, keepTextFrom: _entry.body)),
+    );
   }
 
   // --- destructive actions -----------------------------------------------
@@ -297,6 +300,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
           attachmentIds: [newUrl],
           body: formatMarkers(
             shiftMarkers(_markers, startMs: startMs, durationMs: newDurationMs),
+            keepTextFrom: _entry.body,
           ),
           peaks: trimPeaks(_entry.peaks, _trimStart, _trimEnd),
           regions: cropRegions(_entry.regions, startMs: startMs, endMs: endMs),
@@ -384,6 +388,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
               title: '${_entry.title ?? 'Audio note'} (2)',
               body: formatMarkers(
                 shiftMarkers(_markers, startMs: at, durationMs: restMs),
+                keepTextFrom: _entry.body,
               ),
               authorId: _entry.authorId,
               visibility: _entry.visibility,
@@ -410,6 +415,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
           attachmentIds: [firstUrl],
           body: formatMarkers(
             shiftMarkers(_markers, startMs: 0, durationMs: firstMs),
+            keepTextFrom: _entry.body,
           ),
           peaks: trimPeaks(_entry.peaks, 0, split),
           regions: cropRegions(_entry.regions, startMs: 0, endMs: at),

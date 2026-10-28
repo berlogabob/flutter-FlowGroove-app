@@ -485,6 +485,15 @@ void main() {
       expect(formatMarkers(parseMarkers(body)), body);
     });
 
+    test('formatMarkers keeps free text from the old body', () {
+      const old = 'Capo 2, play softer\n00:42 good chorus entry';
+      final markers = [...parseMarkers(old), (ms: 5000, text: 'count-in')];
+      expect(
+        formatMarkers(markers, keepTextFrom: old),
+        'Capo 2, play softer\n00:05 count-in\n00:42 good chorus entry',
+      );
+    });
+
     test('formatTimestamp pads minutes for lines, not for readouts', () {
       expect(formatTimestamp(42000), '00:42');
       expect(formatTimestamp(42000, padMinutes: false), '0:42');
