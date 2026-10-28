@@ -5,6 +5,7 @@ import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.util.Log
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.FileOutputStream
@@ -17,7 +18,9 @@ import java.nio.ByteOrder
  * and practice work on them), plus a decoder for files SoLoud can't read.
  */
 object AudioTranscoder {
+    private const val TAG = "AudioTranscoder"
     private const val TIMEOUT_US = 10_000L
+    private const val EOS_WAIT_US = 2_000_000L
     private const val PEAK_COUNT = 200 // waveformPeakCount in audio_note_edit.dart
 
     /** Encodes [inPath] to ADTS AAC at [outPath]. Returns durationMs + peaks. */
@@ -34,12 +37,20 @@ object AudioTranscoder {
 
         fun drain(endOfStream: Boolean) {
             val codec = encoder ?: return
+            var idle = 0
             while (true) {
                 val o = codec.dequeueOutputBuffer(info, if (endOfStream) TIMEOUT_US else 0)
                 if (o == MediaCodec.INFO_TRY_AGAIN_LATER) {
                     if (!endOfStream) return
+                    // The c2 encoder can withhold EOS after a long input (seen on
+                    // a 26 min file); everything is written by then, so stop.
+                    if (++idle * TIMEOUT_US >= EOS_WAIT_US) {
+                        Log.w(TAG, "toAac: no EOS after ${EOS_WAIT_US / 1000} ms idle, finishing")
+                        return
+                    }
                     continue
                 }
+                idle = 0
                 if (o < 0) continue
                 val isConfig = info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0
                 if (info.size > 0 && !isConfig) {
@@ -60,12 +71,19 @@ object AudioTranscoder {
             val codec = encoder ?: return
             val data = samples
             var at = 0
+            var waited = 0
             while (at < data.size || endOfStream) {
                 val i = codec.dequeueInputBuffer(TIMEOUT_US)
                 if (i < 0) {
                     drain(false)
+                    if (++waited * TIMEOUT_US >= EOS_WAIT_US) {
+                        Log.w(TAG, "toAac: no input buffer for ${EOS_WAIT_US / 1000} ms at frame $frames")
+                        if (endOfStream) return
+                        throw IOException("encoder stalled")
+                    }
                     continue
                 }
+                waited = 0
                 val buf = codec.getInputBuffer(i)!!
                 buf.clear()
                 val n = minOf(buf.remaining() / 2, data.size - at)
