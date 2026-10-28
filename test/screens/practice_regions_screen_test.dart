@@ -353,6 +353,49 @@ void main() {
     expect(find.byType(GridView), findsOneWidget);
   });
 
+  testWidgets('Edit lists markers; a row opens fine-tune or removes it', (
+    tester,
+  ) async {
+    await pump(tester, _entry());
+    await tester.tap(find.byTooltip('Edit sections'));
+    await tester.pumpAndSettle();
+    final row = find.byKey(const ValueKey('marker-row-0'));
+    expect(
+      find.descendant(of: row, matching: find.text('Verse 2 → Chorus')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byTooltip('Remove marker'));
+    await settleAudio(tester);
+    expect(repo.saved.last.regions.single.name, 'Verse 2');
+    expect(repo.saved.last.regions.single.endMs, 20000);
+  });
+
+  testWidgets('a long song fits a small phone without scrolling the page', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(360, 640)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pump(
+      tester,
+      _entry(
+        regions: [
+          for (var i = 0; i < 24; i++)
+            AudioRegion(
+              id: 'r$i',
+              name: 'Part $i',
+              startMs: i * 800,
+              endMs: (i + 1) * 800,
+            ),
+        ],
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(find.byTooltip('Play').hitTestable(), findsOneWidget);
+    expect(find.text('Click & drums').hitTestable(), findsOneWidget);
+  });
+
   testWidgets('empty practice offers section setup to editors', (tester) async {
     final previousDecode = PracticeRegionsScreen.decodePcm;
     PracticeRegionsScreen.decodePcm =
@@ -404,14 +447,6 @@ void main() {
     'tapping a pad loops only Chorus and tapping again keeps playing',
     (tester) async {
       await pump(tester, _entry());
-      final pads = tester.widget<GridView>(find.byType(GridView));
-      expect(pads.shrinkWrap, isTrue);
-      expect(pads.physics, isA<NeverScrollableScrollPhysics>());
-      expect(
-        (pads.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount)
-            .crossAxisCount,
-        4,
-      );
       await tester.tap(find.text('Verse 2'));
       await settleAudio(tester);
       await tester.tap(find.text('Chorus'));
@@ -756,7 +791,13 @@ void main() {
     await tester.ensureVisible(find.text('+10 ms'));
     await tester.tap(find.text('+10 ms'));
     await tester.pump();
-    expect(find.text('00:10.020'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('00:10.020'),
+      ),
+      findsOneWidget,
+    );
     expect(repo.saved, isEmpty);
     await tester.ensureVisible(find.widgetWithText(FilledButton, 'Done'));
     await tester.tap(find.widgetWithText(FilledButton, 'Done'));
@@ -779,7 +820,13 @@ void main() {
     expect(repo.saved, hasLength(1));
     await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
-    expect(find.text('00:10.020'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('00:10.020'),
+      ),
+      findsOneWidget,
+    );
     Navigator.of(
       tester.element(find.widgetWithText(FilledButton, 'Done')),
     ).pop();
