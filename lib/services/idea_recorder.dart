@@ -143,6 +143,7 @@ Future<void> captureIdea(
       updatedAt: now,
       attachmentIds: [url],
       peaks: result.peaks,
+      peaksRms: result.peaksRms,
       regions: _regionsFromMarkers(result),
     );
     // Offline Firestore writes can stay pending indefinitely.
@@ -262,6 +263,7 @@ Future<void> linkIdeaToSong(
       updatedAt: now,
       attachmentIds: idea.attachmentIds,
       peaks: idea.peaks,
+      peaksRms: idea.peaksRms,
     ),
   );
   if (!_hasAuthority(ref, uid, null)) throw StateError(_accessChanged);

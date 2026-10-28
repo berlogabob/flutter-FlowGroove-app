@@ -35,6 +35,7 @@ class LabRecordingResult {
     this.title,
     this.notes,
     this.peaks = const [],
+    this.peaksRms = false,
     this.markers = const [],
     this.durationMs,
     this.parts = const [],
@@ -48,6 +49,7 @@ class LabRecordingResult {
   /// Waveform bars for the audio note editor. Empty for attached files, whose
   /// levels we never saw.
   final List<int> peaks;
+  final bool peaksRms;
 
   /// Cue points / chapters read from an attached file before conversion.
   final List<FileMarker> markers;
@@ -422,6 +424,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
         title: _title.text.trim().isEmpty ? null : _title.text.trim(),
         notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
         peaks: _peaks,
+        peaksRms: true,
         markers: _markers,
         durationMs: _durationMs,
         parts: parts,
@@ -456,6 +459,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
             part.startMs / _durationMs!,
             part.endMs / _durationMs!,
           ),
+          peaksRms: true,
           markers: [
             for (final marker in _markers)
               if (marker.ms >= part.startMs && marker.ms < part.endMs)

@@ -22,6 +22,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // ignore: depend_on_referenced_packages
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart'
     show SharePlatform;
@@ -279,6 +280,7 @@ const _url =
 SongLabEntry _entry({
   String? body,
   List<int> peaks = const [],
+  bool peaksRms = true,
   String? url,
   List<AudioMarker> notes = const [],
   List<AudioRegion> regions = const [],
@@ -297,6 +299,7 @@ SongLabEntry _entry({
   grid: grid,
   attachmentIds: [url ?? _url],
   peaks: peaks,
+  peaksRms: peaksRms,
 );
 
 List<int> get _peaks => List.generate(200, (i) => i % 256);
@@ -330,6 +333,7 @@ void main() {
   late _PendingDeletes pending;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     previousAudio = JustAudioPlatform.instance;
     previousShare = SharePlatform.instance;
     SharePlatform.instance = share;
@@ -521,15 +525,16 @@ void main() {
     for (var i = 0; i < 8000; i++) {
       view.setInt16(i * 2, 16384, Endian.little);
     }
-    await pump(tester, _entry(), bytes: _buildWav(pcm));
+    await pump(tester, _entry(peaksRms: false), bytes: _buildWav(pcm));
     await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
     expect(fetched, [_url], reason: 'fetched exactly once');
     expect(repo.saved, hasLength(1));
     expect(repo.saved.single.peaks, isNotEmpty);
+    expect(repo.saved.single.peaksRms, isTrue);
   });
 
-  testWidgets('does not backfill a take that already has peaks', (
+  testWidgets('does not backfill a take that already has RMS peaks', (
     tester,
   ) async {
     await pump(tester, _entry(peaks: _peaks), bytes: Uint8List(0));
@@ -537,6 +542,63 @@ void main() {
     expect(fetched, isEmpty);
     expect(repo.saved, isEmpty);
   });
+
+  test('RMS peak metadata defaults, round-trips and survives copyWith', () {
+    final legacy = SongLabEntry.fromJson(
+      {..._entry(peaks: _peaks).toJson()}..remove('peaksRms'),
+    );
+    expect(legacy.peaksRms, isFalse);
+    expect(legacy.toJson().containsKey('peaksRms'), isFalse);
+    final updated = legacy.copyWith(peaksRms: true);
+    expect(updated.toJson()['peaksRms'], isTrue);
+    expect(SongLabEntry.fromJson(updated.toJson()).peaksRms, isTrue);
+    expect(updated.copyWith(title: 'Renamed').peaksRms, isTrue);
+    expect(updated.copyWith(peaksRms: false).peaksRms, isFalse);
+  });
+
+  for (final viewer in [false, true]) {
+    testWidgets(
+      'replaces legacy max peaks with RMS bars for ${viewer ? 'viewers locally' : 'editors persistently'}',
+      (tester) async {
+        final pcm = Uint8List(8000 * 2);
+        final view = ByteData.sublistView(pcm);
+        for (var i = 0; i < 8000; i++) {
+          if (i >= 4000 || i % 40 == 0) {
+            view.setInt16(i * 2, 32767, Endian.little);
+          }
+        }
+        final bytes = _buildWav(pcm);
+        final expected = peaksFromWav(bytes)!;
+        final legacy = List.filled(expected.length, 255);
+        await pump(
+          tester,
+          _entry(peaks: legacy, peaksRms: false),
+          bytes: bytes,
+          bandId: viewer ? 'band1' : null,
+          bandEditor: !viewer,
+        );
+        expect(fetched, [_url]);
+        if (viewer) {
+          expect(repo.saved, isEmpty);
+          final dynamic painter = tester
+              .widgetList<CustomPaint>(find.byType(CustomPaint))
+              .firstWhere(
+                (paint) =>
+                    paint.painter.runtimeType.toString() == '_RegionsPainter',
+              )
+              .painter;
+          // ignore: avoid_dynamic_calls
+          final displayed = painter.entry as SongLabEntry;
+          expect(displayed.peaks, expected);
+          expect(displayed.peaksRms, isTrue);
+        } else {
+          expect(repo.saved.single.peaks, expected);
+          expect(repo.saved.single.peaks, isNot(legacy));
+          expect(repo.saved.single.peaksRms, isTrue);
+        }
+      },
+    );
+  }
 
   testWidgets('a marker row is tappable', (tester) async {
     await pump(tester, _entry(peaks: _peaks, body: '00:05 chorus entry'));
@@ -786,6 +848,8 @@ void main() {
       expect(rest.notes, [(ms: 0, text: 'cut'), (ms: 3425, text: 'rest')]);
       expect(first.body, 'Capo 2');
       expect(rest.body, 'Capo 2');
+      expect(first.peaksRms, isTrue);
+      expect(rest.peaksRms, isTrue);
       expect(first.peaks, trimPeaks(_peaks, 0, .6));
       expect(rest.peaks, trimPeaks(_peaks, .6, 1));
       expect(first.regions.last.endMs, 12000);
@@ -873,6 +937,7 @@ void main() {
       final saved = repo.saved.single;
       expect(saved.notes, [(ms: 2425, text: 'keep')]);
       expect(saved.body, 'Capo 2');
+      expect(saved.peaksRms, isTrue);
       expect(saved.peaks, trimPeaks(_peaks, .05, .95));
       expect(saved.regions.map((r) => r.id), ['a', 'inner', 'b']);
       expect(saved.regions[1].skip, isTrue);

@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/mocks.mocks.dart';
 import '../providers/backing_transport_test.dart'
@@ -234,18 +235,21 @@ const _regions = [
   AudioRegion(id: 'chorus', name: 'Chorus', startMs: 10000, endMs: 20000),
 ];
 
-SongLabEntry _entry({List<AudioRegion> regions = _regions, AudioGrid? grid}) =>
-    SongLabEntry(
-      id: 'e1',
-      songId: '_inbox',
-      type: LabEntryType.recording,
-      authorId: 'u1',
-      createdAt: DateTime(2026, 7, 28),
-      updatedAt: DateTime(2026, 7, 28),
-      attachmentIds: const ['https://example.com/take.wav'],
-      regions: regions,
-      grid: grid,
-    );
+SongLabEntry _entry({
+  String id = 'e1',
+  List<AudioRegion> regions = _regions,
+  AudioGrid? grid,
+}) => SongLabEntry(
+  id: id,
+  songId: '_inbox',
+  type: LabEntryType.recording,
+  authorId: 'u1',
+  createdAt: DateTime(2026, 7, 28),
+  updatedAt: DateTime(2026, 7, 28),
+  attachmentIds: const ['https://example.com/take.wav'],
+  regions: regions,
+  grid: grid,
+);
 
 void main() {
   late _FakeJustAudio audio;
@@ -256,6 +260,7 @@ void main() {
   late FakeBackingEngine engine;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     _FakeAudioPlayer.sourceDuration = _FakeAudioPlayer.duration;
     final previousAutoOpen = PracticeRegionsScreen.autoOpenSetup;
     PracticeRegionsScreen.autoOpenSetup = false;
@@ -578,7 +583,7 @@ void main() {
   });
 
   testWidgets(
-    'long empty editable audio opens setup automatically after load',
+    'setup auto-opens once per entry and can still be opened manually',
     (tester) async {
       PracticeRegionsScreen.autoOpenSetup = true;
       _FakeAudioPlayer.sourceDuration = const Duration(seconds: 60);
@@ -591,9 +596,39 @@ void main() {
       await tester.tap(find.text('Skip'));
       await settleAudio(tester);
       expect(find.text('Set up for practice'), findsNothing);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('practice_setup_seen_e1'), isTrue);
       expect(repo.saved, isEmpty);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await settleAudio(tester);
+      await pump(tester, _entry(regions: const []));
+      expect(find.text('Set up for practice'), findsNothing);
+      await tester.tap(find.text('Set up sections'));
+      await tester.pumpAndSettle();
+      expect(find.text('Set up for practice'), findsOneWidget);
+      await tester.tap(find.text('Skip'));
+      await settleAudio(tester);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await settleAudio(tester);
+      await pump(tester, _entry(id: 'e2', regions: const []));
+      expect(find.text('Set up for practice'), findsOneWidget);
+      await tester.tap(find.text('Skip'));
+      await settleAudio(tester);
+      expect(prefs.getBool('practice_setup_seen_e2'), isTrue);
     },
   );
+
+  testWidgets('autoOpenSetup hook suppresses setup without marking it seen', (
+    tester,
+  ) async {
+    _FakeAudioPlayer.sourceDuration = const Duration(seconds: 60);
+    await pump(tester, _entry(regions: const []));
+    expect(find.text('Set up for practice'), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.containsKey('practice_setup_seen_e1'), isFalse);
+  });
 
   testWidgets('Re-run setup confirms replacement and opens the wizard', (
     tester,

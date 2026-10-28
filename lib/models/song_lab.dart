@@ -83,6 +83,7 @@ class SongLabEntry {
     this.visibility = 'band',
     this.attachmentIds = const [],
     this.peaks = const [],
+    this.peaksRms = false,
     this.midi,
     this.midiSong,
     this.grid,
@@ -114,6 +115,7 @@ class SongLabEntry {
             .map((v) => v.toInt())
             .toList() ??
         const [],
+    peaksRms: json['peaksRms'] as bool? ?? false,
     midi: json['midi'] as Map<String, dynamic>?,
     midiSong: _parseMidiSong(json['midiSong']),
     grid: json['grid'] is Map<String, dynamic>
@@ -167,6 +169,9 @@ class SongLabEntry {
   /// waveform without downloading the audio. Empty for legacy/attached takes.
   final List<int> peaks;
 
+  /// RMS or live-level bars; false for legacy max-sample peaks.
+  final bool peaksRms;
+
   /// Serialized [MidiPattern] for `midi` entries.
   final Map<String, dynamic>? midi;
 
@@ -199,6 +204,7 @@ class SongLabEntry {
     'updatedAt': updatedAt.toIso8601String(),
     'attachmentIds': attachmentIds,
     if (peaks.isNotEmpty) 'peaks': peaks,
+    if (peaksRms) 'peaksRms': true,
     if (notes.isNotEmpty)
       'notes': [
         for (final n in notes) {'ms': n.ms, 'text': n.text},
@@ -218,6 +224,7 @@ class SongLabEntry {
     String? status,
     List<String>? attachmentIds,
     List<int>? peaks,
+    bool? peaksRms,
     Map<String, dynamic>? midi,
     MidiSongMeta? midiSong,
     AudioGrid? grid,
@@ -241,6 +248,7 @@ class SongLabEntry {
     updatedAt: DateTime.now(),
     attachmentIds: attachmentIds ?? this.attachmentIds,
     peaks: peaks ?? this.peaks,
+    peaksRms: peaksRms ?? this.peaksRms,
     midi: midi ?? this.midi,
     midiSong: midiSong ?? this.midiSong,
     grid: clearGrid ? null : grid ?? this.grid,

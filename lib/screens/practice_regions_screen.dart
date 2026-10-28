@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/audio_region.dart';
@@ -196,16 +197,21 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     unawaited(_backfillPeaks());
   }
 
-  /// Imported song files arrive without peaks; decode once so regions can be
-  /// marked against the waveform. Saved for editors, shown locally for
+  /// RMS bars at a usable resolution. Parts, splits and shrinks slice the
+  /// parent's bars (a ninth of a long file is ~20 bars), so few bars also
+  /// means re-derive.
+  bool get _peaksFine => _entry.peaksRms && _entry.peaks.length >= 100;
+
+  /// Decode missing or legacy max-sample peaks so regions can be marked
+  /// against the waveform. Saved for editors, shown locally for
   /// everyone else. Silent on failure — the plain strip still works.
   Future<void> _backfillPeaks() async {
-    if (_entry.peaks.isNotEmpty || _entry.attachmentIds.isEmpty) return;
+    if (_peaksFine || _entry.attachmentIds.isEmpty) return;
     try {
       final bytes = await _readAudioBytes();
-      final peaks = peaksFromWav(bytes) ?? await decodeSongPeaks(bytes);
-      if (peaks == null || !mounted || _entry.peaks.isNotEmpty) return;
-      final updated = _entry.copyWith(peaks: peaks);
+      final peaks = await decodeSongPeaks(bytes);
+      if (peaks == null || !mounted || _peaksFine) return;
+      final updated = _entry.copyWith(peaks: peaks, peaksRms: true);
       if (_canEdit) {
         await _save(updated);
       } else {
@@ -267,6 +273,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           _durationMs >= 60000 &&
           _entry.regions.isEmpty &&
           _canEdit) {
+        final prefs = await SharedPreferences.getInstance();
+        if (!mounted ||
+            prefs.getBool('practice_setup_seen_${_entry.id}') == true) {
+          return;
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) unawaited(_rerunSetup());
         });
@@ -1397,6 +1408,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         ],
         newId: () => '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}',
       );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('practice_setup_seen_${_entry.id}', true);
       _auditionTimer?.cancel();
       if (!mounted || !_canEdit) return;
       await _player.pause();
