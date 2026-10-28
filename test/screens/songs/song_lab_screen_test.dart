@@ -170,6 +170,51 @@ void main() {
   }
 
   group('SongLabScreen (#67)', () {
+    for (final type in LabEntryType.values) {
+      testWidgets('${type.name} delete requires confirmation', (tester) async {
+        final repo = await pump(tester);
+        await repo.saveEntry(
+          SongLabEntry(
+            id: 'e1',
+            songId: song.id,
+            type: type,
+            title: 'Keep until confirmed',
+            authorId: 'u1',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        );
+        await tester.pumpAndSettle();
+        Future<void> openDelete() async {
+          await tester.tap(find.byType(PopupMenuButton<String>));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Delete'));
+          await tester.pumpAndSettle();
+        }
+
+        await openDelete();
+        expect(
+          find.text(
+            type == LabEntryType.recording
+                ? 'Delete recording?'
+                : 'Delete entry?',
+          ),
+          findsOneWidget,
+        );
+        expect(repo.deleteAttempts, 0);
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(repo.entries, hasLength(1));
+        expect(find.text('Keep until confirmed'), findsOneWidget);
+        await openDelete();
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
+        await tester.pumpAndSettle();
+        expect(repo.entries, isEmpty);
+        expect(repo.deleteAttempts, 1);
+        expect(find.text('Keep until confirmed'), findsNothing);
+      });
+    }
+
     Future<void> showRecording(
       WidgetTester tester,
       _InMemoryLabRepo repo,
@@ -190,6 +235,8 @@ void main() {
       await tester.tap(find.byType(PopupMenuButton<String>));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
       await tester.pumpAndSettle();
     }
 
@@ -534,6 +581,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Edit'), findsNothing);
         await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
         await tester.pumpAndSettle();
         expect(repo.entries, isEmpty);
         expect(find.text('Undo'), findsNothing);

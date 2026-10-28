@@ -24,6 +24,7 @@ import '../../utils/member_label.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
 import '../../widgets/app_menu_sheet.dart';
+import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/midi/midi_import_flow.dart';
 import '../../widgets/midi/midi_song_panel.dart';
@@ -244,6 +245,20 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
 
   Future<void> _delete(SongLabEntry entry) async {
     if (!_canDeleteEntry(entry)) return;
+    final recording = entry.type == LabEntryType.recording;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => ConfirmationDialog(
+        title: recording ? 'Delete recording?' : 'Delete entry?',
+        message: recording
+            ? 'The audio and its notes are gone for good — there is no undo '
+                  'from here.'
+            : 'The entry and its notes are gone for good — there is no undo '
+                  'from here.',
+        confirmLabel: 'Delete',
+      ),
+    );
+    if (confirmed != true || !_canDeleteEntry(entry)) return;
     final repo = ref.read(labRepositoryProvider);
     final pending = ref.read(pendingStorageDeletesProvider);
     final uid = ref.read(appUserProvider).value?.uid;
