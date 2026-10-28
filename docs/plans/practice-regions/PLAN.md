@@ -25,3 +25,9 @@ Registry: `docs/plans/systemic-ux/activity.json` issue `PRACTICE-REGIONS`.
 - [x] MPC-PADS region pads, tap = loop, hold+tap = run — `673ca935`
 - [x] MPC-JOG jog wheel in fine-tune (speed-scaled ms, beat mode)
 - [x] MPC-RELEASE 0.30.2+371 web (app.flowgroove.app) + Android (GitHub release, P30 launch)
+
+## Redesign (PRACTICE-UX)
+- [x] UX-CUE embedded markers: WAV cue/labl/ltxt, MP3 ID3 CHAP — `d0457c6e`
+- [x] UX-MODES Practice (waveform, pads, one transport row) / Edit behind pencil; lists dropped — `17329b57`
+- [x] UX-WIZARD setup wizard: Tempo → Sections (file markers / every N bars / by ear) → Names
+- [x] UX-RELEASE 0.31.0

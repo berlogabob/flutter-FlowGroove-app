@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-10-27T23:00:15+00:00",
+  "updated_at": "2026-10-27T23:45:11+00:00",
   "scope": "whole-app UX/UI and all known open project work",
   "policy": "No release while ANY issue/task/required recheck remains open. No silent defer/waive. Owner closes GitHub issues.",
   "provider": {
@@ -705,6 +705,25 @@
         "MPC-PADS",
         "MPC-JOG",
         "MPC-RELEASE"
+      ],
+      "resolution": null
+    },
+    {
+      "id": "PRACTICE-UX",
+      "title": "Practice regions redesign: setup wizard + Practice/Edit modes, embedded markers",
+      "severity": 2,
+      "status": "open",
+      "source": "owner request 2026-10-28 (0.30.2 feedback: overloaded, unclear flow)",
+      "evidence_type": "OWNER",
+      "summary": "Every tool visible at once; unclear what to do first. Recommended defaults taken: wizard on first open, lists removed, file markers read only at setup.",
+      "source_locations": [
+        "lib/screens/practice_regions_screen.dart"
+      ],
+      "tasks": [
+        "UX-CUE",
+        "UX-MODES",
+        "UX-WIZARD",
+        "UX-RELEASE"
       ],
       "resolution": null
     }
@@ -7651,6 +7670,92 @@
         "started_at": "2026-10-28",
         "deadline_at": "2026-10-28"
       },
+      "verification": null
+    },
+    {
+      "id": "UX-CUE",
+      "title": "Read embedded markers: WAV cue+LIST/adtl (labl, ltxt) and MP3 ID3v2 CHAP",
+      "status": "review",
+      "executor": "ornith",
+      "kind": "implementation",
+      "issue": "PRACTICE-UX",
+      "after": [],
+      "timeout_s": 600,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/services/audio/audio_markers.dart",
+        "test/services/audio/audio_markers_test.dart"
+      ],
+      "acceptance": [
+        "Pure Dart readAudioMarkers(bytes) -> [(ms,name,endMs?)]; unit tests on hand-built WAV and ID3 byte fixtures"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-MODES",
+      "title": "Practice by default, Edit behind pencil; drop Markers/Regions lists; tools in overflow menu",
+      "status": "review",
+      "executor": "codex",
+      "kind": "implementation",
+      "issue": "PRACTICE-UX",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/screens/practice_regions_screen.dart",
+        "test/screens/practice_regions_screen_test.dart"
+      ],
+      "acceptance": [
+        "Practice shows waveform, pads, one transport row, click toggle only; Edit: drag markers, tap marker = fine-tune, tap section = rename, + Marker; menu: Tempo grid, Auto slice, Re-run setup; tests updated"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-WIZARD",
+      "title": "Setup wizard: Tempo -> Sections (file markers / auto bars / by ear) -> Names",
+      "status": "review",
+      "executor": "codex",
+      "kind": "implementation",
+      "issue": "PRACTICE-UX",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [
+        "lib/screens/practice_setup_wizard.dart",
+        "test/screens/practice_setup_wizard_test.dart",
+        "lib/screens/practice_regions_screen.dart"
+      ],
+      "acceptance": [
+        "Shown when regions empty and user can edit; each step skippable with progress header; widget tests for the three section sources"
+      ],
+      "blocked_reason": null,
+      "run": null,
+      "verification": null
+    },
+    {
+      "id": "UX-RELEASE",
+      "title": "Release + deploy after full suite green",
+      "status": "queued",
+      "executor": "claude",
+      "kind": "verification",
+      "issue": "PRACTICE-UX",
+      "after": [],
+      "timeout_s": null,
+      "max_attempts": 1,
+      "read_files": [],
+      "allowed_files": [],
+      "acceptance": [
+        "Full suite green, web live, APK/AAB on GitHub release, P30 launch"
+      ],
+      "blocked_reason": null,
+      "run": null,
       "verification": null
     }
   ],

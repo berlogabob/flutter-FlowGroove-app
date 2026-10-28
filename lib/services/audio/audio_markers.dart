@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 /// A single marker embedded in a song file.
-class AudioMarker {
-  const AudioMarker({required this.ms, this.name = '', this.endMs});
+class FileMarker {
+  const FileMarker({required this.ms, this.name = '', this.endMs});
 
   /// Start of the marker in milliseconds.
   final int ms;
@@ -18,7 +18,7 @@ class AudioMarker {
 /// Markers embedded in a song file: WAV cue points (+ LIST/adtl labl names,
 /// ltxt lengths -> endMs) and MP3 ID3v2 CHAP frames (+ TIT2 sub-frame names).
 /// Returns [] for anything else or on malformed data (never throws).
-List<AudioMarker> readAudioMarkers(Uint8List bytes) {
+List<FileMarker> readAudioMarkers(Uint8List bytes) {
   try {
     if (bytes.length >= 12 &&
         _asciiEquals(bytes, 0, 'RIFF') &&
@@ -40,14 +40,14 @@ List<AudioMarker> readAudioMarkers(Uint8List bytes) {
   } on Object {
     // Malformed data must never throw.
   }
-  return <AudioMarker>[];
+  return <FileMarker>[];
 }
 
 // ---------------------------------------------------------------------------
 // WAV (RIFF little-endian)
 // ---------------------------------------------------------------------------
 
-List<AudioMarker>? _readWav(Uint8List b) {
+List<FileMarker>? _readWav(Uint8List b) {
   // Chunks start after "RIFF" + size(4) + "WAVE" = 12 bytes.
   int offset = 12;
   int sampleRate = 44100;
@@ -109,11 +109,11 @@ List<AudioMarker>? _readWav(Uint8List b) {
 
   if (cueMss.isEmpty) return null;
 
-  final List<AudioMarker> markers = <AudioMarker>[];
+  final List<FileMarker> markers = <FileMarker>[];
   for (int i = 0; i < cueMss.length; i++) {
     final int cueId = cueIds[i];
     markers.add(
-      AudioMarker(
+      FileMarker(
         ms: cueMss[i],
         name: cueNames[cueId] ?? '',
         endMs: cueEndMss[cueId],
@@ -167,7 +167,7 @@ void _readAdtlSubchunks(
 // MP3 ID3v2
 // ---------------------------------------------------------------------------
 
-List<AudioMarker>? _readMp3Id3v2(Uint8List b) {
+List<FileMarker>? _readMp3Id3v2(Uint8List b) {
   // "ID3" ver[3] flags[4] size[5..8]
   final int ver = b[3];
   if (ver != 3 && ver != 4) return null;
@@ -176,7 +176,7 @@ List<AudioMarker>? _readMp3Id3v2(Uint8List b) {
   final int tagEnd = 10 + tagSize;
   if (tagEnd > b.length) return null;
 
-  final List<AudioMarker> markers = <AudioMarker>[];
+  final List<FileMarker> markers = <FileMarker>[];
   int offset = 10;
   while (offset + 10 <= tagEnd) {
     final String fid = _readAscii(b, offset, 4);
@@ -200,7 +200,7 @@ List<AudioMarker>? _readMp3Id3v2(Uint8List b) {
   return markers;
 }
 
-AudioMarker? _readChap(Uint8List b, int dataStart, int dataEnd, int ver) {
+FileMarker? _readChap(Uint8List b, int dataStart, int dataEnd, int ver) {
   // element id (zero-terminated latin1)
   int p = dataStart;
   if (p >= dataEnd || b[p] == 0) return null;
@@ -234,7 +234,7 @@ AudioMarker? _readChap(Uint8List b, int dataStart, int dataEnd, int ver) {
     subStart = subDataEnd;
   }
 
-  return AudioMarker(ms: startTime, name: name, endMs: endTime);
+  return FileMarker(ms: startTime, name: name, endMs: endTime);
 }
 
 String _decodeTit2(Uint8List b, int start, int bodyLen) {

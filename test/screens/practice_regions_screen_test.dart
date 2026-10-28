@@ -253,6 +253,9 @@ void main() {
   late FakeBackingEngine engine;
 
   setUp(() {
+    final previousAutoOpen = PracticeRegionsScreen.autoOpenSetup;
+    PracticeRegionsScreen.autoOpenSetup = false;
+    addTearDown(() => PracticeRegionsScreen.autoOpenSetup = previousAutoOpen);
     final previousCache = PracticeRegionsScreen.cacheAudioFile;
     PracticeRegionsScreen.cacheAudioFile = (bytes, name) async => null;
     addTearDown(() => PracticeRegionsScreen.cacheAudioFile = previousCache);
@@ -351,17 +354,50 @@ void main() {
   });
 
   testWidgets('empty practice offers section setup to editors', (tester) async {
+    final previousDecode = PracticeRegionsScreen.decodePcm;
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async => null;
+    addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry(regions: const []));
     expect(find.text('No sections yet'), findsOneWidget);
     await tester.tap(find.text('Set up sections'));
     await tester.pumpAndSettle();
-    expect(find.text('Add marker'), findsOneWidget);
+    expect(find.text('Set up for practice'), findsOneWidget);
   });
 
-  testWidgets('Re-run setup shows the placeholder', (tester) async {
+  testWidgets('empty editable audio opens setup automatically after load', (
+    tester,
+  ) async {
+    PracticeRegionsScreen.autoOpenSetup = true;
+    final previousDecode = PracticeRegionsScreen.decodePcm;
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async => null;
+    addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
+    await pump(tester, _entry(regions: const []));
+    expect(find.text('Set up for practice'), findsOneWidget);
+    await tester.tap(find.text('Skip'));
+    await settleAudio(tester);
+    expect(find.text('Set up for practice'), findsNothing);
+    expect(repo.saved, isEmpty);
+  });
+
+  testWidgets('Re-run setup confirms replacement and opens the wizard', (
+    tester,
+  ) async {
+    final previousDecode = PracticeRegionsScreen.decodePcm;
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async => null;
+    addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry());
     await openMore(tester, 'Re-run setup');
-    expect(find.text('Setup wizard coming'), findsOneWidget);
+    expect(find.text('Replace 2 sections?'), findsOneWidget);
+    expect(repo.saved, isEmpty);
+    await tester.tap(find.widgetWithText(FilledButton, 'Replace'));
+    await settleAudio(tester);
+    expect(find.text('Set up for practice'), findsOneWidget);
+    await tester.tap(find.text('Skip'));
+    await settleAudio(tester);
+    expect(repo.saved, isEmpty);
   });
 
   testWidgets(

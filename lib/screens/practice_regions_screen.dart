@@ -24,12 +24,14 @@ import '../providers/permissions_provider.dart';
 import '../providers/practice_stats_provider.dart';
 import '../repositories/metronome_session_repository.dart';
 import '../services/audio/audio_analysis.dart';
+import '../services/audio/audio_markers.dart';
 import '../services/audio/audio_note_edit.dart';
 import '../services/audio/song_peaks.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/play_mode.dart';
 import '../utils/snackbar.dart';
 import '../widgets/audio/waveform_painter.dart';
+import 'practice_setup_wizard.dart';
 
 Future<String?> _defaultCacheAudioFile(Uint8List bytes, String name) async {
   final file = File('${(await getTemporaryDirectory()).path}/$name');
@@ -55,6 +57,9 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
   /// and stay out of the practice log.
   @visibleForTesting
   static int minLoggedMs = 10000;
+
+  @visibleForTesting
+  static bool autoOpenSetup = true;
 
   /// Decoder for fine-tuning and click & drums mode; tests swap it, since SoLoud's native
   /// decoder isn't loaded there.
@@ -87,6 +92,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   bool _playing = false;
   bool _loaded = false;
   bool _editing = false;
+  bool _setupOpen = false;
   int? _heldPad;
   late bool _snap;
   double _speed = 1;
@@ -219,6 +225,14 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         }),
       ]);
       await _applyLoop();
+      if (mounted &&
+          PracticeRegionsScreen.autoOpenSetup &&
+          _entry.regions.isEmpty &&
+          _canEdit) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_rerunSetup());
+        });
+      }
     } catch (e) {
       if (mounted) {
         showAppSnackBar(context, "Couldn't load audio: $e", error: true);
@@ -1371,7 +1385,86 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     );
   }
 
-  void _rerunSetup() => showAppSnackBar(context, 'Setup wizard coming');
+  Future<void> _rerunSetup() async {
+    if (!_canEdit || !_loaded || _durationMs <= 0 || _setupOpen) return;
+    _setupOpen = true;
+    try {
+      if (_entry.regions.isNotEmpty) {
+        final replace = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Replace ${_entry.regions.length} sections?'),
+            content: const Text(
+              'Your current sections will be replaced when you finish setup.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Replace'),
+              ),
+            ],
+          ),
+        );
+        if (replace != true || !mounted || !_canEdit) return;
+      }
+      final songs = _entry.songId.isEmpty || _entry.songId == '_inbox'
+          ? null
+          : ref
+                .read(
+                  widget.bandId == null
+                      ? songsProvider
+                      : bandSongsProvider(widget.bandId!),
+                )
+                .value;
+      final song = songs?.where((song) => song.id == _entry.songId).firstOrNull;
+      final result = await showPracticeSetupWizard(
+        context,
+        durationMs: _durationMs,
+        detectGrid: () async {
+          final pcm = await _ensurePcm();
+          return pcm == null || pcm.isEmpty ? null : estimateGrid(pcm, 22050);
+        },
+        fileMarkers: () async {
+          try {
+            final bytes = await (_bytes ??= ref.read(audioBytesFetcherProvider)(
+              _entry.attachmentIds.first,
+            ));
+            return readAudioMarkers(bytes);
+          } catch (_) {
+            return <FileMarker>[];
+          }
+        },
+        previewGrid: (grid) =>
+            _audition(grid.offsetMs, preRollMs: 0, windowMs: 4000),
+        songSectionNames: [
+          for (final section in song?.sections ?? <Section>[]) section.name,
+        ],
+        newId: () => '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}',
+      );
+      _auditionTimer?.cancel();
+      if (!mounted || !_canEdit) return;
+      await _player.pause();
+      if (!mounted || result == null) return;
+      await _setGrid(result.grid);
+      if (!mounted) return;
+      if (result.regions != null) await _changeRegions(result.regions!);
+      if (!mounted) return;
+      if (result.markByEar) {
+        await _changeRegions(const []);
+        if (mounted)
+          setState(() {
+            _editing = true;
+            _heldPad = null;
+          });
+      }
+    } finally {
+      _setupOpen = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1425,7 +1518,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   case 'slice':
                     unawaited(_autoSlice());
                   case 'setup':
-                    _rerunSetup();
+                    unawaited(_rerunSetup());
                 }
               },
               itemBuilder: (_) => [
@@ -1435,8 +1528,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   enabled: _loaded && _durationMs > 0,
                   child: const Text('Auto slice'),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'setup',
+                  enabled: _loaded && _durationMs > 0,
                   child: Text('Re-run setup'),
                 ),
               ],
@@ -1478,7 +1572,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                       const Text('No sections yet'),
                       if (canEdit)
                         FilledButton(
-                          onPressed: () => setState(() => _editing = true),
+                          onPressed: _loaded && _durationMs > 0
+                              ? _rerunSetup
+                              : null,
                           child: const Text('Set up sections'),
                         ),
                     ],
