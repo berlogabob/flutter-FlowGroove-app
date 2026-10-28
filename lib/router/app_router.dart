@@ -17,7 +17,6 @@ import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
 import '../services/analytics_service.dart';
 import '../services/event_share_service.dart';
-import '../screens/audio_note_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/bands/band_about_screen.dart';
@@ -688,7 +687,7 @@ List<RouteBase> _buildAppRoutes() {
         // restoration (which hands back decoded JSON); there's no id-only
         // lookup for a lab entry, so send them back to the list.
         if (rawEntry is! SongLabEntry) return const RecorderScreen();
-        return AudioNoteScreen(
+        return PracticeRegionsScreen(
           entry: rawEntry,
           bandId: rawBandId is String ? rawBandId : null,
         );

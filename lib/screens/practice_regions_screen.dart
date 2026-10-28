@@ -7,7 +7,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/audio_region.dart';
 import '../models/metronome_session.dart';
@@ -26,16 +29,22 @@ import '../services/audio/audio_analysis.dart';
 import '../services/audio/audio_file_cache.dart';
 import '../services/audio/audio_markers.dart';
 import '../services/audio/audio_note_edit.dart';
+import '../services/audio/m4a_muxer.dart';
+import '../services/audio/mp3_encoder.dart';
 import '../services/audio/song_peaks.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/play_mode.dart';
 import '../utils/snackbar.dart';
 import '../widgets/audio/waveform_painter.dart';
+import '../widgets/confirmation_dialog.dart';
 import 'practice_regions/auto_slice_sheet.dart';
 import 'practice_regions/grid_editor_dialog.dart';
 import 'practice_regions/region_name_sheet.dart';
 import 'practice_regions/slice_edit_sheet.dart';
 import 'practice_setup_wizard.dart';
+
+part 'practice_regions/notes_panel.dart';
+part 'practice_regions/file_actions.dart';
 
 /// Named regions keep practice loops attached to the original recording.
 class PracticeRegionsScreen extends ConsumerStatefulWidget {
@@ -77,6 +86,11 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
 
 class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   late SongLabEntry _entry;
+  late final TextEditingController _title;
+
+  /// Saves the title whenever the field loses focus (tap outside, back).
+  final _titleFocus = FocusNode();
+  bool _busy = false;
   late final AudioPlayer _player;
   final _subs = <StreamSubscription<dynamic>>[];
   Duration _duration = Duration.zero;
@@ -169,6 +183,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   void initState() {
     super.initState();
     _entry = widget.entry;
+    _title = TextEditingController(text: _entry.title ?? '');
+    _titleFocus.addListener(() {
+      if (!_titleFocus.hasFocus) unawaited(_saveTitle());
+    });
     _snap = _entry.grid != null;
     _player = widget.player ?? AudioPlayer();
     _sessions = ref.read(metronomeSessionRepositoryProvider);
@@ -185,7 +203,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (_entry.peaks.isNotEmpty || _entry.attachmentIds.isEmpty) return;
     try {
       final bytes = await _readAudioBytes();
-      final peaks = await decodeSongPeaks(bytes);
+      final peaks = peaksFromWav(bytes) ?? await decodeSongPeaks(bytes);
       if (peaks == null || !mounted || _entry.peaks.isNotEmpty) return;
       final updated = _entry.copyWith(peaks: peaks);
       if (_canEdit) {
@@ -246,6 +264,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       await _applyLoop();
       if (mounted &&
           PracticeRegionsScreen.autoOpenSetup &&
+          _durationMs >= 60000 &&
           _entry.regions.isEmpty &&
           _canEdit) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -325,18 +344,38 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     for (final sub in _subs) {
       unawaited(sub.cancel());
     }
-    unawaited(_player.dispose());
+    // A dispose racing a load can throw inside just_audio; nothing to recover.
+    unawaited(_player.dispose().catchError((Object _) {}));
+    _title.dispose();
+    _titleFocus.dispose();
     super.dispose();
   }
 
-  Future<void> _save(SongLabEntry updated) async {
-    if (!mounted || !_canEdit) return;
-    setState(() => _entry = updated);
+  void _update(VoidCallback change) => setState(change);
+
+  Future<void> _save(
+    SongLabEntry updated, {
+    bool requireSuccess = false,
+  }) async {
+    if (!mounted || !_canEdit) {
+      if (requireSuccess) throw StateError('Recording is no longer editable');
+      return;
+    }
+    if (!requireSuccess) setState(() => _entry = updated);
     try {
       await ref
           .read(labRepositoryProvider)
           .saveEntry(updated, bandId: widget.bandId);
+      if (requireSuccess && mounted) {
+        setState(() {
+          _entry = updated;
+          _selection = null;
+          _focus = null;
+          _undoRegions = null;
+        });
+      }
     } catch (e) {
+      if (requireSuccess) rethrow;
       if (mounted) showAppSnackBar(context, "Couldn't save: $e", error: true);
     }
   }
@@ -568,6 +607,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   /// The song page's BPM, which picks the detected tempo's octave.
   double? _songBpm() {
+    if (_entry.songId.isEmpty || _entry.songId == '_inbox') return null;
     final songs = ref
         .read(
           widget.bandId == null
@@ -581,6 +621,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   /// The song's first drum pattern from its Lab, if it has one.
   Future<MidiPattern?> _songDrums() async {
+    if (_entry.songId.isEmpty || _entry.songId == '_inbox') return null;
     try {
       final entries = await ref
           .read(labRepositoryProvider)
@@ -632,8 +673,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   );
 
   Future<Uint8List> _readAudioBytes() async {
-    final file = await _cachedFile();
-    if (file != null) return file.readAsBytes();
+    try {
+      final file = await _cachedFile();
+      if (file != null) return await file.readAsBytes();
+    } catch (_) {}
     return _uncachedBytes ??= ref.read(audioBytesFetcherProvider)(
       _entry.attachmentIds.first,
     );
@@ -1378,6 +1421,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   @override
   Widget build(BuildContext context) {
     final canEdit =
+        !_busy &&
         !ref.watch(isDemoUserProvider) &&
         (widget.bandId == null ||
             ref.watch(canEditBandProvider(widget.bandId!)));
@@ -1400,9 +1444,21 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     return Scaffold(
       backgroundColor: context.mp.black,
       appBar: AppBar(
-        title: Text(
-          editing ? 'Tap a pad to edit' : _entry.title ?? 'Practice regions',
-        ),
+        title: canEdit
+            ? TextField(
+                key: const ValueKey('recording-title'),
+                controller: _title,
+                focusNode: _titleFocus,
+                style: MonoPulseTypography.titleLarge,
+                decoration: InputDecoration(
+                  hintText: 'Practice regions',
+                  helperText: editing ? 'Tap a pad to edit' : null,
+                  border: InputBorder.none,
+                ),
+                onSubmitted: (_) => _saveTitle(),
+                onTapOutside: (_) => _titleFocus.unfocus(),
+              )
+            : Text(_entry.title ?? 'Practice regions'),
         actions: [
           if (editing && _focus != null)
             IconButton(
@@ -1420,6 +1476,18 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             tooltip: 'More',
             onSelected: (value) {
               switch (value) {
+                case 'note':
+                  unawaited(_addMarkerAtPlayhead());
+                case 'shrink':
+                  unawaited(_saveTrim());
+                case 'split':
+                  unawaited(_splitAtPlayhead());
+                case 'share':
+                  unawaited(_share());
+                case 'share-edges':
+                  unawaited(_share(withoutSkippedEdges: true));
+                case 'delete':
+                  unawaited(_delete());
                 case 'playback':
                   unawaited(_playbackOptions());
                 case 'snap':
@@ -1432,12 +1500,43 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   unawaited(_rerunSetup());
               }
             },
+            enabled: !_busy,
             itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'share',
+                enabled: _url != null,
+                child: const Text('Share'),
+              ),
+              if (_hasSkippedEdges)
+                PopupMenuItem(
+                  value: 'share-edges',
+                  enabled: _url != null && _durationMs > 0,
+                  child: const Text('Share without skipped edges'),
+                ),
               const PopupMenuItem(
                 value: 'playback',
                 child: Text('Speed, pre-roll, drums'),
               ),
               if (canEdit) ...[
+                const PopupMenuItem(
+                  value: 'note',
+                  child: Text('Add note at playhead'),
+                ),
+                PopupMenuItem(
+                  value: 'shrink',
+                  enabled: _url != null && _hasSkippedEdges && _durationMs > 0,
+                  child: const Text('Shrink file'),
+                ),
+                if (_canSplit)
+                  PopupMenuItem(
+                    value: 'split',
+                    enabled: _loaded && _durationMs > 0,
+                    child: const Text('Split at playhead'),
+                  ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete recording'),
+                ),
                 if (grid != null)
                   CheckedPopupMenuItem(
                     value: 'snap',
@@ -1461,144 +1560,175 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         ],
       ),
       body: SafeArea(
-        // Everything fits one screen: only the pads scroll.
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                MonoPulseSpacing.lg,
-                MonoPulseSpacing.sm,
-                MonoPulseSpacing.lg,
-                0,
+        child: AbsorbPointer(
+          absorbing: _busy,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  MonoPulseSpacing.lg,
+                  MonoPulseSpacing.sm,
+                  MonoPulseSpacing.lg,
+                  0,
+                ),
+                child: _timeline(editing),
               ),
-              child: _timeline(editing),
-            ),
-            if (editing &&
-                regions.any(
-                  (region) => region.name.isEmpty || _isShort(region),
-                ))
-              _nameChips(),
-            Expanded(
-              child: regions.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('No sections yet'),
-                          if (canEdit)
-                            FilledButton(
-                              onPressed: _loaded && _durationMs > 0
-                                  ? _rerunSetup
-                                  : null,
-                              child: const Text('Set up sections'),
-                            ),
-                        ],
-                      ),
-                    )
-                  : _pads(),
-            ),
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                MonoPulseSpacing.lg,
-                MonoPulseSpacing.sm,
-                MonoPulseSpacing.lg,
-                0,
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    _sync
-                        ? 'Bar ${syncBar + 1}'
-                        : '${_time(positionMs)} / ${_time(_durationMs)}',
-                    style: MonoPulseTypography.bodySmall,
+              if (_entry.peaks.isEmpty) ...[
+                Slider(
+                  value: _durationMs == 0
+                      ? 0
+                      : (positionMs / _durationMs).clamp(0.0, 1.0),
+                  onChanged: _loaded && _durationMs > 0
+                      ? (v) => _seekTimeline((v * _durationMs).round())
+                      : null,
+                ),
+                Text(
+                  'No waveform for this take — tap or drag to seek.',
+                  style: MonoPulseTypography.bodySmall.copyWith(
+                    color: context.mp.textSecondary,
                   ),
-                  const SizedBox(width: MonoPulseSpacing.md),
-                  if (!editing && regions.any((region) => region.skip))
+                ),
+              ],
+              if (editing &&
+                  regions.any(
+                    (region) => region.name.isEmpty || _isShort(region),
+                  ))
+                _nameChips(),
+              Expanded(
+                child: regions.isEmpty
+                    ? Center(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('No sections yet'),
+                              if (canEdit)
+                                FilledButton(
+                                  onPressed: _loaded && _durationMs > 0
+                                      ? _rerunSetup
+                                      : null,
+                                  child: const Text('Set up sections'),
+                                ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : _pads(),
+              ),
+              Flexible(
+                fit: FlexFit.tight,
+                child: _NotesPanel(
+                  markers: entryNotes(_entry),
+                  positionMs: positionMs,
+                  onSeek: _seekNote,
+                  onAdd: canEdit ? _addMarkerAtPlayhead : null,
+                  onDelete: canEdit ? _deleteMarker : null,
+                ),
+              ),
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  MonoPulseSpacing.lg,
+                  MonoPulseSpacing.sm,
+                  MonoPulseSpacing.lg,
+                  0,
+                ),
+                child: Row(
+                  children: [
                     Text(
-                      '${regions.where((region) => region.skip).length} skipped',
-                      style: MonoPulseTypography.bodySmall.copyWith(
-                        color: context.mp.textSecondary,
-                      ),
+                      _sync
+                          ? 'Bar ${syncBar + 1}'
+                          : '${_time(positionMs)} / ${_time(_durationMs)}',
+                      style: MonoPulseTypography.bodySmall,
                     ),
-                  if (selection != null)
-                    Expanded(
-                      child: Text(
-                        'Looping ${_name(regions[selection.$1])}'
-                        '${selection.$1 == selection.$2 ? '' : ' → ${_name(regions[selection.$2])}'}',
-                        textAlign: TextAlign.end,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    const SizedBox(width: MonoPulseSpacing.md),
+                    if (!editing && regions.any((region) => region.skip))
+                      Text(
+                        '${regions.where((region) => region.skip).length} skipped',
                         style: MonoPulseTypography.bodySmall.copyWith(
-                          color: MonoPulseColors.accentOrange,
+                          color: context.mp.textSecondary,
                         ),
                       ),
-                    ),
-                ],
-              ),
-            ),
-            // MPC-style bar: Shift | Play | spare, Play dead centre.
-            Padding(
-              padding: const EdgeInsets.all(MonoPulseSpacing.sm),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: canEdit
-                        ? _barButton(
-                            key: const ValueKey('shift'),
-                            icon: Icons.keyboard_capslock,
-                            label: 'Shift',
-                            active: editing,
-                            onPressed: () => setState(() {
-                              _editing = !_editing;
-                              _heldPad = null;
-                              _focus = null;
-                            }),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  const SizedBox(width: MonoPulseSpacing.sm),
-                  Expanded(
-                    child: _barButton(
-                      onLongPress: _playbackOptions,
-                      key: const ValueKey('play'),
-                      icon: playing ? Icons.pause : Icons.play_arrow,
-                      label: playing
-                          ? 'Pause'
-                          : _speed == 1
-                          ? 'Play'
-                          : 'Play ${(_speed * 100).round()}%',
-                      active: true,
-                      tooltip: 'Hold for speed, pre-roll, drums',
-                      onPressed: _loaded && _durationMs > 0
-                          ? _togglePlay
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(width: MonoPulseSpacing.sm),
-                  Expanded(
-                    child: editing
-                        ? _barButton(
-                            key: const ValueKey('add-marker'),
-                            icon: Icons.add_location_alt_outlined,
-                            label: 'Add marker',
-                            onPressed: _loaded && _durationMs >= 2 * minRegionMs
-                                ? _addMarker
-                                : null,
-                          )
-                        // ponytail: spare slot, keeps Play centred.
-                        : const SizedBox(
-                            height: 64,
-                            child: OutlinedButton(
-                              onPressed: null,
-                              child: SizedBox.shrink(),
-                            ),
+                    if (selection != null)
+                      Expanded(
+                        child: Text(
+                          'Looping ${_name(regions[selection.$1])}'
+                          '${selection.$1 == selection.$2 ? '' : ' → ${_name(regions[selection.$2])}'}',
+                          textAlign: TextAlign.end,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: MonoPulseTypography.bodySmall.copyWith(
+                            color: MonoPulseColors.accentOrange,
                           ),
-                  ),
-                ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              // MPC-style bar: Shift | Play | spare, Play dead centre.
+              Padding(
+                padding: const EdgeInsets.all(MonoPulseSpacing.sm),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: canEdit
+                          ? _barButton(
+                              key: const ValueKey('shift'),
+                              icon: Icons.keyboard_capslock,
+                              label: 'Shift',
+                              active: editing,
+                              onPressed: () => setState(() {
+                                _editing = !_editing;
+                                _heldPad = null;
+                                _focus = null;
+                              }),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    const SizedBox(width: MonoPulseSpacing.sm),
+                    Expanded(
+                      child: _barButton(
+                        onLongPress: _playbackOptions,
+                        key: const ValueKey('play'),
+                        icon: playing ? Icons.pause : Icons.play_arrow,
+                        label: playing
+                            ? 'Pause'
+                            : _speed == 1
+                            ? 'Play'
+                            : 'Play ${(_speed * 100).round()}%',
+                        active: true,
+                        tooltip: 'Hold for speed, pre-roll, drums',
+                        onPressed: _loaded && _durationMs > 0 && !_busy
+                            ? _togglePlay
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: MonoPulseSpacing.sm),
+                    Expanded(
+                      child: editing
+                          ? _barButton(
+                              key: const ValueKey('add-marker'),
+                              icon: Icons.add_location_alt_outlined,
+                              label: 'Add marker',
+                              onPressed:
+                                  _loaded && _durationMs >= 2 * minRegionMs
+                                  ? _addMarker
+                                  : null,
+                            )
+                          // ponytail: spare slot, keeps Play centred.
+                          : const SizedBox(
+                              height: 64,
+                              child: OutlinedButton(
+                                onPressed: null,
+                                child: SizedBox.shrink(),
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1860,10 +1990,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         final (viewStart, viewEnd) = _view;
         final span = math.max(1, viewEnd - viewStart);
         return SizedBox(
-          height: 96,
+          height: 108,
           child: Stack(
             children: [
               Positioned.fill(
+                top: 12,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTapUp: _loaded && _durationMs > 0
@@ -1898,6 +2029,22 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                       selection: _selection,
                       dim: context.mp.textSecondary,
                       textColor: context.mp.textPrimary,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                height: 10,
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    key: const ValueKey('note-ticks'),
+                    painter: _NoteTicksPainter(
+                      markers: entryNotes(_entry),
+                      viewStart: viewStart,
+                      viewEnd: viewEnd,
                     ),
                   ),
                 ),

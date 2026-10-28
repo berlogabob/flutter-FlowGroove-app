@@ -35,6 +35,7 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   final _events = StreamController<PlaybackEventMessage>.broadcast();
   Duration position = Duration.zero;
   Duration loadedDuration = duration;
+  static Duration sourceDuration = duration;
   ClippingAudioSourceMessage? clip;
   LoopModeMessage? loopMode;
   int playCalls = 0;
@@ -73,8 +74,8 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
     final uriSource = clip?.child ?? source;
     loadedUri = uriSource is UriAudioSourceMessage ? uriSource.uri : null;
     loadedDuration = clip == null
-        ? duration
-        : (clip!.end ?? duration) - (clip!.start ?? Duration.zero);
+        ? sourceDuration
+        : (clip!.end ?? sourceDuration) - (clip!.start ?? Duration.zero);
     position = request.initialPosition ?? Duration.zero;
     // On a timer, not a microtask: the event stream is a broadcast stream and
     // just_audio subscribes after load() returns, so an immediate emit is
@@ -255,6 +256,7 @@ void main() {
   late FakeBackingEngine engine;
 
   setUp(() {
+    _FakeAudioPlayer.sourceDuration = _FakeAudioPlayer.duration;
     final previousAutoOpen = PracticeRegionsScreen.autoOpenSetup;
     PracticeRegionsScreen.autoOpenSetup = false;
     addTearDown(() => PracticeRegionsScreen.autoOpenSetup = previousAutoOpen);
@@ -575,21 +577,23 @@ void main() {
     expect(find.text('Set up for practice'), findsOneWidget);
   });
 
-  testWidgets('empty editable audio opens setup automatically after load', (
-    tester,
-  ) async {
-    PracticeRegionsScreen.autoOpenSetup = true;
-    final previousDecode = PracticeRegionsScreen.decodePcm;
-    PracticeRegionsScreen.decodePcm =
-        (bytes, {required sampleRate, required durationMs}) async => null;
-    addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
-    await pump(tester, _entry(regions: const []));
-    expect(find.text('Set up for practice'), findsOneWidget);
-    await tester.tap(find.text('Skip'));
-    await settleAudio(tester);
-    expect(find.text('Set up for practice'), findsNothing);
-    expect(repo.saved, isEmpty);
-  });
+  testWidgets(
+    'long empty editable audio opens setup automatically after load',
+    (tester) async {
+      PracticeRegionsScreen.autoOpenSetup = true;
+      _FakeAudioPlayer.sourceDuration = const Duration(seconds: 60);
+      final previousDecode = PracticeRegionsScreen.decodePcm;
+      PracticeRegionsScreen.decodePcm =
+          (bytes, {required sampleRate, required durationMs}) async => null;
+      addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
+      await pump(tester, _entry(regions: const []));
+      expect(find.text('Set up for practice'), findsOneWidget);
+      await tester.tap(find.text('Skip'));
+      await settleAudio(tester);
+      expect(find.text('Set up for practice'), findsNothing);
+      expect(repo.saved, isEmpty);
+    },
+  );
 
   testWidgets('Re-run setup confirms replacement and opens the wizard', (
     tester,

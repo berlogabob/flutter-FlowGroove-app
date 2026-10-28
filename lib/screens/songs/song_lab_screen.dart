@@ -829,16 +829,10 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
             'supersede' => _setStatus(e, 'superseded'),
             'accepted' || 'rejected' || 'tried' => _setStatus(e, v),
             'delete' => _delete(e),
-            'practice' => context.goPracticeRegions(e, bandId: widget.bandId),
             'songmap' => _useAsSongMap(e),
             _ => null,
           },
           itemBuilder: (_) => [
-            if (e.type == LabEntryType.recording && e.attachmentIds.isNotEmpty)
-              const PopupMenuItem(
-                value: 'practice',
-                child: Text('Practice regions'),
-              ),
             if (canEdit && e.regions.any((r) => r.name.trim().isNotEmpty))
               const PopupMenuItem(
                 value: 'songmap',

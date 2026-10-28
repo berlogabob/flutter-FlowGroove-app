@@ -168,7 +168,7 @@ class _RecordingCard extends ConsumerWidget {
                   }
                 },
                 itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Trim & notes…')),
+                  PopupMenuItem(value: 'edit', child: Text('Open')),
                   PopupMenuItem(value: 'link', child: Text('Link to song…')),
                   PopupMenuItem(value: 'delete', child: Text('Delete')),
                 ],

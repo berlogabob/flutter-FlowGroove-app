@@ -654,7 +654,7 @@ void main() {
       expect(find.text('Capo 2'), findsOneWidget);
       await tester.tap(find.byType(PopupMenuButton<String>));
       await tester.pumpAndSettle();
-      expect(find.text('Practice regions'), findsOneWidget);
+      expect(find.text('Practice regions'), findsNothing);
       await tester.tap(find.text('Use as song map'));
       await tester.pumpAndSettle();
       final saved = repo.entries.single.regions;
