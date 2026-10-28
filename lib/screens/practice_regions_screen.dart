@@ -454,9 +454,19 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   // --- click & drums ----------------------------------------------------
 
+  /// The grid moved back whole bars so its bar 0 is at or before the file
+  /// start: the pickup before the first downbeat plays instead of being cut.
+  AudioGrid get _syncGrid {
+    final grid = _entry.grid!;
+    final pickupBars = (grid.offsetMs / grid.barMs).ceil();
+    return grid.copyWith(
+      offsetMs: (grid.offsetMs - pickupBars * grid.barMs).round(),
+    );
+  }
+
   /// Launchable spans: each region, the whole song, and the selected run.
   List<SectionSpan> _syncSpans() {
-    final grid = _entry.grid!;
+    final grid = _syncGrid;
     final spans = regionSpans(_entry.regions, grid);
     final songBars = grid.barAt(_durationMs).ceil();
     final selection = _selection;
@@ -531,7 +541,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       }
       final drums = await _songDrums();
       await transport.attachAudio(
-        audio: alignToDownbeat(pcm, grid.offsetMs, rate),
+        audio: alignToDownbeat(pcm, _syncGrid.offsetMs, rate),
         spans: _syncSpans(),
         drums: drums,
       );
@@ -1667,7 +1677,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     });
     final playing = _sync ? syncPlaying : _playing;
     final positionMs = _sync && grid != null
-        ? grid.msOfBar(syncBar)
+        ? _syncGrid.msOfBar(syncBar)
         : _positionMs;
     final editing = canEdit && _editing;
     return Scaffold(
@@ -2223,7 +2233,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                       viewEnd: viewEnd,
                       pcm: _focus != null && editing ? _analysisPcm : null,
                       positionMs: _sync && _entry.grid != null
-                          ? _entry.grid!.msOfBar(
+                          ? _syncGrid.msOfBar(
                               ref.read(backingTransportProvider).songBar,
                             )
                           : _positionMs,
