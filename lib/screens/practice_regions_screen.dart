@@ -552,6 +552,19 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
+  /// The song page's BPM, which picks the detected tempo's octave.
+  double? _songBpm() {
+    final songs = ref
+        .read(
+          widget.bandId == null
+              ? songsProvider
+              : bandSongsProvider(widget.bandId!),
+        )
+        .value;
+    final song = songs?.where((s) => s.id == _entry.songId).firstOrNull;
+    return (song?.ourBPM ?? song?.originalBPM)?.toDouble();
+  }
+
   /// The song's first drum pattern from its Lab, if it has one.
   Future<MidiPattern?> _songDrums() async {
     try {
@@ -637,7 +650,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final grid = _entry.grid;
     ({double bpm, int firstDownbeatMs})? suggestion;
     final pcmFuture = _ensurePcm().then((pcm) {
-      if (pcm != null && pcm.isNotEmpty) suggestion = estimateGrid(pcm, 22050);
+      if (pcm != null && pcm.isNotEmpty)
+        suggestion = estimateGrid(pcm, 22050, hintBpm: _songBpm());
       return pcm;
     });
     final result = await showModalBottomSheet<Object>(
@@ -1594,7 +1608,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         durationMs: _durationMs,
         detectGrid: () async {
           final pcm = await _ensurePcm();
-          return pcm == null || pcm.isEmpty ? null : estimateGrid(pcm, 22050);
+          return pcm == null || pcm.isEmpty
+              ? null
+              : estimateGrid(pcm, 22050, hintBpm: _songBpm());
         },
         fileMarkers: () async {
           try {

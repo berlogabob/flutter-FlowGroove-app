@@ -60,12 +60,14 @@ List<int> detectOnsets(
 /// autocorrelation in 70–180 BPM (beat + half-bar + bar lags), refined
 /// ±1 BPM on a beat comb; phase and
 /// downbeat from where the envelope is strongest on that comb. Null for
-/// clips under 4 s.
+/// clips under 4 s. [hintBpm] (the song's BPM) picks the octave: the
+/// detector can't tell 85 from 170, the song page usually can.
 /// ponytail: one global tempo; songs that drift need the manual grid.
 ({double bpm, int firstDownbeatMs})? estimateGrid(
   Int16List pcm,
-  int sampleRate,
-) {
+  int sampleRate, {
+  double? hintBpm,
+}) {
   if (pcm.length < sampleRate * 4) return null;
   final env = onsetEnvelope(pcm);
   final mean = env.reduce((a, b) => a + b) / env.length;
@@ -119,7 +121,16 @@ List<int> detectOnsets(
     final o = phase + k * period;
     if (comb(o, 4 * period) > comb(down, 4 * period)) down = o;
   }
-  final bpm = 60 * sampleRate / (period * _hop);
+  var bpm = 60 * sampleRate / (period * _hop);
+  // Octave only (x2, /2): x1.5 would bring back the 3:2 ghost tempo.
+  if (hintBpm != null && hintBpm > 0) {
+    for (final octave in [bpm * 2, bpm / 2]) {
+      if ((octave - hintBpm).abs() < (bpm - hintBpm).abs() &&
+          (octave - hintBpm).abs() <= hintBpm * 0.08) {
+        bpm = octave;
+      }
+    }
+  }
   return (
     bpm: (bpm * 10).round() / 10,
     firstDownbeatMs: _blockMs(down, sampleRate).round(),

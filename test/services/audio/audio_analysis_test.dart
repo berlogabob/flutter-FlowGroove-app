@@ -33,10 +33,16 @@ void main() {
   test('estimateGrid matches 120 BPM and 300 ms downbeat', () {
     final grid = estimateGrid(pcm, 22050);
     expect(grid, isNotNull);
-    expect((grid!.bpm - 120).abs() <= 0.5, isTrue,
-        reason: 'bpm was ${grid.bpm}');
-    expect((grid.firstDownbeatMs - 300).abs() <= 20, isTrue,
-        reason: 'downbeat was ${grid.firstDownbeatMs} ms');
+    expect(
+      (grid!.bpm - 120).abs() <= 0.5,
+      isTrue,
+      reason: 'bpm was ${grid.bpm}',
+    );
+    expect(
+      (grid.firstDownbeatMs - 300).abs() <= 20,
+      isTrue,
+      reason: 'downbeat was ${grid.firstDownbeatMs} ms',
+    );
   });
 
   test('detectOnsets finds one click per beat (±1), first near 300 ms', () {
@@ -44,8 +50,18 @@ void main() {
     // Clicks every 500 ms from 300 ms to 19 800 ms: 40.
     expect(onsets.length, inInclusiveRange(39, 41));
     expect(onsets.isNotEmpty, isTrue);
-    expect((onsets.first - 300).abs() <= 15, isTrue,
-        reason: 'first onset was ${onsets.first} ms');
+    expect(
+      (onsets.first - 300).abs() <= 15,
+      isTrue,
+      reason: 'first onset was ${onsets.first} ms',
+    );
+  });
+
+  test('estimateGrid takes the octave from the song BPM', () {
+    expect(estimateGrid(pcm, 22050, hintBpm: 240)!.bpm, closeTo(240, 1));
+    expect(estimateGrid(pcm, 22050, hintBpm: 60)!.bpm, closeTo(60, 0.5));
+    // Not an octave of the hint: keep what was heard.
+    expect(estimateGrid(pcm, 22050, hintBpm: 100)!.bpm, closeTo(120, 0.5));
   });
 
   test('estimateGrid returns null for PCM shorter than 4 seconds', () {
