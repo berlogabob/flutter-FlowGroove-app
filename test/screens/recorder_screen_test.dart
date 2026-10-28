@@ -114,6 +114,7 @@ void main() {
     type: LabEntryType.recording,
     title: 'Riff in E',
     body: 'hummed on the bus',
+    notes: const [(ms: 4425, text: 'chorus')],
     attachmentIds: ['https://example.test/audio.aac?token=private'],
     authorId: 'u1',
     createdAt: DateTime(2026, 7, 16),
@@ -155,6 +156,12 @@ void main() {
   }
 
   group('RecorderScreen (#145)', () {
+    testWidgets('card shows body text and a note count', (tester) async {
+      await pump(tester, inbox: [recording()]);
+      expect(find.textContaining('hummed on the bus'), findsOneWidget);
+      expect(find.textContaining('1 note'), findsOneWidget);
+    });
+
     final authorized = AsyncValue<AppUser?>.data(
       AppUser(uid: 'u1', createdAt: DateTime(2026)),
     );
@@ -291,6 +298,7 @@ void main() {
       expect(repo.entries['s1'], hasLength(1));
       expect(repo.entries['s1']!.single.id, 'rec1');
       expect(repo.entries['s1']!.single.title, 'Riff in E');
+      expect(repo.entries['s1']!.single.notes, [(ms: 4425, text: 'chorus')]);
       expect(find.textContaining('Linked'), findsOneWidget);
     });
 

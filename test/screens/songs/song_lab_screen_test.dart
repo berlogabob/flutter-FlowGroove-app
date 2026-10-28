@@ -636,6 +636,8 @@ void main() {
           songId: song.id,
           type: LabEntryType.recording,
           title: 'Flor demo',
+          body: 'Capo 2',
+          notes: const [(ms: 4425, text: 'chorus')],
           authorId: 'u1',
           attachmentIds: const ['audio-url'],
           createdAt: DateTime(2026),
@@ -648,6 +650,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.textContaining('2 regions'), findsOneWidget);
+      expect(find.textContaining('1 note'), findsOneWidget);
+      expect(find.text('Capo 2'), findsOneWidget);
       await tester.tap(find.byType(PopupMenuButton<String>));
       await tester.pumpAndSettle();
       expect(find.text('Practice regions'), findsOneWidget);

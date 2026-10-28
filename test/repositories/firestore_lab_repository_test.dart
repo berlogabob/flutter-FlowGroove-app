@@ -109,6 +109,34 @@ void main() {
     );
   });
 
+  test(
+    'merged saves write notes and clear them after the last deletion',
+    () async {
+      final entry = SongLabEntry(
+        id: 'entry',
+        songId: 'song',
+        type: LabEntryType.recording,
+        authorId: 'user',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        notes: [(ms: 4425, text: 'chorus')],
+      );
+      await repository.saveEntry(entry);
+      final written = verify(doc.set(captureAny, captureAny)).captured;
+      expect((written[0] as Map<String, dynamic>)['notes'], [
+        {'ms': 4425, 'text': 'chorus'},
+      ]);
+      expect((written[1] as SetOptions).merge, isTrue);
+      await repository.saveEntry(entry.copyWith(notes: const []));
+      final cleared = verify(doc.set(captureAny, captureAny)).captured;
+      expect(
+        (cleared[0] as Map<String, dynamic>)['notes'],
+        FieldValue.delete(),
+      );
+      expect((cleared[1] as SetOptions).merge, isTrue);
+    },
+  );
+
   for (final grid in [null, const AudioGrid(bpm: 120)]) {
     test('recording saves explicitly write the tempo grid: $grid', () async {
       final entry = SongLabEntry(
@@ -336,7 +364,13 @@ void main() {
           await repo.saveEntry(entry, bandId: bandId);
           await prefs.reload();
           expect(prefs.getStringList('pending_storage_deletes'), isEmpty);
-          verify(doc.set({...entry.toJson(), 'grid': null}, any)).called(1);
+          verify(
+            doc.set({
+              ...entry.toJson(),
+              'grid': null,
+              'notes': FieldValue.delete(),
+            }, any),
+          ).called(1);
         },
       );
     }

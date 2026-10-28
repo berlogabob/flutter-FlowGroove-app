@@ -14,6 +14,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
 import '../../router/app_router.dart';
 import '../../services/analytics_service.dart';
+import '../../services/audio/audio_note_edit.dart' show entryNotes;
 import '../../services/export/lab_markdown.dart';
 import '../../services/idea_recorder.dart';
 import '../../services/pending_storage_deletes.dart';
@@ -758,6 +759,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
     final section = _sectionName(e.sectionId);
     final superseded = e.status == 'superseded';
     final canEdit = _canEdit;
+    final notes = entryNotes(e);
     final user = ref.watch(appUserProvider);
     final canDelete =
         canEdit ||
@@ -809,6 +811,8 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
                 _typeLabel(e.type),
                 if (e.status != null) e.status!,
                 if (section.isNotEmpty) section,
+                if (notes.isNotEmpty)
+                  '${notes.length} note${notes.length == 1 ? '' : 's'}',
                 if (e.regions.isNotEmpty)
                   '${e.regions.length} region${e.regions.length == 1 ? '' : 's'}',
                 '${e.createdAt.day}/${e.createdAt.month}/${e.createdAt.year}',

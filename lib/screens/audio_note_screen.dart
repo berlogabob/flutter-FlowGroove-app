@@ -77,7 +77,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
   int get _trimStartMs => (_trimStart * _duration.inMilliseconds).round();
   int get _trimEndMs => (_trimEnd * _duration.inMilliseconds).round();
 
-  List<AudioMarker> get _markers => parseMarkers(_entry.body);
+  List<AudioMarker> get _markers => entryNotes(_entry);
 
   @override
   void initState() {
@@ -258,14 +258,13 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
         ],
       ),
     );
-    controller.dispose();
+    // Not disposed: the dialog still animates out with this controller; it
+    // holds no listeners, so GC takes it.
     if (text == null || text.trim().isEmpty) return;
     await _save(
       _entry.copyWith(
-        body: formatMarkers(
-          upsertMarker(_markers, (ms: at, text: text.trim())),
-          keepTextFrom: _entry.body,
-        ),
+        notes: upsertMarker(_markers, (ms: at, text: text.trim())),
+        body: bodyWithoutMarkers(_entry.body),
       ),
     );
   }
@@ -273,7 +272,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
   Future<void> _deleteMarker(AudioMarker marker) async {
     final kept = [..._markers]..removeWhere((m) => m.ms == marker.ms);
     await _save(
-      _entry.copyWith(body: formatMarkers(kept, keepTextFrom: _entry.body)),
+      _entry.copyWith(notes: kept, body: bodyWithoutMarkers(_entry.body)),
     );
   }
 
@@ -327,10 +326,12 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       await _save(
         _entry.copyWith(
           attachmentIds: [newUrl],
-          body: formatMarkers(
-            shiftMarkers(_markers, startMs: startMs, durationMs: newDurationMs),
-            keepTextFrom: _entry.body,
+          notes: shiftMarkers(
+            _markers,
+            startMs: startMs,
+            durationMs: newDurationMs,
           ),
+          body: bodyWithoutMarkers(_entry.body),
           peaks: trimPeaks(_entry.peaks, _trimStart, _trimEnd),
           regions: cropRegions(_entry.regions, startMs: startMs, endMs: endMs),
           grid: _entry.grid == null ? null : cropGrid(_entry.grid!, startMs),
@@ -416,10 +417,8 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
               bandId: _entry.bandId,
               type: _entry.type,
               title: '${_entry.title ?? 'Audio note'} (2)',
-              body: formatMarkers(
-                shiftMarkers(_markers, startMs: at, durationMs: restMs),
-                keepTextFrom: _entry.body,
-              ),
+              notes: shiftMarkers(_markers, startMs: at, durationMs: restMs),
+              body: bodyWithoutMarkers(_entry.body),
               authorId: _entry.authorId,
               visibility: _entry.visibility,
               createdAt: now,
@@ -444,10 +443,8 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       await _save(
         _entry.copyWith(
           attachmentIds: [firstUrl],
-          body: formatMarkers(
-            shiftMarkers(_markers, startMs: 0, durationMs: firstMs),
-            keepTextFrom: _entry.body,
-          ),
+          notes: shiftMarkers(_markers, startMs: 0, durationMs: firstMs),
+          body: bodyWithoutMarkers(_entry.body),
           peaks: trimPeaks(_entry.peaks, 0, split),
           regions: cropRegions(_entry.regions, startMs: 0, endMs: at),
         ),

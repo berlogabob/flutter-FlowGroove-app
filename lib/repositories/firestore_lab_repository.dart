@@ -128,6 +128,8 @@ class FirestoreLabRepository {
       bandId: bandId,
     ).collection('labEntries').doc(entry.id).set({
       ...entry.toJson(),
+      // Empty notes are omitted by toJson, but must clear a merged document.
+      if (entry.notes.isEmpty) 'notes': FieldValue.delete(),
       // A merged save must clear a removed tempo grid in Firestore too.
       if (entry.type == LabEntryType.recording) 'grid': entry.grid?.toJson(),
     }, SetOptions(merge: true));

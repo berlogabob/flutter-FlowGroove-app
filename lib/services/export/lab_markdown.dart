@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../models/song.dart';
 import '../../models/song_lab.dart';
+import '../audio/audio_note_edit.dart' show formatMarkers;
 
 /// Markdown export of a song's Lab history (#70): active decisions, open
 /// tasks, versions and the timeline — the "how we play it and why" document.
@@ -63,11 +64,14 @@ String buildLabMarkdown({
   if (entries.isNotEmpty) {
     b.writeln('## Timeline');
     for (final e in entries) {
+      final body = e.notes.isEmpty
+          ? e.body ?? ''
+          : formatMarkers(e.notes, keepTextFrom: e.body);
       b.writeln(
         '- ${_d(e.createdAt)} · ${e.type.name}'
         '${e.status != null ? ' (${e.status})' : ''}: '
-        '${e.title ?? ''}${e.title != null && e.body != null ? ' — ' : ''}'
-        '${e.body ?? ''}',
+        '${e.title ?? ''}${e.title != null && body.isNotEmpty ? ' — ' : ''}'
+        '$body',
       );
     }
   }

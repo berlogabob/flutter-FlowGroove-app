@@ -161,7 +161,10 @@ Future<void> captureIdea(
       }
       if (index + 1 < parts.length) {
         await uploadPart(index + 1);
-      } else if (true) { debugPrint("DBG saved idx=$index mounted=${context.mounted}"); } if (index + 1 >= parts.length && multiple && context.mounted) {
+      } else if (true) {
+        debugPrint("DBG saved idx=$index mounted=${context.mounted}");
+      }
+      if (index + 1 >= parts.length && multiple && context.mounted) {
         showAppSnackBar(context, 'Saved ${parts.length} parts');
       }
     }
@@ -253,6 +256,7 @@ Future<void> linkIdeaToSong(
       type: idea.type,
       title: idea.title,
       body: idea.body,
+      notes: idea.notes,
       authorId: idea.authorId,
       createdAt: idea.createdAt,
       updatedAt: now,

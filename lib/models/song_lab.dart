@@ -62,6 +62,9 @@ MidiSongMeta? _parseMidiSong(Object? v) {
   }
 }
 
+/// One timestamped comment on a recording.
+typedef AudioMarker = ({int ms, String text});
+
 class SongLabEntry {
   SongLabEntry({
     required this.id,
@@ -84,6 +87,7 @@ class SongLabEntry {
     this.midiSong,
     this.grid,
     this.regions = const [],
+    this.notes = const [],
   });
 
   factory SongLabEntry.fromJson(Map<String, dynamic> json) => SongLabEntry(
@@ -115,6 +119,14 @@ class SongLabEntry {
     grid: json['grid'] is Map<String, dynamic>
         ? AudioGrid.fromJson(json['grid'] as Map<String, dynamic>)
         : null,
+    notes:
+        (json['notes'] as List?)
+            ?.whereType<Map<String, dynamic>>()
+            .map(
+              (n) => (ms: (n['ms'] as num).toInt(), text: n['text'] as String),
+            )
+            .toList() ??
+        const [],
     regions:
         (json['regions'] as List?)
             ?.whereType<Map<String, dynamic>>()
@@ -166,6 +178,8 @@ class SongLabEntry {
   /// Named practice regions on a `recording`, sorted and gapless.
   final List<AudioRegion> regions;
 
+  final List<AudioMarker> notes;
+
   MidiPattern? get pattern => midi == null ? null : MidiPattern.fromJson(midi!);
 
   Map<String, dynamic> toJson() => {
@@ -185,6 +199,10 @@ class SongLabEntry {
     'updatedAt': updatedAt.toIso8601String(),
     'attachmentIds': attachmentIds,
     if (peaks.isNotEmpty) 'peaks': peaks,
+    if (notes.isNotEmpty)
+      'notes': [
+        for (final n in notes) {'ms': n.ms, 'text': n.text},
+      ],
     if (midi != null) 'midi': midi,
     if (midiSong != null) 'midiSong': midiSong!.toJson(),
     if (grid != null) 'grid': grid!.toJson(),
@@ -205,6 +223,7 @@ class SongLabEntry {
     AudioGrid? grid,
     bool clearGrid = false,
     List<AudioRegion>? regions,
+    List<AudioMarker>? notes,
   }) => SongLabEntry(
     id: id,
     songId: songId,
@@ -226,6 +245,7 @@ class SongLabEntry {
     midiSong: midiSong ?? this.midiSong,
     grid: clearGrid ? null : grid ?? this.grid,
     regions: regions ?? this.regions,
+    notes: notes ?? this.notes,
   );
 }
 

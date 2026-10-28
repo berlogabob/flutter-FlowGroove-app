@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flowgroove/services/audio/audio_note_edit.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flowgroove/models/song_lab.dart';
 
 const _rate = 8000; // small enough to keep fixtures readable
 const _bytesPerMs = _rate * 2 ~/ 1000; // mono 16-bit -> 16 bytes/ms
@@ -461,6 +462,23 @@ void main() {
   });
 
   group('markers', () {
+    test('entryNotes falls back to legacy lines unless notes exist', () {
+      final entry = SongLabEntry(
+        id: 'e1',
+        songId: 's1',
+        type: LabEntryType.recording,
+        authorId: 'u1',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        body: 'Free text\n00:42 legacy',
+      );
+      expect(entryNotes(entry), [(ms: 42000, text: 'legacy')]);
+      final migrated = entry.copyWith(notes: [(ms: 42425, text: 'precise')]);
+      expect(entryNotes(migrated), [(ms: 42425, text: 'precise')]);
+      expect(bodyWithoutMarkers(entry.body), 'Free text');
+      expect(bodyWithoutMarkers(null), '');
+    });
+
     test('parses MM:SS and M:SS lines, sorted', () {
       final markers = parseMarkers('01:15 tempo drops\n0:42 good chorus entry');
       expect(markers.map((m) => m.ms), [42000, 75000]);
@@ -513,6 +531,17 @@ void main() {
       );
     });
 
+    test('preserves milliseconds when rebasing', () {
+      expect(
+        shiftMarkers(
+          [(ms: 12425, text: 'keep')],
+          startMs: 1125,
+          durationMs: 15000,
+        ),
+        [(ms: 11300, text: 'keep')],
+      );
+    });
+
     test('keeps a marker landing exactly on either edge', () {
       final markers = [(ms: 10000, text: 'start'), (ms: 40000, text: 'end')];
       final shifted = shiftMarkers(markers, startMs: 10000, durationMs: 30000);
@@ -526,6 +555,7 @@ void main() {
       final out = upsertMarker(markers, (ms: 42400, text: 'new'));
       expect(out.length, 2);
       expect(out.first.text, 'new');
+      expect(out.first.ms, 42400);
     });
 
     test('inserts sorted', () {

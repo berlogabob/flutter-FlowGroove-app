@@ -200,19 +200,24 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
 const _url =
     'https://firebasestorage.googleapis.com/v0/b/x/o/a%2Fb%2Fc.wav?alt=media&token=t';
 
-SongLabEntry _entry({String? body, List<int> peaks = const [], String? url}) =>
-    SongLabEntry(
-      id: 'e1',
-      songId: '_inbox',
-      type: LabEntryType.recording,
-      authorId: 'u1',
-      createdAt: DateTime(2026, 7, 28),
-      updatedAt: DateTime(2026, 7, 28),
-      title: 'Bridge riff',
-      body: body,
-      attachmentIds: [url ?? _url],
-      peaks: peaks,
-    );
+SongLabEntry _entry({
+  String? body,
+  List<int> peaks = const [],
+  String? url,
+  List<AudioMarker> notes = const [],
+}) => SongLabEntry(
+  id: 'e1',
+  songId: '_inbox',
+  type: LabEntryType.recording,
+  authorId: 'u1',
+  createdAt: DateTime(2026, 7, 28),
+  updatedAt: DateTime(2026, 7, 28),
+  title: 'Bridge riff',
+  body: body,
+  notes: notes,
+  attachmentIds: [url ?? _url],
+  peaks: peaks,
+);
 
 List<int> get _peaks => List.generate(200, (i) => i % 256);
 
@@ -295,6 +300,56 @@ void main() {
     final chorus = rows.indexWhere((t) => t.data == 'chorus entry');
     final tempo = rows.indexWhere((t) => t.data == 'tempo drops');
     expect(chorus, lessThan(tempo), reason: '0:04 sorts before 1:15');
+  });
+
+  testWidgets('adding a note keeps prose and moves legacy notes to the field', (
+    tester,
+  ) async {
+    // The fake player never reports a position here, so the note lands at 0.
+    await pump(tester, _entry(peaks: _peaks, body: 'Capo 2\n00:04 old'));
+    await tester.tap(find.text('at 0:00'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'new');
+    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.pumpAndSettle();
+    expect(repo.saved.single.body, 'Capo 2');
+    expect(repo.saved.single.notes, [
+      (ms: 0, text: 'new'),
+      (ms: 4000, text: 'old'),
+    ]);
+    expect(repo.saved.single.toJson()['notes'], [
+      {'ms': 0, 'text': 'new'},
+      {'ms': 4000, 'text': 'old'},
+    ]);
+  });
+
+  testWidgets('deleting the last structured note keeps free text', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      _entry(
+        peaks: _peaks,
+        body: 'Capo 2\n00:04 legacy',
+        notes: [(ms: 4425, text: 'precise')],
+      ),
+    );
+    expect(find.text('legacy'), findsNothing);
+    await tester.tap(
+      find
+          .descendant(
+            of: find.ancestor(
+              of: find.text('precise'),
+              matching: find.byType(ListTile),
+            ),
+            matching: find.byIcon(Icons.close),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    expect(repo.saved.single.body, 'Capo 2');
+    expect(repo.saved.single.notes, isEmpty);
+    expect(find.textContaining('No notes yet'), findsOneWidget);
   });
 
   testWidgets('shows the empty state when there are no markers', (
@@ -387,7 +442,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 50));
     expect(repo.saved, hasLength(1));
-    expect(repo.saved.single.body, '00:12 tempo drops');
+    expect(repo.saved.single.body, '');
+    expect(repo.saved.single.notes, [(ms: 12000, text: 'tempo drops')]);
     expect(ack.isCompleted, false);
     expect(find.text('chorus entry'), findsNothing);
     expect(find.text('tempo drops'), findsOneWidget);

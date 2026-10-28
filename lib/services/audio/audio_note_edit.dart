@@ -8,7 +8,10 @@ library;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import '../../models/song_lab.dart';
 import 'audio_note_recorder.dart' show wavFromPcm16;
+
+export '../../models/song_lab.dart' show AudioMarker;
 
 /// Where the samples live inside a RIFF/WAVE buffer, plus the format needed to
 /// convert between byte offsets and milliseconds.
@@ -372,17 +375,17 @@ List<int> trimPeaks(List<int> peaks, double startFrac, double endFrac) {
   );
 }
 
-/// One timestamped comment on a recording.
-typedef AudioMarker = ({int ms, String text});
+/// Structured notes take precedence over legacy timestamp lines.
+List<AudioMarker> entryNotes(SongLabEntry entry) =>
+    entry.notes.isNotEmpty ? entry.notes : parseMarkers(entry.body);
+
+/// Keeps free text when a note edit migrates legacy markers.
+String bodyWithoutMarkers(String? body) =>
+    formatMarkers(const [], keepTextFrom: body);
 
 final _markerLine = RegExp(r'^\s*(\d{1,2}):([0-5]\d)\s+(.+?)\s*$');
 
 /// Parses `00:42 good chorus entry` lines out of an entry body.
-///
-/// ponytail: markers ARE the body text — no new model, no new collection, and
-/// they still export and read as plain notes. Lines that don't match are kept
-/// out of the marker list and preserved by [formatMarkers] callers only if they
-/// re-add them; in practice the whole body is markers.
 List<AudioMarker> parseMarkers(String? body) {
   if (body == null || body.isEmpty) return const [];
   final out = <AudioMarker>[];

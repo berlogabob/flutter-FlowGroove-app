@@ -10,6 +10,7 @@ import '../providers/auth/auth_provider.dart';
 
 import '../router/app_router.dart';
 import '../services/idea_recorder.dart';
+import '../services/audio/audio_note_edit.dart' show entryNotes;
 import '../services/pending_storage_deletes.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
@@ -123,6 +124,7 @@ class _RecordingCard extends ConsumerWidget {
     ref.watch(firebaseAuthProvider);
     final uid = _editableUid(ref);
     final d = recording.createdAt;
+    final notes = entryNotes(recording);
     return Card(
       margin: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
       elevation: 0,
@@ -141,6 +143,7 @@ class _RecordingCard extends ConsumerWidget {
           children: [
             Text(
               '${d.day}/${d.month}/${d.year}'
+              '${notes.isNotEmpty ? ' · ${notes.length} note${notes.length == 1 ? '' : 's'}' : ''}'
               '${recording.body?.isNotEmpty == true ? ' · ${recording.body}' : ''}',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
