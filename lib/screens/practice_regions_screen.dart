@@ -31,6 +31,10 @@ import '../theme/mono_pulse_theme.dart';
 import '../utils/play_mode.dart';
 import '../utils/snackbar.dart';
 import '../widgets/audio/waveform_painter.dart';
+import 'practice_regions/auto_slice_sheet.dart';
+import 'practice_regions/grid_editor_dialog.dart';
+import 'practice_regions/region_name_sheet.dart';
+import 'practice_regions/slice_edit_sheet.dart';
 import 'practice_setup_wizard.dart';
 
 /// Named regions keep practice loops attached to the original recording.
@@ -654,147 +658,14 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   Future<void> _autoSlice() async {
     if (!_canEdit) return;
-    var mode = 0;
-    var everyBars = 4;
-    var sensitivity = 1.5;
-    final grid = _entry.grid;
-    ({double bpm, int firstDownbeatMs})? suggestion;
-    final pcmFuture = _ensurePcm().then((pcm) {
-      if (pcm != null && pcm.isNotEmpty)
-        suggestion = estimateGrid(pcm, 22050, hintBpm: _songBpm());
-      return pcm;
-    });
-    final result = await showModalBottomSheet<Object>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.mp.surface,
-      builder: (sheetContext) => StatefulBuilder(
-        builder: (context, sheetSetState) => FutureBuilder<Int16List?>(
-          future: pcmFuture,
-          builder: (context, snapshot) {
-            final loading = snapshot.connectionState != ConnectionState.done;
-            final pcm = snapshot.data;
-            final hasPcm = pcm != null && pcm.isNotEmpty;
-            final cuts = mode == 1 && grid != null
-                ? gridCuts(grid, everyBars: everyBars, durationMs: _durationMs)
-                : mode == 2 && hasPcm
-                ? detectOnsets(
-                        pcm,
-                        22050,
-                        sensitivity: sensitivity,
-                        minGapMs: 250,
-                      )
-                      .map(
-                        (ms) => _snap && grid != null
-                            ? grid.snap(ms, durationMs: _durationMs)
-                            : ms,
-                      )
-                      .toList()
-                : <int>[];
-            final count = regionsFromCuts(
-              cuts,
-              durationMs: _durationMs,
-              newId: () => '',
-            ).length;
-            final canApply = mode == 0
-                ? !loading && suggestion != null
-                : mode == 1
-                ? grid != null
-                : !loading && hasPcm;
-            return Padding(
-              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-              child: SafeArea(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Auto slice',
-                        style: MonoPulseTypography.titleLarge,
-                      ),
-                      Wrap(
-                        spacing: MonoPulseSpacing.sm,
-                        children: [
-                          for (final (i, label) in [
-                            (0, 'Suggest tempo grid'),
-                            (1, 'Slice every N bars'),
-                            (2, 'Chop by transients'),
-                          ])
-                            ChoiceChip(
-                              label: Text(label),
-                              selected: mode == i,
-                              onSelected: (_) => sheetSetState(() => mode = i),
-                            ),
-                        ],
-                      ),
-                      if (loading && mode != 1)
-                        const Center(child: CircularProgressIndicator()),
-                      if (!loading && !hasPcm && mode != 1)
-                        const Text('Audio could not be decoded for analysis.'),
-                      if (mode == 0 && !loading && hasPcm)
-                        Text(
-                          suggestion == null
-                              ? 'Not enough audio to suggest a tempo grid.'
-                              : '${suggestion!.bpm.toStringAsFixed(1)} BPM · downbeat '
-                                    '${_time(suggestion!.firstDownbeatMs)}.'
-                                    '${(suggestion!.firstDownbeatMs % 1000).toString().padLeft(3, '0')}',
-                        ),
-                      if (mode == 1) ...[
-                        if (grid == null) const Text('Set a tempo grid first.'),
-                        Wrap(
-                          spacing: MonoPulseSpacing.sm,
-                          children: [
-                            for (final bars in [1, 2, 4, 8])
-                              ChoiceChip(
-                                label: Text('$bars'),
-                                selected: everyBars == bars,
-                                onSelected: grid == null
-                                    ? null
-                                    : (_) =>
-                                          sheetSetState(() => everyBars = bars),
-                              ),
-                          ],
-                        ),
-                      ],
-                      if (mode == 2) ...[
-                        Text('Sensitivity ${sensitivity.toStringAsFixed(1)}'),
-                        Slider(
-                          value: sensitivity,
-                          min: 0.5,
-                          max: 3,
-                          onChanged: hasPcm
-                              ? (value) =>
-                                    sheetSetState(() => sensitivity = value)
-                              : null,
-                        ),
-                      ],
-                      if (mode != 0 && canApply) Text('$count slices'),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: FilledButton(
-                          onPressed: !canApply
-                              ? null
-                              : () => Navigator.pop(
-                                  sheetContext,
-                                  mode == 0
-                                      ? AudioGrid(
-                                          bpm: suggestion!.bpm,
-                                          offsetMs: suggestion!.firstDownbeatMs,
-                                        )
-                                      : cuts,
-                                ),
-                          child: const Text('Apply'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
+    final result = await showAutoSliceSheet(
+      context,
+      grid: _entry.grid,
+      ensurePcm: _ensurePcm,
+      songBpm: _songBpm,
+      durationMs: () => _durationMs,
+      snap: () => _snap,
+      time: _time,
     );
     if (!mounted || !_canEdit || result == null) return;
     if (result is AudioGrid) {
@@ -1200,67 +1071,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Future<void> _rename(String id) async {
     if (!_canEdit) return;
     final region = _entry.regions.firstWhere((region) => region.id == id);
-    final controller = TextEditingController(text: region.name);
-    ModalRoute<dynamic>? sheetRoute;
-    final name = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.mp.surface,
-      builder: (sheetContext) {
-        sheetRoute = ModalRoute.of(sheetContext);
-        return StatefulBuilder(
-          builder: (context, sheetSetState) => Padding(
-            padding: EdgeInsets.fromLTRB(
-              MonoPulseSpacing.lg,
-              MonoPulseSpacing.lg,
-              MonoPulseSpacing.lg,
-              MediaQuery.viewInsetsOf(context).bottom + MonoPulseSpacing.lg,
-            ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Region name',
-                      style: MonoPulseTypography.titleLarge,
-                    ),
-                    Wrap(
-                      spacing: MonoPulseSpacing.sm,
-                      children: [
-                        for (final template in Section.templates)
-                          ChoiceChip(
-                            label: Text(template),
-                            selected: controller.text == template,
-                            onSelected: (_) => sheetSetState(() {
-                              controller.text = template;
-                            }),
-                          ),
-                      ],
-                    ),
-                    TextField(
-                      controller: controller,
-                      decoration: const InputDecoration(labelText: 'Name'),
-                      onChanged: (_) => sheetSetState(() {}),
-                      onSubmitted: (value) =>
-                          Navigator.pop(sheetContext, value),
-                    ),
-                    FilledButton(
-                      onPressed: () =>
-                          Navigator.pop(sheetContext, controller.text),
-                      child: const Text('Save'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-    // Keep the controller alive until the sheet finishes dismissing.
-    unawaited(sheetRoute?.completed.then((_) => controller.dispose()));
+    final name = await showRegionNameSheet(context, initialName: region.name);
     if (!mounted || !_canEdit || name == null || name.trim().isEmpty) return;
     await _changeRegions([
       for (final region in _entry.regions)
@@ -1288,107 +1099,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   Future<void> _editGrid() async {
     if (!_canEdit) return;
-    final bpm = TextEditingController(text: '${_entry.grid?.bpm ?? 120}');
-    var beats = _entry.grid?.beatsPerBar ?? 4;
-    var offsetMs = _entry.grid?.offsetMs ?? 0;
-    String? error;
-    ModalRoute<dynamic>? dialogRoute;
-    final grid = await showDialog<AudioGrid>(
-      context: context,
-      builder: (dialogContext) {
-        dialogRoute = ModalRoute.of(dialogContext);
-        return StatefulBuilder(
-          builder: (context, dialogSetState) => AlertDialog(
-            backgroundColor: context.mp.surface,
-            title: const Text('Tempo grid'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: bpm,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: 'BPM',
-                      errorText: error,
-                    ),
-                  ),
-                  Wrap(
-                    children: [
-                      TextButton(
-                        onPressed: () => dialogSetState(() {
-                          final value = double.tryParse(bpm.text.trim());
-                          if (value != null && value.isFinite && value > 0) {
-                            offsetMs = (_positionMs % (60000 / value * beats))
-                                .round();
-                          }
-                        }),
-                        child: const Text('Downbeat here'),
-                      ),
-                      TextButton(
-                        onPressed: () => dialogSetState(() => offsetMs -= 10),
-                        child: const Text('-10 ms'),
-                      ),
-                      TextButton(
-                        onPressed: () => dialogSetState(() => offsetMs += 10),
-                        child: const Text('+10 ms'),
-                      ),
-                    ],
-                  ),
-                  Text('Downbeat ${_preciseTime(offsetMs)}'),
-                  DropdownButton<int>(
-                    value: beats,
-                    items: [
-                      for (var n = 2; n <= 7; n++)
-                        DropdownMenuItem(
-                          value: n,
-                          child: Text('$n beats per bar'),
-                        ),
-                    ],
-                    onChanged: (value) => dialogSetState(() => beats = value!),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              if (_entry.grid != null)
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    unawaited(_setGrid(null));
-                  },
-                  child: const Text('Remove grid'),
-                ),
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final value = double.tryParse(bpm.text.trim());
-                  if (value == null || !value.isFinite || value <= 0) {
-                    dialogSetState(() => error = 'Enter a positive BPM');
-                    return;
-                  }
-                  Navigator.pop(
-                    dialogContext,
-                    AudioGrid(
-                      bpm: value,
-                      beatsPerBar: beats,
-                      offsetMs: offsetMs,
-                    ),
-                  );
-                },
-                child: const Text('Save'),
-              ),
-            ],
-          ),
-        );
-      },
+    final grid = await showGridEditorDialog(
+      context,
+      getGrid: () => _entry.grid,
+      positionMs: () => _positionMs,
+      preciseTime: _preciseTime,
+      onRemoveGrid: () => _setGrid(null),
     );
-    unawaited(dialogRoute?.completed.then((_) => bpm.dispose()));
     if (mounted && grid != null) await _setGrid(grid);
   }
 
@@ -2080,71 +1797,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final regions = _entry.regions;
     final region = regions[i];
     final next = i + 1 < regions.length ? regions[i + 1] : null;
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: context.mp.surface,
-      builder: (sheetContext) => SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: Text(
-                  _name(region),
-                  style: MonoPulseTypography.titleLarge,
-                ),
-                trailing: const Icon(Icons.edit_outlined),
-                onTap: () => Navigator.pop(sheetContext, 'rename'),
-              ),
-              ListTile(
-                key: const ValueKey('slice-start'),
-                leading: const Text('Start'),
-                title: Text(_preciseTime(region.startMs)),
-                subtitle: Text(
-                  i == 0
-                      ? 'Trim the lead-in (it becomes a skipped slice)'
-                      : 'Also end of ${_name(regions[i - 1])}',
-                ),
-                trailing: const Icon(Icons.tune),
-                onTap: () => Navigator.pop(sheetContext, 'start'),
-              ),
-              ListTile(
-                key: const ValueKey('slice-end'),
-                leading: const Text('End'),
-                title: Text(_preciseTime(region.endMs)),
-                subtitle: Text(
-                  next == null
-                      ? 'Trim the tail (it becomes a skipped slice)'
-                      : 'Also start of ${_name(next)}',
-                ),
-                trailing: const Icon(Icons.tune),
-                onTap: () => Navigator.pop(sheetContext, 'end'),
-              ),
-              SwitchListTile(
-                key: const ValueKey('slice-skip'),
-                secondary: const Icon(Icons.visibility_off_outlined),
-                title: const Text('Skip'),
-                subtitle: const Text(
-                  'Hide the pad and jump over it in playback',
-                ),
-                value: region.skip,
-                onChanged: (_) => Navigator.pop(sheetContext, 'skip'),
-              ),
-              if (regions.length > 1)
-                ListTile(
-                  leading: const Icon(Icons.delete_outline),
-                  title: const Text('Delete slice'),
-                  subtitle: Text(
-                    i == 0
-                        ? 'Its time joins the next slice'
-                        : 'Its time joins the slice before it',
-                  ),
-                  onTap: () => Navigator.pop(sheetContext, 'delete'),
-                ),
-            ],
-          ),
-        ),
-      ),
+    final action = await showSliceEditSheet(
+      context,
+      regions: regions,
+      i: i,
+      name: _name,
+      preciseTime: _preciseTime,
     );
     if (!mounted || !_canEdit) return;
     switch (action) {
