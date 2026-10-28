@@ -647,6 +647,19 @@ void main() {
     await tester.pump();
   });
 
+  testWidgets('a title still focused when the screen closes is saved', (
+    tester,
+  ) async {
+    await pump(tester, _entry(peaks: _peaks));
+    await tester.enterText(
+      find.byKey(const ValueKey('recording-title')),
+      'Kept',
+    );
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+    expect(repo.saved.last.title, 'Kept');
+  });
+
   testWidgets('title saves on submit and tap outside, including clearing it', (
     tester,
   ) async {

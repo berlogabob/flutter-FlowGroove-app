@@ -136,6 +136,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   // Practice log: one session per loop selection, written when it changes or
   // the screen closes. Captured in initState because ref is gone by dispose.
   late final MetronomeSessionRepository _sessions;
+
+  /// Title edits still pending at close (keyboard hidden with Back keeps the
+  /// field focused, so focus loss never saved them). ref is gone by dispose.
+  late final Future<void> Function(SongLabEntry) _saveOnClose;
+  late final bool _editableAtOpen;
   late final bool _logSessions;
   DateTime? _sessionStart;
   DateTime? _playingSince;
@@ -191,6 +196,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     _snap = _entry.grid != null;
     _player = widget.player ?? AudioPlayer();
     _sessions = ref.read(metronomeSessionRepositoryProvider);
+    final labRepo = ref.read(labRepositoryProvider);
+    _saveOnClose = (e) => labRepo.saveEntry(e, bandId: widget.bandId);
+    _editableAtOpen = _canEdit;
     _logSessions = !ref.read(isDemoUserProvider);
     _metronome = ref.read(metronomeProvider.notifier);
     unawaited(_load());
@@ -357,6 +365,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
     // A dispose racing a load can throw inside just_audio; nothing to recover.
     unawaited(_player.dispose().catchError((Object _) {}));
+    final title = _title.text.trim();
+    if (_editableAtOpen && title != (_entry.title ?? '')) {
+      unawaited(
+        _saveOnClose(_entry.copyWith(title: title)).catchError((Object _) {}),
+      );
+    }
     _title.dispose();
     _titleFocus.dispose();
     super.dispose();
