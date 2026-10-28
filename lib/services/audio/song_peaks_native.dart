@@ -38,7 +38,9 @@ Future<Int16List?> decodeSongPcm(
     if (count <= 0) return null;
     final samples = await SoLoud.instance.readSamplesFromMem(bytes, count);
     return samples.isEmpty ? null : pcm16FromFloats(samples);
-  } catch (_) {
+  } catch (e) {
+    // ignore: avoid_print
+    print('decodeSongPcm failed: $e');
     return null;
   }
 }

@@ -57,7 +57,8 @@ List<int> detectOnsets(
 }
 
 /// Tempo grid suggestion, 4/4 assumed. BPM from the envelope's
-/// autocorrelation peak in 70–180 BPM, refined ±4 BPM on a beat comb; phase and
+/// autocorrelation in 70–180 BPM (beat + half-bar + bar lags), refined
+/// ±1 BPM on a beat comb; phase and
 /// downbeat from where the envelope is strongest on that comb. Null for
 /// clips under 4 s.
 /// ponytail: one global tempo; songs that drift need the manual grid.
@@ -71,6 +72,7 @@ List<int> detectOnsets(
   final x = [for (final e in env) e - mean];
 
   double ac(int lag) {
+    if (lag >= x.length) return 0;
     var s = 0.0;
     for (var j = lag; j < x.length; j++) {
       s += x[j] * x[j - lag];
@@ -79,10 +81,14 @@ List<int> detectOnsets(
   }
 
   double lagOf(double bpm) => 60 * sampleRate / (bpm * _hop);
-  final lo = lagOf(180).floor(), hi = lagOf(70).ceil();
-  var best = lo;
-  for (var lag = lo + 1; lag <= hi; lag++) {
-    if (ac(lag) > ac(best)) best = lag;
+  // A beat echoes at 2 and 4 beats (half bar, bar in 4/4); a 3:2 or 2:3
+  // ghost tempo doesn't, so the sum picks the real beat, not a polyrhythm.
+  var coarse = 70.0, bestScore = double.negativeInfinity;
+  for (var bpm = 70.0; bpm <= 180; bpm += 0.5) {
+    final lag = lagOf(bpm);
+    final score =
+        ac(lag.round()) + ac((2 * lag).round()) + ac((4 * lag).round());
+    if (score > bestScore) (bestScore, coarse) = (score, bpm);
   }
   // Mean envelope on a beat comb; averaging over the whole song makes a
   // fine BPM search far more precise than the autocorrelation lag alone.
@@ -100,9 +106,8 @@ List<int> detectOnsets(
     return n == 0 ? 0 : s / n;
   }
 
-  final coarse = 60 * sampleRate / (best * _hop);
-  var period = best.toDouble(), phase = 0.0, score = -1.0;
-  for (var bpm = coarse - 4; bpm <= coarse + 4; bpm += 0.05) {
+  var period = lagOf(coarse), phase = 0.0, score = -1.0;
+  for (var bpm = coarse - 1; bpm <= coarse + 1; bpm += 0.05) {
     final p = lagOf(bpm);
     for (var o = 0; o < p; o++) {
       final v = comb(o.toDouble(), p);
