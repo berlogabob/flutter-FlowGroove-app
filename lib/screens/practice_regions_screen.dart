@@ -1742,13 +1742,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                                   ? _addMarker
                                   : null,
                             )
-                          // ponytail: spare slot, keeps Play centred.
-                          : const SizedBox(
-                              height: 64,
-                              child: OutlinedButton(
-                                onPressed: null,
-                                child: SizedBox.shrink(),
-                              ),
+                          : _barButton(
+                              key: const ValueKey('add-note'),
+                              icon: Icons.add_comment_outlined,
+                              label: 'Note',
+                              onPressed: _loaded && canEdit
+                                  ? _addMarkerAtPlayhead
+                                  : null,
                             ),
                     ),
                   ],
