@@ -83,9 +83,14 @@ Future<void> captureIdea(
             _ => 'audio/mp4',
           },
         );
-  } catch (_) {
+  } catch (e) {
     if (context.mounted && authorized()) {
-      showAppSnackBar(context, "Couldn't upload the recording");
+      showAppSnackBar(
+        context,
+        e.toString().contains('larger than')
+            ? 'File is too big (100MB max)'
+            : "Couldn't upload the recording",
+      );
     }
     return;
   }

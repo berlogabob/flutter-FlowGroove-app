@@ -65,7 +65,7 @@ class StorageService {
   /// Throws [ApiError] if upload fails or user is not authenticated.
   /// Uploads a Song Lab audio idea (#69) and returns its download URL.
   /// Path: lab_audio/{user|band}/{ownerId}/{songId}/{entryId}.{ext} — matches
-  /// storage.rules. 25MB is enforced client-side AND in the rules.
+  /// storage.rules. 100MB (a full-song WAV) is enforced client-side AND in the rules.
   Future<String> uploadLabAudio(
     Uint8List bytes, {
     required String? bandId,
@@ -75,8 +75,8 @@ class StorageService {
     String contentType = 'audio/mp4',
   }) async {
     _requireAuth();
-    if (bytes.length >= 25 * 1024 * 1024) {
-      throw Exception('Recording is larger than 25MB');
+    if (bytes.length >= 100 * 1024 * 1024) {
+      throw Exception('Recording is larger than 100MB');
     }
     final owner = bandId == null ? 'user/$_currentUserId' : 'band/$bandId';
     final ref = _storage.ref().child('lab_audio/$owner/$songId/$entryId.$ext');
