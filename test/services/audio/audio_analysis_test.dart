@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -54,6 +55,41 @@ void main() {
       (onsets.first - 300).abs() <= 15,
       isTrue,
       reason: 'first onset was ${onsets.first} ms',
+    );
+  });
+
+  test('estimateGrid puts the downbeat on the low thump despite backbeats', () {
+    const sampleRate = 22050;
+    const startMs = 300;
+    final bandPcm = Int16List(sampleRate * 20);
+    final noise = Random(12);
+    for (var eighth = 0; ; eighth++) {
+      final start = ((startMs + eighth * 250) * sampleRate / 1000).round();
+      if (start >= bandPcm.length) break;
+      final thump = eighth % 8 == 0;
+      final backbeat = eighth % 8 == 2 || eighth % 8 == 6;
+      final length = (sampleRate * (thump ? 0.1 : 0.01)).round();
+      for (var i = 0; i < length && start + i < bandPcm.length; i++) {
+        final t = i / sampleRate;
+        final hat = i < sampleRate * 0.006
+            ? 1200 * (2 * noise.nextDouble() - 1)
+            : 0.0;
+        final hit = thump
+            ? 24000 * sin(2 * pi * 60 * t) * exp(-t / 0.04)
+            : backbeat
+            ? 24000 * (2 * noise.nextDouble() - 1)
+            : 0.0;
+        bandPcm[start + i] = (hit + hat).round();
+      }
+    }
+
+    final grid = estimateGrid(bandPcm, sampleRate);
+    expect(grid, isNotNull);
+    expect(grid!.bpm, closeTo(120, 0.5));
+    expect(
+      grid.firstDownbeatMs,
+      closeTo(startMs, 20),
+      reason: 'downbeat should follow the thump, not the clicks on 2 and 4',
     );
   });
 

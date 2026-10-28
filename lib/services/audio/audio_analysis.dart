@@ -58,8 +58,8 @@ List<int> detectOnsets(
 
 /// Tempo grid suggestion, 4/4 assumed. BPM from the envelope's
 /// autocorrelation in 70–180 BPM (beat + half-bar + bar lags), refined
-/// ±1 BPM on a beat comb; phase and
-/// downbeat from where the envelope is strongest on that comb. Null for
+/// ±1 BPM on a beat comb; beat phase from that envelope, downbeat from a
+/// low-band comb (full-band fallback when nearly flat). Null for
 /// clips under 4 s. [hintBpm] (the song's BPM) picks the octave: the
 /// detector can't tell 85 from 170, the song page usually can.
 /// ponytail: one global tempo; songs that drift need the manual grid.
@@ -94,15 +94,19 @@ List<int> detectOnsets(
   }
   // Mean envelope on a beat comb; averaging over the whole song makes a
   // fine BPM search far more precise than the autocorrelation lag alone.
-  double comb(double start, double step) {
+  double comb(double start, double step, {List<double>? envelope}) {
+    final values = envelope ?? env;
     var s = 0.0;
     var n = 0;
-    for (var t = start; t.round() < env.length; t += step, n++) {
+    for (var t = start; t.round() < values.length; t += step, n++) {
       // ±1 block: a hit can round into the neighbouring block.
       final i = t.round();
       s += max(
-        env[i],
-        max(i > 0 ? env[i - 1] : 0, i + 1 < env.length ? env[i + 1] : 0),
+        values[i],
+        max(
+          i > 0 ? values[i - 1] : 0,
+          i + 1 < values.length ? values[i + 1] : 0,
+        ),
       );
     }
     return n == 0 ? 0 : s / n;
@@ -120,6 +124,24 @@ List<int> detectOnsets(
   for (var k = 1; k < 4; k++) {
     final o = phase + k * period;
     if (comb(o, 4 * period) > comb(down, 4 * period)) down = o;
+  }
+  final lowPcm = Int16List(pcm.length);
+  final alpha = 1 - exp(-2 * pi * 150 / sampleRate);
+  var low = 0.0;
+  for (var i = 0; i < pcm.length; i++) {
+    low += alpha * (pcm[i] - low);
+    lowPcm[i] = low.round();
+  }
+  final lowEnv = onsetEnvelope(lowPcm);
+  final lowScores = [
+    for (var k = 0; k < 4; k++)
+      comb(phase + k * period, 4 * period, envelope: lowEnv),
+  ];
+  final lowMax = lowScores.reduce(max);
+  final lowMean = lowScores.reduce((a, b) => a + b) / 4;
+  // ponytail: assumes kick on 1; syncopated bass/kicks can still need a manual grid.
+  if (lowMean > 0 && lowMax / lowMean >= 1.1) {
+    down = phase + lowScores.indexOf(lowMax) * period;
   }
   var bpm = 60 * sampleRate / (period * _hop);
   // Octave only (x2, /2): x1.5 would bring back the 3:2 ghost tempo.
