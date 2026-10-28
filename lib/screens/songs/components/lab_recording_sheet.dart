@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -13,6 +14,7 @@ import '../../../services/audio/audio_markers.dart';
 import '../../../services/audio/audio_note_edit.dart';
 import '../../../services/audio/audio_note_recorder.dart';
 import '../../../services/audio/song_peaks.dart';
+import '../../../services/audio/take_splitter.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/picked_file.dart';
 import '../../../utils/snackbar.dart';
@@ -34,6 +36,7 @@ class LabRecordingResult {
     this.peaks = const [],
     this.markers = const [],
     this.durationMs,
+    this.parts = const [],
   });
 
   final Uint8List bytes;
@@ -50,6 +53,9 @@ class LabRecordingResult {
 
   /// Known when an attached file was converted to AAC here.
   final int? durationMs;
+
+  /// Empty for a single recording; otherwise upload each selected part.
+  final List<LabRecordingResult> parts;
 }
 
 /// Capture-or-attach sheet for Song Lab audio ideas (#69). Capture, don't
@@ -64,6 +70,16 @@ class LabRecordingSheet extends StatefulWidget {
 
   @override
   State<LabRecordingSheet> createState() => _LabRecordingSheetState();
+}
+
+class _TakePart {
+  _TakePart(this.startMs, this.endMs, int number)
+    : title = TextEditingController(text: 'Part $number');
+
+  final int startMs;
+  final int endMs;
+  final TextEditingController title;
+  bool included = true;
 }
 
 class _LabRecordingSheetState extends State<LabRecordingSheet> {
@@ -82,6 +98,17 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   List<FileMarker> _markers = const [];
   int? _durationMs;
   bool _converting = false;
+  bool _analysing = false;
+  List<_TakePart> _parts = [];
+  static const _maxUploadBytes = 100 * 1024 * 1024;
+
+  void _clearParts() {
+    for (final part in _parts) {
+      part.title.dispose();
+    }
+    _parts = [];
+  }
+
   AudioNoteRecorder? _noteRecorder;
 
   /// Stop before the 25MB Storage cap. Native records AAC (~16kB/s, so ~26 min
@@ -225,6 +252,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
       unawaited(_noteRecorder!.cancel());
     }
     _recorder.dispose();
+    _clearParts();
     _title.dispose();
     _notes.dispose();
     super.dispose();
@@ -273,6 +301,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
       });
     };
     await recorder.start();
+    _clearParts();
     _elapsed = 0;
     _amps.clear();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -292,6 +321,8 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   Future<void> _pickFile() async {
     final file = await FilePicker.pickFile(type: FileType.audio);
     if (file == null) return;
+    if (!mounted) return;
+    _clearParts();
     final ext = (file.extension ?? 'm4a').toLowerCase();
     setState(() {
       _bytes = null;
@@ -322,9 +353,41 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
             ),
         ];
       });
+      if (aac != null && aac.durationMs > 20 * 60 * 1000) {
+        setState(() => _analysing = true);
+        Int16List? pcm;
+        try {
+          pcm = await decodeSongPcm(
+            aac.bytes,
+            sampleRate: 2000,
+            durationMs: aac.durationMs,
+          );
+        } catch (_) {
+          // Decoder unavailable: still offer the one-part review step.
+        }
+        final cuts = pcm == null ? <int>[] : suggestTakeCuts(pcm, 2000);
+        if (!mounted) return;
+        final boundaries = [0, ...cuts, aac.durationMs];
+        setState(() {
+          _parts = [
+            for (var i = 0; i < boundaries.length - 1; i++)
+              _TakePart(boundaries[i], boundaries[i + 1], i + 1),
+          ];
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        showAppSnackBar(context, "Couldn't prepare the recording", error: true);
+      }
     } finally {
-      if (mounted) setState(() => _converting = false);
+      if (mounted) {
+        setState(() {
+          _converting = false;
+          _analysing = false;
+        });
+      }
     }
+    if (!mounted) return;
     if (_title.text.isEmpty && file.name.isNotEmpty) {
       _title.text = file.name.replaceAll(RegExp(r'\.\w+$'), '');
     }
@@ -339,6 +402,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
       final warning = left <= 60 ? ' · ${left}s left' : '';
       return 'Recording… $m:$s$warning';
     }
+    if (_analysing) return 'Finding songs…';
     if (_converting) return 'Converting $_pickedName…';
     if (_bytes != null) {
       final mb = (_bytes!.length / (1024 * 1024)).toStringAsFixed(1);
@@ -350,9 +414,127 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
     return 'Record an idea (up to $limit min) or attach a file';
   }
 
+  LabRecordingResult _result({List<LabRecordingResult> parts = const []}) =>
+      LabRecordingResult(
+        bytes: _bytes!,
+        ext: _ext,
+        title: _title.text.trim().isEmpty ? null : _title.text.trim(),
+        notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+        peaks: _peaks,
+        markers: _markers,
+        durationMs: _durationMs,
+        parts: parts,
+      );
+
+  void _saveParts() {
+    final results = <LabRecordingResult>[];
+    for (final part in _parts.where((part) => part.included)) {
+      final bytes = trimAudio(
+        _bytes!,
+        startMs: part.startMs,
+        endMs: part.endMs,
+      );
+      if (bytes == null || bytes.isEmpty || bytes.length >= _maxUploadBytes) {
+        showAppSnackBar(
+          context,
+          '${part.title.text}: ${bytes == null || bytes.isEmpty ? "couldn’t cut audio" : "exceeds 100MB — trim before uploading"}',
+          error: true,
+        );
+        return;
+      }
+      results.add(
+        LabRecordingResult(
+          bytes: bytes,
+          ext: 'aac',
+          title: part.title.text.trim().isEmpty
+              ? 'Part ${_parts.indexOf(part) + 1}'
+              : part.title.text.trim(),
+          notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+          peaks: trimPeaks(
+            _peaks,
+            part.startMs / _durationMs!,
+            part.endMs / _durationMs!,
+          ),
+          markers: [
+            for (final marker in _markers)
+              if (marker.ms >= part.startMs && marker.ms < part.endMs)
+                FileMarker(ms: marker.ms - part.startMs, name: marker.name),
+          ],
+          durationMs: part.endMs - part.startMs,
+        ),
+      );
+    }
+    Navigator.pop(context, _result(parts: results));
+  }
+
+  String _partTime(int ms) {
+    final seconds = ms ~/ 1000;
+    return '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+  }
+
+  Widget _longRecordingStep() {
+    final count = _parts.where((part) => part.included).length;
+    final tooBig = _bytes!.length >= _maxUploadBytes;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Long recording', style: Theme.of(context).textTheme.titleLarge),
+        if (_parts.length == 1)
+          const Text('No gaps found — upload as one or trim later'),
+        for (var i = 0; i < _parts.length; i++) ...[
+          const SizedBox(height: MonoPulseSpacing.md),
+          Row(
+            children: [
+              Checkbox(
+                value: _parts[i].included,
+                onChanged: (value) =>
+                    setState(() => _parts[i].included = value ?? false),
+              ),
+              Expanded(
+                child: TextField(
+                  controller: _parts[i].title,
+                  decoration: InputDecoration(
+                    labelText:
+                        'Part ${i + 1} ${_partTime(_parts[i].startMs)}–${_partTime(_parts[i].endMs)}',
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: MonoPulseSpacing.md),
+        if (tooBig) const Text('100MB per file max — select smaller parts.'),
+        Wrap(
+          spacing: MonoPulseSpacing.sm,
+          children: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            OutlinedButton(
+              onPressed: tooBig
+                  ? null
+                  : () => Navigator.pop(context, _result()),
+              child: const Text('Upload as one'),
+            ),
+            ElevatedButton(
+              onPressed: count == 0 ? null : _saveParts,
+              child: Text('Upload $count parts'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final canSave = _bytes != null && !_recording;
+    final canSave =
+        _bytes != null &&
+        !_recording &&
+        !_converting &&
+        _bytes!.length < _maxUploadBytes;
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -381,75 +563,66 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
               ),
             ],
             const SizedBox(height: MonoPulseSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: FilledButton.tonalIcon(
-                    onPressed: _toggleRecord,
-                    icon: Icon(_recording ? Icons.stop : Icons.mic),
-                    label: Text(_recording ? 'Stop' : 'Record'),
+            if (_parts.isNotEmpty && !_converting)
+              _longRecordingStep()
+            else ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      onPressed: _converting ? null : _toggleRecord,
+                      icon: Icon(_recording ? Icons.stop : Icons.mic),
+                      label: Text(_recording ? 'Stop' : 'Record'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: MonoPulseSpacing.md),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _recording || _converting ? null : _pickFile,
-                    icon: const Icon(Icons.attach_file),
-                    label: const Text('Attach file'),
+                  const SizedBox(width: MonoPulseSpacing.md),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _recording || _converting ? null : _pickFile,
+                      icon: const Icon(Icons.attach_file),
+                      label: const Text('Attach file'),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
-              controller: _title,
-              decoration: const InputDecoration(
-                labelText: 'Title (e.g. "Bridge riff idea")',
-                border: OutlineInputBorder(),
+                ],
               ),
-            ),
-            const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
-              controller: _notes,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Timestamp notes (optional)',
-                hintText: '00:42 good chorus entry\n01:15 tempo drops',
-                border: OutlineInputBorder(),
+              const SizedBox(height: MonoPulseSpacing.md),
+              TextField(
+                controller: _title,
+                decoration: const InputDecoration(
+                  labelText: 'Title (e.g. "Bridge riff idea")',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+              const SizedBox(height: MonoPulseSpacing.md),
+              TextField(
+                controller: _notes,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Timestamp notes (optional)',
+                  hintText: '00:42 good chorus entry\n01:15 tempo drops',
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(width: MonoPulseSpacing.sm),
-                ElevatedButton(
-                  onPressed: canSave
-                      ? () => Navigator.pop(
-                          context,
-                          LabRecordingResult(
-                            bytes: _bytes!,
-                            ext: _ext,
-                            title: _title.text.trim().isEmpty
-                                ? null
-                                : _title.text.trim(),
-                            notes: _notes.text.trim().isEmpty
-                                ? null
-                                : _notes.text.trim(),
-                            peaks: _peaks,
-                            markers: _markers,
-                            durationMs: _durationMs,
-                          ),
-                        )
-                      : null,
-                  child: const Text('Save'),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: MonoPulseSpacing.lg),
+              if (_bytes != null && _bytes!.length >= _maxUploadBytes)
+                const Text('100MB per file max — choose a smaller file.'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: MonoPulseSpacing.sm),
+                  ElevatedButton(
+                    onPressed: canSave
+                        ? () => Navigator.pop(context, _result())
+                        : null,
+                    child: const Text('Save'),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

@@ -39,8 +39,8 @@ Future<Int16List?> _platformPcm(Uint8List bytes, int sampleRate) async {
 }
 
 /// Re-encodes the picked file at [path] to ADTS AAC, the format the app
-/// records in, so imports are small and trimmable. Android only; null
-/// elsewhere or when the file can't be decoded (upload the original then).
+/// records in, at 128 kbps for small, trimmable practice audio. Android only;
+/// null elsewhere or when the file can't be decoded (upload the original then).
 Future<({Uint8List bytes, List<int> peaks, int durationMs, int primingMs})?>
 transcodeToAac(String path) async {
   if (!Platform.isAndroid) return null;
@@ -52,7 +52,7 @@ transcodeToAac(String path) async {
     final result = await _audio.invokeMapMethod<String, Object?>('toAac', {
       'in': path,
       'out': out.path,
-      'bitrate': 192000,
+      'bitrate': 128000,
     });
     final bytes = await out.readAsBytes();
     if (result == null || bytes.isEmpty) return null;

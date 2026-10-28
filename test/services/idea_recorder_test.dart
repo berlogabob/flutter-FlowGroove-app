@@ -29,6 +29,7 @@ class _Identity extends AppUserNotifier {
 class _Storage extends StorageService {
   final upload = Completer<String>();
   int calls = 0;
+  Future<String> Function(int call)? onUpload;
   String? target;
   String? entryId;
   int deletes = 0;
@@ -52,7 +53,7 @@ class _Storage extends StorageService {
     calls++;
     target = songId;
     this.entryId = entryId;
-    return upload.future;
+    return onUpload?.call(calls) ?? upload.future;
   }
 }
 
@@ -71,9 +72,9 @@ class _Repo extends FirestoreLabRepository {
     String entryId, {
     String? bandId,
   }) async {
-    expect(songId, saved.first.songId);
-    expect(entryId, saved.first.id);
-    expect(bandId, saved.first.bandId);
+    expect(songId, saved.last.songId);
+    expect(entryId, saved.last.id);
+    expect(bandId, saved.last.bandId);
     reads++;
     return read == null ? null : await read!();
   }
@@ -99,6 +100,7 @@ Future<void> _capture(
   _Storage storage,
   _Repo repo, {
   _Identity? identity,
+  LabRecordingResult? result,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -121,9 +123,9 @@ Future<void> _capture(
   );
   await tester.tap(find.text('Capture'));
   await tester.pumpAndSettle();
-  Navigator.of(
-    tester.element(find.byType(LabRecordingSheet)),
-  ).pop(LabRecordingResult(bytes: Uint8List.fromList([1]), ext: 'aac'));
+  Navigator.of(tester.element(find.byType(LabRecordingSheet))).pop(
+    result ?? LabRecordingResult(bytes: Uint8List.fromList([1]), ext: 'aac'),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -140,6 +142,145 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getStringList('pending_storage_deletes') ?? [], isEmpty);
   }
+
+  LabRecordingResult rehearsal() => LabRecordingResult(
+    bytes: Uint8List.fromList([0]),
+    ext: 'aac',
+    parts: [
+      for (var i = 1; i <= 3; i++)
+        LabRecordingResult(
+          bytes: Uint8List.fromList([i]),
+          ext: 'aac',
+          title: 'Song $i',
+          peaks: [i],
+          durationMs: 80000,
+        ),
+    ],
+  );
+
+  testWidgets('parts upload only after the previous save completes', (
+    tester,
+  ) async {
+    final secondUpload = Completer<String>();
+    final secondSave = Completer<void>();
+    final storage = _Storage()
+      ..onUpload = (call) => call == 1
+          ? Future.value('https://example.test/1')
+          : call == 2
+          ? secondUpload.future
+          : Future.value('https://example.test/3');
+    final repo = _Repo();
+    await _capture(tester, storage, repo, result: rehearsal());
+    expect(storage.calls, 1);
+    expect(repo.saved.single.title, 'Song 1');
+    repo.write = () => secondSave.future;
+    repo.save.complete();
+    await tester.pumpAndSettle();
+    expect(storage.calls, 2);
+    expect(find.text('Uploading part 2 of 3…'), findsOneWidget);
+    expect(repo.saved, hasLength(1));
+    secondUpload.complete('https://example.test/2');
+    await tester.pumpAndSettle();
+    expect(repo.saved, hasLength(2));
+    expect(storage.calls, 2);
+    secondSave.complete();
+    await tester.pumpAndSettle();
+    expect(storage.calls, 3);
+    expect(repo.saved.map((entry) => entry.title), [
+      'Song 1',
+      'Song 2',
+      'Song 3',
+    ]);
+    expect(repo.saved.map((entry) => entry.peaks.single), [1, 2, 3]);
+    expect(repo.saved.map((entry) => entry.id).toSet(), hasLength(3));
+    // Queued behind the last "Uploading part" snackbar.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Saved 3 parts'), findsOneWidget);
+    await expectAudioPreserved(storage, repo);
+  });
+
+  testWidgets('access loss after one save prevents the next part upload', (
+    tester,
+  ) async {
+    final storage = _Storage()
+      ..onUpload = (call) async => 'https://example.test/$call';
+    final identity = _Identity();
+    final repo = _Repo();
+    await _capture(
+      tester,
+      storage,
+      repo,
+      result: rehearsal(),
+      identity: identity,
+    );
+    expect(repo.saved, hasLength(1));
+    identity.identity = const AsyncData(null);
+    repo.save.complete();
+    await tester.pumpAndSettle();
+    expect(storage.calls, 1);
+    expect(repo.saved, hasLength(1));
+    expect(
+      find.text('Recording stopped because access changed. Please try again.'),
+      findsOneWidget,
+    );
+    await expectAudioPreserved(storage, repo);
+  });
+
+  testWidgets('failed part stops uploads and preserves earlier saved parts', (
+    tester,
+  ) async {
+    final storage = _Storage()
+      ..onUpload = (call) async {
+        if (call == 2) throw StateError('private upload error');
+        return 'https://example.test/$call';
+      };
+    final repo = _Repo()..write = () async {};
+    await _capture(tester, storage, repo, result: rehearsal());
+    expect(storage.calls, 2);
+    expect(repo.saved.single.title, 'Song 1');
+    expect(
+      find.text(
+        "Couldn't upload part 2 of 3 (Song 2). Earlier saved parts are kept.",
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('private'), findsNothing);
+    await expectAudioPreserved(storage, repo);
+  });
+
+  testWidgets('part save retry resumes remaining parts without reuploading', (
+    tester,
+  ) async {
+    final storage = _Storage()
+      ..onUpload = (call) async => 'https://example.test/$call';
+    final repo = _Repo();
+    var writes = 0;
+    repo.write = () async {
+      if (++writes == 2) throw StateError('private save error');
+    };
+    await _capture(tester, storage, repo, result: rehearsal());
+    expect(storage.calls, 2);
+    expect(repo.saved, hasLength(2));
+    final second = repo.saved.last;
+    expect(
+      find.text(
+        'part 2 of 3 uploaded but not saved yet. Earlier saved parts are kept.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+    expect(storage.calls, 3);
+    expect(repo.saved, hasLength(4));
+    expect(repo.saved[2], same(second));
+    expect(repo.saved.last.title, 'Song 3');
+    // Queued behind the last "Uploading part" snackbar.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Saved 3 parts'), findsOneWidget);
+    await expectAudioPreserved(storage, repo);
+  });
 
   testWidgets('upload failure has its own safe message and never saves', (
     tester,
