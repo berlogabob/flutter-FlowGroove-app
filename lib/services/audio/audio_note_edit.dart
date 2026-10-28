@@ -297,12 +297,13 @@ List<int> peaksFromLevels(
   return out;
 }
 
-/// Derives waveform peaks from the audio itself, for takes recorded before
-/// peaks were captured at record time.
+/// Derives RMS waveform bars from the audio itself, for takes recorded before
+/// peaks were captured at record time. Normalises the loudest bar to 255;
+/// silence stays zero.
 ///
 /// WAV only: PCM samples can be read directly, whereas AAC would need decoding.
 /// Strides rather than reading every sample — at 25MB that's 13M samples, and
-/// a bar only needs the loudest thing near it, not all of it.
+/// a few hundred samples per bar suffice to estimate its RMS level.
 List<int>? peaksFromWav(Uint8List wav, {int buckets = waveformPeakCount}) {
   final info = parseWav(wav);
   if (info == null || info.bytesPerSample != 2 || buckets <= 0) return null;
@@ -312,43 +313,63 @@ List<int>? peaksFromWav(Uint8List wav, {int buckets = waveformPeakCount}) {
 
   final data = ByteData.sublistView(wav);
   final out = List<int>.filled(math.min(buckets, frames), 0);
-  // Cap the work per bar; a few hundred samples is plenty to find a peak.
+  final rms = List<double>.filled(out.length, 0);
+  var maxRms = 0.0;
+  // Cap the work per bar while estimating its RMS level.
   const maxReadsPerBucket = 256;
   for (var i = 0; i < out.length; i++) {
     final start = i * frames ~/ out.length;
     final end = math.max(start + 1, (i + 1) * frames ~/ out.length);
     final step = math.max(1, (end - start) ~/ maxReadsPerBucket);
-    var peak = 0;
+    var sumSquares = 0.0;
+    var count = 0;
     for (var f = start; f < end; f += step) {
       // First channel only: the second says nearly the same thing about level.
-      final v = data.getInt16(info.offset + f * frame, Endian.little).abs();
-      if (v > peak) peak = v;
+      final v = data.getInt16(info.offset + f * frame, Endian.little);
+      sumSquares += v * v;
+      count++;
     }
-    out[i] = (peak * 255 / 32768).round().clamp(0, 255);
+    rms[i] = math.sqrt(sumSquares / count);
+    maxRms = math.max(maxRms, rms[i]);
+  }
+  if (maxRms > 0) {
+    for (var i = 0; i < out.length; i++) {
+      out[i] = (rms[i] / maxRms * 255).round().clamp(0, 255);
+    }
   }
   return out;
 }
 
-/// Reduces decoded float samples (-1..1) to [buckets] bars in 0..255 by the
-/// loudest sample near each bar. Used for imported song files, which arrive
-/// as mp3/m4a/flac and are decoded by the platform rather than parsed here.
+/// Reduces decoded float samples (-1..1) to [buckets] RMS bars in 0..255.
+/// Uses strided samples and normalises the loudest bar to 255; silence stays
+/// zero. Used for imported mp3/m4a/flac files decoded by the platform.
 List<int> peaksFromFloats(
   Float32List samples, {
   int buckets = waveformPeakCount,
 }) {
   if (samples.isEmpty || buckets <= 0) return const [];
   final out = List<int>.filled(math.min(buckets, samples.length), 0);
+  final rms = List<double>.filled(out.length, 0);
+  var maxRms = 0.0;
   const maxReadsPerBucket = 256;
   for (var i = 0; i < out.length; i++) {
     final start = i * samples.length ~/ out.length;
     final end = math.max(start + 1, (i + 1) * samples.length ~/ out.length);
     final step = math.max(1, (end - start) ~/ maxReadsPerBucket);
-    var peak = 0.0;
+    var sumSquares = 0.0;
+    var count = 0;
     for (var j = start; j < end; j += step) {
-      final v = samples[j].abs();
-      if (v > peak) peak = v;
+      final v = samples[j];
+      sumSquares += v * v;
+      count++;
     }
-    out[i] = (peak * 255).round().clamp(0, 255);
+    rms[i] = math.sqrt(sumSquares / count);
+    maxRms = math.max(maxRms, rms[i]);
+  }
+  if (maxRms > 0) {
+    for (var i = 0; i < out.length; i++) {
+      out[i] = (rms[i] / maxRms * 255).round().clamp(0, 255);
+    }
   }
   return out;
 }

@@ -27,7 +27,8 @@ object AudioTranscoder {
         var channels = 0
         var frames = 0L
         val totalMs = durationUs(inPath) / 1000.0
-        val peaks = IntArray(PEAK_COUNT)
+        val sumSquares = DoubleArray(PEAK_COUNT)
+        val counts = LongArray(PEAK_COUNT)
         val info = MediaCodec.BufferInfo()
         val out = BufferedOutputStream(FileOutputStream(outPath))
 
@@ -100,8 +101,9 @@ object AudioTranscoder {
                     val ms = (frames + f) * 1000.0 / rate
                     val bucket = if (totalMs > 0) (ms / totalMs * PEAK_COUNT).toInt() else 0
                     if (bucket in 0 until PEAK_COUNT) {
-                        val v = kotlin.math.abs(stereo[f * channels].toInt()) * 255 / 32768
-                        if (v > peaks[bucket]) peaks[bucket] = v
+                        val v = stereo[f * channels].toDouble()
+                        sumSquares[bucket] += v * v
+                        counts[bucket]++
                     }
                 }
                 feed(stereo, false)
@@ -113,6 +115,13 @@ object AudioTranscoder {
             out.close()
             encoder?.stop()
             encoder?.release()
+        }
+        val rms = DoubleArray(PEAK_COUNT) { i ->
+            if (counts[i] > 0) kotlin.math.sqrt(sumSquares[i] / counts[i]) else 0.0
+        }
+        val maxRms = rms.maxOrNull() ?: 0.0
+        val peaks = rms.map {
+            if (maxRms > 0) kotlin.math.round(it / maxRms * 255).toInt().coerceIn(0, 255) else 0
         }
         return mapOf(
             "durationMs" to (if (rate > 0) frames * 1000 / rate else 0L),

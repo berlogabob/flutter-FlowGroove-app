@@ -394,7 +394,22 @@ void main() {
       expect(peaks.length, 20);
       expect(peaks.first, lessThan(peaks.last));
       expect(peaks, orderedEquals(List.of(peaks)..sort()));
-      expect(peaks.last, greaterThan(240), reason: 'full scale -> near 255');
+      expect(peaks.last, 255);
+    });
+
+    test('uses RMS rather than isolated sample peaks', () {
+      // Equal maxima, but the sustained section has twice the RMS.
+      final pcm = Uint8List(24);
+      final view = ByteData.sublistView(pcm);
+      view.setInt16(0, -8192, Endian.little);
+      for (var i = 4; i < 8; i++) {
+        view.setInt16(i * 2, i.isEven ? 8192 : -8192, Endian.little);
+      }
+      final peaks = peaksFromWav(
+        wavFromPcm16(pcm, sampleRate: _rate),
+        buckets: 3,
+      )!;
+      expect(peaks, [128, 255, 0]);
     });
 
     test('maps silence to zero', () {
@@ -442,7 +457,7 @@ void main() {
         wavFromPcm16(pcm, sampleRate: _rate, channels: 2),
         buckets: 4,
       )!;
-      expect(peaks, everyElement(greaterThan(120)));
+      expect(peaks, everyElement(255));
     });
   });
 
@@ -579,14 +594,34 @@ void main() {
     });
   });
 
-  test('peaksFromFloats takes the loudest sample per bar', () {
-    final samples = Float32List(1000);
-    samples[10] = -0.5; // first bar
-    samples[995] = 1.0; // last bar
-    final peaks = peaksFromFloats(samples, buckets: 10);
-    expect(peaks, hasLength(10));
-    expect(peaks.first, 128);
-    expect(peaks.last, 255);
-    expect(peaks[5], 0);
+  group('peaksFromFloats', () {
+    test('uses RMS and normalises the loudest section to 255', () {
+      final samples = Float32List.fromList([
+        -0.25,
+        0,
+        0,
+        0,
+        0.25,
+        -0.25,
+        0.25,
+        -0.25,
+        0,
+        0,
+        0,
+        0,
+      ]);
+      final peaks = peaksFromFloats(samples, buckets: 3);
+      expect(peaks, [128, 255, 0]);
+      expect(peaks.first, lessThan(peaks[1]));
+    });
+
+    test('maps silence to zero', () {
+      expect(peaksFromFloats(Float32List(1000), buckets: 10), everyElement(0));
+    });
+
+    test('handles empty samples and never exceeds the sample count', () {
+      expect(peaksFromFloats(Float32List(0)), isEmpty);
+      expect(peaksFromFloats(Float32List.fromList([0.1, -0.2])), [128, 255]);
+    });
   });
 }
