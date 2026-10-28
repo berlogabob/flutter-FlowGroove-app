@@ -112,6 +112,14 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Future<Uint8List>? _bytes;
   Timer? _auditionTimer;
 
+  /// Seam loop (fine-tune): clip-relative (head, tail); past the head of
+  /// each pass playback jumps to the tail, so only the join repeats.
+  (int, int)? _seam;
+  static const _seamMs = 1500;
+
+  /// One level of undo for Shift edits (they save immediately).
+  List<AudioRegion>? _undoRegions;
+
   // Practice log: one session per loop selection, written when it changes or
   // the screen closes. Captured in initState because ref is gone by dispose.
   late final MetronomeSessionRepository _sessions;
@@ -216,6 +224,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           final ms = position.inMilliseconds;
           if (_playing && _clipEnd != null && ms + 1000 < _lastPosMs) _reps++;
           _lastPosMs = ms;
+          final seam = _seam;
+          if (seam != null && !_changingClip && ms > seam.$1 && ms < seam.$2) {
+            unawaited(_player.seek(Duration(milliseconds: seam.$2)));
+          }
           setState(() => _position = position);
         }),
         _player.playerStateStream.listen((state) {
@@ -339,9 +351,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
-  Future<void> _changeRegions(List<AudioRegion> regions) async {
+  Future<void> _changeRegions(
+    List<AudioRegion> regions, {
+    List<AudioRegion>? undoTo,
+  }) async {
     if (!_canEdit) return;
     setState(() {
+      _undoRegions = undoTo ?? _entry.regions;
       _selection = remapSelection(_entry.regions, regions, _selection);
       _entry = _entry.copyWith(regions: regions);
       _clampSelection();
@@ -818,7 +834,53 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     });
   }
 
-  Future<void> _fineTune(int boundaryIndex) async {
+  Future<void> _undo() async {
+    final before = _undoRegions;
+    if (before == null) return;
+    await _changeRegions(before);
+    if (mounted) setState(() => _undoRegions = null);
+  }
+
+  /// Loops [startMs, endMs) through the same clip practice uses, skipping
+  /// the middle, so the loop's join plays over and over.
+  Future<void> _loopSeam(int startMs, int endMs) async {
+    _auditionTimer?.cancel();
+    if (_sync) await _setSync(false);
+    if (!mounted) return;
+    _flushSession();
+    setState(() => _selection = null);
+    await (_loopUpdate = _loopUpdate.then((_) async {
+      if (!mounted || !_loaded) return;
+      _changingClip = true;
+      try {
+        await _player.pause();
+        await _player.setClip(
+          start: Duration(milliseconds: startMs),
+          end: Duration(milliseconds: endMs),
+        );
+        await _player.setLoopMode(LoopMode.one);
+        if (!mounted) return;
+        final length = endMs - startMs;
+        setState(() {
+          _clipStart = startMs;
+          _clipEnd = endMs;
+          _position = Duration.zero;
+          _lastPosMs = 0;
+          _seam = length > 2 * _seamMs ? (_seamMs, length - _seamMs) : null;
+        });
+        await _player.seek(Duration(milliseconds: _seam?.$2 ?? 0));
+        if (mounted) unawaited(_player.play());
+      } catch (_) {
+        // Fine-tuning still works without the preview.
+      } finally {
+        _changingClip = false;
+      }
+    }));
+  }
+
+  /// [loop] is the slice run whose join matters (default: the selection when
+  /// it touches this marker, else the slice ending here).
+  Future<void> _fineTune(int boundaryIndex, {(int, int)? loop}) async {
     if (!_canEdit) return;
     await (_pcmLoad ??= _loadFineTunePcm());
     if (!mounted || !_canEdit) return;
@@ -842,12 +904,36 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       BoundarySnap.beat => snapToBeat(grid!, value, durationMs: _durationMs),
       BoundarySnap.zeroCrossing => zeroCrossingNear(pcm!, 44100, value),
     });
+    final selection = _selection;
+    final seamLoop =
+        loop ??
+        (selection != null &&
+                (selection.$2 == boundaryIndex ||
+                    selection.$1 == boundaryIndex + 1)
+            ? selection
+            : (boundaryIndex, boundaryIndex));
+    var seamOn = false;
+    var seamMs = -1;
+    Timer? seamDebounce;
+    void playSeam() {
+      final regions = moveBoundary(_entry.regions, boundaryIndex, ms);
+      unawaited(
+        _loopSeam(regions[seamLoop.$1].startMs, regions[seamLoop.$2].endMs),
+      );
+    }
+
     final result = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
       backgroundColor: context.mp.surface,
       builder: (sheetContext) => StatefulBuilder(
         builder: (context, sheetSetState) {
+          // Re-loop the seam once the marker settles after a change.
+          if (seamOn && ms != seamMs) {
+            seamMs = ms;
+            seamDebounce?.cancel();
+            seamDebounce = Timer(const Duration(milliseconds: 250), playSeam);
+          }
           void nudge(int delta) =>
               sheetSetState(() => ms = snapped(ms + delta));
           return Padding(
@@ -954,7 +1040,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                             },
                             onPanEnd: (_) {
                               sheetSetState(() => ms = snapped(ms));
-                              if (_loaded) {
+                              if (_loaded && !seamOn) {
                                 unawaited(
                                   _audition(ms, preRollMs: 0, windowMs: 300),
                                 );
@@ -1043,8 +1129,28 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     Row(
                       children: [
                         TextButton(
-                          onPressed: _loaded ? () => _audition(ms) : null,
+                          onPressed: _loaded && !seamOn
+                              ? () => _audition(ms)
+                              : null,
                           child: const Text('Audition'),
+                        ),
+                        FilterChip(
+                          key: const ValueKey('loop-seam'),
+                          label: const Text('Loop seam'),
+                          selected: seamOn,
+                          onSelected: _loaded
+                              ? (on) => sheetSetState(() {
+                                  seamOn = on;
+                                  seamMs = ms;
+                                  seamDebounce?.cancel();
+                                  if (on) {
+                                    playSeam();
+                                  } else {
+                                    _seam = null;
+                                    unawaited(_player.pause());
+                                  }
+                                })
+                              : null,
                         ),
                         const Spacer(),
                         FilledButton(
@@ -1061,9 +1167,15 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         },
       ),
     );
+    seamDebounce?.cancel();
+    final seamed = seamOn;
+    _seam = null;
+    if (seamed) await _player.pause();
     if (mounted && result != null) {
       await _changeRegions(moveBoundary(_entry.regions, boundaryIndex, result));
     }
+    // Hand the edited loop back to practice, ready to play.
+    if (mounted && seamed) _selectRegions(seamLoop);
   }
 
   Future<void> _rename(String id) async {
@@ -1301,7 +1413,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             selection != null && i >= selection.$1 && i <= selection.$2;
         final color = selected
             ? MonoPulseColors.accentOrange
-            : sections[region.sectionId]?.color ?? context.mp.blackSurface;
+            : sections[region.sectionId]?.color ??
+                  colorForName(region.name) ??
+                  context.mp.blackSurface;
         final foreground =
             ThemeData.estimateBrightnessForColor(color) == Brightness.dark
             ? MonoPulseColors.white
@@ -1499,6 +1613,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           editing ? 'Tap a pad to edit' : _entry.title ?? 'Practice regions',
         ),
         actions: [
+          if (editing)
+            IconButton(
+              tooltip: 'Undo',
+              icon: const Icon(Icons.undo),
+              onPressed: _undoRegions == null ? null : _undo,
+            ),
           PopupMenuButton<String>(
             tooltip: 'More',
             onSelected: (value) {
@@ -1556,6 +1676,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               ),
               child: _timeline(editing),
             ),
+            if (editing && regions.any((region) => region.name.isEmpty))
+              _nameChips(),
             Expanded(
               child: regions.isEmpty
                   ? Center(
@@ -1670,6 +1792,54 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Shift: tap a name to give it to the first unnamed slice, in order, so a
+  /// freshly chopped song gets its map in a few taps.
+  Widget _nameChips() {
+    final songs = _entry.songId.isEmpty || _entry.songId == '_inbox'
+        ? null
+        : ref
+              .watch(
+                widget.bandId == null
+                    ? songsProvider
+                    : bandSongsProvider(widget.bandId!),
+              )
+              .value;
+    final song = songs?.where((song) => song.id == _entry.songId).firstOrNull;
+    final names = {
+      for (final section in song?.sections ?? <Section>[]) section.name,
+      ...Section.templates,
+    };
+    return SizedBox(
+      height: 48,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
+        children: [
+          for (final name in names)
+            Padding(
+              padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
+              child: ActionChip(
+                key: ValueKey('name-chip-$name'),
+                label: Text(name),
+                backgroundColor: colorForName(name),
+                onPressed: () {
+                  final i = _entry.regions.indexWhere((r) => r.name.isEmpty);
+                  if (i < 0) return;
+                  unawaited(HapticFeedback.selectionClick());
+                  unawaited(
+                    _changeRegions([
+                      for (final (j, region) in _entry.regions.indexed)
+                        j == i ? region.copyWith(name: name) : region,
+                    ]),
+                  );
+                },
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -1856,9 +2026,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       case 'rename':
         await _rename(region.id);
       case 'start':
-        await _fineTune(i - 1);
+        await _fineTune(i - 1, loop: (i, i));
       case 'end':
-        await _fineTune(i);
+        await _fineTune(i, loop: (i, i));
       case 'delete':
         await _changeRegions(mergeRegion(regions, i));
     }
@@ -1952,8 +2122,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           );
         },
         onHorizontalDragEnd: (_) {
+          unawaited(_changeRegions(_entry.regions, undoTo: _beforeDrag));
           _beforeDrag = null;
-          unawaited(_changeRegions(_entry.regions));
         },
         onHorizontalDragCancel: () {
           final before = _beforeDrag;
@@ -2052,7 +2222,8 @@ class _RegionsPainter extends CustomPainter {
       final region = entry.regions[i];
       final selected =
           selection != null && i >= selection!.$1 && i <= selection!.$2;
-      final color = MonoPulseColors.sectionColors[i % 6];
+      final color =
+          colorForName(region.name) ?? MonoPulseColors.sectionColors[i % 6];
       final rect = Rect.fromLTRB(
         x(region.startMs),
         0,
@@ -2161,4 +2332,16 @@ class _BoundaryWaveformPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _BoundaryWaveformPainter oldDelegate) =>
       pcm != oldDelegate.pcm || boundaryMs != oldDelegate.boundaryMs;
+}
+
+/// Same name, same colour: "Chorus" and "Chorus 2" match, in pads and on the
+/// waveform. Null for unnamed regions.
+Color? colorForName(String name) {
+  final base = name.trim().toLowerCase().replaceAll(RegExp(r'[\s\d]+$'), '');
+  if (base.isEmpty) return null;
+  const colors = MonoPulseColors.sectionColors;
+  final template = Section.templates.indexWhere((t) => t.toLowerCase() == base);
+  if (template >= 0) return colors[template % colors.length];
+  final hash = base.codeUnits.fold(0, (h, c) => (h * 31 + c) & 0x7fffffff);
+  return colors[hash % colors.length];
 }

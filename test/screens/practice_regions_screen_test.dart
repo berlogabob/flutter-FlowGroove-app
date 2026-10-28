@@ -367,6 +367,89 @@ void main() {
     expect(repo.saved.last.regions.single.startMs, 0);
   });
 
+  testWidgets('Undo restores a deleted slice once', (tester) async {
+    await pump(tester, _entry());
+    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete slice'));
+    await settleAudio(tester);
+    expect(repo.saved.last.regions, hasLength(1));
+    await tester.tap(find.byTooltip('Undo'));
+    await settleAudio(tester);
+    expect([for (final r in repo.saved.last.regions) r.name], [
+      'Verse 2',
+      'Chorus',
+    ]);
+    expect(
+      tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.undo))
+          .onPressed,
+      isNull,
+    );
+  });
+
+  testWidgets('Shift name chips fill the first unnamed slice', (tester) async {
+    await pump(
+      tester,
+      _entry(
+        regions: const [
+          AudioRegion(id: 'a', name: 'Intro', startMs: 0, endMs: 5000),
+          AudioRegion(id: 'b', name: '', startMs: 5000, endMs: 10000),
+          AudioRegion(id: 'c', name: '', startMs: 10000, endMs: 20000),
+        ],
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('name-chip-Verse')));
+    await settleAudio(tester);
+    await tester.tap(find.byKey(const ValueKey('name-chip-Chorus')));
+    await settleAudio(tester);
+    expect([for (final r in repo.saved.last.regions) r.name], [
+      'Intro',
+      'Verse',
+      'Chorus',
+    ]);
+    expect(find.byKey(const ValueKey('name-chip-Verse')), findsNothing);
+  });
+
+  test('colorForName matches numbered repeats and skips unnamed', () {
+    expect(colorForName('Chorus 2'), colorForName('chorus'));
+    expect(colorForName('Verse'), isNot(colorForName('Chorus')));
+    expect(colorForName(''), isNull);
+  });
+
+  testWidgets('Loop seam plays the slice clip from its tail, then hands the '
+      'loop back', (tester) async {
+    await pump(tester, _entry());
+    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('slice-end')));
+    await settleAudio(tester);
+    final player = audio.players.values.single;
+    await tester.ensureVisible(find.byKey(const ValueKey('loop-seam')));
+    await tester.tap(find.byKey(const ValueKey('loop-seam')));
+    await settleAudio(tester);
+    expect(player.clip!.start, Duration.zero);
+    expect(player.clip!.end, const Duration(seconds: 10));
+    // Starts 1.5 s before the end: you hear the join first.
+    expect(player.position, const Duration(milliseconds: 8500));
+    expect(player.calls.last, 'play');
+    await tester.ensureVisible(find.text('+10 ms'));
+    await tester.tap(find.text('+10 ms'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await settleAudio(tester);
+    expect(player.clip!.end, const Duration(milliseconds: 10010));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Done'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+    await settleAudio(tester);
+    expect(repo.saved.last.regions.first.endMs, 10010);
+    expect(find.text('Looping Verse 2'), findsOneWidget);
+  });
+
   testWidgets('a long song fits a small phone without scrolling the page', (
     tester,
   ) async {
