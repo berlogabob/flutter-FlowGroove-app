@@ -450,6 +450,49 @@ void main() {
     expect(find.text('Looping Verse 2'), findsOneWidget);
   });
 
+  testWidgets('a quick hold + tap makes a run; the taps do not undo it', (
+    tester,
+  ) async {
+    await pump(tester, _entry());
+    final hold = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey('region-pad-verse'))),
+      pointer: 1,
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(
+      find.byKey(const ValueKey('region-pad-chorus')),
+      pointer: 2,
+    );
+    await hold.up();
+    await settleAudio(tester);
+    expect(find.text('Looping Verse 2 → Chorus'), findsOneWidget);
+  });
+
+  testWidgets('long-pressing a pad stretches the loop to it', (tester) async {
+    await pump(tester, _entry());
+    await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
+    await settleAudio(tester);
+    await tester.longPress(find.byKey(const ValueKey('region-pad-chorus')));
+    await settleAudio(tester);
+    expect(find.text('Looping Verse 2 → Chorus'), findsOneWidget);
+  });
+
+  testWidgets('Skip hides the pad outside Shift and is saved', (tester) async {
+    await pump(tester, _entry());
+    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('slice-skip')));
+    await settleAudio(tester);
+    expect(repo.saved.last.regions.first.skip, isTrue);
+    expect(find.byKey(const ValueKey('region-pad-verse')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('region-pad-verse')), findsNothing);
+    expect(find.text('1 skipped'), findsOneWidget);
+  });
+
   testWidgets('a long song fits a small phone without scrolling the page', (
     tester,
   ) async {

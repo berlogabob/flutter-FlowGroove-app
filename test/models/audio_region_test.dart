@@ -405,4 +405,18 @@ void main() {
       expect(alignToDownbeat(pcm, 0, 1000), same(pcm));
     });
   });
+
+  test('skipTarget jumps over a run of skipped regions', () {
+    const regions = [
+      AudioRegion(id: 'a', name: '', startMs: 0, endMs: 1000, skip: true),
+      AudioRegion(id: 'b', name: '', startMs: 1000, endMs: 2000, skip: true),
+      AudioRegion(id: 'c', name: 'Verse', startMs: 2000, endMs: 5000),
+      AudioRegion(id: 'd', name: '', startMs: 5000, endMs: 6000, skip: true),
+    ];
+    expect(skipTarget(regions, 500), 2000);
+    expect(skipTarget(regions, 2500), isNull);
+    expect(skipTarget(regions, 5500), 6000);
+    expect(AudioRegion.fromJson(regions.first.toJson()).skip, isTrue);
+    expect(regions[2].toJson().containsKey('skip'), isFalse);
+  });
 }

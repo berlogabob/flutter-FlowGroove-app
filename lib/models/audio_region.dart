@@ -115,6 +115,7 @@ class AudioRegion {
     required this.startMs,
     required this.endMs,
     this.sectionId,
+    this.skip = false,
   });
 
   factory AudioRegion.fromJson(Map<String, dynamic> json) => AudioRegion(
@@ -123,6 +124,7 @@ class AudioRegion {
     startMs: (json['startMs'] as num?)?.toInt() ?? 0,
     endMs: (json['endMs'] as num?)?.toInt() ?? 0,
     sectionId: json['sectionId'] as String?,
+    skip: json['skip'] as bool? ?? false,
   );
 
   final String id;
@@ -134,6 +136,10 @@ class AudioRegion {
   /// Chorus 2) is its own section, as in the song's structure list.
   final String? sectionId;
 
+  /// Junk (count-in noise, pauses, bad takes): kept in the map so markers
+  /// stay linked, but hidden from pads and jumped over in playback.
+  final bool skip;
+
   int get lengthMs => endMs - startMs;
 
   Map<String, dynamic> toJson() => {
@@ -142,6 +148,7 @@ class AudioRegion {
     'startMs': startMs,
     'endMs': endMs,
     if (sectionId != null) 'sectionId': sectionId,
+    if (skip) 'skip': true,
   };
 
   AudioRegion copyWith({
@@ -149,13 +156,33 @@ class AudioRegion {
     int? startMs,
     int? endMs,
     String? sectionId,
+    bool? skip,
   }) => AudioRegion(
     id: id,
     name: name ?? this.name,
     startMs: startMs ?? this.startMs,
     endMs: endMs ?? this.endMs,
     sectionId: sectionId ?? this.sectionId,
+    skip: skip ?? this.skip,
   );
+}
+
+/// Where playback at [ms] should jump to when it is inside skipped regions:
+/// the end of that skipped run. Null when [ms] is not skipped.
+int? skipTarget(List<AudioRegion> regions, int ms) {
+  int? target;
+  for (final region in regions) {
+    if (target == null) {
+      if (region.skip && ms >= region.startMs && ms < region.endMs) {
+        target = region.endMs;
+      }
+    } else if (region.skip && region.startMs == target) {
+      target = region.endMs;
+    } else if (region.startMs >= target) {
+      break;
+    }
+  }
+  return target;
 }
 
 /// Shortest region a split or drag may leave behind.

@@ -94,6 +94,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   bool _editing = false;
   bool _setupOpen = false;
   int? _heldPad;
+  final _padPointers = <int>{};
+
+  /// A hold + tap just made a run: swallow the taps those fingers end in.
+  bool _runMade = false;
   late bool _snap;
   double _speed = 1;
   int _preRoll = 0;
@@ -227,6 +231,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           final seam = _seam;
           if (seam != null && !_changingClip && ms > seam.$1 && ms < seam.$2) {
             unawaited(_player.seek(Duration(milliseconds: seam.$2)));
+          } else if (seam == null && _playing && !_sync && !_changingClip) {
+            _skipFrom(ms);
           }
           setState(() => _position = position);
         }),
@@ -1379,6 +1385,30 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   String _preciseTime(int ms) =>
       '${formatTimestamp(ms)}.${(ms % 1000).toString().padLeft(3, '0')}';
 
+  /// Jumps over skipped slices; [ms] is clip-relative.
+  void _skipFrom(int ms) {
+    final target = skipTarget(_entry.regions, _clipStart + ms);
+    if (target == null) return;
+    final end = _clipEnd ?? _durationMs;
+    if (target < end) {
+      unawaited(_player.seek(Duration(milliseconds: target - _clipStart)));
+    } else if (_clipEnd == null) {
+      unawaited(_player.pause());
+    } else if (skipTarget(_entry.regions, _clipStart) == null) {
+      // The loop's tail is skipped: wrap to its start.
+      unawaited(_player.seek(Duration.zero));
+    }
+  }
+
+  void _releasePad(int pointer, int pad) {
+    _padPointers.remove(pointer);
+    if (_heldPad == pad) _heldPad = null;
+    // Taps resolve after this pointer-up, in the same event; clear after.
+    if (_padPointers.isEmpty && _runMade) {
+      scheduleMicrotask(() => _runMade = false);
+    }
+  }
+
   Widget _pads() {
     final sections = <String, Section>{};
     if (_entry.regions.any((region) => region.sectionId != null) &&
@@ -1397,6 +1427,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       }
     }
     final grid = _entry.grid;
+    final editing = _canEdit && _editing;
+    // Skipped slices only show in Shift, so they can be brought back.
+    final visible = [
+      for (final (i, region) in _entry.regions.indexed)
+        if (editing || !region.skip) i,
+    ];
     return GridView.builder(
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -1405,14 +1441,17 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         crossAxisSpacing: MonoPulseSpacing.sm,
         mainAxisSpacing: MonoPulseSpacing.sm,
       ),
-      itemCount: _entry.regions.length,
-      itemBuilder: (context, i) {
+      itemCount: visible.length,
+      itemBuilder: (context, slot) {
+        final i = visible[slot];
         final region = _entry.regions[i];
         final selection = _selection;
         final selected =
             selection != null && i >= selection.$1 && i <= selection.$2;
         final color = selected
             ? MonoPulseColors.accentOrange
+            : region.skip
+            ? context.mp.black
             : sections[region.sectionId]?.color ??
                   colorForName(region.name) ??
                   context.mp.blackSurface;
@@ -1423,36 +1462,41 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         return Semantics(
           button: true,
           selected: selected,
-          // A second finger can win the gesture arena and swallow
-          // onLongPressEnd; lifting the held finger always releases it.
+          // Runs, MPC style: hold one pad and tap another. Tracked on raw
+          // pointers (no long-press delay, no gesture arena) so the scrolling
+          // grid can't steal the hold.
           child: Listener(
-            onPointerUp: (_) {
-              if (_heldPad == i) _heldPad = null;
+            onPointerDown: (event) {
+              _padPointers.add(event.pointer);
+              final held = _heldPad;
+              if (editing || held == null || held == i) {
+                _heldPad ??= i;
+                return;
+              }
+              _runMade = true;
+              unawaited(HapticFeedback.selectionClick());
+              _selectRegions((math.min(held, i), math.max(held, i)));
             },
-            onPointerCancel: (_) {
-              if (_heldPad == i) _heldPad = null;
-            },
+            onPointerUp: (event) => _releasePad(event.pointer, i),
+            onPointerCancel: (event) => _releasePad(event.pointer, i),
             child: GestureDetector(
               key: ValueKey('region-pad-${region.id}'),
-              onLongPressStart: (_) => _heldPad = i,
-              onLongPressEnd: (_) => _heldPad = null,
-              onLongPressCancel: () {
-                if (_heldPad == i) _heldPad = null;
-              },
+              // One-handed: long-press a pad to stretch the loop to it.
+              onLongPress: editing || _selection == null
+                  ? null
+                  : () {
+                      final (a, b) = _selection!;
+                      unawaited(HapticFeedback.selectionClick());
+                      _selectRegions((math.min(a, i), math.max(b, i)));
+                    },
               onTap: () {
+                if (_runMade) return;
                 unawaited(HapticFeedback.selectionClick());
-                if (_canEdit && _editing) {
+                if (editing) {
                   unawaited(_editSlice(i));
                   return;
                 }
-                final held = _heldPad;
-                _selectRegions(
-                  held != null
-                      ? (held < i ? held : i, held > i ? held : i)
-                      : _selection == (i, i)
-                      ? null
-                      : (i, i),
-                );
+                _selectRegions(_selection == (i, i) ? null : (i, i));
               },
               child: Material(
                 color: color,
@@ -1714,6 +1758,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     style: MonoPulseTypography.bodySmall,
                   ),
                   const SizedBox(width: MonoPulseSpacing.md),
+                  if (!editing && regions.any((region) => region.skip))
+                    Text(
+                      '${regions.where((region) => region.skip).length} skipped',
+                      style: MonoPulseTypography.bodySmall.copyWith(
+                        color: context.mp.textSecondary,
+                      ),
+                    ),
                   if (selection != null)
                     Expanded(
                       child: Text(
@@ -2006,6 +2057,14 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               trailing: const Icon(Icons.tune),
               onTap: () => Navigator.pop(sheetContext, 'end'),
             ),
+            SwitchListTile(
+              key: const ValueKey('slice-skip'),
+              secondary: const Icon(Icons.visibility_off_outlined),
+              title: const Text('Skip'),
+              subtitle: const Text('Hide the pad and jump over it in playback'),
+              value: region.skip,
+              onChanged: (_) => Navigator.pop(sheetContext, 'skip'),
+            ),
             if (regions.length > 1)
               ListTile(
                 leading: const Icon(Icons.delete_outline),
@@ -2031,6 +2090,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         await _fineTune(i, loop: (i, i));
       case 'delete':
         await _changeRegions(mergeRegion(regions, i));
+      case 'skip':
+        await _changeRegions([
+          for (final (j, r) in regions.indexed)
+            j == i ? r.copyWith(skip: !r.skip) : r,
+        ]);
     }
   }
 
@@ -2222,8 +2286,9 @@ class _RegionsPainter extends CustomPainter {
       final region = entry.regions[i];
       final selected =
           selection != null && i >= selection!.$1 && i <= selection!.$2;
-      final color =
-          colorForName(region.name) ?? MonoPulseColors.sectionColors[i % 6];
+      final color = region.skip
+          ? dim
+          : colorForName(region.name) ?? MonoPulseColors.sectionColors[i % 6];
       final rect = Rect.fromLTRB(
         x(region.startMs),
         0,
