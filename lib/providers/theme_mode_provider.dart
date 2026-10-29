@@ -1,7 +1,5 @@
-/// Global theme preference (#129): system / dark / light. Default dark —
-/// the app's native look. Light is beta: Material surfaces flip, but
-/// custom widgets that hardcode MonoPulseColors stay dark-toned until the
-/// palette migration (follow-up issue).
+/// Global theme preference (#129): system / dark / light. Warm paper light
+/// appearance is the PlayNote default; dark appearance remains available.
 library;
 
 import 'package:flutter/material.dart';
@@ -14,7 +12,7 @@ class AppThemeMode extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
     _load();
-    return ThemeMode.dark;
+    return ThemeMode.light;
   }
 
   Future<void> _load() async {
@@ -22,7 +20,7 @@ class AppThemeMode extends Notifier<ThemeMode> {
     final name = prefs.getString(_themeModeKey);
     state = ThemeMode.values.firstWhere(
       (m) => m.name == name,
-      orElse: () => ThemeMode.dark,
+      orElse: () => ThemeMode.light,
     );
   }
 

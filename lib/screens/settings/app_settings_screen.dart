@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +16,7 @@ import '../../widgets/support_sheet.dart';
 import '../../widgets/unified_item/setlist_card_actions.dart';
 import '../../widgets/unified_item/song_card_actions.dart';
 import 'api_access_screen.dart';
+import 'design_system_screen.dart';
 
 /// Global app settings (#129) — the single home for app-wide preferences,
 /// reachable from the main-menu 3-dots on every tab. Profile keeps only
@@ -109,9 +111,15 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                   padding: const EdgeInsets.only(top: MonoPulseSpacing.sm),
                   child: SegmentedButton<ThemeMode>(
                     segments: const [
-                      ButtonSegment(value: ThemeMode.system, label: Text('Auto')),
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        label: Text('Auto'),
+                      ),
                       ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
-                      ButtonSegment(value: ThemeMode.light, label: Text('Light')),
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        label: Text('Light'),
+                      ),
                     ],
                     selected: {themeMode},
                     onSelectionChanged: (s) =>
@@ -204,6 +212,25 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                 ),
               ),
             ]),
+            if (kDebugMode) ...[
+              const SizedBox(height: MonoPulseSpacing.lg),
+              _section(context, 'Build tools', [
+                ListTile(
+                  leading: const Icon(
+                    Icons.tune,
+                    color: MonoPulseColors.accentOrange,
+                  ),
+                  title: const Text('FlowGroove design system'),
+                  subtitle: const Text('Palette, type, controls, and patterns'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const DesignSystemScreen(),
+                    ),
+                  ),
+                ),
+              ]),
+            ],
             const SizedBox(height: MonoPulseSpacing.lg),
             _section(context, 'Support', [
               ListTile(

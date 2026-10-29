@@ -71,25 +71,37 @@ class ToolButton extends StatelessWidget {
         ? MonoPulseColors.accentOrange
         : context.mp.textTertiary;
     // Neutral label; only the icon carries the accent (UX audit F-013).
-    final labelColor = isEnabled ? context.mp.textPrimary : context.mp.textTertiary;
+    final labelColor = isEnabled
+        ? context.mp.textPrimary
+        : context.mp.textTertiary;
 
-    // Mono Pulse tile: a uniform horizontal row (icon left, label right) that
+    // FlowGroove tile: a uniform hardware-panel row (icon left, label right) that
     // fills its grid cell, matching Quick Actions for consistent density (A9).
     return Material(
-      color: isEnabled ? context.mp.surface : context.mp.surfaceOverlay,
-      borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+      color: isEnabled ? context.mp.surfaceRaised : context.mp.surfaceOverlay,
+      borderRadius: BorderRadius.circular(6),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+        borderRadius: BorderRadius.circular(6),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.md,
             vertical: MonoPulseSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: isEnabled ? context.mp.surface : context.mp.surfaceOverlay,
-            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-            border: Border.all(color: context.mp.borderSubtle),
+            color: isEnabled
+                ? context.mp.surfaceRaised
+                : context.mp.surfaceOverlay,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: context.mp.borderDefault),
+            boxShadow: isEnabled
+                ? [
+                    BoxShadow(
+                      color: context.mp.borderStrong.withValues(alpha: 0.24),
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             children: [
@@ -98,7 +110,7 @@ class ToolButton extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  style: MonoPulseTypography.labelLarge.copyWith(
                     color: labelColor,
                     fontWeight: FontWeight.w600,
                     fontSize: fontSize,

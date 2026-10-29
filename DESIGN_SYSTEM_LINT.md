@@ -1,158 +1,49 @@
-# Design System Lint Enforcement
+# FlowGroove Design System Rules
 
-**Phase 6 of Mono Pulse Remediation Plan**
+These rules keep the app recognizable as a shared rehearsal notebook and protect scanability during performance.
 
----
+## Use shared tokens
 
-## Automated Lint Rules (flutter analyze)
+- Add or update brand colors in `lib/theme/mono_pulse_theme.dart`; avoid new hex literals in feature widgets.
+- Read theme-dependent neutrals through `context.mp`.
+- Keep status and song-section colors semantically distinct from the brand palette.
+- Use `MonoPulseSpacing`, `MonoPulseRadius`, and `MonoPulseTypography` for shared values while those public identifiers remain in use.
 
-The following patterns trigger lint warnings. These are enforced via the existing lint suite in `analysis_options.yaml`:
+## Component boundaries
 
-### Raw Values (Design System Tokens)
+- Use `AppCard` for grouped panels instead of inventing new generic bordered cards.
+- Use `CustomButton` for primary, secondary, outline, and text actions.
+- Use `QuickActionButton` for dashboard launch tiles.
+- Use `ToolButton` for dashboard tool launch tiles and `StatCard` for compact library readouts.
+- Use `AppFilterChip` for filter selection.
+- Add new shared patterns to `lib/widgets/` and demonstrate them on the debug-only design-system screen.
 
-**Pattern:** Numeric literals for spacing, radius, sizing  
-**Rule:** `use_named_constants` + manual `flutter analyze`  
-**Examples:**
-```dart
-// ❌ Bad: Raw numeric value
-padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)
+## Visual rules
 
-// ✅ Good: Uses token
-padding: const EdgeInsets.symmetric(
-  horizontal: MonoPulseSpacing.lg,
-  vertical: MonoPulseSpacing.md,
-)
+1. Paper is the default light workspace; charcoal is the dark instrument face.
+2. Reserve signal orange for one primary action in a screen, such as Play or Save. Use Stone or Fog with dark labels for selected controls, white for inactive controls and enabled inputs, Stone/Fog for disabled inputs, and gray for secondary information.
+3. Use raised surfaces for physical control plates and song-data groupings; keep ordinary lists calm.
+4. Marcellus is for headings, Source Serif 4 for prose and musical content, and Arial-style text for controls.
+5. Keep body copy and labels readable. Do not shrink labels to fit; reflow or simplify.
+6. Use compact, deliberate corners and crisp edges. Avoid pill-shaped everything and soft floating-card stacks.
+7. Keep song structure, tempo, key, meter, and lyrics easy to scan at rehearsal distance.
+
+## Interaction and accessibility
+
+- Preserve current routing, state, persistence, audio, and sync behavior when changing presentation.
+- Icon-only actions require an accessible name and tooltip.
+- Provide visible focus and disabled states. Color must not be the only status cue.
+- Maintain touch targets of at least 48 logical pixels where practical.
+- Check contrast in both light and dark variants.
+
+## Validation
+
+Format and analyze the files touched by a visual-system change:
+
+```sh
+dart format <touched Dart files>
+flutter analyze <touched Dart files>
+flutter test <focused widget or component test>
 ```
 
-**Enforcement:** Run `flutter analyze` on every CI build (see CI config below).
-
----
-
-### Colors
-
-**Pattern:** `Colors.*` or raw `Color(0x...)` literals (except in theme definitions)  
-**Rule:** No global Color constants outside `mono_pulse_theme.dart`  
-**Examples:**
-```dart
-// ❌ Bad: Raw Colors.white usage
-child: Text('Error', style: TextStyle(color: Colors.white))
-
-// ✅ Good: Uses MonoPulseColors
-child: Text('Error', style: TextStyle(color: MonoPulseColors.textPrimary))
-```
-
-**Enforcement:** Grep gate in CI (see below).
-
----
-
-### Icon Buttons & Custom Tap Targets
-
-**Pattern:** `IconButton` without label/tooltip OR `GestureDetector` without `Semantics`  
-**Rule:** All icon-only controls must have `label` param or be wrapped with `Semantics(button: true, label:)` + `Tooltip`
-
-**Recommended:** Use `AppIconButton` helper instead of raw `IconButton`:
-```dart
-// ❌ Bad: IconButton with no label
-IconButton(icon: Icon(Icons.edit), onPressed: _handleEdit)
-
-// ✅ Good: AppIconButton helper
-AppIconButton(
-  icon: Icons.edit,
-  label: 'Edit song',
-  onPressed: _handleEdit,
-)
-
-// ✅ Also acceptable: manual Semantics + Tooltip
-Semantics(
-  button: true,
-  label: 'Edit song',
-  child: Tooltip(
-    message: 'Edit song',
-    child: IconButton(icon: Icon(Icons.edit), onPressed: _handleEdit),
-  ),
-)
-```
-
----
-
-## CI Enforcement
-
-Add these gates to your CI/CD pipeline (GitHub Actions, GitLab CI, etc.):
-
-### 1. Flutter Analyze (required check)
-```bash
-flutter analyze lib/
-```
-**Fails on:** Lint violations in analysis_options.yaml
-
-### 2. Design System Grep Gates
-
-Run these before merging:
-
-```bash
-# Catch stray Colors.* usage (fail if found)
-grep -r "Colors\." lib/ --include="*.dart" \
-  --exclude-dir=generated \
-  | grep -v "mono_pulse_theme.dart" \
-  && echo "ERROR: Found Colors.* outside theme" && exit 1
-
-# Catch raw Color(0x...) hex literals
-grep -r "Color(0x" lib/ --include="*.dart" \
-  | grep -v "mono_pulse_theme.dart" \
-  && echo "ERROR: Found raw Color(0x...) literal" && exit 1
-
-# Catch raw SizedBox numeric widths/heights (sample)
-grep -r "SizedBox(width: [0-9]" lib/ --include="*.dart" \
-  | grep -v MonoPulseSpacing \
-  && echo "WARNING: SizedBox with raw numeric width" || true
-```
-
-### 3. Example GitHub Actions Workflow
-
-```yaml
-name: Design System Lint
-
-on: [pull_request]
-
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v2
-
-      - name: Flutter Analyze
-        run: flutter analyze lib/
-
-      - name: No Colors.* outside theme
-        run: |
-          ! grep -r "Colors\." lib/ --include="*.dart" \
-            | grep -v "mono_pulse_theme.dart"
-
-      - name: No raw Color(0x...) hex
-        run: |
-          ! grep -r "Color(0x" lib/ --include="*.dart" \
-            | grep -v "mono_pulse_theme.dart"
-```
-
----
-
-## Deprecated Token Cleanup
-
-The following tokens are marked `@Deprecated` and should be removed once all callers are migrated:
-
-- `orangeSubtle15`, `orangeSubtle20`, `orangeSubtle30` → use `accentOrange15/20/30`
-- `accentOrangeSubtle` → use `accentOrange10`
-- `errorSubtle` → use `error10`
-- `errorSubtle5/20/30` → use `error5/20/30`
-- `successGreenSubtle` → use `successGreen5`
-- `warningSubtle` → use `warning5`
-- `infoSubtle` → use `info5`
-
-**Schedule for Phase 7 (future):** Run `flutter pub upgrade` to pick up new versions, then grep for deprecated token usage and migrate remaining callers.
-
----
-
-## Component Documentation
-
-See `COMPONENT_LIBRARY.md` for documentation on shared components, variants, states, and a11y notes.
+Review the affected screen at phone and wide layouts. Do not treat the static design-system page as a replacement for checking the real feature screen.

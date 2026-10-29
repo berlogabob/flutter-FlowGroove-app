@@ -37,22 +37,21 @@ class SetlistBreakRow extends StatelessWidget {
           vertical: MonoPulseSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: MonoPulseColors.accentOrange10,
+          color: context.mp.surfaceRaised,
           borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-          border: Border.all(color: MonoPulseColors.accentOrange.withValues(alpha: 0.4)),
+          border: Border.all(color: context.mp.borderDefault),
         ),
         child: Row(
           children: [
             if (leading != null) ...[leading!, const SizedBox(width: 8)],
-            Icon(type.icon, size: 18, color: MonoPulseColors.accentOrange),
+            Icon(type.icon, size: 18, color: context.mp.textTertiary),
             const SizedBox(width: MonoPulseSpacing.md),
             Expanded(
               child: Text(
-                text.toUpperCase(),
-                style: const TextStyle(
+                text,
+                style: TextStyle(
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
-                  color: MonoPulseColors.accentOrange,
+                  color: context.mp.textSecondary,
                 ),
               ),
             ),

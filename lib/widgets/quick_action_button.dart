@@ -58,23 +58,29 @@ class QuickActionButton extends StatelessWidget {
     final iconSize = ResponsiveSizes.iconSize(breakpoint);
     final fontSize = ResponsiveSizes.buttonFontSize(breakpoint);
 
-    // Mono Pulse tile: a uniform horizontal row (icon left, label right) that
+    // FlowGroove tile: a uniform hardware-panel row (icon left, label right) that
     // fills its grid cell — consistent density, no dead gutters (audit A9).
     return Material(
-      color: context.mp.surface,
-      borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+      color: context.mp.surfaceRaised,
+      borderRadius: BorderRadius.circular(6),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+        borderRadius: BorderRadius.circular(6),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.md,
             vertical: MonoPulseSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: context.mp.surface,
-            border: Border.all(color: context.mp.borderSubtle),
-            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+            color: context.mp.surfaceRaised,
+            border: Border.all(color: context.mp.borderDefault),
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: [
+              BoxShadow(
+                color: context.mp.borderStrong.withValues(alpha: 0.24),
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -83,7 +89,7 @@ class QuickActionButton extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  style: MonoPulseTypography.labelLarge.copyWith(
                     // Neutral label; the orange icon carries the accent so the
                     // tile grid isn't wall-to-wall orange (UX audit F-013).
                     color: context.mp.textPrimary,

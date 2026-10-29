@@ -8,14 +8,14 @@ import 'adapters/song_item_adapter.dart';
 import 'unified_item_model.dart';
 import 'unified_item_trailing_actions.dart';
 
-/// Unified card for Songs, Bands and Setlists (#86 redesign).
+/// Open, ruled list row for Songs, Bands and Setlists.
 ///
 /// Two decks instead of a ListTile: the title deck owns the card's full
 /// width (no trailing cluster stealing room — the old layout squashed long
 /// titles on phones), and the meta rail below carries badges on the left and
 /// the actions on the right. Songs always reserve the rail so cards stay the
-/// same height whether or not key/BPM exist (audit P2-14); the key chip uses
-/// the same orange treatment everywhere (audit P2-4).
+/// same height whether or not key/BPM exist (audit P2-14); key and tempo
+/// use high-contrast ink rather than a transport accent.
 class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
   const UnifiedItemCard({
     required this.item,
@@ -43,64 +43,64 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       showCompact: showCompact,
     );
 
-    return Card(
-      margin: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.lg,
-        vertical: MonoPulseSpacing.sm,
-      ),
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surface,
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: MonoPulseSpacing.lg,
-            vertical: showCompact ? MonoPulseSpacing.sm : MonoPulseSpacing.md,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: context.mp.borderSubtle)),
           ),
-          child: Row(
-            children: [
-              ..._leading(context),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title deck: full card width, nothing competes with it.
-                    Text(
-                      item.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: showCompact
-                          ? MonoPulseTypography.bodyMedium.copyWith(
-                              fontWeight: FontWeight.w500,
-                            )
-                          : MonoPulseTypography.titleLarge.copyWith(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                    ),
-                    if (!showCompact && _subtitleText() != null)
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MonoPulseSpacing.lg,
+              vertical: showCompact
+                  ? MonoPulseSpacing.sm
+                  : MonoPulseSpacing.md,
+            ),
+            child: Row(
+              children: [
+                ..._leading(context),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title deck owns the full width.
                       Text(
-                        _subtitleText()!,
+                        item.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: MonoPulseTypography.bodySmall.copyWith(
-                          color: context.mp.textSecondary,
-                        ),
+                        style: showCompact
+                            ? MonoPulseTypography.bodyMedium.copyWith(
+                                fontWeight: FontWeight.w500,
+                              )
+                            : MonoPulseTypography.titleLarge.copyWith(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
                       ),
-                    SizedBox(height: showCompact ? 0 : MonoPulseSpacing.xs),
-                    // Meta rail: badges left, actions right — actions live in
-                    // the thumb-friendly lower half, off the title's row.
-                    Row(
-                      children: [
-                        Expanded(child: _metaRail(context)),
-                        actions,
-                      ],
-                    ),
-                  ],
+                      if (!showCompact && _subtitleText() != null)
+                        Text(
+                          _subtitleText()!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: MonoPulseTypography.bodySmall.copyWith(
+                            color: context.mp.textSecondary,
+                          ),
+                        ),
+                      SizedBox(height: showCompact ? 0 : MonoPulseSpacing.xs),
+                      Row(
+                        children: [
+                          Expanded(child: _metaRail(context)),
+                          actions,
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -166,7 +166,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
                 Text(
                   '$displayBPM',
                   style: MonoPulseTypography.bodySmall.copyWith(
-                    color: MonoPulseColors.accentOrange,
+                    color: context.mp.textPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

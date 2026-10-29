@@ -1,5 +1,7 @@
 # Mono Pulse Component Library
 
+> **FlowGroove visual guidance:** See [FLOWGROOVE_DESIGN_SYSTEM.md](FLOWGROOVE_DESIGN_SYSTEM.md) for the current brand tokens, interaction rules, component styling, examples, preview, and focused validation. This file remains the component API catalog.
+
 **Shared, reusable components built on the design system.**
 
 ---

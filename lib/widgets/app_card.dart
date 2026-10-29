@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../theme/mono_pulse_theme.dart';
 
-/// Canonical card variants for consistent styling across the app.
+/// Canonical instrument-panel surfaces for consistent styling across the app.
 ///
 /// Two variants:
-/// - [AppCardVariant.surface]: Base card with subtle border, no elevation
-/// - [AppCardVariant.raised]: Elevated card with shadow for emphasis
+/// - [AppCardVariant.surface]: Flush paper or charcoal panel
+/// - [AppCardVariant.raised]: Raised hardware panel with a crisp lower edge
 ///
 /// Usage:
 /// ```dart
@@ -75,10 +75,20 @@ class AppCard extends StatelessWidget {
     final card = DecoratedBox(
       decoration: BoxDecoration(
         color: backgroundColor ?? _getBackgroundColor(context),
-        borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
+        borderRadius: BorderRadius.circular(7),
         border: border ?? _getDefaultBorder(context),
         boxShadow: variant == AppCardVariant.raised
-            ? [MonoPulseElevation.shadowLow]
+            ? [
+                BoxShadow(
+                  color: context.mp.borderStrong.withValues(alpha: 0.22),
+                  offset: const Offset(0, 3),
+                ),
+                BoxShadow(
+                  color: context.mp.textPrimary.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ]
             : null,
       ),
       child: content,
@@ -89,7 +99,7 @@ class AppCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
+          borderRadius: BorderRadius.circular(7),
           child: card,
         ),
       );
