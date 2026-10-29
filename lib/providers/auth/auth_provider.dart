@@ -37,18 +37,15 @@ class AnalyticsClient {
     return AnalyticsService.logDemoLogin();
   }
 
+  Future<void> logLogout() {
+    return AnalyticsService.logLogout();
+  }
+
   Future<void> setUserProperties({
     required AppUser user,
     required int bandCount,
-    required int songCount,
-    required int setlistCount,
   }) {
-    return AnalyticsService.setUserProperties(
-      user: user,
-      bandCount: bandCount,
-      songCount: songCount,
-      setlistCount: setlistCount,
-    );
+    return AnalyticsService.setUserProperties(user: user, bandCount: bandCount);
   }
 }
 
@@ -76,6 +73,31 @@ class PendingJoinCodeStore {
 
 final pendingJoinCodeStoreProvider = Provider<PendingJoinCodeStore>((ref) {
   return PendingJoinCodeStore();
+});
+
+/// Storage boundary for a share token captured before auth.
+///
+/// Same shape as [PendingJoinCodeStore], for the same reason: someone opens a
+/// shared event link, discovers they were given something to EDIT, and has to
+/// sign in first. Editing requires an account (so every change carries an
+/// author); reading and suggesting never do. Without this the token is lost at
+/// the login screen and the grant can never be claimed.
+class PendingEventTokenStore {
+  Future<void> setPendingEventToken(String token) async {
+    await secureStorage.write(key: 'pending_event_token', value: token);
+  }
+
+  Future<String?> getAndClearPendingEventToken() async {
+    final token = await secureStorage.read(key: 'pending_event_token');
+    if (token != null) {
+      await secureStorage.delete(key: 'pending_event_token');
+    }
+    return token;
+  }
+}
+
+final pendingEventTokenStoreProvider = Provider<PendingEventTokenStore>((ref) {
+  return PendingEventTokenStore();
 });
 
 /// Provider for the CacheService.
@@ -182,19 +204,20 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
         }
 
         final telegramConsent = data['telegramConsent'] == true;
-        final telegramUsername =
-            telegramConsent ? data['telegramUsername'] as String? : null;
-        final telegramPhotoURL =
-            telegramConsent ? data['telegramPhotoURL'] as String? : null;
+        final telegramUsername = telegramConsent
+            ? data['telegramUsername'] as String?
+            : null;
+        final telegramPhotoURL = telegramConsent
+            ? data['telegramPhotoURL'] as String?
+            : null;
 
         if (displayName == 'User' && telegramUsername != null) {
           displayName = telegramUsername;
         }
         // Avatar precedence: the doc's photoURL is the user's chosen avatar
         // and is authoritative; fall back to Telegram, then auth photo.
-        final photoURL = (data['photoURL'] as String?) ??
-            telegramPhotoURL ??
-            user.photoURL;
+        final photoURL =
+            (data['photoURL'] as String?) ?? telegramPhotoURL ?? user.photoURL;
 
         return AsyncValue.data(
           AppUser(
@@ -203,10 +226,12 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
             displayName: displayName,
             photoURL: photoURL,
             accessRole: (data['accessRole'] as String?) ?? 'member',
-            musicRoles:
-                List<String>.from((data['musicRoles'] as List?) ?? const []),
-            systemTags:
-                List<String>.from((data['systemTags'] as List?) ?? const []),
+            musicRoles: List<String>.from(
+              (data['musicRoles'] as List?) ?? const [],
+            ),
+            systemTags: List<String>.from(
+              (data['systemTags'] as List?) ?? const [],
+            ),
             createdAt: DateTime.now(),
           ),
         );
@@ -240,12 +265,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     );
     Future(() async {
       try {
-        await analytics.setUserProperties(
-          user: snapshot,
-          bandCount: bandCount,
-          songCount: 0,
-          setlistCount: 0,
-        );
+        await analytics.setUserProperties(user: snapshot, bandCount: bandCount);
       } catch (e) {
         debugPrint('Error setting user properties: $e');
       }
@@ -295,6 +315,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       }
 
       await auth.signOut();
+      unawaited(ref.read(analyticsClientProvider).logLogout());
       state = const AsyncValue.data(null);
     } on FirebaseAuthException catch (e, stackTrace) {
       final apiError = _mapFirebaseAuthException(e);
@@ -408,7 +429,9 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       // v7 only exposes an ID token here; that is sufficient for Firebase.
       final idToken = googleUser.authentication.idToken;
       if (idToken == null) {
-        throw ApiError.auth(message: 'Google sign-in failed: missing ID token.');
+        throw ApiError.auth(
+          message: 'Google sign-in failed: missing ID token.',
+        );
       }
       return _signInWithGoogleIdToken(auth, idToken);
     });
@@ -658,9 +681,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
           exception: e,
         );
       case 'network-request-failed':
-        return ApiError.network(
-          exception: e,
-        );
+        return ApiError.network(exception: e);
       case 'too-many-requests':
         return ApiError.auth(
           message: 'Too many failed attempts. Please try again later.',

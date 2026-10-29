@@ -124,7 +124,9 @@ class Setlist {
     required this.id,
     required this.bandId,
     required this.name,
-    required this.createdAt, required this.updatedAt, this.description,
+    required this.createdAt,
+    required this.updatedAt,
+    this.description,
     this.eventDateTime,
     this.eventLocation,
     this.songIds = const [],
@@ -132,6 +134,7 @@ class Setlist {
     this.totalDuration,
     this.assignments = const {},
     this.eventKit,
+    this.ownerUid,
   });
 
   factory Setlist.fromJson(Map<String, dynamic> json) =>
@@ -141,6 +144,10 @@ class Setlist {
   final String id;
   @JsonKey(defaultValue: '')
   final String bandId;
+
+  /// Personal event scope carried by invites and scoped event views.
+  @JsonKey(includeIfNull: false)
+  final String? ownerUid;
   @JsonKey(defaultValue: '')
   final String name;
   final String? description;
@@ -163,6 +170,7 @@ class Setlist {
   /// for every pre-existing doc.
   @JsonKey(fromJson: _eventKitFromJson, toJson: _eventKitToJson)
   final EventKit? eventKit;
+
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
@@ -171,6 +179,7 @@ class Setlist {
   Setlist copyWith({
     String? id,
     String? bandId,
+    Object? ownerUid = _sentinel,
     String? name,
     Object? description = _sentinel,
     Object? eventDateTime = _sentinel,
@@ -186,6 +195,7 @@ class Setlist {
     return Setlist(
       id: id ?? this.id,
       bandId: bandId ?? this.bandId,
+      ownerUid: ownerUid == _sentinel ? this.ownerUid : ownerUid as String?,
       name: name ?? this.name,
       description: description == _sentinel
           ? this.description
@@ -219,6 +229,19 @@ class Setlist {
         .toList();
     return json;
   }
+
+  /// The document body for a normal setlist save.
+  ///
+  /// Deliberately DROPS `eventKit`. The band saves the whole setlist from the
+  /// setlist form while a sound engineer may be dragging amps around the stage
+  /// plot; a full-document write would erase their work (and theirs would erase
+  /// the running order). `eventKit` is written only through dotted field paths
+  /// from its own editor — see `FirestoreService.updateEventKitArea`.
+  ///
+  /// Grants are not here at all: they live in
+  /// `bands/{b}/setlists/{s}/grants/{uid}`, out of every client's reach,
+  /// precisely so that no save from any app build can destroy them.
+  Map<String, dynamic> toJsonForSave() => toJson()..remove('eventKit');
 
   List<SetlistItem> get effectiveItems {
     if (items.isNotEmpty) return items;
@@ -363,8 +386,7 @@ List<Map<String, dynamic>> _itemsToJson(List<SetlistItem> value) {
   return value.map((item) => item.toJson()).toList();
 }
 
-EventKit? _eventKitFromJson(dynamic value) => value is Map
-    ? EventKit.fromJson(Map<String, dynamic>.from(value))
-    : null;
+EventKit? _eventKitFromJson(dynamic value) =>
+    value is Map ? EventKit.fromJson(Map<String, dynamic>.from(value)) : null;
 
 Map<String, dynamic>? _eventKitToJson(EventKit? kit) => kit?.toJson();

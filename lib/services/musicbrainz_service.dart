@@ -59,10 +59,7 @@ class MusicBrainzService {
         .where((t) => t.isNotEmpty)
         .toList();
     if (tokens.isEmpty) return [];
-    final terms = [
-      ...tokens.take(tokens.length - 1),
-      '${tokens.last}*',
-    ];
+    final terms = [...tokens.take(tokens.length - 1), '${tokens.last}*'];
 
     final String query;
     if (artist != null && artist.isNotEmpty) {

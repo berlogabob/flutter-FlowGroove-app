@@ -1,0 +1,29 @@
+{
+  "task": "NEW-002-I2",
+  "reviewer": "hermes",
+  "tested_commit": "fafd262441f22ae7ae90fa485417eee04a91183b",
+  "worktree_commit": "8a46527bb37fdba74cb440281d0e837aac93e797",
+  "actual_model": "ollama/ornith-1.5:35b",
+  "backend_manifest_verified": true,
+  "worker_duration_s": 23.84,
+  "worker_reads": 1,
+  "worker_edits": 1,
+  "production_diff": "one tooltip argument; permissions, callback, heroTag and band scope unchanged",
+  "red": {
+    "exit_code": 1,
+    "actual_label": "",
+    "expected": "Create Band Setlist",
+    "report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I2-20261024-174427/red-test.json"
+  },
+  "green": {
+    "worktree_tests": 6,
+    "primary_tests": 6,
+    "primary_process": "proc_06091a3664dc",
+    "report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I2-20261024-174427/primary-test.json",
+    "includes": "band-scope create/edit; viewer and demo-admin guards"
+  },
+  "analyze_exit_code": 0,
+  "analyze_issues": 0,
+  "format_exit_code": 0,
+  "device_tested": false
+}

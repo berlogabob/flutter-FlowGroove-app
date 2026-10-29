@@ -16,9 +16,7 @@ void main() {
       expect(findIcon(Icons.search), findsOneWidget);
     });
 
-    testWidgets('renders empty state with message', (
-      tester,
-    ) async {
+    testWidgets('renders empty state with message', (tester) async {
       await pumpAppWidget(
         tester,
         const EmptyState(icon: Icons.search, message: 'No results found'),
@@ -91,9 +89,7 @@ void main() {
       expect(find.byType(ElevatedButton), findsNothing);
     });
 
-    testWidgets('calls onAction when action button is tapped', (
-      tester,
-    ) async {
+    testWidgets('calls onAction when action button is tapped', (tester) async {
       bool wasActionCalled = false;
 
       await pumpAppWidget(
@@ -193,9 +189,7 @@ void main() {
       expect(find.byType(ElevatedButton), findsOneWidget);
     });
 
-    testWidgets('calls onAdd when Add Song button is tapped', (
-      tester,
-    ) async {
+    testWidgets('calls onAdd when Add Song button is tapped', (tester) async {
       bool wasAddCalled = false;
 
       await pumpAppWidget(
@@ -303,9 +297,7 @@ void main() {
   });
 
   group('EmptyState.search', () {
-    testWidgets('renders search empty state without query', (
-      tester,
-    ) async {
+    testWidgets('renders search empty state without query', (tester) async {
       await pumpAppWidget(tester, EmptyState.search());
 
       expect(findIcon(Icons.search_off), findsOneWidget);
@@ -313,9 +305,7 @@ void main() {
       expect(find.textContaining('Try'), findsOneWidget);
     });
 
-    testWidgets('renders search empty state with query', (
-      tester,
-    ) async {
+    testWidgets('renders search empty state with query', (tester) async {
       await pumpAppWidget(tester, EmptyState.search(query: 'test query'));
 
       expect(findIcon(Icons.search_off), findsOneWidget);

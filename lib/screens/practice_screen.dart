@@ -9,9 +9,10 @@ import '../providers/homework_provider.dart';
 import '../providers/practice_stats_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/practice_dashboard_card.dart';
+import '../widgets/practice_resume_card.dart';
 import '../widgets/tools/tool_scaffold.dart';
 
-/// Practice screen v1 (#133): the workbook-lite — weekly stats, where the
+/// Progress journal (#133): the workbook-lite — weekly stats, where the
 /// time went per song, homework (open Song Lab tasks across the library),
 /// and the session logbook. Exercises/goals wait for the teacher-workbook
 /// vision (AUDIT_addition.md); mood/reflection lives in Song Lab notes.
@@ -22,37 +23,68 @@ class PracticeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats =
         ref.watch(practiceStatsProvider).asData?.value ?? PracticeStats.empty;
-    final sessions =
-        ref.watch(practiceSessionsProvider).asData?.value ??
-        const <MetronomeSession>[];
-    final homework =
-        ref.watch(myHomeworkProvider).asData?.value ?? const <HomeworkItem>[];
-    final songs = ref.watch(songsProvider).asData?.value ?? const <Song>[];
-    final titles = {for (final s in songs) s.id: s.title};
+    final sessionsAsync = ref.watch(practiceSessionsProvider);
+    final homeworkAsync = ref.watch(myHomeworkProvider);
+    final songsAsync = ref.watch(songsProvider);
+    final titles = {
+      for (final s in songsAsync.value ?? const <Song>[]) s.id: s.title,
+    };
+    final missingTitle = songsAsync.hasError
+        ? 'Song unavailable'
+        : songsAsync.hasValue
+        ? 'Removed song'
+        : 'Loading song…';
 
     return ToolScreenScaffold(
-      title: 'Practice',
+      title: 'Progress',
       mainWidget: ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [
+          const PracticeResumeCard(),
+          FilledButton.icon(
+            onPressed: () => context.pushNamed('metronome'),
+            icon: const Icon(Icons.play_arrow),
+            label: const Text('Start practice'),
+          ),
+          const SizedBox(height: MonoPulseSpacing.lg),
           const PracticeDashboardCard(tappable: false),
           if (!stats.isEmptyWeek) ...[
             const SizedBox(height: MonoPulseSpacing.lg),
-            _sectionTitle(context, 'Where your time went'),
-            _TimePerSong(stats: stats, titles: titles),
+            _sectionTitle(context, 'Practice time by song'),
+            _TimePerSong(
+              stats: stats,
+              titles: titles,
+              missingTitle: missingTitle,
+            ),
           ],
           const SizedBox(height: MonoPulseSpacing.lg),
           _sectionTitle(context, 'Homework'),
-          if (homework.isEmpty)
-            _quietText(
-              context,
-              'Nothing open. Add tasks to a song from its Lab '
-              '(song card → Song Lab).',
-            )
-          else
-            for (final item in homework.take(10)) _homeworkRow(context, item),
+          ...homeworkAsync.when<List<Widget>>(
+            data: (homework) => homework.isEmpty
+                ? [
+                    _quietText(
+                      context,
+                      'Nothing open. Open a song, then its Lab tab, to add tasks.',
+                    ),
+                  ]
+                : [
+                    for (final item in homework.take(10))
+                      _homeworkRow(context, item),
+                  ],
+            loading: () => [_quietText(context, 'Loading homework…')],
+            error: (_, _) => [
+              _quietText(context, 'Unable to load homework'),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () => ref.invalidate(myHomeworkProvider),
+                  child: const Text('Retry'),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: MonoPulseSpacing.lg),
-          _sectionTitle(context, 'Quick start'),
+          _sectionTitle(context, 'Tools'),
           Row(
             children: [
               _quickStartButton(
@@ -79,14 +111,33 @@ class PracticeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
           _sectionTitle(context, 'Recent sessions'),
-          if (sessions.isEmpty)
-            _quietText(
-              context,
-              'No sessions yet — every metronome run lands here '
-              'automatically.',
-            )
-          else
-            ..._logbook(context, sessions.take(30).toList(), titles),
+          ...sessionsAsync.when<List<Widget>>(
+            data: (sessions) => sessions.isEmpty
+                ? [
+                    _quietText(
+                      context,
+                      'No sessions yet — every metronome run lands here '
+                      'automatically.',
+                    ),
+                  ]
+                : _logbook(
+                    context,
+                    sessions.take(30).toList(),
+                    titles,
+                    missingTitle,
+                  ),
+            loading: () => [_quietText(context, 'Loading sessions…')],
+            error: (_, _) => [
+              _quietText(context, 'Unable to load sessions'),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () => ref.invalidate(practiceSessionsProvider),
+                  child: const Text('Retry'),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 96),
         ],
       ),
@@ -111,7 +162,10 @@ class PracticeScreen extends ConsumerWidget {
         side: BorderSide(color: context.mp.borderDefault),
       ),
       icon: Icon(icon),
-      label: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1)),
+      label: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(label, maxLines: 1, style: MonoPulseTypography.bodySmall),
+      ),
     ),
   );
 
@@ -143,9 +197,7 @@ class PracticeScreen extends ConsumerWidget {
         // (UX audit F-011.)
         leading: Icon(
           overdue ? Icons.assignment_late : Icons.radio_button_unchecked,
-          color: overdue
-              ? MonoPulseColors.error
-              : MonoPulseColors.accentOrange,
+          color: overdue ? MonoPulseColors.error : MonoPulseColors.accentOrange,
         ),
         title: Text(item.task.title),
         subtitle: Text(
@@ -157,8 +209,9 @@ class PracticeScreen extends ConsumerWidget {
                   : 'due ${due.day}/${due.month}',
           ].join(' · '),
           style: overdue
-              ? MonoPulseTypography.bodySmall
-                  .copyWith(color: MonoPulseColors.error)
+              ? MonoPulseTypography.bodySmall.copyWith(
+                  color: MonoPulseColors.error,
+                )
               : null,
         ),
         trailing: const Icon(Icons.chevron_right),
@@ -175,6 +228,7 @@ class PracticeScreen extends ConsumerWidget {
     BuildContext context,
     List<MetronomeSession> sessions,
     Map<String, String> titles,
+    String missingTitle,
   ) {
     final rows = <Widget>[];
     DateTime? lastDay;
@@ -214,16 +268,22 @@ class PracticeScreen extends ConsumerWidget {
       }
       final song = s.songId == null
           ? 'Freestyle'
-          : titles[s.songId] ?? 'Removed song';
+          : titles[s.songId] ?? missingTitle;
       rows.add(
         Row(
           children: [
             Icon(Icons.music_note, size: 16, color: context.mp.textSecondary),
             const SizedBox(width: MonoPulseSpacing.sm),
-            Expanded(child: Text(song, overflow: TextOverflow.ellipsis)),
+            Expanded(
+              child: Text(
+                s.regionName == null ? song : '$song · ${s.regionName}',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             Text(
               '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'
-              ' · ${s.startBpm} BPM',
+              '${s.loopReps > 0 ? ' · ${s.loopReps} loops' : ''}'
+              '${s.startBpm > 0 ? ' · ${s.startBpm} BPM' : ''}',
               style: MonoPulseTypography.bodySmall.copyWith(
                 color: context.mp.textSecondary,
               ),
@@ -240,10 +300,15 @@ class PracticeScreen extends ConsumerWidget {
 /// "where your time goes" view (the differentiator competitors gate behind
 /// premium — our sessions carry songId already).
 class _TimePerSong extends StatelessWidget {
-  const _TimePerSong({required this.stats, required this.titles});
+  const _TimePerSong({
+    required this.stats,
+    required this.titles,
+    required this.missingTitle,
+  });
 
   final PracticeStats stats;
   final Map<String, String> titles;
+  final String missingTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -260,7 +325,7 @@ class _TimePerSong extends StatelessWidget {
     ];
 
     String name(String id) =>
-        id.isEmpty ? 'Freestyle' : titles[id] ?? 'Removed song';
+        id.isEmpty ? 'Freestyle' : titles[id] ?? missingTitle;
 
     final segments = [
       for (final e in top) (name(e.key), e.value),

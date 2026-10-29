@@ -47,12 +47,11 @@ function makeTelegramWebhook({ getBot, getSecret } = {}) {
     }
 
     const secret = (getSecret || getConfiguredSecret)();
-    if (secret) {
-      const provided = req.get("X-Telegram-Bot-Api-Secret-Token");
-      if (provided !== secret) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
+    // Fail closed: an unset secret means nobody can prove they are Telegram.
+    const provided = req.get("X-Telegram-Bot-Api-Secret-Token");
+    if (!secret || provided !== secret) {
+      res.status(401).send("Unauthorized");
+      return;
     }
 
     const bot = (getBot || defaultBot)();

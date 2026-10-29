@@ -1,5 +1,25 @@
 # STATUS
 
+## Current checkpoint — 2026-10-24
+
+- Active registry: `docs/plans/systemic-ux/activity.json`; 33 open records,
+  65 tasks (38 current Ornith assignments, one explicit parent fallback), including newly found Graphify coverage work. Read current counts.
+- Saved nine UX findings, 14 open GitHub issues and eight uncovered verification areas.
+- Release hold wired into both Makefiles and the Android publishing workflow;
+  development CI validates the hold instead of treating intentional blocking as failure.
+- OPS-LAN verified: existing Pi studio / Ornith 35b performed a read tool call and
+  returned a source-checked final in 9.69 s. Native delegate 401 remains separate.
+  Noninteractive Pi must use stdin=DEVNULL; inherited stdin stalled the first launch.
+- First UX-007 code slice integrated as efef7ca4: caller tooltip + shared Icon
+  semantic label; 47 related screen tests pass on second01. Fresh device/TalkBack pending.
+  No audio/user-data changes, publication or install.
+- OPS-RUNNER and UX-007-R/I/S verified. NEW-002 tracks three adjacent callers; personal Setlists fixed, two slices remain.
+- UX-006-R worker timed out after 540 s / 11 reads / no final; no output accepted.
+  Hermes completed direct source review without retry. UX-006-I is now integrated and verified
+  as e6d8f26b with 64 related primary tests; UX-006-V is blocked for fresh device evidence.
+- Historical state below is retained; old green suites and completed checklists are
+  not fresh verification of today's code/device behaviour.
+
 **Last Updated:** 2026-06-05
 
 ## Current State
@@ -61,3 +81,35 @@
 1. Continue reducing repo-wide lint backlog in touched subsystems until targeted analyze output is mostly silent.
 2. Generate a fresh untruncated exact-candidate dry-run report, then run a no-write preview with explicit `--project` before any real canonical library migration batch.
 3. Keep emulator-backed acceptance flows under `integration_test/**` and keep routed widget/navigation coverage in the fast test tree.
+
+UX-006-I integrated and accepted: e6d8f26b, 64 related primary tests, final analyze/format exit 0. UX-006-V remains blocked for fresh installed-device evidence. Periodic read-only brief d173a844e136 checks every 10 minutes; it does not drive implementation.
+
+NEW-002-R accepted from three parent-checked source windows. Three one-production-file fix/test slices registered; NEW-002-I1 confirmed rendered RED, then Ornith added exactly one tooltip line in 28.47 s. Whole-file GREEN: 12 tests plus analyze/format/diff passed. Integrated as 5de705cb; 12 primary tests passed, I1 verified. NEW-002-I2 verified on fafd2624: 6 primary tests, analyze no issues. NEW-002-I3 now runs GREEN/readonly/band-scope/analyze (proc_dcdce8987aa4).
+
+NEW-002-I1 verified on 5de705cb: 12 primary tests, accessible-name and no-edit guard checks; issue remains open. NEW-002-I2 confirmed RED, Ornith added one tooltip line, GREEN/roles/analyze pending as proc_8d7a1d8b3263. NEW-002-I3 has a reproduced empty-label RED and parent-reviewed one-line tooltip patch; independent GREEN pending.
+
+NEW-002-I3 worktree checks passed: 2 tests, analyze no issues, format/diff 0. Integrated as 370b23f9; seven-file primary regression proc_e052664fe359 pending. No device acceptance. UX-009-R readonly triage launched as proc_bfff379b9a82: exactly two complete source files, no edits/import exploration.
+
+I3 accepted on 370b23f9: 68 primary related tests passed; NEW-002-V blocked for fresh device/screen reader. UX-009-R source reviewed; launcher copied-allowlist error corrected without repeating model. Shared Home/Practice DashboardCard added as UX-009-I2; whole-screen test moved to new public PracticeScreen fixture; independent sections/Quick start must not be blocked globally. UX-009-I2 parent async-state RED running as proc_7b16a5452437. Registry: 33 issues /66 tasks.
+
+UX-009-I2 model attempt timed out without edits/final; saved and rejected, no retry. Parent replaced empty fallback with AsyncValue.when for card content+semantics, retaining Card/InkWell/data chart/navigation/tokens. Whole card suite/analyze/format now runs as proc_acce872e0790 in worktree; not integrated or accepted. Registry 33/66, 12 verified tasks; two device verification blockers.
+
+UX-009-I2 interim four card tests passed; final navigation (tappable/non-tappable) and cached refresh guards added. Expanded suite/analyze/format proc_f15eca8ed4c1 pending; source remains only in worktree. Four analyzer info expressions verified present in baseline.
+
+Card: 4-case interim GREEN, cached-refresh guard also passed in expansion; routed navigation fixture pending-timer cleanup fixed, final six-case replay proc_4d4c3eddc694 pending. No primary integration. UX-001-R readonly Home/Practice flow triage running proc_ef6ca6593645; preserve distinction source vs human-usability evidence, no nav redesign before DESIGN-01.
+
+UX-009-I2 final six card cases passed (async text/semantics, data/empty, navigation true/false, cached refresh); analyze/format/diff exit 0, four infos from baseline expressions. Integrated 87bfe21f; eight-file primary regression proc_7c4f32232b38 pending. UX-001-R source accepted with corrected visual/semantics claims; UX-001-I blocked on DESIGN-01. NEW-003 readonly-card semantics registered (R verified, I after card-state acceptance, V/device blocked). Registry 34 issues/69 tasks, 14 verified tasks, not 14 fixed problems.
+
+UX-009-I2 accepted on 87bfe21f: 74 primary related tests passed, hashes match six-case worktree suite. Full PracticeScreen independent async sections remain UX-009-I (queued). NEW-003-I rendered readonly semantics RED launched proc_d5b3ef9e53bc; only test fixture edited so far. No active Ornith generation. Registry 34 issues/69 tasks; verified task count includes research/infrastructure, not closed product issues.
+
+NEW-003-I RED confirms readonly merged label incorrectly says Tap to start. One model attempt timed out after source read/no edit; attempt saved, no retry. Parent conditional label patch and both readonly/tappable rendered assertions prepared. Full seven-case suite/analyze/format proc_740851d3d2bd pending; not integrated.
+
+NEW-003-I code integrated 6d26f9ef after seven-case worktree PASS and analyze/format/diff 0 (four baseline infos). Primary replay proc_cc582a08c4b7 pending. UX-009-I whole public PracticeScreen fixture starts with homework async lifecycle + independent Quick start, proc_dc3b5f9ed2dd RED pending. Only its test file created so far.
+
+NEW-003-I accepted on 6d26f9ef: 75 primary related tests, seven-case worktree checks/analyze/format 0; device V remains blocked. UX-009-I actual PracticeScreen homework RED confirmed (missing Loading homework status, no fixture/backend failure). Ornith Homework-only tracer running proc_83a7b4a9f0b4 with 540 s model bound /600 s launcher, one source read +max2 edits; no repeated prior prompt. Recent-session and song-title state fixes still required before whole UX-009-I acceptance.
+
+Luna lane authorized: Hermes CLI gpt-6-luna per-call, fix/luna-ux isolated worktree, project-only context/resumable session, no global model/memory changes. UX-002-R draft ready after 35.040 s; review pending. UX-008-R resume launched proc_baa2eec1e593 (first zero-token CLI-flag rejection preserved/corrected). Pi Luna OAuth 401; do not use that route without user login. Ornith Homework run timed out 540 s without tools, parent fallback required. PARALLEL-LANES.md defines reduced checkpoint overhead and unchanged release hold.
+
+Luna pilot verified: UX-002-R draft 35.040 s, UX-008-R draft 75.644 s; exact same Hermes session resumed. Assigned file calls only; both reports pending parent review in fix/luna-ux, no production changes. Personal memory excluded, no global config changed. Parent now owns timed-out Homework slice. See PARALLEL-LANES.md; full checks/Graphify batched at integration points, targeted tests retained.
+
+Queue owner: native supervisor 748ba92c74d8, every 3m, script-gated; instructions /Users/berloga/MyHermes/FlowGrooveStatus/QUEUE-SUPERVISOR.md. Foreground must not compete for leased files or start duplicate workers. UX-009-I Luna CLI disconnected: retain lease and inspect gateway session local-9e1843ff439773d2b421186920ec607d6c4e9732aec159ebf453a8a830d43e66 before redispatch, never resend work. Current reports/reviews/next ready steps must be advanced by controller, not wait for chat. Status job stays 10m. Release hold unchanged.

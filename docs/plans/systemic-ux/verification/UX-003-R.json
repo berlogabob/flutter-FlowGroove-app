@@ -1,0 +1,18 @@
+{
+  "task": "UX-003-R",
+  "reviewer": "hermes",
+  "tested_commit": "923b9049cda9efaf8c9f554b625f616f3686f98d",
+  "scope": "source-only acceptance; no product fix or device/human acceptance",
+  "worker": {"provider": "openai-codex", "actual_model": "gpt-6-luna", "exit_code": 0, "duration_ms": 59809, "reads": 3, "writes": 1, "allowed_paths_only": true},
+  "source_identical_to_worker": true,
+  "source_sha256": {
+    "lib/screens/songs/songs_list_screen.dart": "204c00059fada8cf6afb7ff312cc1d575a6daa8d973c8c2b78fc9e2076dba01c",
+    "test/screens/songs/songs_list_screen_test.dart": "475b459e2da30ca2bf18d6f2ffbf0fc21abfd0befe038cd88ad73b5da1e80501",
+    "lib/screens/setlists/setlist_view_screen.dart": "a001379c85b6dca076060349f83e843e7a9370b807f8a3effdcc5a14b43562a5"
+  },
+  "parent_followthrough": ["app_router.dart song route and query forwarding", "song_page_screen.dart initialTab, demo Sheet fallback, band Edit visibility, embedded edit form"],
+  "corrections": ["Unconditional tap is not an editing permission bypass: demo defaults to Sheet; regular personal song defaults to Edit.", "Parent resolved worker destination coverage gap from real route/destination source; no device or save behavior inferred."],
+  "tests": "not run: no executable change",
+  "remaining": ["DESIGN-01", "approved routed-screen RED/GREEN", "device and human checks", "issue remains open"],
+  "check_history": ["First source-hash probe used an unresolved relative root and failed before comparisons; rerun with Path.cwd() succeeded."]
+}

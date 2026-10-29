@@ -45,9 +45,7 @@ class SuggestionCard extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 48),
         padding: const EdgeInsets.all(MonoPulseSpacing.md),
         decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primaryContainer
-              : Colors.transparent,
+          color: isSelected ? colorScheme.primaryContainer : Colors.transparent,
           border: Border(
             bottom: BorderSide(
               color: colorScheme.outline.withValues(alpha: 0.05),
@@ -62,9 +60,9 @@ class SuggestionCard extends StatelessWidget {
               children: [
                 // Source icon
                 SourceIcon(source: suggestion.source),
-                
+
                 const SizedBox(width: 10),
-                
+
                 // Title
                 Expanded(
                   child: Text(
@@ -79,9 +77,9 @@ class SuggestionCard extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 4),
-            
+
             // Second row: artist and metadata
             Row(
               children: [
@@ -98,15 +96,11 @@ class SuggestionCard extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             // Third row: badges and metadata
             if (_hasMetadata) ...[
               const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: _buildBadges(context),
-              ),
+              Wrap(spacing: 6, runSpacing: 4, children: _buildBadges(context)),
             ],
           ],
         ),
@@ -177,7 +171,7 @@ class SuggestionCard extends StatelessWidget {
         if (suggestion.album != null) suggestion.album,
         if (suggestion.releaseYear != null) suggestion.releaseYear.toString(),
       ].join(' • ');
-      
+
       badges.add(
         _Badge(
           label: albumText,
@@ -194,7 +188,6 @@ class SuggestionCard extends StatelessWidget {
 
 /// Small badge chip
 class _Badge extends StatelessWidget {
-
   const _Badge({
     required this.label,
     required this.icon,
@@ -211,22 +204,19 @@ class _Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final badge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: MonoPulseSpacing.xxs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 6,
+        vertical: MonoPulseSpacing.xxs,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 12,
-            color: color.withValues(alpha: opacity ?? 1.0),
-          ),
+          Icon(icon, size: 12, color: color.withValues(alpha: opacity ?? 1.0)),
           const SizedBox(width: 3),
           Flexible(
             child: Text(
@@ -244,8 +234,6 @@ class _Badge extends StatelessWidget {
       ),
     );
 
-    return tooltip != null
-        ? Tooltip(message: tooltip, child: badge)
-        : badge;
+    return tooltip != null ? Tooltip(message: tooltip, child: badge) : badge;
   }
 }

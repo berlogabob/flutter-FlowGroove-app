@@ -6,13 +6,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/song.dart';
 import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
+import '../providers/auth/auth_provider.dart';
+
 import '../router/app_router.dart';
 import '../services/idea_recorder.dart';
+import '../services/audio/audio_note_edit.dart' show entryNotes;
 import '../services/pending_storage_deletes.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
 import 'songs/components/lab_recording_sheet.dart';
 import '../widgets/tools/tool_scaffold.dart';
+
+String? _editableUid(WidgetRef ref) {
+  final user = ref.read(appUserProvider);
+  if (user.isLoading || user.hasError) return null;
+  final value = user.value;
+  if (value == null || value.accessRole == 'demo') return null;
+  return ref.read(firebaseAuthProvider).currentUser?.uid == value.uid
+      ? value.uid
+      : null;
+}
 
 /// Recorder (#145): the one home for audio captures. Record on top, every
 /// unlinked take listed below — play it, link it to a song (it moves into
@@ -35,13 +48,18 @@ class _RecorderScreenState extends ConsumerState<RecorderScreen> {
     super.initState();
     if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) captureIdea(context, ref, autoStart: true);
+        if (mounted && _editableUid(ref) != null) {
+          captureIdea(context, ref, autoStart: true);
+        }
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(appUserProvider);
+    ref.watch(firebaseAuthProvider);
+    final uid = _editableUid(ref);
     final recordings =
         ref.watch(labEntriesProvider((ideaInboxSongId, null))).asData?.value ??
         const <SongLabEntry>[];
@@ -59,7 +77,13 @@ class _RecorderScreenState extends ConsumerState<RecorderScreen> {
                 vertical: MonoPulseSpacing.lg,
               ),
             ),
-            onPressed: () => captureIdea(context, ref),
+            onPressed: uid == null
+                ? null
+                : () {
+                    if (context.mounted && _editableUid(ref) == uid) {
+                      captureIdea(context, ref);
+                    }
+                  },
             icon: const Icon(Icons.mic),
             label: const Text('Record'),
           ),
@@ -70,9 +94,9 @@ class _RecorderScreenState extends ConsumerState<RecorderScreen> {
           ),
           if (recordings.isEmpty)
             Text(
-              'Nothing here yet — hit Record and catch the riff before it '
-              'gets away. Link takes to songs later; linked ones move into '
-              "the song's Lab.",
+              'Hit Record to capture an idea. You can attach recordings '
+              'to a song later. Your phone asks for microphone access the '
+              'first time you record.',
               style: MonoPulseTypography.bodySmall.copyWith(
                 color: context.mp.textSecondary,
               ),
@@ -96,7 +120,11 @@ class _RecordingCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(appUserProvider);
+    ref.watch(firebaseAuthProvider);
+    final uid = _editableUid(ref);
     final d = recording.createdAt;
+    final notes = entryNotes(recording);
     return Card(
       margin: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
       elevation: 0,
@@ -115,6 +143,7 @@ class _RecordingCard extends ConsumerWidget {
           children: [
             Text(
               '${d.day}/${d.month}/${d.year}'
+              '${notes.isNotEmpty ? ' · ${notes.length} note${notes.length == 1 ? '' : 's'}' : ''}'
               '${recording.body?.isNotEmpty == true ? ' · ${recording.body}' : ''}',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -124,24 +153,33 @@ class _RecordingCard extends ConsumerWidget {
               LabAudioPlayer(url: recording.attachmentIds.first),
           ],
         ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (v) => switch (v) {
-            'edit' => context.goAudioNote(recording),
-            'link' => _linkToSong(context, ref),
-            'delete' => _delete(context, ref),
-            _ => null,
-          },
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'edit', child: Text('Trim & notes…')),
-            PopupMenuItem(value: 'link', child: Text('Link to song…')),
-            PopupMenuItem(value: 'delete', child: Text('Delete')),
-          ],
-        ),
+        trailing: uid == null
+            ? null
+            : PopupMenuButton<String>(
+                onSelected: (v) {
+                  if (!context.mounted || _editableUid(ref) != uid) return;
+                  switch (v) {
+                    case 'edit':
+                      context.goAudioNote(recording);
+                    case 'link':
+                      _linkToSong(context, ref);
+                    case 'delete':
+                      _delete(context, ref);
+                  }
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Open')),
+                  PopupMenuItem(value: 'link', child: Text('Link to song…')),
+                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                ],
+              ),
       ),
     );
   }
 
   Future<void> _linkToSong(BuildContext context, WidgetRef ref) async {
+    final uid = _editableUid(ref);
+    if (uid == null) return;
     final songId = await showModalBottomSheet<String>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -161,7 +199,7 @@ class _RecordingCard extends ConsumerWidget {
         ),
       ),
     );
-    if (songId == null || !context.mounted) return;
+    if (songId == null || !context.mounted || _editableUid(ref) != uid) return;
     await linkIdeaToSong(ref, recording, songId: songId);
     if (context.mounted) {
       showAppSnackBar(context, "Linked — see the song's Lab timeline");
@@ -169,26 +207,78 @@ class _RecordingCard extends ConsumerWidget {
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final uid = _editableUid(ref);
+    if (uid == null) return;
+    // The card disappears on deletion; Undo must read the surviving scope.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final auth = ref.read(firebaseAuthProvider);
     final repo = ref.read(labRepositoryProvider);
     final pending = ref.read(pendingStorageDeletesProvider);
+    final messenger = ScaffoldMessenger.of(context);
     // Undo restores the document, and its audio URL only still resolves
     // because the object outlives the snackbar. Queue the object now, delete
     // it when the undo window shuts, and drop it from the queue if Undo wins.
     final url = recording.attachmentIds.isEmpty
         ? null
         : recording.attachmentIds.first;
-    if (url != null) await pending.enqueue(url);
-    await repo.deleteEntry(ideaInboxSongId, recording.id);
+    try {
+      if (url != null) await pending.enqueue(url);
+      if (!context.mounted || _editableUid(ref) != uid) {
+        if (url != null) await pending.cancel(url);
+        return;
+      }
+      await repo.deleteEntry(ideaInboxSongId, recording.id);
+    } catch (_) {
+      if (url != null) {
+        try {
+          await pending.cancel(url);
+        } catch (_) {
+          // shortcut: persistence failure can leave the URL queued; REC-S5 must address recovery.
+        }
+      }
+      if (context.mounted) {
+        showAppSnackBar(context, 'Could not delete recording');
+      }
+      return;
+    }
     if (url != null) unawaited(pending.flushAfter(url, undoGracePeriod));
     if (context.mounted) {
+      bool canRestore() {
+        if (!messenger.mounted) return false;
+        final user = container.read(appUserProvider);
+        return !user.isLoading &&
+            !user.hasError &&
+            user.value?.uid == uid &&
+            user.value?.accessRole != 'demo' &&
+            auth.currentUser?.uid == uid;
+      }
+
+      Future<void> undo() async {
+        if (!canRestore()) return;
+        try {
+          if (url != null) await pending.cancel(url);
+          if (!canRestore()) return;
+          await repo.saveEntry(recording);
+        } catch (_) {
+          if (messenger.mounted) {
+            messenger
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: const Text("Couldn't restore — try again"),
+                  backgroundColor: MonoPulseColors.error,
+                  action: SnackBarAction(label: 'Retry', onPressed: undo),
+                ),
+              );
+          }
+        }
+      }
+
       showAppSnackBar(
         context,
         'Recording deleted',
         actionLabel: 'Undo',
-        onAction: () {
-          repo.saveEntry(recording);
-          if (url != null) pending.cancel(url);
-        },
+        onAction: undo,
       );
     }
   }

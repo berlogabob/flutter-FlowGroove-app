@@ -1,0 +1,21 @@
+{
+  "task": "GH-187-P",
+  "reviewer": "hermes",
+  "tested_commit": "36c01385b05da57274e66af8c1536dcc1daf6250",
+  "result": "accepted source contract with parent corrections; not a product fix",
+  "worker": {"provider": "openai-codex", "actual_model": "gpt-6-luna", "session": "local-dd21bc925ade03514b65f24fe4508544a0e0b5329c2f21aaadac3fe7c963a2f9", "terminal_at": "2026-10-25T09:03:55.008Z", "api_calls": 3, "cli_exit": 1, "cli_disconnect_preserved": true, "prompt_replayed": false},
+  "source_sha256": {
+    "functions/src/events.js": "281dac059cdcf24a032e5770fcd22ee0e4927785a16bfe463b59eeee2a991dc4",
+    "functions/test/callable-event-share.test.js": "8032caa10e22982b4cd714043ca3f62eb693fa2ddafb55dad2404589f347807f",
+    "lib/models/setlist.dart": "5fb041480088cfa3907ff49fa16aa69673b5c30fb12c86aa42bc8d24c19841cb",
+    "lib/models/event_suggestion.dart": "60f6c12a51db6777df2545ad30c35d23bbee5d26ea2aa73bed626534bbaa5f37",
+    "lib/repositories/firestore_setlist_repository.dart": "8cacb8bf4948f18e6c06695e5ea63b5847d558d4f97776fc89d9af947eea82b2",
+    "docs/plans/systemic-ux/reviews/GH-187.md": "2b16c55dd18d465f6e577a225dbca630d1e44e07a6270c4f16b863cfc7b2dd0c"
+  },
+  "tool_scope": "Retained CLI contains six permitted reads and searches limited to permitted paths. Report write and final independently confirmed in exact server log; disconnected CLI has no final write event. No full stream compliance claim.",
+  "baseline": {"command": "firebase emulators:exec --project repsync-app-event-share-test --only firestore \"functions/node_modules/.bin/mocha functions/test/callable-event-share.test.js --grep suggestions\"", "exit_code": 0, "passing": 13, "new_behavior_green": false},
+  "corrections": ["Reject ambiguous/legacy-only identity rather than inventing a mandatory global migration; legacy compatibility remains explicit open gate", "Define exact fingerprint tuple and transactional authority/status/content semantics", "Inspect actual note-only caller/service; register submission, authorized view exposure, transport and UI separately", "Safe add-song selection remains named client blocker, no guest library disclosure"],
+  "registered_followups": ["GH-187-I1", "GH-187-S", "GH-187-E", "GH-187-C", "GH-187-U", "GH-187-I2", "GH-187-V"],
+  "not_checked": ["new backend behavior", "device", "human UX", "full Graphify", "release readiness"],
+  "release_hold": true
+}

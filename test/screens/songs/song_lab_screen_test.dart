@@ -1,12 +1,18 @@
 import 'dart:async';
 
+import 'package:flowgroove/models/audio_region.dart';
+import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/services/audio/audio_file_cache.dart';
+import 'package:flowgroove/widgets/standard_screen_scaffold.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_lab.dart';
+import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/songs/song_lab_screen.dart';
+import 'package:flowgroove/services/pending_storage_deletes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,6 +26,28 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
 
   final entries = <SongLabEntry>[];
   final tasks = <SongTask>[];
+  final versions = <SongVersion>[];
+  int currentVersionWrites = 0;
+  void Function()? afterVersionSave;
+  bool failDelete = false;
+  bool failSave = false;
+  int deleteAttempts = 0;
+
+  @override
+  Future<void> saveVersion(SongVersion version, {String? bandId}) async {
+    versions.add(version);
+    afterVersionSave?.call();
+  }
+
+  @override
+  Future<void> setCurrentVersion(
+    String songId,
+    String versionId, {
+    String? bandId,
+  }) async {
+    currentVersionWrites++;
+  }
+
   final _controller = StreamController<List<SongLabEntry>>.broadcast();
   final _taskController = StreamController<List<SongTask>>.broadcast();
 
@@ -46,13 +74,18 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
   }
 
   @override
-  Future<void> deleteTask(String songId, String taskId, {String? bandId}) async {
+  Future<void> deleteTask(
+    String songId,
+    String taskId, {
+    String? bandId,
+  }) async {
     tasks.removeWhere((t) => t.id == taskId);
     _emitTasks();
   }
 
   @override
   Future<void> saveEntry(SongLabEntry entry, {String? bandId}) async {
+    if (failSave) throw StateError('private backend detail');
     entries.removeWhere((e) => e.id == entry.id);
     entries.insert(0, entry);
     _emit();
@@ -64,12 +97,18 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
     String entryId, {
     String? bandId,
   }) async {
+    deleteAttempts++;
+    if (failDelete) throw StateError('private backend detail');
     entries.removeWhere((e) => e.id == entryId);
     _emit();
   }
 }
 
 void main() {
+  final defaultAudioFileCache = audioFileCache;
+  setUp(() => audioFileCache = (_, _) async => null);
+  tearDown(() => audioFileCache = defaultAudioFileCache);
+
   final song = Song(
     id: 's1',
     title: 'Hey Joe',
@@ -79,17 +118,50 @@ void main() {
     sections: [Section(id: 'sec1', name: 'Verse', duration: 4)],
   );
 
-  Future<_InMemoryLabRepo> pump(WidgetTester tester, {Song? withSong}) async {
+  Future<_InMemoryLabRepo> pump(
+    WidgetTester tester, {
+    Song? withSong,
+    String? role,
+    bool embedded = false,
+    _AuthorizedUserNotifier? identity,
+    PendingStorageDeletes? pending,
+  }) async {
     final repo = _InMemoryLabRepo();
     final auth = MockFirebaseAuth();
-    when(auth.currentUser).thenReturn(null);
+    final firebaseUser = MockUser();
+    when(firebaseUser.uid).thenReturn('u1');
+    when(auth.currentUser).thenReturn(firebaseUser);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           labRepositoryProvider.overrideWithValue(repo),
           firebaseAuthProvider.overrideWith((ref) => auth),
+          appUserProvider.overrideWith(
+            () => identity ?? _AuthorizedUserNotifier(),
+          ),
+          if (pending != null)
+            pendingStorageDeletesProvider.overrideWithValue(pending),
+          bandsProvider.overrideWith(
+            (ref) => Stream.value([
+              Band(
+                id: 'b1',
+                name: 'Band',
+                createdBy: 'owner',
+                createdAt: DateTime(2026),
+                members: [BandMember(uid: 'u1', role: role ?? 'viewer')],
+              ),
+            ]),
+          ),
         ],
-        child: MaterialApp(home: SongLabScreen(song: withSong ?? song)),
+        child: MaterialApp(
+          home: Scaffold(
+            body: SongLabScreen(
+              song: withSong ?? song,
+              bandId: role == null ? null : 'b1',
+              embedded: embedded,
+            ),
+          ),
+        ),
       ),
     );
     await tester.pump();
@@ -98,17 +170,565 @@ void main() {
   }
 
   group('SongLabScreen (#67)', () {
-    testWidgets('shows quick-add chips and empty state', (tester) async {
-      await pump(tester);
+    for (final type in LabEntryType.values) {
+      testWidgets('${type.name} delete requires confirmation', (tester) async {
+        final repo = await pump(tester);
+        await repo.saveEntry(
+          SongLabEntry(
+            id: 'e1',
+            songId: song.id,
+            type: type,
+            title: 'Keep until confirmed',
+            authorId: 'u1',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        );
+        await tester.pumpAndSettle();
+        Future<void> openDelete() async {
+          await tester.tap(find.byType(PopupMenuButton<String>));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Delete'));
+          await tester.pumpAndSettle();
+        }
 
-      expect(find.text('+ Note'), findsOneWidget);
-      expect(find.text('+ Decision'), findsOneWidget);
-      expect(find.text('+ Experiment'), findsOneWidget);
-      expect(find.text('+ Problem'), findsOneWidget);
+        await openDelete();
+        expect(
+          find.text(
+            type == LabEntryType.recording
+                ? 'Delete recording?'
+                : 'Delete entry?',
+          ),
+          findsOneWidget,
+        );
+        expect(repo.deleteAttempts, 0);
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(repo.entries, hasLength(1));
+        expect(find.text('Keep until confirmed'), findsOneWidget);
+        await openDelete();
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
+        await tester.pumpAndSettle();
+        expect(repo.entries, isEmpty);
+        expect(repo.deleteAttempts, 1);
+        expect(find.text('Keep until confirmed'), findsNothing);
+      });
+    }
+
+    Future<void> showRecording(
+      WidgetTester tester,
+      _InMemoryLabRepo repo,
+    ) async {
+      await repo.saveEntry(
+        SongLabEntry(
+          id: 'audio',
+          songId: song.id,
+          type: LabEntryType.recording,
+          title: 'Take',
+          authorId: 'u1',
+          attachmentIds: const ['audio-url'],
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'failed recording delete cancels queued audio and reports safely',
+      (tester) async {
+        final pending = _PausedPendingDeletes();
+        final repo = await pump(tester, pending: pending);
+        repo.failDelete = true;
+        await showRecording(tester, repo);
+        pending.release.complete();
+        await tester.pumpAndSettle();
+        expect(repo.deleteAttempts, 1);
+        expect(repo.entries, hasLength(1));
+        expect(pending.cancelled, ['audio-url']);
+        expect(pending.flushed, isEmpty);
+        expect(find.text('Could not delete entry. Try again.'), findsOneWidget);
+        expect(find.textContaining('private backend'), findsNothing);
+      },
+    );
+    for (final interruption in ['revoked', 'unmounted']) {
+      testWidgets('recording enqueue $interruption cancels without deleting', (
+        tester,
+      ) async {
+        final pending = _PausedPendingDeletes();
+        final identity = _AuthorizedUserNotifier();
+        final repo = await pump(tester, pending: pending, identity: identity);
+        await showRecording(tester, repo);
+        expect(pending.enqueued, ['audio-url']);
+        if (interruption == 'revoked') {
+          identity.change(const AsyncValue.data(null));
+        } else {
+          await tester.pumpWidget(const SizedBox.shrink());
+        }
+        pending.release.complete();
+        await tester.pumpAndSettle();
+        expect(repo.deleteAttempts, 0);
+        expect(repo.entries, hasLength(1));
+        expect(pending.cancelled, ['audio-url']);
+        expect(pending.flushed, isEmpty);
+      });
+    }
+    for (final permission in ['authorized', 'revoked', 'author viewer']) {
+      testWidgets(
+        'recording delete $permission preserves Undo permissions and grace',
+        (tester) async {
+          final pending = _PausedPendingDeletes();
+          final identity = _AuthorizedUserNotifier();
+          final repo = await pump(
+            tester,
+            pending: pending,
+            identity: identity,
+            role: permission == 'author viewer' ? 'viewer' : null,
+          );
+          await showRecording(tester, repo);
+          pending.release.complete();
+          await tester.pumpAndSettle();
+          expect(repo.deleteAttempts, 1);
+          expect(repo.entries, isEmpty);
+          expect(pending.flushed, ['audio-url']);
+          expect(pending.gracePeriods, [undoGracePeriod]);
+          expect(pending.cancelled, isEmpty);
+          if (permission == 'author viewer') {
+            expect(find.text('Undo'), findsNothing);
+          } else {
+            if (permission == 'revoked')
+              identity.change(const AsyncValue.data(null));
+            await tester.tap(find.text('Undo'));
+            await tester.pumpAndSettle();
+            expect(
+              repo.entries,
+              permission == 'authorized' ? hasLength(1) : isEmpty,
+            );
+            expect(
+              pending.cancelled,
+              permission == 'authorized' ? ['audio-url'] : isEmpty,
+            );
+          }
+        },
+      );
+    }
+    for (final interruption in ['none', 'identity changed', 'unmounted']) {
+      testWidgets('recording Undo awaits cancellation: $interruption', (
+        tester,
+      ) async {
+        final pending = _PausedPendingDeletes()
+          ..cancelRelease = Completer<void>();
+        final identity = _AuthorizedUserNotifier();
+        final repo = await pump(tester, pending: pending, identity: identity);
+        await showRecording(tester, repo);
+        pending.release.complete();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Undo'));
+        await tester.pumpAndSettle();
+        expect(pending.cancelled, ['audio-url']);
+        expect(
+          repo.entries,
+          isEmpty,
+          reason: 'Restore must wait for cancellation',
+        );
+        if (interruption == 'identity changed') {
+          identity.change(
+            AsyncValue.data(AppUser(uid: 'u2', createdAt: DateTime(2026))),
+          );
+        } else if (interruption == 'unmounted') {
+          await tester.pumpWidget(const SizedBox.shrink());
+        }
+        pending.cancelRelease!.complete();
+        await tester.pumpAndSettle();
+        expect(repo.entries, interruption == 'none' ? hasLength(1) : isEmpty);
+        expect(tester.takeException(), isNull);
+      });
+    }
+    for (final failure in ['cancel', 'restore']) {
+      for (final revoked in [false, true]) {
+        testWidgets(
+          'recording Undo $failure failure permits safe Retry: revoked=$revoked',
+          (tester) async {
+            final pending = _PausedPendingDeletes();
+            final identity = _AuthorizedUserNotifier();
+            final repo = await pump(
+              tester,
+              pending: pending,
+              identity: identity,
+            );
+            await showRecording(tester, repo);
+            pending.release.complete();
+            await tester.pumpAndSettle();
+            pending.failCancel = failure == 'cancel';
+            repo.failSave = failure == 'restore';
+            await tester.tap(find.text('Undo'));
+            await tester.pumpAndSettle();
+            expect(tester.takeException(), isNull);
+            expect(repo.entries, isEmpty);
+            expect(find.text("Couldn't restore — try again"), findsOneWidget);
+            expect(find.textContaining('private backend'), findsNothing);
+            pending.failCancel = false;
+            repo.failSave = false;
+            if (revoked) identity.change(const AsyncValue.data(null));
+            await tester.tap(find.text('Retry'));
+            await tester.pumpAndSettle();
+            expect(repo.entries, revoked ? isEmpty : hasLength(1));
+            expect(
+              pending.cancelled,
+              revoked ? ['audio-url'] : ['audio-url', 'audio-url'],
+            );
+            expect(tester.takeException(), isNull);
+          },
+        );
+      }
+    }
+    for (final role in ['viewer', 'editor', 'admin']) {
+      for (final embedded in [false, true]) {
+        testWidgets(
+          '$role ${embedded ? "embedded" : "standalone"} retains viewing and authorized tasks',
+          (tester) async {
+            final repo = await pump(tester, role: role, embedded: embedded);
+            await repo.saveTask(
+              SongTask(
+                id: 't1',
+                songId: song.id,
+                title: 'Learn solo',
+                createdAt: DateTime(2026),
+                updatedAt: DateTime(2026),
+              ),
+            );
+            await tester.tap(find.text('Tasks'));
+            await tester.pumpAndSettle();
+            expect(find.text('Learn solo'), findsOneWidget);
+            final chip = tester.widget<ActionChip>(
+              find.widgetWithText(ActionChip, 'todo'),
+            );
+            expect(chip.onPressed != null, role != 'viewer');
+            expect(
+              find.text('Add task'),
+              role == 'viewer' ? findsNothing : findsOneWidget,
+            );
+            if (role != 'viewer') {
+              await tester.tap(find.text('todo'));
+              await tester.pumpAndSettle();
+              expect(repo.tasks.single.status, SongTaskStatus.doing);
+            }
+            if (embedded) {
+              expect(
+                tester
+                    .widget<IconButton>(
+                      find.byWidgetPredicate(
+                        (widget) =>
+                            widget is IconButton &&
+                            widget.tooltip == 'Export history (Markdown)',
+                      ),
+                    )
+                    .onPressed,
+                isNotNull,
+              );
+              expect(
+                tester
+                        .widget<IconButton>(
+                          find.byWidgetPredicate(
+                            (widget) =>
+                                widget is IconButton &&
+                                widget.tooltip == 'Save version',
+                          ),
+                        )
+                        .onPressed !=
+                    null,
+                role != 'viewer',
+              );
+            }
+          },
+        );
+      }
+    }
+    for (final state in <String, AsyncValue<AppUser?>>{
+      'signed out': const AsyncValue.data(null),
+      'loading': const AsyncValue.loading(),
+      'error': AsyncValue.error(StateError('offline'), StackTrace.empty),
+    }.entries) {
+      testWidgets('${state.key} cannot migrate or offer mutations', (
+        tester,
+      ) async {
+        final repo = await pump(
+          tester,
+          withSong: Song(
+            id: 'notes',
+            title: 'Notes',
+            artist: '',
+            notes: 'keep',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+          identity: _AuthorizedUserNotifier(state.value),
+        );
+        await tester.pump();
+        expect(repo.entries, isEmpty);
+        expect(find.text('Add'), findsNothing);
+        await tester.tap(find.text('Tasks'));
+        await tester.pump();
+        expect(find.text('Add task'), findsNothing);
+      });
+    }
+    testWidgets('open compose sheet cannot save after permission is revoked', (
+      tester,
+    ) async {
+      final identity = _AuthorizedUserNotifier();
+      final repo = await pump(tester, identity: identity);
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Note'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'What happened?'),
+        'Do not write',
+      );
+      identity.change(const AsyncValue.data(null));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(repo.entries, isEmpty);
+    });
+
+    testWidgets('task Undo cannot restore after permission revocation', (
+      tester,
+    ) async {
+      final identity = _AuthorizedUserNotifier();
+      final repo = await pump(tester, identity: identity);
+      await repo.saveTask(
+        SongTask(
+          id: 't1',
+          songId: song.id,
+          title: 'Learn solo',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await tester.tap(find.text('Tasks'));
+      await tester.pumpAndSettle();
+      await tester.longPress(find.text('Learn solo'));
+      await tester.pumpAndSettle();
+      expect(repo.tasks, isEmpty);
+      identity.change(const AsyncValue.data(null));
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(repo.tasks, isEmpty);
+    });
+    testWidgets(
+      'authorized version save preserves current version and changelog',
+      (tester) async {
+        final repo = await pump(tester, embedded: true);
+        await tester.tap(find.byTooltip('Save version'));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Name (e.g. v0.3, Live, Acoustic)'),
+          'Live',
+        );
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        expect(repo.versions.single.name, 'Live');
+        expect(repo.currentVersionWrites, 1);
+        expect(repo.entries.single.type, LabEntryType.versionChange);
+        expect(find.text('Version: Live'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'version save stops subsequent writes after permission revocation',
+      (tester) async {
+        final identity = _AuthorizedUserNotifier();
+        final repo = await pump(tester, identity: identity, embedded: true);
+        repo.afterVersionSave = () =>
+            identity.change(const AsyncValue.data(null));
+        await tester.tap(find.byTooltip('Save version'));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Name (e.g. v0.3, Live, Acoustic)'),
+          'Snapshot',
+        );
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        expect(repo.versions, hasLength(1));
+        expect(repo.currentVersionWrites, 0);
+        expect(repo.entries, isEmpty);
+      },
+    );
+
+    testWidgets(
+      'band author viewer may delete own entry but is not offered forbidden Undo',
+      (tester) async {
+        final repo = await pump(tester, role: 'viewer');
+        await repo.saveEntry(
+          SongLabEntry(
+            id: 'e1',
+            songId: song.id,
+            type: LabEntryType.note,
+            title: 'My note',
+            authorId: 'u1',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(PopupMenuButton<String>));
+        await tester.pumpAndSettle();
+        expect(find.text('Edit'), findsNothing);
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
+        await tester.pumpAndSettle();
+        expect(repo.entries, isEmpty);
+        expect(find.text('Undo'), findsNothing);
+      },
+    );
+
+    testWidgets('viewer retains standalone export without Save version', (
+      tester,
+    ) async {
+      await pump(tester, role: 'viewer');
+      await tester.pumpAndSettle();
+      final scaffold = tester.widget<StandardScreenScaffold>(
+        find.byType(StandardScreenScaffold),
+      );
       expect(
-        find.text('The story of this song starts here'),
+        scaffold.menuItems!.map((item) => item.label),
+        contains('Export history (Markdown)'),
+      );
+      expect(
+        scaffold.menuItems!.map((item) => item.label),
+        isNot(contains('Save version')),
+      );
+    });
+
+    testWidgets(
+      'stale task action reads current permission before the next frame',
+      (tester) async {
+        final identity = _AuthorizedUserNotifier();
+        final repo = await pump(tester, identity: identity);
+        await repo.saveTask(
+          SongTask(
+            id: 't1',
+            songId: song.id,
+            title: 'Keep todo',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        );
+        await tester.tap(find.text('Tasks'));
+        await tester.pumpAndSettle();
+        final action = tester
+            .widget<ActionChip>(find.widgetWithText(ActionChip, 'todo'))
+            .onPressed!;
+        identity.change(
+          AsyncValue.data(
+            AppUser(uid: 'u1', accessRole: 'demo', createdAt: DateTime(2026)),
+          ),
+        );
+        action();
+        await tester.pumpAndSettle();
+        expect(repo.tasks.single.status, SongTaskStatus.todo);
+      },
+    );
+
+    testWidgets('demo cannot migrate notes or mutate entries or tasks', (
+      tester,
+    ) async {
+      final repo = _InMemoryLabRepo();
+      final auth = MockFirebaseAuth();
+      final firebaseUser = MockUser();
+      when(firebaseUser.uid).thenReturn('demo');
+      when(auth.currentUser).thenReturn(firebaseUser);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            labRepositoryProvider.overrideWithValue(repo),
+            firebaseAuthProvider.overrideWith((ref) => auth),
+            appUserProvider.overrideWith(() => _DemoUserNotifier()),
+          ],
+          child: MaterialApp(
+            home: SongLabScreen(
+              song: Song(
+                id: 'demo-song',
+                title: 'Demo',
+                artist: '',
+                notes: 'must not migrate',
+                createdAt: DateTime(2026),
+                updatedAt: DateTime(2026),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(repo.entries, isEmpty);
+      expect(find.text('Add'), findsNothing);
+      expect(find.text('Save version'), findsNothing);
+      await tester.tap(find.text('Tasks'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add task'), findsNothing);
+      expect(repo.tasks, isEmpty);
+    });
+    testWidgets('recording with regions links them to the song map', (
+      tester,
+    ) async {
+      final repo = await pump(tester);
+      await repo.saveEntry(
+        SongLabEntry(
+          id: 'audio',
+          songId: song.id,
+          type: LabEntryType.recording,
+          title: 'Flor demo',
+          body: 'Capo 2',
+          notes: const [(ms: 4425, text: 'chorus')],
+          authorId: 'u1',
+          attachmentIds: const ['audio-url'],
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+          regions: const [
+            AudioRegion(id: 'r1', name: 'verse', startMs: 0, endMs: 4000),
+            AudioRegion(id: 'r2', name: 'Chorus', startMs: 4000, endMs: 8000),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('2 regions'), findsOneWidget);
+      expect(find.textContaining('1 note'), findsOneWidget);
+      expect(find.text('Capo 2'), findsOneWidget);
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      expect(find.text('Practice regions'), findsNothing);
+      await tester.tap(find.text('Use as song map'));
+      await tester.pumpAndSettle();
+      final saved = repo.entries.single.regions;
+      expect(saved.map((r) => r.sectionId), ['sec1', null]);
+      expect(
+        find.text('Linked; 1 region has no matching section'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('shows Add menu and empty state', (tester) async {
+      await pump(tester);
+
+      expect(find.text('Add'), findsOneWidget);
+      expect(find.byType(PopupMenuButton<LabEntryType>), findsOneWidget);
+      expect(find.text('The story of this song starts here'), findsOneWidget);
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PopupMenuItem<LabEntryType>), findsNWidgets(5));
+      expect(find.text('Record'), findsOneWidget);
+      expect(find.text('Note'), findsOneWidget);
+      expect(find.text('Decision'), findsOneWidget);
+      expect(find.text('Experiment'), findsOneWidget);
+      expect(find.text('Problem'), findsOneWidget);
     });
 
     testWidgets('composing a note saves an entry and renders it', (
@@ -116,7 +736,9 @@ void main() {
     ) async {
       final repo = await pump(tester);
 
-      await tester.tap(find.text('+ Note'));
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Note'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.widgetWithText(TextField, 'What happened?'),
@@ -131,12 +753,12 @@ void main() {
       expect(find.text('Try the riff an octave up'), findsOneWidget);
     });
 
-    testWidgets('decision quick-add starts with active status', (
-      tester,
-    ) async {
+    testWidgets('decision quick-add starts with active status', (tester) async {
       final repo = await pump(tester);
 
-      await tester.tap(find.text('+ Decision'));
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Decision'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.widgetWithText(TextField, 'What happened?'),
@@ -195,4 +817,51 @@ void main() {
       expect(repo.entries.single.body, 'capo on 2');
     });
   });
+}
+
+class _PausedPendingDeletes extends PendingStorageDeletes {
+  final release = Completer<void>();
+  final enqueued = <String>[];
+  final cancelled = <String>[];
+  final flushed = <String>[];
+  final gracePeriods = <Duration>[];
+
+  @override
+  Future<void> enqueue(String url) async {
+    enqueued.add(url);
+    await release.future;
+  }
+
+  Completer<void>? cancelRelease;
+  bool failCancel = false;
+
+  @override
+  Future<void> cancel(String url) async {
+    cancelled.add(url);
+    if (failCancel) throw StateError('private backend detail');
+    await cancelRelease?.future;
+  }
+
+  @override
+  Future<void> flushAfter(String url, Duration grace) async {
+    flushed.add(url);
+    gracePeriods.add(grace);
+  }
+}
+
+class _AuthorizedUserNotifier extends AppUserNotifier {
+  _AuthorizedUserNotifier([this.initial]);
+  final AsyncValue<AppUser?>? initial;
+  void change(AsyncValue<AppUser?> value) => state = value;
+
+  @override
+  AsyncValue<AppUser?> build() =>
+      initial ?? AsyncValue.data(AppUser(uid: 'u1', createdAt: DateTime(2026)));
+}
+
+class _DemoUserNotifier extends AppUserNotifier {
+  @override
+  AsyncValue<AppUser?> build() => AsyncValue.data(
+    AppUser(uid: 'demo', accessRole: 'demo', createdAt: DateTime(2026)),
+  );
 }

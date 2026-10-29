@@ -30,7 +30,10 @@ void main() {
       final parsed = chordProToSong(songToChordPro(song), base: blank());
       expect(parsed.sections.single.duration, 4);
       expect(parsed.sections.single.colorValue, 0xFFE65100);
-      expect(parsed.unknownDirectives, isEmpty); // x_flowgroove_section is known
+      expect(
+        parsed.unknownDirectives,
+        isEmpty,
+      ); // x_flowgroove_section is known
     });
   });
 
@@ -46,7 +49,9 @@ void main() {
         ),
       ];
       // Parsed from hand-typed text (no extras directive) → duration 1, no colour.
-      final parsed = [Section(id: 'cp_sec_0', name: 'Verse', chordChart: '[Am]new')];
+      final parsed = [
+        Section(id: 'cp_sec_0', name: 'Verse', chordChart: '[Am]new'),
+      ];
       final out = reconcileSections(existing, parsed);
       expect(out.single.id, 'v1'); // identity preserved
       expect(out.single.duration, 3); // extra preserved
@@ -131,17 +136,20 @@ void main() {
       c.dispose();
     });
 
-    test('isImportConflict only when structure differs over a non-empty map', () {
-      const doc = '{start_of_chorus: Chorus}\n[C]x\n{end_of_chorus}';
-      final withMap = ChordProSyncController(
-        sections: [Section(id: 'a', name: 'Verse')],
-      );
-      expect(withMap.isImportConflict(doc), isTrue);
-      final empty = ChordProSyncController(sections: []);
-      expect(empty.isImportConflict(doc), isFalse);
-      withMap.dispose();
-      empty.dispose();
-    });
+    test(
+      'isImportConflict only when structure differs over a non-empty map',
+      () {
+        const doc = '{start_of_chorus: Chorus}\n[C]x\n{end_of_chorus}';
+        final withMap = ChordProSyncController(
+          sections: [Section(id: 'a', name: 'Verse')],
+        );
+        expect(withMap.isImportConflict(doc), isTrue);
+        final empty = ChordProSyncController(sections: []);
+        expect(empty.isImportConflict(doc), isFalse);
+        withMap.dispose();
+        empty.dispose();
+      },
+    );
 
     test('applyImport replace vs append', () {
       final c = ChordProSyncController(

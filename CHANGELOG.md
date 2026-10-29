@@ -4,6 +4,90 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## Unreleased — verified UX implementation slices (2026-10-24)
+
+- UX-007: create-song FAB tooltip and rendered accessible name; issue remains open for device/TalkBack acceptance.
+- NEW-003-I: non-tappable Practice card no longer announces a tap action; tappable Home label and navigation preserved. Seven focused /75 primary related tests passed; device/screen-reader acceptance pending.
+- UX-009-I2: shared Home/Practice card distinguishes loading/error from real empty/populated weeks, including accessible status, retained cached refresh data and unchanged navigation. Six focused /74 related primary tests passed; whole PracticeScreen sections and device acceptance remain pending.
+- NEW-002-I1: personal Setlists create FAB names its action as Create Setlist; 12 screen tests pass on primary, including rendered semantics and the no-edit FAB guard. Band Setlists also fixed (Create Band Setlist), with 6 primary role/navigation tests and clean analyze. Rehearsals proposal FAB also named (Propose rehearsal), with two focused tests and 68 related primary tests passed. Installed-device/screen-reader acceptance remains pending.
+- UX-006: keep the existing backing chooser with active MIDI without replacing the pinned launchpad transport. Portrait/landscape regression verifies opening the chooser, returning to the launchpad and no transport launch; 64 related tests pass on second01.
+- No dependency, engine, permission, version or release change. UX-006 device recheck remains blocked, and the publication hold is unchanged.
+
+## Unreleased — systemic UX/UI work plan and publication hold (2026-10-23)
+
+- Added a single activity registry for nine UX findings, existing open GitHub work
+  and uncovered verification areas; new problems extend the same scope/history.
+- Bounded Ornith 35b / Studio LAN task contracts, dependencies, status and independent
+  Hermes acceptance; product UX fixes are not implemented by this planning change.
+- Publication/version-bump hold in both Makefiles and the Android release workflow;
+  registry/gate regression checks added to development CI. No release or deploy.
+
+## Unreleased — MIDI drum practice + audit round 3 (2026-10-15)
+
+### Drum practice (new)
+- **Drums in practice mode.** On the Metronome screen, with a song loaded, a **Drums**
+  button opens a sheet: pick a saved drum pattern, press Play, and it follows the
+  song's tempo (speed 50/75/100%). **Sync with click** (on by default) starts and
+  stops the drums with the metronome, even with the sheet closed. A kit view lights
+  up the pad that is playing, with per-lane Mute / Solo.
+- **Import a .mid file.** Channel-10 drum notes are read into a 1-4 bar pattern on a
+  16th-note grid (the file's own tempo is ignored; the song's tempo is used).
+- **Write your own.** "New pattern" opens a step editor (8 steps per page, tap cycles
+  Normal / Accent / Ghost / Off) with Play preview and a pinned Save row.
+- **Logbook.** Patterns are saved as Song Lab entries (type "Midi") on the song, for
+  personal and band songs; band viewers can listen but not save.
+- **Real drum sounds.** The nine drum voices are now recorded hits (public-domain "SM Drums" samples, 0.7 MB total); the synthesized sounds remain as a fallback.
+- Drums are native-only for now: the button is hidden on web.
+- Old app builds show a saved drum pattern as an ordinary note, and re-saving it there
+  drops the pattern. Update before editing patterns.
+
+### Fixed / polished (UX audit round 3)
+- Selected chips are orange everywhere; empty-state and Drums button states are clearer.
+- Importing a file on Android failed silently (lab audio, CSV and .mid import).
+- Login shows **Retry** for connection errors.
+- Tuning editor and section picker messages no longer render behind their sheet.
+- Tuner: note labels no longer touch the dial ticks; long tuning names wrap by word.
+- Home quick actions read "Add song / Add band / Add setlist"; song cards show
+  "-- BPM" when a song has none; fast tempos (240+) get a "double-time?" hint.
+- Android cold start no longer flashes a white starting window.
+
+## Unreleased — analytics instrumentation repair + cloud practice history (2026-08-11)
+
+### Analytics — most of it was never being recorded
+- **Screen tracking existed nowhere.** The root `GoRouter` had no navigator
+  observer, so `screen_view` fired on exactly two hand-instrumented screens out of
+  ~40 (and fired *twice* on each). A `FirebaseAnalyticsObserver` is now registered
+  in `createAppRouter`, so every named route reports automatically.
+- **Sessions were 30 seconds long.** `AnalyticsService.initialize()` set a 30-minute
+  timeout and the debug helper immediately overwrote it with 30 *seconds*. Every
+  session-count and engagement-duration figure recorded before this release is
+  unreliable. Deleted `lib/utils/analytics_debug.dart`, which also removed a fake
+  `analytics_test` event that fired on every release launch.
+- **Web was untracked entirely** — analytics initialisation was skipped on web, so
+  the `G-DQC026CRM8` stream received nothing. Now initialises on all platforms.
+- **The consent switch didn't actually stop anything.** It only gated ~15 of ~55
+  events; logins, all tuner events, song/band/setlist events, user properties and
+  every Firebase automatic event were transmitted regardless. Consent is now
+  enforced at the SDK level via `setAnalyticsCollectionEnabled`, which is the only
+  thing that can stop the legacy call sites and the automatic events.
+- Wired the events that map to real funnel steps but had never been called —
+  signup, logout, song/setlist delete, PDF/CSV export, ChordPro share, member
+  removed — at service and repository choke points rather than per screen.
+- Removed 24 event methods that had no call sites, and the always-zero
+  `song_count` / `setlist_count` user properties.
+
+### Practice history now syncs
+- Practice sessions moved from a device-local Hive box to
+  `users/{uid}/practiceSessions` in Firestore. Your streak, weekly minutes and
+  session logbook now survive a reinstall and appear on a second device; before
+  this they were lost with the app. Existing local history is migrated once on
+  first launch. The data is private to the account — bandmates never see it.
+- Privacy policy, FAQ, Play Data Safety sheet and the delete-account page updated
+  to disclose practice data and the correct analytics default (on, opt-out in
+  Settings ▸ Privacy).
+- Practice and Settings wiki pages can now open in the in-app wiki panel (they
+  were missing from the allowlist, so their links escaped to a browser tab).
+
 ## Unreleased — UX audit remediation + setlist/navigation fixes (2026-07-19)
 
 Branch `fix/ux-audit-2026-07` (PR #174 → `second01`). On-device verified on a real

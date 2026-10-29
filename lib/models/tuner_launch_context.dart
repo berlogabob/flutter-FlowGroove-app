@@ -2,12 +2,12 @@ import 'setlist.dart';
 import 'song.dart';
 
 class TunerLaunchContext {
-
   const TunerLaunchContext({
     required this.song,
     this.setlist,
     this.setlistItemId,
     this.bandId,
+    this.inferBandId = true,
     this.saveSong,
     this.saveSetlist,
   });
@@ -15,6 +15,7 @@ class TunerLaunchContext {
   final Setlist? setlist;
   final String? setlistItemId;
   final String? bandId;
+  final bool inferBandId;
   final Future<void> Function(Song song)? saveSong;
   final Future<void> Function(Setlist setlist)? saveSetlist;
 
@@ -33,6 +34,7 @@ class TunerLaunchContext {
     if (overrideBandId != null && overrideBandId.isNotEmpty) {
       return overrideBandId;
     }
+    if (!inferBandId) return null;
     final setlistBandId = setlist?.bandId.trim();
     if (setlistBandId != null && setlistBandId.isNotEmpty) {
       return setlistBandId;

@@ -53,6 +53,37 @@ describe("setBandAvatar / removeBandAvatar callables", function () {
     functionsTest.cleanup();
   });
 
+  for (const operation of ["set", "remove"]) {
+    for (const demoSource of ["token", "profile"]) {
+      it(`${operation} rejects ${demoSource} demo admins before any mutation`, async () => {
+        const band = { adminUids: ["demo-admin"], photoURL: "https://example.com/old" };
+        await db.doc("bands/b1").set(band);
+        await db.doc("users/demo-admin").set({
+          accessRole: demoSource === "profile" ? "demo" : "member",
+        });
+        let bucketCalls = 0;
+        const factory = operation === "set" ? makeSetBandAvatar : makeRemoveBandAvatar;
+        const fn = functionsTest.wrap(factory({ getBucket: () => {
+          bucketCalls++;
+          throw new Error("Storage must not be reached");
+        } }));
+        try {
+          await assert.rejects(
+            () => fn({
+              data: { bandId: "b1", imageBase64: b64("img") },
+              auth: { uid: "demo-admin", token: { demo: demoSource === "token" } },
+            }),
+            (e) => e.code === "failed-precondition",
+          );
+          assert.equal(bucketCalls, 0);
+          assert.deepEqual((await db.doc("bands/b1").get()).data(), band);
+        } finally {
+          await db.doc("users/demo-admin").delete();
+        }
+      });
+    }
+  }
+
   it("rejects unauthenticated callers", async () => {
     const { fn } = buildSet();
     await assert.rejects(

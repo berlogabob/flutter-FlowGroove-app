@@ -65,9 +65,7 @@ void main() {
       final container = await pump(tester);
 
       expect(container.read(hapticsEnabledProvider), isTrue);
-      await tester.tap(
-        find.widgetWithText(SwitchListTile, 'Haptics'),
-      );
+      await tester.tap(find.widgetWithText(SwitchListTile, 'Haptics'));
       await tester.pumpAndSettle();
       expect(container.read(hapticsEnabledProvider), isFalse);
     });

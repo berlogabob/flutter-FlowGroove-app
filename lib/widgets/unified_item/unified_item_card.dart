@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../theme/mono_pulse_theme.dart';
 import '../band_avatar.dart';
@@ -171,6 +172,14 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
                   ),
                 ),
               ],
+            )
+          else
+            // Speed slot kept aligned even when no tempo is set (audit).
+            Text(
+              '-- BPM',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: context.mp.textSecondary,
+              ),
             ),
           if (song.contributedBy != null || song.isCopy)
             Row(
@@ -211,7 +220,10 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       final meta = Text(
         [
           '$songCount ${songCount == 1 ? 'song' : 'songs'}',
-          if (setlist.eventDateTime != null) setlist.formattedEventDate,
+          if (setlist.eventDateTime != null)
+            DateFormat.yMMMd(
+              Localizations.localeOf(context).toString(),
+            ).format(setlist.eventDateTime!),
         ].join(' · '),
         style: MonoPulseTypography.bodySmall,
       );

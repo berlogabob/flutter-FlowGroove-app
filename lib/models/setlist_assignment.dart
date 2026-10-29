@@ -4,7 +4,6 @@ part 'setlist_assignment.g.dart';
 
 @JsonSerializable()
 class SetlistAssignment {
-
   SetlistAssignment({
     required this.oderId,
     this.roleOverride,

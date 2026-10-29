@@ -5,14 +5,20 @@ import android.content.Intent
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.PowerManager
+import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class MainActivity : FlutterActivity() {
     private var audioRouteEmitter: AudioRouteEmitter? = null
@@ -49,13 +55,140 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "com.flowgroove/battery"
+        ).setMethodCallHandler { call, result ->
+            try {
+                when (call.method) {
+                    "oemFamily" -> result.success(OemPowerSettings.family())
+                    "lastRunEndedUnexpectedly" ->
+                        result.success(MetronomeForegroundService.consumeUnexpectedStop(applicationContext))
+                    "openOemSettings" -> result.success(OemPowerSettings.open(this))
+                    "isIgnoringBatteryOptimizations" ->
+                        result.success(isIgnoringBatteryOptimizations())
+                    "requestIgnoreBatteryOptimizations" -> {
+                        requestIgnoreBatteryOptimizations()
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            } catch (error: Exception) {
+                result.error("battery_optimization_error", error.message, null)
+            }
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "com.flowgroove/audio"
+        ).setMethodCallHandler { call, result ->
+            val mainHandler = Handler(mainLooper)
+            // Minutes of audio: never on the platform thread.
+            Thread {
+                try {
+                    val value: Any = when (call.method) {
+                        "toAac" -> AudioTranscoder.toAac(
+                            call.argument<String>("in")!!,
+                            call.argument<String>("out")!!,
+                            call.argument<Int>("bitrate") ?: 192_000
+                        )
+                        "toWav" -> AudioTranscoder.toWav(
+                            call.argument<String>("in")!!,
+                            call.argument<String>("out")!!
+                        )
+                        "decodePcm" -> AudioTranscoder.decodePcm(
+                            call.argument<String>("in")!!,
+                            call.argument<Int>("sampleRate")!!
+                        )
+                        else -> {
+                            mainHandler.post { result.notImplemented() }
+                            return@Thread
+                        }
+                    }
+                    mainHandler.post { result.success(value) }
+                } catch (error: Exception) {
+                    mainHandler.post { result.error("audio_error", error.message, null) }
+                }
+            }.start()
+        }
+
         val ch = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "com.flowgroove/metronome"
         )
         channel = ch
+        val backing = AndroidMetronomeEngine.backingFor(applicationContext)
+        val mainHandler = Handler(mainLooper)
+        synchronized(backing) {
+            backing.onState = { token, state, bar ->
+                mainHandler.post {
+                    channel?.invokeMethod("backingState", mapOf(
+                        "token" to if (token.startsWith("n:")) token.substring(2).toLong()
+                            else token.removePrefix("s:"),
+                        "state" to state, "bar" to bar
+                    ))
+                }
+            }
+        }
+        AndroidMetronomeEngine.onBar = { index ->
+            channel?.invokeMethod("bar", mapOf("index" to index))
+        }
         ch.setMethodCallHandler { call, result ->
             when (call.method) {
+                "engineSampleRate" -> result.success(backing.sampleRate)
+                "syncCaptureStart" -> {
+                    val seconds = (call.argument<Number>("seconds") ?: 60).toInt().coerceIn(5, 300)
+                    val file = java.io.File(getExternalFilesDir(null), "sync_capture.wav")
+                    AndroidMetronomeEngine.syncCapture =
+                        SyncCapture(file, backing.sampleRate, seconds.toLong() * backing.sampleRate)
+                    result.success(file.absolutePath)
+                }
+                "engineLatencyMs" -> result.success(AndroidMetronomeEngine.engineLatencyMs())
+                "backingLoad" -> handleMetronomeCall(call, result) { args ->
+                    val sampleRate = (args["sampleRate"] as? Number)?.toInt()
+                    require(sampleRate == backing.sampleRate) { "Backing sampleRate must match engine rate" }
+                    val paths = requireNotNull(args["paths"] as? List<*>) { "Expected paths list" }
+                    val stems = paths.mapIndexed { index, path ->
+                        val bytes = File(requireNotNull(path as? String) { "Invalid backing path" }).readBytes()
+                        require(bytes.size % 2 == 0) { "Expected raw Int16 mono PCM" }
+                        val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+                        index.toString() to ShortArray(buffer.remaining()).also { buffer.get(it) }
+                    }.toMap()
+                    val renderBpm = requireNotNull(args["renderBpm"] as? Number) { "Missing renderBpm" }.toDouble()
+                    val ticksPerBar = requireNotNull(args["ticksPerBar"] as? Number) { "Missing ticksPerBar" }.toInt()
+                    val intervalMicros = requireNotNull(args["intervalMicros"] as? Number) { "Missing intervalMicros" }.toDouble()
+                    synchronized(backing) {
+                        backing.load(stems, renderBpm, ticksPerBar, intervalMicros)
+                    }
+                }
+                "backingCommand" -> handleMetronomeCall(call, result) { args ->
+                    val token = requireNotNull(args["token"]) { "Missing token" }
+                    require(token is String || token is Int || token is Long) { "Invalid token" }
+                    val kind = requireNotNull(args["kind"] as? String) { "Missing kind" }
+                    val atBar = requireNotNull(args["atBar"] as? Number) { "Missing atBar" }.toInt()
+                    if (kind == "cancel") {
+                        val target = requireNotNull(args["fromBar"] as? Number) { "Missing cancel token" }.toInt()
+                        synchronized(backing) { backing.cancel("n:$target") }
+                        return@handleMetronomeCall
+                    }
+                    synchronized(backing) {
+                        backing.command(
+                            (if (token is String) "s:$token" else "n:$token"), kind,
+                            (args["fromBar"] as? Number)?.toInt() ?: 0,
+                            (args["bars"] as? Number)?.toInt() ?: 0,
+                            args["loop"] as? Boolean ?: true, atBar
+                        )
+                    }
+                }
+                "backingGain" -> handleMetronomeCall(call, result) { args ->
+                    val stem = requireNotNull(args["stem"]) { "Missing stem" }.toString()
+                    val gain = requireNotNull(args["gain"] as? Number) { "Missing gain" }.toDouble()
+                    synchronized(backing) { backing.setGain(stem, gain) }
+                }
+                "backingClear" -> {
+                    synchronized(backing) { backing.load(emptyMap(), 120.0, 4, 500_000.0) }
+                    result.success(null)
+                }
                 "start" -> handleMetronomeCall(call, result) { args ->
                     ensureServiceStartedAndBound()
                     val svc = service
@@ -84,6 +217,21 @@ class MainActivity : FlutterActivity() {
         )
         audioRouteEmitter = AudioRouteEmitter(this)
         routeChannel.setStreamHandler(audioRouteEmitter)
+    }
+
+    private fun isIgnoringBatteryOptimizations(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        return powerManager.isIgnoringBatteryOptimizations(packageName)
+    }
+
+    private fun requestIgnoreBatteryOptimizations() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            !isIgnoringBatteryOptimizations()) {
+            startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.parse("package:$packageName")
+            })
+        }
     }
 
     private fun bindIfNeeded() {
@@ -128,6 +276,9 @@ class MainActivity : FlutterActivity() {
     override fun onDestroy() {
         audioRouteEmitter?.dispose()
         audioRouteEmitter = null
+        val backing = AndroidMetronomeEngine.backingFor(applicationContext)
+        synchronized(backing) { backing.onState = null }
+        AndroidMetronomeEngine.onBar = null
         channel = null
         super.onDestroy()
     }

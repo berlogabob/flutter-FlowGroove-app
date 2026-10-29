@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -5,12 +6,20 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../models/song.dart';
 import '../../utils/chordpro.dart';
+import '../analytics_service.dart';
 
 /// Exports a song's "our version" as a standard ChordPro `.cho` file and opens
 /// the share sheet. Reuses [songToChordPro] (directives + `[Chord]lyric` lines)
 /// and the same share_plus path as the CSV export.
-Future<bool> shareSongChordPro(Song song) =>
-    shareChordProText(songToChordPro(song), song.title);
+Future<bool> shareSongChordPro(Song song) async {
+  final ok = await shareChordProText(songToChordPro(song), song.title);
+  if (ok) {
+    unawaited(
+      AnalyticsService.logSongShared(songId: song.id, shareMethod: 'chordpro'),
+    );
+  }
+  return ok;
+}
 
 /// Shares an already-serialized ChordPro document (e.g. the song editor's live
 /// text) as a `.cho` file. (#79 — export from the editor menu.)

@@ -1,0 +1,13 @@
+[project]
+name = "flowgroove-poster"
+version = "0.1.0"
+description = "Pick commits, scaffold a Hugo blog draft, publish to Telegram."
+requires-python = ">=3.11"
+dependencies = [
+    "typer",
+    "python-frontmatter",
+    "python-dotenv",
+]
+
+[project.scripts]
+poster = "poster:app"

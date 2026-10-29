@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/tuner_preset.dart';
 
 class TunerPresetRepository {
-
   TunerPresetRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
     : _firestoreOverride = firestore,
       _authOverride = auth;

@@ -15,6 +15,9 @@ Your practice, tracked automatically — every metronome session is logged
 - **Recent sessions** — the logbook: day by day, song, duration and BPM.
 - **Quick start** — jump straight into the Metronome, Tuner, or the Recorder.
 
+Your practice history is saved to your account, so your streak and logbook follow
+you to a new phone and survive a reinstall. It's private — bandmates never see it.
+
 Recordings live in the **Recorder** (Home → Tools, or Home → Audio note for
 one-tap capture): record riffs before they have a song, play them back, and
 link each to a song — it lands in that song's Lab timeline.

@@ -135,11 +135,12 @@ class _PerformerSheetState extends State<_PerformerSheet> {
   }
 
   Future<void> _addPerson() async {
-    final result = await showModalBottomSheet<({String name, String role, bool all})>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => const _AddPersonForm(),
-    );
+    final result =
+        await showModalBottomSheet<({String name, String role, bool all})>(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => const _AddPersonForm(),
+        );
     if (result == null) return;
     final person = EventPerson(
       id: const Uuid().v4(),

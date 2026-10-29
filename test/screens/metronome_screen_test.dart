@@ -1,5 +1,6 @@
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/providers/data/drum_active_provider.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/widgets/metronome/central_tempo_circle.dart';
@@ -420,11 +421,12 @@ void main() {
             builder: (context, state) => const MetronomeScreen(),
           ),
           GoRoute(
-            path: '/songs/:id/edit',
-            name: 'edit-song',
+            path: '/songs/:id',
+            name: 'song',
             builder: (context, state) {
               final editedSong = state.extra! as Song;
-              return Scaffold(body: Text('Editing ${editedSong.title}'));
+              final tab = state.uri.queryParameters['tab'];
+              return Scaffold(body: Text('Editing ${editedSong.title} ($tab)'));
             },
           ),
         ],
@@ -446,7 +448,7 @@ void main() {
       await tester.tap(find.text('Edit Song'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Editing Loaded Song'), findsOneWidget);
+      expect(find.text('Editing Loaded Song (edit)'), findsOneWidget);
     });
 
     testWidgets('play preserves three visible main beats', (tester) async {
@@ -488,6 +490,41 @@ void main() {
       expect(container.read(metronomeProvider).accentBeats, 3);
       expect(find.byKey(const Key('main_beat_dot_2')), findsOneWidget);
       expect(find.byKey(const Key('main_beat_dot_3')), findsNothing);
+    });
+
+    testWidgets('Android keeps playing when the app is paused', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final runtime = MetronomeTestRuntime();
+      final container = ProviderContainer(overrides: runtime.overrides);
+      addTearDown(() async {
+        container.dispose();
+        await runtime.dispose();
+      });
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(size: Size(400, 800)),
+              child: MetronomeScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.play_arrow));
+      await tester.pump();
+      expect(container.read(metronomeProvider).isPlaying, isTrue);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+
+      expect(container.read(metronomeProvider).isPlaying, isTrue);
     });
 
     testWidgets('has offline indicator', (tester) async {

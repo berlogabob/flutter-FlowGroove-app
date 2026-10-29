@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/analytics_service.dart';
+import '../../services/band_function_service.dart';
 import '../../services/secure_storage_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
@@ -25,7 +25,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
   final _formKey = GlobalKey<FormState>();
   final _codeController = TextEditingController();
   bool _isLoading = false;
-  Band? _band;
+  BandInviteInfo? _band;
   String? _error;
 
   @override
@@ -52,22 +52,28 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
     });
 
     try {
-      final service = ref.read(firestoreProvider);
+      // The public invite callable, NOT a direct band read. Band documents
+      // are members-only: `read` covers `list`, so an open rule there let any
+      // signed-in account enumerate every band with its member emails and its
+      // inviteCode — the very secret this screen is asking for. The callable
+      // returns a deliberately public subset instead.
       final code = _codeController.text.trim().toUpperCase();
-      final band = await service.getBandByInviteCode(code);
-
-      if (band == null) {
-        if (mounted) {
-          setState(() {
-            _error = 'Invalid invite code';
-          });
-        }
-        return;
-      }
+      final band = await BandFunctionService().getBandInviteInfo(code);
 
       if (mounted) {
         setState(() {
           _band = band;
+        });
+      }
+    } on FirebaseFunctionsException catch (e) {
+      // The callable throws not-found for an unknown code rather than returning
+      // null — say "invalid code" for that, and keep real failures distinct so
+      // a network problem never reads as a wrong code.
+      if (mounted) {
+        setState(() {
+          _error = e.code == 'not-found'
+              ? 'Invalid invite code'
+              : 'Could not check that code. Please try again.';
         });
       }
     } catch (e) {
@@ -89,7 +95,16 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
     // The demo account is shared and read-only; it must never become a member
     // of a real band. Server-side join rules are the real boundary, but block
     // it here too so the demo UI can't even attempt it.
-    if (ref.read(isDemoUserProvider)) {
+    //
+    // `isDemoUserProvider` answers false while the user document is still
+    // loading. For a *restriction* that default permits, which is the wrong
+    // way round for an action: a wrong "no" costs a retry a second later, a
+    // wrong "yes" is the shared account joining someone's real band. Treat
+    // unknown as demo HERE only — the banner keeps the other default, because
+    // flipping it globally flashes "demo mode" at every real user on every
+    // cold start.
+    final userStillLoading = ref.read(appUserProvider).isLoading;
+    if (userStillLoading || ref.read(isDemoUserProvider)) {
       showAppSnackBar(
         context,
         'Demo accounts cannot join bands. Sign up to join.',
@@ -127,7 +142,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
       final bandService = ref.read(bandFunctionServiceProvider);
       final result = await bandService.joinBand(
         code: _codeController.text.trim().toUpperCase(),
-        bandId: _band!.id,
+        bandId: _band!.bandId,
       );
 
       // Log analytics event
@@ -401,19 +416,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
             textAlign: TextAlign.center,
           ),
 
-          // Band description
-          if (_band!.description != null && _band!.description!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              _band!.description!,
-              style: MonoPulseTypography.bodyMedium.copyWith(
-                color: context.mp.textTertiary,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+          // No description here on purpose: the invite callable returns only a
+          // public subset, and the Welcome screen shows the same fields.
 
           // Member count
           const SizedBox(height: 16),
@@ -427,7 +431,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                '${_band!.members.length} member${_band!.members.length == 1 ? '' : 's'}',
+                '${_band!.memberCount} member${_band!.memberCount == 1 ? '' : 's'}',
                 style: MonoPulseTypography.bodyMedium.copyWith(
                   color: context.mp.textSecondary,
                 ),

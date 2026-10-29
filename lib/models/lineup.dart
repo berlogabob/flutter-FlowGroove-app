@@ -39,10 +39,7 @@ Map<String, EventPerson> peopleById(Iterable<EventPerson> people) => {
 
 /// `Ivan (piano) · Anna` — roles omitted when unknown. Unknown ids are skipped
 /// (a person removed from the roster shouldn't print as a stray id).
-String performerLabel(
-  Iterable<String> ids,
-  Map<String, EventPerson> byId,
-) {
+String performerLabel(Iterable<String> ids, Map<String, EventPerson> byId) {
   final parts = <String>[];
   for (final id in ids) {
     final person = byId[id];

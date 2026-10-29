@@ -13,13 +13,34 @@ import '../models/song.dart';
 typedef ChordSegment = ({String? chord, String text});
 
 const _sharp = [
-  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+  'C',
+  'C#',
+  'D',
+  'D#',
+  'E',
+  'F',
+  'F#',
+  'G',
+  'G#',
+  'A',
+  'A#',
+  'B',
 ];
 const _flatToSharp = {
-  'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#', 'Cb': 'B', 'Fb': 'E',
+  'Db': 'C#',
+  'Eb': 'D#',
+  'Gb': 'F#',
+  'Ab': 'G#',
+  'Bb': 'A#',
+  'Cb': 'B',
+  'Fb': 'E',
 };
 const _sharpToFlat = {
-  'C#': 'Db', 'D#': 'Eb', 'F#': 'Gb', 'G#': 'Ab', 'A#': 'Bb',
+  'C#': 'Db',
+  'D#': 'Eb',
+  'F#': 'Gb',
+  'G#': 'Ab',
+  'A#': 'Bb',
 };
 
 final _chordToken = RegExp(r'\[([^\]]*)\]');
@@ -47,14 +68,32 @@ List<ChordSegment> parseChordProLine(String line) {
 
 /// Section-header keywords used to split pasted text into sections.
 const _headerWords = [
-  'intro', 'verse', 'prechorus', 'pre-chorus', 'chorus', 'bridge', 'outro',
-  'instrumental', 'solo', 'interlude', 'refrain', 'hook', 'breakdown', 'coda',
-  'ending', 'tag', 'pause',
+  'intro',
+  'verse',
+  'prechorus',
+  'pre-chorus',
+  'chorus',
+  'bridge',
+  'outro',
+  'instrumental',
+  'solo',
+  'interlude',
+  'refrain',
+  'hook',
+  'breakdown',
+  'coda',
+  'ending',
+  'tag',
+  'pause',
 ];
 
 bool _isHeaderWord(String s) {
-  final first =
-      s.trim().toLowerCase().split(RegExp(r'\s+')).first.replaceAll('-', '');
+  final first = s
+      .trim()
+      .toLowerCase()
+      .split(RegExp(r'\s+'))
+      .first
+      .replaceAll('-', '');
   return _headerWords.map((w) => w.replaceAll('-', '')).contains(first);
 }
 
@@ -335,9 +374,25 @@ class ChordProParse {
 }
 
 const _knownDirectives = {
-  'title', 'artist', 'key', 'tempo', 'time', 'capo', 'duration', 'tag',
-  'comment', 'c', 'meta', 'subtitle', 'album', 'year', 'composer', 'lyricist',
-  'x_flowgroove_original_key', 'x_flowgroove_song_map', 'x_flowgroove_section',
+  'title',
+  'artist',
+  'key',
+  'tempo',
+  'time',
+  'capo',
+  'duration',
+  'tag',
+  'comment',
+  'c',
+  'meta',
+  'subtitle',
+  'album',
+  'year',
+  'composer',
+  'lyricist',
+  'x_flowgroove_original_key',
+  'x_flowgroove_song_map',
+  'x_flowgroove_section',
 };
 
 const _sectionAbbr = {'soc', 'sov', 'sob', 'sot', 'eoc', 'eov', 'eob', 'eot'};
@@ -374,7 +429,8 @@ ChordProParse chordProToSong(String text, {required Song base}) {
   int? curBars;
   int? curColor;
   final lines = <String>[];
-  String? pendingLabel; // a {comment: X} not yet resolved to header vs song note
+  String?
+  pendingLabel; // a {comment: X} not yet resolved to header vs song note
 
   void flush() {
     if (name == null) return;
@@ -434,7 +490,9 @@ ChordProParse chordProToSong(String text, {required Song base}) {
     final comment = _comment.firstMatch(line);
     if (comment != null) {
       if (name == null) {
-        pendingLabel = comment.group(1); // header for following chords, or a note
+        pendingLabel = comment.group(
+          1,
+        ); // header for following chords, or a note
       } else {
         notes = notes.isEmpty
             ? comment.group(1)!
@@ -536,10 +594,7 @@ ChordProParse chordProToSong(String text, {required Song base}) {
 /// specify, while taking the parsed name/notes/chordChart. Unmatched parsed
 /// sections are new. This is what lets live text editing update chords and
 /// re-order without wiping the map's structure.
-List<Section> reconcileSections(
-  List<Section> existing,
-  List<Section> parsed,
-) {
+List<Section> reconcileSections(List<Section> existing, List<Section> parsed) {
   final used = List<bool>.filled(existing.length, false);
   final out = <Section>[];
   for (final p in parsed) {
@@ -566,6 +621,32 @@ List<Section> reconcileSections(
         chordChart: p.chordChart,
       ),
     );
+  }
+  return out;
+}
+
+/// Loose chord shape: root, optional quality/extensions, optional slash bass.
+/// Used to keep bracketed section labels (`[Verse]`, `[Bridge]`) out of an
+/// extracted progression — parseChordProLine accepts ANY `[...]` token.
+final _chordLike = RegExp(
+  r'^[A-G][#b]?(?:maj|min|dim|aug|sus|add|m|M|no|[0-9()#b+°ø\-])*'
+  r'(?:/[A-G][#b]?)?$',
+);
+
+/// The ordered chord progression of a ChordPro [chart]: chord tokens only
+/// (lyrics dropped, non-chord bracket tokens skipped), consecutive duplicates
+/// collapsed (`[C]la [C]la [G]la` → `C G`). Order and later repeats are kept —
+/// a progression is not a chord *set*.
+List<String> chordProgression(String chart) {
+  final out = <String>[];
+  for (final line in chart.split('\n')) {
+    for (final seg in parseChordProLine(line)) {
+      final chord = seg.chord?.trim();
+      if (chord == null || chord.isEmpty) continue;
+      if (!_chordLike.hasMatch(chord)) continue;
+      if (out.isNotEmpty && out.last == chord) continue;
+      out.add(chord);
+    }
   }
   return out;
 }

@@ -24,6 +24,9 @@ class AnalyticsConsent extends Notifier<bool> {
     final value = prefs.getBool(_analyticsConsentKey) ?? true;
     state = value;
     AnalyticsService.enabled = value;
+    // The Dart flag only covers the [_log] events; this stops the legacy
+    // methods and Firebase's automatic events too.
+    await AnalyticsService.setAnalyticsCollectionEnabled(value);
   }
 
   Future<void> toggle() async {
@@ -32,8 +35,12 @@ class AnalyticsConsent extends Notifier<bool> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_analyticsConsentKey, value);
     AnalyticsService.enabled = value;
+    // The Dart flag only covers the [_log] events; this stops the legacy
+    // methods and Firebase's automatic events too.
+    await AnalyticsService.setAnalyticsCollectionEnabled(value);
   }
 }
 
-final analyticsConsentProvider =
-    NotifierProvider<AnalyticsConsent, bool>(AnalyticsConsent.new);
+final analyticsConsentProvider = NotifierProvider<AnalyticsConsent, bool>(
+  AnalyticsConsent.new,
+);

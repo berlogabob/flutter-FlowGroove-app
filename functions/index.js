@@ -7,21 +7,51 @@
  *   - src/bands      — band membership
  *   - src/avatars    — avatar import callable
  *   - src/rehearsals — rehearsal plan notifications + actions
+ *   - src/metadata   — shared third-party metadata resolver (app + agents)
+ *
+ * apiProxy is gone: it was an unauthenticated CORS shim
+ * (Access-Control-Allow-Origin: *) fronting Deezer and lyrics.ovh for the web
+ * build. Both now run server-side inside src/metadata/resolver.js, so it had no
+ * consumers and only offered an open relay.
  */
 
 // Telegram bot webhook
 const telegram = require("./src/telegram/webhook");
 exports.telegramWebhook = telegram.telegramWebhook;
+exports.createTelegramLinkToken =
+  require("./src/telegram/linkToken").createTelegramLinkToken;
 
 // Canonical song
 const canonical = require("./src/canonical");
 exports.ensureCanonicalSong = canonical.ensureCanonicalSong;
+exports.updateCanonicalSong = canonical.updateCanonicalSong;
+
+const metadataCallable = require("./src/metadata/callable");
+exports.lookupTrackMetadata = metadataCallable.lookupTrackMetadata;
 
 // Band membership
 const bands = require("./src/bands");
 exports.joinBand = bands.joinBand;
 exports.updateBandMember = bands.updateBandMember;
 exports.getBandInviteInfo = bands.getBandInviteInfo;
+
+// Event participants: scoped access to ONE event for people who are not in the
+// band (guest musicians, sound engineers, a venue, a client).
+const events = require("./src/events");
+exports.createEventShare = events.createEventShare;
+exports.revokeEventShare = events.revokeEventShare;
+exports.listEventShares = events.listEventShares;
+exports.setEventSuggestionCandidate = events.setEventSuggestionCandidate;
+exports.getEventView = events.getEventView;
+exports.claimEventShare = events.claimEventShare;
+exports.submitSuggestion = events.submitSuggestion;
+exports.resolveSuggestion = events.resolveSuggestion;
+// Firestore does not cascade: without this trigger a deleted setlist leaves
+// orphaned grants and phantom invites, and a moved gig leaves guests reading
+// yesterday's call time.
+exports.onBandSetlistWritten = events.onBandSetlistWritten;
+exports.onUserSetlistWritten = events.onUserSetlistWritten;
+exports.onBandDeleted = events.onBandDeleted;
 
 // Account deletion (server-authoritative; Google Play data-deletion requirement)
 const account = require("./src/account");
@@ -46,10 +76,6 @@ exports.removeBandAvatar = bandAvatar.removeBandAvatar;
 const avatars = require("./src/avatars");
 exports.importTelegramAvatar = avatars.importTelegramAvatar;
 exports.importGoogleAvatar = avatars.importGoogleAvatar;
-
-// CORS shim for public no-auth APIs (Deezer, lyrics.ovh) — web autofill only
-const apiProxy = require("./src/api_proxy");
-exports.apiProxy = apiProxy.apiProxy;
 
 // Telegram sharing + notifications
 const telegramShare = require("./src/telegram/share");

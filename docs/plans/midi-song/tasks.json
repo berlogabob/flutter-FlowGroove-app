@@ -1,0 +1,53 @@
+{
+ "branch": "feat/midi-song",
+ "tasks": [
+  {
+   "id": "M01", "executor": "codex", "finding": "MIDI-MODEL",
+   "title": "MidiSong models",
+   "files": ["lib/models/midi_song.dart", "test/models/midi_song_test.dart"],
+   "prompt": "Create lib/models/midi_song.dart (pure Dart, no Flutter imports) and test/models/midi_song_test.dart. Do NOT modify lib/models/midi_pattern.dart. Define: enum MidiRole { drums, bass, guitar, keys, strings, vocal, lead, synth, other } with a `static MidiRole fromName(String? n)` (unknown/null -> other). Parsed (non-serialized, in-memory) types: class MidiNote {final int tick; final int dur; final int pitch; final int vel;}, class TempoChange {final int tick; final int microsPerQuarter;}, class TimeSigChange {final int tick; final int numerator; final int denominator;}, class MidiTrackData {final int index; final String name; final int channel; final int program; final List<MidiNote> notes;} with getters noteCount, minPitch, maxPitch (0 when empty), class MidiSongData {final int ppq; final List<TempoChange> tempos; final List<TimeSigChange> timeSigs; final List<MidiTrackData> tracks;} with getter initialBpm (60000000/first tempo or 120). Stored (serializable, metadata ONLY, never notes) types: class MidiTrackMeta {index, name, channel, program, detectedRole (MidiRole), roleOverride (MidiRole?), mute (bool, default false), volume (double 0..1, default 1.0), noteCount, minPitch, maxPitch} with `MidiRole get role => roleOverride ?? detectedRole`, copyWith, toJson/fromJson; class MidiSongMeta {static const int schemaVersion = 1; final String? fileUrl; final int ppq; final double initialBpm; final List<MidiTrackMeta> tracks;} with copyWith, toJson (includes 'schemaVersion') and fromJson (tolerant of missing fields and unknown extra keys). Tests: JSON round-trip, override beats detected, tolerant fromJson, and a size guard: a MidiSongMeta with 64 tracks serializes (jsonEncode) to under 20000 chars. Follow the style of lib/models/midi_pattern.dart.",
+   "verify": "flutter test test/models/midi_song_test.dart && rg -q 'class MidiSongMeta' lib/models/midi_song.dart && git diff --quiet HEAD -- lib/models/midi_pattern.dart",
+   "after": [], "status": "pending"
+  },
+  {
+   "id": "M02", "executor": "pi", "finding": "MIDI-DETECT",
+   "title": "Instrument role detection",
+   "files": ["lib/services/audio/midi/role_detect.dart"],
+   "prompt": "Create lib/services/audio/midi/role_detect.dart (pure Dart). It must `import '../../../models/midi_song.dart';` which already defines enum MidiRole {drums, bass, guitar, keys, strings, vocal, lead, synth, other}. Implement `MidiRole detectRole({required int channel, required int program, String name = '', int minPitch = 0, int maxPitch = 127})`. channel is 0-based (9 = General MIDI drums). Rules in order: channel==9 -> drums; else if name (lowercased) contains a keyword: drum/perc -> drums, bass -> bass, guitar/gtr -> guitar, vocal/vox/voice/choir/sing -> vocal, piano/keys/organ -> keys, string/violin/cello -> strings, lead/melody/solo -> lead; else by General MIDI program: 0-23 keys, 24-31 guitar, 32-39 bass, 40-55 strings (but 52-54 vocal), 56-79 lead, 80-103 synth, 104-127 other; program 0 with no name hint and maxPitch<=55 -> bass. Add `bool isPercussionChannel(int channel) => channel == 9;`. Keep it a single small file, no classes.",
+   "verify": "dart analyze lib/services/audio/midi/role_detect.dart && rg -q 'MidiRole detectRole' lib/services/audio/midi/role_detect.dart",
+   "after": ["M01"], "status": "pending"
+  },
+  {
+   "id": "M03", "executor": "codex", "finding": "MIDI-DETECT-TEST",
+   "title": "Role detection tests",
+   "files": ["test/midi/role_detect_test.dart"],
+   "prompt": "Create test/midi/role_detect_test.dart: a table-driven test for detectRole in lib/services/audio/midi/role_detect.dart covering: channel 9 -> drums regardless of program; program 33 -> bass; 25 -> guitar; 0 -> keys; 40 -> strings; 53 -> vocal; 73 -> lead; 81 -> synth; name 'Lead Vox' -> vocal beats program; name 'Bass' -> bass; program 0 with maxPitch 48 and no name -> bass; unknown/empty -> other for program 112. Fix role_detect.dart ONLY if the specified rules in its own doc/spec are violated; otherwise change nothing in lib/.",
+   "verify": "flutter test test/midi/role_detect_test.dart",
+   "after": ["M02"], "status": "pending"
+  },
+  {
+   "id": "M04", "executor": "codex", "finding": "MIDI-PARSER",
+   "title": "Multi-track SMF song parser",
+   "files": ["lib/services/audio/midi/smf_parser.dart", "lib/services/audio/midi/smf_song_parser.dart", "test/midi/smf_song_parser_test.dart"],
+   "prompt": "Create lib/services/audio/midi/smf_song_parser.dart with `MidiSongData parseSmfSong(Uint8List bytes)` returning the MidiSongData/MidiTrackData/MidiNote/TempoChange/TimeSigChange types from lib/models/midi_song.dart. Reuse the existing byte reader/chunk logic in lib/services/audio/midi/smf_parser.dart: you may ONLY make its reader class non-private (rename, no behavior change) so both files share it; parseDrumSmf and its behavior and every existing test in test/midi/ must stay unchanged and green. The new parser must: accept SMF format 0 and 1 with PPQ timing (throw FormatException for SMPTE timing, format 2, bad header); handle running status, meta events (tempo 0x51 -> TempoChange with absolute tick, time signature 0x58 with denominator 2^n, track name 0x03), sysex skip; track Program Change (0xC0) per channel (use the most recent program on that channel at note start; bank select ignored); pair note-on (velocity>0) with note-off (0x80 or note-on vel 0) per (channel,pitch) to produce MidiNote with tick and dur (dur at least 1; unterminated notes end at track end); split a track that uses several channels into one MidiTrackData per (track index, channel); drop tracks with no notes; absolute ticks (no quantizing, no 4-bar cap); name falls back to 'Track N'. Write test/midi/smf_song_parser_test.dart building byte fixtures in the test helper (a tiny SMF builder function): multi-track with a tempo change, running status, two channels in one track, note-off via vel 0, SMPTE rejection, truncated file throws FormatException.",
+   "verify": "flutter test test/midi/ && rg -q 'parseSmfSong' lib/services/audio/midi/smf_song_parser.dart",
+   "after": ["M01"], "status": "pending"
+  },
+  {
+   "id": "M05", "executor": "codex", "finding": "MIDI-META",
+   "title": "Build MidiSongMeta from parsed song",
+   "files": ["lib/services/audio/midi/midi_song_meta_builder.dart", "test/midi/midi_song_meta_builder_test.dart"],
+   "prompt": "Create lib/services/audio/midi/midi_song_meta_builder.dart exporting `MidiSongMeta buildMidiSongMeta(MidiSongData song, {String? fileUrl, MidiSongMeta? previous})`. For each MidiTrackData make a MidiTrackMeta with detectedRole = detectRole(channel:, program:, name:, minPitch:, maxPitch:) from role_detect.dart, noteCount/minPitch/maxPitch from the data, mute false, volume 1.0. If `previous` is given, carry over roleOverride/mute/volume for tracks matching by index+channel. Use song.initialBpm and song.ppq. Test with a small hand-built MidiSongData (no file parsing): channel 9 track -> drums, program 33 -> bass, override carried over from previous.",
+   "verify": "flutter test test/midi/midi_song_meta_builder_test.dart",
+   "after": ["M01", "M02"], "status": "pending"
+  },
+  {
+   "id": "M06", "executor": "codex", "finding": "MIDI-LABFIELD",
+   "title": "SongLabEntry midiSong field",
+   "files": ["lib/models/song_lab.dart", "test/models/song_lab_midisong_test.dart"],
+   "prompt": "In lib/models/song_lab.dart add a NEW optional field `midiSong` (type MidiSongMeta? from lib/models/midi_song.dart) to SongLabEntry: constructor, copyWith, toJson (written under key 'midiSong' via MidiSongMeta.toJson, only when non-null) and fromJson (tolerant when absent or malformed -> null). DO NOT change the existing `midi` field, `pattern` getter, or LabEntryType; legacy JSON without 'midiSong' must parse exactly as before and legacy toJson output must be byte-identical when midiSong is null. Mirror how the `midi` field is wired everywhere in that file (copyWith, toJson, fromJson, equality if any, and any firestore field list). Check lib/repositories/firestore_lab_repository.dart and grep for other places that enumerate SongLabEntry fields; update only if they enumerate fields explicitly. New test: legacy json round-trip unchanged, entry with midiSong round-trips, old-build safety: an entry with both midi and midiSong keeps midi intact.",
+   "verify": "flutter test test/models/song_lab_midisong_test.dart test/models/song_lab_test.dart test/midi/",
+   "after": ["M01"], "status": "pending"
+  }
+ ]
+}

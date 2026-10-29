@@ -1,6 +1,7 @@
 // ignore_for_file: subtype_of_sealed_class, avoid_implementing_value_types
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,16 +12,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockStorage extends Mock implements FirebaseStorage {}
+
 class _MockRef extends Mock implements Reference {}
+
 class _MockSnapshot extends Mock implements TaskSnapshot {}
+
 class _MockAuth extends Mock implements FirebaseAuth {}
+
 class _MockUser extends Mock implements User {}
+
 class _MockFirestore extends Mock implements FirebaseFirestore {}
+
 class _MockCollection extends Mock
     implements CollectionReference<Map<String, dynamic>> {}
-class _MockDoc extends Mock implements DocumentReference<Map<String, dynamic>> {}
+
+class _MockDoc extends Mock
+    implements DocumentReference<Map<String, dynamic>> {}
+
 class _FakeFile extends Fake implements File {}
+
 class _FakeSetOptions extends Fake implements SetOptions {}
+
 class _FakeMetadata extends Fake implements SettableMetadata {}
 
 /// A thin fake UploadTask that wraps a real `Future<TaskSnapshot>` so that
@@ -33,19 +45,22 @@ class _FakeUploadTask implements UploadTask {
   Stream<TaskSnapshot> asStream() => _future.asStream();
 
   @override
-  Future<TaskSnapshot> catchError(Function onError,
-          {bool Function(Object)? test}) =>
-      _future.catchError(onError, test: test);
+  Future<TaskSnapshot> catchError(
+    Function onError, {
+    bool Function(Object)? test,
+  }) => _future.catchError(onError, test: test);
 
   @override
-  Future<S> then<S>(FutureOr<S> Function(TaskSnapshot) onValue,
-          {Function? onError}) =>
-      _future.then(onValue, onError: onError);
+  Future<S> then<S>(
+    FutureOr<S> Function(TaskSnapshot) onValue, {
+    Function? onError,
+  }) => _future.then(onValue, onError: onError);
 
   @override
-  Future<TaskSnapshot> timeout(Duration timeLimit,
-          {FutureOr<TaskSnapshot> Function()? onTimeout}) =>
-      _future.timeout(timeLimit, onTimeout: onTimeout);
+  Future<TaskSnapshot> timeout(
+    Duration timeLimit, {
+    FutureOr<TaskSnapshot> Function()? onTimeout,
+  }) => _future.timeout(timeLimit, onTimeout: onTimeout);
 
   @override
   Future<TaskSnapshot> whenComplete(FutureOr<void> Function() action) =>
@@ -73,6 +88,7 @@ class _FakeUploadTask implements UploadTask {
 
 void main() {
   setUpAll(() {
+    registerFallbackValue(Uint8List(0));
     registerFallbackValue(_FakeFile());
     registerFallbackValue(_FakeSetOptions());
     registerFallbackValue(_FakeMetadata());
@@ -112,16 +128,53 @@ void main() {
   StorageService service() =>
       StorageService(storage: storage, auth: auth, firestore: firestore);
 
+  group('uploadLabAudio', () {
+    for (final suffix in <String?>[null, 'version2']) {
+      test('uploads with suffix $suffix and HTTP cache metadata', () async {
+        final root = _MockRef();
+        final snap = _MockSnapshot();
+        final name = suffix == null ? 'e1.wav' : 'e1_$suffix.wav';
+        when(() => storage.ref()).thenReturn(root);
+        when(() => root.child('lab_audio/user/u1/s1/$name')).thenReturn(ref);
+        when(
+          () => ref.putData(any(), any()),
+        ).thenAnswer((_) => _FakeUploadTask(Future.value(snap)));
+        when(() => snap.ref).thenReturn(ref);
+        when(() => ref.getDownloadURL()).thenAnswer((_) async => 'new-url');
+
+        expect(
+          await service().uploadLabAudio(
+            Uint8List.fromList([1]),
+            bandId: null,
+            songId: 's1',
+            entryId: 'e1',
+            objectSuffix: suffix,
+            ext: 'wav',
+            contentType: 'audio/wav',
+          ),
+          'new-url',
+        );
+        final metadata =
+            verify(() => ref.putData(any(), captureAny())).captured.single
+                as SettableMetadata;
+        expect(metadata.contentType, 'audio/wav');
+        expect(metadata.cacheControl, 'public, max-age=31536000');
+      });
+    }
+  });
+
   group('uploadBandAvatar', () {
     test('uploads file and writes photoURL to band doc', () async {
       final snap = _MockSnapshot();
       // Wrap snap in a _FakeUploadTask so `await ref.putFile(file)` resolves
       // to `snap` without needing to mock Future internals on UploadTask.
-      when(() => ref.putFile(any(), any()))
-          .thenAnswer((_) => _FakeUploadTask(Future.value(snap)));
+      when(
+        () => ref.putFile(any(), any()),
+      ).thenAnswer((_) => _FakeUploadTask(Future.value(snap)));
       when(() => snap.ref).thenReturn(ref);
-      when(() => ref.getDownloadURL())
-          .thenAnswer((_) async => 'https://dl/b1.jpg');
+      when(
+        () => ref.getDownloadURL(),
+      ).thenAnswer((_) async => 'https://dl/b1.jpg');
       when(() => bandDoc.set(any(), any())).thenAnswer((_) async {});
 
       final url = await service().uploadBandAvatar(_FakeFile(), 'b1');
@@ -136,20 +189,23 @@ void main() {
 
     test('surfaces permission-denied as a permission ApiError', () async {
       when(() => ref.putFile(any(), any())).thenThrow(
-          FirebaseException(plugin: 'storage', code: 'permission-denied'));
+        FirebaseException(plugin: 'storage', code: 'permission-denied'),
+      );
 
       await expectLater(
         () => service().uploadBandAvatar(_FakeFile(), 'b1'),
-        throwsA(isA<ApiError>().having(
-            (e) => e.type, 'type', ErrorType.permission)),
+        throwsA(
+          isA<ApiError>().having((e) => e.type, 'type', ErrorType.permission),
+        ),
       );
     });
   });
 
   group('deleteBandAvatar', () {
     test('ignores not-found and clears photoURL', () async {
-      when(() => ref.delete())
-          .thenThrow(FirebaseException(plugin: 'storage', code: 'not-found'));
+      when(
+        () => ref.delete(),
+      ).thenThrow(FirebaseException(plugin: 'storage', code: 'not-found'));
       when(() => bandDoc.set(any(), any())).thenAnswer((_) async {});
 
       await service().deleteBandAvatar('b1');
@@ -161,5 +217,4 @@ void main() {
       expect(captured.containsKey('updatedAt'), isTrue);
     });
   });
-
 }

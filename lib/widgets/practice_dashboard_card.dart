@@ -33,7 +33,6 @@ class PracticeDashboardCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(practiceStatsProvider);
-    final stats = statsAsync.asData?.value ?? PracticeStats.empty;
 
     final card = Card(
       child: InkWell(
@@ -41,24 +40,44 @@ class PracticeDashboardCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(child: _headline(context, stats)),
-              const SizedBox(width: MonoPulseSpacing.lg),
-              _WeekBars(dailySeconds: stats.dailySeconds),
-            ],
+          child: statsAsync.when(
+            data: (stats) => Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(child: _headline(context, stats)),
+                const SizedBox(width: MonoPulseSpacing.lg),
+                _WeekBars(dailySeconds: stats.dailySeconds),
+              ],
+            ),
+            loading: () => Text(
+              'Loading practice…',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: context.mp.textSecondary,
+              ),
+            ),
+            error: (_, _) => Text(
+              'Unable to load practice',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: context.mp.textSecondary,
+              ),
+            ),
           ),
         ),
       ),
     );
 
     return Semantics(
-      label: stats.isEmptyWeek
-          ? 'No practice yet this week. Tap to start practicing.'
-          : 'Practiced ${formatMinutes(stats.totalSecondsThisWeek)} this '
-                'week across ${stats.sessionCountThisWeek} sessions, '
-                '${stats.streakDays} day streak.',
+      label: statsAsync.when(
+        data: (stats) => stats.isEmptyWeek
+            ? tappable
+                  ? 'No practice yet this week. Tap to start practicing.'
+                  : 'No practice yet this week. Start the metronome to log time.'
+            : 'Practiced ${formatMinutes(stats.totalSecondsThisWeek)} this '
+                  'week across ${stats.sessionCountThisWeek} sessions, '
+                  '${stats.streakDays} day streak.',
+        loading: () => 'Loading practice…',
+        error: (_, _) => 'Unable to load practice',
+      ),
       button: tappable,
       child: card,
     );
@@ -77,12 +96,26 @@ class PracticeDashboardCard extends ConsumerWidget {
           ),
           const SizedBox(height: 2),
           Text('No practice yet', style: MonoPulseTypography.titleMedium),
-          Text(
-            tappable ? 'Tap to start' : 'Start the metronome to log time',
-            style: MonoPulseTypography.bodySmall.copyWith(
-              color: context.mp.textSecondary,
+          if (tappable)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Tap to start',
+                  style: MonoPulseTypography.bodySmall.copyWith(
+                    color: context.mp.textPrimary.withOpacity(0.85),
+                  ),
+                ),
+                const Icon(Icons.chevron_right, size: 16),
+              ],
             ),
-          ),
+          if (!tappable)
+            Text(
+              'Start the metronome to log time',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: context.mp.textSecondary,
+              ),
+            ),
         ],
       );
     }
@@ -156,8 +189,7 @@ class _WeekBars extends StatelessWidget {
                   // is non-negative for a positive divisor.
                   letters[(today - 1 - (6 - i)) % 7],
                   textAlign: TextAlign.center,
-                  style: MonoPulseTypography.bodySmall.copyWith(
-                    fontSize: 9,
+                  style: MonoPulseTypography.labelSmall.copyWith(
                     color: i == 6
                         ? MonoPulseColors.accentOrange
                         : context.mp.textSecondary,

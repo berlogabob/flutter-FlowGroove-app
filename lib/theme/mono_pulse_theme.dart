@@ -586,6 +586,19 @@ class MonoPulseTheme {
   }
 
   static ThemeData _build(MonoPulsePalette p, Brightness brightness) {
+    // google_fonts 9 builds on material_ui's TextTheme, a different type from
+    // this SDK's, so the *TextTheme() helpers no longer type-check. Kick off
+    // the per-weight loads directly; the const MonoPulse styles resolve the
+    // families by name afterwards.
+    for (final w in const [
+      FontWeight.w400,
+      FontWeight.w500,
+      FontWeight.w600,
+      FontWeight.w700,
+    ]) {
+      GoogleFonts.marcellus(fontWeight: w);
+      GoogleFonts.sourceSerif4(fontWeight: w);
+    }
     final dark = brightness == Brightness.dark;
     // White-based hover reads on dark; flip to black-based on light.
     final hover = dark ? MonoPulseColors.stateHover : const Color(0x0A000000);
@@ -631,6 +644,28 @@ class MonoPulseTheme {
         ).copyWith(overlayColor: _stateOverlay(hover)),
       ),
 
+      // Buttons - Filled. FilledButton had NO theme entry, so all ~34 usages
+      // fell back to Material's default StadiumBorder — that is why the
+      // Recorder's 'Record' was a pill while every other orange CTA was a
+      // rounded square (UX audit F-018).
+      //
+      // SHAPE LANGUAGE, which F-018 asked to have written down:
+      //   radius large (12)  — buttons that sit in a layout
+      //   radius xlarge (16) — floating / transport controls (FAB)
+      //   stadium            — nowhere
+      //
+      // Shape only, deliberately. background/foreground already resolve
+      // on-token through colorScheme.primary (accentOrange) / onPrimary
+      // (black); pinning colours here would repaint all 34 call sites orange,
+      // including the ones that are not primary CTAs.
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          ),
+        ),
+      ),
+
       // Buttons - Outlined (Secondary)
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -656,6 +691,25 @@ class MonoPulseTheme {
             vertical: MonoPulseSpacing.sm,
           ),
           textStyle: MonoPulseTypography.labelLarge,
+        ),
+      ),
+
+      // Buttons - Segmented
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          shape: const WidgetStatePropertyAll(StadiumBorder()),
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) return null;
+            return states.contains(WidgetState.selected)
+                ? MonoPulseColors.accentOrange
+                : null;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) return null;
+            return states.contains(WidgetState.selected)
+                ? MonoPulseColors.black
+                : null;
+          }),
         ),
       ),
 
@@ -747,6 +801,9 @@ class MonoPulseTheme {
       chipTheme: ChipThemeData(
         backgroundColor: p.surfaceRaised,
         labelStyle: TextStyle(color: p.textPrimary),
+        secondaryLabelStyle: TextStyle(color: MonoPulseColors.black),
+        selectedColor: MonoPulseColors.accentOrange,
+        checkmarkColor: MonoPulseColors.black,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
           side: BorderSide(color: p.borderDefault),
@@ -785,22 +842,24 @@ class MonoPulseTheme {
       ),
 
       // Load both brand font families for the const styles above.
-      textTheme:
-          GoogleFonts.sourceSerif4TextTheme(
-            GoogleFonts.marcellusTextTheme(const TextTheme()),
-          ).copyWith(
-            displayLarge: MonoPulseTypography.displayLarge,
-            displayMedium: MonoPulseTypography.displayMedium,
-            headlineLarge: MonoPulseTypography.headlineLarge,
-            headlineMedium: MonoPulseTypography.headlineMedium,
-            headlineSmall: MonoPulseTypography.headlineSmall,
-            bodyLarge: MonoPulseTypography.bodyLarge,
-            bodyMedium: MonoPulseTypography.bodyMedium,
-            bodySmall: MonoPulseTypography.bodySmall,
-            labelLarge: MonoPulseTypography.labelLarge,
-            labelMedium: MonoPulseTypography.labelMedium,
-            labelSmall: MonoPulseTypography.labelSmall,
-          ),
+      textTheme: TextTheme(
+        // Slots the MonoPulse set does not define.
+        displaySmall: GoogleFonts.marcellus(),
+        titleLarge: GoogleFonts.marcellus(),
+        titleMedium: GoogleFonts.sourceSerif4(),
+        titleSmall: GoogleFonts.sourceSerif4(),
+        displayLarge: MonoPulseTypography.displayLarge,
+        displayMedium: MonoPulseTypography.displayMedium,
+        headlineLarge: MonoPulseTypography.headlineLarge,
+        headlineMedium: MonoPulseTypography.headlineMedium,
+        headlineSmall: MonoPulseTypography.headlineSmall,
+        bodyLarge: MonoPulseTypography.bodyLarge,
+        bodyMedium: MonoPulseTypography.bodyMedium,
+        bodySmall: MonoPulseTypography.bodySmall,
+        labelLarge: MonoPulseTypography.labelLarge,
+        labelMedium: MonoPulseTypography.labelMedium,
+        labelSmall: MonoPulseTypography.labelSmall,
+      ),
     );
   }
 

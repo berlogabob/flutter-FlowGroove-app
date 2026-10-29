@@ -43,14 +43,26 @@ class PendingStorageDeletes {
     final prefs = await _p;
     final queued = prefs.getStringList(_key);
     if (queued == null || !queued.contains(url)) return;
-    await prefs.setStringList(_key, [
-      for (final u in queued)
-        if (u != url) u,
-    ]);
+    try {
+      if (!await prefs.setStringList(_key, [
+        for (final u in queued)
+          if (u != url) u,
+      ])) {
+        throw StateError('Could not persist pending deletion cancellation');
+      }
+    } catch (_) {
+      // The setter restores the cache even if persistence is still unavailable.
+      try {
+        await prefs.setStringList(_key, queued);
+      } catch (_) {
+        // Preserve the original cancellation failure.
+      }
+      rethrow;
+    }
   }
 
-  /// Deletes [url] now, unless [cancel] already removed it — the queue is what
-  /// decides, so an undo always wins the race with a pending flush.
+  /// Deletes [url] now unless [cancel] removed it before deletion starts.
+  /// Cancellation cannot undo a Storage deletion already in flight.
   Future<void> flush(String url) async {
     final prefs = await _p;
     if (!(prefs.getStringList(_key) ?? const []).contains(url)) return;
@@ -69,16 +81,27 @@ class PendingStorageDeletes {
     await flush(url);
   }
 
-  /// Retries everything still queued. Called once at startup; failures stay
-  /// queued for the next launch rather than being dropped.
-  Future<void> sweep() async {
+  /// Retries the URLs present at sweep start, only after confirmed server absence.
+  /// Missing, failed or inconclusive checks leave the URL queued for retry.
+  Future<void> sweep({Future<bool?> Function(String url)? isReferenced}) async {
     final prefs = await _p;
     final queued = prefs.getStringList(_key) ?? const <String>[];
     if (queued.isEmpty) return;
-    final failed = <String>[];
     for (final url in queued) {
-      if (!await _storage.deleteByUrl(url)) failed.add(url);
+      if (!(prefs.getStringList(_key) ?? const []).contains(url)) continue;
+      try {
+        final referenced = await isReferenced
+            ?.call(url)
+            .timeout(const Duration(seconds: 10));
+        if (referenced == true) {
+          await cancel(url);
+        } else if (referenced == false) {
+          // Recheck membership after the server await: Undo may have won.
+          await flush(url);
+        }
+      } catch (_) {
+        // Reference checks and queue persistence can both fail; retry later.
+      }
     }
-    await prefs.setStringList(_key, failed);
   }
 }

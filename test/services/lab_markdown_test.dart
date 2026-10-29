@@ -29,6 +29,28 @@ void main() {
     updatedAt: DateTime(2026, 7, 10),
   );
 
+  test(
+    'exports structured notes as timestamp lines and keeps legacy notes',
+    () {
+      final md = buildLabMarkdown(
+        song: song,
+        entries: [
+          entry(
+            LabEntryType.recording,
+            title: 'Take',
+            body: 'Capo 2\n00:04 stale',
+          ).copyWith(notes: [(ms: 5425, text: 'chorus')]),
+          entry(LabEntryType.recording, body: '00:08 legacy'),
+        ],
+        tasks: [],
+        versions: [],
+      );
+      expect(md, contains('Take — Capo 2\n00:05 chorus'));
+      expect(md, contains('00:08 legacy'));
+      expect(md, isNot(contains('stale')));
+    },
+  );
+
   test('buildLabMarkdown assembles all sections (#70)', () {
     final md = buildLabMarkdown(
       song: song,
@@ -39,11 +61,7 @@ void main() {
           body: 'last chorus half-time',
           status: 'active',
         ),
-        entry(
-          LabEntryType.decision,
-          title: 'Old idea',
-          status: 'superseded',
-        ),
+        entry(LabEntryType.decision, title: 'Old idea', status: 'superseded'),
         entry(LabEntryType.note, body: 'riff idea'),
       ],
       tasks: [

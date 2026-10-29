@@ -13,6 +13,8 @@ class AudioEngine {
 
   double? get currentContextTime => null;
 
+  Object? get audioContext => null;
+
   void scheduleClick({
     required double atTime,
     required String waveType,

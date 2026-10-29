@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/instrument.dart';
 import '../../models/tuner_preset.dart';
+import '../../providers/auth/auth_provider.dart';
+import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
@@ -25,6 +28,7 @@ class CustomTuningEditor extends ConsumerStatefulWidget {
 
 class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
   final _nameController = TextEditingController();
+  String? _nameError;
   late List<String> _selectedNotes;
   late int _stringCount;
   late List<String> _stringLabels;
@@ -89,6 +93,16 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(appUserProvider);
+    ref.watch(authStateProvider);
+    if (widget.bandId != null) {
+      ref.watch(bandsProvider);
+      ref.watch(canEditBandProvider(widget.bandId!));
+    }
+    final scopes = _availableScopes;
+    if (!scopes.contains(_scope)) _scope = TunerPresetScope.local;
+    final selectedScope = _scope;
+    final saveUid = ref.read(appUserProvider).value?.uid;
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.8,
@@ -120,10 +134,11 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
               horizontal: MonoPulseSpacing.xl,
             ),
             child: DropdownButtonFormField<TunerPresetScope>(
+              key: ValueKey(selectedScope),
               initialValue: _scope,
               dropdownColor: context.mp.surfaceRaised,
               decoration: const InputDecoration(labelText: 'Save preset to'),
-              items: _availableScopes
+              items: scopes
                   .map(
                     (scope) => DropdownMenuItem(
                       value: scope,
@@ -174,10 +189,14 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
             ),
             child: TextField(
               controller: _nameController,
+              onChanged: (_) {
+                if (_nameError != null) setState(() => _nameError = null);
+              },
               style: MonoPulseTypography.bodyLarge.copyWith(
                 color: context.mp.textHighEmphasis,
               ),
               decoration: InputDecoration(
+                errorText: _nameError,
                 hintText: 'Tuning name (e.g., My Open G)',
                 hintStyle: MonoPulseTypography.bodyMedium.copyWith(
                   color: context.mp.textTertiary,
@@ -237,7 +256,9 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isSaving ? null : _saveCustomTuning,
+                onPressed: _isSaving
+                    ? null
+                    : () => _saveCustomTuning(selectedScope, saveUid),
                 child: Text(_isSaving ? 'Saving...' : 'Save Custom Tuning'),
               ),
             ),
@@ -247,12 +268,32 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
     );
   }
 
-  List<TunerPresetScope> get _availableScopes => <TunerPresetScope>[
-    TunerPresetScope.local,
-    TunerPresetScope.account,
-    if (widget.bandId != null) TunerPresetScope.band,
-    if (widget.songId != null) TunerPresetScope.song,
-  ];
+  List<TunerPresetScope> get _availableScopes {
+    final scopes = [TunerPresetScope.local];
+    final user = ref.read(appUserProvider);
+    if (user.isLoading || user.hasError) return scopes;
+    final value = user.value;
+    if (value == null || value.accessRole == 'demo') return scopes;
+    try {
+      if (ref.read(firebaseAuthProvider).currentUser?.uid != value.uid)
+        return scopes;
+    } catch (_) {
+      return scopes;
+    }
+    scopes.add(TunerPresetScope.account);
+    final bandId = widget.bandId;
+    final bands = bandId == null ? null : ref.read(bandsProvider);
+    final canEditBand =
+        bandId != null &&
+        !bands!.isLoading &&
+        !bands.hasError &&
+        ref.read(canEditBandProvider(bandId));
+    if (canEditBand) scopes.add(TunerPresetScope.band);
+    if (widget.songId != null && (bandId == null || canEditBand)) {
+      scopes.add(TunerPresetScope.song);
+    }
+    return scopes;
+  }
 
   String _scopeLabel(TunerPresetScope scope) => switch (scope) {
     TunerPresetScope.local => 'This device',
@@ -261,25 +302,20 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
     TunerPresetScope.song => 'Current song',
   };
 
-  Future<void> _saveCustomTuning() async {
+  Future<void> _saveCustomTuning(TunerPresetScope scope, String? uid) async {
+    if (!_availableScopes.contains(scope) ||
+        (scope != TunerPresetScope.local &&
+            ref.read(appUserProvider).value?.uid != uid)) {
+      showAppSnackBar(
+        context,
+        'Sign in and check your band permissions before syncing this preset.',
+      );
+      return;
+    }
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      // Show error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Please enter a name for this tuning',
-            style: MonoPulseTypography.bodyMedium.copyWith(
-              color: MonoPulseColors.white,
-            ),
-          ),
-          backgroundColor: MonoPulseColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          ),
-        ),
-      );
+      // Inline: a snackbar would render behind this bottom sheet.
+      setState(() => _nameError = 'Please enter a name for this tuning');
       return;
     }
 
@@ -295,12 +331,11 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
       final notifier = ref.read(tunerProvider.notifier);
       await notifier.addCustomTuning(
         tuning,
-        scope: _scope,
-        bandId:
-            _scope == TunerPresetScope.band || _scope == TunerPresetScope.song
+        scope: scope,
+        bandId: scope == TunerPresetScope.band || scope == TunerPresetScope.song
             ? widget.bandId
             : null,
-        songId: _scope == TunerPresetScope.song ? widget.songId : null,
+        songId: scope == TunerPresetScope.song ? widget.songId : null,
       );
       notifier.selectTuning(tuning);
       await HapticFeedback.mediumImpact();
@@ -310,7 +345,7 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
       setState(() => _isSaving = false);
       showAppSnackBar(
         context,
-        _scope == TunerPresetScope.local
+        scope == TunerPresetScope.local
             ? 'The preset could not be saved.'
             : 'Sign in and check your band permissions before syncing this preset.',
       );

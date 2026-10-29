@@ -7,10 +7,10 @@ part 'error_provider.g.dart';
 
 /// Represents the current state of error handling.
 class ErrorState {
-
   const ErrorState({this.error, List<ApiError>? errorHistory})
     : errorHistory = errorHistory ?? const [],
       hasError = error != null;
+
   /// The current error, if any.
   final ApiError? error;
 
@@ -136,7 +136,9 @@ extension ErrorHandlingExtension on WidgetRef {
 
   /// Handles an exception using the [ErrorStateNotifier].
   void handleException(Object exception, {StackTrace? stackTrace}) {
-    read(errorStateProvider.notifier).handleException(exception, stackTrace: stackTrace);
+    read(
+      errorStateProvider.notifier,
+    ).handleException(exception, stackTrace: stackTrace);
   }
 
   /// Clears the current error.

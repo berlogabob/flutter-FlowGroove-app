@@ -7,6 +7,10 @@
 /// timestamps as local ISO-8601 strings, enums stored by `.name`.
 library;
 
+import 'audio_region.dart';
+import 'midi_pattern.dart';
+import 'midi_song.dart';
+
 /// Timeline entry types. The UI quick-adds only note/decision/experiment/
 /// problem (v1); the rest exist so other features can append typed entries.
 enum LabEntryType {
@@ -19,7 +23,8 @@ enum LabEntryType {
   rehearsalNote,
   recording,
   versionChange,
-  reference;
+  reference,
+  midi;
 
   static LabEntryType parse(String? v) => LabEntryType.values.firstWhere(
     (e) => e.name == v,
@@ -48,6 +53,18 @@ DateTime _parseDate(dynamic v) =>
 DateTime? _parseDateOrNull(dynamic v) =>
     v is String ? DateTime.tryParse(v) : null;
 
+MidiSongMeta? _parseMidiSong(Object? v) {
+  if (v is! Map<String, dynamic>) return null;
+  try {
+    return MidiSongMeta.fromJson(v);
+  } catch (_) {
+    return null;
+  }
+}
+
+/// One timestamped comment on a recording.
+typedef AudioMarker = ({int ms, String text});
+
 class SongLabEntry {
   SongLabEntry({
     required this.id,
@@ -66,6 +83,12 @@ class SongLabEntry {
     this.visibility = 'band',
     this.attachmentIds = const [],
     this.peaks = const [],
+    this.peaksRms = false,
+    this.midi,
+    this.midiSong,
+    this.grid,
+    this.regions = const [],
+    this.notes = const [],
   });
 
   factory SongLabEntry.fromJson(Map<String, dynamic> json) => SongLabEntry(
@@ -90,6 +113,26 @@ class SongLabEntry {
         (json['peaks'] as List?)
             ?.whereType<num>()
             .map((v) => v.toInt())
+            .toList() ??
+        const [],
+    peaksRms: json['peaksRms'] as bool? ?? false,
+    midi: json['midi'] as Map<String, dynamic>?,
+    midiSong: _parseMidiSong(json['midiSong']),
+    grid: json['grid'] is Map<String, dynamic>
+        ? AudioGrid.fromJson(json['grid'] as Map<String, dynamic>)
+        : null,
+    notes:
+        (json['notes'] as List?)
+            ?.whereType<Map<String, dynamic>>()
+            .map(
+              (n) => (ms: (n['ms'] as num).toInt(), text: n['text'] as String),
+            )
+            .toList() ??
+        const [],
+    regions:
+        (json['regions'] as List?)
+            ?.whereType<Map<String, dynamic>>()
+            .map(AudioRegion.fromJson)
             .toList() ??
         const [],
   );
@@ -126,6 +169,24 @@ class SongLabEntry {
   /// waveform without downloading the audio. Empty for legacy/attached takes.
   final List<int> peaks;
 
+  /// RMS or live-level bars; false for legacy max-sample peaks.
+  final bool peaksRms;
+
+  /// Serialized [MidiPattern] for `midi` entries.
+  final Map<String, dynamic>? midi;
+
+  final MidiSongMeta? midiSong;
+
+  /// Tempo grid for a `recording`'s practice regions; null = seconds only.
+  final AudioGrid? grid;
+
+  /// Named practice regions on a `recording`, sorted and gapless.
+  final List<AudioRegion> regions;
+
+  final List<AudioMarker> notes;
+
+  MidiPattern? get pattern => midi == null ? null : MidiPattern.fromJson(midi!);
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'songId': songId,
@@ -143,6 +204,18 @@ class SongLabEntry {
     'updatedAt': updatedAt.toIso8601String(),
     'attachmentIds': attachmentIds,
     if (peaks.isNotEmpty) 'peaks': peaks,
+    if (peaksRms) 'peaksRms': true,
+    if (notes.isNotEmpty)
+      'notes': [
+        for (final n in notes) {'ms': n.ms, 'text': n.text},
+      ],
+    if (midi != null) 'midi': midi,
+    if (midiSong != null) 'midiSong': midiSong!.toJson(),
+    if (grid != null) 'grid': grid!.toJson(),
+    // Written on every recording save: saves merge, so an emptied list must
+    // overwrite the stored one.
+    if (type == LabEntryType.recording)
+      'regions': [for (final r in regions) r.toJson()],
   };
 
   SongLabEntry copyWith({
@@ -151,6 +224,13 @@ class SongLabEntry {
     String? status,
     List<String>? attachmentIds,
     List<int>? peaks,
+    bool? peaksRms,
+    Map<String, dynamic>? midi,
+    MidiSongMeta? midiSong,
+    AudioGrid? grid,
+    bool clearGrid = false,
+    List<AudioRegion>? regions,
+    List<AudioMarker>? notes,
   }) => SongLabEntry(
     id: id,
     songId: songId,
@@ -168,6 +248,12 @@ class SongLabEntry {
     updatedAt: DateTime.now(),
     attachmentIds: attachmentIds ?? this.attachmentIds,
     peaks: peaks ?? this.peaks,
+    peaksRms: peaksRms ?? this.peaksRms,
+    midi: midi ?? this.midi,
+    midiSong: midiSong ?? this.midiSong,
+    grid: clearGrid ? null : grid ?? this.grid,
+    regions: regions ?? this.regions,
+    notes: notes ?? this.notes,
   );
 }
 

@@ -654,7 +654,6 @@ class SongCsvParser {
 
 /// Result of CSV parsing operation
 class SongParseResult {
-
   SongParseResult({
     required this.successful,
     required this.errors,
@@ -666,7 +665,6 @@ class SongParseResult {
 }
 
 class _ResolvedHeaders {
-
   const _ResolvedHeaders(this.headers, this.errors, this.warnings);
   final List<String?> headers;
   final List<String> errors;
@@ -675,7 +673,6 @@ class _ResolvedHeaders {
 
 /// Result of parsing a single row
 class SongParseResultItem {
-
   SongParseResultItem({this.success, this.errors = const []});
   final Song? success;
   final List<String> errors;

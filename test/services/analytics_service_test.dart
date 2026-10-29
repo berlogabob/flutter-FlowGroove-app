@@ -1,14 +1,93 @@
 // Analytics Service Unit Tests
 // Tests for the centralized analytics service
 
+import 'package:firebase_core/firebase_core.dart';
+// Firebase Core's installed test mocks; no production dependency is needed.
+// ignore: depend_on_referenced_packages
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/services/analytics_events.dart';
 import 'package:flowgroove/services/analytics_service.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('event sharing transport', () {
+    const channel = BasicMessageChannel<Object?>(
+      'dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.logEvent',
+      StandardMessageCodec(),
+    );
+    final events = <Object?>[];
+    var fail = false;
+
+    setUpAll(() async {
+      setupFirebaseCoreMocks();
+      await Firebase.initializeApp();
+    });
+    setUp(() {
+      events.clear();
+      fail = false;
+      AnalyticsService.enabled = true;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockDecodedMessageHandler<Object?>(channel, (message) async {
+            events.add(message);
+            return fail
+                ? <Object?>['unavailable', 'SDK failure', null]
+                : <Object?>[null];
+          });
+    });
+    tearDown(() {
+      AnalyticsService.enabled = true;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockDecodedMessageHandler<Object?>(channel, null);
+    });
+
+    test('share creation sends only its event name', () async {
+      await AnalyticsService.logEventShareCreated();
+      expect(events, [
+        [
+          {'eventName': 'event_share_created', 'parameters': null},
+        ],
+      ]);
+    });
+    test('link opening sends only its event name', () async {
+      await AnalyticsService.logEventLinkOpened();
+      expect(events, [
+        [
+          {'eventName': 'event_link_opened', 'parameters': null},
+        ],
+      ]);
+    });
+    test('suggestion submission sends only its event name', () async {
+      await AnalyticsService.logEventSuggestionSubmitted();
+      expect(events, [
+        [
+          {'eventName': 'event_suggestion_submitted', 'parameters': null},
+        ],
+      ]);
+    });
+    for (final logEvent in <Future<void> Function()>[
+      AnalyticsService.logEventShareCreated,
+      AnalyticsService.logEventLinkOpened,
+      AnalyticsService.logEventSuggestionSubmitted,
+    ].indexed) {
+      test('consent off suppresses event ${logEvent.$1}', () async {
+        AnalyticsService.enabled = false;
+        await logEvent.$2();
+        expect(events, isEmpty);
+      });
+      test('SDK failure is nonfatal for event ${logEvent.$1}', () async {
+        fail = true;
+        await expectLater(logEvent.$2(), completes);
+        expect(events, hasLength(1));
+      });
+    }
+  });
+
   group('AnalyticsService', () {
     // The HEART events (added for the UX audit) route through the private
     // `_log` choke point, which is the only place `AnalyticsService.enabled`
@@ -24,17 +103,23 @@ void main() {
         AnalyticsService.enabled = true;
       });
 
-      test('enabled=false: a HEART event never reaches FirebaseAnalytics', () async {
-        AnalyticsService.enabled = false;
-        await AnalyticsService.logMenuOpened(screen: 'Songs');
-        expect(AnalyticsService.debugLogAttempts, 0);
-      });
+      test(
+        'enabled=false: a HEART event never reaches FirebaseAnalytics',
+        () async {
+          AnalyticsService.enabled = false;
+          await AnalyticsService.logMenuOpened(screen: 'Songs');
+          expect(AnalyticsService.debugLogAttempts, 0);
+        },
+      );
 
-      test('enabled=true: a HEART event passes the guard and is attempted', () async {
-        AnalyticsService.enabled = true;
-        await AnalyticsService.logMenuOpened(screen: 'Songs');
-        expect(AnalyticsService.debugLogAttempts, 1);
-      });
+      test(
+        'enabled=true: a HEART event passes the guard and is attempted',
+        () async {
+          AnalyticsService.enabled = true;
+          await AnalyticsService.logMenuOpened(screen: 'Songs');
+          expect(AnalyticsService.debugLogAttempts, 1);
+        },
+      );
     });
     group('Event Data Classes', () {
       test('BandCreatedEventData creates correct event', () {
@@ -78,6 +163,53 @@ void main() {
         expect(eventData.parameters['artist_name'], equals('Test Artist'));
       });
 
+      test('Drum events register with the correct event names', () {
+        expect(
+          AnalyticsEvents.drumPatternImported,
+          equals('drum_pattern_imported'),
+        );
+        expect(AnalyticsEvents.drumPatternSaved, equals('drum_pattern_saved'));
+        expect(AnalyticsEvents.drumPlayStarted, equals('drum_play_started'));
+        expect(AnalyticsEvents.drumSyncToggled, equals('drum_sync_toggled'));
+      });
+
+      test('DrumParams register the new parameter names', () {
+        expect(AnalyticsParams.syncWithClick, equals('sync_with_click'));
+        expect(AnalyticsParams.hitCount, equals('hit_count'));
+      });
+
+      test('DrumPatternImportedEventData creates correct event', () {
+        final eventData = DrumPatternImportedEventData(filePath: 'pat.dmx');
+
+        expect(eventData.eventName, AnalyticsEvents.drumPatternImported);
+        expect(eventData.parameters['file_path'], equals('pat.dmx'));
+      });
+
+      test('DrumPatternSavedEventData creates correct event', () {
+        final eventData = DrumPatternSavedEventData(
+          drumPatternId: 'p1',
+          hitCount: 42,
+        );
+
+        expect(eventData.eventName, AnalyticsEvents.drumPatternSaved);
+        expect(eventData.parameters['drum_pattern_id'], equals('p1'));
+        expect(eventData.parameters['hit_count'], equals(42));
+      });
+
+      test('DrumPlayStartedEventData creates correct event', () {
+        final eventData = DrumPlayStartedEventData(bpm: 120);
+
+        expect(eventData.eventName, AnalyticsEvents.drumPlayStarted);
+        expect(eventData.parameters['bpm'], equals(120));
+      });
+
+      test('DrumSyncToggledEventData creates correct event', () {
+        final eventData = DrumSyncToggledEventData(syncWithClick: true);
+
+        expect(eventData.eventName, AnalyticsEvents.drumSyncToggled);
+        expect(eventData.parameters['sync_with_click'], isTrue);
+      });
+
       test('SetlistCreatedEventData creates correct event', () {
         final setlist = Setlist(
           id: 'test-setlist',
@@ -96,6 +228,28 @@ void main() {
         expect(eventData.parameters['band_id'], equals('test-band'));
         expect(eventData.parameters['song_count'], equals(3));
         expect(eventData.parameters['has_event_date'], isFalse);
+      });
+    });
+
+    group('Drum service methods', () {
+      // These route straight through `_analytics.logEvent` (like the legacy
+      // methods), so the calls are swallowed by the try/catch in the unit test
+      // environment where Firebase isn't initialized. We only assert they don't
+      // throw.
+      test('logDrumPatternImported logs without throwing', () async {
+        await AnalyticsService.logDrumPatternImported(hitCount: 42);
+      });
+
+      test('logDrumPatternSaved logs without throwing', () async {
+        await AnalyticsService.logDrumPatternSaved(hitCount: 42);
+      });
+
+      test('logDrumPlayStarted logs without throwing', () async {
+        await AnalyticsService.logDrumPlayStarted(syncWithClick: true);
+      });
+
+      test('logDrumSyncToggled logs without throwing', () async {
+        await AnalyticsService.logDrumSyncToggled(enabled: true);
       });
     });
 

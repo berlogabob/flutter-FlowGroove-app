@@ -148,13 +148,13 @@ class MusicBrainzRecording extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        title,
-        artist,
-        disambiguation,
-        lengthMs,
-        isrcs,
-      ];
+    id,
+    title,
+    artist,
+    disambiguation,
+    lengthMs,
+    isrcs,
+  ];
 
   /// Get primary artist name from artist-credit
   String get artist {
@@ -163,20 +163,33 @@ class MusicBrainzRecording extends Equatable {
   }
 
   /// Get all artist names as list
-  List<String> get artists =>
-      artistCredit.map((ac) => ac.displayName).toList();
+  List<String> get artists => artistCredit.map((ac) => ac.displayName).toList();
 
   /// Get first release year
-  int? get releaseYear {
+  /// The release this recording most likely originally came from.
+  ///
+  /// NOT `releases.first`: MusicBrainz returns releases in arbitrary order, so
+  /// the first one is routinely a live album, bootleg or compilation. That single
+  /// line is why canonical songs in production ended up with "Apocalypse Now" as
+  /// the album for Light My Fire and "Live at Leeds" for Pinball Wizard.
+  ///
+  /// The earliest dated release is a decent proxy for the original. It is only a
+  /// proxy — the authoritative album now comes from the server-side resolver via
+  /// the lookupTrackMetadata callable, which picks by Spotify album_type and was
+  /// measured correct on 6/6 of a hard sample. This getter is what the suggestion
+  /// list shows before that call, and the fallback when the resolver finds
+  /// nothing.
+  MusicBrainzRelease? get _earliestRelease {
     if (releases.isEmpty) return null;
-    return releases.first.releaseYear;
+    final dated = releases.where((r) => (r.date ?? '').isNotEmpty).toList()
+      ..sort((a, b) => a.date!.compareTo(b.date!));
+    return dated.isNotEmpty ? dated.first : releases.first;
   }
 
-  /// Get first release title
-  String? get album {
-    if (releases.isEmpty) return null;
-    return releases.first.title;
-  }
+  int? get releaseYear => _earliestRelease?.releaseYear;
+
+  /// Album title of the earliest dated release.
+  String? get album => _earliestRelease?.title;
 
   /// Get first ISRC code
   String? get isrc => isrcs.isNotEmpty ? isrcs.first : null;
@@ -204,11 +217,7 @@ class MusicBrainzRecording extends Equatable {
 /// Alias (alternative name) in MusicBrainz
 @JsonSerializable()
 class MusicBrainzAlias extends Equatable {
-  const MusicBrainzAlias({
-    required this.name,
-    this.locale,
-    this.primary,
-  });
+  const MusicBrainzAlias({required this.name, this.locale, this.primary});
 
   factory MusicBrainzAlias.fromJson(Map<String, dynamic> json) =>
       _$MusicBrainzAliasFromJson(json);

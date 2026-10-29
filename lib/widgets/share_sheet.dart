@@ -44,10 +44,7 @@ void showShareSheet(BuildContext context, String message, {String? subject}) {
               Navigator.pop(sheetContext);
               final emailUri = Uri(
                 scheme: 'mailto',
-                queryParameters: {
-                  'subject': ?subject,
-                  'body': message,
-                },
+                queryParameters: {'subject': ?subject, 'body': message},
               );
               launchUrl(emailUri);
             },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/setlist.dart';
 import '../../models/song.dart';
@@ -13,7 +14,6 @@ import '../../services/export/setlist_export_sheet.dart';
 import '../../services/export/setlist_share.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
-import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
@@ -188,19 +188,12 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     return StandardScreenScaffold(
       title: 'Setlists',
       showBackButton: false, // Hide back button for main tabs
-      menuItems: [
-        if (canEdit)
-          AppMenuItem(
-            icon: Icons.playlist_add,
-            label: 'Create Setlist',
-            onTap: () => context.goNamed('create-setlist'),
-          ),
-      ],
       floatingActionButton: canEdit
           ? SingleFab(
               icon: Icons.add,
               onPressed: () => context.goNamed('create-setlist'),
               heroTag: 'setlists_fab',
+              tooltip: 'Create Setlist',
             )
           : null,
       body: _buildBody(setlistsAsync),
@@ -239,12 +232,75 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
                 setState(() => _searchQuery = value ?? ''),
           ),
         ),
+        _guestEvents(),
         Expanded(
           child: filteredSetlists.isEmpty
               ? _buildEmptyState(setlists.isEmpty)
               : _buildSetlistList(filteredSetlists),
         ),
       ],
+    );
+  }
+
+  /// Events this user was invited to as a guest — not theirs, not their band's.
+  ///
+  /// Without this the invitation is invisible: a guest cannot list a band's
+  /// setlists and has no way to know which band the event even belongs to.
+  /// Renders nothing at all when there are none, so it costs regular users no
+  /// screen space.
+  Widget _guestEvents() {
+    final events = ref.watch(guestEventsProvider).value ?? const <Setlist>[];
+    if (events.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        MonoPulseSpacing.lg,
+        0,
+        MonoPulseSpacing.lg,
+        MonoPulseSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'GUEST APPEARANCES',
+            style: MonoPulseTypography.labelSmall.copyWith(
+              color: MonoPulseColors.accentOrange,
+            ),
+          ),
+          for (final event in events)
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.event_available_outlined),
+              title: Text(event.name),
+              subtitle: Text(
+                [
+                  if (event.eventDateTime != null)
+                    DateFormat.yMMMd(
+                      Localizations.localeOf(context).toString(),
+                    ).format(event.eventDateTime!),
+                  if (event.eventLocation != null) event.eventLocation!,
+                ].join(' · '),
+              ),
+              onTap: () => event.bandId.isNotEmpty
+                  ? context.pushNamed(
+                      'band-setlist-view',
+                      pathParameters: {
+                        'id': event.bandId,
+                        'setlistId': event.id,
+                      },
+                      extra: event,
+                    )
+                  : context.pushNamed(
+                      'event-share',
+                      queryParameters: {
+                        'ownerUid': ?event.ownerUid,
+                        'setlistId': event.id,
+                      },
+                    ),
+            ),
+        ],
+      ),
     );
   }
 

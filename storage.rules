@@ -1,14 +1,28 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    // Demo read-only via a 'demo' custom claim. No code mints this claim yet, so
+    // this is inert until demo sign-in sets it; real gating is in firestore.rules.
+    function isNotDemo() {
+      return request.auth.token.get('demo', false) != true;
+    }
+
     // Personal avatars live at profile_pictures/{uid}.jpg (flat, single
     // segment). Match the filename and compare it to the owner's uid so the
     // flat .jpg object is authorized correctly.
+    // Cross-service lookup: needs the Storage rules service agent to read
+    // Firestore (granted automatically when rules are deployed via the CLI).
+    function isBandMember(bandId) {
+      let path = /databases/(default)/documents/bands/$(bandId);
+      return firestore.exists(path) &&
+        request.auth.uid in firestore.get(path).data.get('memberUids', []);
+    }
+
     match /profile_pictures/{fileName} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null &&
+      allow write: if request.auth != null && isNotDemo() &&
         fileName == request.auth.uid + '.jpg';
-      allow delete: if request.auth != null &&
+      allow delete: if request.auth != null && isNotDemo() &&
         fileName == request.auth.uid + '.jpg';
     }
 
@@ -30,15 +44,17 @@ service firebase.storage {
     // ponytail: app-level gating for band writes; move to a callable if abused.
     match /lab_audio/user/{uid}/{songId}/{fileName} {
       allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if request.auth != null && request.auth.uid == uid &&
-        request.resource.size < 25 * 1024 * 1024;
-      allow delete: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && isNotDemo() && request.auth.uid == uid &&
+        request.resource.size < 100 * 1024 * 1024;
+      allow delete: if request.auth != null && isNotDemo() && request.auth.uid == uid;
     }
     match /lab_audio/band/{bandId}/{songId}/{fileName} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null &&
-        request.resource.size < 25 * 1024 * 1024;
-      allow delete: if request.auth != null;
+      allow write: if request.auth != null && isNotDemo() &&
+        isBandMember(bandId) &&
+        request.resource.size < 100 * 1024 * 1024;
+      allow delete: if request.auth != null && isNotDemo() &&
+        isBandMember(bandId);
     }
 
     match /{allPaths=**} {

@@ -26,20 +26,28 @@ void main() {
     });
 
     test('an edit-only pinned action falls back to metronome for viewers', () {
-      expect((_build('edit', canEdit: false).first as IconAction).tooltip,
-          'Open in metronome');
-      expect((_build('eventkit', canEdit: false).first as IconAction).tooltip,
-          'Open in metronome');
+      expect(
+        (_build('edit', canEdit: false).first as IconAction).tooltip,
+        'Open in metronome',
+      );
+      expect(
+        (_build('eventkit', canEdit: false).first as IconAction).tooltip,
+        'Open in metronome',
+      );
     });
 
     test('an edit-only pinned action is honored when the user can edit', () {
-      expect((_build('eventkit', canEdit: true).first as IconAction).tooltip,
-          'Event kit');
+      expect(
+        (_build('eventkit', canEdit: true).first as IconAction).tooltip,
+        'Event kit',
+      );
     });
 
     test('an unknown pinned key falls back to metronome', () {
-      expect((_build('bogus', canEdit: true).first as IconAction).tooltip,
-          'Open in metronome');
+      expect(
+        (_build('bogus', canEdit: true).first as IconAction).tooltip,
+        'Open in metronome',
+      );
     });
   });
 }

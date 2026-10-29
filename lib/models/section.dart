@@ -6,7 +6,6 @@ import '../theme/mono_pulse_theme.dart';
 /// Sections are used to build song structures like:
 /// Intro → Verse → Chorus → Verse → Chorus → Bridge → Chorus → Outro
 class Section {
-
   Section({
     required this.id,
     required this.name,
@@ -27,6 +26,7 @@ class Section {
       chordChart: json['chordChart'] as String?,
     );
   }
+
   /// Unique identifier for this section.
   final String id;
 
@@ -96,7 +96,8 @@ class Section {
       'notes': notes,
       'duration': duration,
       if (colorValue != null) 'colorValue': colorValue,
-      if (chordChart != null && chordChart!.isNotEmpty) 'chordChart': chordChart,
+      if (chordChart != null && chordChart!.isNotEmpty)
+        'chordChart': chordChart,
     };
   }
 
@@ -109,7 +110,8 @@ class Section {
       return Color(colorValue!);
     }
     final index = colorIndex;
-    return MonoPulseColors.sectionColors[index % MonoPulseColors.sectionColors.length];
+    return MonoPulseColors.sectionColors[index %
+        MonoPulseColors.sectionColors.length];
   }
 
   /// Get contrasting text color for this section's background using MonoPulse theme.
@@ -120,6 +122,8 @@ class Section {
   /// also has no BuildContext to read context.mp from.
   Color get contrastingTextColor {
     final luminance = color.computeLuminance();
-    return luminance > 0.5 ? MonoPulseColors.black : MonoPulseColors.textPrimary;
+    return luminance > 0.5
+        ? MonoPulseColors.black
+        : MonoPulseColors.textPrimary;
   }
 }

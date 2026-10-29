@@ -1,5 +1,17 @@
 # PLANS
 
+## Active plan — 2026-10-23
+
+`docs/plans/systemic-ux/PLAN.md` is the current execution contract;
+`docs/plans/systemic-ux/activity.json` is the single live task/problem registry.
+Whole-app UX/UI scope, not Practice-only. All new findings extend this scope.
+Ornith 35b / Studio LAN is the primary bounded drafting/implementation worker;
+Hermes independently accepts results and updates state/history. No new release
+until every open item and final recheck is verified. `make activity-status` shows
+current counts; `make release-check` must currently fail closed.
+
+The April roadmap below is preserved as historical context, not the active queue.
+
 ## Current Goal
 
 Execute the remediation roadmap for the April 24 audit: security hardening first, then deploy reproducibility, test baseline recovery, architecture cleanup, and CI.

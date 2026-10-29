@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/api_error.dart';
@@ -10,12 +9,9 @@ import '../../models/song_suggestion.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
-import '../../services/api/deezer_service.dart';
-import '../../services/api/lyrics_service.dart';
-import '../../services/api/spotify_proxy_service.dart';
+import '../../services/metadata_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
-import '../../utils/lyrics_sections.dart';
 import '../../utils/song_tags.dart';
 import '../../utils/suggestion_links.dart';
 import '../../widgets/app_menu_sheet.dart';
@@ -27,7 +23,6 @@ import '../performance_sheet_screen.dart';
 import 'components/import_lyrics_dialog.dart';
 import 'components/song_form.dart';
 import 'models/song_form_data.dart';
-import 'song_editor_screen.dart';
 import 'utils/add_song_screen_helper.dart';
 
 /// Screen for adding or editing a song with comprehensive error handling.
@@ -37,6 +32,7 @@ class AddSongScreen extends ConsumerStatefulWidget {
     this.song,
     this.bandId,
     this.initialFormData,
+    this.embedded = false,
   });
 
   /// The song to edit. If null, a new song will be created.
@@ -47,6 +43,11 @@ class AddSongScreen extends ConsumerStatefulWidget {
 
   final SongFormData? initialFormData;
 
+  /// True when hosted inside the Song Page's Edit tab: the page owns the
+  /// shell menu (so nothing is published here) and stays open after a save
+  /// (no pop).
+  final bool embedded;
+
   @override
   ConsumerState<AddSongScreen> createState() => _AddSongScreenState();
 }
@@ -54,6 +55,13 @@ class AddSongScreen extends ConsumerStatefulWidget {
 class _AddSongScreenState extends ConsumerState<AddSongScreen>
     with AddSongScreenHelper, WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
+
+  // `late` matters: the constructor resolves FirebaseFunctions.instance, which
+  // throws without an initialised Firebase app. Building this eagerly as a field
+  // broke every widget test that merely pumps this screen. Deferring to first
+  // use means only a test that actually triggers autofill needs Firebase.
+  late final MetadataFunctionService _metadataService =
+      MetadataFunctionService();
   late TextEditingController _titleController;
   late TextEditingController _artistController;
   late TextEditingController _originalBpmController;
@@ -119,32 +127,38 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     if (formState.isAutoSaving || !formState.hasUnsavedChanges) return;
     if (_titleController.text.trim().isEmpty) return;
 
-    ref.read(songFormStateProvider.notifier).setAutoSaving(true);
+    final notifier = ref.read(songFormStateProvider.notifier);
+    final title = formState.formData.title;
 
     try {
-      final userAsync = ref.read(currentUserProvider);
-      final user = userAsync.value;
+      final user = ref.read(currentUserProvider).value;
       if (user == null) return;
 
       final songRepo = ref.read(songRepositoryProvider);
-      final success = await ref
-          .read(songFormStateProvider.notifier)
-          .autoSave(
-            songRepo: songRepo,
-            uid: user.uid,
-            bandId: widget.bandId,
-            isEditing: _isEditing,
-            existingSong: widget.song,
-          );
+      final outcome = await notifier.autoSave(
+        songRepo: songRepo,
+        uid: user.uid,
+        bandId: widget.bandId,
+        isEditing: _isEditing,
+        existingSong: widget.song,
+      );
 
-      if (success && mounted) {
-        debugPrint('✅ Auto-saved song: ${formState.formData.title}');
+      // Deliberately NOT gated on `mounted`: this often runs while the screen
+      // is popping, and a silently dropped save was the old bug. The root
+      // messenger outlives the screen. `queued` (offline) is not an error —
+      // the write is in Firestore's persistent queue and will sync.
+      if (outcome == AutoSaveOutcome.failed) {
+        showGlobalSnackBar(
+          'Couldn\'t save "$title" — your changes were not saved',
+          error: true,
+        );
       }
     } catch (e) {
-      if (mounted) {
-        ref.read(songFormStateProvider.notifier).setAutoSaving(false);
-        debugPrint('❌ Auto-save failed: $e');
-      }
+      notifier.setAutoSaving(false);
+      showGlobalSnackBar(
+        'Couldn\'t save "$title" — your changes were not saved',
+        error: true,
+      );
     }
   }
 
@@ -257,106 +271,92 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         .read(songFormStateProvider.notifier)
         .addLinks(linksForSuggestion(suggestion));
 
-    // Suggestions carry no BPM at search time — fetch it now (one lazy call)
-    // and fill what the user hasn't set.
-    final spotifyId = suggestion.spotifyId;
-    if (spotifyId != null && spotifyId.isNotEmpty) {
-      await _autofillFromSpotify(spotifyId);
-    } else {
-      await _autofillBpm(suggestion);
-    }
-
-    await _autofillLyrics(suggestion);
+    // Suggestions carry no BPM or lyrics at search time. One server call now
+    // fills both, plus the release metadata.
+    await _autofillFromResolver(suggestion);
   }
 
-  /// Fetches plain lyric text (lyrics.ovh) and appends it to the song as
-  /// Verse/Chorus sections, so it shows in the song editor + performance sheet
-  /// (which render Section.chordChart, not notes). Best-effort — no chords.
-  Future<void> _autofillLyrics(SongSuggestion suggestion) async {
-    // Skip if the song already has lyric content, so re-selecting a suggestion
-    // never clobbers the user's sections or duplicates the lyrics.
-    final existing = ref.read(songFormStateProvider).formData.sections;
-    if (existing.any((s) => (s.chordChart ?? '').trim().isNotEmpty)) return;
-    final lyrics = await LyricsService.getLyrics(
+  /// Fills BPM and lyric sections from the server-side resolver.
+  ///
+  /// Replaces three separate client-side fetches (Spotify audio-features, Deezer
+  /// BPM, lyrics.ovh) with one callable. Those providers now live in
+  /// functions/src/metadata/resolver.js, so the Spotify client secret never
+  /// reaches the app bundle and the album heuristic exists in exactly one place.
+  ///
+  /// Fill-only: anything the user already typed is left alone.
+  ///
+  /// Deliberately fills no KEY. The old Spotify path defaulted a missing
+  /// pitch-class to 0 -> "C", silently reporting "C major from Spotify", which is
+  /// a large part of how this library accumulated phantom C values. No provider
+  /// exposes musical key, so the field stays empty and honest.
+  Future<void> _autofillFromResolver(SongSuggestion suggestion) async {
+    final metadata = await _metadataService.lookup(
       title: suggestion.title,
       artist: suggestion.artist,
     );
-    if (lyrics == null || !mounted) return;
-    final parts = lyricsToSections(lyrics);
-    if (parts.isEmpty) return;
-    final sections = [
-      for (final p in parts)
-        Section(id: const Uuid().v4(), name: p.name, chordChart: p.chart),
-    ];
-    final current = ref.read(songFormStateProvider).formData.sections;
-    ref.read(songFormStateProvider.notifier).setSections([
-      ...current,
-      ...sections,
-    ]);
-    showAppSnackBar(
-      context,
-      'Added lyrics (${sections.length} parts) from lyrics.ovh',
+    if (metadata == null || !mounted) return;
+
+    final filled = <String>[];
+
+    // The album is the whole reason this stage exists. saveSong reads it off the
+    // selected suggestion, and a MusicBrainz suggestion's album is
+    // `releases.first.title` — arbitrary order, which is how bootlegs like
+    // "Apocalypse Now" got stored as real albums. Overwrite with the resolver's
+    // properly-picked release before the save can see it.
+    if (metadata.found) {
+      ref
+          .read(songFormStateProvider.notifier)
+          .refineSuggestionMetadata(
+            album: metadata.album,
+            releaseYear: metadata.releaseYear,
+            durationMs: metadata.durationMs,
+            musicBrainzId: metadata.musicBrainzId,
+            spotifyId: metadata.spotifyId,
+          );
+      final album = metadata.album;
+      if (album != null && album != suggestion.album) {
+        final year = metadata.releaseYear;
+        filled.add(year == null ? 'album $album' : 'album $album ($year)');
+      }
+    }
+
+    // The canonical catalog's own BPM wins; otherwise the resolver's (Deezer).
+    final bpm = suggestion.bpm ?? metadata.bpm;
+    if (bpm != null && bpm > 0 && _originalBpmController.text.trim().isEmpty) {
+      // The controller's listener syncs this into the form provider.
+      _originalBpmController.text = bpm.toString();
+      final source = metadata.sourceOf('bpm');
+      filled.add(source == null ? '$bpm BPM' : '$bpm BPM from $source');
+    }
+
+    // Lyrics as sections, so they render in the song editor and performance
+    // sheet (both read Section.chordChart). Guarded: skip entirely if any
+    // section already carries content, so re-selecting never clobbers the
+    // user's work or appends a duplicate set.
+    final existing = ref.read(songFormStateProvider).formData.sections;
+    final hasContent = existing.any(
+      (s) => (s.chordChart ?? '').trim().isNotEmpty,
     );
-  }
-
-  /// Fills BPM for a non-Spotify suggestion: from the suggestion itself when
-  /// it has one (canonical), otherwise from Deezer (#76 — Spotify
-  /// audio-features is closed to new apps, Deezer needs no auth).
-  Future<void> _autofillBpm(SongSuggestion suggestion) async {
-    if (_originalBpmController.text.trim().isNotEmpty) return;
-    final bpm =
-        suggestion.bpm ??
-        await DeezerService.getBpm(
-          title: suggestion.title,
-          artist: suggestion.artist,
-        );
-    if (bpm == null || bpm <= 0 || !mounted) return;
-    if (_originalBpmController.text.trim().isNotEmpty) return;
-    // The controller's listener syncs this into the form provider.
-    _originalBpmController.text = bpm.toString();
-    showAppSnackBar(context, 'Filled $bpm BPM from Deezer');
-  }
-
-  /// Fills BPM and key from Spotify audio-features for [spotifyId], without
-  /// overwriting a BPM the user already typed.
-  Future<void> _autofillFromSpotify(String spotifyId) async {
-    if (_originalBpmController.text.trim().isNotEmpty) return;
-    try {
-      final features = await SpotifyProxyService.getAudioFeatures(spotifyId);
-      if (features == null || !mounted) return;
-      if (features.bpm > 0) {
-        // The controller's listener syncs this into the form provider.
-        _originalBpmController.text = features.bpm.toString();
-      }
-      _applySpotifyKey(features.musicalKey);
-      if (mounted) {
-        showAppSnackBar(
-          context,
-          'Filled ${features.bpm} BPM · ${features.musicalKey} from Spotify',
-        );
-      }
-    } catch (_) {
-      // Non-fatal — autofill is best-effort (e.g. audio-features unavailable).
+    if (metadata.sections.isNotEmpty && !hasContent) {
+      final sections = [
+        for (final part in metadata.sections)
+          Section(
+            id: const Uuid().v4(),
+            name: part.name,
+            chordChart: part.chart,
+          ),
+      ];
+      ref.read(songFormStateProvider.notifier).setSections([
+        ...existing,
+        ...sections,
+      ]);
+      final source = metadata.sourceOf('sections') ?? 'lyrics.ovh';
+      filled.add('lyrics (${sections.length} parts) from $source');
     }
-  }
 
-  /// Parses a Spotify key string like "C# minor" into the form's base+modifier.
-  void _applySpotifyKey(String musicalKey) {
-    final parts = musicalKey.trim().split(' ');
-    if (parts.isEmpty || parts.first.isEmpty) return;
-    final token = parts.first; // e.g. "C#"
-    final base = token.replaceAll(RegExp('[#bm]'), '');
-    if (base.isEmpty) return;
-    var modifier = '';
-    if (token.contains('#')) {
-      modifier = '#';
-    } else if (token.contains('b')) {
-      modifier = 'b';
+    if (filled.isNotEmpty && mounted) {
+      showAppSnackBar(context, 'Filled ${filled.join(' · ')}');
     }
-    if (parts.length > 1 && parts[1].toLowerCase() == 'minor') modifier = 'm';
-    ref
-        .read(songFormStateProvider.notifier)
-        .updateOriginalKey(base.substring(0, 1).toUpperCase(), modifier);
   }
 
   @override
@@ -410,7 +410,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
 
     if (success && mounted) {
       final formData = ref.read(songFormStateProvider).formData;
-      Navigator.pop(context);
+      if (!widget.embedded) Navigator.pop(context);
       showMessage('${formData.title} ${_isEditing ? 'updated' : 'added'}');
     }
   }
@@ -422,38 +422,11 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     final imported = await showModalBottomSheet<ImportedSong>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => ImportLyricsDialog(
-        seedTitle: form.title,
-        seedArtist: form.artist,
-      ),
+      builder: (_) =>
+          ImportLyricsDialog(seedTitle: form.title, seedArtist: form.artist),
     );
     if (imported == null || !mounted) return;
     _applyImported(imported);
-  }
-
-  /// Opens the full-screen Song editor (live map ⇄ ChordPro sync) seeded from
-  /// the form, then replaces the form's sections with the edited map.
-  Future<void> _openSongEditor() async {
-    final formData = ref.read(songFormStateProvider).formData;
-    // rootNavigator: full-screen over the shell so its "Edit Song" bar doesn't
-    // stack under the editor's own song-name bar (the double-bar bug).
-    final result = await Navigator.of(
-      context,
-      rootNavigator: true,
-    ).push<ImportedSong>(
-      MaterialPageRoute<ImportedSong>(
-        builder: (_) => SongEditorScreen(
-          title: formData.title.trim().isEmpty ? 'Song' : formData.title.trim(),
-          sections: formData.sections,
-          artist: formData.artist,
-          songKey: formData.ourKey,
-          bpm: int.tryParse(formData.ourBpm),
-          timeTop: formData.accentBeats,
-        ),
-      ),
-    );
-    if (result == null || !mounted) return;
-    _applyImported(result, replaceSections: true);
   }
 
   /// Applies parsed song metadata + sections to the form. Controllers drive
@@ -490,6 +463,54 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     notifier.markAsChanged();
   }
 
+  /// Standalone: publish title + menu (draft sheet preview, import) for the
+  /// shell bar. Embedded in the Song Page: pass the child through untouched —
+  /// publishing here would overwrite the page's menu (same route location).
+  Widget _wrapWithMenu({
+    required SongFormData formData,
+    required Widget child,
+  }) {
+    if (widget.embedded) return child;
+    return MenuScopePublisher(
+      data: MenuScopeData(
+        // Show the song being edited rather than a generic "Edit Song".
+        title: _isEditing
+            ? (widget.song!.title.trim().isEmpty
+                  ? 'Edit Song'
+                  : widget.song!.title.trim())
+            : 'Add Song',
+        items: [
+          AppMenuItem(
+            icon: Icons.queue_music,
+            label: 'Performance sheet',
+            // rootNavigator: cover the whole shell so its persistent bottom
+            // bar ("Edit Song") doesn't stack under this screen's own
+            // song-name bar (the double-bar bug).
+            onTap: () => Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute<void>(
+                builder: (_) => PerformanceSheetScreen(
+                  title: formData.title.trim().isEmpty
+                      ? 'Song'
+                      : formData.title.trim(),
+                  sections: formData.sections,
+                  songKey: formData.ourKey,
+                  bpm: int.tryParse(formData.ourBpm),
+                  timeTop: formData.accentBeats,
+                ),
+              ),
+            ),
+          ),
+          AppMenuItem(
+            icon: Icons.content_paste,
+            label: 'Import lyrics & chords',
+            onTap: _importLyrics,
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch form state for reactive updates
@@ -508,59 +529,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
       },
       // Pushed branch child: title + actions are published for the shell's
       // bottom bar ([← Back] [title] [⋮ Menu]); there is no top app bar.
-      child: MenuScopePublisher(
-        data: MenuScopeData(
-          // Show the song being edited rather than a generic "Edit Song".
-          title: _isEditing
-              ? (widget.song!.title.trim().isEmpty
-                    ? 'Edit Song'
-                    : widget.song!.title.trim())
-              : 'Add Song',
-          items: [
-            AppMenuItem(
-              icon: Icons.queue_music,
-              label: 'Performance sheet',
-              // rootNavigator: cover the whole shell so its persistent bottom
-              // bar ("Edit Song") doesn't stack under this screen's own
-              // song-name bar (the double-bar bug).
-              onTap: () => Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => PerformanceSheetScreen(
-                    title: formData.title.trim().isEmpty
-                        ? 'Song'
-                        : formData.title.trim(),
-                    sections: formData.sections,
-                    songKey: formData.ourKey,
-                    bpm: int.tryParse(formData.ourBpm),
-                    timeTop: formData.accentBeats,
-                  ),
-                ),
-              ),
-            ),
-            AppMenuItem(
-              icon: Icons.edit_note,
-              label: 'Song editor (map + ChordPro)',
-              onTap: _openSongEditor,
-            ),
-            AppMenuItem(
-              icon: Icons.content_paste,
-              label: 'Import lyrics & chords',
-              onTap: _importLyrics,
-            ),
-            // Lab needs a persisted song (edit mode) — discoverability fix:
-            // the card-overflow entry alone was too hidden (beta feedback).
-            if (widget.song != null)
-              AppMenuItem(
-                icon: Icons.science_outlined,
-                label: 'Song Lab',
-                onTap: () => context.pushNamed(
-                  'song-lab',
-                  pathParameters: {'id': widget.song!.id},
-                  extra: {'song': widget.song, 'bandId': widget.bandId},
-                ),
-              ),
-          ],
-        ),
+      // Embedded (Song Page Edit tab): the page owns the shell menu, so this
+      // screen publishes nothing and renders bare.
+      child: _wrapWithMenu(
+        formData: formData,
         child: Scaffold(
           body: SafeArea(
             bottom: false,

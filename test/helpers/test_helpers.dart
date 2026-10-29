@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:flowgroove/utils/snackbar.dart' show rootScaffoldMessengerKey;
+
 import 'mocks.mocks.dart';
 
 // Initialize Firebase for tests (only once)
@@ -110,6 +112,9 @@ Future<void> pumpAppWidget(
     UncontrolledProviderScope(
       container: providerContainer,
       child: MaterialApp(
+        // Mirrors main.dart so showGlobalSnackBar (post-dispose save errors)
+        // renders in tests instead of silently no-oping.
+        scaffoldMessengerKey: rootScaffoldMessengerKey,
         home: Material(child: widget),
         navigatorObservers: navigatorObservers ?? [],
       ),
@@ -193,7 +198,6 @@ UserCredential createMockUserCredential({
 
 /// Mock navigator observer for testing navigation
 class MockNavigatorObserver extends NavigatorObserver {
-
   MockNavigatorObserver({this.onPush, this.onPop});
   final Function(Route<dynamic>)? onPush;
   final Function(Route<dynamic>)? onPop;

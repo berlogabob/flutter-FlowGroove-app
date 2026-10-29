@@ -3,7 +3,6 @@ import '../theme/mono_pulse_theme.dart';
 import 'app_filter_chip.dart';
 
 class TagCloudWidget extends StatelessWidget {
-
   const TagCloudWidget({
     required this.tagCounts,
     required this.onTagSelected,

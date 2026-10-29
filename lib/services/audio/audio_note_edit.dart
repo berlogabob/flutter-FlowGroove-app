@@ -8,7 +8,10 @@ library;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import '../../models/song_lab.dart';
 import 'audio_note_recorder.dart' show wavFromPcm16;
+
+export '../../models/song_lab.dart' show AudioMarker;
 
 /// Where the samples live inside a RIFF/WAVE buffer, plus the format needed to
 /// convert between byte offsets and milliseconds.
@@ -105,8 +108,19 @@ Uint8List? trimWav(Uint8List wav, {required int startMs, required int endMs}) {
 
 /// `sampling_frequency_index` -> Hz, per ISO/IEC 13818-7.
 const _adtsSampleRates = [
-  96000, 88200, 64000, 48000, 44100, 32000,
-  24000, 22050, 16000, 12000, 11025, 8000, 7350,
+  96000,
+  88200,
+  64000,
+  48000,
+  44100,
+  32000,
+  24000,
+  22050,
+  16000,
+  12000,
+  11025,
+  8000,
+  7350,
 ];
 
 /// Every AAC-LC frame carries exactly this many samples per channel.
@@ -166,7 +180,8 @@ typedef AdtsConfig = ({
     config: (
       sampleRate: _adtsSampleRates[freqIdx],
       freqIndex: freqIdx,
-      channels: ((aac[offset + 2] & 0x01) << 2) | ((aac[offset + 3] >> 6) & 0x03),
+      channels:
+          ((aac[offset + 2] & 0x01) << 2) | ((aac[offset + 3] >> 6) & 0x03),
       profile: (aac[offset + 2] >> 6) & 0x03,
     ),
   );
@@ -233,8 +248,7 @@ Uint8List? trimAudio(
   Uint8List bytes, {
   required int startMs,
   required int endMs,
-}) =>
-    _isAdts(bytes)
+}) => _isAdts(bytes)
     ? trimAdts(bytes, startMs: startMs, endMs: endMs)
     : trimWav(bytes, startMs: startMs, endMs: endMs);
 
@@ -261,11 +275,32 @@ int _snap(int bytes, int frame) => bytes - (bytes % frame);
 /// is what lets the editor draw a waveform without downloading the audio.
 const waveformPeakCount = 200;
 
+/// Stretches waveform contrast above the non-zero bars' 10th percentile.
+List<double> waveformLevels(List<int> peaks) {
+  if (peaks.isEmpty) return const [];
+  final nonZero = peaks.where((peak) => peak > 0).toList()..sort();
+  if (nonZero.isEmpty) return List<double>.filled(peaks.length, 0);
+  final lo = nonZero[((nonZero.length - 1) * 0.1).floor()];
+  final max = nonZero.last;
+  return [
+    for (final peak in peaks)
+      if (peak < lo)
+        (peak / lo * 0.15).clamp(0.0, 0.15)
+      else if (max == lo)
+        1.0
+      else
+        0.15 + (peak - lo) / (max - lo) * 0.85,
+  ];
+}
+
 /// Reduces a recording's dBFS level stream to [buckets] bars in 0..255.
 ///
 /// Same -60dB floor as the live recording bars, so a take looks the same while
 /// recording and afterwards.
-List<int> peaksFromLevels(List<double> dbfs, {int buckets = waveformPeakCount}) {
+List<int> peaksFromLevels(
+  List<double> dbfs, {
+  int buckets = waveformPeakCount,
+}) {
   if (dbfs.isEmpty || buckets <= 0) return const [];
   final out = List<int>.filled(math.min(buckets, dbfs.length), 0);
   for (var i = 0; i < out.length; i++) {
@@ -280,12 +315,13 @@ List<int> peaksFromLevels(List<double> dbfs, {int buckets = waveformPeakCount}) 
   return out;
 }
 
-/// Derives waveform peaks from the audio itself, for takes recorded before
-/// peaks were captured at record time.
+/// Derives RMS waveform bars from the audio itself, for takes recorded before
+/// peaks were captured at record time. Normalises the loudest bar to 255;
+/// silence stays zero.
 ///
 /// WAV only: PCM samples can be read directly, whereas AAC would need decoding.
 /// Strides rather than reading every sample — at 25MB that's 13M samples, and
-/// a bar only needs the loudest thing near it, not all of it.
+/// a few hundred samples per bar suffice to estimate its RMS level.
 List<int>? peaksFromWav(Uint8List wav, {int buckets = waveformPeakCount}) {
   final info = parseWav(wav);
   if (info == null || info.bytesPerSample != 2 || buckets <= 0) return null;
@@ -295,19 +331,72 @@ List<int>? peaksFromWav(Uint8List wav, {int buckets = waveformPeakCount}) {
 
   final data = ByteData.sublistView(wav);
   final out = List<int>.filled(math.min(buckets, frames), 0);
-  // Cap the work per bar; a few hundred samples is plenty to find a peak.
+  final rms = List<double>.filled(out.length, 0);
+  var maxRms = 0.0;
+  // Cap the work per bar while estimating its RMS level.
   const maxReadsPerBucket = 256;
   for (var i = 0; i < out.length; i++) {
     final start = i * frames ~/ out.length;
     final end = math.max(start + 1, (i + 1) * frames ~/ out.length);
     final step = math.max(1, (end - start) ~/ maxReadsPerBucket);
-    var peak = 0;
+    var sumSquares = 0.0;
+    var count = 0;
     for (var f = start; f < end; f += step) {
       // First channel only: the second says nearly the same thing about level.
-      final v = data.getInt16(info.offset + f * frame, Endian.little).abs();
-      if (v > peak) peak = v;
+      final v = data.getInt16(info.offset + f * frame, Endian.little);
+      sumSquares += v * v;
+      count++;
     }
-    out[i] = (peak * 255 / 32768).round().clamp(0, 255);
+    rms[i] = math.sqrt(sumSquares / count);
+    maxRms = math.max(maxRms, rms[i]);
+  }
+  if (maxRms > 0) {
+    for (var i = 0; i < out.length; i++) {
+      out[i] = (rms[i] / maxRms * 255).round().clamp(0, 255);
+    }
+  }
+  return out;
+}
+
+/// Reduces decoded float samples (-1..1) to [buckets] RMS bars in 0..255.
+/// Uses strided samples and normalises the loudest bar to 255; silence stays
+/// zero. Used for imported mp3/m4a/flac files decoded by the platform.
+List<int> peaksFromFloats(
+  Float32List samples, {
+  int buckets = waveformPeakCount,
+}) {
+  if (samples.isEmpty || buckets <= 0) return const [];
+  final out = List<int>.filled(math.min(buckets, samples.length), 0);
+  final rms = List<double>.filled(out.length, 0);
+  var maxRms = 0.0;
+  const maxReadsPerBucket = 256;
+  for (var i = 0; i < out.length; i++) {
+    final start = i * samples.length ~/ out.length;
+    final end = math.max(start + 1, (i + 1) * samples.length ~/ out.length);
+    final step = math.max(1, (end - start) ~/ maxReadsPerBucket);
+    var sumSquares = 0.0;
+    var count = 0;
+    for (var j = start; j < end; j += step) {
+      final v = samples[j];
+      sumSquares += v * v;
+      count++;
+    }
+    rms[i] = math.sqrt(sumSquares / count);
+    maxRms = math.max(maxRms, rms[i]);
+  }
+  if (maxRms > 0) {
+    for (var i = 0; i < out.length; i++) {
+      out[i] = (rms[i] / maxRms * 255).round().clamp(0, 255);
+    }
+  }
+  return out;
+}
+
+/// Float samples (-1..1) to clamped 16-bit PCM.
+Int16List pcm16FromFloats(Float32List samples) {
+  final out = Int16List(samples.length);
+  for (var i = 0; i < samples.length; i++) {
+    out[i] = (samples[i].clamp(-1.0, 1.0) * 32767).round();
   }
   return out;
 }
@@ -319,38 +408,45 @@ List<int> trimPeaks(List<int> peaks, double startFrac, double endFrac) {
   final from = (startFrac.clamp(0.0, 1.0) * peaks.length).floor();
   final to = (endFrac.clamp(0.0, 1.0) * peaks.length).ceil();
   if (to <= from) return const [];
-  return peaks.sublist(math.min(from, peaks.length - 1), math.min(to, peaks.length));
+  return peaks.sublist(
+    math.min(from, peaks.length - 1),
+    math.min(to, peaks.length),
+  );
 }
 
-/// One timestamped comment on a recording.
-typedef AudioMarker = ({int ms, String text});
+/// Structured notes take precedence over legacy timestamp lines.
+List<AudioMarker> entryNotes(SongLabEntry entry) =>
+    entry.notes.isNotEmpty ? entry.notes : parseMarkers(entry.body);
+
+/// Keeps free text when a note edit migrates legacy markers.
+String bodyWithoutMarkers(String? body) =>
+    formatMarkers(const [], keepTextFrom: body);
 
 final _markerLine = RegExp(r'^\s*(\d{1,2}):([0-5]\d)\s+(.+?)\s*$');
 
 /// Parses `00:42 good chorus entry` lines out of an entry body.
-///
-/// ponytail: markers ARE the body text — no new model, no new collection, and
-/// they still export and read as plain notes. Lines that don't match are kept
-/// out of the marker list and preserved by [formatMarkers] callers only if they
-/// re-add them; in practice the whole body is markers.
 List<AudioMarker> parseMarkers(String? body) {
   if (body == null || body.isEmpty) return const [];
   final out = <AudioMarker>[];
   for (final line in body.split('\n')) {
     final m = _markerLine.firstMatch(line);
     if (m == null) continue;
-    final ms =
-        (int.parse(m.group(1)!) * 60 + int.parse(m.group(2)!)) * 1000;
+    final ms = (int.parse(m.group(1)!) * 60 + int.parse(m.group(2)!)) * 1000;
     out.add((ms: ms, text: m.group(3)!));
   }
   out.sort((a, b) => a.ms.compareTo(b.ms));
   return out;
 }
 
-/// Renders markers back to the `MM:SS text` body format.
-String formatMarkers(List<AudioMarker> markers) {
+/// Renders markers back to the `MM:SS text` body format, after the plain-text
+/// lines of [keepTextFrom] (the old body), so free notes survive.
+String formatMarkers(List<AudioMarker> markers, {String? keepTextFrom}) {
   final sorted = [...markers]..sort((a, b) => a.ms.compareTo(b.ms));
-  return sorted.map((m) => '${formatTimestamp(m.ms)} ${m.text}').join('\n');
+  return [
+    for (final line in (keepTextFrom ?? '').split('\n'))
+      if (line.trim().isNotEmpty && !_markerLine.hasMatch(line)) line,
+    for (final m in sorted) '${formatTimestamp(m.ms)} ${m.text}',
+  ].join('\n');
 }
 
 /// `M:SS` for playback readouts, zero-padded `MM:SS` in marker lines.

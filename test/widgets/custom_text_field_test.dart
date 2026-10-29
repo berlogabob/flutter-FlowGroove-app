@@ -7,9 +7,7 @@ import '../helpers/test_helpers.dart';
 
 void main() {
   group('CustomTextField', () {
-    testWidgets('renders text field without label', (
-      tester,
-    ) async {
+    testWidgets('renders text field without label', (tester) async {
       await pumpAppWidget(tester, const CustomTextField(hint: 'Enter text'));
 
       expect(findText('Enter text'), findsOneWidget);
@@ -27,9 +25,7 @@ void main() {
       expect(find.byType(TextFormField), findsOneWidget);
     });
 
-    testWidgets('renders required field indicator', (
-      tester,
-    ) async {
+    testWidgets('renders required field indicator', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomTextField(label: 'Email', required: true),
@@ -69,9 +65,7 @@ void main() {
       expect(findText('Hello World'), findsOneWidget);
     });
 
-    testWidgets('calls onChanged when text changes', (
-      tester,
-    ) async {
+    testWidgets('calls onChanged when text changes', (tester) async {
       String? changedValue;
 
       await pumpAppWidget(
@@ -88,9 +82,7 @@ void main() {
       expect(changedValue, equals('Test'));
     });
 
-    testWidgets('calls onSubmitted when user submits', (
-      tester,
-    ) async {
+    testWidgets('calls onSubmitted when user submits', (tester) async {
       String? submittedValue;
 
       await pumpAppWidget(
@@ -185,9 +177,7 @@ void main() {
       expect(textField.inputFormatters, isNotEmpty);
     });
 
-    testWidgets('calls onFocus when field gains focus', (
-      tester,
-    ) async {
+    testWidgets('calls onFocus when field gains focus', (tester) async {
       bool wasFocused = false;
 
       await pumpAppWidget(

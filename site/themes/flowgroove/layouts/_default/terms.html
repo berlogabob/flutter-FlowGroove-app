@@ -1,0 +1,4 @@
+{{ define "main" }}
+<section class="single">{{ partial "page-heading.html" . }}<div class="prose">{{ .Content }}</div>
+<ul class="term-list">{{ range .Data.Terms.Alphabetical }}<li><a href="{{ .Page.RelPermalink }}">{{ .Page.LinkTitle }} <span>({{ .Count }})</span></a></li>{{ end }}</ul>
+</section>{{ end }}

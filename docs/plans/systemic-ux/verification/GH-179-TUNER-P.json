@@ -1,0 +1,32 @@
+{
+  "task": "GH-179-TUNER-P",
+  "reviewer": "hermes",
+  "scope": "Public TunerNotifier addCustomTuning/removeCustomTuning, injected repository transport, real permission providers",
+  "recovery": "Interrupted parent implementation preserved; no model dispatch or prompt replay. Stale completed baseline process is not live work.",
+  "source_sha256": "681867ce18d561dd6991dfee1bc0601a00a632419bfb9cb022fd0de28c2f7a23",
+  "test_sha256": "85264be66518d2d42e4e975a8d874ac3c4c202a9338c9e50906baee62b0f50f6",
+  "private_evidence_directory": "audit/2026-10-23-systemic-ux/workers/GH-179-TUNER-P-PARENT-20261025",
+  "red": {
+    "reports": ["red-save.jsonl", "red-delete.jsonl"],
+    "done_success": false,
+    "expected_failure": "Expected throws StateError; original synced save/delete instead completed normally",
+    "cases": ["synced account save rejects demo before repository transport", "synced delete rejects revoked identity before transport"]
+  },
+  "green": {
+    "command": "flutter test --no-pub test/providers/tuner_provider_test.dart test/widgets/tuner/custom_tuning_editor_test.dart test/models/tuner_launch_context_test.dart test/repositories/tuner_preset_repository_test.dart --reporter expanded --file-reporter json:<private-report>",
+    "report": "controller-recovery.jsonl",
+    "exit_code": 0,
+    "coverage": "Denied demo/signed-out/mismatched/loading/error/cached identities; local operations remain available; account/song/band authorized writes and failed transport preserve state; live band arrays; foreign owner; account change during pending save. Existing editor/context/repository controls included."
+  },
+  "analyze": {
+    "command": "flutter analyze --no-pub --no-fatal-infos lib/providers/tuner_provider.dart test/providers/tuner_provider_test.dart",
+    "report": "controller-analyze.log",
+    "exit_code": 0,
+    "warnings_or_errors": false,
+    "note": "Non-fatal style infos retained; not claimed lint-clean."
+  },
+  "format": {"command": "dart format --output=none --set-exit-if-changed lib/providers/tuner_provider.dart test/providers/tuner_provider_test.dart", "exit_code": 0, "changed_files": 0},
+  "diff_check_exit_code": 0,
+  "retained_failures": ["combined.jsonl: missing required Band.createdBy fixture arguments", "provider-green.jsonl: uninitialized fixture identity; repaired in retained subsequent combined runs"],
+  "limits": ["Repository spies establish calls, not deployed Firestore enforcement or actual sync", "An in-flight remote write cannot be undone by post-await authority checks; stale local success is withheld", "Handled existing async-disposal diagnostics remain in old provider controls", "No caller/linking, device/audio/human, full-suite or Graphify acceptance", "GH-179 and release hold remain open"]
+}

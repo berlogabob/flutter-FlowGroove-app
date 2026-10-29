@@ -49,37 +49,40 @@ service cloud.firestore {
 
     // Helper function to check if user is a member of a global band
     // Uses memberUids array for efficient lookup (no map/filter available in rules)
+    // band.get(field, []) — NOT `!= null`: reading an absent key raises an
+    // evaluation error (= denies everything on that band), it does not
+    // return null. get() with a default is the only safe missing-field read.
     function isGlobalBandMember(bandId) {
       let band = getGlobalBand(bandId);
       return band != null &&
-        band.memberUids.hasAny([request.auth.uid]);
+        band.get('memberUids', []).hasAny([request.auth.uid]);
     }
 
     // Helper function to check if user is an admin of a global band
-    // Uses memberUids and adminUids arrays for efficient lookup
-    // NOTE: Handles missing fields by checking if field exists
     function isGlobalBandAdmin(bandId) {
       let band = getGlobalBand(bandId);
       return band != null &&
-        band.adminUids != null &&
-        band.adminUids.hasAny([request.auth.uid]);
+        band.get('adminUids', []).hasAny([request.auth.uid]);
     }
 
     // Helper function to check if user is an editor or admin of a global band
-    // Uses editorUids and adminUids arrays for efficient lookup
-    // NOTE: Handles missing/null fields by checking existence first
     function isGlobalBandEditorOrAdmin(bandId) {
       let band = getGlobalBand(bandId);
-      let isAdmin = band != null && band.adminUids != null &&
-                    band.adminUids.hasAny([request.auth.uid]);
-      let isEditor = band != null && band.editorUids != null &&
-                     band.editorUids.hasAny([request.auth.uid]);
+      let isAdmin = band != null &&
+                    band.get('adminUids', []).hasAny([request.auth.uid]);
+      let isEditor = band != null &&
+                     band.get('editorUids', []).hasAny([request.auth.uid]);
       return isAdmin || isEditor;
     }
 
-    // Helper function to check if creating user is in members list
-    function isCreatorInMembers(memberUids) {
-      return memberUids.hasAny([request.auth.uid]);
+    // A client-created band starts with exactly its creator as admin; every
+    // later membership change goes through the callables (Admin SDK).
+    function isValidBandCreate() {
+      let band = request.resource.data;
+      return band.createdBy == request.auth.uid &&
+        band.memberUids == [request.auth.uid] &&
+        band.adminUids == [request.auth.uid] &&
+        band.get('editorUids', []) == [];
     }
 
     function hasCanonicalLink() {
@@ -118,6 +121,87 @@ service cloud.firestore {
     function isValidBandSetlistWrite(bandId, setlistId) {
       return request.resource.data.id == setlistId &&
         request.resource.data.bandId == bandId;
+    }
+
+    // ---- Event guests -------------------------------------------------
+    // A person can be attached to ONE event without joining the band: a guest
+    // musician, a sound engineer, a venue's art director.
+    //
+    // The grant lives in ITS OWN DOCUMENT, never as a field on the setlist:
+    //
+    //     bands/{bandId}/setlists/{setlistId}/grants/{uid}
+    //
+    // Firestore has no partial writes — a rule accepts or rejects a whole
+    // document write — so anything stored on a document the client rewrites is
+    // only as durable as the oldest app build still installed. That is not
+    // theoretical: on 2026-08-21 a build predating these fields did an ordinary
+    // full `.set()` while adding a break divider and silently deleted every
+    // grant on a setlist. Merge fixes new clients and cannot fix installed ones.
+    // Firebase's own guidance is the same — put data with a different access
+    // level in a separate document, and keep roles in their own collection once
+    // sharing gets complex.
+    //
+    // Cost: one extra document access for a guest, none for a member (the
+    // membership check short-circuits first). The documented ceiling is 10 per
+    // request, and each call is a billed read even when the rule rejects.
+
+    function grantPath(bandId, setlistId) {
+      return /databases/$(database)/documents/bands/$(bandId)/setlists/$(setlistId)/grants/$(request.auth.uid);
+    }
+
+    /// Granted `level` on `area` for this event, e.g. ('stage', 'edit').
+    function hasEventArea(bandId, setlistId, area, level) {
+      return hasGrantedArea(grantPath(bandId, setlistId), area, level);
+    }
+
+    function hasGrantedArea(path, area, level) {
+      return isAuthenticated() && exists(path) &&
+        get(path).data.get('access', {}).get(area, '') == level;
+    }
+
+    function hasPersonalEventArea(userId, setlistId, area, level) {
+      return hasGrantedArea(
+        /databases/$(database)/documents/users/$(userId)/setlists/$(setlistId)/grants/$(request.auth.uid),
+        area, level);
+    }
+
+    /// A member's write either leaves the event kit untouched, or changes it
+    /// and nothing else (the dotted-field-path route from its own editor).
+    /// What it must never do is carry a stale event kit along with unrelated
+    /// changes — that is how a whole-document save reverts an area editor.
+    /// `create` has no prior document, so there is nothing to clobber.
+    function eventKitIsSafe() {
+      // resource is null on create — no prior document, nothing to clobber.
+      return resource == null ||
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['eventKit']) ||
+        touchesOnlyEventKit();
+    }
+
+    /// The write changes nothing outside the event kit. Keeps an area editor
+    /// away from the running order and the songs.
+    function touchesOnlyEventKit() {
+      return request.resource.data.diff(resource.data)
+        .affectedKeys().hasOnly(['eventKit', 'updatedAt']);
+    }
+
+    /// Within the event kit, the write changes only `area`. Written as a diff
+    /// of the two maps, so adding a stage placement cannot smuggle in a rider
+    /// edit. An event kit that did not exist yet counts as an empty map.
+    function touchesOnlyArea(area) {
+      return request.resource.data.get('eventKit', {})
+        .diff(resource.data.get('eventKit', {}))
+        .affectedKeys().hasOnly([area]);
+    }
+
+    /// The write changes only the event's OWN fields — never eventKit, which
+    /// carries the roster the grants are derived from. An allowlist, not a
+    /// denylist: a field added to the model later is refused until it is named
+    /// here, which is the safe direction to fail.
+    function touchesOnlyEventFields() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'name', 'description', 'eventDateTime', 'eventLocation',
+        'items', 'songIds', 'totalDuration', 'assignments', 'updatedAt'
+      ]);
     }
 
     function isValidUserProfileCreate(userId) {
@@ -165,19 +249,37 @@ service cloud.firestore {
     // ============================================================
     // Stores all bands in a single collection for cross-user access
     match /bands/{bandId} {
-      // Any authenticated user can read bands (needed for join by code)
-      allow read: if isAuthenticated();
+      // Members only.
+      //
+      // This was `if isAuthenticated()`, commented "needed for join by code".
+      // It is not: joining goes through the getBandInviteInfo and joinBand
+      // callables, which use the admin SDK. What it WAS doing is far worse than
+      // it looks — `read` covers `list`, and a condition that never touches
+      // `resource` makes the whole collection listable. Any signed-in account
+      // could enumerate every band in the project and read each one's member
+      // emails and its inviteCode, which is the shared secret for joining. So
+      // one account was one query away from joining anything.
+      //
+      // Read `resource.data` rather than calling isGlobalBandMember(): that
+      // helper does a get() per document, and the documented ceiling is 10
+      // document accesses per query, so listing a user's own ~10 bands would
+      // start failing. Matching on the document being read costs nothing and
+      // keeps `where('memberUids', arrayContains: uid)` provable to the engine.
+      allow read: if isAuthenticated() &&
+        resource.data.get('memberUids', []).hasAny([request.auth.uid]);
 
       // Create: Only non-demo authenticated users can create a band
       allow create: if isAuthenticated() &&
         isNotDemo(request.auth.uid) &&
-        isCreatorInMembers(request.resource.data.memberUids);
+        isValidBandCreate();
 
       // Update: Only band admins can update band details (non-demo).
       // Joining a band is handled server-side by the `joinBand` Cloud Function
       // (admin SDK), so direct client self-join writes are no longer trusted.
       allow update: if isAuthenticated() && isNotDemo(request.auth.uid) &&
-        isGlobalBandAdmin(bandId);
+        isGlobalBandAdmin(bandId) &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['memberUids', 'adminUids', 'editorUids']);
 
       // Delete: Only band admins can delete a band (non-demo)
       allow delete: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandAdmin(bandId);
@@ -239,19 +341,124 @@ service cloud.firestore {
     // ============================================================
     // Setlists stored under bands for collaborative band planning
     match /bands/{bandId}/setlists/{setlistId} {
-      // Band members can read
+      // Members ONLY. A guest never reads this document.
+      //
+      // Firestore reads whole documents — there is no partial read — so letting
+      // a guest read the setlist hands them the stage plot, the rider, every
+      // roster uid and the assignments, whatever their grant says. getEventView
+      // scopes the payload carefully and a raw read walks straight past it.
+      //
+      // Guests read through getEventView instead, which is where the scoping
+      // actually lives, and find their events through users/{uid}/eventInvites.
+      // That is the same path the anonymous token holder already uses, so this
+      // removes a second half-path rather than adding a restriction.
+      //
+      // They can still WRITE their own area below: a Firestore update does not
+      // require read permission — the rule may inspect resource.data even when
+      // the caller cannot read the document.
       allow read: if isAuthenticated() && isGlobalBandMember(bandId);
 
-      // Band editors/admins can create and update (non-demo only)
+      // Band editors/admins can create and update (non-demo only).
+      //
+      // `eventKitIsSafe` is the guard against a stale full-document write. The
+      // event kit has its own editors — a sound engineer on the stage plot, a
+      // videographer on the rider — so the app writes it through dotted field
+      // paths only (updateEventKitArea) and leaves it out of a setlist save.
+      // An older build still sends its whole in-memory copy, which silently
+      // reverts whatever those editors did in the meantime. affectedKeys()
+      // lists only fields that ACTUALLY changed, so re-sending an identical
+      // event kit is fine; sending a stale one is refused. It fails loudly
+      // exactly when it would otherwise destroy someone's work.
       allow create, update: if isAuthenticated() &&
         isNotDemo(request.auth.uid) &&
         isGlobalBandEditorOrAdmin(bandId) &&
-        isValidBandSetlistWrite(bandId, setlistId);
+        isValidBandSetlistWrite(bandId, setlistId) &&
+        eventKitIsSafe();
+
+      // A non-member granted ONE area (a sound engineer on the stage plot, a
+      // videographer on the equipment list) may write that area and nothing
+      // else. Both halves matter: `touchesOnlyEventKit` stops them reaching the
+      // running order or the songs, and `touchesOnlyArea` stops the stage
+      // editor from rewriting the rider. They cannot reach their own grant at
+      // all — it is not on this document.
+      allow update: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        touchesOnlyEventKit() &&
+        (
+          (hasEventArea(bandId, setlistId, 'stage', 'edit') && touchesOnlyArea('stage')) ||
+          (hasEventArea(bandId, setlistId, 'rider', 'edit') && touchesOnlyArea('rider'))
+        );
+
+      // A non-member escalated to run the event itself — a manager standing in
+      // for the band on one night. Event fields only: never eventKit, which
+      // carries the roster the grants are derived from.
+      allow update: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        (hasEventArea(bandId, setlistId, 'runningOrder', 'edit') ||
+          hasEventArea(bandId, setlistId, 'eventInfo', 'edit')) &&
+        touchesOnlyEventFields();
 
       // Band admins can delete (non-demo only)
       allow delete: if isAuthenticated() &&
         isNotDemo(request.auth.uid) &&
         isGlobalBandAdmin(bandId);
+    }
+
+    // The grants themselves. Readable by the person they belong to (so the app
+    // can tell them what they may do) and by band members (to show the roster's
+    // access). NEVER writable by a client — the events callables use the admin
+    // SDK, which bypasses these rules. This is the whole point of the design:
+    // no app build, however stale, can delete or widen a grant.
+    match /bands/{bandId}/setlists/{setlistId}/eventPublication/{doc} {
+      allow read, write: if false;
+    }
+
+    match /bands/{bandId}/setlists/{setlistId}/grants/{grantUid} {
+      allow read: if isAuthenticated() &&
+        (request.auth.uid == grantUid || isGlobalBandMember(bandId));
+      allow write: if false;
+    }
+
+    // NOTE: event-guest discovery deliberately has NO collection-group rule.
+    //
+    // It used to: `collectionGroup('setlists').where('guestUids', arrayContains:
+    // uid)` needed `match /{path=**}/setlists/{setlistId}`, and that path also
+    // matched every user's PERSONAL setlists under users/{uid}/setlists/{id}.
+    // It was safe only by the narrow accident that `get('guestUids', [])`
+    // returns [] for a document lacking the field — one careless edit away from
+    // exposing everyone's private lists. Discovery now reads
+    // users/{uid}/eventInvites instead, which is scoped to its owner by
+    // construction, so the whole hazard is gone. Do not reintroduce it.
+
+    // Proposed changes to an event from someone who cannot make them: a wedding
+    // couple reordering, a venue asking to swap a song or a word for the censor.
+    //
+    // EVERY guest suggestion goes through the submitSuggestion callable, which
+    // checks the caller's `canSuggest` grant and writes with the admin SDK. So
+    // this path only ever needs to serve band members, and is scoped to them.
+    //
+    // It was briefly `isAuthenticated() && authorUid == request.auth.uid`, which
+    // let ANY signed-in user write into ANY band's setlist — the author check
+    // proves who you are, never that you were invited. Membership is the check
+    // that matters; do not widen this to "authenticated" again.
+    match /bands/{bandId}/setlists/{setlistId}/suggestions/{suggestionId} {
+      allow read: if isAuthenticated() && isGlobalBandMember(bandId);
+      allow create: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandMember(bandId) &&
+        request.resource.data.status == 'open' &&
+        request.resource.data.authorUid == request.auth.uid;
+      // Only the band decides what happens to a suggestion.
+      allow update, delete: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandEditorOrAdmin(bandId);
+    }
+
+    // Share tokens for event links. Holds the hash of a secret that grants
+    // access, so a client that could read this collection could enumerate every
+    // shared event. Closed completely — the events callables use the admin SDK.
+    match /eventShares/{tokenId} {
+      allow read, write: if false;
     }
 
     // Rehearsal proposals/events — one merged lifecycle per band.
@@ -276,7 +483,8 @@ service cloud.firestore {
           isNotDemo(request.auth.uid) &&
           isGlobalBandMember(bandId) &&
           request.auth.uid == uid;
-        allow delete: if isAuthenticated() && request.auth.uid == uid;
+        allow delete: if isAuthenticated() &&
+          isNotDemo(request.auth.uid) && request.auth.uid == uid;
       }
     }
 
@@ -300,6 +508,16 @@ service cloud.firestore {
         // Prevent users from escalating their own accessRole
         (request.resource.data.accessRole == resource.data.accessRole ||
          request.resource.data.accessRole == 'member');
+
+      // Practice sessions (metronome logbook, #133) — strictly private to the
+      // owner; nobody else reads them, not even a band admin. Demo is the
+      // shared read-only account, so it never writes.
+      match /practiceSessions/{sessionId} {
+        allow read: if isAuthenticated() && isOwner(userId);
+        allow create, update, delete: if isAuthenticated() &&
+          isOwner(userId) &&
+          isNotDemo(userId);
+      }
 
       // Songs subcollection — owner can manage; demo users read-only
       match /songs/{songId} {
@@ -348,6 +566,51 @@ service cloud.firestore {
       match /setlists/{setlistId} {
         allow read: if isAuthenticated() && isOwner(userId);
         allow write, delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+
+        allow update: if isAuthenticated() && isNotDemo(request.auth.uid) &&
+          touchesOnlyEventKit() && (
+            (hasPersonalEventArea(userId, setlistId, 'stage', 'edit') && touchesOnlyArea('stage')) ||
+            (hasPersonalEventArea(userId, setlistId, 'rider', 'edit') && touchesOnlyArea('rider'))
+          );
+        allow update: if isAuthenticated() && isNotDemo(request.auth.uid) &&
+          (hasPersonalEventArea(userId, setlistId, 'runningOrder', 'edit') ||
+            hasPersonalEventArea(userId, setlistId, 'eventInfo', 'edit')) &&
+          touchesOnlyEventFields();
+
+        match /eventPublication/{doc} {
+          allow read, write: if false;
+        }
+
+        match /grants/{grantUid} {
+          allow read: if isAuthenticated() && request.auth.uid == grantUid;
+          allow write: if false;
+        }
+
+        match /suggestions/{suggestionId} {
+          allow read: if isAuthenticated() && isOwner(userId);
+          allow create: if isAuthenticated() &&
+            isNotDemo(request.auth.uid) &&
+            !request.resource.data.keys().hasAny(['proposal']) &&
+            (isOwner(userId) || (
+              exists(/databases/$(database)/documents/users/$(userId)/setlists/$(setlistId)/grants/$(request.auth.uid)) &&
+              get(/databases/$(database)/documents/users/$(userId)/setlists/$(setlistId)/grants/$(request.auth.uid)).data.get('canSuggest', false) == true
+            )) &&
+            request.resource.data.status == 'open' &&
+            request.resource.data.authorUid == request.auth.uid;
+          allow update, delete: if isAuthenticated() &&
+            isNotDemo(request.auth.uid) && isOwner(userId);
+        }
+      }
+
+      // "Events I'm a guest on" — the answer to a question Firestore cannot ask
+      // any other way. A guest is not in the band, so they cannot list a band's
+      // setlists, and nothing in the setlist tells them which band it belongs
+      // to. This index is written by the events callables (admin SDK) whenever
+      // the roster changes, and is scoped to its owner by construction — which
+      // is why event discovery needs no collection-group rule any more.
+      match /eventInvites/{setlistId} {
+        allow read: if isAuthenticated() && isOwner(userId);
+        allow write: if false;
       }
 
       match /duplicate_dismissals/{dismissalId} {
@@ -375,6 +638,15 @@ service cloud.firestore {
       // Regular users cannot modify canonical songs directly
       // Use Cloud Functions with validation for imports/updates
       allow create, update, delete: if false;
+    }
+
+    // Cached third-party responses (MusicBrainz / Spotify / Deezer / lyrics.ovh)
+    // for the metadata resolver. Written only by Cloud Functions via the admin
+    // SDK, which bypasses these rules — so nothing here needs client access, and
+    // giving it any would leak provider payloads and let a client poison the
+    // cache. Fully closed on purpose.
+    match /metadata_cache/{entryId} {
+      allow read, write: if false;
     }
   }
 }

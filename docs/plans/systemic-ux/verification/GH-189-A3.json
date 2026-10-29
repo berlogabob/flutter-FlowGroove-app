@@ -1,0 +1,37 @@
+{
+  "task": "GH-189-A3",
+  "reviewer": "hermes",
+  "scope": "Successful token-backed open once per mounted EventShareScreen and successful suggestions; code acceptance only, issue/device/GA4 remain open",
+  "worker": {
+    "provider": "openai-codex",
+    "actual_model": "gpt-6-luna",
+    "session": "local-c7d48a82e56f6dbeb749164b342e385aaf137a97aab464f06c4ba94ec87b731d",
+    "process": "proc_05cf53751e4b",
+    "terminal_at": "2026-10-25T06:48:17.314+00:00",
+    "api_calls": 32,
+    "outcome": "Overdue incomplete draft. Parent confirmed server terminal before lease transfer; original disconnected CLI, deadline/420s timeout, private path deviations and inaccurate worker totals retained. No repeated implementation prompt."
+  },
+  "behavior": [
+    "Only token-backed successful mounted load emits event_link_opened, once per State lifetime; direct-owner and failed load emit none",
+    "RefreshIndicator.show, public widget rebuild and actual Event kit navigation/Back produce three service loads but only one link event; unrelated back_used analytics retained explicitly",
+    "Successful token and direct-owner suggestions emit event_suggestion_submitted only after submitSuggestion completes",
+    "Failed/cancelled/blank suggestions emit none; consent-off suppresses both screen events; SDK errors preserve successful rendering, submission and snackbar",
+    "Exact installed Firebase Pigeon transport asserts literal event names and null parameters; no token, owner ID or suggestion text in these payloads"
+  ],
+  "source_sha256": {
+    "lib/screens/setlists/event_share_screen.dart": "2b5393b2139ebe33810d5a324420ad47b98a60dc09fa1805507246e7ae7df00f",
+    "test/screens/setlists/event_share_render_test.dart": "01d98a58189e60ad2c8e1fe81690fed1d315d0cec8071ff8cc7ad2c7f5ac58d2"
+  },
+  "checks": {
+    "open_red": "Retained worker open-red.jsonl: assertion expected event_link_opened/null, actual []; terminal done.success=false. Worker open-green: 7 visible passes.",
+    "suggestion_red": "Worker suggestion-red inverted expected behavior and is NOT credited as RED. Parent first primary mutation attempt timed out before done and is NOT RED. Source restored and SHA256 independently verified. Parent warm mutation removed only suggestion instrumentation; unchanged final public fixture then failed expecting event_suggestion_submitted/null, actual []; exit 1/done.success=false.",
+    "suggestion_green": "Restored warm source bytes checked equal to preserved fixed primary; same targeted test PASS, exit 0/done.success=true (proc_f03d69160943).",
+    "parent_fixture_failures": "Retained matrix1: 15 passes, Back tooltip absent (uses visible Back); matrix2: 15 passes, legitimate back_used event absent from expectation. Corrected fixture only; no production change or assertion weakening.",
+    "primary_combined": "proc_a8cf2db11170: 84 visible passes, done.success=true, six files: rendered screen 16, screen/claim 12, inbox 8, service 15, analytics 27, consent 6. Earlier combined attempt passed 78 but failed loading a misnamed consent path; not credited as combined success.",
+    "analyze": "Final exact-byte warm analyze: five infos (const/style), no errors or warnings. No clean-lint claim.",
+    "format": "Final exact-byte warm format --output=none --set-exit-if-changed: 2 files, 0 changes, exit 0.",
+    "identity": "Final primary/warm source and test SHA256 byte-identical; original fixed production backup restoration verified after both baseline comparisons."
+  },
+  "private_evidence": "Original A3 run directory under ignored audit workers; raw streams/logs not published",
+  "remaining": ["Actual Android/iOS link delivery and consent UX", "Live GA4 Realtime", "Human usability", "Full Graphify integration/final gate", "GH-189 URL/association slices and issue closure"]
+}

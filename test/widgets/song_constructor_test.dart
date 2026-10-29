@@ -123,9 +123,7 @@ void main() {
     });
 
     testWidgets('edit section updates data', (tester) async {
-      final sections = [
-        Section(id: '1', name: 'Intro'),
-      ];
+      final sections = [Section(id: '1', name: 'Intro')];
 
       List<Section>? capturedSections;
 
@@ -160,8 +158,9 @@ void main() {
       expect(capturedSections!.first.name, equals('Bridge'));
     });
 
-    testWidgets('delete section removes from list and shows undo snackbar',
-        (tester) async {
+    testWidgets('delete section removes from list and shows undo snackbar', (
+      tester,
+    ) async {
       final sections = [Section(id: '1', name: 'Intro')];
 
       List<Section>? capturedSections;

@@ -113,7 +113,10 @@ void main() {
         final currentUserAsync = container.read(currentUserProvider);
         // AsyncLoading state - check that value is null when resolved
         expect(currentUserAsync, isA<AsyncValue<User?>>());
-        expect(currentUserAsync.maybeWhen(data: (d) => d, orElse: () => null), isNull);
+        expect(
+          currentUserAsync.maybeWhen(data: (d) => d, orElse: () => null),
+          isNull,
+        );
       });
 
       test('currentUserProvider is accessible', () {

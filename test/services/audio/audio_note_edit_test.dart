@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flowgroove/services/audio/audio_note_edit.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flowgroove/models/song_lab.dart';
 
 const _rate = 8000; // small enough to keep fixtures readable
 const _bytesPerMs = _rate * 2 ~/ 1000; // mono 16-bit -> 16 bytes/ms
@@ -23,9 +24,9 @@ Uint8List _wavWithListChunk(int ms) {
     ..add(plain.sublist(0, info.offset - 8)) // through the fmt chunk
     ..add('LIST'.codeUnits)
     ..add(
-      (ByteData(4)..setUint32(0, listBody.length, Endian.little))
-          .buffer
-          .asUint8List(),
+      (ByteData(
+        4,
+      )..setUint32(0, listBody.length, Endian.little)).buffer.asUint8List(),
     )
     ..add(listBody.codeUnits)
     ..add(plain.sublist(info.offset - 8)); // data header + samples
@@ -71,6 +72,30 @@ Uint8List _adts(int count, {int freqIdx = _freqIdx44k, bool mpeg2 = false}) {
 const _frameMs = 1024 * 1000 / 44100; // 23.219...
 
 void main() {
+  group('waveformLevels', () {
+    test('stretches dense mastered bars', () {
+      final peaks = List.generate(26, (i) => 230 + i);
+      final levels = waveformLevels(peaks);
+      expect(levels[2], closeTo(0.15, 0.001));
+      expect(levels.first, closeTo(0.15, 0.01));
+      expect(levels.last, 1.0);
+      expect(levels[13], closeTo(0.56, 0.02));
+      expect(peaks.first, 230);
+    });
+
+    test('keeps silence and quiet bars below the contrast floor', () {
+      final levels = waveformLevels([0, 1, ...List.filled(20, 230), 255]);
+      expect(levels.first, 0.0);
+      expect(levels[1], lessThan(0.15));
+      expect(waveformLevels([0, 0]), [0.0, 0.0]);
+    });
+
+    test('handles empty and constant non-zero bars', () {
+      expect(waveformLevels([]), isEmpty);
+      expect(waveformLevels([0, 230, 230]), [0.0, 1.0, 1.0]);
+    });
+  });
+
   group('parseWav', () {
     test('finds the data chunk of a plain 44-byte-header WAV', () {
       final info = parseWav(_wav(100))!;
@@ -89,7 +114,15 @@ void main() {
 
     test('returns null for non-RIFF bytes (m4a guard)', () {
       final m4a = Uint8List.fromList([
-        0, 0, 0, 32, ...'ftypM4A '.codeUnits, 0, 0, 0, 0,
+        0,
+        0,
+        0,
+        32,
+        ...'ftypM4A '.codeUnits,
+        0,
+        0,
+        0,
+        0,
       ]);
       expect(parseWav(m4a), isNull);
     });
@@ -101,7 +134,9 @@ void main() {
     test('clamps a data size that overruns the buffer', () {
       final wav = _wav(50);
       // Claim twice as many sample bytes as are actually present.
-      ByteData.sublistView(wav).setUint32(40, 50 * _bytesPerMs * 2, Endian.little);
+      ByteData.sublistView(
+        wav,
+      ).setUint32(40, 50 * _bytesPerMs * 2, Endian.little);
       expect(parseWav(wav)!.length, 50 * _bytesPerMs);
     });
   });
@@ -140,7 +175,11 @@ void main() {
     });
 
     test('trims a WAV whose data chunk is not at byte 44', () {
-      final trimmed = trimWav(_wavWithListChunk(1000), startMs: 100, endMs: 400)!;
+      final trimmed = trimWav(
+        _wavWithListChunk(1000),
+        startMs: 100,
+        endMs: 400,
+      )!;
       expect(wavDurationMs(trimmed), 300);
       // Slicing at a hardcoded 44 would have started inside the LIST chunk.
       final source = _wavWithListChunk(1000);
@@ -164,7 +203,15 @@ void main() {
 
     test('returns null for m4a bytes', () {
       final m4a = Uint8List.fromList([
-        0, 0, 0, 32, ...'ftypM4A '.codeUnits, 0, 0, 0, 0,
+        0,
+        0,
+        0,
+        32,
+        ...'ftypM4A '.codeUnits,
+        0,
+        0,
+        0,
+        0,
       ]);
       expect(trimWav(m4a, startMs: 0, endMs: 100), isNull);
     });
@@ -310,7 +357,15 @@ void main() {
 
     test('refuses m4a and returns null duration', () {
       final m4a = Uint8List.fromList([
-        0, 0, 0, 32, ...'ftypM4A '.codeUnits, 0, 0, 0, 0,
+        0,
+        0,
+        0,
+        32,
+        ...'ftypM4A '.codeUnits,
+        0,
+        0,
+        0,
+        0,
       ]);
       expect(trimAudio(m4a, startMs: 0, endMs: 100), isNull);
       expect(audioDurationMs(m4a), isNull);
@@ -319,18 +374,22 @@ void main() {
 
   group('peaksFromLevels', () {
     test('reduces to the bucket count and takes the loudest per bucket', () {
-      final levels = [
-        for (var i = 0; i < 1000; i++) i.isEven ? -60.0 : -30.0,
-      ];
+      final levels = [for (var i = 0; i < 1000; i++) i.isEven ? -60.0 : -30.0];
       final peaks = peaksFromLevels(levels, buckets: 10);
       expect(peaks.length, 10);
-      expect(peaks.every((p) => p == 128), isTrue, reason: '-30dB -> mid scale');
+      expect(
+        peaks.every((p) => p == 128),
+        isTrue,
+        reason: '-30dB -> mid scale',
+      );
     });
 
     test('maps the floor to 0 and 0dBFS to 255', () {
       expect(peaksFromLevels([-60], buckets: 1), [0]);
       expect(peaksFromLevels([0], buckets: 1), [255]);
-      expect(peaksFromLevels([-90], buckets: 1), [0], reason: 'below the floor');
+      expect(peaksFromLevels([-90], buckets: 1), [
+        0,
+      ], reason: 'below the floor');
     });
 
     test('never pads past the sample count', () {
@@ -359,17 +418,41 @@ void main() {
       expect(peaks.length, 20);
       expect(peaks.first, lessThan(peaks.last));
       expect(peaks, orderedEquals(List.of(peaks)..sort()));
-      expect(peaks.last, greaterThan(240), reason: 'full scale -> near 255');
+      expect(peaks.last, 255);
+    });
+
+    test('uses RMS rather than isolated sample peaks', () {
+      // Equal maxima, but the sustained section has twice the RMS.
+      final pcm = Uint8List(24);
+      final view = ByteData.sublistView(pcm);
+      view.setInt16(0, -8192, Endian.little);
+      for (var i = 4; i < 8; i++) {
+        view.setInt16(i * 2, i.isEven ? 8192 : -8192, Endian.little);
+      }
+      final peaks = peaksFromWav(
+        wavFromPcm16(pcm, sampleRate: _rate),
+        buckets: 3,
+      )!;
+      expect(peaks, [128, 255, 0]);
     });
 
     test('maps silence to zero', () {
-      final silent = wavFromPcm16(Uint8List(1000 * _bytesPerMs), sampleRate: _rate);
+      final silent = wavFromPcm16(
+        Uint8List(1000 * _bytesPerMs),
+        sampleRate: _rate,
+      );
       expect(peaksFromWav(silent, buckets: 8), everyElement(0));
     });
 
     test('is null for non-WAV and for an empty data chunk', () {
-      expect(peaksFromWav(Uint8List.fromList('not audio!!!'.codeUnits)), isNull);
-      expect(peaksFromWav(wavFromPcm16(Uint8List(0), sampleRate: _rate)), isNull);
+      expect(
+        peaksFromWav(Uint8List.fromList('not audio!!!'.codeUnits)),
+        isNull,
+      );
+      expect(
+        peaksFromWav(wavFromPcm16(Uint8List(0), sampleRate: _rate)),
+        isNull,
+      );
     });
 
     test('never returns more bars than there are frames', () {
@@ -398,7 +481,7 @@ void main() {
         wavFromPcm16(pcm, sampleRate: _rate, channels: 2),
         buckets: 4,
       )!;
-      expect(peaks, everyElement(greaterThan(120)));
+      expect(peaks, everyElement(255));
     });
   });
 
@@ -418,6 +501,23 @@ void main() {
   });
 
   group('markers', () {
+    test('entryNotes falls back to legacy lines unless notes exist', () {
+      final entry = SongLabEntry(
+        id: 'e1',
+        songId: 's1',
+        type: LabEntryType.recording,
+        authorId: 'u1',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+        body: 'Free text\n00:42 legacy',
+      );
+      expect(entryNotes(entry), [(ms: 42000, text: 'legacy')]);
+      final migrated = entry.copyWith(notes: [(ms: 42425, text: 'precise')]);
+      expect(entryNotes(migrated), [(ms: 42425, text: 'precise')]);
+      expect(bodyWithoutMarkers(entry.body), 'Free text');
+      expect(bodyWithoutMarkers(null), '');
+    });
+
     test('parses MM:SS and M:SS lines, sorted', () {
       final markers = parseMarkers('01:15 tempo drops\n0:42 good chorus entry');
       expect(markers.map((m) => m.ms), [42000, 75000]);
@@ -442,6 +542,15 @@ void main() {
       expect(formatMarkers(parseMarkers(body)), body);
     });
 
+    test('formatMarkers keeps free text from the old body', () {
+      const old = 'Capo 2, play softer\n00:42 good chorus entry';
+      final markers = [...parseMarkers(old), (ms: 5000, text: 'count-in')];
+      expect(
+        formatMarkers(markers, keepTextFrom: old),
+        'Capo 2, play softer\n00:05 count-in\n00:42 good chorus entry',
+      );
+    });
+
     test('formatTimestamp pads minutes for lines, not for readouts', () {
       expect(formatTimestamp(42000), '00:42');
       expect(formatTimestamp(42000, padMinutes: false), '0:42');
@@ -454,7 +563,22 @@ void main() {
       final markers = parseMarkers('00:05 head\n00:20 keep\n01:00 tail');
       final shifted = shiftMarkers(markers, startMs: 10000, durationMs: 30000);
       expect(shifted.map((m) => m.text), ['keep']);
-      expect(shifted.single.ms, 10000, reason: '20s - 10s trimmed off the head');
+      expect(
+        shifted.single.ms,
+        10000,
+        reason: '20s - 10s trimmed off the head',
+      );
+    });
+
+    test('preserves milliseconds when rebasing', () {
+      expect(
+        shiftMarkers(
+          [(ms: 12425, text: 'keep')],
+          startMs: 1125,
+          durationMs: 15000,
+        ),
+        [(ms: 11300, text: 'keep')],
+      );
     });
 
     test('keeps a marker landing exactly on either edge', () {
@@ -470,6 +594,7 @@ void main() {
       final out = upsertMarker(markers, (ms: 42400, text: 'new'));
       expect(out.length, 2);
       expect(out.first.text, 'new');
+      expect(out.first.ms, 42400);
     });
 
     test('inserts sorted', () {
@@ -490,6 +615,37 @@ void main() {
 
     test('activeMarkerIndex is -1 before the first marker', () {
       expect(activeMarkerIndex([(ms: 5000, text: 'a')], 100), -1);
+    });
+  });
+
+  group('peaksFromFloats', () {
+    test('uses RMS and normalises the loudest section to 255', () {
+      final samples = Float32List.fromList([
+        -0.25,
+        0,
+        0,
+        0,
+        0.25,
+        -0.25,
+        0.25,
+        -0.25,
+        0,
+        0,
+        0,
+        0,
+      ]);
+      final peaks = peaksFromFloats(samples, buckets: 3);
+      expect(peaks, [128, 255, 0]);
+      expect(peaks.first, lessThan(peaks[1]));
+    });
+
+    test('maps silence to zero', () {
+      expect(peaksFromFloats(Float32List(1000), buckets: 10), everyElement(0));
+    });
+
+    test('handles empty samples and never exceeds the sample count', () {
+      expect(peaksFromFloats(Float32List(0)), isEmpty);
+      expect(peaksFromFloats(Float32List.fromList([0.1, -0.2])), [128, 255]);
     });
   });
 }

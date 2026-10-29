@@ -39,6 +39,7 @@ function mockReq(token, tool, args) {
 }
 async function seedKey(uid, scope) {
   const token = `fg_test_${uid}_${scope}`;
+  await db.collection("users").doc(uid).set({ accessRole: "member" }, { merge: true });
   await db.collection("apiKeys").doc(keys._hashToken(token)).set({ uid, scope });
   return token;
 }

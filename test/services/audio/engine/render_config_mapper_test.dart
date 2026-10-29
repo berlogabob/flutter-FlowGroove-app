@@ -22,7 +22,8 @@ MetronomePlaybackConfig _config({
     bpm: bpm,
     accentBeats: accentBeats,
     regularBeats: regularBeats,
-    beatModes: beatModes ??
+    beatModes:
+        beatModes ??
         List<List<BeatMode>>.generate(
           accentBeats,
           (_) => List<BeatMode>.filled(regularBeats, BeatMode.normal),
@@ -42,7 +43,9 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues(<String, Object>{}));
 
   test('maps playback config fields one-to-one', () async {
-    final cal = LatencyCalibration(prefs: await SharedPreferences.getInstance());
+    final cal = LatencyCalibration(
+      prefs: await SharedPreferences.getInstance(),
+    );
     final cfg = renderConfigFromPlayback(
       _config(),
       route: AudioRoute.speaker,
@@ -59,13 +62,23 @@ void main() {
     expect(cfg.accentBeatFrequency, 2000);
     expect(cfg.volume, 0.8);
     expect(cfg.countInBars, 1);
-    expect(renderConfigFromPlayback(_config(waveType: 'square'), route: AudioRoute.speaker, cal: cal, sampleRate: 48000).waveType, 'square');
+    expect(
+      renderConfigFromPlayback(
+        _config(waveType: 'square'),
+        route: AudioRoute.speaker,
+        cal: cal,
+        sampleRate: 48000,
+      ).waveType,
+      'square',
+    );
     expect(cfg.beatModes.length, 4);
     expect(cfg.beatModes.first.length, 2);
   });
 
   test('speaker route has zero latency frames by default', () async {
-    final cal = LatencyCalibration(prefs: await SharedPreferences.getInstance());
+    final cal = LatencyCalibration(
+      prefs: await SharedPreferences.getInstance(),
+    );
     final cfg = renderConfigFromPlayback(
       _config(),
       route: AudioRoute.speaker,
@@ -76,7 +89,9 @@ void main() {
   });
 
   test('bluetooth route applies 150ms default latency @48k', () async {
-    final cal = LatencyCalibration(prefs: await SharedPreferences.getInstance());
+    final cal = LatencyCalibration(
+      prefs: await SharedPreferences.getInstance(),
+    );
     final cfg = renderConfigFromPlayback(
       _config(),
       route: AudioRoute.bluetooth,

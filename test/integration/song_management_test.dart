@@ -52,7 +52,6 @@ void main() {
     late MockFirebaseFirestore mockFirestore;
     late MockCollectionReference<Map<String, dynamic>> mockCollection;
     late MockDocumentReference<Map<String, dynamic>> mockDocument;
-    late MockQuerySnapshot<Map<String, dynamic>> mockQuerySnapshot;
 
     setUp(() async {
       // Create fresh mocks for each test
@@ -61,7 +60,6 @@ void main() {
       mockFirestore = MockFirebaseFirestore();
       mockCollection = MockCollectionReference<Map<String, dynamic>>();
       mockDocument = MockDocumentReference<Map<String, dynamic>>();
-      mockQuerySnapshot = MockQuerySnapshot<Map<String, dynamic>>();
 
       // Setup default auth mock
       when(mockUser.uid).thenReturn('test-user-id');
@@ -250,9 +248,7 @@ void main() {
     // EDIT SONG FLOW TESTS
     // =========================================================================
     group('Edit Song Flow', () {
-      testWidgets('INT-SONG-01.7: Edit song title', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.7: Edit song title', (tester) async {
         // Arrange
         final song = Song(
           id: const Uuid().v4(),
@@ -326,9 +322,7 @@ void main() {
         expect(updatedSong.originalKey, equals('D'));
       });
 
-      testWidgets('INT-SONG-01.10: Edit song persists changes', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.10: Edit song persists changes', (tester) async {
         // Arrange
         when(mockFirestore.collection('songs')).thenReturn(mockCollection);
         when(mockCollection.doc(any)).thenReturn(mockDocument);
@@ -369,9 +363,7 @@ void main() {
         expect(updatedSong.originalBPM, isNot(equals(120)));
       });
 
-      testWidgets('INT-SONG-01.12: Edit song with links', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.12: Edit song with links', (tester) async {
         // Arrange
         final song = Song(
           id: const Uuid().v4(),
@@ -506,9 +498,7 @@ void main() {
         verify(mockDocument.delete()).called(1);
       });
 
-      testWidgets('INT-SONG-01.17: Delete song updates UI', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.17: Delete song updates UI', (tester) async {
         // Arrange: Songs list
         final songs = [
           Song(
@@ -556,9 +546,7 @@ void main() {
     // SEARCH SONGS FLOW TESTS
     // =========================================================================
     group('Search Songs Flow', () {
-      testWidgets('INT-SONG-01.18: Search songs by title', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.18: Search songs by title', (tester) async {
         // Arrange
         final songs = [
           Song(
@@ -588,9 +576,7 @@ void main() {
         expect(filteredSongs.first.title, equals('Test Song'));
       });
 
-      testWidgets('INT-SONG-01.19: Search songs by artist', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.19: Search songs by artist', (tester) async {
         // Arrange
         final songs = [
           Song(
@@ -619,9 +605,7 @@ void main() {
         expect(filteredSongs.length, equals(1));
       });
 
-      testWidgets('INT-SONG-01.20: Search with empty results', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.20: Search with empty results', (tester) async {
         // Arrange
         final songs = [
           Song(
@@ -667,9 +651,7 @@ void main() {
         expect(filteredSongs.length, equals(1));
       });
 
-      testWidgets('INT-SONG-01.22: Search is case insensitive', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.22: Search is case insensitive', (tester) async {
         // Arrange
         final songs = [
           Song(
@@ -822,9 +804,7 @@ void main() {
     // BULK OPERATIONS TESTS
     // =========================================================================
     group('Bulk Operations', () {
-      testWidgets('INT-SONG-01.27: Select multiple songs', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.27: Select multiple songs', (tester) async {
         // Arrange
         final songs = [
           Song(
@@ -859,9 +839,7 @@ void main() {
         expect(selectedIds.length, equals(2));
       });
 
-      testWidgets('INT-SONG-01.28: Bulk delete songs', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.28: Bulk delete songs', (tester) async {
         // Arrange
         when(mockFirestore.collection('songs')).thenReturn(mockCollection);
         when(mockCollection.doc(any)).thenReturn(mockDocument);
@@ -894,9 +872,7 @@ void main() {
         verify(mockDocument.delete()).called(2);
       });
 
-      testWidgets('INT-SONG-01.29: Bulk add songs to setlist', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.29: Bulk add songs to setlist', (tester) async {
         // Arrange
         final songs = [
           Song(
@@ -1039,9 +1015,7 @@ void main() {
         expect(song.title.length, equals(200));
       });
 
-      testWidgets('INT-SONG-01.35: Song with zero BPM handled', (
-        tester,
-      ) async {
+      testWidgets('INT-SONG-01.35: Song with zero BPM handled', (tester) async {
         // Arrange
         final song = Song(
           id: const Uuid().v4(),

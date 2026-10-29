@@ -57,7 +57,8 @@ void main() {
 
       final setlist = buildSetlist(
         id: harness.uniqueId('setlist'),
-        bandId: harness.uniqueId('band'),
+        bandId:
+            '', // personal: a non-empty bandId is routed to the band path (needs a real band doc)
         name: 'Friday Set',
       );
 
@@ -110,7 +111,8 @@ void main() {
       final setlistId = harness.uniqueId('update');
       final initial = buildSetlist(
         id: setlistId,
-        bandId: harness.uniqueId('band'),
+        bandId:
+            '', // personal: a non-empty bandId is routed to the band path (needs a real band doc)
         name: 'Order Test',
         songIds: const ['song-a', 'song-b'],
       );
@@ -138,7 +140,8 @@ void main() {
 
       final setlist = buildSetlist(
         id: harness.uniqueId('delete'),
-        bandId: harness.uniqueId('band'),
+        bandId:
+            '', // personal: a non-empty bandId is routed to the band path (needs a real band doc)
         name: 'Delete Me',
         songIds: const ['song-1'],
       );

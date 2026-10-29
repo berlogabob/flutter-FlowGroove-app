@@ -1,0 +1,14 @@
+{
+  "task": "OPS-RUNNER",
+  "verified_at": "2026-10-24T04:09:54.507290+01:00",
+  "isolated_worktree": "/Users/berloga/Documents/GitHub/flutter_repsync_systemic_ux",
+  "branch": "fix/systemic-ux",
+  "start_commit": "e198a54d520ac7f2cce99ab0b7e02e54ff40f91b",
+  "clean_after_offline_pub_get": true,
+  "client": "existing Pi studio; explicit tools, stdin=DEVNULL, no context/skills/extensions/MCP, bounded subprocess timeout",
+  "acceptance_mechanism": "Parent checks full worktree diff against task allowlist, runs targeted tests/analyze and checks original tree hashes. This is not an OS sandbox.",
+  "old_runner_executed": false,
+  "automatic_cloud_fallback": false,
+  "global_configuration_changes": false,
+  "offline_flutter_dependencies": "flutter pub get --offline exited 0"
+}

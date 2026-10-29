@@ -191,10 +191,7 @@ class ApiError implements Exception {
     if (errorString.contains('not found') ||
         errorString.contains('no document') ||
         errorString.contains('404')) {
-      return ApiError.notFound(
-        exception: e,
-        stackTrace: stackTrace,
-      );
+      return ApiError.notFound(exception: e, stackTrace: stackTrace);
     }
 
     // Default to unknown
@@ -310,7 +307,6 @@ class ApiError implements Exception {
     }
     return buffer.toString();
   }
-
 }
 
 /// Extension to provide user-friendly error messages.

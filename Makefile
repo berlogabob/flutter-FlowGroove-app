@@ -15,7 +15,17 @@
 
 SHELL := /bin/bash
 
-.PHONY: help test-fast test-firebase-emulator deploy-rules deploy-stable deploy-hugo deploy-app-hosting ftp-upload-hugo ftp-upload-app-redirect backup-production-hugo deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
+include scripts/activity-release.mk
+
+.PHONY: activity-status release-check
+activity-status:
+	@python3 scripts/activity_plan.py status
+release-check:
+	@python3 scripts/activity_plan.py gate
+
+.DEFAULT_GOAL := help
+
+.PHONY: help deploy-functions test-fast test-firebase-emulator deploy-rules deploy-stable deploy-hugo deploy-app-hosting ftp-upload-hugo ftp-upload-app-redirect backup-production-hugo deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
@@ -129,7 +139,7 @@ deploy-pages: check-env-test build-web-github
 	@echo ""
 	@echo "📦 Copying to docs/..."
 	@if [ -f docs/config.js ]; then cp docs/config.js /tmp/docs-config.js.backup; fi
-	@rm -rf docs/*
+	@find docs -mindepth 1 -maxdepth 1 ! -name plans -exec rm -rf {} +
 	@cp -r build/web/* docs/
 	@if [ -f /tmp/docs-config.js.backup ]; then cp /tmp/docs-config.js.backup docs/config.js; rm /tmp/docs-config.js.backup; fi
 	@echo "✅ Files copied to docs/"
@@ -492,6 +502,26 @@ build-all: check-env-prod build-web-prod
 # app build whose required rules aren't live yet. Hard-fails if the firebase CLI
 # is missing so a release can't silently skip rules. Uses the .firebaserc default
 # project (repsync-app-8685c).
+# Cloud Functions deploy. Functions had no Makefile target at all and no test
+# gate, so a broken resolver could reach production by hand. firebase.json's
+# predeploy hook runs the no-emulator suites; this adds the emulator-backed ones
+# on top, which need JDK 21+.
+deploy-functions:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║              Deploying Cloud Functions                    ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@command -v firebase >/dev/null 2>&1 || { \
+		echo "❌ firebase CLI not installed — aborting."; \
+		exit 1; \
+	}
+	@echo "🧪 Running the full functions suite (emulator suites need JDK 21+)..."
+	@JAVA_HOME="$${JAVA_HOME:-/Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home}" \
+		npm --prefix functions test
+	@echo ""
+	@echo "🚀 Deploying functions..."
+	firebase deploy --only functions
+	@echo "✅ Functions deployed"
+
 deploy-rules:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Deploying Firestore + Storage Rule                ║"

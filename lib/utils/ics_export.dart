@@ -16,7 +16,8 @@ String? rehearsalToIcs(Rehearsal rehearsal, {String? setlistName}) {
 
   final descParts = <String>[
     if (setlistName != null && setlistName.isNotEmpty) 'Setlist: $setlistName',
-    if (rehearsal.notes != null && rehearsal.notes!.isNotEmpty) rehearsal.notes!,
+    if (rehearsal.notes != null && rehearsal.notes!.isNotEmpty)
+      rehearsal.notes!,
   ];
 
   final lines = [
@@ -40,7 +41,10 @@ String? rehearsalToIcs(Rehearsal rehearsal, {String? setlistName}) {
 
 /// Builds the .ics and opens the share sheet. Returns false on failure or if
 /// there is no confirmed slot.
-Future<bool> shareRehearsalIcs(Rehearsal rehearsal, {String? setlistName}) async {
+Future<bool> shareRehearsalIcs(
+  Rehearsal rehearsal, {
+  String? setlistName,
+}) async {
   try {
     final ics = rehearsalToIcs(rehearsal, setlistName: setlistName);
     if (ics == null) return false;

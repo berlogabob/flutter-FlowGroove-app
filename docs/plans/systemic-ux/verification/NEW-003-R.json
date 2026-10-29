@@ -1,0 +1,11 @@
+{
+  "task": "NEW-003-R",
+  "reviewer": "hermes",
+  "source_snapshot_commit": "8a4fefdd6a4d31463f552aa673a3edd0fc828e87",
+  "finding": "Outer empty-week Semantics label mentions tap for tappable:false while visible copy is conditional; caller is PracticeScreen.",
+  "source_locations": [
+    "lib/screens/practice_screen.dart:38",
+    "lib/widgets/practice_dashboard_card.dart:56-63 (before UX-009-I2)"
+  ],
+  "device_tested": false
+}

@@ -5,7 +5,6 @@ import 'unified_item_model.dart';
 /// Trailing actions widget for unified items
 class UnifiedItemTrailingActions<T extends UnifiedItemModel>
     extends StatelessWidget {
-
   const UnifiedItemTrailingActions({
     required this.item,
     super.key,

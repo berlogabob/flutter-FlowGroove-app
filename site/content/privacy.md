@@ -10,7 +10,7 @@ summary: "FlowGroove privacy policy — how we collect, use, and protect your da
 
 # Privacy Policy
 
-**Last Updated:** June 30, 2026
+**Last Updated:** August 11, 2026
 
 ## Who We Are
 
@@ -31,10 +31,18 @@ This privacy policy explains how we collect, use, store, and protect your person
 ### Information You Provide
 - **Account data:** Email address, display name
 - **Content data:** Setlists, songs, notes, and other content you create
+- **Practice data:** When you use the metronome, we record the session — when it
+  started, how long it ran, the tempo, and which song it was attached to. This is
+  what powers your weekly minutes, practice streak and session logbook. It is
+  stored with your account so your history follows you to a new device or survives
+  a reinstall, and it is visible only to you — never to your bandmates.
 - **Support data:** Bug reports, feature requests, emails
 
 ### Information We Collect Automatically
-- **Usage data:** How you use FlowGroove (via Google Analytics 4, anonymized)
+- **Usage data:** How you use FlowGroove (via Google Analytics 4, anonymized).
+  This is **on by default** and you can switch it off at any time in the app under
+  **Settings ▸ Privacy ▸ Share usage analytics**. Turning it off stops analytics
+  collection entirely, including automatic session events.
 - **Device data:** Device type, browser type, operating system
 - **Log data:** IP address, access times, pages viewed
 

@@ -2,6 +2,7 @@ import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/home_screen.dart';
+import 'package:flowgroove/services/last_practice_context.dart';
 import 'package:flowgroove/widgets/dashboard_grid.dart';
 import 'package:flowgroove/widgets/quick_action_button.dart';
 import 'package:flowgroove/widgets/stat_card.dart';
@@ -36,6 +37,14 @@ Future<void> pumpHomeScreen(
         data: const MediaQueryData(size: Size(600, 1024)), // Tablet size
         child: ProviderScope(
           overrides: [
+            lastPracticeContextProvider.overrideWith(
+              (ref) async => LastPracticeContext(
+                songId: 'resume',
+                title: 'Resume home song',
+                bpm: 112,
+                updatedAt: DateTime(2026),
+              ),
+            ),
             firebaseAuthProvider.overrideWith((ref) => mockAuth),
             appUserProvider.overrideWith(() => TestAppUserNotifier(user)),
             songsProvider.overrideWith((ref) => Stream.value([])),
@@ -69,6 +78,8 @@ void main() {
       await pumpHomeScreen(tester, mockAuth: mockAuth);
 
       expect(find.byType(DashboardGrid), findsOneWidget);
+      expect(find.text('Resume home song · 112 BPM'), findsOneWidget);
+      expect(find.text('Continue'), findsOneWidget);
     });
 
     testWidgets('shows no greeting card or stat counters (#97)', (
@@ -89,9 +100,9 @@ void main() {
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
 
       expect(find.byType(QuickActionButton), findsNWidgets(4));
-      expect(find.text('Song'), findsOneWidget);
-      expect(find.text('Band'), findsOneWidget);
-      expect(find.text('Setlist'), findsOneWidget);
+      expect(find.text('Add song'), findsOneWidget);
+      expect(find.text('Add band'), findsOneWidget);
+      expect(find.text('Add setlist'), findsOneWidget);
       expect(find.text('Practice'), findsOneWidget);
     });
 
@@ -129,6 +140,25 @@ void main() {
 
       expect(find.byIcon(Icons.tune), findsOneWidget);
       expect(find.byIcon(Icons.speed), findsOneWidget);
+    });
+
+    testWidgets('rehearsals empty state offers Sign up for demo users (#145)', (
+      tester,
+    ) async {
+      final demoUser = AppUser(
+        uid: 'demo',
+        createdAt: DateTime(2024),
+        accessRole: 'demo',
+      );
+
+      await pumpHomeScreen(tester, mockAuth: mockAuth, user: demoUser);
+
+      // No bands -> tapping Rehearsals opens the empty-state sheet.
+      await tester.tap(find.text('Rehearsals'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Sign up to create a band'), findsOneWidget);
     });
 
     testWidgets('has responsive layout', (tester) async {

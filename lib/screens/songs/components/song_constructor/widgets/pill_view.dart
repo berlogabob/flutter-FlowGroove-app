@@ -7,7 +7,6 @@ import '../core/theme/app_colors.dart';
 /// Pill visualization widget for collapsed state.
 /// Shows colored blocks proportional to section durations.
 class PillView extends StatelessWidget {
-
   const PillView({required this.sections, super.key});
   final List<Section> sections;
 

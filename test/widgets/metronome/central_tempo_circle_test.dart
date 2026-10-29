@@ -49,13 +49,28 @@ void main() {
         Offset(math.cos(angle), math.sin(angle)) * (rect.width / 2 - 20);
   }
 
-  testWidgets('ring tap maps directly to BPM', (tester) async {
+  testWidgets('ring tap does not jump the BPM (F17)', (tester) async {
     await pumpDial(tester);
+    final before = container.read(metronomeProvider).bpm;
 
     await tester.tapAt(globalPointFor(tester, 320));
     await tester.pump();
 
-    expect(container.read(metronomeProvider).bpm, closeTo(320, 1));
+    expect(container.read(metronomeProvider).bpm, before);
+  });
+
+  testWidgets('a drag that starts away from the knob is ignored (F17)', (
+    tester,
+  ) async {
+    await pumpDial(tester);
+    final before = container.read(metronomeProvider).bpm;
+
+    final gesture = await tester.startGesture(globalPointFor(tester, 320));
+    await gesture.moveTo(globalPointFor(tester, 200));
+    await gesture.up();
+    await tester.pump();
+
+    expect(container.read(metronomeProvider).bpm, before);
   });
 
   testWidgets(
@@ -63,8 +78,12 @@ void main() {
     (tester) async {
       await pumpDial(tester);
 
+      container.read(metronomeProvider.notifier).setBpm(80);
+      await tester.pump();
       final gesture = await tester.startGesture(globalPointFor(tester, 80));
-      await gesture.moveTo(globalPointFor(tester, 320));
+      for (var bpm = 90; bpm <= 320; bpm += 10) {
+        await gesture.moveTo(globalPointFor(tester, bpm));
+      }
       await gesture.up();
       await tester.pump();
       expect(container.read(metronomeProvider).bpm, closeTo(320, 1));
@@ -72,10 +91,55 @@ void main() {
       final reverseGesture = await tester.startGesture(
         globalPointFor(tester, 320),
       );
-      await reverseGesture.moveTo(globalPointFor(tester, 80));
+      for (var bpm = 310; bpm >= 80; bpm -= 10) {
+        await reverseGesture.moveTo(globalPointFor(tester, bpm));
+      }
       await reverseGesture.up();
       await tester.pump();
       expect(container.read(metronomeProvider).bpm, closeTo(80, 1));
+    },
+  );
+
+  testWidgets(
+    'knob drag beats an ancestor scroll view; elsewhere scrolls (F17)',
+    (tester) async {
+      final controller = ScrollController();
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: Scaffold(
+              body: ListView(
+                controller: controller,
+                children: const [
+                  SizedBox.square(dimension: 300, child: CentralTempoCircle()),
+                  SizedBox(height: 2000),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      container.read(metronomeProvider.notifier).setBpm(123);
+      await tester.pump();
+
+      final knob = globalPointFor(tester, 123);
+      final gesture = await tester.startGesture(knob);
+      for (var bpm = 125; bpm <= 160; bpm += 5) {
+        await gesture.moveTo(globalPointFor(tester, bpm));
+      }
+      await gesture.up();
+      await tester.pump();
+      expect(container.read(metronomeProvider).bpm, closeTo(160, 2));
+      expect(controller.offset, 0);
+
+      final away = globalPointFor(tester, 320);
+      await tester.dragFrom(away, const Offset(0, -200));
+      await tester.pump();
+      expect(controller.offset, greaterThan(0));
+      expect(container.read(metronomeProvider).bpm, closeTo(160, 2));
     },
   );
 
@@ -124,6 +188,21 @@ void main() {
         .single;
     expect(painter.bpm, 320);
     expect(find.text('320'), findsOneWidget);
+  });
+
+  testWidgets('BPM sub-label shows double-time hint at/above 240', (
+    tester,
+  ) async {
+    await pumpDial(tester);
+
+    expect(find.text('BPM'), findsOneWidget);
+    expect(find.text('BPM · double-time?'), findsNothing);
+
+    container.read(metronomeProvider.notifier).setBpm(240);
+    await tester.pump();
+
+    expect(find.text('BPM'), findsNothing);
+    expect(find.text('BPM · double-time?'), findsOneWidget);
   });
 
   testWidgets('does not scale or pop the dial while playing', (tester) async {

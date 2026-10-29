@@ -1,0 +1,31 @@
+{
+  "task": "NEW-002-I1",
+  "reviewer": "hermes",
+  "tested_commit": "5de705cbdde2ab476b788d6db9e0121a70cf6f67",
+  "worktree_commit": "823b47dba17e807ae8e8b424c791291438f833c6",
+  "actual_model": "ollama/ornith-1.5:35b",
+  "backend_manifest_verified": true,
+  "worker_duration_s": 28.47,
+  "worker_reads": 1,
+  "worker_edits": 1,
+  "production_diff": "one tooltip argument; route/heroTag/permission branch unchanged",
+  "red": {
+    "exit_code": 1,
+    "actual_rendered_label": "",
+    "expected_label": "Create Setlist",
+    "report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I1-20261024-170510/red-test.json"
+  },
+  "green": {
+    "worktree_tests": 12,
+    "primary_tests": 12,
+    "primary_process": "proc_ba23aa3a455b",
+    "report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/NEW-002-I1-20261024-170510/primary-test.json",
+    "role_guard_checked": true
+  },
+  "analyze_exit_code": 0,
+  "analyze_infos": [
+    "pre-existing unsorted directive block; unchanged original import order plus used permission fixture import"
+  ],
+  "format_exit_code": 0,
+  "device_tested": false
+}

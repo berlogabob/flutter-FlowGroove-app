@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
 /// Injectable connectivity client boundary for production and tests.
 abstract class ConnectivityClient {
@@ -33,6 +34,29 @@ final connectivityClientProvider = Provider<ConnectivityClient>((ref) {
   return ConnectivityPlusClient();
 });
 
+/// Verifies real reachability with an actual HTTP request.
+///
+/// `connectivity_plus` on web is just `navigator.onLine`, which browsers
+/// (Brave/VPNs/virtual adapters) misreport as offline while the network works.
+/// "Offline" is only trusted after this probe also fails.
+final reachabilityProbeProvider = Provider<Future<bool> Function()>((ref) {
+  return () async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse(
+              'https://app.flowgroove.app/version.json'
+              '?ts=${DateTime.now().millisecondsSinceEpoch}',
+            ),
+          )
+          .timeout(const Duration(seconds: 5));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  };
+});
+
 /// ConnectivityService monitors network connectivity status.
 ///
 /// Provides real-time updates on whether the device is online or offline.
@@ -42,6 +66,7 @@ final connectivityClientProvider = Provider<ConnectivityClient>((ref) {
 class ConnectivityService extends Notifier<bool> {
   // ignore: cancel_subscriptions
   StreamSubscription<List<ConnectivityResult>>? _subscription;
+  Timer? _offlineRecheckTimer;
   bool _isDisposed = false;
 
   @override
@@ -59,9 +84,7 @@ class ConnectivityService extends Notifier<bool> {
   Future<void> _initConnectivity(ConnectivityClient client) async {
     try {
       final result = await client.checkConnectivity();
-      if (!_isDisposed) {
-        state = _isConnected(result);
-      }
+      await _applyResults(result);
     } catch (e) {
       debugPrint('ConnectivityService initial check failed: $e');
     }
@@ -73,10 +96,7 @@ class ConnectivityService extends Notifier<bool> {
     try {
       _subscription = client.onConnectivityChanged.listen(
         (results) {
-          if (_isDisposed) {
-            return;
-          }
-          state = _isConnected(results);
+          unawaited(_applyResults(results));
         },
         onError: (Object error, StackTrace stackTrace) {
           debugPrint('ConnectivityService stream error: $error');
@@ -85,6 +105,44 @@ class ConnectivityService extends Notifier<bool> {
     } catch (e) {
       debugPrint('ConnectivityService stream setup failed: $e');
     }
+  }
+
+  /// Applies a connectivity reading; "offline" is verified with a real
+  /// request first, since navigator.onLine lies on web.
+  Future<void> _applyResults(List<ConnectivityResult> results) async {
+    if (_isDisposed) return;
+    if (_isConnected(results)) {
+      _stopOfflineRecheck();
+      state = true;
+      return;
+    }
+    await _verifyOffline();
+  }
+
+  Future<void> _verifyOffline() async {
+    final probe = ref.read(reachabilityProbeProvider);
+    final reachable = await probe();
+    if (_isDisposed) return;
+    if (reachable) {
+      _stopOfflineRecheck();
+      state = true;
+    } else {
+      state = false;
+      _startOfflineRecheck();
+    }
+  }
+
+  // ponytail: 30s polling only while offline; event-driven when online
+  void _startOfflineRecheck() {
+    _offlineRecheckTimer ??= Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => unawaited(_verifyOffline()),
+    );
+  }
+
+  void _stopOfflineRecheck() {
+    _offlineRecheckTimer?.cancel();
+    _offlineRecheckTimer = null;
   }
 
   /// Determines if the device is connected based on connectivity results.
@@ -101,6 +159,7 @@ class ConnectivityService extends Notifier<bool> {
 
   void _disposeSubscription() {
     _isDisposed = true;
+    _stopOfflineRecheck();
     final subscription = _subscription;
     _subscription = null;
     if (subscription != null) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -10,13 +12,23 @@ import '../../models/setlist.dart';
 import '../../models/setlist_break_type.dart';
 import '../../models/song.dart';
 import '../../utils/chordpro.dart';
+import '../analytics_service.dart';
 
 /// PDF layout for a setlist export.
 /// [pack] = compact setlist page + every song as a one-page compact sheet
 /// (#84; roster/stage map/schedule pages come later).
 /// [performer] = one musician's copy: the full running order with only their
 /// songs highlighted (needs `performerId`).
-enum SetlistPdfLayout { detailed, compact, pack, eventGuide, performer }
+/// [cheatSheet] = ALL songs on one A4 page, two columns: key/scale, BPM,
+/// time signature and the chord progression per section — the stage crib.
+enum SetlistPdfLayout {
+  detailed,
+  compact,
+  pack,
+  eventGuide,
+  performer,
+  cheatSheet,
+}
 
 class PdfService {
   /// Hands the finished PDF to the platform.
@@ -28,9 +40,54 @@ class PdfService {
       ? Printing.sharePdf(bytes: bytes, filename: name)
       : Printing.layoutPdf(onLayout: (_) async => bytes, name: name);
 
+  /// Accented Latin letters -> ASCII, so a name survives filename sanitising.
+  ///
+  /// `[^\w\s-]` treats é as punctuation and deletes it outright, which turned
+  /// "Roumé" into "Roum" and "André" into "Andr" in exported filenames. Dart has
+  /// no Unicode normalisation in core, so map the Latin-1 range explicitly.
+  static const _deaccent = {
+    'à': 'a',
+    'á': 'a',
+    'â': 'a',
+    'ã': 'a',
+    'ä': 'a',
+    'å': 'a',
+    'è': 'e',
+    'é': 'e',
+    'ê': 'e',
+    'ë': 'e',
+    'ì': 'i',
+    'í': 'i',
+    'î': 'i',
+    'ï': 'i',
+    'ò': 'o',
+    'ó': 'o',
+    'ô': 'o',
+    'õ': 'o',
+    'ö': 'o',
+    'ù': 'u',
+    'ú': 'u',
+    'û': 'u',
+    'ü': 'u',
+    'ç': 'c',
+    'ñ': 'n',
+    'ý': 'y',
+    'ÿ': 'y',
+    'ß': 'ss',
+    'æ': 'ae',
+    'ø': 'o',
+  };
+
   /// Filename-safe title: drops anything a `download` attribute would choke on.
   static String _fileStem(String title) {
-    final cleaned = title
+    final folded = title.split('').map((ch) {
+      final lower = ch.toLowerCase();
+      final mapped = _deaccent[lower];
+      if (mapped == null) return ch;
+      // Preserve the original case of the letter we replaced.
+      return ch == lower ? mapped : mapped.toUpperCase();
+    }).join();
+    final cleaned = folded
         .trim()
         .replaceAll(RegExp(r'[^\w\s-]'), '')
         .trim()
@@ -52,6 +109,7 @@ class PdfService {
     int? timeTop,
     bool fitOnePage = false,
   }) async {
+    unawaited(AnalyticsService.logPdfExported(itemType: 'song', itemCount: 1));
     final pdf = pw.Document();
     final font = await PdfGoogleFonts.robotoRegular();
     final fontBold = await PdfGoogleFonts.robotoBold();
@@ -108,7 +166,58 @@ class PdfService {
   /// [performerId] is required by [SetlistPdfLayout.performer] and ignored by
   /// every other layout: it prints one musician's copy — the whole running
   /// order, with the songs they play highlighted.
+  /// Builds the setlist PDF and hands it to the platform.
+  ///
+  /// A thin wrapper over [buildSetlistBytes] — the document build and the
+  /// platform hand-off are separate so the layout can be produced (and tested,
+  /// and written to a file) without a running app. `Printing.layoutPdf` /
+  /// `sharePdf` need platform channels, which is why everything used to be
+  /// unreachable from a test.
   static Future<void> exportSetlist(
+    Setlist setlist,
+    List<Song> songs, {
+    SetlistPdfLayout layout = SetlistPdfLayout.detailed,
+    String? performerId,
+  }) async {
+    unawaited(
+      AnalyticsService.logSetlistExported(
+        setlistId: setlist.id,
+        format: layout.name,
+        songCount: songs.length,
+      ),
+    );
+    final bytes = await buildSetlistBytes(
+      setlist,
+      songs,
+      layout: layout,
+      performerId: performerId,
+    );
+    await _output(bytes, setlistFileName(setlist, layout, performerId, songs));
+  }
+
+  /// Filename the export would use, exposed so callers and tests agree on it.
+  static String setlistFileName(
+    Setlist setlist,
+    SetlistPdfLayout layout,
+    String? performerId,
+    List<Song> songs,
+  ) {
+    final lineup = peopleById(setlist.eventKit?.people ?? const []);
+    final performer = performerId == null ? null : lineup[performerId];
+    final suffix = switch (layout) {
+      SetlistPdfLayout.detailed => '',
+      SetlistPdfLayout.compact => '_compact',
+      SetlistPdfLayout.pack => '_pack',
+      SetlistPdfLayout.eventGuide => '_event_guide',
+      SetlistPdfLayout.performer => '_${_fileStem(performer?.name ?? 'part')}',
+      SetlistPdfLayout.cheatSheet => '_cheatsheet',
+    };
+    return '${_fileStem(setlist.name)}_setlist$suffix.pdf';
+  }
+
+  /// The setlist PDF as bytes. No platform channels, so this is usable from a
+  /// test or a CLI harness.
+  static Future<Uint8List> buildSetlistBytes(
     Setlist setlist,
     List<Song> songs, {
     SetlistPdfLayout layout = SetlistPdfLayout.detailed,
@@ -124,6 +233,13 @@ class PdfService {
     final items = setlist.effectiveItems;
     final lineup = peopleById(setlist.eventKit?.people ?? const []);
     final performer = performerId == null ? null : lineup[performerId];
+
+    // Cheat sheet is its own single-page document — no MultiPage flow.
+    if (layout == SetlistPdfLayout.cheatSheet) {
+      pdf.addPage(_cheatSheetPage(setlist, items, songById, font, fontBold));
+      return pdf.save();
+    }
+
     final songWidgets =
         layout == SetlistPdfLayout.detailed ||
             layout == SetlistPdfLayout.eventGuide
@@ -134,48 +250,63 @@ class PdfService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(40),
-        header: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text(
-              setlist.name,
-              style: pw.TextStyle(font: fontBold, fontSize: 24),
-            ),
-            if (performer != null)
+        // The header runs on EVERY page, so only the title belongs here. The
+        // description and venue are shown once, on page 1: a long description
+        // (a whole running order pasted in, say) otherwise repeats on every
+        // page and can crowd the songs down to a handful per sheet — which is
+        // exactly what a real 18-song setlist did, turning a one-page export
+        // into three.
+        header: (context) {
+          final firstPage = context.pageNumber == 1;
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
               pw.Text(
-                performer.role.isEmpty
-                    ? performer.name
-                    : '${performer.name} — ${performer.role}',
-                style: pw.TextStyle(font: fontBold, fontSize: 13),
-              ),
-            if (setlist.description != null) ...[
-              pw.SizedBox(height: 4),
-              pw.Text(
-                setlist.description!,
+                setlist.name,
                 style: pw.TextStyle(
-                  font: font,
-                  fontSize: 12,
-                  color: PdfColor.fromHex('757575'),
+                  font: fontBold,
+                  fontSize: firstPage ? 24 : 14,
                 ),
               ),
-            ],
-            if (setlist.eventLocation != null) ...[
-              pw.SizedBox(height: 8),
-              pw.Row(
-                children: [
-                  pw.Text(
-                    // No emoji — the embedded font has no emoji glyphs.
-                    'Venue: ${setlist.eventLocation}',
-                    style: pw.TextStyle(font: font, fontSize: 10),
+              if (performer != null)
+                pw.Text(
+                  performer.role.isEmpty
+                      ? performer.name
+                      : '${performer.name} — ${performer.role}',
+                  style: pw.TextStyle(
+                    font: fontBold,
+                    fontSize: firstPage ? 13 : 11,
                   ),
-                ],
-              ),
+                ),
+              if (firstPage && setlist.description != null) ...[
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  setlist.description!,
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 12,
+                    color: PdfColor.fromHex('757575'),
+                  ),
+                ),
+              ],
+              if (firstPage && setlist.eventLocation != null) ...[
+                pw.SizedBox(height: 8),
+                pw.Row(
+                  children: [
+                    pw.Text(
+                      // No emoji — the embedded font has no emoji glyphs.
+                      'Venue: ${setlist.eventLocation}',
+                      style: pw.TextStyle(font: font, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ],
+              pw.SizedBox(height: firstPage ? 20 : 8),
+              pw.Divider(color: PdfColor.fromHex('E0E0E0')),
+              pw.SizedBox(height: firstPage ? 20 : 8),
             ],
-            pw.SizedBox(height: 20),
-            pw.Divider(color: PdfColor.fromHex('E0E0E0')),
-            pw.SizedBox(height: 20),
-          ],
-        ),
+          );
+        },
         footer: (context) => pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
@@ -252,17 +383,7 @@ class PdfService {
       pdf.addPage(_eventGuidePage(setlist, kit, font, fontBold));
     }
 
-    final suffix = switch (layout) {
-      SetlistPdfLayout.detailed => '',
-      SetlistPdfLayout.compact => '_compact',
-      SetlistPdfLayout.pack => '_pack',
-      SetlistPdfLayout.eventGuide => '_event_guide',
-      SetlistPdfLayout.performer => '_${_fileStem(performer?.name ?? 'part')}',
-    };
-    await _output(
-      await pdf.save(),
-      '${_fileStem(setlist.name)}_setlist$suffix.pdf',
-    );
+    return pdf.save();
   }
 
   /// One-page A4 sheet: header + section blocks scaled to fit (#79 layout).
@@ -460,8 +581,8 @@ class PdfService {
                         color: PdfColor.fromHex('B0B0B0'),
                       ),
                     ),
-                    if (performerLabel(item.performerIds, lineup)
-                        case final who when who.isNotEmpty) ...[
+                    if (performerLabel(item.performerIds, lineup) case final who
+                        when who.isNotEmpty) ...[
                       pw.SizedBox(height: 4),
                       pw.Text(
                         who,
@@ -626,11 +747,7 @@ class PdfService {
                 width: 22,
                 child: pw.Text(
                   '$n.',
-                  style: pw.TextStyle(
-                    font: fontBold,
-                    fontSize: 11,
-                    color: ink,
-                  ),
+                  style: pw.TextStyle(font: fontBold, fontSize: 11, color: ink),
                 ),
               ),
               pw.Expanded(
@@ -682,6 +799,184 @@ class PdfService {
       );
     }
     return widgets;
+  }
+
+  /// The whole setlist on ONE A4 page, two columns, shrink-to-fit: per song
+  /// its number, title/artist, key · scale · BPM · time signature, and the
+  /// chord progression per section. Harmony comes from [Section.chordChart]
+  /// (chord tokens only, consecutive repeats collapsed); a section without
+  /// bracketed chords falls back to its free-text notes ("chord progressions"
+  /// per the model docs). Key/BPM use the our→original fallback like the rest
+  /// of the app — the other layouts print blanks without it.
+  static pw.Page _cheatSheetPage(
+    Setlist setlist,
+    List<SetlistItem> items,
+    Map<String, Song> songById,
+    pw.Font font,
+    pw.Font fontBold,
+  ) {
+    final blocks = _cheatSheetBlocks(items, songById, font, fontBold);
+    // Two fixed-width columns; FittedBox scales the pair onto the page.
+    final half = (blocks.length + 1) ~/ 2;
+    pw.Widget column(List<pw.Widget> children) => pw.SizedBox(
+      width: 300,
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisSize: pw.MainAxisSize.min,
+        children: children,
+      ),
+    );
+
+    return pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(32),
+      build: (context) => pw.FittedBox(
+        alignment: pw.Alignment.topLeft,
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisSize: pw.MainAxisSize.min,
+          children: [
+            pw.Text(
+              setlist.name,
+              style: pw.TextStyle(font: fontBold, fontSize: 18),
+            ),
+            pw.SizedBox(height: 10),
+            if (blocks.isEmpty)
+              pw.Text('No songs yet.', style: pw.TextStyle(font: font))
+            else
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                  column(blocks.sublist(0, half)),
+                  pw.SizedBox(width: 20),
+                  column(blocks.sublist(half)),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// One compact block per song (plus break markers), in setlist order.
+  static List<pw.Widget> _cheatSheetBlocks(
+    List<SetlistItem> items,
+    Map<String, Song> songById,
+    pw.Font font,
+    pw.Font fontBold,
+  ) {
+    final blocks = <pw.Widget>[];
+    var n = 0; // per-section song number, reset by each break (as compact does)
+    for (final item in items) {
+      if (item.isBreak) {
+        n = 0;
+        blocks.add(
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(top: 6, bottom: 4),
+            child: pw.Text(
+              SetlistBreakType.labelFor(
+                item.breakType,
+                item.breakLabel,
+              ).toUpperCase(),
+              style: pw.TextStyle(
+                font: fontBold,
+                fontSize: 9,
+                color: PdfColor.fromHex('616161'),
+              ),
+            ),
+          ),
+        );
+        continue;
+      }
+      final song = songById[item.songId];
+      if (song == null) continue;
+      n++;
+
+      final key = (song.ourKey ?? song.originalKey)?.trim();
+      final bpm = song.ourBPM ?? song.originalBPM;
+      final meta = <String>[
+        if (key != null && key.isNotEmpty) '$key · ${keyToScale(key).quality}',
+        if (bpm != null) '$bpm BPM',
+        '${song.accentBeats}/4',
+      ].join('   ·   ');
+
+      final progressionLines = <pw.Widget>[];
+      for (final section in song.sections) {
+        final chart = section.chordChart;
+        var line = chart == null ? '' : chordProgression(chart).join(' | ');
+        if (line.isEmpty) line = section.notes.trim();
+        if (line.isEmpty) continue;
+        progressionLines.add(
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(left: 14, top: 1),
+            child: pw.RichText(
+              text: pw.TextSpan(
+                children: [
+                  if (section.name.trim().isNotEmpty)
+                    pw.TextSpan(
+                      text: '${section.name.trim()}:  ',
+                      style: pw.TextStyle(
+                        font: font,
+                        fontSize: 8,
+                        color: PdfColor.fromHex('757575'),
+                      ),
+                    ),
+                  pw.TextSpan(
+                    text: line,
+                    style: pw.TextStyle(font: fontBold, fontSize: 8),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
+      blocks.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 6),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            mainAxisSize: pw.MainAxisSize.min,
+            children: [
+              pw.RichText(
+                text: pw.TextSpan(
+                  children: [
+                    pw.TextSpan(
+                      text: '$n. ${song.title}',
+                      style: pw.TextStyle(font: fontBold, fontSize: 10),
+                    ),
+                    if (song.artist.trim().isNotEmpty)
+                      pw.TextSpan(
+                        text: ' — ${song.artist.trim()}',
+                        style: pw.TextStyle(
+                          font: font,
+                          fontSize: 10,
+                          color: PdfColor.fromHex('757575'),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(left: 14),
+                child: pw.Text(
+                  meta,
+                  style: pw.TextStyle(
+                    font: fontBold,
+                    fontSize: 8,
+                    color: PdfColor.fromHex('E65100'),
+                  ),
+                ),
+              ),
+              ...progressionLines,
+            ],
+          ),
+        ),
+      );
+    }
+    return blocks;
   }
 
   /// Event-guide page (#55): stage plot (3×3 zone table), role cards and the

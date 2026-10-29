@@ -14,7 +14,11 @@ Your personal song library.
   visible.
 - The pinned button on each song card is your **quick action** — long-press
   the card's ⋯ menu → *Quick action…* to choose what it does (Metronome,
-  Tuner, Performance sheet, …). The icon changes to match.
+  Tuner, Play on Spotify, …). The icon changes to match.
+- **Tap a song to open its page** — one home with three tabs: **Sheet** (play
+  from it), **Edit** (details + song structure) and **Lab** (the song's
+  journal). The page's ⋯ menu carries the song tools: Metronome, Open in
+  Tuner, Play on Spotify, Add to band…, Export PDF, Export ChordPro.
 
 - Tap **+** to add a song (title, BPM, key, structure, links).
 - Search to autofill from the online catalog. Matches come from **MusicBrainz**
@@ -29,19 +33,19 @@ Your personal song library.
   **MusicBrainz** recording, the **Spotify** track (when known), plus **YouTube**, **chords**
   and **lyrics** searches. They show up as chips under Links; **tap one to open it**.
 - **Lyrics + a song map, fetched.** Plain lyric text is pulled in automatically and split into
-  **Verse / Chorus sections**, so it shows up in the Song editor and Performance sheet ready
+  **Verse / Chorus sections**, so it shows up on the song's **Sheet** ready
   to play from. Chords aren't available from a free catalogue — paste a ChordPro chart (below)
   for the full chords.
-- Add lyrics + chords (ChordPro) per section. Open the **Song editor** (song menu →
-  *Song editor*) to work on the song map and ChordPro side by side — reorder or edit
-  sections and the text updates; type chords and the map updates. Paste a full chart
-  and it fills title, key, tempo, time and the whole structure at once.
-- Open the **Performance sheet** to play from — reach it straight from a song's row
-  (the sheet-music button) or from Concert Mode. It keeps the screen awake, lets you
-  transpose live (the ± controls sit in the bottom bar), and **auto-scrolls
-  hands-free**: press play and set the pace, or switch to **BPM** mode to scroll at
-  a speed matched to the tempo.
-- Export from the performance sheet's **⋯ menu**: a song sheet as **PDF** — either
+- Add lyrics + chords (ChordPro) per section in the **Edit** tab's song
+  structure. **Import lyrics & chords** takes a pasted full chart and fills
+  title, key, tempo, time and the whole structure at once.
+- The **Sheet** tab is the performance sheet — it opens first when you tap a
+  song, and Concert Mode's lyrics button lands there too. It keeps the screen
+  awake, lets you transpose live (the ± controls sit in the bottom bar), and
+  **auto-scrolls hands-free**: press play and set the pace, or switch to
+  **BPM** mode to scroll at a speed matched to the tempo. The **Stage**
+  button goes full-screen for the gig.
+- Export from the song page's **⋯ menu**: a song sheet as **PDF** — either
   **As is** (full size, flows across pages) or **Compact** (everything scaled to fit
   one A4 page) — or as a standard **ChordPro `.cho`** file to share or print. The PDF
   header carries key, scale, tempo, time signature and the song map.
@@ -49,7 +53,6 @@ Your personal song library.
   a trip through a spreadsheet.
 - Song cards lead with the full-width title; below it a meta rail shows the key
   chip, tempo, and — for band copies — who added the song.
-- Open a song to edit its details or song structure.
 - Songs you add to a band become independent copies in that band — editing the band's
   copy changes only that copy, not your personal song.
 
@@ -73,7 +76,7 @@ Your personal song library.
 
 ## Song Lab — the song's journal
 
-Every song has a **Lab** (song card ⋯ menu → *Song Lab*): the story of *your
+Every song has a **Lab** — the third tab on the song's page: the story of *your
 version* of the song, kept next to the song itself.
 
 - **Timeline** — typed entries: notes, decisions ("why we play it this way"),
@@ -88,4 +91,4 @@ version* of the song, kept next to the song itself.
 - **Versions** — snapshot the current arrangement (key, tempo, structure,
   chart) with a name; the change lands in the timeline, so nothing is
   silently overwritten.
-- **Export history** (Lab ⋯ menu) — the whole journal as Markdown.
+- **Export history** (in the Lab tab) — the whole journal as Markdown.

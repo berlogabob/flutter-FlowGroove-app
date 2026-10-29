@@ -1,0 +1,13 @@
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="shell topbar">
+  <a class="brand" href="{{ "" | relURL }}" aria-label="FlowGroove home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M2 9c2-4.5 4.5-4.5 7 0s5 4.5 7 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span class="wordmark">FlowGroove</span><span class="brand-tag">Shared setlists + song notes<br>for rehearsal prep</span></a>
+  <button type="button" class="mobile-toggle" aria-label="Open navigation" aria-controls="main-nav" aria-expanded="false">☰</button>
+  <nav id="main-nav" class="nav" aria-label="Main navigation">
+  {{- $page := . -}}
+  {{- range slice (dict "name" "Notebook" "path" "") (dict "name" "Blog" "path" "blog/") (dict "name" "Wiki" "path" "wiki/") (dict "name" "FAQ" "path" "faq/") (dict "name" "About" "path" "about/") (dict "name" "Roadmap" "path" "roadmap/") }}
+    <a href="{{ .path | relURL }}"{{ if eq $page.RelPermalink (.path | relURL) }} aria-current="page"{{ end }}>{{ .name }}</a>
+  {{- end }}
+    <a class="nav-cta primary" data-ev="open_app" href="https://app.flowgroove.app/">Open app <span aria-hidden="true">↗</span></a>
+    {{ partial "theme-toggle.html" . }}
+  </nav>
+</header>

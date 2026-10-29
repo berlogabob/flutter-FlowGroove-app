@@ -1,0 +1,14 @@
+# Deployed build artifacts and vendored bundles — not source. Keeps the
+# knowledge graph free of minified-JS junk nodes (was ~7,300 of them).
+docs/
+web/vendor/
+UXUI_audit/screenshots/
+site/static/
+site/themes/
+playstore/
+assets/packages/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.ico

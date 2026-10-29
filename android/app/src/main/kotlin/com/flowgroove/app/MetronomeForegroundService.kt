@@ -5,19 +5,23 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.media.MediaMetadata
+import android.media.session.MediaSession
+import android.media.session.PlaybackState
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import androidx.core.app.NotificationCompat
 
 class MetronomeForegroundService : Service() {
 
     private val binder = MetronomeBinder()
     private var engine: AndroidMetronomeEngine? = null
     private var currentBpm: Int = 0
+    private var mediaSession: MediaSession? = null
 
     /** Set by the bound Activity to forward ticks to the Flutter channel. */
     var tickListener: ((Int) -> Unit)? = null
@@ -34,7 +38,11 @@ class MetronomeForegroundService : Service() {
         engine = AndroidMetronomeEngine(
             context = applicationContext,
             onTick = { index -> tickListener?.invoke(index) },
-            onStopped = { stoppedListener?.invoke() }
+            onStopped = {
+                mediaSession?.release()
+                mediaSession = null
+                stoppedListener?.invoke()
+            }
         )
     }
 
@@ -50,6 +58,7 @@ class MetronomeForegroundService : Service() {
     }
 
     fun startPlayback(args: Map<*, *>) {
+        markRunning(applicationContext)
         currentBpm = bpmFromArgs(args)
         startForegroundNotification()
         engine?.start(args)
@@ -64,7 +73,10 @@ class MetronomeForegroundService : Service() {
     }
 
     fun stopPlayback() {
+        markStopped(applicationContext)
         engine?.stop(notifyFlutter = true)
+        mediaSession?.release()
+        mediaSession = null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
@@ -75,6 +87,9 @@ class MetronomeForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        markStopped(applicationContext)
+        mediaSession?.release()
+        mediaSession = null
         engine?.dispose()
         engine = null
         tickListener = null
@@ -101,6 +116,31 @@ class MetronomeForegroundService : Service() {
     }
 
     private fun buildNotification(): Notification {
+        val session = mediaSession ?: MediaSession(this, "FlowGroove").apply {
+            setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS or MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS)
+            setCallback(object : MediaSession.Callback() {
+                override fun onStop() = stopPlayback()
+                override fun onPause() = stopPlayback()
+                override fun onPlay() = stopPlayback()
+            })
+        }.also { mediaSession = it }
+        session.setPlaybackState(
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PLAYING, 0L, 1f)
+                .setActions(PlaybackState.ACTION_STOP or PlaybackState.ACTION_PAUSE or PlaybackState.ACTION_PLAY_PAUSE)
+                .build()
+        )
+        session.setMetadata(
+            MediaMetadata.Builder()
+                .putString(MediaMetadata.METADATA_KEY_TITLE, "FlowGroove")
+                .apply {
+                    if (currentBpm > 0) {
+                        putString(MediaMetadata.METADATA_KEY_ARTIST, "$currentBpm BPM")
+                    }
+                }
+                .build()
+        )
+        session.isActive = true
         val openIntent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
         }
@@ -114,15 +154,28 @@ class MetronomeForegroundService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val text = if (currentBpm > 0) "$currentBpm BPM" else "Playing"
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, CHANNEL_ID)
+        } else {
+            @Suppress("DEPRECATION")
+            Notification.Builder(this)
+        }
+        return builder
             .setContentTitle("Metronome")
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setOngoing(true)
-            .setSilent(true)
+            .setSound(null)
+            .setVibrate(null)
+            .setCategory(Notification.CATEGORY_TRANSPORT)
+            .setStyle(
+                Notification.MediaStyle()
+                    .setMediaSession(session.sessionToken)
+                    .setShowActionsInCompactView(0)
+            )
             .setContentIntent(contentPi)
             .addAction(android.R.drawable.ic_media_pause, "Stop", stopPi)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(Notification.PRIORITY_LOW)
             .build()
     }
 
@@ -156,5 +209,36 @@ class MetronomeForegroundService : Service() {
         private const val NOTIFICATION_ID = 7711
         const val ACTION_START = "com.flowgroove.app.METRONOME_START"
         const val ACTION_STOP = "com.flowgroove.app.METRONOME_STOP"
+
+        private const val RUN_PREFS = "flowgroove_engine_run"
+        private const val RUN_KEY = "running"
+
+        /** True while this process has a live engine; resets with the process. */
+        @Volatile private var active = false
+
+        private fun runPrefs(context: Context) =
+            context.getSharedPreferences(RUN_PREFS, Context.MODE_PRIVATE)
+
+        // commit(): the flag must survive an immediate process kill.
+        fun markRunning(context: Context) {
+            active = true
+            runPrefs(context).edit().putBoolean(RUN_KEY, true).commit()
+        }
+
+        fun markStopped(context: Context) {
+            active = false
+            runPrefs(context).edit().putBoolean(RUN_KEY, false).apply()
+        }
+
+        /**
+         * True when the previous run never stopped cleanly and this process has no live
+         * engine, i.e. the system (battery manager / task killer) ended it. Clears the flag.
+         */
+        fun consumeUnexpectedStop(context: Context): Boolean {
+            val prefs = runPrefs(context)
+            val cutOff = prefs.getBoolean(RUN_KEY, false) && !active
+            if (cutOff) prefs.edit().putBoolean(RUN_KEY, false).apply()
+            return cutOff
+        }
     }
 }

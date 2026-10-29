@@ -624,11 +624,16 @@ void main() {
 
     test('copyWith can set and clear photoURL', () {
       final band = Band(
-        id: 'b1', name: 'X', createdBy: 'u1', createdAt: DateTime.utc(2026),
+        id: 'b1',
+        name: 'X',
+        createdBy: 'u1',
+        createdAt: DateTime.utc(2026),
         photoURL: 'https://example.com/a.jpg',
       );
-      expect(band.copyWith(photoURL: 'https://example.com/b.jpg').photoURL,
-          'https://example.com/b.jpg');
+      expect(
+        band.copyWith(photoURL: 'https://example.com/b.jpg').photoURL,
+        'https://example.com/b.jpg',
+      );
       expect(band.copyWith(photoURL: null).photoURL, isNull);
       expect(band.copyWith(name: 'Y').photoURL, 'https://example.com/a.jpg');
     });

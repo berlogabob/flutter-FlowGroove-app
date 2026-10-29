@@ -286,13 +286,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _showTelegramLinkDialog() {
+  Future<void> _showTelegramLinkDialog() async {
     final telegramService = TelegramService();
-    final userAsync = ref.read(currentUserProvider);
-    final userId = userAsync.value?.uid;
-    final botLink = TelegramService.botLink(
-      userId != null ? 'link_$userId' : 'link',
-    );
+    String? userId; // single-use link token, not the uid
+    try {
+      userId = await TelegramService.createLinkToken();
+    } on Object catch (e) {
+      debugPrint('Telegram link token failed: $e');
+      if (mounted)
+        showAppSnackBar(context, 'Could not start Telegram linking.');
+      return;
+    }
+    if (!mounted) return;
+    final botLink = TelegramService.botLink('link_$userId');
     // On desktop web Telegram is usually on the phone, not this machine —
     // lead with a QR to scan instead of a deep link that dead-ends.
     final isDesktopWeb =
@@ -869,7 +875,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       onTap: onTap,
     );
   }
-
 }
 
 /// GitHub-style collapsible section: starts closed so Delete Account can't be

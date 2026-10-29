@@ -36,9 +36,7 @@ Uint8List? m4aFromAdts(Uint8List aac, {String? title, String? artist}) {
   if (config.freqIndex > 12) return null;
   if (config.channels < 1 || config.channels > 7) return null;
 
-  final sizes = [
-    for (final f in frames) f.length - f.headerLength,
-  ];
+  final sizes = [for (final f in frames) f.length - f.headerLength];
   if (sizes.any((s) => s <= 0)) return null;
   final payloadLength = sizes.reduce((a, b) => a + b);
 
@@ -57,8 +55,9 @@ Uint8List? m4aFromAdts(Uint8List aac, {String? title, String? artist}) {
 
   // stco entries are fixed-width, so moov's length can't depend on the value
   // written here — which is what makes patching it after the fact sound.
-  ByteData.sublistView(moov.bytes)
-      .setUint32(moov.stcoEntryIndex, mdatPayloadOffset);
+  ByteData.sublistView(
+    moov.bytes,
+  ).setUint32(moov.stcoEntryIndex, mdatPayloadOffset);
 
   final out = BytesBuilder()
     ..add(ftyp)
@@ -70,7 +69,11 @@ Uint8List? m4aFromAdts(Uint8List aac, {String? title, String? artist}) {
   for (var i = 0; i < frames.length; i++) {
     final f = frames[i];
     out.add(
-      Uint8List.sublistView(aac, f.offset + f.headerLength, f.offset + f.length),
+      Uint8List.sublistView(
+        aac,
+        f.offset + f.headerLength,
+        f.offset + f.length,
+      ),
     );
   }
   return out.toBytes();
@@ -78,11 +81,9 @@ Uint8List? m4aFromAdts(Uint8List aac, {String? title, String? artist}) {
 
 // --- box primitives -------------------------------------------------------
 
-Uint8List _u32(int v) =>
-    Uint8List(4)..buffer.asByteData().setUint32(0, v);
+Uint8List _u32(int v) => Uint8List(4)..buffer.asByteData().setUint32(0, v);
 
-Uint8List _u16(int v) =>
-    Uint8List(2)..buffer.asByteData().setUint16(0, v);
+Uint8List _u16(int v) => Uint8List(2)..buffer.asByteData().setUint16(0, v);
 
 /// Four-character box type. ASCII only — the `©` iTunes types must go through
 /// [_boxRaw] instead, never through here.
@@ -92,8 +93,11 @@ Uint8List _boxHeader(String type, int payloadLength) =>
     Uint8List.fromList([..._u32(payloadLength + 8), ..._fourcc(type)]);
 
 /// `size + type + payload`.
-Uint8List _box(String type, List<int> payload) =>
-    Uint8List.fromList([..._u32(payload.length + 8), ..._fourcc(type), ...payload]);
+Uint8List _box(String type, List<int> payload) => Uint8List.fromList([
+  ..._u32(payload.length + 8),
+  ..._fourcc(type),
+  ...payload,
+]);
 
 /// A box whose type isn't ASCII — the iTunes tags start with `©` (0xA9).
 ///
@@ -103,8 +107,13 @@ Uint8List _boxRaw(List<int> type, List<int> payload) =>
     Uint8List.fromList([..._u32(payload.length + 8), ...type, ...payload]);
 
 /// A FullBox: `size + type + version + flags + payload`.
-Uint8List _fullBox(String type, int flags, List<int> payload) =>
-    _box(type, [0, (flags >> 16) & 0xFF, (flags >> 8) & 0xFF, flags & 0xFF, ...payload]);
+Uint8List _fullBox(String type, int flags, List<int> payload) => _box(type, [
+  0,
+  (flags >> 16) & 0xFF,
+  (flags >> 8) & 0xFF,
+  flags & 0xFF,
+  ...payload,
+]);
 
 /// MPEG-4 descriptor with the 4-byte length form Apple and FFmpeg both emit.
 /// Fixed-width headers keep the size arithmetic constant.
@@ -128,9 +137,15 @@ Uint8List _ftyp() => _box('ftyp', [
 /// The unity display matrix. The bottom-right term is 1.0 in 2.30 fixed point,
 /// not 16.16 like the others.
 List<int> get _unityMatrix => [
-  ..._u32(0x00010000), ..._u32(0), ..._u32(0),
-  ..._u32(0), ..._u32(0x00010000), ..._u32(0),
-  ..._u32(0), ..._u32(0), ..._u32(0x40000000),
+  ..._u32(0x00010000),
+  ..._u32(0),
+  ..._u32(0),
+  ..._u32(0),
+  ..._u32(0x00010000),
+  ..._u32(0),
+  ..._u32(0),
+  ..._u32(0),
+  ..._u32(0x40000000),
 ];
 
 ({Uint8List bytes, int stcoEntryIndex}) _moov({
@@ -229,13 +244,18 @@ List<int> get _unityMatrix => [
   required int duration,
 }) {
   final sampleCount = sampleSizes.length;
-  final stsd = _stsd(config: config, payloadLength: payloadLength, duration: duration);
+  final stsd = _stsd(
+    config: config,
+    payloadLength: payloadLength,
+    duration: duration,
+  );
 
   final head = <int>[
     ...stsd,
     ..._fullBox('stts', 0, [
       ..._u32(1),
-      ..._u32(sampleCount), ..._u32(adtsSamplesPerFrame),
+      ..._u32(sampleCount),
+      ..._u32(adtsSamplesPerFrame),
     ]),
     ..._fullBox('stsc', 0, [
       ..._u32(1),

@@ -193,16 +193,14 @@ class _LoadedSongCard extends ConsumerWidget {
             tooltip: 'Clear loaded song',
             onPressed: () {
               // Cache the current state for undo
-              final cachedState =
-                  (
-                        song: song,
-                        setlist: setlist,
-                        sourceBandId: sourceBandId,
-                        loadedSetlistSongs: setlist != null
-                            ? ref.read(metronomeProvider).loadedSetlistSongs
-                            : <Song>[],
-                      )
-                      as _LoadedSongState;
+              final cachedState = (
+                song: song,
+                setlist: setlist,
+                sourceBandId: sourceBandId,
+                loadedSetlistSongs: setlist != null
+                    ? ref.read(metronomeProvider).loadedSetlistSongs
+                    : <Song>[],
+              );
 
               // Clear the loaded content
               onClear();

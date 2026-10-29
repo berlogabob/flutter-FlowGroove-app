@@ -211,7 +211,9 @@ void main() {
         // Act: Configure 6 beats, then start transport.
         final notifier = container.read(metronomeProvider.notifier);
         notifier.setBpm(100);
-        notifier.setTimeSignature(const TimeSignature(numerator: 6, denominator: 4));
+        notifier.setTimeSignature(
+          const TimeSignature(numerator: 6, denominator: 4),
+        );
         notifier.start();
         final state = container.read(metronomeProvider);
 
@@ -345,9 +347,7 @@ void main() {
     // PRESET SAVE/LOAD TESTS
     // =========================================================================
     group('Preset Save/Load', () {
-      testWidgets('INT-METRONOME-01.19: Save metronome preset', (
-        tester,
-      ) async {
+      testWidgets('INT-METRONOME-01.19: Save metronome preset', (tester) async {
         // Arrange
         final preset = MetronomePreset(
           id: const Uuid().v4(),
@@ -367,9 +367,7 @@ void main() {
         expect(savedPreset.bpm, equals(140));
       });
 
-      testWidgets('INT-METRONOME-01.20: Load metronome preset', (
-        tester,
-      ) async {
+      testWidgets('INT-METRONOME-01.20: Load metronome preset', (tester) async {
         // Arrange
         final container = ProviderContainer();
         addTearDown(container.dispose);
@@ -394,9 +392,7 @@ void main() {
         expect(state.waveType, equals('square'));
       });
 
-      testWidgets('INT-METRONOME-01.21: Preset persists BPM', (
-        tester,
-      ) async {
+      testWidgets('INT-METRONOME-01.21: Preset persists BPM', (tester) async {
         // Arrange
         final preset = MetronomePreset(
           id: const Uuid().v4(),
@@ -449,9 +445,7 @@ void main() {
         expect(preset.waveType, equals('square'));
       });
 
-      testWidgets('INT-METRONOME-01.24: Delete preset', (
-        tester,
-      ) async {
+      testWidgets('INT-METRONOME-01.24: Delete preset', (tester) async {
         // Arrange
         final presets = [
           MetronomePreset(
@@ -568,7 +562,9 @@ void main() {
           // Act: Change to 3/4
           container
               .read(metronomeProvider.notifier)
-              .setTimeSignature(const TimeSignature(numerator: 3, denominator: 4));
+              .setTimeSignature(
+                const TimeSignature(numerator: 3, denominator: 4),
+              );
           final state = container.read(metronomeProvider);
 
           // Assert: First beat accented
@@ -818,9 +814,7 @@ void main() {
         expect(state.bpm, inInclusiveRange(120, 121));
       });
 
-      testWidgets('INT-METRONOME-01.42: Fine tempo adjustment', (
-        tester,
-      ) async {
+      testWidgets('INT-METRONOME-01.42: Fine tempo adjustment', (tester) async {
         // Arrange
         final container = ProviderContainer();
         addTearDown(container.dispose);

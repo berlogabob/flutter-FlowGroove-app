@@ -8,12 +8,12 @@ part 'time_signature.g.dart';
 /// how many beats are in each measure and what note value gets one beat.
 @JsonSerializable()
 class TimeSignature {
-
   /// Creates a new [TimeSignature] with the specified numerator and denominator.
   const TimeSignature({required this.numerator, required this.denominator});
 
   factory TimeSignature.fromJson(Map<String, dynamic> json) =>
       _$TimeSignatureFromJson(json);
+
   /// The number of beats per measure (numerator).
   /// Valid range: 2-12
   final int numerator;

@@ -1,0 +1,36 @@
+{
+  "task": "GH-188-I",
+  "reviewer": "hermes",
+  "tested_commit": "3c1937491f10726f2ac390b771d342c4685f3d48",
+  "scope": "Per-person hidden/view/edit controls and effective live access preview in existing Add/Edit crew sheet. No rules/auth/server/share-link change.",
+  "worker": {
+    "provider": "openai-codex",
+    "actual_model": "gpt-6-luna",
+    "session": "local-a114c032d8ece3687118062310a343385d8c75478afa7090722ab2b77d8d64e0",
+    "outcome": "Incomplete worker attempt retained in registry attempts; terminal server stop previously verified. Hermes directly finished without resending prompt."
+  },
+  "source_sha256": {
+    "lib/screens/setlists/event_kit_editor_screen.dart": "c1d7336e548378e2c3e52e1486f8804f16fed757e9deeca050123c08a5e762a2",
+    "test/screens/setlists/event_kit_editor_test.dart": "6bef933e8c3f1bfbf0688dd7606f5cfe90d62a9343ef42814a55da1a67eb9c83"
+  },
+  "primary_lane_byte_identity": true,
+  "public_seam": "EventKitEditorScreen rendered Add/Edit sheet and captured updateEventKitArea people payload; existing fixture, no private provider exposure.",
+  "checks": [
+    "Earlier real parent RED missing role-reset disclosure; subsequent real RED client canSuggest absent after typed role change. Direct correction seeds role/access eagerly in initState and shows reset disclosure for new/edit sheets.",
+    "Final warm parent-matrix4: 26 non-hidden tests passed; done.success=true. All five rendered area controls exercised; hidden omitted, effective preview updated, stored custom access/canSuggest respected; id/uid/notes retained; modal OS-back cancellation no-write; typed/chip reset and next-person preset isolation checked.",
+    "Final primary combined2: EventKitEditor screen, event access model, event share service, SetlistView screen: 51 non-hidden tests passed, done.success=true, process exit 0.",
+    "Primary scoped analyzer exit 0: 10 informational diagnostics, including existing style notices and new const/redundant-value suggestions; no errors or warnings. Not claimed lint-clean.",
+    "Primary format check exit 0, 2 files unchanged; git diff --check exit 0; commit security hooks PASS."
+  ],
+  "retained_failures": [
+    "Foreground attempts timed out before test loading and are not RED. Native primary flutter_soloud hook compilation observed via process tree; no competing build started.",
+    "parent-green2 reported done.success=true but contained only hidden loading completions and zero visible cases. Not counted as behavioral PASS.",
+    "Expanded matrix2: 24 successful cases plus two fixture errors: serializer omits false canSuggest, and pageBack expects a modal back button. Corrected to omitted-field contract and OS back; final matrix4/primary both exercise cancellation successfully.",
+    "Minus-sign fixture corrected before final stable runs; final warm/primary source hashes match."
+  ],
+  "limitations": [
+    "GH-188-V device/real data/human acceptance remains open; no issue closure.",
+    "Full Graphify and wider final regressions remain separate gates. Existing GRAPHIFY_SKIP_HOOK=1 avoided unbounded refresh in constrained cycle.",
+    "No release/push/deploy/install."
+  ]
+}

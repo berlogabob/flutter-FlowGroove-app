@@ -16,6 +16,11 @@ import '../theme/mono_pulse_theme.dart';
 import '../utils/song_tags.dart';
 import 'data/data_providers.dart';
 
+/// What an auto-save attempt actually did. `queued` = the write is in
+/// Firestore's persistent offline queue (network timeout) and will sync;
+/// only `failed` means the user's changes were rejected.
+enum AutoSaveOutcome { saved, queued, noOp, failed }
+
 /// Provider for managing song form state.
 ///
 /// This provider encapsulates all form state and operations
@@ -28,7 +33,6 @@ final songFormStateProvider =
 
 /// State class for song form management.
 class SongFormState {
-
   const SongFormState({
     required this.formData,
     this.error,
@@ -114,19 +118,25 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
   }
 
   /// Update form field: title.
+  // The text setters no-op on an identical value: app-resume re-syncs every
+  // controller through them, and unconditional marking made every resume look
+  // dirty — which retried failed auto-saves (and their alerts) forever.
   void updateTitle(String value) {
+    if (state.formData.title == value) return;
     state = state.copyWith(formData: state.formData.copyWith(title: value));
     markAsChanged();
   }
 
   /// Update form field: artist.
   void updateArtist(String value) {
+    if (state.formData.artist == value) return;
     state = state.copyWith(formData: state.formData.copyWith(artist: value));
     markAsChanged();
   }
 
   /// Update form field: original BPM.
   void updateOriginalBpm(String value) {
+    if (state.formData.originalBpm == value) return;
     state = state.copyWith(
       formData: state.formData.copyWith(originalBpm: value),
     );
@@ -135,12 +145,14 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
   /// Update form field: our BPM.
   void updateOurBpm(String value) {
+    if (state.formData.ourBpm == value) return;
     state = state.copyWith(formData: state.formData.copyWith(ourBpm: value));
     markAsChanged();
   }
 
   /// Update form field: notes.
   void updateNotes(String value) {
+    if (state.formData.notes == value) return;
     state = state.copyWith(formData: state.formData.copyWith(notes: value));
     markAsChanged();
   }
@@ -262,7 +274,6 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     markAsChanged();
   }
 
-
   /// Initialize beat modes.
   void initializeBeatModes() {
     state.formData.initializeBeatModes();
@@ -351,8 +362,11 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     }
   }
 
-  /// Auto-save song (silent save without error display).
-  Future<bool> autoSave({
+  /// Auto-save song. Returns what actually happened so the screen can be
+  /// honest: only [AutoSaveOutcome.failed] deserves an error to the user —
+  /// a network timeout on a plain Firestore write means the write is QUEUED
+  /// locally (persistence is on) and will sync, not that it was lost.
+  Future<AutoSaveOutcome> autoSave({
     required SongRepository songRepo,
     required String uid,
     String? bandId,
@@ -360,7 +374,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     Song? existingSong,
   }) async {
     if (!state.hasUnsavedChanges || state.formData.title.trim().isEmpty) {
-      return false;
+      return AutoSaveOutcome.noOp;
     }
 
     setAutoSaving(true);
@@ -391,10 +405,23 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
       clearUnsavedChanges();
       setAutoSaving(false);
-      return true;
-    } catch (e) {
-      setAutoSaving(false);
-      return false;
+      return AutoSaveOutcome.saved;
+    } catch (e, stackTrace) {
+      final error = e is ApiError
+          ? e
+          : ApiError.fromException(e, stackTrace: stackTrace);
+      if (error.isNetwork) {
+        // Offline / no server ack: the write sits in Firestore's persistent
+        // local queue and syncs later. The form data is safe — don't keep it
+        // "dirty" (that would retry + re-alert on every resume).
+        clearUnsavedChanges();
+        setAutoSaving(false);
+        return AutoSaveOutcome.queued;
+      }
+      // Real failure (permission, validation, conversion): surface it on the
+      // still-mounted form too.
+      state = state.copyWith(error: error, isAutoSaving: false);
+      return AutoSaveOutcome.failed;
     }
   }
 
@@ -430,6 +457,39 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
   /// Clear selected suggestion and allow manual editing.
   void clearSuggestion() {
     state = state.copyWith(isUsingSuggestion: false);
+  }
+
+  /// Replace the selected suggestion's external metadata with better values,
+  /// leaving title/artist and every form field untouched.
+  ///
+  /// saveSong reads `album`/`durationMs`/`musicBrainzId` straight off the
+  /// selected suggestion. For a MusicBrainz suggestion those come from
+  /// `releases.first`, which MusicBrainz returns in arbitrary order — that is how
+  /// "Apocalypse Now" ended up stored as the album for Light My Fire. The
+  /// server-side resolver picks the release properly (measured: correct on 6/6 of
+  /// a hard sample where MusicBrainz was wrong), so once it answers, its values
+  /// replace the suggestion's.
+  ///
+  /// Deliberately not selectSuggestion(): that also rewrites title and artist,
+  /// which the user may have edited since choosing the match.
+  void refineSuggestionMetadata({
+    String? album,
+    int? releaseYear,
+    int? durationMs,
+    String? musicBrainzId,
+    String? spotifyId,
+  }) {
+    final current = state.selectedSuggestion;
+    if (current == null) return;
+    state = state.copyWith(
+      selectedSuggestion: current.copyWith(
+        album: album ?? current.album,
+        releaseYear: releaseYear ?? current.releaseYear,
+        durationMs: durationMs ?? current.durationMs,
+        musicBrainzId: musicBrainzId ?? current.musicBrainzId,
+        spotifyId: spotifyId ?? current.spotifyId,
+      ),
+    );
   }
 
   /// Apply suggestion data to form fields.
@@ -617,7 +677,10 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded, color: MonoPulseColors.warning),
+        icon: const Icon(
+          Icons.warning_amber_rounded,
+          color: MonoPulseColors.warning,
+        ),
         title: const Text('Similar Song Exists'),
         content: Column(
           mainAxisSize: MainAxisSize.min,

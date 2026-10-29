@@ -1,0 +1,69 @@
+{
+  "task_scope": [
+    "UX-007-I",
+    "UX-007-S"
+  ],
+  "tested_commit": "efef7ca4240751b6fe6f0208ae6b09610f39db85",
+  "feature_commit": "d842fa36674a6a4a008ac413203bf939603c836b",
+  "verified_at": "2026-10-24T04:33:14.655894+01:00",
+  "reviewer": "hermes",
+  "related_screen_test_files": [
+    "test/screens/songs/songs_list_screen_test.dart",
+    "test/screens/bands/my_bands_screen_test.dart",
+    "test/screens/setlists/setlists_list_screen_test.dart",
+    "test/screens/bands/band_setlists_screen_test.dart"
+  ],
+  "related_screen_tests_passed": 47,
+  "checks": [
+    {
+      "command": [
+        "flutter",
+        "test",
+        "--no-pub",
+        "test/screens/songs/songs_list_screen_test.dart",
+        "test/screens/bands/my_bands_screen_test.dart",
+        "test/screens/setlists/setlists_list_screen_test.dart",
+        "test/screens/bands/band_setlists_screen_test.dart",
+        "--reporter",
+        "expanded"
+      ],
+      "exit_code": 0,
+      "duration_s": 62.28,
+      "log": "audit/2026-10-23-systemic-ux/workers/UX-007-primary/check-0.log"
+    },
+    {
+      "command": [
+        "flutter",
+        "analyze",
+        "--no-pub",
+        "--no-fatal-infos",
+        "--no-fatal-warnings",
+        "lib/widgets/fab_variants.dart",
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "exit_code": 0,
+      "duration_s": 12.67,
+      "log": "audit/2026-10-23-systemic-ux/workers/UX-007-primary/check-1.log"
+    },
+    {
+      "command": [
+        "dart",
+        "format",
+        "--output=none",
+        "--set-exit-if-changed",
+        "lib/widgets/fab_variants.dart",
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "exit_code": 0,
+      "duration_s": 0.53,
+      "log": "audit/2026-10-23-systemic-ux/workers/UX-007-primary/check-2.log"
+    }
+  ],
+  "new_analyzer_errors": 0,
+  "baseline_diagnostics_unchanged": true,
+  "format_changes": 0,
+  "fresh_device_talkback_done": false,
+  "publication": "still blocked"
+}

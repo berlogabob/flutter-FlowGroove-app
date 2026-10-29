@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '../models/api_error.dart';
+import 'analytics_service.dart';
 
 /// Result of a [BandFunctionService.joinBand] call.
 class JoinBandResult {
@@ -60,7 +63,10 @@ class BandFunctionService {
   /// Idempotent: if the caller is already a member, returns a result with
   /// [JoinBandResult.alreadyMember] set to true instead of throwing.
   Future<JoinBandResult> joinBand({String? code, String? bandId}) async {
-    final callable = _functions.httpsCallable('joinBand', options: _callableOptions);
+    final callable = _functions.httpsCallable(
+      'joinBand',
+      options: _callableOptions,
+    );
     final result = await callable.call<Map<String, dynamic>>(
       _withoutNullValues({'code': code, 'bandId': bandId}),
     );
@@ -110,8 +116,13 @@ class BandFunctionService {
   Future<void> removeMember({
     required String bandId,
     required String targetUid,
-  }) {
-    return _call('remove', bandId: bandId, targetUid: targetUid);
+  }) async {
+    await _call('remove', bandId: bandId, targetUid: targetUid);
+    // Role isn't known here (the callable owns membership); 'unknown' keeps
+    // the param present rather than plumbing it down from two call sites.
+    unawaited(
+      AnalyticsService.logMemberRemoved(bandId: bandId, memberRole: 'unknown'),
+    );
   }
 
   Future<void> _call(
@@ -121,7 +132,10 @@ class BandFunctionService {
     String? role,
     List<String>? musicRoles,
   }) async {
-    final callable = _functions.httpsCallable('updateBandMember', options: _callableOptions);
+    final callable = _functions.httpsCallable(
+      'updateBandMember',
+      options: _callableOptions,
+    );
     try {
       await callable.call<Map<String, dynamic>>(
         _withoutNullValues({
@@ -146,7 +160,8 @@ class BandFunctionService {
       case 'deadline-exceeded':
       case 'unavailable':
         return ApiError.network(
-          message: 'Request timed out. Please check your connection and try again.',
+          message:
+              'Request timed out. Please check your connection and try again.',
           exception: e,
           stackTrace: st,
         );

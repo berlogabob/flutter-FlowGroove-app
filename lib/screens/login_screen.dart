@@ -6,10 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'package:cloud_functions/cloud_functions.dart';
+
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
+import '../services/event_share_service.dart';
 import '../theme/mono_pulse_theme.dart';
+import '../utils/snackbar.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/google_sign_in_button_stub.dart'
     if (dart.library.js_interop) '../widgets/google_sign_in_button_web.dart';
@@ -106,6 +110,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     await analytics.logLogin(loginMethod: loginMethod);
     await analytics.logLoginSuccess(loginMethod: loginMethod);
 
+    // Honour a share token captured before login — someone opened an event
+    // link that grants them something to EDIT, which needs an account. Claiming
+    // binds the grant to this uid; after that the security rules let them work
+    // directly. Runs before the join code because a share link is the more
+    // specific intent.
+    final pendingEventToken = await ref
+        .read(pendingEventTokenStoreProvider)
+        .getAndClearPendingEventToken();
+    if (!mounted) return;
+    if (pendingEventToken != null) {
+      await _claimPendingEvent(pendingEventToken);
+      return;
+    }
+
     // Honour a pending join code captured before login.
     final pendingJoinCode = await ref
         .read(pendingJoinCodeStoreProvider)
@@ -122,6 +140,51 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  /// Bind a share link to the account that just signed in, then open the event.
+  ///
+  /// Every refusal the server can give is surfaced as itself: a link already
+  /// claimed by someone else, a revoked one, and the read-only demo account are
+  /// three different problems and one generic "failed" would hide which.
+  Future<void> _claimPendingEvent(String token) async {
+    try {
+      final result = await EventShareService().claimShare(token);
+      if (!mounted) return;
+      final bandId = result['bandId'] as String? ?? '';
+      final ownerUid = result['ownerUid'] as String?;
+      final setlistId = result['setlistId'] as String? ?? '';
+      if ((bandId.isEmpty && ownerUid == null) || setlistId.isEmpty) {
+        context.go('/main/home');
+        return;
+      }
+      context.go('/main/home');
+      if (bandId.isEmpty) {
+        await context.pushNamed(
+          'event-share',
+          queryParameters: {'ownerUid': ownerUid!, 'setlistId': setlistId},
+        );
+        return;
+      }
+      await context.pushNamed(
+        'band-setlist-view',
+        pathParameters: {'id': bandId, 'setlistId': setlistId},
+      );
+    } on FirebaseFunctionsException catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, switch (e.code) {
+        'permission-denied' =>
+          'That link has already been used, or is no longer valid.',
+        'failed-precondition' =>
+          'The demo account cannot join an event. Sign in with your own account.',
+        _ => 'Could not open that event: ${e.message ?? e.code}',
+      });
+      context.go('/main/home');
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, 'Could not open that event: $e');
+      context.go('/main/home');
+    }
+  }
+
   void _onEmailChanged(String value) {
     setState(() {
       _email = Email.dirty(value);
@@ -132,6 +195,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() {
       _password = Password.dirty(value);
     });
+  }
+
+  /// Connection errors re-run the sign-in; other errors just clear the banner.
+  bool get _isConnectionError =>
+      _currentError?.message.contains('Unable to connect') ?? false;
+
+  void _retry() {
+    final connection = _isConnectionError;
+    _clearError();
+    if (connection) unawaited(_login());
   }
 
   void _clearError() {
@@ -280,7 +353,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ErrorBanner(
                   message:
                       _currentError?.message ?? 'An unexpected error occurred',
-                  onRetry: _clearError,
+                  onRetry: _retry,
+                  showRetry: _isConnectionError,
                 ),
                 const SizedBox(height: 24),
               ],

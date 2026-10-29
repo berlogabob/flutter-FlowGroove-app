@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/data/metronome_provider.dart';
+import '../providers/metronome_runtime_providers.dart';
 import '../providers/wakelock_provider.dart';
+import '../services/wakelock_controller.dart';
 import '../theme/mono_pulse_theme.dart';
-import 'performance_sheet_screen.dart';
+import '../widgets/performance_sheet_view.dart';
 
 /// Full-screen "stage" view of the metronome (Mono Pulse Concert Mode).
 ///
@@ -26,6 +28,7 @@ class ConcertModeScreen extends ConsumerStatefulWidget {
 class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse;
+  bool _showSheet = false;
 
   @override
   void initState() {
@@ -34,18 +37,14 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
       vsync: this,
       duration: MonoPulseAnimation.durationMedium,
     );
-    ref.read(wakelockProvider).enable();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   @override
   void dispose() {
     _pulse.dispose();
-    // Restore the system chrome and release the wakelock. Reading the provider
-    // in dispose is safe here — the controller is owned by the (still-mounted)
-    // metronome screen underneath.
+    // Restore the system chrome on exit.
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    ref.read(wakelockProvider).disable();
     super.dispose();
   }
 
@@ -67,98 +66,108 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
         : -1;
 
     final song = state.activeSong;
+    final showSheet = _showSheet && song != null && song.hasSheetContent;
 
-    return Scaffold(
-      backgroundColor: context.mp.black,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned(
-              top: MonoPulseSpacing.sm,
-              right: MonoPulseSpacing.sm,
-              child: IconButton(
-                icon: Icon(Icons.close, color: context.mp.textSecondary),
-                iconSize: 28,
-                tooltip: 'Exit Concert Mode',
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
-            // Open the loaded song's lyrics+chords sheet (seeded with the live
-            // tempo). The metronome keeps running underneath.
-            if (song != null && song.hasSheetContent)
+    return ScreenWakelock(
+      controller: ref.watch(wakelockProvider),
+      isPlaying: state.isPlaying,
+      onWebResume: () => ref
+          .read(metronomePlaybackClientProvider)
+          .resetPhase(
+            MetronomePlaybackConfig.fromState(ref.read(metronomeProvider)),
+          ),
+      child: Scaffold(
+        backgroundColor: context.mp.black,
+        body: SafeArea(
+          child: Stack(
+            children: [
               Positioned(
                 top: MonoPulseSpacing.sm,
-                left: MonoPulseSpacing.sm,
+                right: MonoPulseSpacing.sm,
                 child: IconButton(
-                  icon: Icon(
-                    Icons.lyrics_outlined,
-                    color: context.mp.textSecondary,
-                  ),
+                  icon: Icon(Icons.close, color: context.mp.textSecondary),
                   iconSize: 28,
-                  tooltip: 'Lyrics & chords',
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => PerformanceSheetScreen(
-                        title: song.title.trim().isEmpty
-                            ? 'Song'
-                            : song.title.trim(),
-                        sections: song.sections,
-                        song: song,
-                        songKey: song.ourKey,
-                        bpm: state.bpm,
-                        timeTop: song.accentBeats,
-                      ),
-                    ),
-                  ),
+                  tooltip: 'Exit Concert Mode',
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
-              child: OrientationBuilder(
-                builder: (context, orientation) {
-                  final readout = _Readout(
-                    bpm: state.bpm,
-                    pulse: _pulse,
-                    isPlaying: state.isPlaying,
-                    songTitle: state.activeSong?.title,
-                  );
-                  final controls = _Controls(
-                    isPlaying: state.isPlaying,
-                    numerator: numerator,
-                    currentBeat: currentMainBeat,
-                    onToggle: () =>
-                        ref.read(metronomeProvider.notifier).toggle(),
-                    onAdjust: (d) =>
-                        ref.read(metronomeProvider.notifier).adjustTempoFine(d),
-                    onPrevious: state.canGoToPreviousSetlistSong
-                        ? () => ref
-                              .read(metronomeProvider.notifier)
-                              .previousSetlistSong()
-                        : null,
-                    onNext: state.canGoToNextSetlistSong
-                        ? () => ref
-                              .read(metronomeProvider.notifier)
-                              .nextSetlistSong()
-                        : null,
-                    hasSetlist: state.loadedSetlist != null,
-                  );
+              // Toggle the loaded song's inline lyrics+chords sheet.
+              if (song != null && song.hasSheetContent)
+                Positioned(
+                  top: MonoPulseSpacing.sm,
+                  left: MonoPulseSpacing.sm,
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.lyrics_outlined,
+                      color: showSheet
+                          ? MonoPulseColors.accentOrange
+                          : context.mp.textSecondary,
+                    ),
+                    iconSize: 28,
+                    tooltip: showSheet ? 'Show BPM' : 'Lyrics & chords',
+                    onPressed: () => setState(() => _showSheet = !_showSheet),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
+                child: OrientationBuilder(
+                  builder: (context, orientation) {
+                    final readout = showSheet
+                        ? PerformanceSheetView(
+                            key: ValueKey(song.id),
+                            sections: song.sections,
+                            bpm: state.bpm,
+                          )
+                        : _Readout(
+                            bpm: state.bpm,
+                            pulse: _pulse,
+                            isPlaying: state.isPlaying,
+                            songTitle: song?.title,
+                          );
+                    final controls = _Controls(
+                      isPlaying: state.isPlaying,
+                      numerator: numerator,
+                      currentBeat: currentMainBeat,
+                      onToggle: () =>
+                          ref.read(metronomeProvider.notifier).toggle(),
+                      onAdjust: (d) => ref
+                          .read(metronomeProvider.notifier)
+                          .adjustTempoFine(d),
+                      onPrevious: state.canGoToPreviousSetlistSong
+                          ? () => ref
+                                .read(metronomeProvider.notifier)
+                                .previousSetlistSong()
+                          : null,
+                      onNext: state.canGoToNextSetlistSong
+                          ? () => ref
+                                .read(metronomeProvider.notifier)
+                                .nextSetlistSong()
+                          : null,
+                      hasSetlist: state.loadedSetlist != null,
+                    );
 
-                  if (orientation == Orientation.landscape) {
-                    return Row(
+                    if (orientation == Orientation.landscape) {
+                      return Row(
+                        children: [
+                          Expanded(child: Center(child: readout)),
+                          Expanded(child: Center(child: controls)),
+                        ],
+                      );
+                    }
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Expanded(child: Center(child: readout)),
-                        Expanded(child: Center(child: controls)),
+                        if (showSheet) Expanded(child: readout) else readout,
+                        if (showSheet)
+                          const SizedBox(height: MonoPulseSpacing.lg),
+                        controls,
                       ],
                     );
-                  }
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [readout, controls],
-                  );
-                },
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -344,36 +353,47 @@ class _Controls extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (hasSetlist) ...[
-              _SkipButton(icon: Icons.skip_previous, onTap: onPrevious),
+              _SkipButton(
+                icon: Icons.skip_previous,
+                tooltip: 'Previous song',
+                onTap: onPrevious,
+              ),
               const SizedBox(width: MonoPulseSpacing.xl),
             ],
-            GestureDetector(
-              onTap: onToggle,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: MonoPulseColors.accentOrange,
-                  boxShadow: [
-                    BoxShadow(
-                      color: MonoPulseColors.accentOrange.withValues(
-                        alpha: 0.55,
+            Tooltip(
+              message: isPlaying ? 'Pause' : 'Play',
+              child: GestureDetector(
+                onTap: onToggle,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: MonoPulseColors.accentOrange,
+                    boxShadow: [
+                      BoxShadow(
+                        color: MonoPulseColors.accentOrange.withValues(
+                          alpha: 0.55,
+                        ),
+                        blurRadius: 60,
                       ),
-                      blurRadius: 60,
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  isPlaying ? Icons.pause : Icons.play_arrow,
-                  color: context.mp.black,
-                  size: 56,
+                    ],
+                  ),
+                  child: Icon(
+                    isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: context.mp.black,
+                    size: 56,
+                  ),
                 ),
               ),
             ),
             if (hasSetlist) ...[
               const SizedBox(width: MonoPulseSpacing.xl),
-              _SkipButton(icon: Icons.skip_next, onTap: onNext),
+              _SkipButton(
+                icon: Icons.skip_next,
+                tooltip: 'Next song',
+                onTap: onNext,
+              ),
             ],
           ],
         ),
@@ -395,29 +415,37 @@ class _Controls extends StatelessWidget {
 
 /// Setlist prev/next. Dimmed and inert when [onTap] is null (no adjacent song).
 class _SkipButton extends StatelessWidget {
-  const _SkipButton({required this.icon, required this.onTap});
+  const _SkipButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
 
   final IconData icon;
+  final String tooltip;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final enabled = onTap != null;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 64,
-        height: 64,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: context.mp.surfaceRaised,
-          border: Border.all(color: context.mp.borderDefault),
-        ),
-        child: Icon(
-          icon,
-          color: enabled ? context.mp.textSecondary : context.mp.textTertiary,
-          size: 32,
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 64,
+          height: 64,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: context.mp.surfaceRaised,
+            border: Border.all(color: context.mp.borderDefault),
+          ),
+          child: Icon(
+            icon,
+            color: enabled ? context.mp.textSecondary : context.mp.textTertiary,
+            size: 32,
+          ),
         ),
       ),
     );
@@ -439,29 +467,32 @@ class _NudgeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 56,
-          height: 56,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: accent
-                ? MonoPulseColors.accentOrange15
-                : context.mp.surfaceRaised,
-            border: Border.all(
+      child: Tooltip(
+        message: '${label.replaceAll('−', '-')} BPM',
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 56,
+            height: 56,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
               color: accent
-                  ? MonoPulseColors.accentOrange30
-                  : context.mp.borderDefault,
+                  ? MonoPulseColors.accentOrange15
+                  : context.mp.surfaceRaised,
+              border: Border.all(
+                color: accent
+                    ? MonoPulseColors.accentOrange30
+                    : context.mp.borderDefault,
+              ),
             ),
-          ),
-          child: Text(
-            label,
-            style: MonoPulseTypography.titleMedium.copyWith(
-              color: accent
-                  ? MonoPulseColors.accentOrangeLight
-                  : context.mp.textSecondary,
+            child: Text(
+              label,
+              style: MonoPulseTypography.titleMedium.copyWith(
+                color: accent
+                    ? MonoPulseColors.accentOrangeLight
+                    : context.mp.textSecondary,
+              ),
             ),
           ),
         ),

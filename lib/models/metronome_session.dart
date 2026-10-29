@@ -9,6 +9,7 @@ class MetronomeSession {
     this.presetId,
     this.songId,
     this.setlistId,
+    this.midiEntryId,
     this.endBpm,
     this.elapsedSeconds = 0,
     this.barCount = 0,
@@ -16,6 +17,8 @@ class MetronomeSession {
     this.usedTempoRamp = false,
     this.usedCountIn = false,
     this.completion,
+    this.regionName,
+    this.loopReps = 0,
   });
 
   factory MetronomeSession.fromJson(Map<String, dynamic> json) {
@@ -28,6 +31,7 @@ class MetronomeSession {
       presetId: json['presetId'] as String?,
       songId: json['songId'] as String?,
       setlistId: json['setlistId'] as String?,
+      midiEntryId: json['midiEntryId'] as String?,
       startBpm: (json['startBpm'] as num?)?.toInt() ?? 120,
       endBpm: (json['endBpm'] as num?)?.toInt(),
       elapsedSeconds: (json['elapsedSeconds'] as num?)?.toInt() ?? 0,
@@ -35,6 +39,8 @@ class MetronomeSession {
       usedTapTempo: json['usedTapTempo'] as bool? ?? false,
       usedTempoRamp: json['usedTempoRamp'] as bool? ?? false,
       usedCountIn: json['usedCountIn'] as bool? ?? false,
+      regionName: json['regionName'] as String?,
+      loopReps: (json['loopReps'] as num?)?.toInt() ?? 0,
       completion: json['completion'] == null
           ? null
           : MetronomeSessionCompletion.values.firstWhere(
@@ -49,6 +55,7 @@ class MetronomeSession {
   final String? presetId;
   final String? songId;
   final String? setlistId;
+  final String? midiEntryId;
   final int startBpm;
   final int? endBpm;
   final int elapsedSeconds;
@@ -58,6 +65,12 @@ class MetronomeSession {
   final bool usedCountIn;
   final MetronomeSessionCompletion? completion;
 
+  /// Practice-regions loop this session drilled ("Verse 2 → Chorus").
+  final String? regionName;
+
+  /// Completed passes of that loop.
+  final int loopReps;
+
   Map<String, dynamic> toJson() => <String, dynamic>{
     'id': id,
     'startedAt': startedAt.toIso8601String(),
@@ -65,6 +78,7 @@ class MetronomeSession {
     if (presetId != null) 'presetId': presetId,
     if (songId != null) 'songId': songId,
     if (setlistId != null) 'setlistId': setlistId,
+    if (midiEntryId != null) 'midiEntryId': midiEntryId,
     'startBpm': startBpm,
     if (endBpm != null) 'endBpm': endBpm,
     'elapsedSeconds': elapsedSeconds,
@@ -73,19 +87,47 @@ class MetronomeSession {
     'usedTempoRamp': usedTempoRamp,
     'usedCountIn': usedCountIn,
     if (completion != null) 'completion': completion!.name,
+    if (regionName != null) 'regionName': regionName,
+    if (loopReps > 0) 'loopReps': loopReps,
   };
-}
 
-class MetronomeSessionSummary {
-  const MetronomeSessionSummary({
-    required this.sessionCount,
-    required this.totalSeconds,
-    this.lastPracticedAt,
-    this.latestBpm,
-  });
-
-  final int sessionCount;
-  final int totalSeconds;
-  final DateTime? lastPracticedAt;
-  final int? latestBpm;
+  MetronomeSession copyWith({
+    String? id,
+    DateTime? startedAt,
+    DateTime? endedAt,
+    String? presetId,
+    String? songId,
+    String? setlistId,
+    String? midiEntryId,
+    int? startBpm,
+    int? endBpm,
+    int? elapsedSeconds,
+    int? barCount,
+    bool? usedTapTempo,
+    bool? usedTempoRamp,
+    bool? usedCountIn,
+    MetronomeSessionCompletion? completion,
+    String? regionName,
+    int? loopReps,
+  }) {
+    return MetronomeSession(
+      id: id ?? this.id,
+      startedAt: startedAt ?? this.startedAt,
+      endedAt: endedAt ?? this.endedAt,
+      presetId: presetId ?? this.presetId,
+      songId: songId ?? this.songId,
+      setlistId: setlistId ?? this.setlistId,
+      midiEntryId: midiEntryId ?? this.midiEntryId,
+      startBpm: startBpm ?? this.startBpm,
+      endBpm: endBpm ?? this.endBpm,
+      elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
+      barCount: barCount ?? this.barCount,
+      usedTapTempo: usedTapTempo ?? this.usedTapTempo,
+      usedTempoRamp: usedTempoRamp ?? this.usedTempoRamp,
+      usedCountIn: usedCountIn ?? this.usedCountIn,
+      completion: completion ?? this.completion,
+      regionName: regionName ?? this.regionName,
+      loopReps: loopReps ?? this.loopReps,
+    );
+  }
 }

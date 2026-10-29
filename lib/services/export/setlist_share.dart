@@ -44,8 +44,16 @@ String setlistShareText(Setlist setlist, List<Song> songs) {
 }
 
 /// Opens the native share sheet with the setlist links body.
-void shareSetlistLinks(BuildContext context, Setlist setlist, List<Song> songs) {
-  showShareSheet(context, setlistShareText(setlist, songs), subject: setlist.name);
+void shareSetlistLinks(
+  BuildContext context,
+  Setlist setlist,
+  List<Song> songs,
+) {
+  showShareSheet(
+    context,
+    setlistShareText(setlist, songs),
+    subject: setlist.name,
+  );
 }
 
 /// Copies the setlist links body to the clipboard with a confirmation.
@@ -54,7 +62,9 @@ Future<void> copySetlistLinks(
   Setlist setlist,
   List<Song> songs,
 ) async {
-  await Clipboard.setData(ClipboardData(text: setlistShareText(setlist, songs)));
+  await Clipboard.setData(
+    ClipboardData(text: setlistShareText(setlist, songs)),
+  );
   if (!context.mounted) return;
   showAppSnackBar(context, 'Setlist links copied to clipboard!');
 }

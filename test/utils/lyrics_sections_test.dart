@@ -7,8 +7,10 @@ void main() {
     expect(lyricsToSections('   \n\n  \n'), isEmpty);
   });
 
-  test('splits blank-line stanzas; repeated stanza becomes a single Chorus', () {
-    const lyrics = '''
+  test(
+    'splits blank-line stanzas; repeated stanza becomes a single Chorus',
+    () {
+      const lyrics = '''
 verse one line a
 verse one line b
 
@@ -21,13 +23,18 @@ verse two line b
 chorus line a
 chorus line b''';
 
-    final parts = lyricsToSections(lyrics);
-    expect(parts.map((p) => p.name).toList(),
-        ['Verse 1', 'Chorus', 'Verse 2', 'Chorus']);
-    // Chorus text is preserved in the chart.
-    expect(parts[1].chart, 'chorus line a\nchorus line b');
-    expect(parts[0].chart, 'verse one line a\nverse one line b');
-  });
+      final parts = lyricsToSections(lyrics);
+      expect(parts.map((p) => p.name).toList(), [
+        'Verse 1',
+        'Chorus',
+        'Verse 2',
+        'Chorus',
+      ]);
+      // Chorus text is preserved in the chart.
+      expect(parts[1].chart, 'chorus line a\nchorus line b');
+      expect(parts[0].chart, 'verse one line a\nverse one line b');
+    },
+  );
 
   test('single plain stanza is one Verse', () {
     final parts = lyricsToSections('just one block\nof lyrics');

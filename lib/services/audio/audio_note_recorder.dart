@@ -57,9 +57,7 @@ class AudioNoteRecorder {
         // Android doesn't smear a riff. Knob — drop back to defaultSource if a
         // device records too hot. autoGain/echoCancel/noiseSuppress are already
         // off by default and stay off for the same reason.
-        androidConfig: AndroidRecordConfig(
-          audioSource: AndroidAudioSource.mic,
-        ),
+        androidConfig: AndroidRecordConfig(audioSource: AndroidAudioSource.mic),
       ),
     );
     _sub = stream.listen((chunk) {

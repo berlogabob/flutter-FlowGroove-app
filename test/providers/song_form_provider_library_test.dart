@@ -1,3 +1,4 @@
+import 'package:flowgroove/models/api_error.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
@@ -181,38 +182,41 @@ void main() {
       },
     );
 
-    test('editing a band song updates the band copy, not the library', () async {
-      final existing = Song(
-        id: 'band-song-1',
-        title: 'Wonderwall',
-        artist: 'Oasis',
-        ourBPM: 87,
-        bandId: 'band-1',
-        isCopy: true,
-        createdAt: DateTime(2026, 5),
-        updatedAt: DateTime(2026, 5, 2),
-      );
+    test(
+      'editing a band song updates the band copy, not the library',
+      () async {
+        final existing = Song(
+          id: 'band-song-1',
+          title: 'Wonderwall',
+          artist: 'Oasis',
+          ourBPM: 87,
+          bandId: 'band-1',
+          isCopy: true,
+          createdAt: DateTime(2026, 5),
+          updatedAt: DateTime(2026, 5, 2),
+        );
 
-      final notifier = container.read(songFormStateProvider.notifier)
-        ..initFromSong(existing)
-        ..updateOurBpm('140');
+        final notifier = container.read(songFormStateProvider.notifier)
+          ..initFromSong(existing)
+          ..updateOurBpm('140');
 
-      final success = await notifier.saveSong(
-        songRepo: repository,
-        uid: 'user-1',
-        bandId: 'band-1',
-        isEditing: true,
-        existingSong: existing,
-      );
+        final success = await notifier.saveSong(
+          songRepo: repository,
+          uid: 'user-1',
+          bandId: 'band-1',
+          isEditing: true,
+          existingSong: existing,
+        );
 
-      expect(success, isTrue);
-      expect(repository.updatedBandSong, isNotNull);
-      expect(repository.updatedBandSong!.id, 'band-song-1');
-      expect(repository.updatedBandSong!.ourBPM, 140);
-      // The personal library must not be touched.
-      expect(repository.updatedSong, isNull);
-      expect(repository.savedSong, isNull);
-    });
+        expect(success, isTrue);
+        expect(repository.updatedBandSong, isNotNull);
+        expect(repository.updatedBandSong!.id, 'band-song-1');
+        expect(repository.updatedBandSong!.ourBPM, 140);
+        // The personal library must not be touched.
+        expect(repository.updatedSong, isNull);
+        expect(repository.savedSong, isNull);
+      },
+    );
   });
 
   group('new-song draft id (issue #78 duplicates)', () {
@@ -262,12 +266,98 @@ void main() {
       await notifier.autoSave(songRepo: repository, uid: 'user-1');
 
       expect(repository.savedSongs, hasLength(2));
-      expect(
-        repository.savedSongs[0].id,
-        isNot(repository.savedSongs[1].id),
-      );
+      expect(repository.savedSongs[0].id, isNot(repository.savedSongs[1].id));
     });
   });
+
+  group('autoSave outcomes (honest save feedback)', () {
+    late ProviderContainer container;
+
+    setUp(() {
+      container = ProviderContainer();
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    test('clean form is a noOp', () async {
+      final notifier = container.read(songFormStateProvider.notifier);
+      final outcome = await notifier.autoSave(
+        songRepo: _RecordingSongRepository(),
+        uid: 'user-1',
+      );
+      expect(outcome, AutoSaveOutcome.noOp);
+    });
+
+    test('successful write is saved and clears dirty state', () async {
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..updateTitle('Song');
+      final outcome = await notifier.autoSave(
+        songRepo: _RecordingSongRepository(),
+        uid: 'user-1',
+      );
+      expect(outcome, AutoSaveOutcome.saved);
+      expect(container.read(songFormStateProvider).hasUnsavedChanges, isFalse);
+    });
+
+    test('permission error is failed and surfaces state.error', () async {
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..updateTitle('Song');
+      final outcome = await notifier.autoSave(
+        songRepo: _ThrowingSongRepository(ApiError.permission()),
+        uid: 'user-1',
+      );
+      expect(outcome, AutoSaveOutcome.failed);
+      final state = container.read(songFormStateProvider);
+      expect(state.error, isNotNull);
+      expect(state.isAutoSaving, isFalse);
+      // Still dirty: the data was rejected, not stored anywhere.
+      expect(state.hasUnsavedChanges, isTrue);
+    });
+
+    test('network timeout is queued, NOT failed (offline queue)', () async {
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..updateTitle('Song');
+      final outcome = await notifier.autoSave(
+        songRepo: _ThrowingSongRepository(ApiError.network()),
+        uid: 'user-1',
+      );
+      expect(outcome, AutoSaveOutcome.queued);
+      final state = container.read(songFormStateProvider);
+      // No error banner, no retry loop: Firestore's persistent queue has it.
+      expect(state.error, isNull);
+      expect(state.hasUnsavedChanges, isFalse);
+    });
+
+    test('setters no-op on identical values (resume re-sync)', () {
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..updateTitle('Song');
+      notifier.clearUnsavedChanges();
+
+      // App-resume re-copies unchanged controller text through the setters;
+      // that must not look like an edit (it retried failed saves forever).
+      notifier
+        ..updateTitle('Song')
+        ..updateArtist('')
+        ..updateNotes('');
+      expect(container.read(songFormStateProvider).hasUnsavedChanges, isFalse);
+
+      notifier.updateTitle('Song (edited)');
+      expect(container.read(songFormStateProvider).hasUnsavedChanges, isTrue);
+    });
+  });
+}
+
+class _ThrowingSongRepository extends _RecordingSongRepository {
+  _ThrowingSongRepository(this.error);
+  final Object error;
+
+  @override
+  Future<void> saveSong(Song song, {String? uid}) async => throw error;
+
+  @override
+  Future<void> updateSong(Song song, {String? uid}) async => throw error;
 }
 
 class _FakeCanonicalSongFunctionService

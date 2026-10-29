@@ -51,8 +51,6 @@ class FakeAnalyticsClient extends AnalyticsClient {
   Future<void> setUserProperties({
     required AppUser user,
     required int bandCount,
-    required int songCount,
-    required int setlistCount,
   }) async {}
 }
 
@@ -68,6 +66,28 @@ class FakePendingJoinCodeStore extends PendingJoinCodeStore {
     final code = pendingCode;
     pendingCode = null;
     return code;
+  }
+}
+
+/// Mirrors [FakePendingJoinCodeStore] for the event share token. Without an
+/// override the login flow reaches real secure storage and hangs the test.
+class FakePendingEventTokenStore extends PendingEventTokenStore {
+  FakePendingEventTokenStore([this.pendingToken]);
+
+  String? pendingToken;
+  int readCount = 0;
+
+  @override
+  Future<String?> getAndClearPendingEventToken() async {
+    readCount += 1;
+    final token = pendingToken;
+    pendingToken = null;
+    return token;
+  }
+
+  @override
+  Future<void> setPendingEventToken(String token) async {
+    pendingToken = token;
   }
 }
 
@@ -162,6 +182,12 @@ GoRouter createRoutedTestRouter({
                         name: 'edit-song',
                         builder: (context, state) =>
                             const TestRouteMarker('edit-song'),
+                      ),
+                      GoRoute(
+                        path: ':id',
+                        name: 'song',
+                        builder: (context, state) =>
+                            const TestRouteMarker('song'),
                       ),
                     ],
                   ),

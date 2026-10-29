@@ -17,6 +17,7 @@ Future<SetlistPdfLayout?> pickSetlistPdfLayout(
   compactIcon: Icons.format_list_bulleted,
   compactSubtitle: 'One line per song, fits on one list',
   withPack: true,
+  withCheatSheet: true,
   withEventGuide: withEventGuide,
   withPerformer: withPerformer,
 );
@@ -56,9 +57,7 @@ Future<({SetlistPdfLayout layout, String? performerId})?> pickSetlistPdfExport(
             ListTile(
               leading: const Icon(Icons.person),
               title: Text(person.name),
-              subtitle: Text(
-                assigned[person.id]!.map((n) => '#$n').join(', '),
-              ),
+              subtitle: Text(assigned[person.id]!.map((n) => '#$n').join(', ')),
               onTap: () => Navigator.pop(context, person),
             ),
         ],
@@ -85,14 +84,16 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
   required IconData compactIcon,
   required String compactSubtitle,
   bool withPack = false,
+  bool withCheatSheet = false,
   bool withEventGuide = false,
   bool withPerformer = false,
 }) {
   return showModalBottomSheet<SetlistPdfLayout>(
     context: context,
     builder: (context) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      // Scrolls: with every option enabled the list outgrows small screens.
+      child: ListView(
+        shrinkWrap: true,
         children: [
           ListTile(
             leading: const Icon(Icons.picture_as_pdf),
@@ -110,10 +111,17 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
             ListTile(
               leading: const Icon(Icons.library_music),
               title: const Text('SetlistPack'),
-              subtitle: const Text(
-                'Compact setlist + one-page sheet per song',
-              ),
+              subtitle: const Text('Compact setlist + one-page sheet per song'),
               onTap: () => Navigator.pop(context, SetlistPdfLayout.pack),
+            ),
+          if (withCheatSheet)
+            ListTile(
+              leading: const Icon(Icons.grid_on),
+              title: const Text('Cheat sheet'),
+              subtitle: const Text(
+                'All songs on one page: key, BPM, chord progressions',
+              ),
+              onTap: () => Navigator.pop(context, SetlistPdfLayout.cheatSheet),
             ),
           if (withEventGuide)
             ListTile(
@@ -122,8 +130,7 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
               subtitle: const Text(
                 'Cover + setlist + stage plot + role cards + rider',
               ),
-              onTap: () =>
-                  Navigator.pop(context, SetlistPdfLayout.eventGuide),
+              onTap: () => Navigator.pop(context, SetlistPdfLayout.eventGuide),
             ),
           if (withPerformer)
             ListTile(

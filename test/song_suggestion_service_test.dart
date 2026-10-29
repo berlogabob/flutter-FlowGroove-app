@@ -1,13 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/musicbrainz_recording.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
-import 'package:flowgroove/services/api/deezer_service.dart';
 import 'package:flowgroove/services/musicbrainz_service.dart';
 import 'package:flowgroove/services/song_suggestion_service.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 
 /// MusicBrainz stub returning a fixed recording list (no network).
 class _FakeMusicBrainz extends MusicBrainzService {
@@ -27,16 +22,9 @@ MusicBrainzRecording _rec(String id, String title) =>
     MusicBrainzRecording(id: id, title: title);
 
 void main() {
-  // Deezer is a real-network source; stub it empty so these tests stay
-  // hermetic (only the MusicBrainz path is under test here).
-  setUp(() {
-    DeezerService.client = MockClient(
-      (_) async => http.Response(json.encode({'data': []}), 200),
-    );
-  });
-  tearDown(() {
-    DeezerService.client = http.Client();
-  });
+  // No network stub needed: Deezer and Spotify moved server-side into
+  // functions/src/metadata/resolver.js, so this service now only reaches the
+  // canonical catalog (Firestore) and MusicBrainz.
 
   test('#75: MusicBrainz results are fuzzy-scored, so off-query (Cyrillic) '
       'recordings are filtered out and the real match survives', () async {
@@ -60,15 +48,17 @@ void main() {
     expect(hit.matchScore, greaterThanOrEqualTo(0.6));
   });
 
-  test('a clearly different Latin query does not surface an unrelated title',
-      () async {
-    final service = SongSuggestionService(
-      musicBrainz: _FakeMusicBrainz([_rec('mb-1', 'Hit the Road Jack')]),
-    );
+  test(
+    'a clearly different Latin query does not surface an unrelated title',
+    () async {
+      final service = SongSuggestionService(
+        musicBrainz: _FakeMusicBrainz([_rec('mb-1', 'Hit the Road Jack')]),
+      );
 
-    final results = await service.getSuggestions(query: 'bohemian rhapsody');
-    expect(results.map((s) => s.title), isNot(contains('Hit the Road Jack')));
-  });
+      final results = await service.getSuggestions(query: 'bohemian rhapsody');
+      expect(results.map((s) => s.title), isNot(contains('Hit the Road Jack')));
+    },
+  );
 
   test('#78: suggestions come from external sources only — never the '
       'personal/band library', () async {
@@ -83,23 +73,23 @@ void main() {
     expect(
       results.map((s) => s.source),
       everyElement(
-        isNot(
-          isIn([SuggestionSource.personal, SuggestionSource.group]),
-        ),
+        isNot(isIn([SuggestionSource.personal, SuggestionSource.group])),
       ),
     );
   });
 
-  test('#76: SongSuggestion.fromSpotify carries source + spotifyId for autofill',
-      () {
-    final s = SongSuggestion.fromSpotify(
-      id: 't1',
-      title: 'Zombie',
-      artist: 'The Cranberries',
-      spotifyId: 't1',
-    );
-    expect(s.source, SuggestionSource.spotify);
-    expect(s.spotifyId, 't1');
-    expect(s.id, 'spotify_t1');
-  });
+  test(
+    '#76: SongSuggestion.fromSpotify carries source + spotifyId for autofill',
+    () {
+      final s = SongSuggestion.fromSpotify(
+        id: 't1',
+        title: 'Zombie',
+        artist: 'The Cranberries',
+        spotifyId: 't1',
+      );
+      expect(s.source, SuggestionSource.spotify);
+      expect(s.spotifyId, 't1');
+      expect(s.id, 'spotify_t1');
+    },
+  );
 }

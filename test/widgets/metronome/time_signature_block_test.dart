@@ -51,9 +51,13 @@ void main() {
       ) async {
         await pumpBlock(tester, width: width);
 
-        expect(find.text('Beats'), findsOneWidget);
-        expect(find.text('Subdivision'), findsOneWidget);
+        expect(find.text('Beats'), findsNothing);
+        expect(find.text('Subdivision'), findsNothing);
         expectMainDots(4);
+        expect(
+          tester.getCenter(find.byKey(const Key('main_beat_dot_3'))).dy,
+          tester.getCenter(find.byKey(const Key('main_beat_dot_0'))).dy,
+        );
         expect(find.byKey(const Key('main_beat_dot_4')), findsNothing);
         expect(find.byKey(const Key('main-beat-strip-scroll')), findsNothing);
       });

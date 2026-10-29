@@ -16,9 +16,9 @@ class StorageService {
     FirebaseStorage? storage,
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
-  })  : _injectedStorage = storage,
-        _injectedAuth = auth,
-        _injectedFirestore = firestore;
+  }) : _injectedStorage = storage,
+       _injectedAuth = auth,
+       _injectedFirestore = firestore;
 
   // Resolved on first use, not in the constructor: `.instance` throws unless
   // Firebase is initialised, and merely constructing this service (or a
@@ -65,24 +65,29 @@ class StorageService {
   /// Throws [ApiError] if upload fails or user is not authenticated.
   /// Uploads a Song Lab audio idea (#69) and returns its download URL.
   /// Path: lab_audio/{user|band}/{ownerId}/{songId}/{entryId}.{ext} — matches
-  /// storage.rules. 25MB is enforced client-side AND in the rules.
+  /// storage.rules. 100MB (a full-song WAV) is enforced client-side AND in the rules.
   Future<String> uploadLabAudio(
     Uint8List bytes, {
     required String? bandId,
     required String songId,
     required String entryId,
+    String? objectSuffix,
     String ext = 'm4a',
     String contentType = 'audio/mp4',
   }) async {
     _requireAuth();
-    if (bytes.length >= 25 * 1024 * 1024) {
-      throw Exception('Recording is larger than 25MB');
+    if (bytes.length >= 100 * 1024 * 1024) {
+      throw Exception('Recording is larger than 100MB');
     }
     final owner = bandId == null ? 'user/$_currentUserId' : 'band/$bandId';
-    final ref = _storage.ref().child('lab_audio/$owner/$songId/$entryId.$ext');
+    final name = objectSuffix == null ? entryId : '${entryId}_$objectSuffix';
+    final ref = _storage.ref().child('lab_audio/$owner/$songId/$name.$ext');
     final snapshot = await ref.putData(
       bytes,
-      SettableMetadata(contentType: contentType),
+      SettableMetadata(
+        cacheControl: 'public, max-age=31536000',
+        contentType: contentType,
+      ),
     );
     return snapshot.ref.getDownloadURL();
   }
@@ -163,8 +168,7 @@ class StorageService {
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
-          message:
-              'You do not have permission to delete the profile picture.',
+          message: 'You do not have permission to delete the profile picture.',
           exception: e,
           stackTrace: stackTrace,
         );
@@ -183,8 +187,7 @@ class StorageService {
   Future<String?> getProfilePictureUrl(String uid) async {
     try {
       // Try to get from Firestore first
-      final userDoc =
-          await _firestore.collection('users').doc(uid).get();
+      final userDoc = await _firestore.collection('users').doc(uid).get();
 
       if (userDoc.exists) {
         final data = userDoc.data();

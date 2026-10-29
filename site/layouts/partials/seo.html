@@ -69,13 +69,6 @@
   "name": "{{ $title }}",
   "description": "{{ $description }}",
   "url": "{{ $url }}",
-  {{- if .IsHome -}}
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": "{{ .Site.BaseURL }}search?q={search_term_string}",
-    "query-input": "required name=search_term_string"
-  },
-  {{- end -}}
   "publisher": {
     "@type": "Organization",
     "name": "Sounding Doubts - Unipessoal Lda",
@@ -112,11 +105,6 @@
     "@type": "Offer",
     "price": "0",
     "priceCurrency": "USD"
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "ratingCount": "127"
   },
   "author": {
     "@type": "Organization",

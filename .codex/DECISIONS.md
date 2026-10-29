@@ -1,5 +1,26 @@
 # DECISIONS
 
+## D-2026-10-23-01 — live activity registry and no-release hold
+
+Owner request: all newly found problems enter the same active scope; no release
+until all open tasks/problems and mandatory rechecks are verified. Canonical state:
+docs/plans/systemic-ux/activity.json. Preserve prior plans and append history; no
+silent deferral, waiver or remote issue closure. Check live GitHub before release.
+
+## D-2026-10-23-02 — explicit bounded Ornith-first execution
+
+For this plan only, delegation is explicitly authorised. Primary worker is existing
+Pi studio / `ollama/ornith-1.5:35b` over LAN, serial, one production file + one test,
+one bounded attempt. Hermes owns task design, evidence, tests and final acceptance.
+No automatic cloud fallback and no incidental global credential changes. First
+probe's empty final is a failure, not proof that the execution path works.
+
+## D-2026-10-23-03 — preserve brand and separate planning from implementation
+
+Keep Mono Pulse and existing entities/providers. Re-study source/flows and test
+small consistent slices. Conceptual wireframes are not an approved or implemented
+redesign. Raw device evidence stays local; commit safe plans, checks and history.
+
 ## D-2026-04-24-01
 
 **Decision:** `.codex/` becomes the active control plane for imported project memory and sequential workflow.

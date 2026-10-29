@@ -3,13 +3,13 @@ import '../models/song_suggestion.dart';
 import '../theme/mono_pulse_theme.dart';
 
 /// Suggestion selection dialog
-/// 
+///
 /// Shown when user selects an existing song from autocomplete.
 /// Provides options:
 /// - "Use This Song" - Link to existing and customize
 /// - "Fork to Personal" - Create personal copy (for group songs)
 /// - "Create New" - Start fresh with this info
-/// 
+///
 /// Usage:
 /// ```dart
 /// final result = await showDialog<SuggestionAction>(
@@ -20,11 +20,7 @@ import '../theme/mono_pulse_theme.dart';
 /// );
 /// ```
 class SuggestionSelectionDialog extends StatelessWidget {
-
-  const SuggestionSelectionDialog({
-    required this.suggestion,
-    super.key,
-  });
+  const SuggestionSelectionDialog({required this.suggestion, super.key});
   final SongSuggestion suggestion;
 
   @override
@@ -82,9 +78,9 @@ class SuggestionSelectionDialog extends StatelessWidget {
               value: suggestion.key!,
             ),
           ],
-          
+
           const Divider(height: 24),
-          
+
           // Source info
           Row(
             children: [
@@ -117,15 +113,27 @@ class SuggestionSelectionDialog extends StatelessWidget {
       case SuggestionSource.personal:
         return Icon(Icons.person, color: Theme.of(context).colorScheme.primary);
       case SuggestionSource.group:
-        return Icon(Icons.group, color: Theme.of(context).colorScheme.secondary);
+        return Icon(
+          Icons.group,
+          color: Theme.of(context).colorScheme.secondary,
+        );
       case SuggestionSource.musicbrainz:
         return const Icon(Icons.cloud, color: MonoPulseColors.successGreen);
       case SuggestionSource.spotify:
-        return const Icon(Icons.music_note, color: MonoPulseColors.successGreen);
+        return const Icon(
+          Icons.music_note,
+          color: MonoPulseColors.successGreen,
+        );
       case SuggestionSource.deezer:
-        return Icon(Icons.music_note, color: Theme.of(context).colorScheme.tertiary);
+        return Icon(
+          Icons.music_note,
+          color: Theme.of(context).colorScheme.tertiary,
+        );
       case SuggestionSource.canonical:
-        return Icon(Icons.library_music, color: Theme.of(context).colorScheme.tertiary);
+        return Icon(
+          Icons.library_music,
+          color: Theme.of(context).colorScheme.tertiary,
+        );
     }
   }
 
@@ -220,7 +228,6 @@ class SuggestionSelectionDialog extends StatelessWidget {
 
 /// Simple detail row widget
 class _SongDetailRow extends StatelessWidget {
-
   const _SongDetailRow({
     required this.icon,
     required this.label,
@@ -247,10 +254,7 @@ class _SongDetailRow extends StatelessWidget {
                   color: Theme.of(context).colorScheme.outline,
                 ),
               ),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(value, style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
         ),

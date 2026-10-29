@@ -37,4 +37,44 @@ void main() {
       });
     }
   });
+
+  // Exactly the same failure mode as the cyan regression above, on a different
+  // slot: `primary` was overridden to orange but `onPrimary` was left to ride on
+  // the base scheme — black in ColorScheme.dark(), but WHITE in
+  // ColorScheme.light(). The light theme therefore resolved white-on-orange
+  // (~3:1) for every FilledButton and anything else reading onPrimary, which is
+  // the contrast violation UX audit F-007 raised. It was invisible only because
+  // main.dart pins themeMode to dark.
+  group('onPrimary is pinned in both themes (F-007 / F-018)', () {
+    for (final (name, palette, brightness) in [
+      ('dark', MonoPulsePalette.dark, Brightness.dark),
+      ('light', MonoPulsePalette.light, Brightness.light),
+    ]) {
+      test('$name theme is black-on-orange, not white-on-orange', () {
+        final s = MonoPulseTheme.schemeFor(palette, brightness);
+        expect(s.primary, MonoPulseColors.accentOrange);
+        expect(
+          s.onPrimary,
+          MonoPulseColors.black,
+          reason: 'onPrimary fell back to the $name base scheme default',
+        );
+      });
+    }
+  });
+
+  // A selected ChoiceChip/FilterChip must render as orange with readable
+  // (black) text and a black checkmark — the secondaryLabelStyle foreground
+  // matches the filled-button on-accentOrange foreground.
+  group('chipTheme selected state', () {
+    test(
+      'selectedColor is accentOrange with black checkmark and black label',
+      () {
+        final chip = MonoPulseTheme.theme.chipTheme;
+        expect(chip.selectedColor, MonoPulseColors.accentOrange);
+        expect(chip.checkmarkColor, MonoPulseColors.black);
+        expect(chip.secondaryLabelStyle, isNotNull);
+        expect(chip.secondaryLabelStyle!.color, MonoPulseColors.black);
+      },
+    );
+  });
 }

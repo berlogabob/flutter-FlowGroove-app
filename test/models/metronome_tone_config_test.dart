@@ -106,13 +106,34 @@ void main() {
 
     // Test fromPresetName
     test('fromPresetName returns correct presets', () {
-      expect(MetronomeToneConfig.fromPresetName('Classic'), equals(MetronomeToneConfig.classic()));
-      expect(MetronomeToneConfig.fromPresetName('Subtle'), equals(MetronomeToneConfig.subtle()));
-      expect(MetronomeToneConfig.fromPresetName('Extreme'), equals(MetronomeToneConfig.extreme()));
-      expect(MetronomeToneConfig.fromPresetName('Wood Block'), equals(MetronomeToneConfig.woodBlock()));
-      expect(MetronomeToneConfig.fromPresetName('woodblock'), equals(MetronomeToneConfig.woodBlock()));
-      expect(MetronomeToneConfig.fromPresetName('Electronic'), equals(MetronomeToneConfig.electronic()));
-      expect(MetronomeToneConfig.fromPresetName('Unknown'), equals(MetronomeToneConfig.classic()));
+      expect(
+        MetronomeToneConfig.fromPresetName('Classic'),
+        equals(MetronomeToneConfig.classic()),
+      );
+      expect(
+        MetronomeToneConfig.fromPresetName('Subtle'),
+        equals(MetronomeToneConfig.subtle()),
+      );
+      expect(
+        MetronomeToneConfig.fromPresetName('Extreme'),
+        equals(MetronomeToneConfig.extreme()),
+      );
+      expect(
+        MetronomeToneConfig.fromPresetName('Wood Block'),
+        equals(MetronomeToneConfig.woodBlock()),
+      );
+      expect(
+        MetronomeToneConfig.fromPresetName('woodblock'),
+        equals(MetronomeToneConfig.woodBlock()),
+      );
+      expect(
+        MetronomeToneConfig.fromPresetName('Electronic'),
+        equals(MetronomeToneConfig.electronic()),
+      );
+      expect(
+        MetronomeToneConfig.fromPresetName('Unknown'),
+        equals(MetronomeToneConfig.classic()),
+      );
     });
 
     // Test copyWith
@@ -130,22 +151,64 @@ void main() {
       final config = MetronomeToneConfig.classic();
 
       // Main beat, regular
-      expect(config.getFrequency(isMainBeat: true, isSubdivision: false, isAccented: false), 1600.0);
+      expect(
+        config.getFrequency(
+          isMainBeat: true,
+          isSubdivision: false,
+          isAccented: false,
+        ),
+        1600.0,
+      );
 
       // Main beat, accented
-      expect(config.getFrequency(isMainBeat: true, isSubdivision: false, isAccented: true), 2060.0);
+      expect(
+        config.getFrequency(
+          isMainBeat: true,
+          isSubdivision: false,
+          isAccented: true,
+        ),
+        2060.0,
+      );
 
       // Subdivision, regular
-      expect(config.getFrequency(isMainBeat: false, isSubdivision: true, isAccented: false), 800.0);
+      expect(
+        config.getFrequency(
+          isMainBeat: false,
+          isSubdivision: true,
+          isAccented: false,
+        ),
+        800.0,
+      );
 
       // Subdivision, accented
-      expect(config.getFrequency(isMainBeat: false, isSubdivision: true, isAccented: true), 1030.0);
+      expect(
+        config.getFrequency(
+          isMainBeat: false,
+          isSubdivision: true,
+          isAccented: true,
+        ),
+        1030.0,
+      );
 
       // Divider, regular
-      expect(config.getFrequency(isMainBeat: false, isSubdivision: false, isAccented: false), 1100.0);
+      expect(
+        config.getFrequency(
+          isMainBeat: false,
+          isSubdivision: false,
+          isAccented: false,
+        ),
+        1100.0,
+      );
 
       // Divider, accented
-      expect(config.getFrequency(isMainBeat: false, isSubdivision: false, isAccented: true), 1400.0);
+      expect(
+        config.getFrequency(
+          isMainBeat: false,
+          isSubdivision: false,
+          isAccented: true,
+        ),
+        1400.0,
+      );
     });
 
     // Test isValid

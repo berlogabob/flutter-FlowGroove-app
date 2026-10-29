@@ -59,10 +59,18 @@ void primeConnectivityProvider(ProviderContainer container) {
 
 void main() {
   group('ConnectivityService', () {
-    ProviderContainer createContainer(FakeConnectivityClient client) {
+    ProviderContainer createContainer(
+      FakeConnectivityClient client, {
+      Future<bool> Function()? probe,
+    }) {
       final container = ProviderContainer(
         overrides: [
           connectivityClientProvider.overrideWithValue(client),
+          // Unreachable by default so "none => offline" tests keep their
+          // pre-probe semantics.
+          reachabilityProbeProvider.overrideWithValue(
+            probe ?? () async => false,
+          ),
         ],
       );
       addTearDown(() async {
@@ -83,25 +91,30 @@ void main() {
     });
 
     group('ConnectivityService state', () {
-      test('initial state is true (assume online) before init resolves', () async {
-        final completer = Completer<List<ConnectivityResult>>();
-        final client = FakeConnectivityClient(
-          checkConnectivity: () => completer.future,
-        );
-        final container = createContainer(client);
+      test(
+        'initial state is true (assume online) before init resolves',
+        () async {
+          final completer = Completer<List<ConnectivityResult>>();
+          final client = FakeConnectivityClient(
+            checkConnectivity: () => completer.future,
+          );
+          final container = createContainer(client);
 
-        final isOnline = container.read(connectivityProvider);
-        expect(isOnline, isTrue);
+          final isOnline = container.read(connectivityProvider);
+          expect(isOnline, isTrue);
 
-        completer.complete(<ConnectivityResult>[ConnectivityResult.none]);
-        await flushAsyncWork();
+          completer.complete(<ConnectivityResult>[ConnectivityResult.none]);
+          await flushAsyncWork();
 
-        expect(container.read(connectivityProvider), isFalse);
-      });
+          expect(container.read(connectivityProvider), isFalse);
+        },
+      );
 
       test('offlineProvider returns inverse of connectivityProvider', () async {
         final client = FakeConnectivityClient(
-          checkConnectivity: () async => <ConnectivityResult>[ConnectivityResult.none],
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.none,
+          ],
         );
         final container = createContainer(client);
 
@@ -118,7 +131,9 @@ void main() {
     group('ConnectivityService methods', () {
       test('initial wifi result keeps provider online', () async {
         final client = FakeConnectivityClient(
-          checkConnectivity: () async => <ConnectivityResult>[ConnectivityResult.wifi],
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.wifi,
+          ],
         );
         final container = createContainer(client);
 
@@ -129,7 +144,9 @@ void main() {
 
       test('initial none result sets provider offline', () async {
         final client = FakeConnectivityClient(
-          checkConnectivity: () async => <ConnectivityResult>[ConnectivityResult.none],
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.none,
+          ],
         );
         final container = createContainer(client);
 
@@ -153,7 +170,9 @@ void main() {
 
       test('stream update none to wifi flips offline to online', () async {
         final client = FakeConnectivityClient(
-          checkConnectivity: () async => <ConnectivityResult>[ConnectivityResult.none],
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.none,
+          ],
         );
         final container = createContainer(client);
 
@@ -170,7 +189,9 @@ void main() {
 
       test('stream update wifi to none flips online to offline', () async {
         final client = FakeConnectivityClient(
-          checkConnectivity: () async => <ConnectivityResult>[ConnectivityResult.wifi],
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.wifi,
+          ],
         );
         final container = createContainer(client);
 
@@ -187,7 +208,9 @@ void main() {
 
       test('offlineProvider mirrors connectivityProvider', () async {
         final client = FakeConnectivityClient(
-          checkConnectivity: () async => <ConnectivityResult>[ConnectivityResult.none],
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.none,
+          ],
         );
         final container = createContainer(client);
 
@@ -256,16 +279,21 @@ void main() {
     });
 
     group('Provider overrides', () {
-      test('can override connectivity client with a fake implementation', () async {
-        final client = FakeConnectivityClient(
-          checkConnectivity: () async => <ConnectivityResult>[ConnectivityResult.wifi],
-        );
-        final container = createContainer(client);
+      test(
+        'can override connectivity client with a fake implementation',
+        () async {
+          final client = FakeConnectivityClient(
+            checkConnectivity: () async => <ConnectivityResult>[
+              ConnectivityResult.wifi,
+            ],
+          );
+          final container = createContainer(client);
 
-        expect(container.read(connectivityProvider), isA<bool>());
-        await flushAsyncWork();
-        expect(container.read(connectivityProvider), isTrue);
-      });
+          expect(container.read(connectivityProvider), isA<bool>());
+          await flushAsyncWork();
+          expect(container.read(connectivityProvider), isTrue);
+        },
+      );
     });
 
     group('Integration with Riverpod', () {
@@ -279,18 +307,19 @@ void main() {
 
       test('listen to connectivityProvider changes', () async {
         final client = FakeConnectivityClient(
-          checkConnectivity: () async => <ConnectivityResult>[ConnectivityResult.none],
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.none,
+          ],
         );
         final container = createContainer(client);
 
         bool? lastValue;
-        final listener = container.listen<bool>(
-          connectivityProvider,
-          (previous, next) {
-            lastValue = next;
-          },
-          fireImmediately: true,
-        );
+        final listener = container.listen<bool>(connectivityProvider, (
+          previous,
+          next,
+        ) {
+          lastValue = next;
+        }, fireImmediately: true);
 
         expect(lastValue, isTrue);
         await flushAsyncWork();
@@ -332,6 +361,60 @@ void main() {
       });
     });
 
+    group('Reachability probe', () {
+      test('none result stays online when probe reaches the network', () async {
+        final client = FakeConnectivityClient(
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.none,
+          ],
+        );
+        final container = createContainer(client, probe: () async => true);
+
+        primeConnectivityProvider(container);
+        await flushAsyncWork();
+
+        expect(container.read(connectivityProvider), isTrue);
+      });
+
+      test('offline stream event stays online when probe succeeds', () async {
+        final client = FakeConnectivityClient(
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.wifi,
+          ],
+        );
+        final container = createContainer(client, probe: () async => true);
+
+        primeConnectivityProvider(container);
+        await flushAsyncWork();
+        expect(container.read(connectivityProvider), isTrue);
+
+        client.emit(<ConnectivityResult>[ConnectivityResult.none]);
+        await flushAsyncWork();
+
+        expect(container.read(connectivityProvider), isTrue);
+      });
+
+      test('recovers to online when probe starts succeeding', () async {
+        var reachable = false;
+        final client = FakeConnectivityClient(
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.none,
+          ],
+        );
+        final container = createContainer(client, probe: () async => reachable);
+
+        primeConnectivityProvider(container);
+        await flushAsyncWork();
+        expect(container.read(connectivityProvider), isFalse);
+
+        reachable = true;
+        client.emit(<ConnectivityResult>[ConnectivityResult.none]);
+        await flushAsyncWork();
+
+        expect(container.read(connectivityProvider), isTrue);
+      });
+    });
+
     group('Error handling', () {
       test('checkConnectivity failure keeps optimistic online state', () async {
         final client = FakeConnectivityClient(
@@ -348,7 +431,9 @@ void main() {
 
       test('stream setup failure does not crash the provider', () async {
         final client = FakeConnectivityClient(
-          checkConnectivity: () async => <ConnectivityResult>[ConnectivityResult.none],
+          checkConnectivity: () async => <ConnectivityResult>[
+            ConnectivityResult.none,
+          ],
           streamAccessError: StateError('stream unavailable'),
         );
         final container = createContainer(client);
@@ -358,25 +443,28 @@ void main() {
         expect(container.read(connectivityProvider), isFalse);
       });
 
-      test('disposing the container cancels the subscription cleanly', () async {
-        final client = FakeConnectivityClient(
-          checkConnectivity: () async => <ConnectivityResult>[ConnectivityResult.wifi],
-        );
-        final container = ProviderContainer(
-          overrides: [
-            connectivityClientProvider.overrideWithValue(client),
-          ],
-        );
-        addTearDown(client.dispose);
+      test(
+        'disposing the container cancels the subscription cleanly',
+        () async {
+          final client = FakeConnectivityClient(
+            checkConnectivity: () async => <ConnectivityResult>[
+              ConnectivityResult.wifi,
+            ],
+          );
+          final container = ProviderContainer(
+            overrides: [connectivityClientProvider.overrideWithValue(client)],
+          );
+          addTearDown(client.dispose);
 
-        container.read(connectivityProvider);
-        await flushAsyncWork();
+          container.read(connectivityProvider);
+          await flushAsyncWork();
 
-        container.dispose();
-        await flushAsyncWork();
+          container.dispose();
+          await flushAsyncWork();
 
-        expect(client.subscriptionCancelled, isTrue);
-      });
+          expect(client.subscriptionCancelled, isTrue);
+        },
+      );
     });
   });
 }

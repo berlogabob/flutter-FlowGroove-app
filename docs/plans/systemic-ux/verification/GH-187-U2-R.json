@@ -1,0 +1,43 @@
+{
+  "task": "GH-187-U2-R",
+  "reviewer": "hermes",
+  "tested_commit": "72201a70b26bd81abe1e9febf4362c49cdc10ed0",
+  "result": "accepted source review with corrected references; U2 remains owner-policy blocked, not a product fix",
+  "source_sha256": {
+    "functions/src/events.js": "40600b07511433ea9eb164cc9e4acf2ceb92bb2022a5966065051f37767f0b0c",
+    "firestore.rules": "d0df6997227595bece55687cd1cc4b1a96081064d721733531eceb082d26f234",
+    "lib/services/event_share_service.dart": "b792825d54aff9243cb2d327f5fe7d5a58d7d28fc7e9fca45512c435381affd1",
+    "lib/screens/setlists/event_share_screen.dart": "59a99c642c10ee4772384f61eba27b5922688b63cbd8be7a23b66e3950278c4a",
+    "lib/screens/setlists/create_setlist_screen.dart": "6b14d2e7d0a616a54b175869f0a40dc601336fee8c3d15d630e09af8cf910c86",
+    "docs/plans/systemic-ux/reviews/GH-187-application.md": "eb51e84c69d234cddcc50b2164c5493d8dd3637271c37b4c05359553c8fe7768"
+  },
+  "worker": {
+    "provider": "openai-codex",
+    "actual_model": "gpt-6-luna",
+    "session": "local-a4d2658d4d6150056de45b202a908aefc133185c05b5a7a35ea02d53b43bb304",
+    "cli_exit": 0,
+    "terminal_at": "2026-10-25T13:54:11.851+00:00",
+    "prompt_replayed": false
+  },
+  "scope_deviations": [
+    "Two filename-only reviews-directory discovery calls outside six-source window; preserved original log. No extra contents/writes observed."
+  ],
+  "checks": [
+    "Six exact primary/warm source identities match",
+    "Independent source windows and current UI choices inspected",
+    "Only one permitted report write in actual worker events",
+    "Nonempty result and terminal CLI exit 0 observed"
+  ],
+  "owner_decisions": [
+    "Explicit published-candidate policy: publisher authority, guest visibility, fields/cap, revocation and personal/band parity"
+  ],
+  "not_checked": [
+    "implementation",
+    "new tests",
+    "device",
+    "human usability",
+    "full Graphify",
+    "release readiness"
+  ],
+  "release_hold": true
+}

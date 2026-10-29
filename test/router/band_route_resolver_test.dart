@@ -8,12 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  Band band(String id, String name) => Band(
-    id: id,
-    name: name,
-    createdBy: 'u1',
-    createdAt: DateTime(2024),
-  );
+  Band band(String id, String name) =>
+      Band(id: id, name: name, createdBy: 'u1', createdAt: DateTime(2024));
 
   Future<void> pump(
     WidgetTester tester, {
@@ -63,7 +59,9 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
-  testWidgets('shows error when band not found and no snapshot', (tester) async {
+  testWidgets('shows error when band not found and no snapshot', (
+    tester,
+  ) async {
     await pump(tester, bands: Stream.value([band('other', 'Other')]));
     await tester.pump();
 

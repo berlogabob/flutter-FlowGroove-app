@@ -305,7 +305,6 @@ void main() {
       test('EnvConfig should work without web config on non-web', () {
         final config = EnvConfig();
         expect(() => config.firebaseApiKey, returnsNormally);
-        expect(() => config.spotifyClientId, returnsNormally);
       });
 
       test('Firebase options should use EnvConfig', () {

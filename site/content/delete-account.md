@@ -26,6 +26,7 @@ Deleting your account permanently removes:
 - your account and sign-in,
 - your personal **song library**,
 - your **setlists**,
+- your **practice history** (metronome sessions, weekly minutes, streak, logbook),
 - your **band memberships**,
 - your profile data (display name, photo).
 

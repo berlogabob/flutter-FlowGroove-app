@@ -1,0 +1,42 @@
+ID,Phase,Title,Severity,HEART,Baseline,Target,Measured by,Effort,Status
+P0-1,0,Band rename/description dual-write (writes lost to users/{uid}/bands),Critical,Happiness,Edits lost 100%,0 lost,band_updated event on fixed path + 2-device test,S,todo
+P0-2,0,Bottom-bar Back honors dirty guards (maybePop instead of pop),Critical,Task success,Guard fires ~0% of bar-backs,100%,form_discarded{guarded:true},S,todo
+P0-3,0,Rehearsal editor dirty guard + pinned Save bar,Critical,Task success,No guard; Save scrolls away,Guard present; Save pinned,form_discarded event + UI review,S,todo
+P0-4,0,Undo survives second snackbar; defer deletes; add song-delete undo,Critical,Happiness,Any 2nd toast kills Undo; songs have none,Undo always usable 5s,undo_used/undo_shown stabilizes + unit test,M,todo
+P0-5,0,Setlist manual reorder: implement order persistence or remove option,Critical,Task success,100% no-op,Works or absent,Integration test; no clobber writes,M,todo
+P0-6,0,Metronome BPM autosave writes per-gig override — never global song,Critical,Task success,Global ourBPM silently rewritten,0 silent rewrites,song_edited{fields:ourBPM} from metronome = 0,M,todo
+P0-7,0,Register back arrow + Enter-submit + live password checklist,Critical,Adoption,Dead button; checklist frozen,Works,Signup completion rate up,S,todo
+P0-8,0,Resolver error+retry states; audio-note id lookup; Event Kit route,Critical,Task success,Infinite spinners; refresh teleports,Error UI + stable refresh,Error screen_views exist,M,todo
+P0-9,0,Demo gating on Recorder & add-song + banner on tool screens,High,Adoption,Recordable but unsavable,Gated with notice,Manual demo pass,S,todo
+P0-10,0,Songs-list stream error handling out of build(),High,Task success,setState during build,Clean derivation,Debug assert gone,S,todo
+P0-11,0,Crashlytics + save_failed + form_discarded + join_failed events,Critical,Happiness,No failure telemetry,Full coverage,Events in DebugView; crash-free % visible,M,todo
+P1-1,1,Song card tap opens Sheet tab (or last-used) instead of Edit,High,Task success,3 taps to perform,2 taps,Tap count; screen_view tab mix,S,todo
+P1-2,1,SetlistView primaryAction 'Perform' + visible Export,High,Engagement,0 visible actions (5 in menu),Top action visible,menu_opened{setlist} declining,S,todo
+P1-3,1,Song Page: Export PDF visible on Sheet tab,High,Engagement,4 taps (2 hidden),3 visible,pdf_exported up; menu_opened{song} down,S,todo
+P1-4,1,Per-gig key/BPM override editor on setlist rows,High,Engagement,Impossible (advertised in README),<=4 taps,gig_override_set event exists,L,todo
+P1-5,1,Join band visible from Home + Bands header,High,Adoption,6 taps; menu-hidden entry,<=4 visible,Invite funnel joined-step up,S,todo
+P1-6,1,Single tap on active/target tab pops to root; retire 300ms double-tap,High,Task success,Broken gesture,Standard behavior,back_used down on tab screens,S,todo
+P1-7,1,Rehearsal slot presets (same-as-last; smart defaults),Medium,Retention,13-14 taps,<=9,Tap count; rehearsal_created up,M,todo
+P1-8,1,Add-song double bottom-bar fix; title field first,Medium,Task success,Two stacked bars; autofill field first,Single bar; title first,UI review,M,todo
+P1-9,1,Song form remembers expanded sections; autofill expands filled ones,Medium,Task success,+1 tap per edit; invisible autofill,J6 <=5 taps,Tap count,S,todo
+P1-10,1,Key picker supports minor + accidental (F#m representable),Medium,Task success,F#m unrepresentable,Full key model,Data audit of keys,M,todo
+P1-11,1,Gesture affordances: drag handle in edit; first-use hints; disabled rows explain,Medium,Task success,Hidden gestures; silent absences,Discoverable,Support asks down,M,todo
+P1-12,1,Band-create success dialog gets Share/QR,Medium,Adoption,Copy-only,Share at peak intent,invite_generated (fixed) up,S,todo
+P2-1,2,Fix inflated events: tool_opened to initState; invite once; login dedupe; rename setlist_saved,Critical,All,3 events inflated,Accurate counts,Event counts drop to plausible,S,todo
+P2-2,2,Perform events: sheet/stage/concert/setlist_performed,High,Engagement,Core value unmeasured,4 events live,DebugView,S,todo
+P2-3,2,Rehearsal funnel events: voted/confirmed/calendar_export,High,Retention,Mid-funnel dark,3 events live,Funnel exploration works,S,todo
+P2-4,2,band_content_viewed + support_contacted + consent_changed,Medium,All,Missing,Live,GA4 audiences build,S,todo
+P2-5,2,GA4 setup: key events; 3 funnels; cohorts; BigQuery + band-level dashboard,High,All,No dashboards,Weekly ritual live,Dashboard links,M,todo
+P2-6,2,Delete ~15 dead event methods/constants,Low,All,Catalogue lies,Clean,Code review,S,todo
+P3-1,3,Black-on-orange batch: 9 sites incl. filter chips + tuner transport,High,Happiness,9 white-on-orange (~3:1),0,Grep gate + screenshot diff,S,todo
+P3-2,3,Fix CI color-gate regex; add spacing/typography lint; delete dead tokens/DualFab,Medium,Consistency,Gate unenableable,CI-enforced,CI green with gates on,S,todo
+P3-3,3,Build AppIconButton; label 26 IconButtons + 7 gesture controls,High,Accessibility,33 unlabeled,0,Semantics audit script,M,todo
+P3-4,3,Menu badge semantics + opens-menu hint,High,Accessibility,Invisible to AT,Announced,TalkBack pass,S,todo
+P3-5,3,Keyboard layer: space/± shortcuts; Enter-submit; hover cursors,Medium,Accessibility,0 shortcuts,Core set,Web QA checklist,M,todo
+P3-6,3,Consolidate dialogs (23 raw -> ConfirmationDialog) + empty states (6 bespoke),Medium,Consistency,23 raw dialogs; 6 bespoke empties,<=5; 0,Grep counts,M,todo
+P3-7,3,Text-scale hardening: chip strips; BPM dial FittedBox; kill 7-10px fonts,Medium,Accessibility,Clips at 1.3x,None,1.3x/2x screenshot pass,M,todo
+P3-8,3,Light-theme pass on ~25 hardcoded sites (painters first) or hide toggle,Medium,Happiness,Invisible strokes on light,Correct,Light-mode screenshots,M,todo
+P3-9,3,Close F-013 (one Home primary) + F-015/F-016 (dim pills/tokens),Low,Consistency,4 PARTIAL findings,Closed,Contrast checks,S,todo
+P3-10,3,Onboarding minimum: 3 first-run hints + mobile help entry,Medium,Adoption,Zero help on phones,Minimal onboarding,Activation rate up,M,todo
+P3-11,3,Batch operations: multi-select in Songs,Low,Task success,One-by-one only,Batch add/tag/delete,Task time for 10-song op,L,todo
+P3-12,3,Landscape rail shows title + primaryAction in pushed mode,Low,Consistency,Context lost,Parity with portrait,UI review,S,todo

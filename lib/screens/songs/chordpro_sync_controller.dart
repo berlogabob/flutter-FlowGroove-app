@@ -141,7 +141,11 @@ class ChordProSyncController extends ChangeNotifier {
   /// Apply pre-built [incoming] sections either replacing or appending, then
   /// re-render the text. Callers pass sections with unique ids. On [replace],
   /// optional [meta] (title/key/tempo/time from the pasted doc) is adopted too.
-  void applyImport(List<Section> incoming, ImportMode mode, {ChordProSyncMeta? meta}) {
+  void applyImport(
+    List<Section> incoming,
+    ImportMode mode, {
+    ChordProSyncMeta? meta,
+  }) {
     _sections = mode == ImportMode.replace
         ? List.of(incoming)
         : [..._sections, ...incoming];

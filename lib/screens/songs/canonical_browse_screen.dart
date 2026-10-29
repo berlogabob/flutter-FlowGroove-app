@@ -137,7 +137,8 @@ class _CanonicalBrowseScreenState extends ConsumerState<CanonicalBrowseScreen> {
       return const EmptyState(
         icon: Icons.search_off,
         message: 'No catalog matches',
-        hint: 'Try a different title — or add the song yourself and it '
+        hint:
+            'Try a different title — or add the song yourself and it '
             'joins the catalog for everyone.',
       );
     }
@@ -152,19 +153,21 @@ class _CanonicalBrowseScreenState extends ConsumerState<CanonicalBrowseScreen> {
           title: Text(c.displayTitle),
           subtitle: Text(_subtitle(c)),
           trailing: done
-              ? const Icon(Icons.check_circle,
-                  color: MonoPulseColors.accentOrange)
+              ? const Icon(
+                  Icons.check_circle,
+                  color: MonoPulseColors.accentOrange,
+                )
               : busy
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : FilledButton.tonalIcon(
-                      onPressed: () => _import(c),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Add'),
-                    ),
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : FilledButton.tonalIcon(
+                  onPressed: () => _import(c),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add'),
+                ),
         );
       },
     );

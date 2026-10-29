@@ -76,10 +76,7 @@ class MetronomeAudioEngine {
     if (_initialized) return;
 
     // Initialize SoLoud engine with low-latency settings.
-    await SoLoud.instance.init(
-      bufferSize: bufferSize,
-      channels: Channels.mono,
-    );
+    await SoLoud.instance.init(bufferSize: bufferSize, channels: Channels.mono);
 
     // Pre-generate PCM samples at init time — zero allocation during playback.
     _accentSample = _generateClickWav(accentFrequency);
@@ -124,10 +121,7 @@ class MetronomeAudioEngine {
 
     // Play the pre-generated sample. SoLoud creates a new voice handle
     // each time, allowing overlapping clicks.
-    SoLoud.instance.play(
-      source,
-      volume: volume.clamp(0.0, 1.0),
-    );
+    SoLoud.instance.play(source, volume: volume.clamp(0.0, 1.0));
   }
 
   /// Generates a WAV-formatted PCM 16-bit mono click sample.

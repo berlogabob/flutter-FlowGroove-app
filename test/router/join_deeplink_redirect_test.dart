@@ -46,7 +46,11 @@ List<RouteBase> _routes() {
       name: 'join-welcome',
       builder: (c, s) => marker('join-welcome'),
     ),
-    GoRoute(path: '/main/home', name: 'home', builder: (c, s) => marker('home')),
+    GoRoute(
+      path: '/main/home',
+      name: 'home',
+      builder: (c, s) => marker('home'),
+    ),
     GoRoute(
       path: '/main/join-band',
       name: 'join-band',

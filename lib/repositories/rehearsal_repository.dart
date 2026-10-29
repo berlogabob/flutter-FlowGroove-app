@@ -13,7 +13,10 @@ abstract class RehearsalRepository {
   Stream<Rehearsal?> watchRehearsal(String bandId, String rehearsalId);
 
   /// Watches votes for a rehearsal, keyed by member uid.
-  Stream<Map<String, RehearsalVote>> watchVotes(String bandId, String rehearsalId);
+  Stream<Map<String, RehearsalVote>> watchVotes(
+    String bandId,
+    String rehearsalId,
+  );
 
   /// Creates or updates a rehearsal.
   Future<void> saveRehearsal(Rehearsal rehearsal);

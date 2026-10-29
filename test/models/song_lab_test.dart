@@ -19,6 +19,7 @@ void main() {
         createdAt: DateTime(2026, 7, 16, 12),
         updatedAt: DateTime(2026, 7, 16, 12),
         attachmentIds: const ['a1'],
+        notes: const [(ms: 42425, text: 'chorus')],
       );
 
       final back = SongLabEntry.fromJson(entry.toJson());
@@ -28,6 +29,14 @@ void main() {
       expect(back.sectionId, 'sec-1');
       expect(back.tags, ['arrangement']);
       expect(back.attachmentIds, ['a1']);
+      expect(back.notes, [(ms: 42425, text: 'chorus')]);
+      expect(entry.toJson()['notes'], [
+        {'ms': 42425, 'text': 'chorus'},
+      ]);
+      expect(back.copyWith(title: 'Renamed').notes, back.notes);
+      expect(back.copyWith(notes: const []).toJson(), isNot(contains('notes')));
+      final legacy = Map<String, dynamic>.of(entry.toJson())..remove('notes');
+      expect(SongLabEntry.fromJson(legacy).notes, isEmpty);
       expect(back.createdAt, DateTime(2026, 7, 16, 12));
     });
 

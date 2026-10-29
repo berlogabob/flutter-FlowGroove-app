@@ -2,10 +2,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/music_mode.dart';
 import '../../providers/tuner_provider.dart';
 import '../../services/audio/pitch_analysis.dart';
 import '../../theme/mono_pulse_theme.dart';
-import 'note_scale_ruler.dart';
 import 'tick_marks.dart';
 
 /// Angle math shared by the tuner dial's drag tracking and handle rotation.
@@ -84,17 +84,20 @@ class CentralDial extends ConsumerWidget {
         // Circle diameter: 50-60% of screen width, clamped to 280-320px
         final circleSize = constraints.maxWidth * 0.55;
         final clampedSize = circleSize.clamp(280.0, 320.0);
+        final noteRadius = clampedSize / 2 * 1.08;
+        final hitTestSize = noteRadius * 2 + 44;
+        final hitTestRadius = math.min(
+          noteRadius,
+          (constraints.biggest.shortestSide - 44) / 2,
+        );
 
         return Center(
           child: SizedBox(
-            width: clampedSize,
-            height: clampedSize,
+            width: hitTestSize,
+            height: hitTestSize,
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Note scale ruler around the perimeter
-                const NoteScaleRuler(dialSize: 320),
-
                 // Tick marks around the circle
                 TickMarks(size: clampedSize),
 
@@ -127,6 +130,61 @@ class CentralDial extends ConsumerWidget {
                   referenceA4: state.referenceA4,
                   onFrequencyChanged: notifier.updateFrequency,
                 ),
+
+                // Paint above the dial so its surface cannot hide inset labels.
+                IgnorePointer(
+                  child: CustomPaint(
+                    size: Size.square(clampedSize),
+                    painter: _DialNotesPainter(
+                      currentNoteIndex: _noteNameToIndex(
+                        state.note.replaceAll(RegExp(r'\d'), ''),
+                      ),
+                      scaleIntervals:
+                          allMusicModes[state.musicModeIndex].intervals,
+                      textTertiary: context.mp.textTertiary,
+                    ),
+                  ),
+                ),
+
+                // Keep note hit areas outside the ruler's clipped paint bounds.
+                ...List.generate(12, (index) {
+                  const notes = [
+                    'C',
+                    'C#',
+                    'D',
+                    'D#',
+                    'E',
+                    'F',
+                    'F#',
+                    'G',
+                    'G#',
+                    'A',
+                    'A#',
+                    'B',
+                  ];
+                  final angle = TunerDialGeometry.angleForNoteIndex(index);
+
+                  return Align(
+                    child: Transform.translate(
+                      offset: Offset(
+                        hitTestRadius * math.cos(angle),
+                        hitTestRadius * math.sin(angle),
+                      ),
+                      child: Semantics(
+                        button: true,
+                        label: 'Select note ${notes[index]}',
+                        child: GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            notifier.setTargetNoteByIndex(index);
+                          },
+                          behavior: HitTestBehavior.opaque,
+                          child: const SizedBox(width: 44, height: 44),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
               ],
             ),
           ),
@@ -134,6 +192,109 @@ class CentralDial extends ConsumerWidget {
       },
     );
   }
+}
+
+class _DialNotesPainter extends CustomPainter {
+  _DialNotesPainter({
+    required this.currentNoteIndex,
+    required this.scaleIntervals,
+    required this.textTertiary,
+  });
+
+  final int currentNoteIndex;
+  final List<int> scaleIntervals;
+  final Color textTertiary;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const notes = [
+      'C',
+      'C#',
+      'D',
+      'D#',
+      'E',
+      'F',
+      'F#',
+      'G',
+      'G#',
+      'A',
+      'A#',
+      'B',
+    ];
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    // Use the longest tick for every label, regardless of selection or scale.
+    final labelRadius = radius - 14 - 18;
+    final textPainter = TextPainter(
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    );
+
+    for (var i = 0; i < notes.length; i++) {
+      final isCurrent = i == currentNoteIndex;
+      final isInScale = scaleIntervals.contains(i);
+      final color =
+          (isCurrent
+                  ? MonoPulseColors.accentOrange
+                  : isInScale
+                  ? MonoPulseColors.white
+                  : textTertiary)
+              .withValues(alpha: isCurrent ? 1.0 : 0.5);
+      final direction = Offset(
+        math.cos(TunerDialGeometry.angleForNoteIndex(i)),
+        math.sin(TunerDialGeometry.angleForNoteIndex(i)),
+      );
+      final tickLength = isCurrent
+          ? 14.0
+          : isInScale
+          ? 10.0
+          : 6.0;
+      canvas.drawLine(
+        center + direction * (radius - tickLength),
+        center + direction * (radius + 2),
+        Paint()
+          ..color = color
+          ..strokeWidth = isCurrent
+              ? 3.0
+              : isInScale
+              ? 2.0
+              : 1.0
+          ..strokeCap = StrokeCap.round,
+      );
+      textPainter
+        ..text = TextSpan(
+          text: notes[i],
+          style: TextStyle(
+            fontSize: isCurrent
+                ? 16.0
+                : isInScale
+                ? 13.0
+                : 11.0,
+            fontWeight: isCurrent
+                ? MonoPulseTypography.bold
+                : isInScale
+                ? MonoPulseTypography.medium
+                : MonoPulseTypography.regular,
+            color: color,
+            letterSpacing: 0.5,
+          ),
+        )
+        ..layout();
+      textPainter.paint(
+        canvas,
+        center +
+            direction * labelRadius -
+            Offset(textPainter.width / 2, textPainter.height / 2),
+      );
+    }
+    textPainter.dispose();
+  }
+
+  @override
+  bool shouldRepaint(covariant _DialNotesPainter oldDelegate) =>
+      oldDelegate.currentNoteIndex != currentNoteIndex ||
+      oldDelegate.scaleIntervals != scaleIntervals ||
+      oldDelegate.textTertiary != textTertiary;
 }
 
 class _InteractiveDial extends StatefulWidget {
@@ -182,64 +343,64 @@ class _InteractiveDialState extends State<_InteractiveDial> {
       // exact value is read from the note/frequency readout in the center.
       label: 'Tuning dial, drag to adjust the reference pitch',
       child: GestureDetector(
-      onPanStart: _onPanStart,
-      onPanUpdate: _onPanUpdate,
-      onPanEnd: _onPanEnd,
-      child: Container(
-        width: widget.size,
-        height: widget.size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: context.mp.surface,
-          border: Border.all(color: context.mp.borderSubtle),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Radial gradient lens effect — painted FIRST: its tokens are
-            // fully opaque, so anything below it in this Stack is invisible.
-            _RadialGradientOverlay(size: widget.size),
+        onPanStart: _onPanStart,
+        onPanUpdate: _onPanUpdate,
+        onPanEnd: _onPanEnd,
+        child: Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: context.mp.surface,
+            border: Border.all(color: context.mp.borderSubtle),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Radial gradient lens effect — painted FIRST: its tokens are
+              // fully opaque, so anything below it in this Stack is invisible.
+              _RadialGradientOverlay(size: widget.size),
 
-            // Center frequency/note display
-            _FrequencyDisplay(
-              note: widget.note,
-              frequency: widget.frequency,
-              cents: widget.cents,
-              mode: widget.mode,
-              size: widget.size,
-              hasValidPitch: widget.hasValidPitch,
-              isInTune: widget.isInTune,
-              isListening: widget.isListening,
-              isStarting: widget.isStarting,
-              signalLabel: widget.signalLabel,
-            ),
+              // Center frequency/note display
+              _FrequencyDisplay(
+                note: widget.note,
+                frequency: widget.frequency,
+                cents: widget.cents,
+                mode: widget.mode,
+                size: widget.size,
+                hasValidPitch: widget.hasValidPitch,
+                isInTune: widget.isInTune,
+                isListening: widget.isListening,
+                isStarting: widget.isStarting,
+                signalLabel: widget.signalLabel,
+              ),
 
-            // Handle or needle based on mode
-            if (widget.mode == TunerMode.generate)
-              // Generate mode: rotating handle based on frequency
-              Transform.rotate(
-                angle: TunerDialGeometry.rotationForFrequency(
-                  widget.frequency,
-                  widget.referenceA4,
-                ),
-                child: _EdgeHandle(size: widget.size),
-              )
-            else if (widget.mode == TunerMode.listen &&
-                widget.targetNoteIndex != null)
-              // Manual mode: handle points to selected note position (chromatic)
-              Transform.rotate(
-                angle: TunerDialGeometry.rotationForNoteIndex(
-                  widget.targetNoteIndex!,
-                ),
-                child: _EdgeHandle(size: widget.size),
-              )
-            else if (widget.hasValidPitch)
-              // Listen mode: needle indicator for cents
-              _NeedleIndicator(cents: widget.cents, size: widget.size),
-          ],
+              // Handle or needle based on mode
+              if (widget.mode == TunerMode.generate)
+                // Generate mode: rotating handle based on frequency
+                Transform.rotate(
+                  angle: TunerDialGeometry.rotationForFrequency(
+                    widget.frequency,
+                    widget.referenceA4,
+                  ),
+                  child: _EdgeHandle(size: widget.size),
+                )
+              else if (widget.mode == TunerMode.listen &&
+                  widget.targetNoteIndex != null)
+                // Manual mode: handle points to selected note position (chromatic)
+                Transform.rotate(
+                  angle: TunerDialGeometry.rotationForNoteIndex(
+                    widget.targetNoteIndex!,
+                  ),
+                  child: _EdgeHandle(size: widget.size),
+                )
+              else if (widget.hasValidPitch)
+                // Listen mode: needle indicator for cents
+                _NeedleIndicator(cents: widget.cents, size: widget.size),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -293,7 +454,6 @@ class _InteractiveDialState extends State<_InteractiveDial> {
     });
     HapticFeedback.lightImpact();
   }
-
 }
 
 class _FrequencyDisplay extends StatelessWidget {

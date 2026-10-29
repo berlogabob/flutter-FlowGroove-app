@@ -1,0 +1,30 @@
+{
+  "task": "GH-189-L0",
+  "reviewer": "hermes",
+  "scope": "independent source preflight only",
+  "source_commit": "87b76c24",
+  "actual_model": "gpt-6-luna",
+  "provider": "openai-codex",
+  "session_id": "local-3a09bd073eb6ea2c079dbe5d960249fea5e6abede1aa91a1ff16c65a2c96f446",
+  "terminal_evidence": "agent.log:18576-18580: four API calls, text_response(stop) at 2026-10-25T04:40:57.023+00:00; response ready .523",
+  "worker_limitations": ["CLI exit 1/unknown outcome retained; no prompt replay", "Retained stream shows initial source read only, not complete tool-path audit; server completion verified separately", "Source conclusions independently checked, not a claim of full worker tool compliance"],
+  "checks": [
+    "All ten registered files compared byte-for-byte against warm checkout before parent acceptance",
+    "Parent inspected URL/clipboard generation, public router and legacy join branches",
+    "Parsed Hosting and assetlinks JSON; checked manifest filters and iOS plist/project/AppDelegate source",
+    "Tracked inventory: no iOS entitlement or AASA; no CODE_SIGN_ENTITLEMENTS in project",
+    "Profile/Debug/Release bundle identifiers inspected at project lines 503/687/709",
+    "Corrected impossible-fragment implication: HTTP path filter mismatch does not exclude broader native delivery",
+    "Signing/ownership/build mapping not inferred from tracked configuration"
+  ],
+  "source_hashes": {
+    "firebase.json": "4351e416e4760cb0d10ef34ef448a36e1855822eda69009a29867aebd489248d",
+    "lib/router/app_router.dart": "1a24b02a31eb803f194a1583578a115df111ff0ca969914aa528c2c8ad7ae9c7",
+    "android/app/src/main/AndroidManifest.xml": "5707f41dabdba4319fe03755db8d8dc18a27715dc23ffd96235db380a6c936d0",
+    "ios/Runner.xcodeproj/project.pbxproj": "bf237bfabb9af195712e825b41c13d344fdf0f64f1a85b0acb3f3f810e58066e",
+    "site/static/.well-known/assetlinks.json": "9ee1e64159356a01d617a49aad2d7c23781c6fac75683afb08fd9e5b4afa2d03"
+  },
+  "remaining": ["L1 deliberate canonical native URL policy with legacy compatibility", "L2 applicationId and authoritative signing/association", "L3 signing prefix/domain/entitlement contract", "L4 actual source/output mapping and live origin"],
+  "not_checked": ["device", "human UX", "GA4", "deployed ownership/content", "current signing", "full Graphify"],
+  "release_hold": true
+}

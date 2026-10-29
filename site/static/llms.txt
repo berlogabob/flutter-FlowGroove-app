@@ -1,0 +1,44 @@
+# FlowGroove
+
+> Real-time setlist sync, metronome and tuner for cover bands — free, offline-first,
+> and built by a working musician. One change on your phone lands on every bandmate's
+> screen before you finish the first chord. Web, iOS and Android.
+
+FlowGroove keeps a band's repertoire in sync live: setlists, song keys/BPM, and notes
+update across everyone's devices instantly and keep working when the venue WiFi doesn't.
+It's free for indie musicians, with no ads and no paywall on the core; a solo developer
+builds it and Ko-fi tips keep the servers running.
+
+## What it is
+- [Home](https://flowgroove.app/): overview, screenshots, features
+- [About](https://flowgroove.app/about/): who builds it and why
+- [FAQ](https://flowgroove.app/faq/): free tier, offline use, sync speed, who it's for
+- [Roadmap](https://flowgroove.app/roadmap/): what's planned next
+
+## Features (docs)
+- [Setlists](https://flowgroove.app/wiki/setlists/): build and share setlists that sync live
+- [Songs](https://flowgroove.app/wiki/songs/): repertoire with keys, BPM and structure
+- [Bands](https://flowgroove.app/wiki/bands/): shared band libraries and membership
+- [Metronome](https://flowgroove.app/wiki/metronome/): adjustable BPM, time signatures, accent patterns
+- [Tuner](https://flowgroove.app/wiki/tuner/): built-in instrument tuner
+- [Concert Mode](https://flowgroove.app/wiki/concert-mode/): big, dark-stage-readable performance view
+- [Profile](https://flowgroove.app/wiki/profile/): account and personal settings
+
+## Devlog (selected posts)
+- [Free is a feature](https://flowgroove.app/blog/free-is-a-feature/): why the core stays free
+- [Real-time sync on bad WiFi](https://flowgroove.app/blog/real-time-sync-on-bad-wifi/): how sync survives flaky venues
+- [Concert mode](https://flowgroove.app/blog/concert-mode/): designing the on-stage view
+- [The demo account that's actually real](https://flowgroove.app/blog/the-demo-account-thats-actually-real/): try it without signing up
+- [One codebase, three screens](https://flowgroove.app/blog/one-codebase-three-screens/): one Flutter build for web, iOS, Android
+- [All posts](https://flowgroove.app/blog/)
+
+## Try it / contact
+- App: https://flowgroove.app/app/ (a "Try Demo" account works without signup)
+- GitHub: https://github.com/berlogabob/flutter-FlowGroove-app
+- Support (Ko-fi): https://ko-fi.com/flowgroove
+- Telegram: https://t.me/flowgrooveapp
+- Reddit: https://www.reddit.com/r/flowgroove/
+
+## Legal
+- [Privacy](https://flowgroove.app/privacy/)
+- [Terms](https://flowgroove.app/terms/)

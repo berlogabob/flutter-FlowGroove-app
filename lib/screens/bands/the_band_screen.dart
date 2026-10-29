@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,7 +13,6 @@ import '../../providers/permissions_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../services/avatar_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../utils/analytics_debug.dart';
 import '../../utils/responsive_breakpoints.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
@@ -58,24 +55,10 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     _descriptionController = TextEditingController(
       text: widget.band.description ?? '',
     );
-    // Log screen view once per navigation, not on every rebuild.
-    try {
-      AnalyticsDebug.logScreenView(
-        screenName: 'TheBandScreen',
-        screenClass: 'TheBandScreen',
-      );
-    } catch (_) {}
+    // screen_view comes from the router's FirebaseAnalyticsObserver (main.dart).
     // HEART "adoption" fallback: cheaply detecting "first open after join"
     // isn't available here, so this fires on every open — see report.
     AnalyticsService.logBandOpened(bandId: widget.band.id);
-    try {
-      if (Firebase.apps.isNotEmpty) {
-        FirebaseAnalytics.instance.logScreenView(
-          screenName: 'TheBandScreen',
-          screenClass: 'TheBandScreen',
-        );
-      }
-    } catch (_) {}
   }
 
   @override
@@ -85,17 +68,9 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     super.dispose();
   }
 
-  /// Whether the current user is a band admin (avatar edits are admin-only).
-  bool get _isBandAdmin {
-    if (ref.read(isDemoUserProvider)) return false;
-    final user = ref.read(currentUserProvider).value;
-    if (user == null) return false;
-    final member = widget.band.members.firstWhere(
-      (m) => m.uid == user.uid,
-      orElse: () => BandMember(uid: '', role: ''),
-    );
-    return member.role == BandMember.roleAdmin;
-  }
+  // Permission gates live in canEditBandProvider/isBandAdminProvider (the
+  // adminUids/editorUids arrays Firestore rules read), watched in build —
+  // not the widget.band.members navigation snapshot.
 
   /// The band as currently stored (from the live bands stream), falling back to
   /// the optimistic local copy then the passed-in band. Reading from the stream
@@ -111,67 +86,67 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     return _band;
   }
 
-  /// Check if user can edit the band (admin or editor only)
-  bool get _canEdit {
-    if (ref.read(isDemoUserProvider)) return false;
-    final userAsync = ref.read(currentUserProvider);
-    final user = userAsync.value;
-    if (user == null) return false;
-
-    final member = widget.band.members.firstWhere(
-      (m) => m.uid == user.uid,
-      orElse: () => BandMember(uid: '', role: ''),
-    );
-    return member.role == BandMember.roleAdmin ||
-        member.role == BandMember.roleEditor;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final canEdit = ref.watch(canEditBandProvider(widget.band.id));
+    final isAdmin = ref.watch(isBandAdminProvider(widget.band.id));
     return StandardScreenScaffold(
       title: widget.band.name,
-      body: _buildBandDashboard(),
-      menuItems: _buildMenuItems(),
+      body: _buildBandDashboard(canEdit, isAdmin),
+      menuItems: _buildMenuItems(canEdit, isAdmin),
     );
   }
 
   /// Build items for the bottom-bar Menu sheet. Rows with a null onTap render
-  /// disabled (permission-gated actions for non-editors/non-admins).
-  List<AppMenuItem> _buildMenuItems() {
+  /// disabled (editor-gated actions for viewers); actions Firestore rules
+  /// reserve for band admins (band-doc writes, member management, avatar) are
+  /// dropped entirely for non-admins — showing them would only produce
+  /// permission-denied errors.
+  List<AppMenuItem> _buildMenuItems(bool canEdit, bool isAdmin) {
     return [
+      if (isAdmin)
+        AppMenuItem(
+          icon: Icons.edit,
+          label: 'Edit Band Name',
+          onTap: _showEditNameDialog,
+        ),
+      if (isAdmin)
+        AppMenuItem(
+          icon: Icons.description,
+          label: 'Edit Description',
+          onTap: _showEditDescriptionDialog,
+        ),
       AppMenuItem(
-        icon: Icons.edit,
-        label: 'Edit Band Name',
-        onTap: _canEdit ? _showEditNameDialog : null,
+        icon: Icons.add,
+        label: 'Add Song',
+        // Band-song create needs editor/admin per rules.
+        onTap: canEdit ? _handleAddSong : null,
       ),
-      AppMenuItem(
-        icon: Icons.description,
-        label: 'Edit Description',
-        onTap: _canEdit ? _showEditDescriptionDialog : null,
-      ),
-      AppMenuItem(icon: Icons.add, label: 'Add Song', onTap: _handleAddSong),
       AppMenuItem(
         icon: Icons.playlist_add,
         label: 'Add Setlist',
-        onTap: _canEdit ? _handleAddSetlist : null,
+        onTap: canEdit ? _handleAddSetlist : null,
       ),
-      AppMenuItem(
-        icon: Icons.label_outline,
-        label: 'Edit Tags',
-        onTap: _canEdit ? _handleEditTags : null,
-      ),
-      AppMenuItem(
-        icon: Icons.people,
-        label: 'Edit Members',
-        onTap: _canEdit ? _handleEditMembers : null,
-      ),
-      AppMenuItem(
-        icon: Icons.image,
-        label: 'Change Band Avatar',
-        onTap: _isBandAdmin ? _handleChangeBandAvatar : null,
-      ),
+      if (isAdmin)
+        AppMenuItem(
+          icon: Icons.label_outline,
+          label: 'Edit Tags',
+          onTap: _handleEditTags,
+        ),
+      if (isAdmin)
+        AppMenuItem(
+          icon: Icons.people,
+          label: 'Edit Members',
+          onTap: _handleEditMembers,
+        ),
+      if (isAdmin)
+        AppMenuItem(
+          icon: Icons.image,
+          label: 'Change Band Avatar',
+          onTap: _handleChangeBandAvatar,
+        ),
       // Remove Band Avatar (admin only, shown only when avatar exists)
-      if (_liveBand().photoURL != null && _isBandAdmin)
+      if (_liveBand().photoURL != null && isAdmin)
         AppMenuItem(
           icon: Icons.delete_outline,
           label: 'Remove Band Avatar',
@@ -180,7 +155,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     ];
   }
 
-  Widget _buildBandDashboard() {
+  Widget _buildBandDashboard(bool canEdit, bool isAdmin) {
     final userAsync = ref.watch(appUserProvider);
     final songCountAsync = ref.watch(bandSongsProvider(widget.band.id));
     final setlistCount = ref
@@ -191,7 +166,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       greetingCard: _buildBandHeader(),
       statisticsTitle: 'Band library',
       statistics: _buildStatistics(userAsync, songCountAsync, setlistCount),
-      quickActions: _buildQuickActions(),
+      quickActions: _buildQuickActions(canEdit, isAdmin),
       tools: const [],
     );
   }
@@ -242,15 +217,22 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   /// and Metronome are personal tools that live on the Home screen, not here.
   /// Rehearsals is band-scoped, so it lives here instead of a single-item
   /// Tools section.
-  List<QuickActionButton> _buildQuickActions() {
+  List<QuickActionButton> _buildQuickActions(bool canEdit, bool isAdmin) {
     return [
-      QuickActionButton(icon: Icons.add, label: 'Song', onTap: _handleAddSong),
-      QuickActionButton(
-        icon: Icons.person_add,
-        label: 'Member',
-        onTap: _handleAddMember,
-      ),
-      if (_canEdit)
+      if (canEdit)
+        QuickActionButton(
+          icon: Icons.add,
+          label: 'Song',
+          onTap: _handleAddSong,
+        ),
+      // Member management is admin-only per Cloud Functions/rules.
+      if (isAdmin)
+        QuickActionButton(
+          icon: Icons.person_add,
+          label: 'Member',
+          onTap: _handleAddMember,
+        ),
+      if (canEdit)
         QuickActionButton(
           icon: Icons.playlist_add,
           label: 'Setlist',
@@ -301,7 +283,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
           Expanded(
             child: Text(
               band.name,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,

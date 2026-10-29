@@ -1,4 +1,5 @@
 import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/event_suggestion.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/repositories/repositories.dart';
@@ -143,6 +144,17 @@ class MockBandRepository implements BandRepository {
   }
 
   @override
+  Future<void> saveBandBatch(Band band, {String? uid}) async {
+    // The real one is a single atomic batch across the global band document
+    // and the user's reference; in memory that is just both writes.
+    _bands[band.id] = band;
+    if (uid != null) {
+      _userBands.putIfAbsent(uid, () => {});
+      _userBands[uid]!.add(band.id);
+    }
+  }
+
+  @override
   Stream<List<Band>> watchBands(String uid) {
     final bandIds = _userBands[uid] ?? {};
     final bands = bandIds.map((id) => _bands[id]!).whereType<Band>().toList();
@@ -219,6 +231,46 @@ class MockSetlistRepository implements SetlistRepository {
   @override
   Stream<List<Setlist>> watchBandSetlists(String bandId) {
     return Stream.value(_bandSetlists[bandId]?.values.toList() ?? []);
+  }
+
+  /// uid -> the events they were invited to as a guest, mirroring
+  /// `users/{uid}/eventInvites`. Server-written in production, so tests seed it
+  /// directly rather than deriving it from a setlist field — there is no longer
+  /// any grant on the setlist document to derive from.
+  final Map<String, List<Setlist>> eventInvites = {};
+
+  @override
+  Stream<List<Setlist>> watchGuestEvents(String uid) =>
+      Stream.value(eventInvites[uid] ?? const []);
+
+  /// Suggestions seeded per (bandId, setlistId), mirroring the subcollection.
+  final suggestions = <String, List<EventSuggestion>>{};
+
+  @override
+  Stream<List<EventSuggestion>> watchSetlistSuggestions(
+    String? bandId,
+    String setlistId, {
+    String? ownerUid,
+  }) => Stream.value(suggestions['$bandId/$setlistId'] ?? const []);
+
+  /// Event-kit area writes, in order: (setlistId, area, value, bandId).
+  final eventKitWrites =
+      <({String setlistId, String area, Object? value, String? bandId})>[];
+
+  @override
+  Future<void> updateEventKitArea({
+    required String setlistId,
+    required String area,
+    required Object? value,
+    String? bandId,
+    String? uid,
+  }) async {
+    eventKitWrites.add((
+      setlistId: setlistId,
+      area: area,
+      value: value,
+      bandId: bandId,
+    ));
   }
 
   /// Helper method to get setlists for testing.

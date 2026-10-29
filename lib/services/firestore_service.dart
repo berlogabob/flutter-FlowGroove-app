@@ -9,7 +9,11 @@ import '../models/band.dart';
 import '../models/setlist.dart';
 import '../models/song.dart';
 import '../models/user.dart';
+import '../repositories/band_repository.dart';
+import '../repositories/firestore_band_repository.dart';
+import '../repositories/firestore_setlist_repository.dart';
 import '../repositories/firestore_song_repository.dart';
+import '../repositories/setlist_repository.dart';
 import '../repositories/song_repository.dart';
 
 /// Timeout duration for Firestore operations (10 seconds).
@@ -25,16 +29,8 @@ class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final SongRepository _songRepository = FirestoreSongRepository();
-
-  /// Helper method to check if user is authenticated.
-  /// Throws [ApiError] if not authenticated.
-  void _requireAuth() {
-    if (_auth.currentUser == null) {
-      throw ApiError.auth(
-        message: 'Authentication required. Please sign in to continue.',
-      );
-    }
-  }
+  final SetlistRepository _setlistRepository = FirestoreSetlistRepository();
+  final BandRepository _bandRepository = FirestoreBandRepository();
 
   /// Helper method to get current user UID.
   /// Throws [ApiError] if not authenticated.
@@ -83,72 +79,7 @@ class FirestoreService {
 
   /// Saves a band reference to the user's collection.
   Future<void> saveBand(Band band, {String? uid}) async {
-    try {
-      final userId = uid ?? _currentUserId;
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('bands')
-          .doc(band.id)
-          .set(band.toJson())
-          .timeout(_firestoreTimeout);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: saveBand timed out after ${_firestoreTimeout.inSeconds}s for band ${band.id}',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to save this band.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
-  }
-
-  /// Deletes a band reference from the user's collection.
-  Future<void> deleteBand(String bandId, {String? uid}) async {
-    try {
-      final userId = uid ?? _currentUserId;
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('bands')
-          .doc(bandId)
-          .delete()
-          .timeout(_firestoreTimeout);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: deleteBand timed out after ${_firestoreTimeout.inSeconds}s for band $bandId',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to delete this band.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
+    await _bandRepository.saveBand(band, uid: uid);
   }
 
   // ============================================================
@@ -156,182 +87,47 @@ class FirestoreService {
   // ============================================================
 
   /// Saves a setlist to the user's collection.
+  ///
+  /// Scope is derived from the data, never trusted from the caller: the
+  /// repository routes a setlist carrying a bandId to the band collection.
   Future<void> saveSetlist(Setlist setlist, {String? uid}) async {
-    try {
-      final userId = uid ?? _currentUserId;
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('setlists')
-          .doc(setlist.id)
-          .set(setlist.toJson())
-          .timeout(_firestoreTimeout);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: saveSetlist timed out after ${_firestoreTimeout.inSeconds}s for setlist ${setlist.id}',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to save this setlist.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
+    await _setlistRepository.saveSetlist(setlist, uid: uid);
   }
 
   /// Deletes a setlist from the user's collection.
   Future<void> deleteSetlist(String setlistId, {String? uid}) async {
-    try {
-      final userId = uid ?? _currentUserId;
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('setlists')
-          .doc(setlistId)
-          .delete()
-          .timeout(_firestoreTimeout);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: deleteSetlist timed out after ${_firestoreTimeout.inSeconds}s for setlist $setlistId',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to delete this setlist.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
+    await _setlistRepository.deleteSetlist(setlistId, uid: uid);
   }
 
   /// Saves a setlist to a band's shared collection.
   Future<void> saveBandSetlist(Setlist setlist, String bandId) async {
-    try {
-      _requireAuth();
-      await _firestore
-          .collection('bands')
-          .doc(bandId)
-          .collection('setlists')
-          .doc(setlist.id)
-          .set(setlist.copyWith(bandId: bandId).toJson())
-          .timeout(_firestoreTimeout);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: saveBandSetlist timed out after ${_firestoreTimeout.inSeconds}s for setlist ${setlist.id} in band $bandId',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to save this band setlist.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
+    await _setlistRepository.saveBandSetlist(setlist, bandId);
+  }
+
+  /// Writes ONE area of the event kit (`stage` / `rider` / `people`) using a
+  /// dotted field path, leaving every other field of the setlist untouched.
+  ///
+  /// This is the only supported way to save event-kit changes — see
+  /// [SetlistRepository.updateEventKitArea] for why.
+  Future<void> updateEventKitArea({
+    required String setlistId,
+    required String area,
+    required Object? value,
+    String? bandId,
+    String? uid,
+  }) async {
+    await _setlistRepository.updateEventKitArea(
+      setlistId: setlistId,
+      area: area,
+      value: value,
+      bandId: bandId,
+      uid: uid,
+    );
   }
 
   /// Deletes a setlist from a band's shared collection.
   Future<void> deleteBandSetlist(String bandId, String setlistId) async {
-    try {
-      _requireAuth();
-      await _firestore
-          .collection('bands')
-          .doc(bandId)
-          .collection('setlists')
-          .doc(setlistId)
-          .delete()
-          .timeout(_firestoreTimeout);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: deleteBandSetlist timed out after ${_firestoreTimeout.inSeconds}s for setlist $setlistId in band $bandId',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to delete this band setlist.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
-  }
-
-  /// Watches setlists for a band in real-time.
-  Stream<List<Setlist>> watchBandSetlists(String bandId) {
-    try {
-      return _firestore
-          .collection('bands')
-          .doc(bandId)
-          .collection('setlists')
-          .snapshots()
-          .map(
-            (snapshot) => snapshot.docs.map((doc) {
-              try {
-                final data = doc.data();
-                return Setlist.fromJson({...data, 'id': doc.id});
-              } catch (e, stackTrace) {
-                debugPrint('Failed to parse band setlist ${doc.id}: $e');
-                debugPrint('Stack trace: $stackTrace');
-                return Setlist(
-                  id: doc.id,
-                  bandId: bandId,
-                  name: 'Error loading setlist',
-                  description: 'Failed to load: $e',
-                  createdAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-                );
-              }
-            }).toList(),
-          )
-          .handleError((Object error, StackTrace stackTrace) {
-            debugPrint('Stream error in watchBandSetlists: $error');
-            debugPrint('Stack trace: $stackTrace');
-            throw ApiError.fromException(error, stackTrace: stackTrace);
-          });
-    } catch (e, stackTrace) {
-      debugPrint('Error setting up watchBandSetlists: $e');
-      debugPrint('Stack trace: $stackTrace');
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
+    await _setlistRepository.deleteBandSetlist(bandId, setlistId);
   }
 
   // ============================================================
@@ -340,211 +136,14 @@ class FirestoreService {
 
   /// Saves a band to the global 'bands' collection.
   Future<void> saveBandToGlobal(Band band) async {
-    try {
-      _requireAuth();
-      await _firestore
-          .collection('bands')
-          .doc(band.id)
-          .set(band.toJson())
-          .timeout(_firestoreTimeout);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: saveBandToGlobal timed out after ${_firestoreTimeout.inSeconds}s for band ${band.id}',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to modify this band.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
+    await _bandRepository.saveBandToGlobal(band);
   }
 
   /// Writes a band to BOTH the global `bands/{id}` collection and the user's
   /// `users/{uid}/bands/{id}` reference in a single atomic batch (one round
   /// trip) instead of two sequential `set` calls — used on band create/edit.
   Future<void> saveBandBatch(Band band, {String? uid}) async {
-    try {
-      final userId = uid ?? _currentUserId;
-      final data = band.toJson();
-      final batch = _firestore.batch()
-        ..set(_firestore.collection('bands').doc(band.id), data)
-        ..set(
-          _firestore
-              .collection('users')
-              .doc(userId)
-              .collection('bands')
-              .doc(band.id),
-          data,
-        );
-      await batch.commit().timeout(_firestoreTimeout);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: saveBandBatch timed out after ${_firestoreTimeout.inSeconds}s for band ${band.id}',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to save this band.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
-  }
-
-  /// Gets a band by invite code from global collection.
-  Future<Band?> getBandByInviteCode(String code) async {
-    try {
-      _requireAuth();
-      final snapshot = await _firestore
-          .collection('bands')
-          .where('inviteCode', isEqualTo: code)
-          .limit(1)
-          .get()
-          .timeout(_firestoreTimeout);
-
-      if (snapshot.docs.isEmpty) return null;
-      final doc = snapshot.docs.first;
-      final data = doc.data();
-      data['id'] = doc.id; // Set the document ID
-      return Band.fromJson(data);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: getBandByInviteCode timed out after ${_firestoreTimeout.inSeconds}s',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'not-found') {
-        return null;
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
-  }
-
-  /// Checks if invite code is already taken.
-  Future<bool> isInviteCodeTaken(String code) async {
-    try {
-      _requireAuth();
-      final snapshot = await _firestore
-          .collection('bands')
-          .where('inviteCode', isEqualTo: code)
-          .limit(1)
-          .get()
-          .timeout(_firestoreTimeout);
-      return snapshot.docs.isNotEmpty;
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: isInviteCodeTaken timed out after ${_firestoreTimeout.inSeconds}s',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
-  }
-
-  /// Adds user reference to a band (for joining).
-  Future<void> addUserToBand(String bandId, {String? userId}) async {
-    try {
-      final uid = userId ?? _currentUserId;
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('bands')
-          .doc(bandId)
-          .set({'bandId': bandId, 'joinedAt': FieldValue.serverTimestamp()})
-          .timeout(_firestoreTimeout);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: addUserToBand timed out after ${_firestoreTimeout.inSeconds}s for band $bandId',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to join this band.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
-  }
-
-  /// Removes user reference from a band (for leaving).
-  Future<void> removeUserFromBand(String bandId, {String? userId}) async {
-    try {
-      final uid = userId ?? _currentUserId;
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('bands')
-          .doc(bandId)
-          .delete()
-          .timeout(_firestoreTimeout);
-    } on TimeoutException catch (e, stackTrace) {
-      debugPrint(
-        '⏱️ TIMEOUT: removeUserFromBand timed out after ${_firestoreTimeout.inSeconds}s for band $bandId',
-      );
-      throw ApiError.network(
-        message:
-            'Request timed out. Please check your connection and try again.',
-        exception: e,
-        stackTrace: stackTrace,
-      );
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to leave this band.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
+    await _bandRepository.saveBandBatch(band, uid: uid);
   }
 
   // ============================================================

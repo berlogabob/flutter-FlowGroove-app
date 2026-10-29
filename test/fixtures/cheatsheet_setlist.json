@@ -1,0 +1,404 @@
+{
+  "setlist": {
+    "id": "cheatsheet-fixture",
+    "bandId": "",
+    "name": "Концерт в O,brigada — Cheat Sheet Fixture",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z",
+    "songIds": [
+      "song-1",
+      "song-2",
+      "song-3",
+      "song-4",
+      "song-5",
+      "song-6",
+      "song-7",
+      "song-8",
+      "song-9",
+      "song-10",
+      "song-11",
+      "song-12"
+    ],
+    "items": [
+      {
+        "id": "item-1",
+        "songId": "song-1",
+        "performerIds": [
+          "p1"
+        ]
+      },
+      {
+        "id": "item-2",
+        "songId": "song-2",
+        "performerIds": [
+          "p2"
+        ]
+      },
+      {
+        "id": "item-3",
+        "songId": "song-3",
+        "performerIds": [
+          "p1"
+        ]
+      },
+      {
+        "id": "item-4",
+        "songId": "song-4",
+        "performerIds": [
+          "p2"
+        ]
+      },
+      {
+        "id": "item-5",
+        "songId": "song-5",
+        "performerIds": [
+          "p1"
+        ]
+      },
+      {
+        "id": "item-6",
+        "songId": "song-6",
+        "performerIds": [
+          "p2"
+        ]
+      },
+      {
+        "id": "break-1",
+        "songId": "",
+        "type": "break",
+        "breakType": "break",
+        "breakLabel": "Перерыв 15 мин"
+      },
+      {
+        "id": "item-7",
+        "songId": "song-7",
+        "performerIds": [
+          "p1"
+        ]
+      },
+      {
+        "id": "item-8",
+        "songId": "song-8",
+        "performerIds": [
+          "p1"
+        ]
+      },
+      {
+        "id": "item-9",
+        "songId": "song-9",
+        "performerIds": [
+          "p1",
+          "p2"
+        ]
+      },
+      {
+        "id": "item-10",
+        "songId": "song-10",
+        "performerIds": [
+          "p1"
+        ]
+      },
+      {
+        "id": "item-11",
+        "songId": "song-11",
+        "performerIds": [
+          "p1"
+        ]
+      },
+      {
+        "id": "item-12",
+        "songId": "song-12",
+        "performerIds": [
+          "p1",
+          "p2"
+        ]
+      }
+    ],
+    "eventKit": {
+      "people": [
+        {
+          "id": "p1",
+          "name": "Андрей",
+          "role": "гитара"
+        },
+        {
+          "id": "p2",
+          "name": "Roume",
+          "role": "бас"
+        }
+      ]
+    }
+  },
+  "songs": [
+    {
+      "id": "song-1",
+      "title": "Группа крови",
+      "artist": "Кино",
+      "ourKey": "Am",
+      "ourBPM": 116,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Verse",
+          "duration": 1,
+          "chordChart": "[Am]Тёплое [C]место, [G]но улицы [Am]ждут",
+          "id": "song-1-sec-0"
+        },
+        {
+          "name": "Chorus",
+          "duration": 1,
+          "chordChart": "[F]Группа [G]крови на [Am]рукаве",
+          "id": "song-1-sec-1"
+        }
+      ]
+    },
+    {
+      "id": "song-2",
+      "title": "Wonderwall",
+      "artist": "Oasis",
+      "ourKey": "F#m",
+      "ourBPM": 87,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Verse",
+          "duration": 1,
+          "chordChart": "[F#m]Today is [A]gonna be the [E]day [B]yeah",
+          "id": "song-2-sec-0"
+        },
+        {
+          "name": "Chorus",
+          "duration": 1,
+          "chordChart": "[D]Because [E]maybe [F#m]you're gonna be the one",
+          "id": "song-2-sec-1"
+        }
+      ]
+    },
+    {
+      "id": "song-3",
+      "title": "Звезда по имени Солнце",
+      "artist": "Кино",
+      "ourKey": "Am",
+      "ourBPM": 122,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Verse",
+          "duration": 1,
+          "chordChart": "[Am]Белый снег, [C]серый лёд [Dm]на [Am]треснувшей земле",
+          "id": "song-3-sec-0"
+        },
+        {
+          "name": "Chorus",
+          "duration": 1,
+          "notes": "Am | C | Dm | Am (как в куплете, громче)",
+          "id": "song-3-sec-1"
+        }
+      ]
+    },
+    {
+      "id": "song-4",
+      "title": "Knockin' on Heaven's Door",
+      "artist": "Bob Dylan",
+      "ourKey": "G",
+      "ourBPM": 72,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Verse",
+          "duration": 1,
+          "chordChart": "[G]Mama take this [D]badge off of [Am7]me",
+          "id": "song-4-sec-0"
+        },
+        {
+          "name": "Chorus",
+          "duration": 1,
+          "chordChart": "[G]Knock knock [D]knockin' on heaven's [C]door",
+          "id": "song-4-sec-1"
+        }
+      ]
+    },
+    {
+      "id": "song-5",
+      "title": "Кукушка",
+      "artist": "Кино",
+      "ourKey": "Em",
+      "ourBPM": 84,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Verse",
+          "duration": 1,
+          "chordChart": "[Em]Песен ещё [C]ненаписанных [G]сколько, [D]скажи",
+          "id": "song-5-sec-0"
+        }
+      ]
+    },
+    {
+      "id": "song-6",
+      "title": "Seven Nation Army",
+      "artist": "The White Stripes",
+      "ourKey": "Em",
+      "ourBPM": 124,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Riff",
+          "duration": 1,
+          "chordChart": "[Em]da [Em]da [G]da [Em]da [D]da [C]da [B]da",
+          "id": "song-6-sec-0"
+        }
+      ]
+    },
+    {
+      "id": "song-7",
+      "title": "Перемен",
+      "artist": "Кино",
+      "ourKey": "Am",
+      "ourBPM": 132,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Verse",
+          "duration": 1,
+          "chordChart": "[Am]Вместо тепла [F]зелень стекла",
+          "id": "song-7-sec-0"
+        },
+        {
+          "name": "Chorus",
+          "duration": 1,
+          "chordChart": "[Dm]Перемен [G]требуют наши [C]сердца [Am]",
+          "id": "song-7-sec-1"
+        }
+      ]
+    },
+    {
+      "id": "song-8",
+      "title": "Hotel California",
+      "artist": "Eagles",
+      "ourKey": "Bm",
+      "ourBPM": 74,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Verse",
+          "duration": 1,
+          "chordChart": "[Bm]On a dark desert [F#]highway [A]cool wind [E]in my hair",
+          "id": "song-8-sec-0"
+        },
+        {
+          "name": "Chorus",
+          "duration": 1,
+          "chordChart": "[G]Welcome to the [D]Hotel Cali[Em]fornia [F#]",
+          "id": "song-8-sec-1"
+        }
+      ]
+    },
+    {
+      "id": "song-9",
+      "title": "Instrumental Jam",
+      "artist": "",
+      "ourKey": null,
+      "ourBPM": null,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Jam",
+          "duration": 1,
+          "notes": "свободная импровизация в E dorian",
+          "id": "song-9-sec-0"
+        }
+      ]
+    },
+    {
+      "id": "song-10",
+      "title": "Come As You Are",
+      "artist": "Nirvana",
+      "ourKey": "Em",
+      "ourBPM": 120,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Verse",
+          "duration": 1,
+          "chordChart": "[Em]Come as you [G]are, as you [Em]were",
+          "id": "song-10-sec-0"
+        }
+      ]
+    },
+    {
+      "id": "song-11",
+      "title": "Лирика",
+      "artist": "Сектор Газа",
+      "ourKey": "Dm",
+      "ourBPM": 96,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Verse",
+          "duration": 1,
+          "chordChart": "[Dm]Мне не [Bb]нужна [F]лирика [C]твоя",
+          "id": "song-11-sec-0"
+        }
+      ]
+    },
+    {
+      "id": "song-12",
+      "title": "Zombie",
+      "artist": "The Cranberries",
+      "ourKey": "Em",
+      "ourBPM": 84,
+      "accentBeats": 4,
+      "regularBeats": 4,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sections": [
+        {
+          "name": "Verse",
+          "duration": 1,
+          "chordChart": "[Em]Another [C]head hangs [G]lowly [D/F#]",
+          "id": "song-12-sec-0"
+        },
+        {
+          "name": "Chorus",
+          "duration": 1,
+          "chordChart": "[Em]In your [C]head, in your [G]head [D/F#]",
+          "id": "song-12-sec-1"
+        }
+      ]
+    }
+  ]
+}

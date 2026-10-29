@@ -24,6 +24,8 @@ const _sections = [
   'bands',
   'setlists',
   'profile',
+  'practice',
+  'settings',
   'metronome',
   'tuner',
 ];
@@ -50,6 +52,8 @@ const _pages = <String>{
   'rehearsals',
   'setlists',
   'profile',
+  'practice',
+  'settings',
   'metronome',
   'tuner',
   'concert-mode',

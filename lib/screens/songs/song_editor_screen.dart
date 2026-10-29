@@ -46,7 +46,7 @@ class SongEditorScreen extends StatefulWidget {
 class _SongEditorScreenState extends State<SongEditorScreen> {
   late final ChordProSyncController _sync;
   late final TextEditingController _textCtrl;
-  bool _mapExpanded = false;
+  late bool _mapExpanded = widget.sections.length >= 2;
   static const _uuid = Uuid();
 
   @override
@@ -78,8 +78,9 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
 
   @override
   void dispose() {
-    _sync.removeListener(_onSync);
-    _sync.dispose();
+    _sync
+      ..removeListener(_onSync)
+      ..dispose();
     _textCtrl.dispose();
     super.dispose();
   }
@@ -253,7 +254,6 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
                     onChanged: _sync.updateFromText,
                     expands: true,
                     maxLines: null,
-                    minLines: null,
                     textAlignVertical: TextAlignVertical.top,
                     style: const TextStyle(
                       fontFamily: 'monospace',
@@ -428,6 +428,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
 
   Widget _reorderList(List<Section> sections) {
     return ReorderableListView.builder(
+      buildDefaultDragHandles: false,
       shrinkWrap: true,
       padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
       itemCount: sections.length,

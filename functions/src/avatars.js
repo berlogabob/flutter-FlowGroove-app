@@ -17,6 +17,19 @@ function defaultTelegram() {
   return new Telegram(TELEGRAM_BOT_TOKEN.value());
 }
 
+// SSRF guard: only fetch photos from the hosts the providers actually use.
+function assertAllowedHost(url, suffixes) {
+  let u;
+  try { u = new URL(url); } catch (e) { u = null; }
+  if (!u || u.protocol !== "https:" ||
+      !suffixes.some((s) => u.hostname === s || u.hostname.endsWith("." + s))) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Photo URL host is not allowed.",
+    );
+  }
+}
+
 function defaultBucket() {
   return admin.storage().bucket();
 }
@@ -39,6 +52,16 @@ function makeImportTelegramAvatar({ getTelegram, getBucket, fetchImpl } = {}) {
       );
     }
     const uid = context.auth.uid;
+    {
+      const me = await db.collection("users").doc(uid).get();
+      if ((context.auth.token || {}).demo === true ||
+          (me.exists && me.data().accessRole === "demo")) {
+        throw new functions.https.HttpsError(
+          "failed-precondition",
+          "Demo accounts cannot change their photo.",
+        );
+      }
+    }
     const userRef = db.collection("users").doc(uid);
     const snap = await userRef.get();
     const telegramId = snap.exists ? snap.data().telegramId : null;
@@ -66,7 +89,8 @@ function makeImportTelegramAvatar({ getTelegram, getBucket, fetchImpl } = {}) {
     const fileId = sizes[sizes.length - 1].file_id;
     const fileLink = await telegram.getFileLink(fileId);
     const fetchFn = fetchImpl || fetch;
-    const res = await fetchFn(fileLink.toString());
+    assertAllowedHost(fileLink.toString(), ["telegram.org"]);
+    const res = await fetchFn(fileLink.toString(), { redirect: "error" });
     if (!res.ok) {
       throw new functions.https.HttpsError(
         "internal",
@@ -116,6 +140,16 @@ function makeImportGoogleAvatar({ getAuth, getBucket, fetchImpl } = {}) {
       );
     }
     const uid = context.auth.uid;
+    {
+      const me = await db.collection("users").doc(uid).get();
+      if ((context.auth.token || {}).demo === true ||
+          (me.exists && me.data().accessRole === "demo")) {
+        throw new functions.https.HttpsError(
+          "failed-precondition",
+          "Demo accounts cannot change their photo.",
+        );
+      }
+    }
 
     const auth = (getAuth || (() => admin.auth()))();
     const userRecord = await auth.getUser(uid);
@@ -132,7 +166,8 @@ function makeImportGoogleAvatar({ getAuth, getBucket, fetchImpl } = {}) {
     }
 
     const fetchFn = fetchImpl || fetch;
-    const res = await fetchFn(googleUrl);
+    assertAllowedHost(googleUrl, ["googleusercontent.com", "ggpht.com", "google.com"]);
+    const res = await fetchFn(googleUrl, { redirect: "error" });
     if (!res.ok) {
       throw new functions.https.HttpsError(
         "internal",

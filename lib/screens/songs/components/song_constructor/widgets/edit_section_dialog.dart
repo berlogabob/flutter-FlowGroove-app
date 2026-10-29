@@ -7,7 +7,6 @@ import '../../../../../widgets/chord_chart_view.dart';
 
 /// Dialog for editing a section's name, duration, and notes.
 class EditSectionDialog extends StatefulWidget {
-
   const EditSectionDialog({required this.section, super.key});
   final Section section;
 
@@ -27,8 +26,9 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
     super.initState();
     _nameController = TextEditingController(text: widget.section.name);
     _notesController = TextEditingController(text: widget.section.notes);
-    _chordController =
-        TextEditingController(text: widget.section.chordChart ?? '');
+    _chordController = TextEditingController(
+      text: widget.section.chordChart ?? '',
+    );
     _duration = widget.section.duration;
     _selectedTemplate = Section.templates.contains(widget.section.name)
         ? widget.section.name
@@ -112,7 +112,9 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 for (int i = 1; i <= 4; i++)
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(right: MonoPulseSpacing.xs),
+                      padding: const EdgeInsets.only(
+                        right: MonoPulseSpacing.xs,
+                      ),
                       child: ElevatedButton(
                         onPressed: () {
                           setState(() {

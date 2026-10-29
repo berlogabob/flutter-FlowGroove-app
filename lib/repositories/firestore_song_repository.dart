@@ -11,6 +11,7 @@ import '../models/library_song.dart';
 import '../models/song.dart';
 import '../models/song_commit.dart';
 import '../models/song_delta.dart';
+import '../services/analytics_service.dart';
 import 'song_repository.dart';
 
 /// Timeout duration for Firestore operations (10 seconds).
@@ -21,7 +22,6 @@ const _firestoreTimeout = Duration(seconds: 10);
 /// Handles all song-related data operations with Firestore,
 /// including personal songs and band songs.
 class FirestoreSongRepository implements SongRepository {
-
   FirestoreSongRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
     : _firestore = firestore ?? FirebaseFirestore.instance,
       _auth = auth ?? FirebaseAuth.instance;
@@ -76,7 +76,7 @@ class FirestoreSongRepository implements SongRepository {
           .doc(userId)
           .collection('songs')
           .doc(song.id)
-          .set(song.toJson())
+          .set(song.toJson(), SetOptions(merge: true))
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
@@ -110,6 +110,7 @@ class FirestoreSongRepository implements SongRepository {
         docRef: _userSongDoc(userId, songId),
         authorId: userId,
       );
+      unawaited(AnalyticsService.logSongDeleted(songId: songId));
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
         '⏱️ TIMEOUT: deleteSong timed out after ${_firestoreTimeout.inSeconds}s for song $songId',
@@ -362,12 +363,14 @@ class FirestoreSongRepository implements SongRepository {
         return;
       }
 
+      // Canonicalize the payload's bandId to the collection it lands in —
+      // legacy Song objects can carry a null/stale bandId in toJson().
       await _firestore
           .collection('bands')
           .doc(bandId)
           .collection('songs')
           .doc(song.id)
-          .set(song.toJson())
+          .set(song.copyWith(bandId: bandId).toJson(), SetOptions(merge: true))
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
@@ -418,6 +421,7 @@ class FirestoreSongRepository implements SongRepository {
         docRef: _bandSongDoc(bandId, songId),
         authorId: _currentUserId,
       );
+      unawaited(AnalyticsService.logSongDeleted(songId: songId));
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
         '⏱️ TIMEOUT: deleteBandSong timed out after ${_firestoreTimeout.inSeconds}s for song $songId in band $bandId',
@@ -458,12 +462,13 @@ class FirestoreSongRepository implements SongRepository {
         return;
       }
 
+      // Canonicalize the payload's bandId to the collection it lands in.
       await _firestore
           .collection('bands')
           .doc(bandId)
           .collection('songs')
           .doc(song.id)
-          .update(song.toJson())
+          .update(song.copyWith(bandId: bandId).toJson())
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
@@ -539,7 +544,7 @@ class FirestoreSongRepository implements SongRepository {
           .get()
           .timeout(_firestoreTimeout);
 
-      return _songsFromSnapshot(snapshot);
+      return await _songsFromSnapshot(snapshot);
     } on TimeoutException {
       throw ApiError.network(message: 'Request timed out. Please try again.');
     } catch (e, stackTrace) {
@@ -557,7 +562,7 @@ class FirestoreSongRepository implements SongRepository {
           .get()
           .timeout(_firestoreTimeout);
 
-      return _songsFromSnapshot(snapshot, bandId: bandId);
+      return await _songsFromSnapshot(snapshot, bandId: bandId);
     } on TimeoutException {
       throw ApiError.network(message: 'Request timed out. Please try again.');
     } catch (e, stackTrace) {

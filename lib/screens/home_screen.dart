@@ -1,50 +1,25 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
+import '../providers/permissions_provider.dart';
 import '../theme/mono_pulse_theme.dart';
-import '../utils/analytics_debug.dart';
 import '../widgets/dashboard_grid.dart';
 import '../widgets/practice_dashboard_card.dart';
+import '../widgets/practice_resume_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/standard_screen_scaffold.dart';
 import '../widgets/tool_button.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+/// screen_view comes from the router's FirebaseAnalyticsObserver (see
+/// createAppRouter) — this screen holds no state of its own.
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Log screen view once per navigation, not on every rebuild.
-    try {
-      AnalyticsDebug.logScreenView(
-        screenName: 'HomeScreen',
-        screenClass: 'HomeScreen',
-      );
-    } catch (_) {}
-    try {
-      if (Firebase.apps.isNotEmpty) {
-        FirebaseAnalytics.instance.logScreenView(
-          screenName: 'HomeScreen',
-          screenClass: 'HomeScreen',
-        );
-      }
-    } catch (_) {
-      // Ignore in test environment when Firebase is not initialized
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return StandardScreenScaffold(
       title: 'Home',
       showBackButton: false, // Hide back button for main tabs
@@ -56,22 +31,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Home leads with actions (#97): no greeting card, no stat counters —
     // the top slot carries the practice dashboard instead (#133).
     return DashboardGrid(
-      greetingCard: const PracticeDashboardCard(),
+      greetingCard: const Column(
+        children: [PracticeDashboardCard(), PracticeResumeCard()],
+      ),
       statistics: const [],
       quickActions: [
         QuickActionButton(
           icon: Icons.add,
-          label: 'Song',
+          label: 'Add song',
           onTap: () => context.goNamed('add-song'),
         ),
         QuickActionButton(
           icon: Icons.group_add,
-          label: 'Band',
+          label: 'Add band',
           onTap: () => context.goNamed('create-band'),
         ),
         QuickActionButton(
           icon: Icons.playlist_add,
-          label: 'Setlist',
+          label: 'Add setlist',
           onTap: () => context.goNamed('create-setlist'),
         ),
         // One tap, recording already running (#145 feedback).
@@ -121,7 +98,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _openRehearsals(BuildContext context, WidgetRef ref) {
     final bands = ref.read(bandsProvider).value ?? [];
     if (bands.isEmpty) {
-      _showRehearsalsEmptyState(context);
+      _showRehearsalsEmptyState(context, ref);
       return;
     }
     if (bands.length == 1) {
@@ -140,7 +117,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             _rehearsalsSheetHeader(
               sheetContext,
-              subtitle: 'Rehearsals are per band — choose one to see its schedule.',
+              subtitle:
+                  'Rehearsals are per band — choose one to see its schedule.',
             ),
             for (final band in bands)
               ListTile(
@@ -161,17 +139,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _rehearsalsSheetHeader(BuildContext context, {required String subtitle}) {
+  Widget _rehearsalsSheetHeader(
+    BuildContext context, {
+    required String subtitle,
+  }) {
     return ListTile(
-      title: const Text('Rehearsals — choose a band',
-          style: MonoPulseTypography.titleMedium),
-      subtitle: Text(subtitle,
-          style: MonoPulseTypography.bodySmall
-              .copyWith(color: context.mp.textSecondary)),
+      title: const Text(
+        'Rehearsals — choose a band',
+        style: MonoPulseTypography.titleMedium,
+      ),
+      subtitle: Text(
+        subtitle,
+        style: MonoPulseTypography.bodySmall.copyWith(
+          color: context.mp.textSecondary,
+        ),
+      ),
     );
   }
 
-  void _showRehearsalsEmptyState(BuildContext context) {
+  void _showRehearsalsEmptyState(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.read(isDemoUserProvider);
     showModalBottomSheet<void>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -186,17 +173,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Text(
                 'Rehearsals are scheduled per band. Join or create a band first, '
                 'then its rehearsal schedule shows up here.',
-                style: MonoPulseTypography.bodySmall
-                    .copyWith(color: context.mp.textSecondary),
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: context.mp.textSecondary,
+                ),
               ),
               const SizedBox(height: MonoPulseSpacing.lg),
               FilledButton.icon(
                 onPressed: () {
                   Navigator.pop(sheetContext);
-                  context.goNamed('create-band');
+                  if (isDemo) {
+                    ref.read(appUserProvider.notifier).signOut();
+                    if (context.mounted) {
+                      context.goNamed('login');
+                    }
+                  } else {
+                    context.goNamed('create-band');
+                  }
                 },
                 icon: const Icon(Icons.group_add),
-                label: const Text('Create a band'),
+                label: Text(
+                  isDemo ? 'Sign up to create a band' : 'Create a band',
+                ),
               ),
             ],
           ),

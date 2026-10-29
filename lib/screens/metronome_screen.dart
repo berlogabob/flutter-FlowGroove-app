@@ -1,22 +1,38 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../models/band.dart';
 import '../../models/metronome_state.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/data/drum_active_provider.dart';
 import '../../providers/data/metronome_provider.dart';
+import '../../providers/permissions_provider.dart';
 import '../../router/app_router.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
+import '../models/song.dart';
+import '../models/song_lab.dart';
+import '../repositories/repositories.dart' show SongRepository;
+import '../providers/metronome_runtime_providers.dart';
+import '../providers/wakelock_provider.dart';
+import '../services/power_reliability.dart';
+import '../services/wakelock_controller.dart';
+import '../utils/snackbar.dart' show showGlobalSnackBar;
+import '../providers/data/midi_hidden_provider.dart';
+import '../widgets/metronome/backing_sheet.dart';
 import '../widgets/metronome/metronome_sheets.dart';
+import '../widgets/metronome/reliability_sheet.dart';
 import '../widgets/metronome/song_library_block.dart';
 import '../widgets/metronome/tempo_control_cluster.dart';
 import '../widgets/metronome/time_signature_block.dart';
+import '../widgets/practice/launchpad_view.dart';
 import 'concert_mode_screen.dart';
 import 'songs/models/song_form_data.dart';
 
@@ -46,18 +62,40 @@ class MetronomeScreen extends ConsumerStatefulWidget {
 class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     with WidgetsBindingObserver {
   late final MetronomeNotifier _metronome;
+  Timer? _tempoSaveDebounce;
+  bool _reliabilityChecked = false;
 
   @override
   void initState() {
     super.initState();
     _metronome = ref.read(metronomeProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_showCutOffNoticeIfNeeded());
+    });
   }
 
   @override
   void dispose() {
+    _tempoSaveDebounce?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  /// Debounced: writes the current BPM back to the loaded song once the user
+  /// settles on a tempo (tap, dial, or typed). Silent on success; the
+  /// explicit ⋮ "Save to …" item remains for everything else.
+  void _scheduleTempoAutoSave(bool canEditSource) {
+    _tempoSaveDebounce?.cancel();
+    if (!canEditSource) return;
+    _tempoSaveDebounce = Timer(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      final state = ref.read(metronomeProvider);
+      final song = state.activeSong;
+      if (song == null) return;
+      if (state.bpm == (song.ourBPM ?? song.originalBPM)) return;
+      _saveMetronomeToSong(context, _metronome, state, silent: true);
+    });
   }
 
   @override
@@ -77,10 +115,51 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached ||
-        state == AppLifecycleState.hidden) {
+    // Android plays from a foreground service so a concert survives screen-off;
+    // stopping here only desyncs the UI from the still-running native engine.
+    if (!kIsWeb &&
+        defaultTargetPlatform != TargetPlatform.android &&
+        (state == AppLifecycleState.paused ||
+            state == AppLifecycleState.detached ||
+            state == AppLifecycleState.hidden)) {
       _stopSafely();
+    }
+  }
+
+  /// If the previous playback was ended by the system, say so and open the
+  /// fix sheet again (even if the first-run sheet was already seen).
+  Future<void> _showCutOffNoticeIfNeeded() async {
+    try {
+      if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+      final power = PowerReliability();
+      if (!await power.lastRunEndedUnexpectedly() || !mounted) return;
+      await showReliabilitySheet(
+        context,
+        power: power,
+        notice:
+            "Last time playback was cut off: your phone's battery manager stopped FlowGroove in the background.",
+      );
+    } catch (_) {
+      // Guidance only; never interrupt the metronome.
+    }
+  }
+
+  Future<void> _showPowerSetupIfNeeded() async {
+    try {
+      if (_reliabilityChecked ||
+          kIsWeb ||
+          defaultTargetPlatform != TargetPlatform.android ||
+          ref.read(_activeMidiBackingProvider) == null) {
+        return;
+      }
+      _reliabilityChecked = true;
+      final power = PowerReliability();
+      if (await power.setupSeen() || !mounted) return;
+      await power.markSetupSeen();
+      if (!mounted) return;
+      await showReliabilitySheet(context, power: power);
+    } catch (_) {
+      // Optional setup must never interrupt playback on older hosts.
     }
   }
 
@@ -94,30 +173,50 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
       if (state.sourceBandId == null) {
         canEditSource = userId != null;
       } else {
-        final bands = ref.watch(bandsProvider).value ?? const <Band>[];
-        final sourceBand = bands
-            .where((band) => band.id == state.sourceBandId)
-            .firstOrNull;
-        final sourceMember = sourceBand?.members
-            .where((member) => member.uid == userId)
-            .firstOrNull;
-        canEditSource =
-            sourceMember?.role == BandMember.roleAdmin ||
-            sourceMember?.role == BandMember.roleEditor;
+        // Canonical band permission (adminUids/editorUids — the same arrays
+        // the Firestore rules read), not the ad-hoc members[].role parse
+        // that silently defaulted to 'viewer' on docs without roles.
+        canEditSource = ref.watch(canEditBandProvider(state.sourceBandId!));
       }
     }
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: ToolScreenScaffold(
-        title: 'Metronome',
-        menuItems: _buildMenuItems(
-          context,
-          metronome,
-          state,
-          canEditSource: canEditSource,
+    // Auto-persist a changed tempo to the loaded song (band-aware, debounced)
+    // — a tapped or typed tempo used to evaporate unless the user found the
+    // ⋮ "Save to …" item.
+    ref.listen(metronomeProvider.select((s) => s.bpm), (prev, next) {
+      _scheduleTempoAutoSave(canEditSource);
+    });
+
+    ref.listen(metronomeProvider.select((s) => s.isPlaying), (prev, next) {
+      if (prev != true && next) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_showPowerSetupIfNeeded());
+        });
+      }
+    });
+
+    return ScreenWakelock(
+      controller: ref.watch(wakelockProvider),
+      isPlaying: state.isPlaying,
+      onWebResume: () => ref
+          .read(metronomePlaybackClientProvider)
+          .resetPhase(
+            MetronomePlaybackConfig.fromState(ref.read(metronomeProvider)),
+          ),
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: ToolScreenScaffold(
+          title: 'Metronome',
+          menuItems: _buildMenuItems(
+            context,
+            metronome,
+            state,
+            canEditSource: canEditSource,
+          ),
+          mainWidget: _MetronomePerformanceSurface(
+            bottomInset: MediaQuery.paddingOf(context).bottom,
+          ),
         ),
-        mainWidget: const _MetronomePerformanceSurface(),
       ),
     );
   }
@@ -182,21 +281,28 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
           },
         ),
       ),
-      // Save to Song (only shown when song is loaded)
+      // Save to Song (only shown when song is loaded). When the user lacks
+      // the band role, tapping explains why instead of a silent grey row.
       if (state.activeSong != null) ...[
         AppMenuItem(
           icon: Icons.edit_outlined,
           label: 'Edit Song',
           onTap: canEditSource
               ? () => _navigateToEditSong(context, state)
-              : null,
+              : () => _showErrorSnackBar(
+                  context,
+                  'Only band editors can change this song',
+                ),
         ),
         AppMenuItem(
           icon: Icons.save_outlined,
           label: "Save to '${state.activeSong!.title}'",
           onTap: canEditSource
               ? () => _saveMetronomeToSong(context, metronome, state)
-              : null,
+              : () => _showErrorSnackBar(
+                  context,
+                  'Only band editors can save to this song',
+                ),
         ),
       ],
       AppMenuItem(
@@ -207,15 +313,17 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     ];
   }
 
-  /// Save current metronome settings to the loaded song
+  /// Save current metronome settings to the loaded song. [silent] is the
+  /// debounced auto-save path: no success toast, errors still surface.
   Future<void> _saveMetronomeToSong(
     BuildContext context,
     MetronomeNotifier metronome,
-    MetronomeState state,
-  ) async {
+    MetronomeState state, {
+    bool silent = false,
+  }) async {
     final updatedSong = metronome.saveMetronomeToSong();
     if (updatedSong == null) {
-      _showErrorSnackBar(context, 'No song loaded');
+      if (!silent) _showErrorSnackBar(context, 'No song loaded');
       return;
     }
 
@@ -223,7 +331,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
       // Get current user
       final user = ref.read(firebaseAuthProvider).currentUser;
       if (user == null) {
-        _showErrorSnackBar(context, 'Not signed in');
+        if (!silent) _showErrorSnackBar(context, 'Not signed in');
         return;
       }
 
@@ -233,15 +341,57 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
       } else {
         await repository.updateSong(updatedSong, uid: user.uid);
       }
+      await _refreshSavedRevision(
+        repository,
+        updatedSong,
+        bandId: state.sourceBandId,
+        uid: user.uid,
+      );
 
-      if (!context.mounted) return;
+      if (!context.mounted || silent) return;
       _showSuccessSnackBar(
         context,
         "Saved metronome settings to '${updatedSong.title}'",
       );
     } catch (e) {
-      if (!context.mounted) return;
+      if (!context.mounted) {
+        // The debounced auto-save regularly fires after navigating away —
+        // the root messenger keeps the failure visible instead of dropping it.
+        showGlobalSnackBar(
+          'Failed to save metronome settings: $e',
+          error: true,
+        );
+        return;
+      }
       _showErrorSnackBar(context, 'Failed to save: $e');
+    }
+  }
+
+  /// A save writes a new commit; the loaded copy must carry its id or the next
+  /// save (any later tempo change) is rejected as "changed in another session".
+  Future<void> _refreshSavedRevision(
+    SongRepository repository,
+    Song saved, {
+    required String? bandId,
+    required String uid,
+  }) async {
+    try {
+      final songs = bandId != null
+          ? await repository.getBandSongs(bandId)
+          : await repository.getSongs(uid);
+      final fresh = songs.where((song) => song.id == saved.id).firstOrNull;
+      final active = ref.read(metronomeProvider).activeSong;
+      if (fresh == null || active == null || active.id != saved.id) return;
+      ref
+          .read(metronomeProvider.notifier)
+          .replaceActiveSong(
+            active.copyWith(
+              latestCommitId: fresh.latestCommitId,
+              libraryBaseRevision: fresh.libraryBaseRevision,
+            ),
+          );
+    } on Object {
+      // Best effort: the next save surfaces a real conflict honestly.
     }
   }
 
@@ -278,9 +428,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
         ourBpm: state.bpm.toString(),
         accentBeats: state.accentBeats,
         regularBeats: state.regularBeats,
-        beatModes: state.beatModes
-            .map(List.of)
-            .toList(growable: false),
+        beatModes: state.beatModes.map(List.of).toList(growable: false),
       ),
     );
   }
@@ -290,8 +438,12 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     if (song == null) return;
 
     context.pushNamed(
-      'edit-song',
+      'song',
       pathParameters: {'id': song.id},
+      queryParameters: {
+        'tab': 'edit',
+        if (state.sourceBandId case final b?) 'bandId': b,
+      },
       extra: state.sourceBandId == null
           ? song
           : {'song': song, 'bandId': state.sourceBandId},
@@ -299,41 +451,72 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
   }
 }
 
+final _activeMidiBackingProvider = Provider<SongLabEntry?>((ref) {
+  // Native iOS keeps the old path; Android and web use the shared transport.
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) return null;
+  final state = ref.watch(metronomeProvider);
+  final song = state.activeSong;
+  if (song == null || ref.watch(authStateProvider).value == null) return null;
+  final entries = ref
+      .watch(labEntriesProvider((song.id, state.sourceBandId)))
+      .value;
+  final hidden = ref.watch(midiHiddenProvider);
+  for (final entry in entries ?? <SongLabEntry>[]) {
+    if (entry.type == LabEntryType.midi &&
+        entry.midiSong?.fileUrl != null &&
+        !hidden.contains(entry.id)) {
+      return entry;
+    }
+  }
+  return null;
+});
+
 /// Adaptive metronome layout (Mono Pulse audit A6).
 ///
 /// Portrait: a centered, max-width, scrollable column — phone fills the width,
 /// web/tablet centers with gutters. Landscape: the dial moves to the left and
 /// the beat map / transport / tools / library stack on the right, so the dial
 /// no longer clips under the app bar on short heights.
-class _MetronomePerformanceSurface extends StatelessWidget {
-  const _MetronomePerformanceSurface();
+class _MetronomePerformanceSurface extends ConsumerWidget {
+  const _MetronomePerformanceSurface({required this.bottomInset});
+
+  final double bottomInset;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(_activeMidiBackingProvider) != null) {
+      return const _MetronomeSongLibrary();
+    }
     return OrientationBuilder(
       builder: (context, orientation) => orientation == Orientation.landscape
-          ? const _MetronomeLandscape()
-          : const _MetronomePortrait(),
+          ? _MetronomeLandscape(bottomInset: bottomInset)
+          : _MetronomePortrait(bottomInset: bottomInset),
     );
   }
 }
 
 class _MetronomePortrait extends StatelessWidget {
-  const _MetronomePortrait();
+  const _MetronomePortrait({required this.bottomInset});
+
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding = MediaQuery.sizeOf(context).width < 375
+        ? MonoPulseSpacing.md
+        : MonoPulseSpacing.lg;
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
-        child: const SingleChildScrollView(
+        child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
-            MonoPulseSpacing.lg,
+            horizontalPadding,
             MonoPulseSpacing.sm,
-            MonoPulseSpacing.lg,
-            MonoPulseSpacing.md,
+            horizontalPadding,
+            bottomInset + MonoPulseSpacing.md,
           ),
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TimeSignatureBlock(),
@@ -342,7 +525,7 @@ class _MetronomePortrait extends StatelessWidget {
               SizedBox(height: MonoPulseSpacing.md),
               _MetronomeTransport(),
               SizedBox(height: MonoPulseSpacing.md),
-              SongLibraryBlock(),
+              _MetronomeSongLibrary(),
             ],
           ),
         ),
@@ -352,41 +535,127 @@ class _MetronomePortrait extends StatelessWidget {
 }
 
 class _MetronomeLandscape extends StatelessWidget {
-  const _MetronomeLandscape();
+  const _MetronomeLandscape({required this.bottomInset});
+
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(
+    return Padding(
+      padding: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.lg,
         vertical: MonoPulseSpacing.sm,
       ),
       child: Row(
         children: [
           // Left: the dial, scaled to fit the available height.
-          Expanded(
+          const Expanded(
             child: Center(
               child: SingleChildScrollView(child: TempoControlCluster()),
             ),
           ),
-          SizedBox(width: MonoPulseSpacing.xl),
+          const SizedBox(width: MonoPulseSpacing.xl),
           // Right: beat map, transport, tools, library.
           Expanded(
             child: SingleChildScrollView(
-              child: Column(
+              padding: EdgeInsets.only(bottom: bottomInset),
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TimeSignatureBlock(),
                   SizedBox(height: MonoPulseSpacing.sm),
                   _MetronomeTransport(),
                   SizedBox(height: MonoPulseSpacing.md),
-                  SongLibraryBlock(),
+                  _MetronomeSongLibrary(),
                 ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MetronomeSongLibrary extends ConsumerWidget {
+  const _MetronomeSongLibrary();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(metronomeProvider);
+    final active = ref.watch(drumActiveProvider);
+
+    void onPressed() {
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (_) => state.activeSong == null
+            ? SafeArea(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: const [
+                    ListTile(
+                      title: Text(
+                        'Pick a song first, then add a MIDI file or drum pattern to it',
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : BackingSheet(
+                songId: state.activeSong!.id,
+                bandId: state.sourceBandId,
+              ),
+      );
+    }
+
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      return const SongLibraryBlock();
+    }
+
+    final entry = ref.watch(_activeMidiBackingProvider);
+    final backingButton = Tooltip(
+      message: 'Backing tracks',
+      child: active == null
+          ? OutlinedButton.icon(
+              icon: const Icon(Icons.album_outlined),
+              label: const Text('Backing tracks'),
+              onPressed: onPressed,
+            )
+          : FilledButton.icon(
+              icon: const Icon(Icons.album_outlined),
+              label: Text('Drums · $active'),
+              onPressed: onPressed,
+            ),
+    );
+    if (entry != null) {
+      return LaunchpadView(
+        key: ValueKey(entry.id),
+        entry: entry,
+        sections: state.activeSong!.sections,
+        header: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const TimeSignatureBlock(),
+            const SizedBox(height: MonoPulseSpacing.sm),
+            const TempoControlCluster(),
+            const SizedBox(height: MonoPulseSpacing.md),
+            const SongLibraryBlock(),
+            const SizedBox(height: MonoPulseSpacing.md),
+            backingButton,
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SongLibraryBlock(),
+        const SizedBox(height: MonoPulseSpacing.sm),
+        backingButton,
+      ],
     );
   }
 }

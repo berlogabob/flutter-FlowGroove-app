@@ -122,31 +122,35 @@ class _PlayPauseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.mediumImpact();
-        onTap();
-      },
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: MonoPulseColors.accentOrange,
-          // Orange glow — brighter while playing (Mono Pulse transport).
-          boxShadow: [
-            BoxShadow(
-              color: MonoPulseColors.accentOrange.withValues(
-                alpha: isPlaying ? 0.55 : 0.35,
+    return Semantics(
+      button: true,
+      label: isPlaying ? 'Pause' : 'Play',
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          onTap();
+        },
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: MonoPulseColors.accentOrange,
+            // Orange glow — brighter while playing (Mono Pulse transport).
+            boxShadow: [
+              BoxShadow(
+                color: MonoPulseColors.accentOrange.withValues(
+                  alpha: isPlaying ? 0.55 : 0.35,
+                ),
+                blurRadius: isPlaying ? 30 : 18,
               ),
-              blurRadius: isPlaying ? 30 : 18,
-            ),
-          ],
-        ),
-        child: Icon(
-          isPlaying ? Icons.pause : Icons.play_arrow,
-          color: context.mp.black,
-          size: size * 0.5,
+            ],
+          ),
+          child: Icon(
+            isPlaying ? Icons.pause : Icons.play_arrow,
+            color: context.mp.black,
+            size: size * 0.5,
+          ),
         ),
       ),
     );

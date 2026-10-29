@@ -15,7 +15,6 @@ import '../services/song_suggestion_service.dart';
 
 /// State for autocomplete search.
 class AutocompleteSearchState {
-
   const AutocompleteSearchState({
     this.query = '',
     this.suggestions = const [],
@@ -108,10 +107,7 @@ class AutocompleteSearchNotifier extends Notifier<AutocompleteSearchState> {
         limit: 8,
       );
 
-      state = state.copyWith(
-        suggestions: suggestions,
-        isLoading: false,
-      );
+      state = state.copyWith(suggestions: suggestions, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         suggestions: [],

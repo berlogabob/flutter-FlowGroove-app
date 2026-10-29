@@ -4,9 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ToolSpacing Responsive Breakpoints', () {
-    testWidgets('xs spacing adapts to compact breakpoint', (
-      tester,
-    ) async {
+    testWidgets('xs spacing adapts to compact breakpoint', (tester) async {
       double? spacingValue;
 
       await tester.pumpWidget(
@@ -26,9 +24,7 @@ void main() {
       expect(spacingValue, equals(4));
     });
 
-    testWidgets('xs spacing adapts to medium breakpoint', (
-      tester,
-    ) async {
+    testWidgets('xs spacing adapts to medium breakpoint', (tester) async {
       double? spacingValue;
 
       await tester.pumpWidget(
@@ -48,9 +44,7 @@ void main() {
       expect(spacingValue, equals(4));
     });
 
-    testWidgets('xs spacing adapts to expanded breakpoint', (
-      tester,
-    ) async {
+    testWidgets('xs spacing adapts to expanded breakpoint', (tester) async {
       double? spacingValue;
 
       await tester.pumpWidget(
@@ -70,9 +64,7 @@ void main() {
       expect(spacingValue, equals(4));
     });
 
-    testWidgets('xs spacing adapts to desktop breakpoint', (
-      tester,
-    ) async {
+    testWidgets('xs spacing adapts to desktop breakpoint', (tester) async {
       double? spacingValue;
 
       await tester.pumpWidget(
@@ -92,9 +84,7 @@ void main() {
       expect(spacingValue, equals(4));
     });
 
-    testWidgets('sm spacing is consistent across breakpoints', (
-      tester,
-    ) async {
+    testWidgets('sm spacing is consistent across breakpoints', (tester) async {
       final testCases = [
         {'width': 300.0, 'expected': 8.0},
         {'width': 400.0, 'expected': 8.0},
@@ -152,9 +142,7 @@ void main() {
       }
     });
 
-    testWidgets('lg spacing scales with breakpoints', (
-      tester,
-    ) async {
+    testWidgets('lg spacing scales with breakpoints', (tester) async {
       final testCases = [
         {'width': 300.0, 'expected': 16.0},
         {'width': 400.0, 'expected': 16.0},
@@ -183,9 +171,7 @@ void main() {
       }
     });
 
-    testWidgets('xl spacing scales with breakpoints', (
-      tester,
-    ) async {
+    testWidgets('xl spacing scales with breakpoints', (tester) async {
       final testCases = [
         {'width': 300.0, 'expected': 20.0},
         {'width': 400.0, 'expected': 24.0},
@@ -214,9 +200,7 @@ void main() {
       }
     });
 
-    testWidgets('xxl spacing scales with breakpoints', (
-      tester,
-    ) async {
+    testWidgets('xxl spacing scales with breakpoints', (tester) async {
       final testCases = [
         {'width': 300.0, 'expected': 24.0},
         {'width': 400.0, 'expected': 32.0},
@@ -245,9 +229,7 @@ void main() {
       }
     });
 
-    testWidgets('xxxl spacing scales with breakpoints', (
-      tester,
-    ) async {
+    testWidgets('xxxl spacing scales with breakpoints', (tester) async {
       final testCases = [
         {'width': 300.0, 'expected': 32.0},
         {'width': 400.0, 'expected': 40.0},
@@ -276,9 +258,7 @@ void main() {
       }
     });
 
-    testWidgets('spacing follows 4-point grid system', (
-      tester,
-    ) async {
+    testWidgets('spacing follows 4-point grid system', (tester) async {
       final allSpacingMethods = [
         ToolSpacing.xs,
         ToolSpacing.sm,
@@ -409,9 +389,7 @@ void main() {
       expect(touchSize, equals(56));
     });
 
-    testWidgets('medium touch target scales with breakpoints', (
-      tester,
-    ) async {
+    testWidgets('medium touch target scales with breakpoints', (tester) async {
       final testCases = [
         {'width': 300.0, 'expected': 44.0},
         {'width': 400.0, 'expected': 48.0},
@@ -440,9 +418,7 @@ void main() {
       }
     });
 
-    testWidgets('large touch target scales with breakpoints', (
-      tester,
-    ) async {
+    testWidgets('large touch target scales with breakpoints', (tester) async {
       final testCases = [
         {'width': 300.0, 'expected': 48.0},
         {'width': 400.0, 'expected': 56.0},
@@ -471,9 +447,7 @@ void main() {
       }
     });
 
-    testWidgets('touch targets increase with screen size', (
-      tester,
-    ) async {
+    testWidgets('touch targets increase with screen size', (tester) async {
       final widths = [300.0, 400.0, 800.0, 1200.0];
 
       for (final width in widths) {
@@ -654,9 +628,7 @@ void main() {
   });
 
   group('ToolBreakpoint Edge Cases', () {
-    testWidgets('handles exact breakpoint boundaries', (
-      tester,
-    ) async {
+    testWidgets('handles exact breakpoint boundaries', (tester) async {
       expect(ToolBreakpoint.fromWidth(374), equals(ToolBreakpoint.compact));
       expect(ToolBreakpoint.fromWidth(375), equals(ToolBreakpoint.medium));
       expect(ToolBreakpoint.fromWidth(599), equals(ToolBreakpoint.medium));
@@ -673,9 +645,7 @@ void main() {
       expect(ToolBreakpoint.fromWidth(3840), equals(ToolBreakpoint.desktop));
     });
 
-    testWidgets('handles negative width gracefully', (
-      tester,
-    ) async {
+    testWidgets('handles negative width gracefully', (tester) async {
       expect(ToolBreakpoint.fromWidth(-100), equals(ToolBreakpoint.compact));
     });
 
@@ -688,9 +658,7 @@ void main() {
   });
 
   group('Responsive Layout Integration', () {
-    testWidgets('ToolSpacing works in actual widget tree', (
-      tester,
-    ) async {
+    testWidgets('ToolSpacing works in actual widget tree', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -715,9 +683,7 @@ void main() {
       expect(find.byType(SizedBox), findsNWidgets(4));
     });
 
-    testWidgets('ToolTouchTarget works in actual widget tree', (
-      tester,
-    ) async {
+    testWidgets('ToolTouchTarget works in actual widget tree', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -792,9 +758,7 @@ void main() {
   });
 
   group('MonoPulse Theme Integration', () {
-    testWidgets('spacing values align with MonoPulseSpacing', (
-      tester,
-    ) async {
+    testWidgets('spacing values align with MonoPulseSpacing', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -949,9 +913,7 @@ void main() {
       expect(find.text('Button'), findsOneWidget);
     });
 
-    testWidgets('can be used for container margins', (
-      tester,
-    ) async {
+    testWidgets('can be used for container margins', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -972,9 +934,7 @@ void main() {
       expect(find.text('Content'), findsOneWidget);
     });
 
-    testWidgets('can be used for touch target sizing', (
-      tester,
-    ) async {
+    testWidgets('can be used for touch target sizing', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -999,9 +959,7 @@ void main() {
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
-    testWidgets('can be used for list item spacing', (
-      tester,
-    ) async {
+    testWidgets('can be used for list item spacing', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(

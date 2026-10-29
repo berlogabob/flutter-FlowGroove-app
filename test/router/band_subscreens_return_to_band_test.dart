@@ -45,9 +45,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('route:the-band'), findsOneWidget);
 
-        unawaited(
-          router.pushNamed(target, pathParameters: {'id': 'band-1'}),
-        );
+        unawaited(router.pushNamed(target, pathParameters: {'id': 'band-1'}));
         await tester.pumpAndSettle();
         expect(find.text('route:$target'), findsOneWidget);
 

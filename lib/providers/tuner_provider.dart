@@ -9,6 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/instrument.dart';
 import '../models/music_mode.dart';
 import '../models/tuner_preset.dart';
+import '../providers/auth/auth_provider.dart';
+import '../providers/data/data_providers.dart';
+import '../providers/permissions_provider.dart';
 import '../repositories/tuner_preset_repository.dart';
 import '../services/analytics_service.dart';
 import '../services/audio/pitch_analysis.dart';
@@ -19,7 +22,6 @@ import '../services/tuner_preferences.dart';
 enum TunerMode { generate, listen }
 
 class NoteData {
-
   const NoteData({
     required this.note,
     required this.octave,
@@ -38,7 +40,6 @@ class NoteData {
 const Object _notSet = Object();
 
 class TunerState {
-
   const TunerState({
     this.mode = TunerMode.listen,
     this.frequency = 440,
@@ -229,7 +230,6 @@ class TunerState {
 }
 
 class TunerNotifier extends Notifier<TunerState> {
-
   TunerNotifier({
     ToneGenerator? toneGenerator,
     PitchDetector? pitchDetector,
@@ -291,9 +291,8 @@ class TunerNotifier extends Notifier<TunerState> {
         droneEnabled: values['droneEnabled'] as bool? ?? false,
         recentPresetIds:
             (values['recentPresetIds'] as List<String>?) ?? const [],
-        transpositionSemitones: ((values['transposition'] as num?)?.toInt() ??
-                0)
-            .clamp(0, 11),
+        transpositionSemitones:
+            ((values['transposition'] as num?)?.toInt() ?? 0).clamp(0, 11),
       );
     } catch (error) {
       debugPrint('Unable to restore tuner preferences: $error');
@@ -923,15 +922,59 @@ class TunerNotifier extends Notifier<TunerState> {
     return TunerNoteMath.frequencyForNote(noteName, state.referenceA4);
   }
 
+  String _syncedPresetUid() {
+    final user = ref.read(appUserProvider);
+    if (!user.isLoading && !user.hasError) {
+      final value = user.value;
+      if (value != null && value.accessRole != 'demo') {
+        try {
+          if (ref.read(firebaseAuthProvider).currentUser?.uid == value.uid) {
+            return value.uid;
+          }
+        } catch (_) {
+          // Unavailable authentication must fail closed for remote writes.
+        }
+      }
+    }
+    throw StateError('Sign in before changing synced tuner presets');
+  }
+
+  void _requirePresetAuthority(TunerPreset preset) {
+    if (preset.scope == TunerPresetScope.local) return;
+    final uid = _syncedPresetUid();
+    if (preset.scope == TunerPresetScope.song && preset.songId == null) {
+      throw StateError('Song presets require a song');
+    }
+    if (preset.scope == TunerPresetScope.band ||
+        (preset.scope == TunerPresetScope.song && preset.bandId != null)) {
+      final bandId = preset.bandId;
+      if (bandId != null) {
+        final bands = ref.read(bandsProvider);
+        if (!bands.isLoading &&
+            !bands.hasError &&
+            ref.read(canEditBandProvider(bandId))) {
+          return;
+        }
+      }
+    } else if (preset.ownerId == uid) {
+      return;
+    }
+    throw StateError('Check your permissions before changing this preset');
+  }
+
   Future<void> addCustomTuning(
     Tuning tuning, {
     TunerPresetScope scope = TunerPresetScope.local,
     String? bandId,
     String? songId,
   }) async {
+    final previous = _customPresetsById[tuning.id];
+    if (previous != null) _requirePresetAuthority(previous);
+    final uid = scope == TunerPresetScope.local ? null : _syncedPresetUid();
     final now = DateTime.now();
     final preset = TunerPreset(
       id: tuning.id,
+      ownerId: previous?.ownerId ?? uid,
       name: tuning.name,
       instrumentType: InstrumentType.custom,
       tuningNotes: [
@@ -946,7 +989,13 @@ class TunerNotifier extends Notifier<TunerState> {
       createdAt: now,
       updatedAt: now,
     );
+    _requirePresetAuthority(preset);
     await _presetRepository.save(preset);
+    if (!ref.mounted) return;
+    if (uid != null && _syncedPresetUid() != uid) {
+      throw StateError('Account changed while saving the preset');
+    }
+    _requirePresetAuthority(preset);
     _customPresetsById[preset.id] = preset;
     final existing = state.customTunings.where(
       (value) => value.id != tuning.id,
@@ -977,7 +1026,18 @@ class TunerNotifier extends Notifier<TunerState> {
 
   Future<void> removeCustomTuning(String tuningId) async {
     final preset = _customPresetsById[tuningId];
-    if (preset != null) await _presetRepository.delete(preset);
+    if (preset != null) {
+      _requirePresetAuthority(preset);
+      final uid = preset.scope == TunerPresetScope.local
+          ? null
+          : _syncedPresetUid();
+      await _presetRepository.delete(preset);
+      if (!ref.mounted) return;
+      if (uid != null && _syncedPresetUid() != uid) {
+        throw StateError('Account changed while deleting the preset');
+      }
+      _requirePresetAuthority(preset);
+    }
     _customPresetsById.remove(tuningId);
     state = state.copyWith(
       customTunings: state.customTunings

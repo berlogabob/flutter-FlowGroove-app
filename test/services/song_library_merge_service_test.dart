@@ -4,6 +4,7 @@
 // songIds is a no-op for a setlist that already has items, because
 // Setlist.toJson()/effectiveItems prefer items over songIds.
 
+import 'package:flowgroove/models/event_suggestion.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/repositories/setlist_repository.dart';
@@ -95,6 +96,25 @@ class _FakeSetlistRepository implements SetlistRepository {
   @override
   Stream<List<Setlist>> watchBandSetlists(String bandId) =>
       const Stream.empty();
+
+  @override
+  Stream<List<Setlist>> watchGuestEvents(String uid) => const Stream.empty();
+
+  @override
+  Stream<List<EventSuggestion>> watchSetlistSuggestions(
+    String? bandId,
+    String setlistId, {
+    String? ownerUid,
+  }) => const Stream.empty();
+
+  @override
+  Future<void> updateEventKitArea({
+    required String setlistId,
+    required String area,
+    required Object? value,
+    String? bandId,
+    String? uid,
+  }) async {}
 }
 
 void main() {
@@ -129,8 +149,7 @@ void main() {
       // Stub the merge-history write: users/{uid}/song_merges.add({...})
       final usersCollection = MockCollectionReference<Map<String, dynamic>>();
       final userDoc = MockDocumentReference<Map<String, dynamic>>();
-      final mergesCollection =
-          MockCollectionReference<Map<String, dynamic>>();
+      final mergesCollection = MockCollectionReference<Map<String, dynamic>>();
       final mergeDoc = MockDocumentReference<Map<String, dynamic>>();
 
       when(firestore.collection('users')).thenReturn(usersCollection);
@@ -147,7 +166,11 @@ void main() {
           bandId: '',
           name: 'Gig',
           items: const [
-            SetlistItem(id: 'item-1', songId: 'duplicate-id', tuningPresetId: 'drop-d'),
+            SetlistItem(
+              id: 'item-1',
+              songId: 'duplicate-id',
+              tuningPresetId: 'drop-d',
+            ),
             SetlistItem(id: 'item-2', songId: 'other-song'),
           ],
           songIds: const ['duplicate-id', 'other-song'],
@@ -216,35 +239,38 @@ void main() {
       expect(saved.items.single.id, 'item-1');
     });
 
-    test('still rewrites songIds for a legacy setlist with empty items', () async {
-      final legacySetlist = Setlist(
-        id: 'setlist-3',
-        bandId: '',
-        name: 'Old Gig',
-        songIds: const ['duplicate-id', 'other-song'],
-        createdAt: DateTime(2024),
-        updatedAt: DateTime(2024),
-      );
+    test(
+      'still rewrites songIds for a legacy setlist with empty items',
+      () async {
+        final legacySetlist = Setlist(
+          id: 'setlist-3',
+          bandId: '',
+          name: 'Old Gig',
+          songIds: const ['duplicate-id', 'other-song'],
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        );
 
-      await service.merge(
-        uid: 'uid-1',
-        keeperBefore: keeperBefore,
-        duplicate: duplicate,
-        merged: merged,
-        setlists: [legacySetlist],
-        songRepository: songRepository,
-        setlistRepository: setlistRepository,
-      );
+        await service.merge(
+          uid: 'uid-1',
+          keeperBefore: keeperBefore,
+          duplicate: duplicate,
+          merged: merged,
+          setlists: [legacySetlist],
+          songRepository: songRepository,
+          setlistRepository: setlistRepository,
+        );
 
-      final saved = setlistRepository.savedSetlists.single;
-      expect(saved.items, isEmpty);
-      expect(saved.songIds, ['keeper-id', 'other-song']);
-      // effectiveItems falls back to (rewritten) songIds.
-      expect(
-        saved.effectiveItems.map((i) => i.songId).toList(),
-        ['keeper-id', 'other-song'],
-      );
-    });
+        final saved = setlistRepository.savedSetlists.single;
+        expect(saved.items, isEmpty);
+        expect(saved.songIds, ['keeper-id', 'other-song']);
+        // effectiveItems falls back to (rewritten) songIds.
+        expect(saved.effectiveItems.map((i) => i.songId).toList(), [
+          'keeper-id',
+          'other-song',
+        ]);
+      },
+    );
 
     test('skips setlists that never referenced the duplicate', () async {
       final setlist = Setlist(

@@ -767,7 +767,7 @@
       "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/150",
       "number": 150,
       "type": "Issue",
-      "state": "OPEN",
+      "state": "CLOSED",
       "status": "No Status"
     },
     {
@@ -783,8 +783,32 @@
       "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/152",
       "number": 152,
       "type": "Issue",
+      "state": "CLOSED",
+      "status": "No Status"
+    },
+    {
+      "title": "Graph-audit remediation 2026-08 (trackable, measurable)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/177",
+      "number": 177,
+      "type": "Issue",
       "state": "OPEN",
       "status": "No Status"
+    },
+    {
+      "title": "refactor(metronome): extract live setlist/song sync out of MetronomeNotifier",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/178",
+      "number": 178,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "No Status"
+    },
+    {
+      "title": "[epic] Event participants: scoped event sharing for non-members",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/180",
+      "number": 180,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Todo"
     }
   ]
 }

@@ -1,0 +1,36 @@
+{
+  "task": "GH-179-REC-R",
+  "reviewer": "hermes",
+  "scope": "source contract review only; not product/audio acceptance",
+  "accepted_at": "2026-10-25T18:27:14+00:00",
+  "tested_commit": "65ae52369e126d0dd18483429cddab87f99aa389",
+  "actual_provider": "openai-codex",
+  "actual_model": "gpt-6-luna",
+  "terminal_result": "text_response(stop), 2026-10-25T18:15:54.267Z; CLI result exit 0",
+  "tool_calls": 15,
+  "sole_write": "docs/plans/systemic-ux/reviews/GH-179-recorder.md",
+  "scope_deviations": ["Two filename discoveries and two broad searches outside exact ten-file read window; retained original stream"],
+  "all_ten_source_identities_match": true,
+  "source_sha256": {
+    "lib/services/idea_recorder.dart": "25066469d0f52edaae5a912dd6d4e46565868e458acb1de3521f4c7d85cb21b9",
+    "lib/screens/recorder_screen.dart": "4b78a06d8eb6cbc9564237bfb6f6dc90f0a3ff23421d857cb3d77778ec4061a0",
+    "lib/services/storage_service.dart": "ce3a38f443e6beb86f12859eb4fe2f66cf4ce294a288a369b5e5974a86a7c7ef",
+    "lib/repositories/firestore_lab_repository.dart": "e9f6af4cdfa15fe73ed115cbbde77b982c096712e80dc0272171f31703e095bf",
+    "lib/screens/songs/song_lab_screen.dart": "bdc9fcbd1fca2050d02c3dc0925e8561695137f3b65e273420287c5cf0534809",
+    "lib/services/pending_storage_deletes.dart": "0a4e95b2b3a449e1ef78129c21199ff7fab84365e49743710c6b15ee1e53a114",
+    "lib/providers/permissions_provider.dart": "745dcdd226aad80502a2ba79a06ba535763b04acb12a24d41afe45e2223f5d2b",
+    "lib/providers/auth/auth_provider.dart": "9f631120be7143cb77293f3293cc9886ba388203e97f38505aeff0490f06b657",
+    "storage.rules": "c13a905ed9ba74dd591a71547aced972b605686d2e8a8204d8ec6df390875303",
+    "firestore.rules": "d0df6997227595bece55687cd1cc4b1a96081064d721733531eceb082d26f234"
+  },
+  "parent_corrections": [
+    "Storage demo custom claim is not established effective app-role protection",
+    "Cancel cannot stop started Storage deletion; sweep snapshots ignore later cancellation",
+    "Recorder denied/failed document deletion leaves audio queued",
+    "Cached missing Firestore entry is not proof of server noncommit"
+  ],
+  "public_seams_inspected": ["RecorderScreen existing screen tests", "PendingStorageDeletes existing public tests", "SongLabScreen existing rendered tests"],
+  "registered_children": ["GH-179-REC-S1", "GH-179-REC-S2", "GH-179-REC-S3", "GH-179-REC-S4", "GH-179-REC-S5"],
+  "not_checked": ["test execution", "device", "real audio/network", "deployed rules", "human usability"],
+  "issue_and_release": "remain open/held"
+}

@@ -1,0 +1,1 @@
+<img src="{{ .Destination | strings.TrimPrefix "/" | absURL }}" alt="{{ .PlainText }}"{{ with .Title }} title="{{ . }}"{{ end }} loading="lazy">

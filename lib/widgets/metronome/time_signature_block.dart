@@ -33,10 +33,10 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
 
     // Dynamic sizing for compact layout
     final horizontalMargin = isSmallScreen
-        ? MonoPulseSpacing.xxl
-        : MonoPulseSpacing.xxxl;
+        ? MonoPulseSpacing.xs
+        : MonoPulseSpacing.md;
     final blockPadding = isSmallScreen
-        ? MonoPulseSpacing.md
+        ? MonoPulseSpacing.sm
         : MonoPulseSpacing.lg;
     final rowSpacing = isSmallScreen ? 8.0 : MonoPulseSpacing.md;
 
@@ -53,6 +53,9 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
           // Top row - Beats
           _BeatsRow(
             count: beats,
+            // Both strips tile on ONE grid sized by the larger row, so beat i
+            // and subdivision i share a column. See [_StripMetrics]. F-019.
+            gridCount: math.max(beats, subdivisions),
             currentBeat: isPlaying ? currentBeat : -1,
             subdivisions: subdivisions,
             beatModes: beatModes,
@@ -83,6 +86,7 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
           // Bottom row - Subdivisions
           _SubdivisionsRow(
             count: subdivisions,
+            gridCount: math.max(beats, subdivisions),
             isPlaying: isPlaying,
             currentBeat: isPlaying ? currentBeat : -1,
             beats: beats,
@@ -135,19 +139,16 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
 const double _kMaxCircleContainer = 48;
 
 /// Smaller maximum used on narrow screens.
-const double _kMaxCircleContainerSmall = 40;
+const double _kMaxCircleContainerSmall = 44;
 
 /// Minimum tap-target extent (Material 48dp). The visible dot stays small, but
 /// the touchable area is padded up to this so beat toggles aren't mis-tap-prone
 /// when the strip shrinks to fit many beats (UX audit F-006).
 const double _kMinTapTarget = 48;
 
-/// Absolute floor for a circle cell. A beat indicator is a real-time status
-/// display first: every beat must stay visible, so we keep shrinking down to
-/// this floor rather than scrolling. At the app's max of 12 beats this still
-/// fits on any phone ~360dp or wider; the scroll fallback only ever engages on
-/// extremely narrow (legacy) screens, to avoid clipping.
-const double _kMinCircleContainer = 14;
+/// Minimum tappable width for a circle cell. Four cells fit at 360dp; longer
+/// strips scroll when they cannot fit without shrinking the tap targets.
+const double _kMinCircleContainer = 44;
 
 /// Spacing between circles, used only by the (rare) scroll fallback. In the
 /// normal fit-to-width layout each cell carries its own padding around the dot,
@@ -158,8 +159,20 @@ const double _kCircleGap = MonoPulseSpacing.sm;
 ///
 /// `containerSize` is shrunk so that all circles fit the available width.
 /// `needsScroll` is true only when even the floor cell size cannot fit every
-/// circle (legacy ultra-narrow screens), in which case the strip degrades to a
+/// circle, in which case the strip degrades to a
 /// horizontal scroll view instead of clipping.
+///
+/// `count` is the SHARED grid count — max(beats, subdivisions) — not the number
+/// of dots in the row being laid out. Both rows must compute from the same
+/// number or their cells are different widths and nothing lines up vertically
+/// (UX audit F-019 measured the resulting 3-4px near-misses).
+///
+/// ponytail: the cost of one grid is that cell width tracks the LARGER row, so
+/// with 12 beats a lone subdivision dot renders as small as the beat dots
+/// instead of filling the strip. That is the consistent behaviour, and the
+/// >=48dp tap-target height (F-006) is unaffected. If a big lone subdivision
+/// dot is ever wanted back, that is a deliberate break from the shared grid —
+/// not a bug to quietly "fix".
 class _StripMetrics {
   const _StripMetrics({required this.containerSize, required this.needsScroll});
 
@@ -187,18 +200,25 @@ class _StripMetrics {
 }
 
 /// Lays out [children] as a strip: evenly spread when they fit, or a
-/// horizontal scroll view when the metrics report `needsScroll`.
+/// wrap or horizontal scroll view when the metrics report `needsScroll`.
 Widget _buildCircleStrip({
   required BuildContext context,
   required _StripMetrics metrics,
   required List<Widget> children,
   required Key scrollKey,
+  bool wrapWhenNeeded = false,
 }) {
   if (!metrics.needsScroll) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: children,
-    );
+    // MainAxisAlignment.start, not spaceEvenly: spaceEvenly divides the leftover
+    // width by (children + 1), so a 4-dot row and a 1-dot row get different
+    // offsets and land 3-4px apart. With a shared cell width, start-alignment
+    // puts cell i at the same x in both rows. F-019.
+    return Row(children: children);
+  }
+
+  if (wrapWhenNeeded) {
+    // Keep every main beat fully visible and tappable on narrow screens.
+    return Wrap(spacing: _kCircleGap, children: children);
   }
 
   final spaced = <Widget>[];
@@ -233,6 +253,7 @@ Widget _buildCircleStrip({
 class _BeatsRow extends StatelessWidget {
   const _BeatsRow({
     required this.count,
+    required this.gridCount,
     required this.subdivisions,
     required this.beatModes,
     required this.onToggleMode,
@@ -242,6 +263,10 @@ class _BeatsRow extends StatelessWidget {
     this.isSmallScreen = false,
   });
   final int count;
+
+  /// Cell count driving the shared column grid — max(beats, subdivisions), not
+  /// this row's own [count]. See the note on [_StripMetrics].
+  final int gridCount;
   final int currentBeat;
   final int subdivisions;
   final List<List<BeatMode>> beatModes;
@@ -258,23 +283,10 @@ class _BeatsRow extends StatelessWidget {
     final addBtnSpacing = isSmallScreen
         ? MonoPulseSpacing.xs
         : MonoPulseSpacing.sm;
-    final buttonSize = isSmallScreen ? 40.0 : 48.0;
+    final buttonSize = 48.0;
 
     return Row(
       children: [
-        SizedBox(
-          width: isSmallScreen ? 42 : 52,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Beats',
-              style: MonoPulseTypography.labelSmall.copyWith(
-                color: context.mp.textSecondary,
-              ),
-            ),
-          ),
-        ),
         _BeatButton(
           key: const Key('main-beats-decrement'),
           icon: Icons.remove,
@@ -287,13 +299,14 @@ class _BeatsRow extends StatelessWidget {
             builder: (context, constraints) {
               final metrics = _StripMetrics.compute(
                 availableWidth: constraints.maxWidth,
-                count: count,
+                count: gridCount,
                 isSmallScreen: isSmallScreen,
               );
               return _buildCircleStrip(
                 context: context,
                 metrics: metrics,
                 scrollKey: const Key('main-beat-strip-scroll'),
+                wrapWhenNeeded: true,
                 children: List.generate(count, (beatIndex) {
                   // Mode for the first subdivision of this beat (for display).
                   final mode =
@@ -341,6 +354,7 @@ class _BeatsRow extends StatelessWidget {
 class _SubdivisionsRow extends StatelessWidget {
   const _SubdivisionsRow({
     required this.count,
+    required this.gridCount,
     required this.isPlaying,
     required this.currentBeat,
     required this.beats,
@@ -351,6 +365,9 @@ class _SubdivisionsRow extends StatelessWidget {
     this.isSmallScreen = false,
   });
   final int count;
+
+  /// See [_BeatsRow.gridCount] — both rows must be passed the same value.
+  final int gridCount;
   final bool isPlaying;
   final int currentBeat;
   final int beats;
@@ -368,23 +385,10 @@ class _SubdivisionsRow extends StatelessWidget {
     final addBtnSpacing = isSmallScreen
         ? MonoPulseSpacing.xs
         : MonoPulseSpacing.sm;
-    final buttonSize = isSmallScreen ? 40.0 : 48.0;
+    final buttonSize = 48.0;
 
     return Row(
       children: [
-        SizedBox(
-          width: isSmallScreen ? 42 : 52,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Subdivision',
-              style: MonoPulseTypography.labelSmall.copyWith(
-                color: context.mp.textSecondary,
-              ),
-            ),
-          ),
-        ),
         _BeatButton(
           key: const Key('subdivisions-decrement'),
           icon: Icons.remove,
@@ -397,7 +401,7 @@ class _SubdivisionsRow extends StatelessWidget {
             builder: (context, constraints) {
               final metrics = _StripMetrics.compute(
                 availableWidth: constraints.maxWidth,
-                count: count,
+                count: gridCount,
                 isSmallScreen: isSmallScreen,
               );
               final currentBeatIndex = isPlaying && count > 0
@@ -644,7 +648,7 @@ class _BeatButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Smaller buttons on small screens
-    final size = buttonSize ?? (isSmallScreen ? 40.0 : 48.0);
+    final size = buttonSize ?? 48.0;
     final iconSize = isSmallScreen ? 16.0 : 20.0;
     final badgeSize = isSmallScreen ? 14.0 : 18.0;
     final badgeFontSize = isSmallScreen ? 8.0 : 10.0;

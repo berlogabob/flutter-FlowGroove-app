@@ -1,0 +1,6 @@
+<header class="page-heading">
+<p class="section-label">FlowGroove / {{ .Section | default "Notebook" }}</p>
+<h1>{{ .Title }}</h1>
+{{ if and .IsPage (eq .Section "blog") (not .Date.IsZero) (not (.Param "hideMeta")) }}<p class="post-meta"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format (site.Params.DateFormat | default "January 2, 2006") }}</time>{{ if .Draft }} · Draft{{ end }}</p>{{ end }}
+{{ with .Description }}<p class="description">{{ . }}</p>{{ end }}
+</header>

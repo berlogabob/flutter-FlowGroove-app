@@ -1,0 +1,86 @@
+{
+  "task": "UX-007-I",
+  "tested_commit": "d842fa36674a6a4a008ac413203bf939603c836b",
+  "reviewer": "hermes",
+  "verified_at": "2026-10-24T04:28:50.189149+01:00",
+  "worktree_branch": "fix/systemic-ux",
+  "worker_models": {
+    "UX-007-I": "ollama/ornith-1.5:35b",
+    "UX-007-S": "ollama/ornith-1.5:35b"
+  },
+  "source_changes": [
+    "songs SingleFab tooltip Add song",
+    "shared SingleFab Icon semanticLabel from supplied tooltip"
+  ],
+  "test_seam": "Rendered routed SongsListScreen FAB merged SemanticsData.label; explicit semantics handle disposed in finally",
+  "matrix": [
+    {
+      "variant": "original",
+      "exit_code": 1,
+      "semantic_assertion_failed": true,
+      "log": "audit/2026-10-23-systemic-ux/workers/UX-007-S-20261024-042009/original.log"
+    },
+    {
+      "variant": "tooltip_only",
+      "exit_code": 1,
+      "semantic_assertion_failed": true,
+      "log": "audit/2026-10-23-systemic-ux/workers/UX-007-S-20261024-042009/tooltip_only.log"
+    },
+    {
+      "variant": "tooltip_and_icon",
+      "exit_code": 0,
+      "semantic_assertion_failed": false,
+      "log": "audit/2026-10-23-systemic-ux/workers/UX-007-S-20261024-042009/tooltip_and_icon.log"
+    }
+  ],
+  "full_targeted_file_tests_passed": 20,
+  "checks": [
+    {
+      "command": [
+        "flutter",
+        "test",
+        "--no-pub",
+        "test/screens/songs/songs_list_screen_test.dart",
+        "--reporter",
+        "expanded"
+      ],
+      "exit_code": 0,
+      "duration_s": 9.5,
+      "log": "audit/2026-10-23-systemic-ux/workers/UX-007-S-20261024-042009/final-check-0.log"
+    },
+    {
+      "command": [
+        "flutter",
+        "analyze",
+        "--no-pub",
+        "--no-fatal-infos",
+        "--no-fatal-warnings",
+        "lib/widgets/fab_variants.dart",
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "exit_code": 0,
+      "duration_s": 9.25,
+      "log": "audit/2026-10-23-systemic-ux/workers/UX-007-S-20261024-042009/final-check-1.log"
+    },
+    {
+      "command": [
+        "dart",
+        "format",
+        "--output=none",
+        "--set-exit-if-changed",
+        "lib/widgets/fab_variants.dart",
+        "lib/screens/songs/songs_list_screen.dart",
+        "test/screens/songs/songs_list_screen_test.dart"
+      ],
+      "exit_code": 0,
+      "duration_s": 0.3,
+      "log": "audit/2026-10-23-systemic-ux/workers/UX-007-S-20261024-042009/final-check-2.log"
+    }
+  ],
+  "analyzer_baseline": "Same pre-existing redundant-argument info at songs_list_screen.dart:474 and unused-import warning at test file:9, independently reproduced at baseline",
+  "analyzer_new_errors": 0,
+  "format_changed_files": 0,
+  "device_or_talkback_tested": false,
+  "note": "Initial test incorrectly inspected raw node.label and used late teardown; parent corrected it, then repeated original/tooltip-only/both matrix. No assertion weakening: original and tooltip-only still fail the merged accessible label expectation."
+}

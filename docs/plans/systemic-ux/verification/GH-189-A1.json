@@ -1,0 +1,25 @@
+{
+  "task": "GH-189-A1",
+  "reviewer": "hermes",
+  "tested_commit": "dcccc355a7f13021ad9d940c5668fdd93fb6923b",
+  "scope": "AnalyticsService public methods only; not caller instrumentation, device or GA4 acceptance",
+  "actor": "Hermes direct fallback; original Luna failed admission attempt retained, no replay",
+  "changes": "Three parameterless event methods reuse existing consent-safe _log. No token, identifier, URL, text or personal payload.",
+  "source_sha256": "a82ad1feaf8cd03a4e85d54f21bd2533cf61116de5c828ebd082272600302536",
+  "test_sha256": "47e7fb8e045c88d9075d825d9e454847345d125110fece9559bfdd3336315a6e",
+  "checks": {
+    "baseline": {"exit_code": 0, "visible_tests_passed": 18},
+    "vertical_red": {"exit_codes": [1, 1, 1], "kind": "Missing public method compilation errors, not behavioral assertion failures or build timeouts", "logs": ["parent-created-red.jsonl", "parent-opened-red.jsonl", "parent-submitted-red.jsonl"]},
+    "vertical_green": {"exit_codes": [0, 0, 0], "visible_tests_passed_each": 1},
+    "targeted": {"exit_code": 0, "visible_tests_passed": 27, "done_success": true, "report": "parent-final.jsonl"},
+    "combined": {"exit_code": 0, "visible_tests_passed": 33, "done_success": true, "files": ["test/services/analytics_service_test.dart", "test/providers/analytics_consent_provider_test.dart"], "report": "parent-combined.jsonl"},
+    "analyze": {"exit_code": 0, "baseline_infos": 3, "new_diagnostics": 0, "note": "Scoped test-only ignore for installed transitive Firebase Core mock utility; no dependency added"},
+    "format": {"exit_code": 0, "changed_files": 0},
+    "diff_check": {"exit_code": 0},
+    "security_hook": "PASS"
+  },
+  "behavior": ["Exact literal event names captured at the installed Firebase Pigeon transport; parameters null", "Each method sends nothing with consent off", "Each method completes after injected SDK PlatformException; actual attempted call captured"],
+  "commands": ["dart <flutter_tools.snapshot> test --no-pub test/services/analytics_service_test.dart --plain-name <case> --reporter expanded --file-reporter json:<run>/<phase>.jsonl", "dart <flutter_tools.snapshot> test --no-pub test/services/analytics_service_test.dart test/providers/analytics_consent_provider_test.dart --reporter expanded --file-reporter json:<run>/parent-combined.jsonl", "dart analyze lib/services/analytics_service.dart test/services/analytics_service_test.dart", "dart format --output=none --set-exit-if-changed lib/services/analytics_service.dart test/services/analytics_service_test.dart", "git diff --check"],
+  "private_log_directory": "audit/2026-10-23-systemic-ux/workers/GH-189-A1-LUNA-20261025-0305",
+  "limitations": ["Existing legacy Drum bool-parameter assertions and missing-channel/no-app messages remain handled in old fixtures; not clean runtime/GA4 proof", "No global analytics/consent policy redesign", "A2/A3 callers, L0-L4 links, device/human and GA4 verification remain open; issue not closed"]
+}

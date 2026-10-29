@@ -1,0 +1,45 @@
+{
+  "requested_model": "ollama/ornith-1.5:35b",
+  "actual_model": "ollama/ornith-1.5:35b",
+  "transport": "Studio OpenAI-compatible LAN API",
+  "duration_s": 51.29,
+  "finish_reason": "length",
+  "status": "empty-final",
+  "content": "",
+  "usage": {
+    "prompt_tokens": 180,
+    "completion_tokens": 2048,
+    "total_tokens": 2228,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "native_delegate": {
+    "delegation_id": "deleg_ed32697f",
+    "requested_model": "ollama/ornith-1.5:35b",
+    "actual_model": null,
+    "status": "failed",
+    "http_status": 401,
+    "error": "Invalid or expired API key",
+    "api_calls": 1,
+    "api_duration_s": 0.8,
+    "wall_duration_s": 1.33,
+    "accepted_output": false,
+    "note": "Separate native delegation authentication failure; not the direct Studio LAN chat result. No credential changes or retry performed."
+  },
+  "current_execution_path": {
+    "status": "verified",
+    "provider": "studio",
+    "model": "ollama/ornith-1.5:35b",
+    "client": "existing Pi",
+    "proof": "verification/OPS-LAN.json",
+    "native_delegate_401": "not repaired; not used for accepted implementation"
+  }
+}

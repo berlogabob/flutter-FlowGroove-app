@@ -1,0 +1,16 @@
+flutter test exit=0
+00:52 +2634 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_midi2/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+00:52 +2634 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_midi2/test/router/history_restored_extra_test.dart: setlist-view renders when extra is history-restored JSON
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+00:52 +2635 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_midi2/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+00:52 +2636 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_midi2/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+00:52 +2637 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_midi2/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+00:52 +2638 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_midi2/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+00:52 +2639 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_midi2/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+Ticks fired: 60 (skipped: 0)
+Cumulative absolute drift: 119ms
+Average drift per tick: 1.98ms
+Max single-tick drift: 3ms
+Final tick drift: 3ms
+01:00 +2640 ~3: All tests passed!

@@ -1,0 +1,19 @@
+{
+  "task": "GH-187-I3",
+  "reviewer": "hermes",
+  "worker": {"provider": "openai-codex", "model": "gpt-6-luna", "terminal": "2026-10-25T08:22:25.789Z interrupted_by_system(session_turn_lease_lost), 14 calls, no final", "preserved": "Original disconnected CLI, session, partial draft and unfinished GREEN retained privately; no repeated prompt."},
+  "completion": "Controller direct completion after verified server termination and no remaining owned test process. Fixed hanging test controller.close await; expanded existing public fixture for actual resubscriptions and cached refresh/error, both scopes.",
+  "checks": [
+    {"name": "original loading RED", "log": "red-loading.json", "result": "done.success=false; loading assertion fails on original source"},
+    {"name": "parent loading GREEN", "log": "parent-loading.json", "result": "9 visible tests pass, done.success=true; foreground wrapper timed out after actual successful completion, not credited as exit 0"},
+    {"name": "parent warm matrix", "process": "proc_c2784a647582", "result": "exit 0; 11 visible tests pass; done.success=true"},
+    {"name": "primary combined", "process": "proc_74cdee37dd1f", "command": "flutter test --no-pub --reporter json test/widgets/event_suggestions_inbox_test.dart test/screens/setlists/event_share_render_test.dart test/screens/setlists/event_share_screen_test.dart test/services/event_share_service_test.dart", "result": "exit 0; 54 visible tests pass, done.success=true"},
+    {"name": "scoped analyze", "result": "exit 1, three infos only; two required-named-parameter infos and existing redundant default argument; no warnings/errors"},
+    {"name": "final format/diff", "result": "exit 0, two files zero format changes, git diff --check passes; warm/primary exact bytes equal"}
+  ],
+  "source_sha256": "b69755bb121ff153ee0ec68fd4fc00d28e761377fffffb917513542d659113f0",
+  "test_sha256": "62c8b1b8f873b77cb1962f3e5d2cfaceffcd35ab114750a26916217dbd57c4ed",
+  "behavior": "Initial loading and no-data error visible; exact-scope Retry recovers via actual new subscription; cached nonempty requests survive refresh/error; successful empty list hidden; role/resolve payload preserved.",
+  "not_checked": ["device/guest round trip", "human UX", "deployed rules/callable", "full Graphify (existing final gate)", "cached empty-list refresh indication"],
+  "release_hold": true
+}

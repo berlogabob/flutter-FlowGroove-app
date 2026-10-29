@@ -45,6 +45,7 @@ class HapticsEnabled extends Notifier<bool> {
       value ??= true;
       await prefs.setBool(_hapticsKey, value);
     }
+    if (!ref.mounted) return;
     state = value;
   }
 
@@ -56,5 +57,6 @@ class HapticsEnabled extends Notifier<bool> {
   Future<void> toggle() => set(!state);
 }
 
-final hapticsEnabledProvider =
-    NotifierProvider<HapticsEnabled, bool>(HapticsEnabled.new);
+final hapticsEnabledProvider = NotifierProvider<HapticsEnabled, bool>(
+  HapticsEnabled.new,
+);

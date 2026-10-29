@@ -6,12 +6,36 @@
  * song.schema.json only if drift bites.
  */
 const SCHEMA_VERSION = 1;
-const KEY_RE = /^[A-G][#b]?m?$/;
+// Case-insensitive on purpose. The old anchored /^[A-G][#b]?m?$/ required an
+// uppercase root, which meant the Flutter form's own output was rejected here:
+// SongFormData._buildKey used to emit lowercase minors ("dm"), so the app failed
+// its own server-side validator. Normalising instead of rejecting also converges
+// the four independent key conventions in this repo (form, CSV schema, filter
+// chips, this file) on one stored spelling.
+const KEY_RE = /^([A-G])([#b]?)(m?)$/i;
 const KNOWN = new Set([
   "id", "title", "artist", "originalKey", "ourKey", "originalBPM", "ourBPM",
   "notes", "tags", "spotifyUrl", "links", "youtubeUrl", "sections",
   "spotifyId", "musicbrainzId", "isrc", "album", "durationMs",
 ]);
+
+/**
+ * Canonical spelling for a musical key, or null if it is not one.
+ *
+ * Uppercase root, lowercase accidental, lowercase minor marker: "dm" -> "Dm",
+ * "ABM" -> "Abm", "c#M" -> "C#m". Enharmonics are deliberately preserved — Ab
+ * and G# are the same pitch but not the same notation choice, so folding them
+ * would overwrite the writer's intent.
+ */
+function normalizeKey(value) {
+  if (typeof value !== "string") return null;
+  const match = KEY_RE.exec(value.trim());
+  if (!match) return null;
+  const root = match[1].toUpperCase();
+  const accidental = match[2] === "" ? "" : (match[2] === "#" ? "#" : "b");
+  const minor = match[3] === "" ? "" : "m";
+  return `${root}${accidental}${minor}`;
+}
 
 /**
  * Validates one raw song object. Returns { valid, errors, warnings, song }.
@@ -31,11 +55,18 @@ function validateSong(raw) {
   const key = (field) => {
     const v = raw[field];
     if (v == null) return null;
-    if (typeof v !== "string" || !KEY_RE.test(v)) {
-      errors.push(`invalid ${field} "${v}" (expected like C, G#, Am, Bbm)`);
+    const normalized = normalizeKey(v);
+    if (normalized === null) {
+      // A warning, not an error. An unusable key should not sink an otherwise
+      // good song — an AI or ChordPro import that sends "Cmaj7" is better served
+      // by storing the rest of the song and saying so.
+      warnings.push(`ignored unparseable ${field} "${v}" (expected like C, G#, Am, Bbm)`);
       return null;
     }
-    return v;
+    if (normalized !== v) {
+      warnings.push(`normalized ${field} "${v}" to "${normalized}"`);
+    }
+    return normalized;
   };
   const bpm = (field) => {
     const v = raw[field];
@@ -113,4 +144,4 @@ function validateSong(raw) {
   return { valid: true, errors, warnings, song };
 }
 
-module.exports = { validateSong, SCHEMA_VERSION };
+module.exports = { validateSong, normalizeKey, SCHEMA_VERSION };

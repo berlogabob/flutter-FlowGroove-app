@@ -1,13 +1,12 @@
 /// Tests for CollapsibleSection widget.
 library;
+
 import 'package:flowgroove/screens/songs/components/collapsible_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('CollapsibleSection renders title and content', (
-    tester,
-  ) async {
+  testWidgets('CollapsibleSection renders title and content', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -26,9 +25,7 @@ void main() {
     expect(find.text('Test Content'), findsOneWidget);
   });
 
-  testWidgets('CollapsibleSection can be collapsed', (
-    tester,
-  ) async {
+  testWidgets('CollapsibleSection can be collapsed', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -48,9 +45,7 @@ void main() {
     expect(find.text('Test Content'), findsNothing);
   });
 
-  testWidgets('CollapsibleSection can be expanded again', (
-    tester,
-  ) async {
+  testWidgets('CollapsibleSection can be expanded again', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -75,9 +70,7 @@ void main() {
     expect(find.text('Test Content'), findsOneWidget);
   });
 
-  testWidgets('CollapsibleSection with icon shows icon', (
-    tester,
-  ) async {
+  testWidgets('CollapsibleSection with icon shows icon', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
@@ -94,9 +87,7 @@ void main() {
     expect(find.byIcon(Icons.star), findsOneWidget);
   });
 
-  testWidgets('CollapsibleSection with action shows action', (
-    tester,
-  ) async {
+  testWidgets('CollapsibleSection with action shows action', (tester) async {
     bool actionPressed = false;
 
     await tester.pumpWidget(
@@ -125,9 +116,7 @@ void main() {
     expect(actionPressed, isTrue);
   });
 
-  testWidgets('CollapsibleSection respects initiallyExpanded', (
-    tester,
-  ) async {
+  testWidgets('CollapsibleSection respects initiallyExpanded', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(

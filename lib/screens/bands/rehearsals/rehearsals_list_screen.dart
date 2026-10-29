@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../models/band.dart';
 import '../../../models/rehearsal.dart';
-import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../providers/permissions_provider.dart';
 import '../../../theme/mono_pulse_theme.dart';
@@ -20,17 +19,9 @@ class RehearsalsListScreen extends ConsumerWidget {
 
   final Band band;
 
-  bool _canEdit(WidgetRef ref) {
-    if (ref.read(isDemoUserProvider)) return false;
-    final user = ref.read(currentUserProvider).value;
-    if (user == null) return false;
-    final member = band.members.firstWhere(
-      (m) => m.uid == user.uid,
-      orElse: () => BandMember(uid: '', role: ''),
-    );
-    return member.role == BandMember.roleAdmin ||
-        member.role == BandMember.roleEditor;
-  }
+  // Gate on the live adminUids/editorUids arrays (what rules read), not the
+  // navigation-snapshot band.members.
+  bool _canEdit(WidgetRef ref) => ref.watch(canEditBandProvider(band.id));
 
   void _create(BuildContext context) {
     context.pushNamed(
@@ -51,6 +42,7 @@ class RehearsalsListScreen extends ConsumerWidget {
           ? SingleFab(
               icon: Icons.add,
               onPressed: () => _create(context),
+              tooltip: 'Propose rehearsal',
               heroTag: 'rehearsals_fab_${band.id}',
             )
           : null,
@@ -72,7 +64,7 @@ class RehearsalsListScreen extends ConsumerWidget {
               hint: canEdit
                   ? 'Propose a time and let the band vote'
                   : 'Proposed rehearsals will appear here',
-              actionLabel: canEdit ? 'New rehearsal' : null,
+              actionLabel: canEdit ? 'Propose rehearsal' : null,
               onAction: canEdit ? () => _create(context) : null,
             );
           }

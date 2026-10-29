@@ -5,7 +5,7 @@ import 'render_config.dart';
 
 class PcmClickRenderer {
   PcmClickRenderer({required this.sampleRate})
-      : _voiceLen = (sampleRate * 0.04).round();
+    : _voiceLen = (sampleRate * 0.04).round();
 
   final int sampleRate;
   final int _voiceLen; // 40ms
@@ -16,7 +16,8 @@ class PcmClickRenderer {
   static const double _outputGain = 2.2;
 
   int frameForTick(RenderConfig c, int tickIndex) =>
-      (tickIndex * 60.0 / c.bpm.clamp(1, 600) / c.safeSubdivisions * sampleRate).round();
+      (tickIndex * 60.0 / c.bpm.clamp(1, 600) / c.safeSubdivisions * sampleRate)
+          .round();
 
   /// Oscillator sample at [phase] radians for the given [waveType].
   double _oscillator(String waveType, double phase) {
@@ -48,7 +49,9 @@ class PcmClickRenderer {
     final skip = start - at; // when click began before this chunk
     for (var i = 0; i < count; i++) {
       final k = i + skip;
-      final env = k < 44 ? k / 44.0 : exp(-4.0 * (k - 44) / max(1, _voiceLen - 44));
+      final env = k < 44
+          ? k / 44.0
+          : exp(-4.0 * (k - 44) / max(1, _voiceLen - 44));
       final phase = 2 * pi * frequency * k / sampleRate;
       final v = _oscillator(waveType, phase) * env * volume * _outputGain;
       final s = out[start + i] + v;
@@ -75,8 +78,12 @@ class PcmClickRenderer {
     if (tickFrames <= 0) return out;
 
     // Range of absolute tick indices whose mix position can land in this chunk.
-    final firstTick = ((startFrame + config.latencyOffsetFrames - _voiceLen) / tickFrames).floor();
-    final lastTick = ((startFrame + frameCount + config.latencyOffsetFrames) / tickFrames).ceil();
+    final firstTick =
+        ((startFrame + config.latencyOffsetFrames - _voiceLen) / tickFrames)
+            .floor();
+    final lastTick =
+        ((startFrame + frameCount + config.latencyOffsetFrames) / tickFrames)
+            .ceil();
     for (var n = max(0, firstTick); n <= lastTick; n++) {
       final beat = (n ~/ config.safeSubdivisions) % config.safeBeats;
       final sub = n % config.safeSubdivisions;
@@ -96,7 +103,8 @@ class PcmClickRenderer {
         accentEnabled: config.accentEnabled,
         subdivisionGain: config.subdivisionGain,
       );
-      final mixAt = frameForTick(config, n) - config.latencyOffsetFrames - startFrame;
+      final mixAt =
+          frameForTick(config, n) - config.latencyOffsetFrames - startFrame;
       if (mixAt > frameCount) continue;
       _mixVoice(
         out,

@@ -35,3 +35,21 @@ shows once a kit is set up. For setlists tied to a real event:
 - **Event guide PDF** — the setlist export sheet has a *With event guide*
   toggle: one document with the setlist plus the stage plot and role pages —
   print it, tape it backstage.
+
+## Sharing an event with one person
+
+Give a sound engineer, a venue or a guest musician access to **one event**
+without adding them to the band. Works for band setlists and personal setlists.
+
+1. Open the setlist's **⋯ menu → Event kit** and set the date and venue.
+2. Under **People**, add the person (name and role). A role preset ticks the
+   areas they get: **Event info**, **Running order**, **Song detail**, **Stage**,
+   **Rider**, each *hidden*, *view* or *edit*. Adjust the ticks if needed.
+3. Tap the **share** icon next to their name and send them the link.
+4. They open it: no sign-in is needed to read. To edit their area they sign in
+   and tap **Claim**; the event then appears in their setlists list.
+
+They only ever see the areas you gave them. Remove the person or lower their
+access and it takes effect right away. Links expire after a while and can be
+revoked. Guests with *suggest* rights can propose changes; you accept or
+decline them in the event's inbox.

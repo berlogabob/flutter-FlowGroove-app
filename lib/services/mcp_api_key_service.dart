@@ -44,8 +44,9 @@ class McpApiKeyService {
   }
 
   Future<List<ApiKeyInfo>> listKeys() async {
-    final result =
-        await _functions.httpsCallable('listApiKeys').call<Map<String, dynamic>>();
+    final result = await _functions
+        .httpsCallable('listApiKeys')
+        .call<Map<String, dynamic>>();
     final raw = (result.data['keys'] as List?) ?? const [];
     return raw
         .map((e) => ApiKeyInfo.fromMap(Map<String, dynamic>.from(e as Map)))
@@ -53,8 +54,8 @@ class McpApiKeyService {
   }
 
   Future<void> revokeKey(String id) async {
-    await _functions
-        .httpsCallable('revokeApiKey')
-        .call<Map<String, dynamic>>({'id': id});
+    await _functions.httpsCallable('revokeApiKey').call<Map<String, dynamic>>({
+      'id': id,
+    });
   }
 }

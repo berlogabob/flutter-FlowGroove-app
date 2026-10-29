@@ -329,7 +329,9 @@ void main() {
       test('generates accent pattern for 6/8 time', () {
         container
             .read(metronomeProvider.notifier)
-            .setTimeSignature(const TimeSignature(numerator: 6, denominator: 8));
+            .setTimeSignature(
+              const TimeSignature(numerator: 6, denominator: 8),
+            );
         container
             .read(metronomeProvider.notifier)
             .updateAccentPatternFromTimeSignature();

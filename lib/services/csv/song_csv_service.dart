@@ -6,6 +6,7 @@
 /// - Sharing CSV files with other apps
 library;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
@@ -15,8 +16,10 @@ import 'package:share_plus/share_plus.dart';
 import '../../models/section.dart';
 import '../../models/song.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../analytics_service.dart';
 import 'song_csv_parser.dart';
 import 'song_csv_serializer.dart';
+import '../../utils/picked_file.dart';
 
 /// Service for CSV import/export operations
 class SongCsvService {
@@ -87,7 +90,16 @@ class SongCsvService {
       );
 
       // On web, file_picker starts a browser download and returns null.
-      return kIsWeb || filePath != null;
+      final ok = kIsWeb || filePath != null;
+      if (ok) {
+        unawaited(
+          AnalyticsService.logCsvExported(
+            itemType: 'song',
+            itemCount: songs.length,
+          ),
+        );
+      }
+      return ok;
     } catch (e, stackTrace) {
       debugPrint('Export failed: $e\n$stackTrace');
       return false;
@@ -115,6 +127,12 @@ class SongCsvService {
         ),
       );
 
+      unawaited(
+        AnalyticsService.logCsvExported(
+          itemType: 'song',
+          itemCount: songs.length,
+        ),
+      );
       return true;
     } catch (e, stackTrace) {
       debugPrint('Share failed: $e\n$stackTrace');
@@ -170,7 +188,7 @@ class SongCsvService {
 
   Future<String?> _readPickedFile(PlatformFile file) async {
     try {
-      return utf8.decode(await file.readAsBytes(), allowMalformed: true);
+      return utf8.decode(await readPickedBytes(file), allowMalformed: true);
     } catch (_) {
       return null;
     }

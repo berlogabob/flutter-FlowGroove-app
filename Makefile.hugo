@@ -11,6 +11,8 @@
 
 .PHONY: help hugo-build app-build deploy-all serve clean clean-app
 
+include scripts/activity-release.mk
+
 # =============================================================================
 # HELP
 # =============================================================================

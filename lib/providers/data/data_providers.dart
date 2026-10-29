@@ -6,8 +6,10 @@ import 'package:http/http.dart' as http;
 
 import '../../models/band.dart';
 import '../../models/canonical_song.dart';
+import '../../models/event_suggestion.dart';
 import '../../models/rehearsal.dart';
 import '../../models/setlist.dart';
+import '../../services/event_share_service.dart';
 import '../../models/song.dart';
 import '../../models/song_lab.dart';
 import '../../repositories/repositories.dart';
@@ -88,7 +90,9 @@ final labEntriesProvider = StreamProvider.autoDispose
 final labTasksProvider = StreamProvider.autoDispose
     .family<List<SongTask>, (String, String?)>((ref, key) {
       final (songId, bandId) = key;
-      return ref.watch(labRepositoryProvider).watchTasks(songId, bandId: bandId);
+      return ref
+          .watch(labRepositoryProvider)
+          .watchTasks(songId, bandId: bandId);
     });
 
 /// One-shot open-task count for a song — the rehearsal "what to prepare"
@@ -243,39 +247,139 @@ final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
 // permanent snapshot listeners open for the whole session.
 
 /// Stream provider that watches shared setlists for a band.
-final bandSetlistsProvider =
-    StreamProvider.autoDispose.family<List<Setlist>, String>((ref, bandId) {
-  final setlistRepo = ref.watch(setlistRepositoryProvider);
-  return setlistRepo.watchBandSetlists(bandId);
+final bandSetlistsProvider = StreamProvider.autoDispose
+    .family<List<Setlist>, String>((ref, bandId) {
+      final setlistRepo = ref.watch(setlistRepositoryProvider);
+      return setlistRepo.watchBandSetlists(bandId);
+    });
+
+/// Events the current user is a GUEST on — invited to one event without being
+/// in the band (a dep, a sound engineer, a venue contact).
+///
+/// Separate from [setlistsProvider] and [bandSetlistsProvider] on purpose:
+/// neither can see these, because the user is neither the owner nor a member.
+final guestEventsProvider = StreamProvider<List<Setlist>>((ref) {
+  final userAsync = ref.watch(currentUserProvider);
+  return userAsync.when(
+    data: (user) {
+      if (user == null) return Stream.value([]);
+      return ref.watch(setlistRepositoryProvider).watchGuestEvents(user.uid);
+    },
+    // Stream.value, not Stream.empty — an empty stream never emits and would
+    // leave the section spinning forever.
+    loading: () => Stream.value([]),
+    error: (error, stack) => Stream.value([]),
+  );
 });
+
+/// True when the signed-in user is NOT a member of [bandId] — i.e. the only
+/// way they can be looking at this band's event is as a guest.
+///
+/// While the band list is still loading this returns false (assume member):
+/// the member path retries harmlessly, whereas guessing "guest" would fire a
+/// callable for every member on every setlist open.
+/// null while the band list is still loading — the honest third answer.
+///
+/// This used to collapse "not loaded yet" into "member", which is wrong for a
+/// guest in exactly the way that matters: for the moment before the band list
+/// arrives they were handed every area at `edit`, so the Event kit door opened
+/// onto controls whose writes the rules then refused. Callers must decide what
+/// unknown means for them rather than have a false certainty picked for them.
+bool? isEventGuestOf(List<Band>? bands, String bandId) {
+  if (bands == null) return null;
+  return !bands.any((b) => b.id == bandId);
+}
+
+/// Suggestions people made about ONE event, newest first.
+///
+/// Band-side only: the security rules make this subcollection readable by band
+/// members alone. A guest sees their own through `getEventView.mySuggestions`,
+/// because an anonymous link holder has no uid for a rule to match on.
+final setlistSuggestionsProvider = StreamProvider.autoDispose
+    .family<List<EventSuggestion>, (String, String)>((ref, key) {
+      return ref
+          .watch(setlistRepositoryProvider)
+          .watchSetlistSuggestions(key.$1, key.$2);
+    });
+
+/// Requests on a personal event, visible only to its owner.
+final personalSetlistSuggestionsProvider = StreamProvider.autoDispose
+    .family<List<EventSuggestion>, (String, String)>((ref, key) {
+      return ref
+          .watch(setlistRepositoryProvider)
+          .watchSetlistSuggestions(null, key.$2, ownerUid: key.$1);
+    });
+
+/// Callable wrapper for event sharing.
+///
+/// A provider rather than a constructor call inside the screen: building it
+/// inline is precisely why EventShareScreen had zero tests — there was no seam
+/// to put a fake behind.
+final eventShareServiceProvider = Provider<EventShareService>((ref) {
+  return EventShareService();
+});
+
+/// ONE event as a guest is allowed to see it.
+///
+/// The single read path for anyone who is not a band member. They cannot read
+/// the setlist document (a whole-document read would leak the stage plot, the
+/// rider and every roster uid regardless of their grant) and they cannot list
+/// the band's songs. The server returns exactly their granted areas.
+final eventViewProvider = FutureProvider.autoDispose
+    .family<EventView, (String, String)>((ref, key) async {
+      return ref
+          .read(eventShareServiceProvider)
+          .getEventView(bandId: key.$1, setlistId: key.$2);
+    });
+
+/// The event's songs for a guest, derived from the same single read.
+final eventGuestSongsProvider = FutureProvider.autoDispose
+    .family<List<Song>, (String, String)>((ref, key) async {
+      final view = await ref.watch(eventViewProvider(key).future);
+      return [for (final song in view.songs) songFromEventView(song)];
+    });
+
+/// Songs for a setlist, whichever way the viewer is entitled to them: the live
+/// band stream for a member, the scoped event payload for a guest.
+final setlistSongsProvider = Provider.autoDispose
+    .family<AsyncValue<List<Song>>, (String, String)>((ref, key) {
+      final isGuest = isEventGuestOf(ref.watch(bandsProvider).value, key.$1);
+      // Unknown: hold in loading rather than guessing. Guessing "member" fires a
+      // band-songs query the rules deny for a guest, which logs a
+      // permission-denied on every event a guest opens.
+      if (isGuest == null) return const AsyncValue<List<Song>>.loading();
+      if (isGuest) return ref.watch(eventGuestSongsProvider(key));
+      return ref.watch(bandSongsProvider(key.$1));
+    });
 
 /// Stream provider that watches rehearsals for a band.
-final bandRehearsalsProvider =
-    StreamProvider.autoDispose.family<List<Rehearsal>, String>((ref, bandId) {
-  final repo = ref.watch(rehearsalRepositoryProvider);
-  return repo.watchRehearsals(bandId);
-});
+final bandRehearsalsProvider = StreamProvider.autoDispose
+    .family<List<Rehearsal>, String>((ref, bandId) {
+      final repo = ref.watch(rehearsalRepositoryProvider);
+      return repo.watchRehearsals(bandId);
+    });
 
 /// Stream provider that watches a single rehearsal ((bandId, rehearsalId)).
-final rehearsalProvider =
-    StreamProvider.autoDispose.family<Rehearsal?, (String, String)>((ref, key) {
-  final repo = ref.watch(rehearsalRepositoryProvider);
-  return repo.watchRehearsal(key.$1, key.$2);
-});
+final rehearsalProvider = StreamProvider.autoDispose
+    .family<Rehearsal?, (String, String)>((ref, key) {
+      final repo = ref.watch(rehearsalRepositoryProvider);
+      return repo.watchRehearsal(key.$1, key.$2);
+    });
 
 /// Stream provider that watches votes for a rehearsal ((bandId, rehearsalId)).
 final rehearsalVotesProvider = StreamProvider.autoDispose
     .family<Map<String, RehearsalVote>, (String, String)>((ref, key) {
-  final repo = ref.watch(rehearsalRepositoryProvider);
-  return repo.watchVotes(key.$1, key.$2);
-});
+      final repo = ref.watch(rehearsalRepositoryProvider);
+      return repo.watchVotes(key.$1, key.$2);
+    });
 
 /// Stream provider that watches band songs.
-final bandSongsProvider =
-    StreamProvider.autoDispose.family<List<Song>, String>((ref, bandId) {
-  final songRepo = ref.watch(songRepositoryProvider);
-  return songRepo.watchBandSongs(bandId);
-});
+final bandSongsProvider = StreamProvider.autoDispose.family<List<Song>, String>(
+  (ref, bandId) {
+    final songRepo = ref.watch(songRepositoryProvider);
+    return songRepo.watchBandSongs(bandId);
+  },
+);
 
 /// Provider that returns the count of songs.
 final songCountProvider = Provider<int>((ref) {
@@ -301,8 +405,10 @@ final setlistCountProvider = Provider<int>((ref) {
 ///
 /// autoDispose so it does not pin the autoDispose [bandSetlistsProvider] stream
 /// alive after the band screen is gone.
-final bandSetlistCountProvider =
-    Provider.autoDispose.family<int, String>((ref, bandId) {
+final bandSetlistCountProvider = Provider.autoDispose.family<int, String>((
+  ref,
+  bandId,
+) {
   return ref
           .watch(bandSetlistsProvider(bandId))
           .whenOrNull(data: (setlists) => setlists.length) ??

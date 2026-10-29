@@ -102,7 +102,10 @@ Only what the app needs to work:
 
 - Account info (email, name)
 - Your setlists and songs
-- Anonymous usage analytics (via GA4)
+- Your practice history (metronome sessions — so your streak and logbook survive
+  a new phone). Only you can see it.
+- Anonymous usage analytics (via GA4) — on by default, switch it off in
+  Settings ▸ Privacy
 
 I don't sell data and I don't follow you around the web. The full [privacy policy is here](/privacy/).
 

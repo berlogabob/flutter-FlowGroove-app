@@ -1,0 +1,49 @@
+{
+  "task": "GH-186-R",
+  "reviewer": "hermes",
+  "tested_commit": "d0ed6fd309d7fce10a490e15f688cb2085ae4c42",
+  "result": "accepted source review with explicit parent caller/authority/completeness corrections; no product repair",
+  "source_sha256": {
+    "functions/src/events.js": "40600b07511433ea9eb164cc9e4acf2ceb92bb2022a5966065051f37767f0b0c",
+    "functions/test/callable-event-share.test.js": "44ffa0be66cea71ecfcf7300d3a5e757a536aabad0196ed9976403c560dd68c4",
+    "lib/services/event_share_service.dart": "b792825d54aff9243cb2d327f5fe7d5a58d7d28fc7e9fca45512c435381affd1",
+    "lib/screens/setlists/event_kit_editor_screen.dart": "9da3682ed41d2f077ba8d3a441bba40777599fef68ea554a6cade587ab40f421",
+    "test/services/event_share_service_test.dart": "a5105672e22374573e821ad51cc85be4f58de7f6bd0b8ca86feaef5d509ce04c",
+    "test/screens/setlists/event_kit_editor_test.dart": "35839976c9239067caef020bb51f060982e6c61a8a1ae76a88b44d054a556230",
+    "EVENT_SHARING_BACKLOG.md": "680468761f3b0a7e1a27b21c103c3f0916f4f41d88f87a41921e476549f23526"
+  },
+  "additional_source_sha256": {
+    "functions/index.js": "105781c055a667c1f51eb066cdab2f36a063f617175dbc5610517a326fa2c452"
+  },
+  "worker": {
+    "provider": "openai-codex",
+    "actual_model": "gpt-6-luna",
+    "session": "local-76fd9be2065ffb8dc1481940c8110b5ee8b764d2b64b8a7b9e3617c4af9ba0c7",
+    "cli_exit": 0,
+    "tool_calls": 26,
+    "prompt_replayed": false
+  },
+  "scope_deviations": ["26 actual tool calls exceed the prompt budget of 20; original stream retained. All source paths and the sole report write stayed in scope; no strict tool-budget compliance claim."],
+  "checks": [
+    "Seven primary/warm source identities match",
+    "One assigned report write only",
+    "Existing callable/service/rendered source and production export map independently inspected",
+    "Official issue body/comments snapshot read; remains OPEN"
+  ],
+  "registered_slices": [
+    "GH-186-B",
+    "GH-186-C",
+    "GH-186-U",
+    "GH-186-URL",
+    "GH-186-V"
+  ],
+  "not_checked": [
+    "new behavioral tests",
+    "implementation",
+    "device",
+    "human usability",
+    "Graphify",
+    "release readiness"
+  ],
+  "release_hold": true
+}

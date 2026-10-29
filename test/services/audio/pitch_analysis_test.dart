@@ -67,21 +67,26 @@ void main() {
   group('noise robustness', () {
     // Mid-range strings/notes should survive moderate noise within ±5 cents.
     for (final frequency in <double>[82.4069, 110, 329.6276, 440]) {
-      test('${frequency.toStringAsFixed(1)} Hz at ~20 dB SNR within ±5 cents',
-          () {
-        final result = PitchAnalysisResult.fromMap(
-          analysePitchFrame(<String, Object?>{
-            'bytes': _noisySine(frequency, noiseAmplitude: 0.03),
-            'sampleRate': 44100.0,
-            'noiseFloorDb': -55.0,
-            'minFrequency': 35.0,
-            'maxFrequency': 2100.0,
-          }),
-        );
+      test(
+        '${frequency.toStringAsFixed(1)} Hz at ~20 dB SNR within ±5 cents',
+        () {
+          final result = PitchAnalysisResult.fromMap(
+            analysePitchFrame(<String, Object?>{
+              'bytes': _noisySine(frequency, noiseAmplitude: 0.03),
+              'sampleRate': 44100.0,
+              'noiseFloorDb': -55.0,
+              'minFrequency': 35.0,
+              'maxFrequency': 2100.0,
+            }),
+          );
 
-        expect(result.frequencyHz, isNotNull, reason: 'lost under noise');
-        expect(_centsBetween(result.frequencyHz!, frequency).abs(), lessThan(5));
-      });
+          expect(result.frequencyHz, isNotNull, reason: 'lost under noise');
+          expect(
+            _centsBetween(result.frequencyHz!, frequency).abs(),
+            lessThan(5),
+          );
+        },
+      );
     }
 
     test('pure noise returns no pitch', () {
@@ -152,9 +157,13 @@ Uint8List _noisySine(
   final data = ByteData.sublistView(bytes);
   for (var index = 0; index < sampleCount; index++) {
     var value = amplitude * math.sin(2 * math.pi * frequency * index / 44100);
-    if (noiseAmplitude > 0) value += noiseAmplitude * (rng.nextDouble() * 2 - 1);
-    data.setInt16(index * 2, (value.clamp(-1.0, 1.0) * 32767).round(),
-        Endian.little);
+    if (noiseAmplitude > 0)
+      value += noiseAmplitude * (rng.nextDouble() * 2 - 1);
+    data.setInt16(
+      index * 2,
+      (value.clamp(-1.0, 1.0) * 32767).round(),
+      Endian.little,
+    );
   }
   return bytes;
 }

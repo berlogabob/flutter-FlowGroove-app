@@ -1,0 +1,35 @@
+{
+  "task": "GH-186-B",
+  "reviewer": "hermes",
+  "at": "2026-10-25T14:41:01.653626+00:00",
+  "scope": "backend code acceptance only",
+  "actor": "Luna draft; Hermes direct completion after terminal max_iterations(32/32)",
+  "model": "gpt-6-luna",
+  "provider": "openai-codex",
+  "server_terminal_at": "2026-10-25T14:32:30.219Z",
+  "prompt_replayed": false,
+  "changes": [
+    "Authorized metadata-only listEventShares callable; writer/owner checks; 50-row cursor pages; roster-derived sanitized access and active/revoked/expired/unavailable states",
+    "Production export wired in functions/index.js",
+    "Parent removed unnecessary personal writeGrants fixture that contaminated later lifecycle count; ordinary-member denial fixture corrected to actual membership"
+  ],
+  "checks": {
+    "red": "Existing wrapped public callable absent: 82 passing / 1 failing; retained raw red.log",
+    "warm_targeted": "87 passing; exit 0",
+    "primary_combined": "95 passing; exit 0; callable-event-share.test.js + callable-security-fixes.test.js",
+    "syntax": "node --check all three changed JS files: exit 0",
+    "whitespace": "git diff --check: exit 0"
+  },
+  "hashes": {
+    "functions/src/events.js": "8f48cf139ff57f0cba1a4ccce9f5b2e123e7dd2ea486afe7663e3ab7e09e367a",
+    "functions/index.js": "85a9fec9be73bcad539df1015ed5004f8ccc386891d414e5c5cbe8fcf0cccdcb",
+    "functions/test/callable-event-share.test.js": "30d17ab91e97198bc6775bd5dfd5a9241e790ea42db8bece5eb2ef22a1ebb883"
+  },
+  "limitations": [
+    "Original worker exhausted 32 turns and left 86 passing / 1 failing; preserved failed attempt",
+    "Out-of-window filename discovery and nonexistent .codex/process.json read retained; no strict worker scope-compliance claim",
+    "No JS formatter/linter is configured in functions/package.json; syntax/diff checks only",
+    "No device, deployed callable, client/UI or full GH-186 acceptance; URL compatibility policy remains blocked",
+    "First parent command requested nonexistent security/*.test.js glob; warm result is targeted only, primary correct security file passed"
+  ]
+}

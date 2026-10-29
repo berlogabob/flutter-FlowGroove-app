@@ -356,7 +356,7 @@ Widget _keyBpmPreview({
   final key = ourKey.isNotEmpty ? ourKey : origKey;
   final bpm = uBpm.isNotEmpty ? uBpm : oBpm;
   final parts = <String>[
-    key.isEmpty ? '—' : key,
+    key.isEmpty ? 'Not set' : key,
     if (bpm.isNotEmpty) '$bpm BPM',
   ];
   return _previewAccent(parts.join('  ·  '));

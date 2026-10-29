@@ -3,8 +3,10 @@ import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/time_signature.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
+import 'package:flowgroove/services/last_practice_context.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 
@@ -323,52 +325,49 @@ void main() {
         expect(state.currentSetlistIndex, 0);
       });
 
-      test(
-        'skips unresolved entries instead of failing the whole queue',
-        () {
-          final container = createContainer();
+      test('skips unresolved entries instead of failing the whole queue', () {
+        final container = createContainer();
 
-          // 3 entries, only 2 resolve against availableSongs — an
-          // unresolvable entry (deleted/unavailable song) shouldn't block
-          // the rest of the setlist from loading.
-          final setlist = Setlist(
-            id: 'setlist-1',
-            bandId: 'band-1',
-            name: 'Test Setlist',
-            songIds: ['song-1', 'orphan', 'song-3'],
-            createdAt: DateTime(2024),
-            updatedAt: DateTime(2024),
-          );
+        // 3 entries, only 2 resolve against availableSongs — an
+        // unresolvable entry (deleted/unavailable song) shouldn't block
+        // the rest of the setlist from loading.
+        final setlist = Setlist(
+          id: 'setlist-1',
+          bandId: 'band-1',
+          name: 'Test Setlist',
+          songIds: ['song-1', 'orphan', 'song-3'],
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        );
 
-          final metronome = container.read(metronomeProvider.notifier);
-          final loaded = metronome.loadSetlistQueue(
-            setlist,
-            availableSongs: [
-              Song(
-                id: 'song-1',
-                title: 'Song 1',
-                artist: '',
-                createdAt: DateTime(2024),
-                updatedAt: DateTime(2024),
-              ),
-              Song(
-                id: 'song-3',
-                title: 'Song 3',
-                artist: '',
-                createdAt: DateTime(2024),
-                updatedAt: DateTime(2024),
-              ),
-            ],
-          );
+        final metronome = container.read(metronomeProvider.notifier);
+        final loaded = metronome.loadSetlistQueue(
+          setlist,
+          availableSongs: [
+            Song(
+              id: 'song-1',
+              title: 'Song 1',
+              artist: '',
+              createdAt: DateTime(2024),
+              updatedAt: DateTime(2024),
+            ),
+            Song(
+              id: 'song-3',
+              title: 'Song 3',
+              artist: '',
+              createdAt: DateTime(2024),
+              updatedAt: DateTime(2024),
+            ),
+          ],
+        );
 
-          expect(loaded, isTrue);
-          final state = container.read(metronomeProvider);
-          expect(
-            state.loadedSetlistSongs.map((s) => s.id).toList(),
-            ['song-1', 'song-3'],
-          );
-        },
-      );
+        expect(loaded, isTrue);
+        final state = container.read(metronomeProvider);
+        expect(state.loadedSetlistSongs.map((s) => s.id).toList(), [
+          'song-1',
+          'song-3',
+        ]);
+      });
 
       test('fails only when zero entries resolve', () {
         final container = createContainer();
@@ -456,24 +455,33 @@ void main() {
 
         metronome.loadSetlistQueue(
           setlistWith(['s1', 's2', 's3']),
-          availableSongs: [song('s1', bpm: 100), song('s2', bpm: 120), song('s3', bpm: 140)],
+          availableSongs: [
+            song('s1', bpm: 100),
+            song('s2', bpm: 120),
+            song('s3', bpm: 140),
+          ],
         );
         metronome.nextSetlistSong(); // active = s2
 
         // Reorder to [s3, s1, s2] and bump s2's tempo + beatModes.
-        metronome.syncLoadedSetlist(
-          setlistWith(['s3', 's1', 's2']),
-          [
-            song('s1', bpm: 100),
-            song('s2', bpm: 200, beatModes: [
+        metronome.syncLoadedSetlist(setlistWith(['s3', 's1', 's2']), [
+          song('s1', bpm: 100),
+          song(
+            's2',
+            bpm: 200,
+            beatModes: [
               [BeatMode.accent],
-            ]),
-            song('s3', bpm: 140),
-          ],
-        );
+            ],
+          ),
+          song('s3', bpm: 140),
+        ]);
 
         final state = container.read(metronomeProvider);
-        expect(state.loadedSetlistSongs.map((s) => s.id).toList(), ['s3', 's1', 's2']);
+        expect(state.loadedSetlistSongs.map((s) => s.id).toList(), [
+          's3',
+          's1',
+          's2',
+        ]);
         // Active song stays s2, now at the new index.
         expect(state.currentSetlistIndex, 2);
         expect(state.activeSong!.id, 's2');
@@ -491,13 +499,16 @@ void main() {
         );
         metronome.nextSetlistSong(); // active = s2
 
-        metronome.syncLoadedSetlist(
-          setlistWith(['s1', 's3']),
-          [song('s1'), song('s3')],
-        );
+        metronome.syncLoadedSetlist(setlistWith(['s1', 's3']), [
+          song('s1'),
+          song('s3'),
+        ]);
 
         final state = container.read(metronomeProvider);
-        expect(state.loadedSetlistSongs.map((s) => s.id).toList(), ['s1', 's3']);
+        expect(state.loadedSetlistSongs.map((s) => s.id).toList(), [
+          's1',
+          's3',
+        ]);
         expect(state.currentSetlistIndex, inInclusiveRange(0, 1));
       });
 
@@ -522,7 +533,10 @@ void main() {
 
         final state = container.read(metronomeProvider);
         expect(state.loadedSetlist!.id, 'setlist-1');
-        expect(state.loadedSetlistSongs.map((s) => s.id).toList(), ['s1', 's2']);
+        expect(state.loadedSetlistSongs.map((s) => s.id).toList(), [
+          's1',
+          's2',
+        ]);
       });
     });
 
@@ -1066,6 +1080,31 @@ void main() {
       });
     });
 
+    test('starting a song remembers its practice context', () async {
+      SharedPreferences.setMockInitialValues({});
+      final container = createContainer();
+      final metronome = container.read(metronomeProvider.notifier);
+      metronome.loadSongTempo(
+        Song(
+          id: 'resume-song',
+          title: 'Blue',
+          artist: '',
+          ourBPM: 123,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+        sourceBandId: 'band',
+      );
+      expect(await LastPracticeContextStore().load(), isNull);
+      metronome.start();
+      await Future<void>.delayed(Duration.zero);
+      final saved = await LastPracticeContextStore().load();
+      expect(saved?.songId, 'resume-song');
+      expect(saved?.title, 'Blue');
+      expect(saved?.bandId, 'band');
+      expect(saved?.bpm, 123);
+    });
+
     group('Playback Controls', () {
       test('togglePlayback starts when stopped', () {
         final container = createContainer();
@@ -1342,7 +1381,9 @@ void main() {
         final container = createContainer(runtime: runtime);
         final metronome = container.read(metronomeProvider.notifier);
 
-        metronome.setTimeSignature(const TimeSignature(numerator: 6, denominator: 8));
+        metronome.setTimeSignature(
+          const TimeSignature(numerator: 6, denominator: 8),
+        );
         metronome.start();
         await Future<void>.delayed(Duration.zero);
 
@@ -1388,7 +1429,9 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        metronome.setTimeSignature(const TimeSignature(numerator: 3, denominator: 4));
+        metronome.setTimeSignature(
+          const TimeSignature(numerator: 3, denominator: 4),
+        );
         metronome.updateAccentPatternFromTimeSignature();
 
         final state = container.read(metronomeProvider);

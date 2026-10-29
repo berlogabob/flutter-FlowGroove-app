@@ -1,0 +1,16 @@
+{
+  "task": "UX-007-R",
+  "reviewer": "hermes",
+  "verified_at": "2026-10-24T04:12:27.058474+01:00",
+  "tested_commit": "e198a54d520ac7f2cce99ab0b7e02e54ff40f91b",
+  "requested_model": "ollama/ornith-1.5:35b",
+  "actual_model": "ollama/ornith-1.5:35b",
+  "pi_exit_code": 0,
+  "read_tool_calls": 5,
+  "parent_corrections": [
+    "fab_variants.dart line citation corrected to 42-49",
+    "semantics test requires explicit semantics enablement",
+    "no claim that model tested code or installed screen"
+  ],
+  "private_log": "audit/2026-10-23-systemic-ux/workers/UX-007-R-20261024-041046/pi.jsonl"
+}

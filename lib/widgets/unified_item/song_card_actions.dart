@@ -13,7 +13,7 @@ import '../../models/tuner_launch_context.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
-import '../../screens/performance_sheet_screen.dart';
+import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import 'unified_item_model.dart';
@@ -71,11 +71,9 @@ Future<void> showQuickActionPicker(BuildContext context, WidgetRef ref) async {
           children: [
             const ListTile(
               title: Text('Quick action'),
-              subtitle: Text(
-                'Sets what the pinned button on song cards does',
-              ),
+              subtitle: Text('Sets what the pinned button on song cards does'),
             ),
-            for (final MapEntry(: key, : value)
+            for (final MapEntry(:key, :value)
                 in SongCardActions.quickActions.entries)
               RadioListTile<String>(
                 value: key,
@@ -101,30 +99,45 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   String? get songActionsBandId => null;
 
   /// Pinned-quick-action catalog: key → (label, icon).
+  /// 'sheet' was removed when tapping the card started opening the Song Page
+  /// (its Sheet tab IS the performance sheet) — a saved 'sheet' pref falls
+  /// back to 'practice' via the availability check below.
   static const quickActions = <String, (String, IconData)>{
     // av_timer (matches Setlists' metronome action) — not Icons.speed, which is
     // the BPM badge on the same card and read as a duplicate icon. F-010.
     'practice': ('Metronome', Icons.av_timer),
     'tuner': ('Open in Tuner', Icons.tune),
-    'sheet': ('Performance sheet', Icons.queue_music),
     'spotify': ('Play on Spotify', Icons.play_circle_fill),
     'band': ('Add to band…', Icons.add_to_queue),
   };
 
+  /// Bands the current user may add songs to: band-song create requires the
+  /// editor/admin role per Firestore rules, so viewers' bands are excluded
+  /// from every "Add to band…" surface instead of failing at save time.
+  List<Band> editableBands(List<Band> bands) {
+    // appUser (not the raw Firebase user): same uid, and reading it here —
+    // including from lazily-built list items — never boots a Firebase stream.
+    final uid = ref.read(appUserProvider).value?.uid;
+    if (uid == null) return const [];
+    return [
+      for (final band in bands)
+        if (band.adminUids.contains(uid) || band.editorUids.contains(uid)) band,
+    ];
+  }
+
   bool _quickActionAvailable(String key, Song song, List<Band> bands) =>
       switch (key) {
-        'sheet' => song.hasSheetContent,
         'spotify' => song.spotifyUrl != null,
         'band' => bands.isNotEmpty,
-        _ => true,
+        'practice' || 'tuner' => true,
+        // Unknown/retired keys (e.g. a persisted 'sheet') → fall back.
+        _ => false,
       };
 
   void _runQuickAction(String key, Song song, List<Band> bands) {
     switch (key) {
       case 'tuner':
         openInTuner(song);
-      case 'sheet':
-        openPerformanceSheet(song);
       case 'spotify':
         unawaited(openSpotify(song));
       case 'band':
@@ -140,46 +153,42 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) {
     // ponytail: chosen action missing on this song (no sheet/Spotify/bands)
     // falls back to Practice rather than an empty slot.
+    final targetBands = editableBands(bands);
     var quick = ref.watch(songQuickActionProvider);
-    if (!_quickActionAvailable(quick, song, bands)) quick = 'practice';
+    if (!_quickActionAvailable(quick, song, targetBands)) quick = 'practice';
     final (quickLabel, quickIcon) = quickActions[quick]!;
     return [
       IconAction(
         icon: quickIcon,
         tooltip: quickLabel,
         color: MonoPulseColors.accentOrange,
-        onPressed: () => _runQuickAction(quick, song, bands),
+        onPressed: () => _runQuickAction(quick, song, targetBands),
       ),
+      // Tools only: content views (performance sheet, Lab) are tabs on the
+      // Song Page the card tap opens, so they no longer live in this menu.
       OverflowMenuAction(
         entries: [
           ('Metronome', Icons.av_timer, () => openInMetronome(song)),
           if (song.spotifyUrl != null)
-            ('Play on Spotify', Icons.play_circle_fill, () => openSpotify(song)),
-          if (song.hasSheetContent)
             (
-              'Performance sheet',
-              Icons.queue_music,
-              () => openPerformanceSheet(song),
+              'Play on Spotify',
+              Icons.play_circle_fill,
+              () => openSpotify(song),
             ),
           ('Open in Tuner', Icons.tune, () => openInTuner(song)),
-          (
-            'Song Lab',
-            Icons.science_outlined,
-            () => context.pushNamed(
-              'song-lab',
-              pathParameters: {'id': song.id},
-              extra: {'song': song, 'bandId': songActionsBandId},
-            ),
-          ),
-          if (bands.isNotEmpty)
+          if (targetBands.isNotEmpty)
             (
               'Add to band…',
               Icons.add_to_queue,
-              () => unawaited(pickBandAndAdd(song, bands)),
+              () => unawaited(pickBandAndAdd(song, targetBands)),
             ),
-          ('Quick action…', Icons.push_pin_outlined, () {
-            unawaited(pickQuickAction());
-          }),
+          (
+            'Quick action…',
+            Icons.push_pin_outlined,
+            () {
+              unawaited(pickQuickAction());
+            },
+          ),
         ],
       ),
     ];
@@ -189,14 +198,17 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> pickQuickAction() => showQuickActionPicker(context, ref);
 
   /// One "Add to band…" entry instead of one per band — opens a picker.
+  /// Only bands the user can actually write to are offered.
   Future<void> pickBandAndAdd(Song song, List<Band> bands) async {
+    final targetBands = editableBands(bands);
+    if (targetBands.isEmpty) return;
     final bandId = await showModalBottomSheet<String>(
       context: context,
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
           children: [
-            for (final band in bands)
+            for (final band in targetBands)
               ListTile(
                 leading: const Icon(Icons.groups),
                 title: Text(band.name),
@@ -247,23 +259,6 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  void openPerformanceSheet(Song song) {
-    // rootNavigator: full-screen over the shell so its bottom bar doesn't stack
-    // under the performance sheet's own bar (the double-bar bug).
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PerformanceSheetScreen(
-          title: song.title.trim().isEmpty ? 'Song' : song.title.trim(),
-          sections: song.sections,
-          song: song,
-          songKey: song.ourKey,
-          bpm: song.ourBPM,
-          timeTop: song.accentBeats,
-        ),
-      ),
-    );
-  }
-
   void openInMetronome(Song song) {
     final metronome = ref.read(metronomeProvider.notifier);
     if (ref.read(metronomeProvider).isPlaying) {
@@ -274,28 +269,67 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   void openInTuner(Song song) {
-    final user = ref.read(currentUserProvider).value;
+    final user = ref.read(currentUserProvider).asData?.value;
     final bandId = songActionsBandId;
+    bool canSave() {
+      if (!mounted || user == null) return false;
+      final auth = ref.read(currentUserProvider);
+      final appUser = ref.read(appUserProvider);
+      if (auth.isLoading ||
+          auth.hasError ||
+          appUser.isLoading ||
+          appUser.hasError ||
+          auth.asData?.value?.uid != user.uid ||
+          appUser.asData?.value?.uid != user.uid ||
+          !ref.read(canEditProvider))
+        return false;
+      if (bandId == null) return true;
+      final bands = ref.read(bandsProvider);
+      return !bands.isLoading &&
+          !bands.hasError &&
+          ref.read(canEditBandProvider(bandId));
+    }
+
+    // Offstage library Consumers pause streams while the tuner route is open.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final authority = [
+      container.listen(currentUserProvider, (_, _) {}),
+      container.listen(appUserProvider, (_, _) {}),
+      if (bandId != null) container.listen(bandsProvider, (_, _) {}),
+    ];
     unawaited(
-      context.pushNamed<void>(
-        'tuner',
-        extra: TunerLaunchContext(
-          song: song,
-          saveSong: user == null
-              ? null
-              : (updatedSong) async {
-                  final repo = ref.read(songRepositoryProvider);
-                  if (bandId != null) {
-                    // Band songs are copies — save to the band copy, not the
-                    // personal library.
-                    await repo.updateBandSong(updatedSong, bandId);
-                  } else {
-                    await repo.saveSong(updatedSong, uid: user.uid);
-                    ref.invalidate(songsProvider);
-                  }
-                },
-        ),
-      ),
+      context
+          .pushNamed<void>(
+            'tuner',
+            extra: TunerLaunchContext(
+              song: song,
+              bandId: bandId,
+              inferBandId: false,
+              saveSong: !canSave()
+                  ? null
+                  : (updatedSong) async {
+                      if (!canSave() || updatedSong.id != song.id) {
+                        throw StateError(
+                          'Check your permissions before linking this song',
+                        );
+                      }
+                      final repo = ref.read(songRepositoryProvider);
+                      if (bandId != null) {
+                        // Band songs are copies — save to the band copy, not the
+                        // personal library.
+                        await repo.updateBandSong(updatedSong, bandId);
+                      } else {
+                        await repo.saveSong(updatedSong, uid: user!.uid);
+                        if (mounted) ref.invalidate(songsProvider);
+                      }
+                    },
+            ),
+          )
+          .whenComplete(() {
+            for (final subscription in authority) {
+              subscription.close();
+            }
+          }),
     );
   }
 }

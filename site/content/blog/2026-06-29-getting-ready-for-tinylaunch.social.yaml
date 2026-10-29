@@ -1,0 +1,32 @@
+canonical_url: https://flowgroove.app/blog/getting-ready-for-tinylaunch/
+telegram:
+  text: "\U0001F680 FlowGroove is going public\n\nAfter months of building and three\
+    \ gigs run entirely on the app, I'm starting a TinyLaunch campaign for FlowGroove\
+    \ \u2014 looking for testers, feedback, and bands tired of scattered setlists\
+    \ and \"what's the BPM again?\" chaos.\n\nIf that's you, cheer me on \u2192 https://flowgroove.app/blog/getting-ready-for-tinylaunch/"
+  message_id: 16
+reddit:
+  subreddit: FlowGroove
+  title: ''
+  body: ''
+  submission_id: null
+  permalink: null
+x:
+  text: "After months of building between rehearsals \u2014 and 3 gigs run entirely\
+    \ on the app \u2014 I'm taking FlowGroove public on TinyLaunch.\n\nFree, open-source\
+    \ band tool: songs, setlists, metronome, tuner, real-time sync. Looking for testers\
+    \ \U0001F3B8\n\nhttps://flowgroove.app/blog/getting-ready-for-tinylaunch/\n\n\
+    #buildinpublic #indiedev"
+  posted_url: null
+instagram:
+  image: static/images/og-cover.png
+  caption: "FlowGroove is going public \U0001F680\n\nAfter months of building between\
+    \ rehearsals \u2014 and three gigs run entirely on the app \u2014 I'm starting\
+    \ a TinyLaunch campaign.\n\nIt's a free, open-source tool for bands: songs, setlists,\
+    \ a built-in metronome and tuner, and real-time setlist sync across the whole\
+    \ band. No more scattered chats, lost setlists, or \"what's the BPM again?\"\n\
+    \nLooking for testers and honest feedback \u2014 link in bio \U0001F3B8\n.\n.\n\
+    #coverband #bandlife #musicianlife #gigginglife #setlist #metronome #rehearsal\
+    \ #livemusic #musictech #indiedev #buildinpublic #flutter #opensource #tinylaunch\
+    \ #musicians"
+  posted_url: null

@@ -18,7 +18,6 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/key_utils.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
-import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
@@ -470,26 +469,24 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  Row(
+                  Wrap(
+                    alignment: WrapAlignment.start,
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      Expanded(
-                        child: AppFilterChip(
-                          label: 'Major',
-                          selected: !keyIsMinor,
-                          onSelected: (_) {
-                            setModalState(() => keyIsMinor = false);
-                          },
-                        ),
+                      AppFilterChip(
+                        label: 'Major',
+                        selected: !keyIsMinor,
+                        onSelected: (_) {
+                          setModalState(() => keyIsMinor = false);
+                        },
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: AppFilterChip(
-                          label: 'Minor',
-                          selected: keyIsMinor,
-                          onSelected: (_) {
-                            setModalState(() => keyIsMinor = true);
-                          },
-                        ),
+                      AppFilterChip(
+                        label: 'Minor',
+                        selected: keyIsMinor,
+                        onSelected: (_) {
+                          setModalState(() => keyIsMinor = true);
+                        },
                       ),
                     ],
                   ),
@@ -607,8 +604,6 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     final bandsAsync = ref.watch(bandsProvider);
     // Rebuild cards when the pinned quick action changes.
     ref.watch(songQuickActionProvider);
-    final exportSongs = songsAsync.value;
-    final canExport = exportSongs != null && exportSongs.isNotEmpty;
     final canEdit = ref.watch(
       canEditProvider,
     ); // false for the shared demo account
@@ -616,37 +611,12 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     return StandardScreenScaffold(
       title: 'Songs',
       showBackButton: false, // Hide back button for main tabs
-      menuItems: [
-        AppMenuItem(
-          icon: Icons.library_music_outlined,
-          label: 'Browse catalog',
-          onTap: () => context.pushNamed('canonical-browse'),
-        ),
-        AppMenuItem(
-          icon: Icons.control_point_duplicate_outlined,
-          label: 'Find duplicates',
-          onTap: canExport
-              ? () async => context.pushNamed('song-duplicates')
-              : null,
-        ),
-        AppMenuItem(
-          icon: Icons.file_upload_outlined,
-          label: 'Import from CSV',
-          onTap: _handleImport,
-        ),
-        AppMenuItem(
-          icon: Icons.file_download_outlined,
-          label: 'Export to CSV',
-          onTap: canExport
-              ? () => _handleExport(List<Song>.from(exportSongs))
-              : null,
-        ),
-      ],
       floatingActionButton: canEdit
           ? SingleFab(
               icon: Icons.add,
               onPressed: () => context.goNamed('add-song'),
               heroTag: 'songs_fab',
+              tooltip: 'Add song',
             )
           : null,
       body: _buildBody(songsAsync, bandsAsync),
@@ -745,30 +715,64 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
         // Unified filter/sort widget
         Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-          child: UnifiedFilterSortWidget(
-            currentSort: state.sortOption,
-            hintText: 'Search songs...',
-            onSortChanged: (option) {
-              if (option != null) {
-                ref
-                    .read(songsFilterSortProvider.notifier)
-                    .setSortOption(option);
+          child: Row(
+            children: [
+              Expanded(
+                child: UnifiedFilterSortWidget(
+                  currentSort: state.sortOption,
+                  hintText: 'Search songs...',
+                  onSortChanged: (option) {
+                    if (option != null) {
+                      ref
+                          .read(songsFilterSortProvider.notifier)
+                          .setSortOption(option);
 
-                // Reset manual order when switching away from manual sort
-                if (option != SortOption.manual && _manualOrder != null) {
-                  setState(() {
-                    _manualOrder = null;
-                  });
-                }
-              }
-            },
-            filterText: state.filterText,
-            onFilterChanged: (value) {
-              ref
-                  .read(songsFilterSortProvider.notifier)
-                  .setFilterText(value ?? '');
-              _filterController.text = value ?? '';
-            },
+                      // Reset manual order when switching away from manual sort
+                      if (option != SortOption.manual && _manualOrder != null) {
+                        setState(() {
+                          _manualOrder = null;
+                        });
+                      }
+                    }
+                  },
+                  filterText: state.filterText,
+                  onFilterChanged: (value) {
+                    ref
+                        .read(songsFilterSortProvider.notifier)
+                        .setFilterText(value ?? '');
+                    _filterController.text = value ?? '';
+                  },
+                ),
+              ),
+              PopupMenuButton<VoidCallback>(
+                tooltip: 'Library actions',
+                onSelected: (action) => action(),
+                itemBuilder: (context) => [
+                  PopupMenuItem<VoidCallback>(
+                    value: () => context.pushNamed('canonical-browse'),
+                    child: const Text('Browse catalog'),
+                  ),
+                  PopupMenuItem<VoidCallback>(
+                    enabled: songs.isNotEmpty,
+                    value: songs.isNotEmpty
+                        ? () async => context.pushNamed('song-duplicates')
+                        : null,
+                    child: const Text('Find duplicates'),
+                  ),
+                  PopupMenuItem<VoidCallback>(
+                    value: _handleImport,
+                    child: const Text('Import from CSV'),
+                  ),
+                  PopupMenuItem<VoidCallback>(
+                    enabled: songs.isNotEmpty,
+                    value: songs.isNotEmpty
+                        ? () => _handleExport(List<Song>.from(songs))
+                        : null,
+                    child: const Text('Export to CSV'),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
 
@@ -965,16 +969,12 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     AnalyticsService.logFilterZeroResults(filterType: filterType, value: value);
   }
 
-  /// Navigate to edit song screen.
+  /// Open the Song Page (Sheet · Edit · Lab).
   void _navigateToEdit(Song song) {
     if (ref.read(songsFilterSortProvider).filterText.trim().isNotEmpty) {
       AnalyticsService.logSearchSongOpen();
     }
-    context.pushNamed(
-      'edit-song',
-      pathParameters: {'id': song.id},
-      extra: song,
-    );
+    context.pushNamed('song', pathParameters: {'id': song.id}, extra: song);
   }
 
   /// Navigate to edit song screen by index.

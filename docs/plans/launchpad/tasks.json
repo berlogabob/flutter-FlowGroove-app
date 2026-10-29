@@ -1,0 +1,796 @@
+{
+ "branch": "feat/launchpad",
+ "tasks": [
+  {
+   "id": "L01",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "bar_math impl",
+   "files": [
+    "lib/utils/bar_math.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create lib/utils/bar_math.dart with exactly: `double tickIntervalFrames(int intervalMicros, int sampleRate) => intervalMicros * sampleRate / 1000000.0;` and `int barStartFrame({required int bar, required int ticksPerBar, required int intervalMicros, required int sampleRate, int epochFrame = 0})` returning epochFrame + (bar * ticksPerBar * tickIntervalFrames(intervalMicros, sampleRate)).round(). Doc comment: mirrors the Android click grid Math.round(j * intervalFrames).",
+   "verify": "dart analyze lib/utils/bar_math.dart",
+   "after": [],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false,
+   "must_contain": [
+    "double tickIntervalFrames(",
+    "int barStartFrame("
+   ]
+  },
+  {
+   "id": "L02",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "bar_math test",
+   "files": [
+    "test/utils/bar_math_test.dart",
+    "lib/utils/bar_math.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/utils/bar_math_test.dart (package:flutter_test). Cases with intervalMicros 487805, sampleRate 48000, ticksPerBar 4: tickIntervalFrames == closeTo(23414.64, 1e-9); barStartFrame bar 0 == 0; bar 1 == 93659; bar 100 == 9365856; with epochFrame 1000 bar 1 == 94659.",
+   "verify": "flutter test test/utils/bar_math_test.dart",
+   "after": [
+    "L01"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false
+  },
+  {
+   "id": "L03",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "SectionSpan model",
+   "files": [
+    "lib/models/section_span.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create lib/models/section_span.dart: `@immutable class SectionSpan` with const ctor `SectionSpan({required this.sectionId, required this.startBar, required this.bars})` (String, int, int), `factory SectionSpan.fromJson(Map<String, dynamic>)` (missing ints default 0, missing sectionId default ''), `Map<String, dynamic> toJson()`, `==` and `hashCode` over all fields.",
+   "verify": "dart analyze lib/models/section_span.dart",
+   "after": [],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false,
+   "must_contain": [
+    "class SectionSpan",
+    "fromJson",
+    "toJson",
+    "props"
+   ]
+  },
+  {
+   "id": "L04",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "SectionSpan test",
+   "files": [
+    "test/models/section_span_test.dart",
+    "lib/models/section_span.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/models/section_span_test.dart: toJson/fromJson round trip equals; fromJson({}) gives sectionId '', startBar 0, bars 0; two equal spans have equal hashCode.",
+   "verify": "flutter test test/models/section_span_test.dart",
+   "after": [
+    "L03"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false
+  },
+  {
+   "id": "L05",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "splitBars impl",
+   "files": [
+    "lib/utils/split_bars.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create lib/utils/split_bars.dart: `List<int> splitBars(int bars, int parts)`. parts <= 0 or bars <= 0 returns []. Otherwise returns `parts` ints summing to bars, remainder distributed one each to the FIRST parts (16,4 -> [4,4,4,4]; 10,3 -> [4,3,3]; 2,3 -> [1,1,0]).",
+   "verify": "dart analyze lib/utils/split_bars.dart",
+   "after": [],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false,
+   "must_contain": [
+    "List<int> splitBars(int bars, int parts)"
+   ]
+  },
+  {
+   "id": "L06",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "splitBars test",
+   "files": [
+    "test/utils/split_bars_test.dart",
+    "lib/utils/split_bars.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/utils/split_bars_test.dart covering the four examples in the doc comment plus parts 0 -> [] and bars 0 -> [].",
+   "verify": "flutter test test/utils/split_bars_test.dart",
+   "after": [
+    "L05"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false
+  },
+  {
+   "id": "L07",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "PadState impl",
+   "files": [
+    "lib/utils/pad_state.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create lib/utils/pad_state.dart: `enum PadState { idle, queued, playing }`; `PadState padStateFor({required String sectionId, String? playingId, String? queuedId})`: queued if queuedId == sectionId; else playing if playingId == sectionId; else idle. Also `String padStateLabel(PadState s)` returning 'Idle', 'Starts next bar', 'Playing'.",
+   "verify": "dart analyze lib/utils/pad_state.dart",
+   "after": [],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false,
+   "must_contain": [
+    "enum PadState",
+    "padStateFor(",
+    "padStateLabel("
+   ]
+  },
+  {
+   "id": "L08",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "PadState test",
+   "files": [
+    "test/utils/pad_state_test.dart",
+    "lib/utils/pad_state.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/utils/pad_state_test.dart: all four combinations (idle, queued, playing, same id both playing and queued -> queued) and the three labels.",
+   "verify": "flutter test test/utils/pad_state_test.dart",
+   "after": [
+    "L07"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false
+  },
+  {
+   "id": "L09",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "quantize impl",
+   "files": [
+    "lib/utils/quantize.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create lib/utils/quantize.dart: `enum Quantize { now, beat, bar }` and `int nextBoundaryFrame({required int nowFrame, required Quantize q, required double tickFrames, required int ticksPerBeat, required int ticksPerBar, int leadFrames = 0, int epochFrame = 0})`. now -> nowFrame + leadFrames. beat/bar: unit = ticksPerBeat or ticksPerBar; k = ceil((nowFrame + leadFrames - epochFrame) / (unit * tickFrames)) clamped to >= 0; return epochFrame + (k * unit * tickFrames).round().",
+   "verify": "dart analyze lib/utils/quantize.dart",
+   "after": [],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false,
+   "must_contain": [
+    "enum Quantize",
+    "int nextBoundaryFrame("
+   ]
+  },
+  {
+   "id": "L10",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "quantize test",
+   "files": [
+    "test/utils/quantize_test.dart",
+    "lib/utils/quantize.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Replace the contents of test/utils/quantize_test.dart (it currently tests an older function; delete those cases) with tests for nextBoundaryFrame only. Use tickFrames 23414.64, ticksPerBeat 1, ticksPerBar 4: bar now=0 -> 0; bar now=1 -> 93659; bar now=93659 -> 93659; bar now=93660 -> 187317; beat now=1 -> 23415; bar with leadFrames 100 now=0 -> 93659; now with lead 50 now=10 -> 60; epochFrame 1000 bar now=1000 -> 1000.",
+   "verify": "flutter test test/utils/quantize_test.dart",
+   "after": [
+    "L09"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false
+  },
+  {
+   "id": "L11",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Dart BackingMixer + golden fixture",
+   "files": [
+    "lib/services/audio/engine/backing_mixer.dart",
+    "test/services/audio/engine/backing_mixer_test.dart",
+    "test/fixtures/backing_golden.json"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Backing mixer contract (identical in Dart and Kotlin). Class BackingMixer(sampleRate). load(stems: Int16 arrays, one mono stem per instrument group, each covering the whole song; renderBpm; ticksPerBar; intervalMicros). A song bar b starts at stem sample barStartFrame(bar: b, epochFrame 0). mix(out, chunkStart, engineBpm, epochFrame, ticksPerBar, intervalMicros) ADDS stem*gain/32768 into out for absolute frames [chunkStart, chunkStart+out.length). Audible only while |renderBpm-engineBpm|<0.001 and intervalMicros equal; else silence. command(token, kind launch|stop, fromBar, bars, loop, atBar): transport bar t starts at barStartFrame(t, epochFrame). A command takes effect at the start of transport bar atBar (queued before that: emit state queued). For t>=atBar the song bar is fromBar+((t-atBar) mod bars) if loop, fromBar+(t-atBar) while < fromBar+bars otherwise (then stopped). Within transport bar t, frame f maps to stem sample songBarStart(songBar)+(f-barStart(t)), zero-padded or truncated at the song bar's length (re-anchor every bar: drift can never exceed one frame). A stop command with atBar stops at that bar start. setGain(stem, gain) ramps linearly over 5 ms. A change of epochFrame or engine intervalMicros between mix calls stops playback and emits state stopped(reason epoch). State callback: onState(token, state queued|playing|stopped, transportBar). Implement it in Dart: lib/services/audio/engine/backing_mixer.dart (use lib/utils/bar_math.dart; out is Float32List). Create test/fixtures/backing_golden.json (under 200 KB) with parametric cases (rate 48000, intervalMicros 487805, ticksPerBar 4, renderBpm 123; impulse stems = 1.0 sample at every beat start of the song bars, expressed as rules not raw arrays) and expected non-zero output frames; cases: launch queued at transport bar 3 starts exactly at barStartFrame(3); loop 2 bars; non-loop ends and emits stopped; stop at bar; tempo mismatch is silent; gain 0 mutes; epoch change stops; 5 minutes of bars aligned within 1 frame of the click grid. The Dart test reads the fixture.",
+   "verify": "flutter test test/services/audio/engine/backing_mixer_test.dart && dart analyze lib/services/audio/engine/backing_mixer.dart",
+   "after": [
+    "L02"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L12",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Kotlin BarMath + BackingMixer parity",
+   "files": [
+    "android/app/build.gradle",
+    "android/app/build.gradle.kts",
+    "android/app/src/main/kotlin/com/flowgroove/app/BackingMixer.kt",
+    "android/app/src/test/kotlin/com/flowgroove/app/BackingMixerTest.kt"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Backing mixer contract (identical in Dart and Kotlin). Class BackingMixer(sampleRate). load(stems: Int16 arrays, one mono stem per instrument group, each covering the whole song; renderBpm; ticksPerBar; intervalMicros). A song bar b starts at stem sample barStartFrame(bar: b, epochFrame 0). mix(out, chunkStart, engineBpm, epochFrame, ticksPerBar, intervalMicros) ADDS stem*gain/32768 into out for absolute frames [chunkStart, chunkStart+out.length). Audible only while |renderBpm-engineBpm|<0.001 and intervalMicros equal; else silence. command(token, kind launch|stop, fromBar, bars, loop, atBar): transport bar t starts at barStartFrame(t, epochFrame). A command takes effect at the start of transport bar atBar (queued before that: emit state queued). For t>=atBar the song bar is fromBar+((t-atBar) mod bars) if loop, fromBar+(t-atBar) while < fromBar+bars otherwise (then stopped). Within transport bar t, frame f maps to stem sample songBarStart(songBar)+(f-barStart(t)), zero-padded or truncated at the song bar's length (re-anchor every bar: drift can never exceed one frame). A stop command with atBar stops at that bar start. setGain(stem, gain) ramps linearly over 5 ms. A change of epochFrame or engine intervalMicros between mix calls stops playback and emits state stopped(reason epoch). State callback: onState(token, state queued|playing|stopped, transportBar). Implement the same in pure Kotlin (no android imports; out is DoubleArray) at android/app/src/main/kotlin/com/flowgroove/app/BackingMixer.kt incl. barStartFrame using Math.round exactly like MetronomeEngine.kt. Add JUnit 4 testImplementation to the android app gradle file that exists (build.gradle or build.gradle.kts, edit only the one present). Test BackingMixerTest.kt reads the SAME fixture test/fixtures/backing_golden.json (path: System.getProperty(\"user.dir\") + \"/../../test/fixtures/backing_golden.json\") and asserts the same expectations. Parse JSON with org.json only if available on the unit-test classpath, otherwise add testImplementation 'org.json:json:20231013'.",
+   "verify": "cd android && ./gradlew :app:testDebugUnitTest --tests '*BackingMixerTest*' -q",
+   "after": [
+    "L11"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L13",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Wire mixer into MetronomeEngine + channel",
+   "files": [
+    "android/app/src/main/kotlin/com/flowgroove/app/MetronomeEngine.kt",
+    "android/app/src/main/kotlin/com/flowgroove/app/MainActivity.kt"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Wire android/.../BackingMixer.kt into MetronomeEngine.renderLoop: after the click ticks are mixed into `scratch` and before the PCM conversion, call backing.mix(scratch, chunkStart, engineBpm, epochFrame, ticksPerBar, intervalMicros). Pass bpm and ticksPerBar from the start/update config (add fields to NativeMetronomeConfig; keep defaults so old callers work). Apply the existing latency offset to backing identically to the click. When pendingConfig changes epochFrame, the mixer sees the new epochFrame (it stops itself). Expose on the existing MethodChannel 'com.flowgroove/metronome' in MainActivity: engineSampleRate() -> Int; backingLoad({paths: List<String> of raw little-endian Int16 mono files, sampleRate, renderBpm, ticksPerBar, intervalMicros}); backingCommand({token, kind, fromBar, bars, loop, atBar}); backingGain({stem, gain}); backingClear(). Native to Dart: invokeMethod('backingState', {token, state, bar}) and invokeMethod('bar', {index}) on each transport bar start (from the render loop, posted to the main handler like onTick). Never allocate inside the render loop per chunk beyond existing patterns. If sampleRate of the load differs from the engine rate, reject with a channel error.",
+   "verify": "cd android && ./gradlew assembleDebug -q",
+   "after": [
+    "L12"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L14",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "BackingEngine interface",
+   "files": [
+    "lib/services/audio/backing_engine.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create lib/services/audio/backing_engine.dart (imports lib/utils/quantize.dart only): `class BackingStems { const BackingStems({required this.stems, required this.names, required this.sampleRate, required this.renderBpm, required this.ticksPerBar, required this.intervalMicros}); final List<Int16List> stems; final List<String> names; final int sampleRate; final double renderBpm; final int ticksPerBar; final int intervalMicros; }`, `enum BackingKind { launch, stop }`, `class BackingCommand { const BackingCommand({required this.token, required this.kind, this.fromBar = 0, this.bars = 0, this.loop = true, required this.atBar}); final int token; final BackingKind kind; final int fromBar; final int bars; final bool loop; final int atBar; }`, `enum BackingStateKind { queued, playing, stopped }`, `class BackingState { const BackingState(this.token, this.kind, this.bar); final int token; final BackingStateKind kind; final int bar; }`, and `abstract class BackingEngine { Future<int> engineSampleRate(); Future<void> load(BackingStems stems); Future<void> command(BackingCommand c); void setGain(int stem, double gain); Future<void> clear(); Stream<BackingState> get states; Stream<int> get bars; Future<void> dispose(); }`.",
+   "verify": "dart analyze lib/services/audio/backing_engine.dart",
+   "after": [
+    "L09"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false,
+   "must_contain": [
+    "class BackingStems",
+    "enum BackingKind",
+    "class BackingCommand",
+    "enum BackingStateKind",
+    "class BackingState",
+    "abstract class BackingEngine",
+    "Stream<BackingState> get states",
+    "Stream<int> get bars",
+    "Future<int> engineSampleRate()"
+   ]
+  },
+  {
+   "id": "L15",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "PlatformBackingEngine (Android)",
+   "files": [
+    "lib/services/audio/backing_engine_platform.dart",
+    "test/services/audio/backing_engine_platform_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Implement BackingEngine (lib/services/audio/backing_engine.dart) over MethodChannel('com.flowgroove/metronome') for Android: engineSampleRate/backingLoad/backingCommand/backingGain/backingClear exactly as in MetronomeEngine channel (see android MainActivity.kt). load writes each stem as raw little-endian Int16 bytes to a file in the app cache dir (path_provider is already a dependency; inject the directory for tests) and passes the paths. Incoming 'backingState' and 'bar' calls feed the two streams (use setMethodCallHandler only if the existing PlatformMetronomePlaybackClient does not already own the handler; if it does, add a small public hook there and route to this class). Test with a fake channel: load passes paths, renderBpm, ticksPerBar, intervalMicros; incoming backingState maps to BackingState; clear deletes the files.",
+   "verify": "flutter test test/services/audio/backing_engine_platform_test.dart && dart analyze lib/services/audio",
+   "after": [
+    "L13",
+    "L14"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L16",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Web click grid exposure",
+   "files": [
+    "lib/providers/metronome_runtime_providers.dart",
+    "test/providers/web_click_grid_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. In WebAudioLookaheadPlaybackClient expose the click grid on the AudioContext clock: `double barTimeSeconds(int bar)` (AudioContext time of the first tick of transport bar `bar`, including count-in bars as transport bars, computed as epochSeconds + bar*ticksPerBar*tickIntervalSeconds from the SAME values the pump uses to schedule clicks; no accumulated per-tick rounding) and `double get audioNow`. Make the clock injectable so the test needs no browser. Also raise the scheduling lookahead to at least 2 whole bars OR 3 seconds (whichever is longer) so a throttled background-tab timer cannot starve the click; keep existing behavior otherwise. Test: barTimeSeconds(0)==epoch, barTimeSeconds(4) equals 4*ticksPerBar*interval, unchanged after tempo-neutral updates, lookahead >= 3s.",
+   "verify": "flutter test test/providers/web_click_grid_test.dart && dart analyze lib/providers/metronome_runtime_providers.dart",
+   "after": [
+    "L14"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L17",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "WebBackingEngine (Web Audio per-bar sources)",
+   "files": [
+    "lib/services/audio/backing_engine_web.dart",
+    "lib/services/audio/backing_engine_factory.dart",
+    "lib/services/audio/backing_engine_stub.dart",
+    "test/services/audio/backing_engine_web_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Implement BackingEngine for web with the Web Audio API on the SAME AudioContext and click grid as WebAudioLookaheadPlaybackClient (barTimeSeconds). Per transport bar t >= atBar schedule one AudioBufferSourceNode per stem: start(barTimeSeconds(t), offset = songBarStartSample/sampleRate, duration = barTimeSeconds(t+1)-barTimeSeconds(t)) through a per-stem GainNode (5 ms ramp on setGain), scheduling at least 2 bars ahead; queued/loop/stop semantics as the contract: a command takes effect at the start of transport bar atBar; loop wraps song bars; stop cancels sources scheduled at or after atBar. Audible only when renderBpm matches the click engine bpm. Put the scheduling math behind an injectable interface (clock + source factory) and test it on the Dart VM with fakes: launch at bar 3 schedules first source at barTimeSeconds(3); loop of 2 bars wraps; stop cancels future sources; bpm mismatch schedules nothing; 40 bars never schedules more than lookahead. backing_engine_factory.dart: conditional export returning web engine on web, PlatformBackingEngine on Android, and backing_engine_stub.dart (no-op engine, empty streams, load throws UnsupportedError) elsewhere (iOS keeps the old path).",
+   "verify": "flutter test test/services/audio/backing_engine_web_test.dart && dart analyze lib/services/audio",
+   "after": [
+    "L15",
+    "L16"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L18",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Stem builder: engine-rate, bar-padded stems",
+   "files": [
+    "lib/services/audio/midi/backing_stem_builder.dart",
+    "test/services/audio/midi/backing_stem_builder_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create backing_stem_builder.dart: `Future<BackingStems> buildBackingStems({required MidiSongData song, required List<MidiTrackData> tracks (with effective roles and gains as the existing midi_song_practice_provider uses), required int sampleRate, required int intervalMicros, required int ticksPerBar, required double renderBpm, void Function()? yieldHook})`. Group tracks by role into at most 4 stems named Drums, Bass, Harmony, Lead; reuse renderMidiTrack (lib/services/audio/midi/midi_track_renderer.dart) with bpmScale = renderBpm / song.initialBpm; every stem has the SAME length = barStartFrame(bars) where bars = ceil(song length in bars at the target tempo) (tails folded or truncated at the last bar line); song bar b must start at stem sample barStartFrame(b) using lib/utils/bar_math.dart. Call yieldHook between tracks and every ~1s of audio so web can await Future.delayed(Duration.zero); native may use compute. Test with a synthetic MidiSongData (16 bars, drums + bass): 4 or fewer stems, equal lengths, length == barStartFrame(16), a note at song bar 5 beat 1 appears at sample barStartFrame(5) within 1 frame.",
+   "verify": "flutter test test/services/audio/midi/backing_stem_builder_test.dart && dart analyze lib/services/audio/midi",
+   "after": [
+    "L14",
+    "L02"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L19",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "MidiSongMeta arrangement fields",
+   "files": [
+    "lib/models/midi_song.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. In MidiSongMeta add optional fields with defaults, persisted in toJson/fromJson and copyWith if present, ignoring unknown keys: `int startBar = 0`, `List<SectionSpan> sectionMap = const []` (import ../models/section_span.dart style used in the file), `bool useFileTempo = false`, `String endBehavior = 'loop'` (loop|next|stop; unknown values read as 'loop'). Old JSON without these keys must still parse. Do not change other classes.",
+   "verify": "dart analyze lib/models/midi_song.dart",
+   "after": [
+    "L03"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false,
+   "must_contain": [
+    "startBar",
+    "sectionMap",
+    "useFileTempo",
+    "endBehavior"
+   ]
+  },
+  {
+   "id": "L20",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "MidiSongMeta arrangement test",
+   "files": [
+    "test/models/midi_arrangement_test.dart",
+    "lib/models/midi_song.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/models/midi_arrangement_test.dart: old JSON (copy a minimal valid MidiSongMeta JSON from test/models/song_lab_midisong_test.dart) parses with defaults startBar 0, empty sectionMap, useFileTempo false, endBehavior 'loop'; round trip keeps a 2-span sectionMap; endBehavior 'weird' reads as 'loop'.",
+   "verify": "flutter test test/models/midi_arrangement_test.dart",
+   "after": [
+    "L19"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false
+  },
+  {
+   "id": "L21",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "SMF markers + file facts",
+   "files": [
+    "lib/models/midi_song.dart",
+    "lib/services/audio/midi/smf_song_parser.dart",
+    "lib/services/audio/midi/midi_song_facts.dart",
+    "test/services/audio/midi/midi_song_facts_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Parse SMF meta events 0x06 (marker) and 0x07 (cue) into `MidiSongData.markers: List<({int tick, String text})>` (default empty; keep the 200k-note/64-track/12-track caps). Create midi_song_facts.dart: `({double bpm, int bars, int leadInBars, bool hasTempoEvent}) factsOf(MidiSongData d, {int beatsPerBar = 4})`: bpm from the tempo at tick 0 (120 and hasTempoEvent=false if none), bars = ceil(last note end tick / (ppq*beatsPerBar)), leadInBars = floor(first note tick / (ppq*beatsPerBar)). Test with synthetic data matching the real file: ppq 480, tempo 483870 -> bpm 124.0, notes from tick 1920 to 30720 -> bars 16, leadInBars 1; plus a markers case.",
+   "verify": "flutter test test/services/audio/midi/midi_song_facts_test.dart && flutter test test/midi",
+   "after": [
+    "L19"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": true
+  },
+  {
+   "id": "L22",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "backingTransportProvider",
+   "files": [
+    "lib/providers/data/backing_transport_provider.dart",
+    "test/providers/backing_transport_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create a keep-alive NotifierProvider `backingTransportProvider` (state: List<SectionSpan> spans, String? playingId, String? queuedId, bool rendering, bool loop, Quantize quantize, int songBar). Uses BackingEngine (provider `backingEngineProvider` from backing_engine_factory.dart; tests override with a fake), buildBackingStems, metronomeProvider (bpm, isPlaying, countInBars, time signature), lib/utils/{pad_state,quantize,bar_math}.dart. Methods: `attach(SongLabEntry entry, List<Section> sections)` (renders stems at current bpm or file bpm when useFileTempo, load into engine, state rendering true until loaded); `launch(String sectionId)`: stopped -> start metronome then command(launch fromBar=span.startBar, bars=span.bars, loop, atBar=countInBars); playing -> command with atBar = next quantize boundary bar, set queuedId; engine state events update playingId/queuedId; `stop({bool atBar})`; `setLoop`, `setQuantize`; `muteStem/soloStem/minusOne(String role)` via setGain; on metronome bpm change: engine.clear(), rendering true, debounce 300 ms, re-render+reload, and if still playing relaunch the current section at the next bar. Never call any SoLoud API. Tests with a fake engine and fake metronome: tap while stopped sends launch with atBar == countInBars; tap while playing sends a later atBar and sets queued until the fake engine emits playing; bpm change calls clear then load again; minusOne('Bass') sets that stem gain 0; backing never audible state while rendering.",
+   "verify": "flutter test test/providers/backing_transport_test.dart && dart analyze lib/providers/data",
+   "after": [
+    "L17",
+    "L18",
+    "L20",
+    "L21",
+    "L08",
+    "L10"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": false
+  },
+  {
+   "id": "L23",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Stop SoLoud MIDI playback on Android and web",
+   "files": [
+    "lib/providers/data/midi_song_practice_provider.dart",
+    "lib/widgets/midi/midi_song_panel.dart",
+    "test/providers/midi_song_practice_provider_test.dart",
+    "test/providers/midi_song_practice_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. On Android and web the MIDI song must no longer play through midiSongPlayerProvider/SoLoud: the practice notifier keeps parsing, role detection and per-track mute/solo/volume state but delegates audio to backingTransportProvider (attach/setGain). iOS and other platforms keep the existing player path unchanged (branch on defaultTargetPlatform/kIsWeb in ONE place). The panel stops owning playback (header 'Mixer', no Play button on Android/web; the big metronome Play button plus pads launch). Update the existing tests, mainly test/providers/midi_song_practice_provider_test.dart (22 tests there fail unless the container overrides backingEngineProvider with a fake); keep all green. Tests must override backingEngineProvider with a fake BackingEngine (in test/providers) so no real platform channel or Web Audio is touched at container dispose, and tests run on the host platform (macOS), so the Android/web branch must be injectable (e.g. a bool provider useBackingTransportProvider that tests override) rather than hard-wired to defaultTargetPlatform. You MUST edit the files; if you think nothing needs changing, implement the delegation anyway.",
+   "verify": "flutter test test/providers test/midi test/widgets && dart analyze lib/providers lib/widgets/midi",
+   "after": [
+    "L22"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": true
+  },
+  {
+   "id": "L24",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "SectionPad widget",
+   "files": [
+    "lib/widgets/practice/section_pad.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create lib/widgets/practice/section_pad.dart: `class SectionPad extends StatelessWidget` ({required String name, required int bars, required Color color, required PadState state, required VoidCallback onTap, VoidCallback? onLongPress, bool loop = false}); min tap target 64 dp high; shows name, '$bars bars', and for PadState.queued a pulsing outline (AnimationController, disposed) plus text 'Next bar', for playing a filled background plus a play icon (and a loop icon if loop); idle is outlined. Never color-only: state text/icon always present. Semantics label '$name, ${padStateLabel(state)}'. Use MonoPulse tokens like lib/widgets/metronome/*.dart and lib/utils/pad_state.dart.",
+   "verify": "dart analyze lib/widgets/practice/section_pad.dart",
+   "after": [
+    "L07"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false,
+   "must_contain": [
+    "class SectionPad",
+    "padStateLabel",
+    "Semantics"
+   ]
+  },
+  {
+   "id": "L25",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "SectionPad test",
+   "files": [
+    "test/widgets/section_pad_test.dart",
+    "lib/widgets/practice/section_pad.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/widgets/section_pad_test.dart (pumpWidget inside MaterialApp+Scaffold): idle shows name and '4 bars'; queued shows 'Next bar'; playing shows Icons.play_arrow; tap calls onTap; Semantics label contains 'Chorus, Starts next bar' for name Chorus queued; no exception at textScaleFactor 2.0 and width 160.",
+   "verify": "flutter test test/widgets/section_pad_test.dart",
+   "after": [
+    "L24"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false
+  },
+  {
+   "id": "L26",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Launchpad view + instrument strip + section card",
+   "files": [
+    "lib/widgets/practice/launchpad_view.dart",
+    "lib/widgets/practice/instrument_strip.dart",
+    "lib/widgets/practice/section_card.dart",
+    "lib/screens/metronome_screen.dart",
+    "test/widgets/launchpad_view_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create LaunchpadView (Wrap/grid of SectionPad, 2-3 columns at phone width, from backingTransportProvider spans + the active song's Sections for name/colour), a transport row (Loop chip, Quantize chip Bar/Beat, Stop with long-press = at bar), InstrumentStrip (chips per stem name: tap = mute, long-press = solo, plus 'I play this' toggle = minusOne), and SectionCard (chordChart of the playing section via the existing ChordPro renderer used by PerformanceSheetView; shows the queued section while queued; honest status line 'MIDI 124 BPM \u00b7 16 bars' and warnings 'Covers 16 of N bars', 'Rendering 123 BPM\u2026'). Replace the Backing button area in lib/screens/metronome_screen.dart (_MetronomeSongLibrary) with LaunchpadView when the active song has a MIDI backing attached, keep the existing chooser button otherwise. Hidden on iOS. The transport row (Play/Stop, Loop, Quantize) is pinned outside the scrolling content, always visible (P30 finding F4). Tests: transport row stays visible after scrolling the instrument list; 12 sections wrap without overflow at 360 dp and 2.0 text scale; tap pad calls launch(sectionId); queued pad shows 'Next bar'; no spans shows one 'Song' pad.",
+   "verify": "flutter test test/widgets/launchpad_view_test.dart && dart analyze lib/widgets/practice lib/screens/metronome_screen.dart",
+   "after": [
+    "L25",
+    "L22"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": false
+  },
+  {
+   "id": "L27",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Arrangement setup sheet",
+   "files": [
+    "lib/widgets/midi/arrangement_sheet.dart",
+    "lib/widgets/metronome/backing_sheet.dart",
+    "test/widgets/arrangement_sheet_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create arrangement_sheet.dart: one sheet shown on first attach of a MIDI song (when sectionMap is empty): shows file facts (factsOf), 'Use 124 BPM?' vs keep song BPM (useFileTempo), 'File starts at bar N' (startBar, default 0), and a row per song Section with a bars stepper prefilled by splitBars(facts.bars, sections.length); Save writes MidiSongMeta (startBar, sectionMap, useFileTempo, endBehavior) through labRepositoryProvider.saveEntry for editors only (canEditProvider / canEditBandProvider(bandId)); viewers see read-only. Open it from backing_sheet.dart right after a MIDI row is selected the first time. Tests: prefill 16 bars over 4 sections = 4/4/4/4; save calls saveEntry with those spans; band viewer has no Save.",
+   "verify": "flutter test test/widgets/arrangement_sheet_test.dart && dart analyze lib/widgets",
+   "after": [
+    "L26"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": false
+  },
+  {
+   "id": "L28",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Keep awake while practising + battery exemption",
+   "files": [
+    "lib/services/wakelock_controller.dart",
+    "lib/screens/metronome_screen.dart",
+    "lib/screens/concert_mode_screen.dart",
+    "android/app/src/main/AndroidManifest.xml",
+    "android/app/src/main/kotlin/com/flowgroove/app/MainActivity.kt",
+    "lib/screens/settings",
+    "test/services/wakelock_controller_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. 1) Hold the screen wake lock (existing WakelockController) the whole time the Metronome/Practice screen or Concert Mode screen is visible, not only while playing; release when leaving (use route visibility/lifecycle; resume re-enables). Works on Android and web (wakelock_plus uses the Screen Wake Lock API on web). 2) Android: add permission REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, a MainActivity channel method isIgnoringBatteryOptimizations() and requestIgnoreBatteryOptimizations() (ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS with package URI), and a Settings tile 'Keep timing reliable' (hidden off Android) that shows the state and requests the exemption with a one-line explanation; do not prompt automatically. 3) Web: when document visibility becomes hidden while playing, show an inline banner 'Keep this tab visible for exact timing' and on return resync (no audio restart). Tests: controller enables on screen show and disables on hide even when not playing; battery tile hidden on web.",
+   "verify": "flutter test test/services/wakelock_controller_test.dart && dart analyze lib/services lib/screens && cd android && ./gradlew assembleDebug -q",
+   "after": [
+    "L26"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": false
+  },
+  {
+   "id": "L29",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Sync diagnostic stem + measure script",
+   "files": [
+    "lib/services/audio/midi/diagnostic_stem.dart",
+    "lib/providers/data/backing_transport_provider.dart",
+    "lib/widgets/practice/launchpad_view.dart",
+    "scripts/measure_sync.py",
+    "test/services/audio/midi/diagnostic_stem_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create diagnostic_stem.dart: `BackingStems diagnosticStems({required int sampleRate, required int intervalMicros, required int ticksPerBar, required double renderBpm, required int bars})`: one stem with a 20 ms 3000 Hz tone burst at the start of every beat. Add `launchDiagnostic()` to backingTransportProvider (loads it and launches bars 0..bars loop) and a kDebugMode-only 'Sync test' button in launchpad_view.dart calling it. scripts/measure_sync.py (run with `uv run --with numpy --with scipy scripts/measure_sync.py rec.wav --bpm 123`): reads a mono WAV recorded with sox rec, band-passes 1 kHz-class click (click frequencies 800-2000 Hz; use 1500 +- 700) and the 3 kHz burst (2600-3400 Hz), detects onsets, prints median offset (ms, burst minus click), drift (ms/min via linear fit), and a PASS/FAIL line against offset < 3 ms and drift < 1 ms over the recording. Test the Dart stem only (length, one burst per beat).",
+   "verify": "flutter test test/services/audio/midi/diagnostic_stem_test.dart && python3 -c \"import ast,sys;ast.parse(open('scripts/measure_sync.py').read())\"",
+   "after": [
+    "L22"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L30",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Drum pattern as a stem",
+   "files": [
+    "lib/services/audio/midi/drum_loop_renderer.dart",
+    "lib/providers/data/drum_practice_provider.dart",
+    "lib/providers/data/backing_transport_provider.dart",
+    "test/providers/drum_stem_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. On Android and web, a selected drum pattern plays as a one-stem BackingStems (render the pattern with drum_loop_renderer at the engine rate, padded to whole bars) through backingTransportProvider, looping over the pattern's bars, instead of drum_player_soloud; selecting a pattern replaces any active MIDI backing and vice versa (single active source). iOS keeps the old path. Keep the existing drum panel UI unchanged (test/midi/drum_practice_panel_test.dart must still pass; the 'Import .mid' button must remain visible there). Tests with the fake engine: pattern of 2 bars sends launch(bars 2, loop) and a 1-stem load; selecting a MIDI backing clears the pattern.",
+   "verify": "flutter test test/providers/drum_stem_test.dart test/midi && dart analyze lib/providers/data lib/services/audio/midi",
+   "after": [
+    "L22"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": true
+  },
+  {
+   "id": "L31",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Android click track on the FAST path + latency readout",
+   "files": [
+    "android/app/src/main/kotlin/com/flowgroove/app/MetronomeEngine.kt",
+    "android/app/src/main/kotlin/com/flowgroove/app/MainActivity.kt"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. P30 finding F2: the click AudioTrack is created non-FAST (logcat: AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 3840; dumpsys Latency 139.9 ms). In MetronomeEngine.buildTrack: take sample rate from AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE and size the buffer as a small multiple (2 to 4) of PROPERTY_OUTPUT_FRAMES_PER_BUFFER instead of the large min-buffer based size, keep PERFORMANCE_MODE_LOW_LATENCY, use setBufferSizeInFrames after creation, and if the track reports performanceMode != LOW_LATENCY after build, log it with Log.w. Chunk size stays a multiple of the burst. Never trade underrun safety: keep the existing underrun count log. Add channel method engineLatencyMs() -> Int estimated from AudioTrack.getTimestamp (framePosition/nanoTime) versus framesWritten, returned after >= 1 s of playback (else -1). Do not change the click rendering math.",
+   "verify": "cd android && ./gradlew assembleDebug -q",
+   "after": [
+    "L13"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L32",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "GM program names",
+   "files": [
+    "lib/services/audio/midi/gm_names.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create lib/services/audio/midi/gm_names.dart: `const List<String> gmProgramNames` with the 128 General MIDI 1 instrument names in order (Acoustic Grand Piano ... Gunshot) and `String gmProgramName(int program)` returning the name, or 'Instrument' when program is outside 0..127.",
+   "verify": "dart analyze lib/services/audio/midi/gm_names.dart",
+   "after": [],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false,
+   "must_contain": [
+    "gmProgramNames",
+    "String gmProgramName(int program)"
+   ]
+  },
+  {
+   "id": "L33",
+   "executor": "pi",
+   "finding": "LAUNCHPAD",
+   "title": "GM names test",
+   "files": [
+    "test/services/audio/midi/gm_names_test.dart",
+    "lib/services/audio/midi/gm_names.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/services/audio/midi/gm_names_test.dart: length 128; index 0 'Acoustic Grand Piano'; index 33 'Electric Bass (finger)'; index 24 'Acoustic Guitar (nylon)'; gmProgramName(-1) and gmProgramName(128) == 'Instrument'.",
+   "verify": "flutter test test/services/audio/midi/gm_names_test.dart",
+   "after": [
+    "L32"
+   ],
+   "status": "pending",
+   "timeout": 240,
+   "suite": false
+  },
+  {
+   "id": "L34",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Distinct instrument names in the mixer",
+   "files": [
+    "lib/models/midi_song.dart",
+    "lib/services/audio/midi/smf_song_parser.dart",
+    "lib/services/audio/midi/midi_song_meta_builder.dart",
+    "lib/widgets/midi/midi_song_panel.dart",
+    "test/widgets/midi_song_panel_names_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. P30 finding F3: all five tracks of AUD_CT1445.mid show the same title 'Back to black' (format-0 file split by channel keeps the song title). Track display name rule: if the file's track name is empty or equal to another track's name, use '<GM program name> \u00b7 ch N' (gm_names.dart; program = value at the channel's first note; drums = 'Drums \u00b7 ch 10'). Persist nothing new: compute the display name where tracks are built so the panel and the launchpad instrument strip read the same value. Test: a synthetic 3-channel format-0 song titled 'Song' yields three distinct names containing 'Bass', 'Piano', 'Drums'.",
+   "verify": "flutter test test/widgets/midi_song_panel_names_test.dart test/midi test/services/audio/midi && dart analyze lib/services/audio/midi lib/widgets/midi",
+   "after": [
+    "L33",
+    "L21"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": true
+  },
+  {
+   "id": "L35",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "MediaSession + media-style notification",
+   "files": [
+    "android/app/src/main/kotlin/com/flowgroove/app/MetronomeForegroundService.kt"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Chinese ROM battery managers (Huawei PowerGenie, MIUI, ColorOS, Funtouch) spare apps that hold an ACTIVE PLAYING media session. In MetronomeForegroundService create an android.media.session.MediaSession (tag 'FlowGroove', no new dependency) when the service starts: setFlags for transport controls, setPlaybackState(PlaybackState.Builder with STATE_PLAYING, position 0, speed 1f, actions ACTION_STOP|ACTION_PAUSE|ACTION_PLAY_PAUSE), setMetadata(title 'FlowGroove', artist = '$currentBpm BPM' when known), setCallback so onStop/onPause/onPlay-pause stop the service the same way ACTION_STOP does, isActive = true; keep the playback state and metadata in step whenever the notification is rebuilt; release the session in onDestroy and whenever playback stops. buildNotification uses android.app.Notification.MediaStyle with setMediaSession(session.sessionToken) and setShowActionsInCompactView(0), category CATEGORY_TRANSPORT, keep the Stop action, ongoing, silent, channel unchanged. Keep startForeground with FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK. Do not change other behaviour.",
+   "verify": "cd android && ./gradlew :app:compileDebugKotlin -q",
+   "after": [],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L36",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "OEM power-manager deep links",
+   "files": [
+    "android/app/src/main/kotlin/com/flowgroove/app/OemPowerSettings.kt",
+    "android/app/src/main/kotlin/com/flowgroove/app/MainActivity.kt",
+    "android/app/src/main/AndroidManifest.xml"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create OemPowerSettings.kt (object, package com.flowgroove.app): `fun family(): String` from Build.MANUFACTURER+Build.BRAND lowercased: huawei (huawei, honor), xiaomi (xiaomi, redmi, poco), oppo (oppo, realme, oneplus), vivo (vivo, iqoo), samsung, asus, meizu, else 'other'. `fun candidates(context): List<Intent>` per family, each Intent built with ComponentName and FLAG_ACTIVITY_NEW_TASK, only those where context.packageManager.resolveActivity(intent, 0) != null AND the activity is exported: huawei com.huawei.systemmanager/.startupmgr.ui.StartupNormalAppListActivity then com.huawei.systemmanager/.optimize.process.ProtectActivity then Intent(Intent.ACTION_POWER_USAGE_SUMMARY); xiaomi com.miui.securitycenter/com.miui.permcenter.autostart.AutoStartManagementActivity then com.miui.powerkeeper/.ui.HiddenAppsConfigActivity; oppo com.coloros.safecenter/.permission.startup.StartupAppListActivity then com.oppo.safe/.permission.startup.StartupAppListActivity then com.coloros.oppoguardelf/com.coloros.powermanager.fuelgaue.PowerUsageModelActivity; vivo com.vivo.permissionmanager/.activity.BgStartUpManagerActivity then com.iqoo.secure/.ui.phoneoptimize.AddWhiteListActivity; samsung com.samsung.android.lool/com.samsung.android.sm.battery.ui.BatteryActivity; asus com.asus.mobilemanager/.autostart.AutoStartActivity; meizu com.meizu.safe/.permission.SmartBGActivity; every family finally falls back to Settings.ACTION_APPLICATION_DETAILS_SETTINGS for this package. `fun open(context): Boolean` starts the first candidate that does not throw (catch SecurityException/ActivityNotFoundException and try the next), returns true when one started. In MainActivity extend the existing 'com.flowgroove/battery' MethodChannel with 'oemFamily' (returns the family string) and 'openOemSettings' (returns the Boolean). Add <queries> entries to AndroidManifest.xml only if package visibility requires them for resolveActivity on API 30+.",
+   "verify": "cd android && ./gradlew :app:compileDebugKotlin -q",
+   "after": [],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L37",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Keep-timing-reliable setup sheet + settings tile",
+   "files": [
+    "lib/services/power_reliability.dart",
+    "lib/widgets/metronome/reliability_sheet.dart",
+    "lib/screens/metronome_screen.dart",
+    "lib/screens/settings/app_settings_screen.dart",
+    "test/services/power_reliability_test.dart",
+    "test/services/wakelock_controller_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create lib/services/power_reliability.dart: `class PowerReliability` (constructor takes optional MethodChannel, default 'com.flowgroove/battery'; Android only, every method returns safe defaults off-Android or on MissingPluginException): `Future<String> family()` ('other' default), `Future<bool> ignoringOptimizations()`, `Future<void> requestIgnoreOptimizations()`, `Future<bool> openVendorSettings()`, `static String steps(String family)` returning the manual-steps copy for that family, e.g. huawei 'Settings > Battery > App launch > FlowGroove > Manage manually > turn on Auto-launch, Secondary launch and Run in background', xiaomi 'Security > Permissions > Autostart: allow FlowGroove; Settings > Apps > FlowGroove > Battery saver > No restrictions', oppo 'Settings > Battery > FlowGroove > Allow background activity; allow auto-launch', vivo 'Settings > Battery > Background power consumption > FlowGroove > Allow', samsung 'Settings > Battery > Background usage limits > Never sleeping apps > add FlowGroove', and a generic 'Allow unrestricted battery use for FlowGroove'. Also `Future<bool> setupSeen()` / `markSetupSeen()` persisted with SharedPreferences key 'power_setup_seen'. Create widgets/metronome/reliability_sheet.dart: `Future<void> showReliabilitySheet(BuildContext context, {PowerReliability? power})` bottom sheet titled 'Keep timing reliable' with one-line reason ('Some phones stop audio apps when the screen turns off. Concerts need exact timing.'), the family steps, buttons 'Allow unrestricted battery' (requestIgnoreOptimizations) and 'Open phone battery settings' (openVendorSettings) and 'Done' (markSetupSeen, pop). Show it ONCE (setupSeen false) the first time the user presses Play with a backing/MIDI launchpad on Android, from metronome_screen.dart (do not block playback; show after starting). IMPORTANT: Flutter tests report defaultTargetPlatform == android, so show the sheet ONLY when kIsWeb is false, the platform is android AND an active MIDI/drum backing launchpad entry is loaded (the same condition that renders LaunchpadView), and wrap the whole check in try/catch so a missing SharedPreferences/channel never throws; every existing test in test/screens and test/widgets must pass UNCHANGED. In app_settings_screen.dart add a tile 'Keep timing reliable' that always opens the sheet. The existing 'Android tile checks state and requests only when tapped' test in test/services/wakelock_controller_test.dart must keep passing: keep that tile and its text and add the new tile beside it (update the test only if it finds duplicate widgets). Tests with a fake MethodChannel: family mapping default 'other' on MissingPluginException; steps(...) contains 'Run in background' for huawei; setupSeen false then true after markSetupSeen (SharedPreferences.setMockInitialValues).",
+   "verify": "flutter test test/services/power_reliability_test.dart test/screens test/widgets && dart analyze lib/services lib/widgets/metronome lib/screens",
+   "after": [
+    "L36",
+    "L28"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": true
+  },
+  {
+   "id": "L38",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Re-sync transport state from the engine on resume (F16)",
+   "files": [
+    "android/app/src/main/kotlin/com/flowgroove/app/BackingMixer.kt",
+    "android/app/src/main/kotlin/com/flowgroove/app/MainActivity.kt",
+    "lib/services/audio/backing_engine.dart",
+    "lib/services/audio/backing_engine_platform.dart",
+    "lib/services/audio/backing_engine_factory.dart",
+    "lib/services/audio/backing_engine_stub.dart",
+    "lib/providers/data/backing_transport_provider.dart",
+    "test/providers/backing_transport_test.dart",
+    "test/providers/midi_song_practice_provider_test.dart",
+    "test/providers/backing_resync_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. P30 finding F16: after screen off/on the audio keeps playing but every pad shows Idle because the Dart transport state is lost. Add `Future<BackingSnapshot?> snapshot()` to BackingEngine (BackingSnapshot: int? playingToken, int fromBar, int bars, bool loop, int atBar, int currentBar; null when nothing plays); PlatformBackingEngine implements it via a new 'backingSnapshot' channel method (BackingMixer exposes its current command state, MainActivity maps it); web/stub engines return their own state or null. backingTransportProvider calls snapshot() when it is built and on every AppLifecycleState.resumed (WidgetsBindingObserver registered in build and removed in ref.onDispose) and, if a command is playing, restores playingId (find the span whose startBar == fromBar and bars == bars) and songBar; if the snapshot is null while Dart thinks it is playing, clear playingId/queuedId. It must NEVER stop or restart playback from a lifecycle event. test/providers/midi_song_practice_provider_test.dart has its own backing engine fake/override: add snapshot() to it too and keep its 7 backing tests green (the transport must tolerate snapshot() returning null or throwing: wrap the call in try/catch). Also add the new method to FakeBackingEngine in test/providers/backing_transport_test.dart (returns null by default) and to every other class that implements BackingEngine (WebBackingScheduler in backing_engine_factory.dart, StubBackingEngine). Tests with the fake engine: snapshot with playing command restores playingId; null snapshot clears; resume triggers a second snapshot call.",
+   "verify": "flutter test test/providers/backing_resync_test.dart test/providers && cd android && ./gradlew :app:compileDebugKotlin -q",
+   "after": [
+    "L37"
+   ],
+   "status": "wontfix",
+   "timeout": 1800,
+   "suite": true
+  },
+  {
+   "id": "L39",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Backing tracks button never hidden or dead (F10)",
+   "files": [
+    "lib/screens/metronome_screen.dart",
+    "test/screens/backing_button_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. P30 finding F10: on the metronome screen with no song loaded the 'Backing tracks' button is disabled and half hidden under the bottom bar, and its 'Pick a song first' hint is off screen. Make the section part of the scrolling content with bottom padding equal to the bottom bar/safe-area inset so it is always fully visible, keep the button enabled when no song is loaded and make tapping it open the chooser sheet with a first row/message 'Pick a song first, then add a MIDI file or drum pattern to it' instead of disabling it. Test: pump the metronome screen with no song at 360x640 and a 80 px bottom inset, expect the button's rect bottom <= screen height - inset, and tapping it shows the message.",
+   "verify": "flutter test test/screens/backing_button_test.dart test/screens/metronome_screen_test.dart",
+   "after": [
+    "L37"
+   ],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L40",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Click AudioTrack low-latency path, second attempt (F12)",
+   "files": [
+    "android/app/src/main/kotlin/com/flowgroove/app/MetronomeEngine.kt"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. P30 finding F12: after L31 logcat still shows 'AUDIO_OUTPUT_FLAG_FAST denied by server; frameCount 3840' (mono, 48 kHz, 80 ms buffer) and 'AudioTrack low latency denied; performanceMode=0'. Fix the AudioTrack construction in MetronomeEngine so FAST can be granted: buffer frames = 2 x AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER (fall back to 256), sample rate = PROPERTY_OUTPUT_SAMPLE_RATE, PERFORMANCE_MODE_LOW_LATENCY, AudioAttributes USAGE_MEDIA/CONTENT_TYPE_MUSIC with NO flags other than what is needed; if after creation track.getPerformanceMode() != PERFORMANCE_MODE_LOW_LATENCY recreate it once as STEREO (duplicate the mono mix to both channels in the render loop) and log which variant was granted ('FlowGrooveMetronome: FAST granted mono|stereo' or 'FAST denied: <reason>'); keep the render thread chunk size consistent with the new buffer (one chunk <= buffer/2) and keep the BackingMixer frame grid untouched. If the device still denies FAST, behaviour must be unchanged from today (no regression, no crash).",
+   "verify": "cd android && ./gradlew :app:compileDebugKotlin -q && ./gradlew :app:testDebugUnitTest -q",
+   "after": [
+    "L37"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": false
+  }
+ ]
+}

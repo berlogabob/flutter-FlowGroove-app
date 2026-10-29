@@ -61,9 +61,12 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
     'B',
   ];
 
+  late final TunerNotifier _notifier;
+
   @override
   void initState() {
     super.initState();
+    _notifier = ref.read(tunerProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
     AnalyticsService.logTunerEvent('tuner_opened');
     final presetId = widget.launchContext?.initialPresetId;
@@ -97,7 +100,7 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    ref.read(tunerProvider.notifier).stopAll();
+    _notifier.stopAll();
     super.dispose();
   }
 
@@ -239,7 +242,11 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
           // Detection mode toggle (only in Listen mode)
           if (state.mode == TunerMode.listen) ...[
             const SizedBox(height: MonoPulseSpacing.lg),
-            const DetectionModeToggle(),
+            // Minimum 44 logical px per segment for touch targets (WCAG 2.5.5).
+            ConstrainedBox(
+              constraints: BoxConstraints(minHeight: 44),
+              child: const DetectionModeToggle(),
+            ),
             // Mic-privacy copy lives in Settings only (Mono Pulse: "main window
             // stays clean") — it was duplicated here.
             if (state.errorMessage != null) ...[
@@ -297,17 +304,27 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
     }
 
     final itemId = contextData.setlistItemId;
-    if (itemId != null &&
-        contextData.setlist != null &&
-        contextData.saveSetlist != null) {
-      await contextData.saveSetlist!(
-        contextData.setlist!.withItemTuningPreset(itemId, presetId),
-      );
-    } else if (contextData.saveSong != null) {
-      await contextData.saveSong!(
-        contextData.song.copyWith(defaultTuningPresetId: presetId),
-      );
-    } else {
+    try {
+      if (itemId != null &&
+          contextData.setlist != null &&
+          contextData.saveSetlist != null) {
+        await contextData.saveSetlist!(
+          contextData.setlist!.withItemTuningPreset(itemId, presetId),
+        );
+      } else if (contextData.saveSong != null) {
+        await contextData.saveSong!(
+          contextData.song.copyWith(defaultTuningPresetId: presetId),
+        );
+      } else {
+        return;
+      }
+    } catch (_) {
+      if (mounted) {
+        showAppSnackBar(
+          context,
+          'Could not link tuning preset. Please try again.',
+        );
+      }
       return;
     }
     await AnalyticsService.logTunerEvent('tuner_song_preset_linked', {

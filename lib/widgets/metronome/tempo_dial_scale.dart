@@ -71,6 +71,24 @@ class TempoDialScale {
     return (localPosition - center).distance < radius * innerRadiusFactor;
   }
 
+  /// True when [localPosition] is on the ring within [maxAngle] radians of the
+  /// knob for [bpm]. Drags that start elsewhere must not move the tempo, so a
+  /// stray touch cannot jump the BPM (and, via auto-save, the song's tempo).
+  static bool isNearKnob(
+    Offset localPosition,
+    Size size,
+    int bpm, {
+    double maxAngle = 0.4,
+  }) {
+    if (positionToBpm(localPosition, size) == null) return false;
+    final delta = localPosition - size.center(Offset.zero);
+    var diff = _normalizeAngle(
+      math.atan2(delta.dy, delta.dx) - bpmToAngle(bpm),
+    );
+    if (diff > math.pi) diff = 2 * math.pi - diff;
+    return diff <= maxAngle;
+  }
+
   static double _normalizeAngle(double angle) {
     final normalized = angle % (2 * math.pi);
     return normalized < 0 ? normalized + 2 * math.pi : normalized;

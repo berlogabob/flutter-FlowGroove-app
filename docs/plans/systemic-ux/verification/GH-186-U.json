@@ -1,0 +1,43 @@
+{
+  "task": "GH-186-U",
+  "reviewer": "hermes",
+  "at": "2026-10-25T16:54:05.963705+00:00",
+  "tested_commit": "6f85d62fc2db7ee2a91f8e966cb87b233cfd5190",
+  "scope": "primary rendered UI/code acceptance; not device or issue closure",
+  "actor": "Luna incomplete draft and Hermes direct completion",
+  "original_worker": {
+    "provider": "openai-codex",
+    "model": "gpt-6-luna",
+    "terminal": "2026-10-25T15:20:52.796Z interrupted_by_system(session_turn_lease_lost), 25/32 calls, no final",
+    "prompt_replayed": false,
+    "evidence": "Original exact session terminal independently confirmed in agent.log.1; partial draft retained privately."
+  },
+  "checks": {
+    "public_red": "Retained parent-red.json fails missing inventory entry; parent-revoke-red.json fails rendered revoke behavior; done.success=false. Earlier parent completion preserved rather than repeated.",
+    "primary_combined": {
+      "visible_passed": 63,
+      "done_success": true,
+      "exit_code": 0,
+      "suites": ["test/screens/setlists/event_kit_editor_test.dart", "test/services/event_share_service_test.dart", "test/screens/setlists/event_share_screen_test.dart"],
+      "raw_private": "audit/2026-10-23-systemic-ux/workers/GH-186-U-LUNA-20261025-150703/parent-final-combined2.json"
+    },
+    "analyze": "exit 0; 16 infos, no warnings/errors",
+    "format": "2 files, zero further changes",
+    "diff": "exit 0"
+  },
+  "behavior": [
+    "Real providers gate owner/writer access; ordinary member, guest, demo, non-owner and signed-out states have no entry and no inventory call.",
+    "Initial pending/error/retry/empty states are distinct; paginated failure retains rows and retry forwards exact cursor; metadata includes role, grants, state and date.",
+    "Revoke requires confirmation; cancel does not call backend; failure preserves both rows; success disables only selected link without minting another link.",
+    "360x640 rendered revoke scenario passes without overflow; existing sharing, permission and consent tests pass."
+  ],
+  "hashes": {
+    "lib/screens/setlists/event_kit_editor_screen.dart": "94b07e5ea521395e0b6f9cce7e2af4ca358292a2ef4ed53797b5e5572ea28de6",
+    "test/screens/setlists/event_kit_editor_test.dart": "c979200bf2bd41cf759673c5cb6126b06aecb5c45bac4a5795bac9050d1b14e8"
+  },
+  "limitations": [
+    "First expanded targeted run exposed old offscreen rider assertion after new chip changed geometry; fixture now scrolls to the real action. Failure retained.",
+    "Earlier shell wrappers timed out after printing success; final repeat explicitly exits and returned real Flutter exit 0.",
+    "Hooks explicitly bypassed for bounded commit; full Graphify, full-suite, hardware/human, URL policy and GH-186-V remain open. No release/push/deploy/install."
+  ]
+}

@@ -1,3 +1,5 @@
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/event_suggestion.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
@@ -9,6 +11,7 @@ import 'package:flowgroove/screens/setlists/create_setlist_screen.dart'
 import 'package:flowgroove/screens/setlists/setlist_view_screen.dart';
 import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -63,6 +66,7 @@ void main() {
       bool canEdit = true,
       String? bandId,
       SetlistStorageScope storageScope = SetlistStorageScope.personal,
+      bool bandSongsFail = false,
     }) async {
       tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1;
@@ -143,6 +147,9 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
+          currentUserProvider.overrideWithValue(
+            const AsyncValue<User?>.data(null),
+          ),
           // The shell's DemoModeBanner watches appUserProvider; without an
           // override the real notifier throws (no Firebase in tests) and
           // Riverpod's retry timer trips the pending-timer check.
@@ -154,15 +161,41 @@ void main() {
           // instead of the personal ones; unoverridden they error and
           // Riverpod's retry timer trips the pending-timer check.
           bandSongsProvider.overrideWith(
-            (ref, id) => Stream<List<Song>>.value(songs),
+            (ref, id) => bandSongsFail
+                ? Stream<List<Song>>.error(StateError('load failed'))
+                : Stream<List<Song>>.value(songs),
           ),
           bandSetlistsProvider.overrideWith(
             (ref, id) => Stream<List<Setlist>>.value([setlist]),
+          ),
+          // Same reason: the band-side requests inbox reads the setlist's
+          // suggestions subcollection through the repository.
+          setlistSuggestionsProvider.overrideWith(
+            (ref, key) => Stream<List<EventSuggestion>>.value(const []),
           ),
           setlistsProvider.overrideWith(
             (ref) => Stream<List<Setlist>>.value([setlist]),
           ),
           canEditProvider.overrideWithValue(canEdit),
+          // Band setlists gate on the band editor role, not the app-wide flag.
+          if (bandId != null)
+            canEditBandProvider(bandId).overrideWithValue(canEdit),
+          // Event-kit access is decided from the band list directly, not via
+          // canEditBandProvider, because a guest holds a grant without any band
+          // membership. Unoverridden it reaches the real repository and its
+          // timeout timer trips the pending-timer check.
+          bandsProvider.overrideWith(
+            (ref) => Stream<List<Band>>.value([
+              if (bandId != null)
+                Band(
+                  id: bandId,
+                  name: 'Band',
+                  createdBy: 'u1',
+                  createdAt: DateTime(2026),
+                  memberUids: const ['u1'],
+                ),
+            ]),
+          ),
           ...buildMetronomeTestOverrides(overrideMetronomeProvider: true),
         ],
       );
@@ -196,6 +229,77 @@ void main() {
       expect(find.text('120'), findsOneWidget);
       expect(find.text('G'), findsOneWidget);
       expect(find.text('90'), findsOneWidget);
+    });
+
+    testWidgets('explains unresolved songs and how editors can review them', (
+      tester,
+    ) async {
+      setlist = MockDataHelper.createMockSetlist(
+        id: 'setlist-1',
+        name: 'Gig Setlist',
+        songIds: ['s1', 'missing', 's2'],
+      );
+      await pumpView(tester);
+
+      expect(
+        find.text('Some songs are unavailable in the current library.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Use Menu → Edit Setlist to review these entries.'),
+        findsOneWidget,
+      );
+      expect(find.text('First Song'), findsOneWidget);
+      expect(find.text('Unavailable song'), findsOneWidget);
+      expect(find.text('Second Song'), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Metronome'));
+      await tester.pumpAndSettle();
+      expect(find.text('route:metronome'), findsOneWidget);
+    });
+
+    testWidgets('viewers see unavailable notice without editor advice', (
+      tester,
+    ) async {
+      setlist = MockDataHelper.createMockSetlist(
+        id: 'setlist-1',
+        name: 'Gig Setlist',
+        songIds: ['s1', 'missing', 's2'],
+      );
+      await pumpView(tester, canEdit: false);
+
+      expect(
+        find.text('Some songs are unavailable in the current library.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Use Menu → Edit Setlist to review these entries.'),
+        findsNothing,
+      );
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit Setlist'), findsNothing);
+    });
+
+    testWidgets('distinguishes song-load error from unresolved songs', (
+      tester,
+    ) async {
+      await pumpView(tester, bandId: 'band-1', bandSongsFail: true);
+
+      expect(
+        find.text('Could not load songs. Try again later.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Some songs are unavailable in the current library.'),
+        findsNothing,
+      );
+      expect(
+        find.text('Use Menu → Edit Setlist to review these entries.'),
+        findsNothing,
+      );
+      expect(find.text('Unavailable song'), findsNWidgets(2));
     });
 
     testWidgets(

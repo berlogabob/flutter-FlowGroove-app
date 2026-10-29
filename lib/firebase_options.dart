@@ -59,7 +59,8 @@ class DefaultFirebaseOptions {
       // which also serves /__/auth/** helpers — email action links land here too.
       authDomain: 'app.flowgroove.app',
       storageBucket: 'repsync-app-8685c.firebasestorage.app',
-      measurementId: 'G-DQC026CRM8', // Firebase-provisioned web-app stream (site keeps G-T6YBX0M53W)
+      measurementId:
+          'G-DQC026CRM8', // Firebase-provisioned web-app stream (site keeps G-T6YBX0M53W)
     );
   }
 
@@ -74,10 +75,19 @@ class DefaultFirebaseOptions {
     );
   }
 
+  /// Fallback only. `ios/Runner/GoogleService-Info.plist` is now bundled into
+  /// the Runner target, so the native SDK auto-initializes `[DEFAULT]` before
+  /// Dart runs and `main.dart` skips `initializeApp(options:)` entirely. These
+  /// values are kept in sync anyway so the fallback path can't register a
+  /// different app than the plist does.
+  ///
+  /// The previous `appId` here was the *web* id with `web:` swapped to `ios:` —
+  /// no such app existed in the project, which is why iOS reported zero
+  /// analytics while Auth/Firestore (keyed off projectId + apiKey) kept working.
   static FirebaseOptions get ios {
     return FirebaseOptions(
       apiKey: _mobileApiKey,
-      appId: '1:703941154390:ios:43dfeaf2f6a0495e004df7',
+      appId: '1:703941154390:ios:5e9f3dc52e43d491004df7',
       messagingSenderId: '703941154390',
       projectId: 'repsync-app-8685c',
       authDomain: 'repsync-app-8685c.firebaseapp.com',
@@ -89,9 +99,9 @@ class DefaultFirebaseOptions {
   // Helper: Check if value is a placeholder (REPLACE_ME_*, your_*, etc.)
   static bool _isPlaceholder(String value) {
     return value.isEmpty ||
-           value.contains('REPLACE_ME') ||
-           value.contains('your_') ||
-           value.contains('YOUR_') ||
-           value == 'none';
+        value.contains('REPLACE_ME') ||
+        value.contains('your_') ||
+        value.contains('YOUR_') ||
+        value == 'none';
   }
 }

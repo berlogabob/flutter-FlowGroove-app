@@ -12,7 +12,7 @@ import '../models/api_error.dart';
 /// `photoURL`.
 class AvatarFunctionService {
   AvatarFunctionService({FirebaseFunctions? functions})
-      : _functions = functions ?? FirebaseFunctions.instance;
+    : _functions = functions ?? FirebaseFunctions.instance;
 
   final FirebaseFunctions _functions;
 

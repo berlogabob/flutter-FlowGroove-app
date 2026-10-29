@@ -16,10 +16,7 @@ class ToneGenerator {
 
   Future<void> _ensureInitialized() async {
     if (SoLoud.instance.isInitialized) return;
-    await SoLoud.instance.init(
-      bufferSize: 512,
-      channels: Channels.mono,
-    );
+    await SoLoud.instance.init(bufferSize: 512, channels: Channels.mono);
   }
 
   Future<AudioSource> _ensureSource() async {

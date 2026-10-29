@@ -1,0 +1,16 @@
+flutter test exit=0
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+01:50 +2830 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/join_deeplink_redirect_test.dart: join deep link reaches join-band for an already-authenticated real user whose session restores just after launch
+❌ Analytics Error in invite_link_opened: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+01:50 +2831 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/join_deeplink_redirect_test.dart: join deep link reaches join-band for an already-authenticated real user whose session restores just after launch
+01:50 +2832 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/join_deeplink_redirect_test.dart: join deep link shows the invite Welcome screen for a logged-out visitor
+❌ Analytics Error in invite_link_opened: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+01:50 +2833 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/join_deeplink_redirect_test.dart: join deep link shows the invite Welcome screen for a demo-authed visitor
+❌ Analytics Error in invite_link_opened: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+01:50 +2834 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_add_flows_return_to_band_test.dart: band add flows (cross-branch push) add-song pushed from band-songs returns on back
+01:51 +2835 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_add_flows_return_to_band_test.dart: band add flows (cross-branch push) create-setlist pushed from band-setlists returns on back
+01:52 +2836 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/branch_stack_observer_test.dart: BranchStackObserver root = depth 0, pushed child = depth 1, pop = depth 0
+01:52 +2837 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/branch_stack_observer_test.dart: BranchStackObserver a re-mounted branch navigator heals a leaked count (logout→login)
+01:52 +2838 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-songs pushed from the-band returns to the-band on back
+01:52 +2839 ~4: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-setlists pushed from the-band returns to the-band on back
+01:53 +2840 ~4: All tests passed!

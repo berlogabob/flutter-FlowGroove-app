@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
-import '../haptics_provider.dart';
 import '../../models/beat_mode.dart';
 import '../../models/metronome_preset.dart';
 import '../../models/metronome_runtime_state.dart';
@@ -21,8 +20,10 @@ import '../../providers/wakelock_provider.dart';
 import '../../repositories/metronome_session_repository.dart';
 import '../../services/analytics_service.dart';
 import '../../services/audio/audio_focus_manager.dart';
+import '../../services/last_practice_context.dart';
 import '../../services/metronome_preferences.dart';
 import '../../services/wakelock_controller.dart';
+import '../haptics_provider.dart';
 import 'data_providers.dart';
 
 /// Metronome Notifier class
@@ -839,6 +840,25 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   void _startSession() {
+    final song = state.activeSong;
+    if (song != null) {
+      unawaited(
+        LastPracticeContextStore()
+            .save(
+              LastPracticeContext(
+                songId: song.id,
+                bandId: state.sourceBandId,
+                title: song.title,
+                bpm: state.bpm,
+                updatedAt: DateTime.now(),
+              ),
+            )
+            .then((_) {
+              if (ref.mounted) ref.invalidate(lastPracticeContextProvider);
+            })
+            .catchError((Object _) {}),
+      );
+    }
     _sessionStopwatch = Stopwatch()..start();
     _activeSession = MetronomeSession(
       id: const Uuid().v4(),
@@ -858,7 +878,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     final stopwatch = _sessionStopwatch;
     if (session == null || stopwatch == null) return;
     stopwatch.stop();
-    AnalyticsService.logPracticeSession(lengthMs: stopwatch.elapsedMilliseconds);
+    AnalyticsService.logPracticeSession(
+      lengthMs: stopwatch.elapsedMilliseconds,
+    );
     _activeSession = null;
     _sessionStopwatch = null;
     final completedSession = MetronomeSession(
@@ -881,7 +903,8 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   Future<void> _saveSessionSafely(MetronomeSession session) async {
-    if (!MetronomeSessionRepository.storageReady) return;
+    // Signed-out and the read-only demo account both fail the write; swallow
+    // it rather than surfacing an error over a finished practice session.
     try {
       await _sessionRepository.save(session);
     } catch (error) {
@@ -890,7 +913,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   void _persistManualSettings() {
-    if (state.bpmSource != BpmSource.manual) return;
+    // Tap tempo is as deliberate as typing a number — persist it too. Only
+    // transient sources (song load, setlist, tempo ramp) skip the prefs.
+    if (state.bpmSource != BpmSource.manual &&
+        state.bpmSource != BpmSource.tapTempo) {
+      return;
+    }
     unawaited(
       _saveManualSettingsSafely(<String, dynamic>{
         'bpm': state.bpm,

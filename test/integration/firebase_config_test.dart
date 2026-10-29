@@ -92,13 +92,15 @@ void main() {
 
     group('ConfigValidator', () {
       group('validate() method', () {
-        test('missing key is not fatal off-web (mobile fallback exists)',
-            () async {
-          final result = await ConfigValidator.validate();
+        test(
+          'missing key is not fatal off-web (mobile fallback exists)',
+          () async {
+            final result = await ConfigValidator.validate();
 
-          expect(result.isValid, isTrue);
-          expect(result.errors, isEmpty);
-        });
+            expect(result.isValid, isTrue);
+            expect(result.errors, isEmpty);
+          },
+        );
 
         test('should return warnings for optional features', () async {
           final result = await ConfigValidator.validate();

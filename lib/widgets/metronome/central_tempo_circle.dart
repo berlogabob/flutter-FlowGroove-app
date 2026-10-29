@@ -3,6 +3,7 @@ library;
 
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,23 +49,37 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
             onIncrease: () => notifier.setBpm(state.bpm + 1),
             onDecrease: () => notifier.setBpm(state.bpm - 1),
             child: SizedBox.fromSize(
+              key: _dialKey,
               size: dialSize,
-              child: GestureDetector(
+              child: RawGestureDetector(
                 key: const Key('tempo-dial'),
                 behavior: HitTestBehavior.opaque,
-                onPanStart: (details) =>
-                    _updateTempoFromPosition(details.localPosition, dialSize),
-                onPanUpdate: (details) =>
-                    _updateTempoFromPosition(details.localPosition, dialSize),
-                onTapUp: (details) {
-                  if (TempoDialScale.isCenterPosition(
-                    details.localPosition,
-                    dialSize,
-                  )) {
-                    showTempoInputSheet(context);
-                    return;
-                  }
-                  _updateTempoFromPosition(details.localPosition, dialSize);
+                gestures: {
+                  // Claims the touch at once, but only when it lands on the knob,
+                  // so the dial wins over an ancestor scroll view for knob drags
+                  // while every other touch (ring, gap) scrolls or does nothing.
+                  _KnobRecognizer:
+                      GestureRecognizerFactoryWithHandlers<_KnobRecognizer>(
+                        () => _KnobRecognizer(
+                          accepts: (global) => _onKnob(global, dialSize),
+                          onMove: (global) =>
+                              _updateTempoFromGlobal(global, dialSize),
+                        ),
+                        (_) {},
+                      ),
+                  TapGestureRecognizer:
+                      GestureRecognizerFactoryWithHandlers<
+                        TapGestureRecognizer
+                      >(TapGestureRecognizer.new, (recognizer) {
+                        recognizer.onTapUp = (details) {
+                          if (TempoDialScale.isCenterPosition(
+                            details.localPosition,
+                            dialSize,
+                          )) {
+                            showTempoInputSheet(context);
+                          }
+                        };
+                      }),
                 },
                 child: CustomPaint(
                   painter: TempoDialPainter(
@@ -84,13 +99,11 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
                             style: MonoPulseTypography.displayLarge.copyWith(
                               fontSize: 64,
                               fontWeight: FontWeight.w700,
-                              color: state.isPlaying
-                                  ? MonoPulseColors.accentOrange
-                                  : context.mp.textPrimary,
+                              color: context.mp.textPrimary,
                             ),
                           ),
                           Text(
-                            'BPM',
+                            state.bpm >= 240 ? 'BPM · double-time?' : 'BPM',
                             style: MonoPulseTypography.bodyLarge.copyWith(
                               color: context.mp.textSecondary.withValues(
                                 alpha: 0.7,
@@ -108,6 +121,28 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
         );
       },
     );
+  }
+
+  final _dialKey = GlobalKey();
+
+  Offset? _toLocal(Offset global) {
+    final box = _dialKey.currentContext?.findRenderObject() as RenderBox?;
+    return box?.globalToLocal(global);
+  }
+
+  bool _onKnob(Offset global, Size dialSize) {
+    final local = _toLocal(global);
+    if (local == null) return false;
+    return TempoDialScale.isNearKnob(
+      local,
+      dialSize,
+      ref.read(metronomeProvider).bpm,
+    );
+  }
+
+  void _updateTempoFromGlobal(Offset global, Size dialSize) {
+    final local = _toLocal(global);
+    if (local != null) _updateTempoFromPosition(local, dialSize);
   }
 
   void _updateTempoFromPosition(Offset localPosition, Size dialSize) {
@@ -203,4 +238,35 @@ class TempoDialPainter extends CustomPainter {
         isPlaying != oldDelegate.isPlaying ||
         trackColor != oldDelegate.trackColor;
   }
+}
+
+/// Wins the gesture arena on pointer-down when the touch is on the tempo knob
+/// and then reports every move; ignores touches anywhere else.
+class _KnobRecognizer extends OneSequenceGestureRecognizer {
+  _KnobRecognizer({required this.accepts, required this.onMove});
+
+  final bool Function(Offset global) accepts;
+  final void Function(Offset global) onMove;
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    if (!accepts(event.position)) return;
+    startTrackingPointer(event.pointer, event.transform);
+    resolve(GestureDisposition.accepted);
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (event is PointerMoveEvent) {
+      onMove(event.position);
+    } else if (event is PointerUpEvent || event is PointerCancelEvent) {
+      stopTrackingPointer(event.pointer);
+    }
+  }
+
+  @override
+  void didStopTrackingLastPointer(int pointer) {}
+
+  @override
+  String get debugDescription => 'tempo knob';
 }

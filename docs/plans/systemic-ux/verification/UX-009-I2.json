@@ -1,0 +1,32 @@
+{
+  "task": "UX-009-I2",
+  "executor": "hermes",
+  "reviewer": "hermes",
+  "tested_commit": "87bfe21f96a1273cb4711f75ad5cca0aed25b04d",
+  "worktree_commit": "c5444d7eea333602860d3a6d47cae0eb5bb20f48",
+  "model_attempt": "rejected timeout/no final/no edits; saved under attempts; not credited as model implementation",
+  "red": {
+    "exit_code": 1,
+    "case": "missing rendered Loading practice status",
+    "report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I2-20261024-190204/red-test.json"
+  },
+  "green": {
+    "worktree_tests": 6,
+    "primary_related_tests": 74,
+    "primary_process": "proc_7c4f32232b38",
+    "report": "/Users/berloga/Documents/GitHub/flutter_repsync_app/audit/2026-10-23-systemic-ux/workers/UX-009-I2-20261024-190204/primary-related.json",
+    "public_guards": [
+      "initial loading→error text and merged semantics",
+      "no raw private error text",
+      "actual empty and populated stats",
+      "tappable/non-tappable navigation",
+      "cached refresh retains data until new result"
+    ]
+  },
+  "analyze_exit_code": 0,
+  "analyze_infos": 4,
+  "info_baseline_note": "All four info expressions independently found in baseline source; no unrelated lint cleanup.",
+  "format_exit_code": 0,
+  "device_tested": false,
+  "scope_limit": "Shared card fixed; independent PracticeScreen homework/sessions/title fallbacks remain UX-009-I."
+}

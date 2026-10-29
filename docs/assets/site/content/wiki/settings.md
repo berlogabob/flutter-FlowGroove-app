@@ -13,7 +13,8 @@ Settings sits right under your profile.
   setting.
 - **Theme** — Dark (default), Light, or follow the system. Light is a full MonoPulse palette (warm paper, white cards), not just flipped Material surfaces.
 - **Quick action on song cards** — choose what the pinned ⏱ button on every
-  song card does: Metronome, Tuner, Performance sheet, Spotify, or Add to band.
+  song card does: Metronome, Tuner, Spotify, or Add to band. (The performance
+  sheet needs no shortcut — tapping the song opens its Sheet tab.)
 - **Quick action on setlist cards** — choose what the pinned button on every
   setlist card does: Open in metronome, Event kit, Edit setlist, Share, Copy
   links, or Export PDF.

@@ -1,0 +1,16 @@
+exit=0
+02:32 +2399 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/event_share_redirect_test.dart: shared event link opens for a signed-OUT visitor instead of bouncing to login
+02:32 +2400 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/event_share_redirect_test.dart: shared event link also opens for a signed-in user
+02:32 +2401 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/event_share_redirect_test.dart: shared event link a signed-out visitor is still bounced off app routes
+02:32 +2402 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/history_restored_extra_test.dart: the-band renders when extra is history-restored JSON
+❌ Analytics Error in band_opened: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+02:33 +2403 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/history_restored_extra_test.dart: setlist-view renders when extra is history-restored JSON
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+02:33 +2404 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/band_add_flows_return_to_band_test.dart: band add flows (cross-branch push) add-song pushed from band-songs returns on back
+02:33 +2405 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/branch_stack_observer_test.dart: BranchStackObserver root = depth 0, pushed child = depth 1, pop = depth 0
+02:33 +2406 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/branch_stack_observer_test.dart: BranchStackObserver root = depth 0, pushed child = depth 1, pop = depth 0
+02:33 +2407 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/branch_stack_observer_test.dart: BranchStackObserver a re-mounted branch navigator heals a leaked count (logout→login)
+02:34 +2408 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-songs pushed from the-band returns to the-band on back
+02:34 +2409 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_ar3/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-setlists pushed from the-band returns to the-band on back
+02:34 +2410 ~3: All tests passed!

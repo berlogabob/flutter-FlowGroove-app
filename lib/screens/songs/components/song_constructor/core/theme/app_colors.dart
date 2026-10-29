@@ -52,23 +52,55 @@ class SectionColorPalette {
   static List<Color> getSuggestedColors(String sectionName) {
     switch (sectionName.toLowerCase()) {
       case 'intro':
-        return [MonoPulseColors.section5, MonoPulseColors.section6, MonoPulseColors.section4];
+        return [
+          MonoPulseColors.section5,
+          MonoPulseColors.section6,
+          MonoPulseColors.section4,
+        ];
       case 'verse':
-        return [MonoPulseColors.section8, MonoPulseColors.section7, MonoPulseColors.section9];
+        return [
+          MonoPulseColors.section8,
+          MonoPulseColors.section7,
+          MonoPulseColors.section9,
+        ];
       case 'chorus':
-        return [MonoPulseColors.section1, MonoPulseColors.section13, MonoPulseColors.section2];
+        return [
+          MonoPulseColors.section1,
+          MonoPulseColors.section13,
+          MonoPulseColors.section2,
+        ];
       case 'bridge':
         return [MonoPulseColors.section2, MonoPulseColors.section3];
       case 'outro':
-        return [MonoPulseColors.section6, MonoPulseColors.textSecondary, MonoPulseColors.section5];
+        return [
+          MonoPulseColors.section6,
+          MonoPulseColors.textSecondary,
+          MonoPulseColors.section5,
+        ];
       case 'instrumental':
-        return [MonoPulseColors.section12, MonoPulseColors.section11, MonoPulseColors.section13];
+        return [
+          MonoPulseColors.section12,
+          MonoPulseColors.section11,
+          MonoPulseColors.section13,
+        ];
       case 'solo':
-        return [MonoPulseColors.section2, MonoPulseColors.section2, MonoPulseColors.section1];
+        return [
+          MonoPulseColors.section2,
+          MonoPulseColors.section2,
+          MonoPulseColors.section1,
+        ];
       case 'pause':
-        return [MonoPulseColors.textSecondary, MonoPulseColors.textTertiary, MonoPulseColors.section10];
+        return [
+          MonoPulseColors.textSecondary,
+          MonoPulseColors.textTertiary,
+          MonoPulseColors.section10,
+        ];
       default:
-        return [MonoPulseColors.textSecondary, MonoPulseColors.section5, MonoPulseColors.section8];
+        return [
+          MonoPulseColors.textSecondary,
+          MonoPulseColors.section5,
+          MonoPulseColors.section8,
+        ];
     }
   }
 

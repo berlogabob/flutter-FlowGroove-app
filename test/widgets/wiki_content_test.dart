@@ -58,7 +58,10 @@ void main() {
     test('external and unknown links return null (open in new tab)', () {
       expect(wikiKeyForHref('https://flowgroove.app/faq/'), null);
       expect(wikiKeyForHref('mailto:hi@x.com'), null);
-      expect(wikiKeyForHref('../faq/'), null); // valid Hugo page, but not a wiki key
+      expect(
+        wikiKeyForHref('../faq/'),
+        null,
+      ); // valid Hugo page, but not a wiki key
       expect(wikiKeyForHref('nope/'), null);
       expect(wikiKeyForHref(''), null);
     });

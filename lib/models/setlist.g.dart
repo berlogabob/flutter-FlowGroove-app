@@ -9,6 +9,7 @@ part of 'setlist.dart';
 Setlist _$SetlistFromJson(Map<String, dynamic> json) => Setlist(
   id: json['id'] as String? ?? '',
   bandId: json['bandId'] as String? ?? '',
+  ownerUid: json['ownerUid'] as String?,
   name: json['name'] as String? ?? '',
   createdAt: _parseDateTime(json['createdAt']),
   updatedAt: _parseDateTime(json['updatedAt']),
@@ -29,6 +30,7 @@ Setlist _$SetlistFromJson(Map<String, dynamic> json) => Setlist(
 Map<String, dynamic> _$SetlistToJson(Setlist instance) => <String, dynamic>{
   'id': instance.id,
   'bandId': instance.bandId,
+  if (instance.ownerUid != null) 'ownerUid': instance.ownerUid,
   'name': instance.name,
   'description': instance.description,
   'eventDateTime': _dateTimeToJson(instance.eventDateTime),

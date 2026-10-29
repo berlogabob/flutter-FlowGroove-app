@@ -1,0 +1,35 @@
+{
+  "task": "GH-189-A2",
+  "reviewer": "hermes",
+  "tested_commit": "75b3d59d1983fc5d52f816f6addfbe5ac7a728b6",
+  "scope": "Successful event share creation caller only; no device/GA4 or issue closure",
+  "worker": {
+    "provider": "openai-codex",
+    "actual_model": "gpt-6-luna",
+    "session_id": "local-3ded22748ccf697d4ee83f72e023ee610b20a765c440b8e150f751ac30974f8a",
+    "server_terminal_at": "2026-10-25T05:43:48.295+00:00",
+    "api_calls": 20,
+    "outcome": "Incomplete test matrix explicitly reported. CLI stream partial, server stop independently checked; no prompt replay. Controller directly completed tests on primary. Full worker tool compliance not claimed."
+  },
+  "public_seam": "Existing rendered EventKitEditorScreen Share action, injected EventShareService invoker, clipboard and installed Firebase Pigeon transport",
+  "source_sha256": {
+    "lib/screens/setlists/event_kit_editor_screen.dart": "9da3682ed41d2f077ba8d3a441bba40777599fef68ea554a6cade587ab40f421",
+    "test/screens/setlists/event_kit_editor_test.dart": "35839976c9239067caef020bb51f060982e6c61a8a1ae76a88b44d054a556230"
+  },
+  "changes": "Parameterless logEventShareCreated after service AND clipboard success, before mounted UI check. Existing grants, owner payload, token URL, dotted writes and snackbars preserved. Literal event name and null parameters asserted independently.",
+  "checks": {
+    "worker_baseline": {"visible_passes": 15, "done_success": true},
+    "worker_red": {"visible_passes": 14, "done_success": false, "assertion": "Expected event_share_created/null payload, actual []", "sha256": "8737e3d48145f6a4907930f07d2de5971cfc4e87afe2b1deb2220ee928d87b53"},
+    "worker_final2": {"visible_passes": 15, "done_success": true},
+    "parent_matrix": {"process": "proc_181f762dfdcc", "exit_code": 0, "visible_passes": 21, "done_success": true, "note": "Real native startup/compile; loading-only output not mistaken for PASS; JSON independently parsed"},
+    "parent_combined": {"process": "proc_72c1f9950e90", "exit_code": 0, "visible_passes": 90, "done_success": true, "sha256": "cdbc354c9c9ceccab42204a52ef0db4445539914c3a7e21fa8e94aecfef9504b", "files": ["test/screens/setlists/event_kit_editor_test.dart", "test/models/event_access_test.dart", "test/services/event_share_service_test.dart", "test/screens/setlists/setlist_view_screen_test.dart", "test/services/analytics_service_test.dart", "test/providers/analytics_consent_provider_test.dart"]},
+    "analyze": {"exit_code": 0, "infos": 9, "errors": 0, "warnings": 0, "note": "Not lint-clean; worker directive ordering cleaned within test slice"},
+    "format": {"exit_code": 0, "changed_files": 0},
+    "diff_check": {"exit_code": 0},
+    "security_hook": "PASS"
+  },
+  "behavior": ["Successful share copies unchanged URL and sends exactly one literal event with null parameters", "Service/permission-denied and clipboard failures send no event and preserve failure feedback", "No-access person and guest affordance exclusion cause no service/analytics call", "Consent off preserves successful copy but sends no analytics", "Injected analytics SDK failure remains nonfatal and successful copy feedback survives", "Existing GH-188 access/reset/identity/cancel and related permission regressions remain passing"],
+  "commands": ["dart <flutter_tools.snapshot> test --no-pub <files> --reporter expanded --file-reporter json:<run>/parent-{matrix,combined}.jsonl", "dart analyze lib/screens/setlists/event_kit_editor_screen.dart test/screens/setlists/event_kit_editor_test.dart", "dart format --output=none --set-exit-if-changed lib/screens/setlists/event_kit_editor_screen.dart test/screens/setlists/event_kit_editor_test.dart", "git diff --check"],
+  "private_log_directory": "audit/2026-10-23-systemic-ux/workers/GH-189-A2-LUNA-20261025-0515",
+  "limitations": ["Legacy handled analytics no-app/channel messages remain in unrelated fixtures; not clean runtime/GA4 proof", "Device, human UX, GA4, full Graphify and wider final gates remain open", "No release/push/deploy/install or remote issue closure"]
+}

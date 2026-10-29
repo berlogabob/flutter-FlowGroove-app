@@ -19,8 +19,9 @@ Collected data types:
 | Name (display name) | Yes | No | Account management, app functionality (band member lists) | Optional |
 | Photos (avatar) | Yes | No | App functionality | Optional |
 | User-generated content (songs, setlists, bands, rehearsals) | Yes | No | App functionality | — |
+| Practice history (metronome session logs: start time, duration, tempo, linked song) | Yes | No | App functionality (weekly minutes, streak, session logbook) | — |
 | User IDs (Firebase UID) | Yes | No | Account management | — |
-| App interactions (analytics) | Yes, **only with in-app consent** (Profile → Usage analytics switch, off by default) | No | Analytics | Optional |
+| App interactions (analytics) | Yes — **on by default**, with an in-app opt-out (Settings → Privacy → Share usage analytics). Switching it off disables Firebase Analytics collection entirely, including automatic session events. | No | Analytics | Optional |
 | Crash logs / diagnostics | **Not collected** (no Crashlytics in the app) | — | — | — |
 | **Audio** | **NOT collected** — microphone audio is processed on-device for tuner pitch detection only; never recorded, stored, or uploaded | No | — | — |
 | Location, contacts, financial, health, browsing, files | Not collected | — | — | — |
@@ -28,7 +29,7 @@ Collected data types:
 ## Data deletion
 
 - Account creation: **Yes** (email/password, Google)
-- In-app deletion path: **Profile → Delete account** (server-authoritative cascade: auth user, songs, setlists, band memberships, avatar)
+- In-app deletion path: **Profile → Delete account** (server-authoritative cascade: auth user, songs, setlists, practice history, band memberships, avatar)
 - Web resource: `https://flowgroove.app/delete-account/`
 
 ## App access (reviewer account)

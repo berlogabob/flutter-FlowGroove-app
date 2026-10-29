@@ -1,0 +1,17 @@
+{
+  "task": "UX-004-R",
+  "reviewer": "hermes",
+  "tested_commit": "8bd98a5385125de0146113f3f4c1ccd10c81dc69",
+  "scope": "complete independent source review, not implementation/device/human acceptance",
+  "worker": {"provider": "openai-codex", "actual_model": "gpt-6-luna", "exit_code": 0, "duration_ms": 36233, "reads": 3, "writes": 1, "allowed_paths_only": true},
+  "source_identical_to_worker": true,
+  "source_sha256": {
+    "lib/widgets/setlist_song_row.dart": "3ea8777826181d64870f6d4cefa400586e323b5e494621567afb79c1e82b46c2",
+    "lib/screens/setlists/setlist_view_screen.dart": "a001379c85b6dca076060349f83e843e7a9370b807f8a3effdcc5a14b43562a5",
+    "test/screens/setlists/setlist_view_screen_test.dart": "4218a0da77fbbe52258567be15ee80977e9c04de7ca4d1ee637002e87c6269db"
+  },
+  "corrections": ["Distinguish initial loading/no-data error from cached-data refresh selection.", "Editor navigation is review, not a guaranteed recovery or proof of deletion.", "Both shared-row callers verified; implementation moves to screen-only context with existing rendered-screen fixture."],
+  "tests": "not run: source-only acceptance, no executable change",
+  "report": "docs/plans/systemic-ux/reviews/UX-004.md",
+  "remaining": ["UX-004-I targeted RED/GREEN and integration", "device/human recovery", "root cause of unresolved song IDs unknown", "issue remains open"]
+}

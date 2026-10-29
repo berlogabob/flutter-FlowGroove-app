@@ -1,0 +1,4 @@
+{"id": "K01", "finding": "CLICKFIX", "executor": "pi", "attempt": 1, "secs": 57, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 2 insertions(+)", "verify_tail": ""}
+{"id": "K02", "finding": "CLICKFIX", "executor": "pi", "attempt": 1, "secs": 338, "exec_rc": 142, "verdict": "pass", "diff": "", "verify_tail": ""}
+{"id": "K03", "finding": "CLICKFIX", "executor": "pi", "attempt": 1, "secs": 30, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 4 insertions(+), 3 deletions(-)", "verify_tail": ""}
+{"id": "K04", "finding": "CLICKFIX", "executor": "pi", "attempt": 1, "secs": 23, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 11 insertions(+)", "verify_tail": ""}

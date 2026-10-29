@@ -14,6 +14,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/band.dart';
+import '../models/event_access.dart';
 import '../models/user.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
@@ -118,10 +119,16 @@ final isAdminUserProvider = Provider<bool>((ref) {
 // BAND-LEVEL PERMISSION HELPERS
 // ============================================================
 
-/// Can the current user edit this band?
+/// Can the current user edit this band's content (songs, setlists, ...)?
 ///
-/// Checks both app-level access AND band-level role.
-Provider<bool> canEditBandProvider(String bandId) => Provider<bool>((ref) {
+/// Checks both app-level access (non-demo) AND band-level role via the
+/// derived `adminUids`/`editorUids` arrays — the same fields Firestore
+/// rules enforce. Never gate on `members[].role` in screens: legacy docs
+/// can drift, and the arrays are the server truth.
+final canEditBandProvider = Provider.autoDispose.family<bool, String>((
+  ref,
+  bandId,
+) {
   final userAsync = ref.watch(appUserProvider);
   final bandAsync = ref.watch(bandsProvider);
 
@@ -139,29 +146,88 @@ Provider<bool> canEditBandProvider(String bandId) => Provider<bool>((ref) {
   );
 });
 
+/// What the current user may see and change on ONE event.
+///
+/// The single source of event permissions for the UI, for members and guests
+/// alike. A member gets every area at `edit`, which is what they had before a
+/// guest could exist. Anyone else gets the `viewer.access` map that
+/// `getEventView` already returns — so this costs no extra Firestore read, and
+/// it works identically for an anonymous share-link holder, who has no uid for
+/// a security rule to match on in the first place.
+///
+/// Deliberately NOT read from `grants/{uid}` even though the rules permit it:
+/// one source, and that one covers the tokened case too.
+typedef EventPermissions = ({
+  bool isMember,
+  Map<String, String> access,
+  bool canSuggest,
+});
+
+const EventPermissions _noEventAccess = (
+  isMember: false,
+  access: <String, String>{},
+  canSuggest: false,
+);
+
+final eventPermissionsProvider = Provider.autoDispose
+    .family<EventPermissions, (String, String)>((ref, key) {
+      final bandId = key.$1;
+      final isGuest = isEventGuestOf(ref.watch(bandsProvider).value, bandId);
+      // Still loading: offer NOTHING. Defaulting to member here handed a guest
+      // every area at `edit` for that window — an Event kit door onto controls
+      // the rules then refused. A member sees the entry a beat later instead.
+      if (isGuest == null) return _noEventAccess;
+      if (!isGuest) {
+        return (
+          isMember: true,
+          access: {
+            for (final area in EventArea.all) area: EventAccessLevel.edit,
+          },
+          canSuggest: false,
+        );
+      }
+      final view = ref.watch(eventViewProvider(key)).value;
+      if (view == null) return _noEventAccess;
+      return (
+        isMember: false,
+        access: view.access,
+        canSuggest: view.canSuggest,
+      );
+    });
+
+/// Is the current user an admin of this band?
+///
+/// Rules reserve band-doc updates, band-song deletes and avatar changes for
+/// admins — gate those affordances here, not on [canEditBandProvider].
+final isBandAdminProvider = Provider.autoDispose.family<bool, String>((
+  ref,
+  bandId,
+) {
+  final userAsync = ref.watch(appUserProvider);
+  final bandAsync = ref.watch(bandsProvider);
+
+  return userAsync.when(
+    data: (user) {
+      if (user == null || !_canEdit(user)) return false;
+      return bandAsync.when(
+        data: (bands) => _canManageBandMembersIn(user.uid, bandId, bands),
+        loading: () => false,
+        error: (_, _) => false,
+      );
+    },
+    loading: () => false,
+    error: (_, _) => false,
+  );
+});
+
 /// Can the current user manage members in this band?
 ///
 /// Governed by the **band-level** admin role: any non-demo user who is an
 /// admin of this band can manage its members, regardless of their app-level
 /// access role. (App-level admin/owner is no longer required here.)
-Provider<bool> canManageBandMembersProvider(String bandId) =>
-    Provider<bool>((ref) {
-      final userAsync = ref.watch(appUserProvider);
-      final bandAsync = ref.watch(bandsProvider);
-
-      return userAsync.when(
-        data: (user) {
-          if (user == null || !_canEdit(user)) return false;
-          return bandAsync.when(
-            data: (bands) => _canManageBandMembersIn(user.uid, bandId, bands),
-            loading: () => false,
-            error: (_, _) => false,
-          );
-        },
-        loading: () => false,
-        error: (_, _) => false,
-      );
-    });
+final canManageBandMembersProvider = Provider.autoDispose.family<bool, String>(
+  (ref, bandId) => ref.watch(isBandAdminProvider(bandId)),
+);
 
 // ============================================================
 // INTERNAL HELPERS

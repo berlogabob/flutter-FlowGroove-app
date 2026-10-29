@@ -110,6 +110,87 @@ describe("ensureCanonicalSong callable", function () {
     );
   });
 
+  it("ignores a non-active canonical when deduping by external id", async () => {
+    // Prod shape: an orphaned pre-Unicode-fix artifact shared MBID edf8d9b5 with
+    // the real canonical, so every ensure for that recording threw. Retiring the
+    // artifact to status "merged" has to make the lookup unambiguous again.
+    await seedCanonicalSong("artifact", {
+      musicBrainzId: "mb-shared",
+      status: "merged",
+      canonicalRevision: 1,
+    });
+    await seedCanonicalSong("real", {
+      musicBrainzId: "mb-shared",
+      canonicalRevision: 9,
+    });
+
+    assert.deepEqual(
+      await callEnsure({ title: "Whatever", artist: "Whoever", musicBrainzId: "mb-shared" }),
+      { canonicalSongId: "real", canonicalRevision: 9 },
+    );
+  });
+
+  it("ignores a non-active canonical when deduping by normalized name", async () => {
+    await seedCanonicalSong("artifact", {
+      normalizedTitle: "shared song",
+      normalizedArtist: "shared artist",
+      status: "merged",
+    });
+    await seedCanonicalSong("real", {
+      normalizedTitle: "shared song",
+      normalizedArtist: "shared artist",
+      canonicalRevision: 4,
+    });
+
+    assert.deepEqual(
+      await callEnsure({ title: "Shared Song", artist: "Shared Artist" }),
+      { canonicalSongId: "real", canonicalRevision: 4 },
+    );
+  });
+
+  it("refuses a title or artist that normalizes to nothing", async () => {
+    // Guards the root cause of the prod artifact: an empty normalization makes
+    // the doc id degenerate to sha256("\n"), collecting unrelated songs.
+    for (const payload of [
+      { title: "!!!", artist: "Real Artist" },
+      { title: "Real Title", artist: "???" },
+      { title: "...", artist: "---" },
+    ]) {
+      await assert.rejects(
+        () => callEnsure(payload),
+        (error) => error.code === "invalid-argument" &&
+          /at least one letter or digit/.test(error.message),
+        `expected rejection for ${JSON.stringify(payload)}`,
+      );
+    }
+    assert.equal(await canonicalSongCount(), 0);
+  });
+
+  it("accepts the rich metadata fields it used to hardcode as null", async () => {
+    const result = await callEnsure({
+      title: "Rich Song",
+      artist: "Rich Artist",
+      musicBrainzId: "mb-rich",
+      musicBrainzWorkId: "work-rich",
+      iswc: "T-123.456.789-0",
+      album: "Rich Album",
+      releaseYear: 1974,
+      durationMs: 283000,
+      genres: ["rock", "southern rock"],
+      baseKey: "G",
+      baseBpm: 98,
+    });
+
+    const data = (await db.collection("canonical_songs")
+      .doc(result.canonicalSongId).get()).data();
+    assert.equal(data.musicBrainzWorkId, "work-rich");
+    assert.equal(data.iswc, "T-123.456.789-0");
+    assert.equal(data.releaseYear, 1974);
+    assert.deepEqual(data.genres, ["rock", "southern rock"]);
+    assert.equal(data.baseKey, "G");
+    assert.equal(data.baseBpm, 98);
+  });
+
   it("falls back to normalized title and artist lookup", async () => {
     await seedCanonicalSong("canonical-normalized", {
       title: "Bohemian Rhapsody",
@@ -278,7 +359,7 @@ async function seedCanonicalSong(id, values = {}) {
     schemaVersion: 1,
     canonicalRevision: values.canonicalRevision || 1,
     source: "manual",
-    status: "active",
+    status: values.status || "active",
     createdBy: "seed",
     baseKey: null,
     baseBpm: null,

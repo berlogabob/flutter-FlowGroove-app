@@ -342,7 +342,12 @@ void main() {
         expect(formData.ourBpm, '125');
         expect(formData.notes, 'Test notes');
         expect(formData.originalKey, isEmpty);
-        expect(formData.ourKey, 'dm');
+        // Was 'dm'. _buildKey used to lowercase the root for minor keys, which
+        // made this form the only writer of a spelling that
+        // functions/src/mcp/song_schema.js rejected as invalid — the app failing
+        // its own server-side validator. Now emits the uppercase convention the
+        // schema, the CSV schema and the filter chips all share.
+        expect(formData.ourKey, 'Dm');
         expect(formData.spotifyUrl, 'https://spotify.com/track');
         expect(formData.links.length, 1);
         expect(formData.selectedTags, ['rock']);

@@ -256,10 +256,23 @@ class _TuningChip extends StatelessWidget {
                 ),
               ),
             ),
-            Text(
-              tuning.notes.join(' · '),
-              style: MonoPulseTypography.labelSmall.copyWith(
-                color: context.mp.textTertiary,
+            const SizedBox(width: MonoPulseSpacing.sm),
+            // Notes get at most ~55% of the row so long names keep their words.
+            Flexible(
+              flex: 0,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width * 0.5,
+                ),
+                child: Text(
+                  tuning.notes.join(' · '),
+                  textAlign: TextAlign.end,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: MonoPulseTypography.labelSmall.copyWith(
+                    color: context.mp.textTertiary,
+                  ),
+                ),
               ),
             ),
           ],

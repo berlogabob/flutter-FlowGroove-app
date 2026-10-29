@@ -23,16 +23,17 @@ import 'analytics_events.dart';
 /// All events are logged to Firebase Analytics with consistent parameter naming.
 class AnalyticsService {
   static final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
-  static bool _debugMode = kDebugMode;
+  static final bool _debugMode = kDebugMode;
 
   /// Whether analytics events are allowed to leave the device. Wired from
   /// `analyticsConsentProvider` at startup and on toggle (mirrors how
   /// `keepScreenOnProvider` drives the wakelock). Defaults to true so
   /// behavior is unchanged until the provider's async load resolves.
   ///
-  /// Only the [_log] choke point (used by the HEART events below) respects
-  /// this flag — see the note above that section for why the ~40 pre-existing
-  /// methods in this file are not gated.
+  /// This flag is only the in-Dart half. The consent provider also calls
+  /// [setAnalyticsCollectionEnabled], which is what actually stops the
+  /// ungated legacy methods below *and* Firebase's automatic events
+  /// (session_start, user_engagement) that no Dart-side flag can reach.
   static bool enabled = true;
 
   /// Test seam: counts every event that passed the [enabled] guard and
@@ -43,19 +44,19 @@ class AnalyticsService {
   @visibleForTesting
   static int debugLogAttempts = 0;
 
-  /// Enable or disable debug mode (logs events to console)
-  static void setDebugMode(bool enabled) {
-    _debugMode = enabled;
-    if (enabled) {
-      debugPrint('📊 Analytics Debug Mode: ENABLED');
-    }
-  }
+  /// Test seam: the last value passed to [setAnalyticsCollectionEnabled].
+  /// Firebase isn't initialized under unit test, so the SDK call itself is a
+  /// no-op — tests assert on this instead.
+  @visibleForTesting
+  static bool? debugCollectionEnabled;
 
   /// Initialize analytics service
   static Future<void> initialize() async {
     try {
-      // Enable analytics collection
-      await _analytics.setAnalyticsCollectionEnabled(true);
+      // Honour stored consent, don't hard-enable. The consent provider's async
+      // load races this; both paths write the same stored value, so whichever
+      // lands last is still correct.
+      await setAnalyticsCollectionEnabled(enabled);
 
       // Set session timeout for better session tracking
       // Note: setSessionTimeoutDuration is not supported on Web
@@ -213,113 +214,6 @@ class AnalyticsService {
     }
   }
 
-  /// Log band left
-  static Future<void> logBandLeft({
-    required String bandId,
-    required String bandName,
-  }) async {
-    try {
-      await _analytics.logEvent(
-        name: AnalyticsEvents.bandLeft,
-        parameters: {
-          AnalyticsParams.bandId: bandId,
-          AnalyticsParams.bandName: bandName,
-        },
-      );
-      if (_debugMode) {
-        debugPrint('📊 Event: band_left (name: $bandName)');
-      }
-    } catch (e) {
-      _logError('logBandLeft', e);
-    }
-  }
-
-  /// Log band deletion
-  static Future<void> logBandDeleted({
-    required String bandId,
-    required String bandName,
-  }) async {
-    try {
-      await _analytics.logEvent(
-        name: AnalyticsEvents.bandDeleted,
-        parameters: {
-          AnalyticsParams.bandId: bandId,
-          AnalyticsParams.bandName: bandName,
-        },
-      );
-      if (_debugMode) {
-        debugPrint('📊 Event: band_deleted (name: $bandName)');
-      }
-    } catch (e) {
-      _logError('logBandDeleted', e);
-    }
-  }
-
-  /// Log band update
-  static Future<void> logBandUpdated({
-    required String bandId,
-    required List<String> fieldsChanged,
-  }) async {
-    try {
-      await _analytics.logEvent(
-        name: AnalyticsEvents.bandUpdated,
-        parameters: {
-          AnalyticsParams.bandId: bandId,
-          AnalyticsParams.fieldsChanged: fieldsChanged.join(','),
-        },
-      );
-      if (_debugMode) {
-        debugPrint(
-          '📊 Event: band_updated (fields: ${fieldsChanged.join(', ')})',
-        );
-      }
-    } catch (e) {
-      _logError('logBandUpdated', e);
-    }
-  }
-
-  /// Log member invited
-  static Future<void> logMemberInvited({
-    required String bandId,
-    required String memberRole,
-  }) async {
-    try {
-      await _analytics.logEvent(
-        name: AnalyticsEvents.memberInvited,
-        parameters: {
-          AnalyticsParams.bandId: bandId,
-          AnalyticsParams.memberRole: memberRole,
-        },
-      );
-      if (_debugMode) {
-        debugPrint('📊 Event: member_invited (role: $memberRole)');
-      }
-    } catch (e) {
-      _logError('logMemberInvited', e);
-    }
-  }
-
-  /// Log member joined
-  static Future<void> logMemberJoined({
-    required String bandId,
-    required String memberRole,
-  }) async {
-    try {
-      await _analytics.logEvent(
-        name: AnalyticsEvents.memberJoined,
-        parameters: {
-          AnalyticsParams.bandId: bandId,
-          AnalyticsParams.memberRole: memberRole,
-        },
-      );
-      if (_debugMode) {
-        debugPrint('📊 Event: member_joined (role: $memberRole)');
-      }
-    } catch (e) {
-      _logError('logMemberJoined', e);
-    }
-  }
-
   /// Log member removed
   static Future<void> logMemberRemoved({
     required String bandId,
@@ -423,20 +317,17 @@ class AnalyticsService {
   }
 
   /// Log song deleted
-  static Future<void> logSongDeleted({
-    required String songId,
-    required String songTitle,
-  }) async {
+  /// Logged from the repository choke point, so only the id is available —
+  /// the title was dropped rather than plumbed through every confirm dialog
+  /// (unbounded free text is a wasted GA4 param anyway).
+  static Future<void> logSongDeleted({required String songId}) async {
     try {
       await _analytics.logEvent(
         name: AnalyticsEvents.songDeleted,
-        parameters: {
-          AnalyticsParams.songId: songId,
-          AnalyticsParams.songTitle: songTitle,
-        },
+        parameters: {AnalyticsParams.songId: songId},
       );
       if (_debugMode) {
-        debugPrint('📊 Event: song_deleted (title: $songTitle)');
+        debugPrint('📊 Event: song_deleted ($songId)');
       }
     } catch (e) {
       _logError('logSongDeleted', e);
@@ -461,29 +352,6 @@ class AnalyticsService {
       }
     } catch (e) {
       _logError('logSongShared', e);
-    }
-  }
-
-  /// Log song matched with external database
-  static Future<void> logSongMatched({
-    required String songId,
-    required String matchSource,
-    required bool isExactMatch,
-  }) async {
-    try {
-      await _analytics.logEvent(
-        name: AnalyticsEvents.songMatched,
-        parameters: {
-          AnalyticsParams.songId: songId,
-          'match_source': matchSource,
-          'is_exact_match': isExactMatch,
-        },
-      );
-      if (_debugMode) {
-        debugPrint('📊 Event: song_matched (source: $matchSource)');
-      }
-    } catch (e) {
-      _logError('logSongMatched', e);
     }
   }
 
@@ -532,44 +400,16 @@ class AnalyticsService {
     );
   }
 
-  /// Log setlist edited
-  static Future<void> logSetlistEdited({
-    required String setlistId,
-    required List<String> fieldsChanged,
-  }) async {
-    try {
-      await _analytics.logEvent(
-        name: AnalyticsEvents.setlistEdited,
-        parameters: {
-          AnalyticsParams.setlistId: setlistId,
-          AnalyticsParams.fieldsChanged: fieldsChanged.join(','),
-        },
-      );
-      if (_debugMode) {
-        debugPrint(
-          '📊 Event: setlist_edited (fields: ${fieldsChanged.join(', ')})',
-        );
-      }
-    } catch (e) {
-      _logError('logSetlistEdited', e);
-    }
-  }
-
   /// Log setlist deleted
-  static Future<void> logSetlistDeleted({
-    required String setlistId,
-    required String setlistName,
-  }) async {
+  /// See [logSongDeleted] for why the name isn't carried.
+  static Future<void> logSetlistDeleted({required String setlistId}) async {
     try {
       await _analytics.logEvent(
         name: AnalyticsEvents.setlistDeleted,
-        parameters: {
-          AnalyticsParams.setlistId: setlistId,
-          AnalyticsParams.setlistName: setlistName,
-        },
+        parameters: {AnalyticsParams.setlistId: setlistId},
       );
       if (_debugMode) {
-        debugPrint('📊 Event: setlist_deleted (name: $setlistName)');
+        debugPrint('📊 Event: setlist_deleted ($setlistId)');
       }
     } catch (e) {
       _logError('logSetlistDeleted', e);
@@ -596,27 +436,6 @@ class AnalyticsService {
       }
     } catch (e) {
       _logError('logSetlistExported', e);
-    }
-  }
-
-  /// Log setlist shared
-  static Future<void> logSetlistShared({
-    required String setlistId,
-    required String shareMethod,
-  }) async {
-    try {
-      await _analytics.logEvent(
-        name: AnalyticsEvents.setlistShared,
-        parameters: {
-          AnalyticsParams.setlistId: setlistId,
-          'share_method': shareMethod,
-        },
-      );
-      if (_debugMode) {
-        debugPrint('📊 Event: setlist_shared (method: $shareMethod)');
-      }
-    } catch (e) {
-      _logError('logSetlistShared', e);
     }
   }
 
@@ -651,53 +470,6 @@ class AnalyticsService {
     }
   }
 
-  /// Log metronome stopped
-  static Future<void> logMetronomeStopped({
-    required int durationSeconds,
-  }) async {
-    try {
-      await _analytics.logEvent(
-        name: AnalyticsEvents.metronomeStopped,
-        parameters: {'duration_seconds': durationSeconds},
-      );
-      if (_debugMode) {
-        debugPrint(
-          '📊 Event: metronome_stopped (duration: ${durationSeconds}s)',
-        );
-      }
-    } catch (e) {
-      _logError('logMetronomeStopped', e);
-    }
-  }
-
-  /// Log tuner used
-  static Future<void> logTunerUsed({
-    required String mode,
-    String? targetNote,
-    String? detectedNote,
-    int? cents,
-  }) async {
-    try {
-      final params = <String, Object>{AnalyticsParams.mode: mode};
-
-      if (targetNote != null) params[AnalyticsParams.targetNote] = targetNote;
-      if (detectedNote != null) {
-        params[AnalyticsParams.detectedNote] = detectedNote;
-      }
-      if (cents != null) params[AnalyticsParams.cents] = cents;
-
-      await _analytics.logEvent(
-        name: AnalyticsEvents.tunerUsed,
-        parameters: params,
-      );
-      if (_debugMode) {
-        debugPrint('📊 Event: tuner_used (mode: $mode)');
-      }
-    } catch (e) {
-      _logError('logTunerUsed', e);
-    }
-  }
-
   /// Log a tuner lifecycle event. Parameters must never contain audio data.
   static Future<void> logTunerEvent(
     String name, [
@@ -729,38 +501,73 @@ class AnalyticsService {
   }
 
   // ============================================================
-  // NAVIGATION EVENTS
+  // DRUM MACHINE EVENTS
   // ============================================================
 
-  /// Log screen view
-  static Future<void> logScreenView({
-    required String screenName,
-    String? screenClass,
-  }) async {
+  /// Log an imported drum pattern.
+  static Future<void> logDrumPatternImported({required int hitCount}) async {
     try {
-      await _analytics.logScreenView(
-        screenName: screenName,
-        screenClass: screenClass ?? screenName,
+      await _analytics.logEvent(
+        name: AnalyticsEvents.drumPatternImported,
+        parameters: {AnalyticsParams.hitCount: hitCount},
       );
       if (_debugMode) {
-        debugPrint('📊 Screen View: $screenName (${screenClass ?? 'unknown'})');
+        debugPrint('📊 Event: drum_pattern_imported (hit_count: $hitCount)');
       }
     } catch (e) {
-      _logError('logScreenView', e);
+      _logError('logDrumPatternImported', e);
     }
   }
 
-  /// Log app open
-  static Future<void> logAppOpen() async {
+  /// Log a saved drum pattern.
+  static Future<void> logDrumPatternSaved({required int hitCount}) async {
     try {
-      await _analytics.logAppOpen();
+      await _analytics.logEvent(
+        name: AnalyticsEvents.drumPatternSaved,
+        parameters: {AnalyticsParams.hitCount: hitCount},
+      );
       if (_debugMode) {
-        debugPrint('📊 Event: app_open');
+        debugPrint('📊 Event: drum_pattern_saved (hit_count: $hitCount)');
       }
     } catch (e) {
-      _logError('logAppOpen', e);
+      _logError('logDrumPatternSaved', e);
     }
   }
+
+  /// Log drum play started.
+  static Future<void> logDrumPlayStarted({required bool syncWithClick}) async {
+    try {
+      await _analytics.logEvent(
+        name: AnalyticsEvents.drumPlayStarted,
+        parameters: {AnalyticsParams.syncWithClick: syncWithClick},
+      );
+      if (_debugMode) {
+        debugPrint(
+          '📊 Event: drum_play_started (sync_with_click: $syncWithClick)',
+        );
+      }
+    } catch (e) {
+      _logError('logDrumPlayStarted', e);
+    }
+  }
+
+  /// Log drum sync toggled.
+  static Future<void> logDrumSyncToggled({required bool enabled}) async {
+    try {
+      await _analytics.logEvent(
+        name: AnalyticsEvents.drumSyncToggled,
+        parameters: {AnalyticsParams.syncWithClick: enabled},
+      );
+      if (_debugMode) {
+        debugPrint('📊 Event: drum_sync_toggled (sync_with_click: $enabled)');
+      }
+    } catch (e) {
+      _logError('logDrumSyncToggled', e);
+    }
+  }
+
+  // Navigation: `screen_view` comes from the router's FirebaseAnalyticsObserver
+  // (see createAppRouter), not from anything in this file.
 
   // ============================================================
   // EXPORT EVENTS
@@ -812,28 +619,19 @@ class AnalyticsService {
     }
   }
 
-  /// Log Spotify linked
-  static Future<void> logSpotifyLinked() async {
-    try {
-      await _analytics.logEvent(name: AnalyticsEvents.spotifyLinked);
-      if (_debugMode) {
-        debugPrint('📊 Event: spotify_linked');
-      }
-    } catch (e) {
-      _logError('logSpotifyLinked', e);
-    }
-  }
-
   // ============================================================
   // USER PROPERTIES
   // ============================================================
 
-  /// Set user properties for segmentation
+  /// Set user properties for segmentation.
+  ///
+  /// song_count / setlist_count were dropped: the caller only has the user
+  /// doc, which carries no such totals, so both were always reported as 0.
+  /// Counting them would cost two aggregate reads per sign-in for properties
+  /// nothing segments on today.
   static Future<void> setUserProperties({
     required AppUser user,
     int? bandCount,
-    int? songCount,
-    int? setlistCount,
   }) async {
     try {
       // Set user properties
@@ -846,20 +644,6 @@ class AnalyticsService {
         await _analytics.setUserProperty(
           name: AnalyticsUserProperties.bandCount,
           value: bandCount.toString(),
-        );
-      }
-
-      if (songCount != null) {
-        await _analytics.setUserProperty(
-          name: AnalyticsUserProperties.songCount,
-          value: songCount.toString(),
-        );
-      }
-
-      if (setlistCount != null) {
-        await _analytics.setUserProperty(
-          name: AnalyticsUserProperties.setlistCount,
-          value: setlistCount.toString(),
         );
       }
 
@@ -877,40 +661,10 @@ class AnalyticsService {
       );
 
       if (_debugMode) {
-        debugPrint(
-          '📊 User Properties: bands=$bandCount, songs=$songCount, setlists=$setlistCount',
-        );
+        debugPrint('📊 User Properties: bands=$bandCount');
       }
     } catch (e) {
       _logError('setUserProperties', e);
-    }
-  }
-
-  /// Clear user properties (on logout)
-  static Future<void> clearUserProperties() async {
-    try {
-      await _analytics.setUserProperty(
-        name: AnalyticsUserProperties.role,
-        value: null,
-      );
-      await _analytics.setUserProperty(
-        name: AnalyticsUserProperties.bandCount,
-        value: null,
-      );
-      await _analytics.setUserProperty(
-        name: AnalyticsUserProperties.songCount,
-        value: null,
-      );
-      await _analytics.setUserProperty(
-        name: AnalyticsUserProperties.setlistCount,
-        value: null,
-      );
-
-      if (_debugMode) {
-        debugPrint('📊 User Properties cleared');
-      }
-    } catch (e) {
-      _logError('clearUserProperties', e);
     }
   }
 
@@ -918,12 +672,12 @@ class AnalyticsService {
   // HEART FRAMEWORK EVENTS (UX audit, 2026-07)
   // ============================================================
   //
-  // The ~40 methods above predate this file's central choke point: each
-  // calls `_analytics.logEvent` directly inside its own try/catch, so there
-  // was no shared helper to retrofit the `enabled` guard onto without
-  // touching every one of them — out of scope here, so they're left as-is
-  // and remain ungated by consent. Every method below is new and routes
-  // through [_log], the only place that checks [enabled].
+  // The ~40 methods above predate this file's central choke point: each calls
+  // `_analytics.logEvent` directly inside its own try/catch and so does not
+  // check [enabled]. They are gated at the SDK level instead — the consent
+  // provider calls [setAnalyticsCollectionEnabled], which drops everything,
+  // including Firebase's automatic events. Every method below routes through
+  // [_log] and is gated twice over.
 
   /// Central choke point for the HEART events below.
   static Future<void> _log(
@@ -943,6 +697,18 @@ class AnalyticsService {
       _logError(name, e);
     }
   }
+
+  /// A share link was created; never send its token or recipient details.
+  static Future<void> logEventShareCreated() =>
+      _log(AnalyticsEvents.eventShareCreated);
+
+  /// An event link was opened; never send its URL or token.
+  static Future<void> logEventLinkOpened() =>
+      _log(AnalyticsEvents.eventLinkOpened);
+
+  /// A suggestion was submitted; never send its text or author details.
+  static Future<void> logEventSuggestionSubmitted() =>
+      _log(AnalyticsEvents.eventSuggestionSubmitted);
 
   /// E: a Song Lab entry was created (#67). [type] is the LabEntryType name.
   static Future<void> logLabEntryAdded({required String type}) =>
@@ -1019,18 +785,9 @@ class AnalyticsService {
   // UTILITY METHODS
   // ============================================================
 
-  /// Get app instance ID for debugging
-  static Future<String?> getAppInstanceId() async {
-    try {
-      return await _analytics.appInstanceId;
-    } catch (e) {
-      _logError('getAppInstanceId', e);
-      return null;
-    }
-  }
-
   /// Enable analytics collection
   static Future<void> setAnalyticsCollectionEnabled(bool enabled) async {
+    debugCollectionEnabled = enabled;
     try {
       await _analytics.setAnalyticsCollectionEnabled(enabled);
       if (_debugMode) {

@@ -12,6 +12,7 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 const { runTool } = require("./tools");
+const { spotifySecrets } = require("../metadata/credentials");
 
 const MAX_BODY = 100 * 1024; // reject absurd payloads
 // ponytail: no real rate limiter — per-key lastUsedAt only. Add a token-bucket
@@ -28,6 +29,9 @@ async function authenticate(req) {
   const ref = db.collection("apiKeys").doc(hashToken(m[1]));
   const doc = await ref.get();
   if (!doc.exists) return null;
+  // A key must not outlive its account.
+  const owner = await db.collection("users").doc(doc.data().uid).get();
+  if (!owner.exists) return null;
   return { uid: doc.data().uid, scope: doc.data().scope || "read", ref };
 }
 
@@ -66,7 +70,11 @@ async function handle(req, res) {
 }
 
 function makeGateway() {
-  return functions.https.onRequest(handle);
+// The lookup_metadata and enrich_song tools reach Spotify through the shared
+// resolver, so this function must mount the Spotify secrets. Without them the
+// resolver silently skips Spotify and those tools return no album, release year
+// or ISRC — a quiet degradation rather than an error.
+  return functions.https.onRequest({ secrets: spotifySecrets }, handle);
 }
 
 exports.handle = handle;

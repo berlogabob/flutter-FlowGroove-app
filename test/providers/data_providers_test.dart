@@ -13,12 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-@GenerateMocks([
-  SongRepository,
-  BandRepository,
-  SetlistRepository,
-  User,
-])
+@GenerateMocks([SongRepository, BandRepository, SetlistRepository, User])
 import 'data_providers_test.mocks.dart';
 
 void main() {
@@ -156,8 +151,7 @@ void main() {
     // #91 regression: providers must forward every live-stream emission
     // unchanged — no cache layer may re-emit stale data after fresh data.
     group('Live Stream Propagation (#91)', () {
-      test('songsProvider propagates deletions from the live stream',
-          () async {
+      test('songsProvider propagates deletions from the live stream', () async {
         final controller = StreamController<List<Song>>();
         // Riverpod 3 pauses unlistened stream subscriptions, so an awaited
         // close() would hang waiting for the done event to be delivered.
@@ -175,88 +169,91 @@ void main() {
 
         controller.add([song('song-1'), song('song-2')]);
         await pumpEventQueue();
-        expect(
-          container.read(songsProvider).value!.map((s) => s.id),
-          ['song-1', 'song-2'],
-        );
+        expect(container.read(songsProvider).value!.map((s) => s.id), [
+          'song-1',
+          'song-2',
+        ]);
 
         // Delete song-2 elsewhere → the provider must drop it immediately.
         controller.add([song('song-1')]);
         await pumpEventQueue();
-        expect(
-          container.read(songsProvider).value!.map((s) => s.id),
-          ['song-1'],
-        );
+        expect(container.read(songsProvider).value!.map((s) => s.id), [
+          'song-1',
+        ]);
       });
 
-      test('bandsProvider propagates renames and leaves from the live stream',
-          () async {
-        Band band(String name) => Band(
-          id: 'band-1',
-          name: name,
-          createdBy: 'user-1',
-          createdAt: DateTime(2024),
-        );
-        final controller = StreamController<List<Band>>();
-        // Riverpod 3 pauses unlistened stream subscriptions, so an awaited
-        // close() would hang waiting for the done event to be delivered.
-        addTearDown(() => unawaited(controller.close()));
-        when(
-          mockBandRepository.watchBands('user-1'),
-        ).thenAnswer((_) => controller.stream);
+      test(
+        'bandsProvider propagates renames and leaves from the live stream',
+        () async {
+          Band band(String name) => Band(
+            id: 'band-1',
+            name: name,
+            createdBy: 'user-1',
+            createdAt: DateTime(2024),
+          );
+          final controller = StreamController<List<Band>>();
+          // Riverpod 3 pauses unlistened stream subscriptions, so an awaited
+          // close() would hang waiting for the done event to be delivered.
+          addTearDown(() => unawaited(controller.close()));
+          when(
+            mockBandRepository.watchBands('user-1'),
+          ).thenAnswer((_) => controller.stream);
 
-        final subscription = container.listen(
-          bandsProvider,
-          (_, _) {},
-          fireImmediately: true,
-        );
-        addTearDown(subscription.close);
+          final subscription = container.listen(
+            bandsProvider,
+            (_, _) {},
+            fireImmediately: true,
+          );
+          addTearDown(subscription.close);
 
-        controller.add([band('Old Name')]);
-        await pumpEventQueue();
-        expect(container.read(bandsProvider).value!.single.name, 'Old Name');
+          controller.add([band('Old Name')]);
+          await pumpEventQueue();
+          expect(container.read(bandsProvider).value!.single.name, 'Old Name');
 
-        controller.add([band('New Name')]);
-        await pumpEventQueue();
-        expect(container.read(bandsProvider).value!.single.name, 'New Name');
+          controller.add([band('New Name')]);
+          await pumpEventQueue();
+          expect(container.read(bandsProvider).value!.single.name, 'New Name');
 
-        // User leaves the band → the list empties immediately.
-        controller.add([]);
-        await pumpEventQueue();
-        expect(container.read(bandsProvider).value, isEmpty);
-      });
+          // User leaves the band → the list empties immediately.
+          controller.add([]);
+          await pumpEventQueue();
+          expect(container.read(bandsProvider).value, isEmpty);
+        },
+      );
 
-      test('bandSongsProvider propagates deletions from the live stream',
-          () async {
-        final controller = StreamController<List<Song>>();
-        // Riverpod 3 pauses unlistened stream subscriptions, so an awaited
-        // close() would hang waiting for the done event to be delivered.
-        addTearDown(() => unawaited(controller.close()));
-        when(
-          mockSongRepository.watchBandSongs('band-1'),
-        ).thenAnswer((_) => controller.stream);
+      test(
+        'bandSongsProvider propagates deletions from the live stream',
+        () async {
+          final controller = StreamController<List<Song>>();
+          // Riverpod 3 pauses unlistened stream subscriptions, so an awaited
+          // close() would hang waiting for the done event to be delivered.
+          addTearDown(() => unawaited(controller.close()));
+          when(
+            mockSongRepository.watchBandSongs('band-1'),
+          ).thenAnswer((_) => controller.stream);
 
-        final subscription = container.listen(
-          bandSongsProvider('band-1'),
-          (_, _) {},
-          fireImmediately: true,
-        );
-        addTearDown(subscription.close);
+          final subscription = container.listen(
+            bandSongsProvider('band-1'),
+            (_, _) {},
+            fireImmediately: true,
+          );
+          addTearDown(subscription.close);
 
-        controller.add([song('song-1'), song('song-2')]);
-        await pumpEventQueue();
-        expect(
-          container.read(bandSongsProvider('band-1')).value,
-          hasLength(2),
-        );
+          controller.add([song('song-1'), song('song-2')]);
+          await pumpEventQueue();
+          expect(
+            container.read(bandSongsProvider('band-1')).value,
+            hasLength(2),
+          );
 
-        controller.add([song('song-1')]);
-        await pumpEventQueue();
-        expect(
-          container.read(bandSongsProvider('band-1')).value!.map((s) => s.id),
-          ['song-1'],
-        );
-      });
+          controller.add([song('song-1')]);
+          await pumpEventQueue();
+          expect(
+            container.read(bandSongsProvider('band-1')).value!.map((s) => s.id),
+            ['song-1'],
+          );
+        },
+      );
     });
 
     group('Stream Behavior', () {

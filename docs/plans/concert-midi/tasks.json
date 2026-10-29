@@ -1,0 +1,37 @@
+{
+ "branch": "feat/concert-sheet-nav",
+ "tasks": [
+  {
+   "id": "C01", "executor": "codex", "finding": "CONCERT-SHEET",
+   "title": "Concert mode inline sheet toggle",
+   "files": ["lib/screens/concert_mode_screen.dart"],
+   "prompt": "In ConcertModeScreen, add a local bool state (_showSheet, default false). The existing lyrics icon (top-left, which currently pushes PerformanceSheetScreen) must instead toggle _showSheet, shown only when the active song hasSheetContent, with a tooltip. When _showSheet is true and the active song has sheet content, render PerformanceSheetView inline (same constructor usage as lib/screens/songs/song_page_screen.dart ~line 321) INSTEAD of the big BPM _Readout, keyed by ValueKey(song.id), with bpm and sections from the active song. Never pass any import-lyrics/empty-state callback and never mutate song.sections. When the active song changes to one without sheet content, fall back to the BPM readout. The bottom _Controls (prev/next/play/nudges) must stay visible in both modes. Keep wakelock/immersive handling untouched. Do not touch PerformanceSheetView or PerformanceSheetScreen. Match existing MonoPulse tokens and style. Remove the now-unused PerformanceSheetScreen import if unused.",
+   "verify": "dart analyze lib/screens/concert_mode_screen.dart && ! rg -q 'PerformanceSheetScreen' lib/screens/concert_mode_screen.dart && rg -q 'PerformanceSheetView' lib/screens/concert_mode_screen.dart && rg -q '_showSheet' lib/screens/concert_mode_screen.dart",
+   "after": [], "status": "pending"
+  },
+  {
+   "id": "C02", "executor": "codex", "finding": "CONCERT-NAV",
+   "title": "Concert controls tooltips",
+   "files": ["lib/screens/concert_mode_screen.dart"],
+   "prompt": "In lib/screens/concert_mode_screen.dart add Tooltip (or tooltip/semanticsLabel following the style already used for the close and lyrics buttons) to the play/pause, previous-song, next-song and tempo nudge buttons (_SkipButton, _NudgeButton, play button). Labels: 'Previous song', 'Next song', 'Play', 'Pause', and '-5 BPM' etc. Change nothing else.",
+   "verify": "dart analyze lib/screens/concert_mode_screen.dart && rg -q 'Next song' lib/screens/concert_mode_screen.dart && rg -q 'Previous song' lib/screens/concert_mode_screen.dart",
+   "after": ["C01"], "status": "pending"
+  },
+  {
+   "id": "C03", "executor": "codex", "finding": "CONCERT-ENTRY",
+   "title": "Setlist Concert mode action",
+   "files": ["lib/screens/setlists/setlist_view_screen.dart"],
+   "prompt": "In setlist_view_screen.dart, next to the existing 'Open in metronome' action (~line 358-376), add a 'Concert mode' action that calls the same loadSetlistQueue(...) then pushes ConcertModeScreen on the ROOT navigator as a fullscreen dialog (copy exactly how lib/screens/metronome_screen.dart ~line 164-172 pushes it). It must NOT also pushNamed('metronome'). Do not change the existing action or any other loadSetlistQueue caller. Match the existing menu item style and icon conventions.",
+   "verify": "dart analyze lib/screens/setlists/setlist_view_screen.dart && rg -q 'ConcertModeScreen' lib/screens/setlists/setlist_view_screen.dart",
+   "after": [], "status": "pending"
+  },
+  {
+   "id": "C04", "executor": "codex", "finding": "CONCERT-TEST",
+   "title": "Concert mode widget test",
+   "files": ["test/screens/concert_mode_screen_test.dart"],
+   "prompt": "Create test/screens/concert_mode_screen_test.dart. Look at test/providers/metronome_provider_test.dart and test/screens/songs/song_page_screen_test.dart for how metronomeProvider and songs are faked. Test: (1) with a loaded 2-song setlist where song 1 has sheet content (sections with chordChart) the sheet toggle shows PerformanceSheetView and hides the BPM readout; (2) tapping Next song switches to song 2 and, if song 2 has no sheet content, shows the BPM readout; (3) Previous is disabled on the first song. Do not modify lib/. Tests must pass with flutter test.",
+   "verify": "flutter test test/screens/concert_mode_screen_test.dart",
+   "after": ["C01", "C02"], "status": "pending"
+  }
+ ]
+}

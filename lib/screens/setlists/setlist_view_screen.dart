@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../models/event_access.dart';
 import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
@@ -15,10 +17,12 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/event_suggestions_inbox.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/setlist_break_row.dart';
 import '../../widgets/setlist_song_row.dart';
+import '../concert_mode_screen.dart';
 import 'create_setlist_screen.dart' show SetlistStorageScope;
 import 'event_kit_editor_screen.dart';
 
@@ -52,15 +56,42 @@ class SetlistViewScreen extends ConsumerWidget {
       return const Scaffold(body: Center(child: LoadingIndicator()));
     }
 
-    final canEdit = ref.watch(canEditProvider);
+    // Band setlists need the band editor/admin role (rules enforce the
+    // adminUids/editorUids arrays); the app-wide gate only filters demo users
+    // and would show Edit/Event-kit to plain band viewers.
+    final canEdit = bandId == null
+        ? ref.watch(canEditProvider)
+        : ref.watch(canEditBandProvider(bandId!));
+
+    // Event-kit access is NOT band membership. A claimed sound engineer has
+    // rules permission to write the stage plot while being no kind of band
+    // editor, so gating the entry on canEdit hid the door the rules already
+    // opened. Members keep every area, exactly as before.
+    final eventPerms = bandId == null
+        ? null
+        : ref.watch(eventPermissionsProvider((bandId!, setlist.id)));
+    // Loading is the third answer: treat unknown as "not a member" so the
+    // inbox does not flash a members-only query for a guest on every open.
+    final isMember = bandId == null || (eventPerms?.isMember ?? false);
+    final canOpenEventKit = bandId == null
+        ? canEdit
+        : (eventPerms?.isMember ?? false) ||
+              canViewArea(eventPerms?.access ?? const {}, EventArea.stage) ||
+              canViewArea(eventPerms?.access ?? const {}, EventArea.rider);
+    // A guest's copy is already hydrated from the scoped event payload by
+    // SetlistRouteResolver — one owner for "which Setlist". This screen only
+    // decides which songs, and setlistSongsProvider routes a guest to the same
+    // payload rather than to the band's song collection.
     final activeSongId = ref.watch(metronomeProvider).activeSong?.id;
     final songsAsync = bandId == null
         ? ref.watch(songsProvider)
-        : ref.watch(bandSongsProvider(bandId!));
+        : ref.watch(setlistSongsProvider((bandId!, setlist.id)));
 
     // Event Kit reads the LIVE setlist (the constructor arg is a
     // navigation-time snapshot; the editor autosaves, and this keeps the
-    // summary current after popping back).
+    // summary current after popping back). A guest has no live stream — their
+    // copy is a snapshot by design — and the streams below simply yield
+    // nothing for them, so the passed-in setlist stands.
     final liveSetlist =
         (bandId == null
                 ? ref.watch(setlistsProvider).value
@@ -81,6 +112,11 @@ class SetlistViewScreen extends ConsumerWidget {
             icon: Icons.av_timer,
             label: 'Open in Metronome',
             onTap: () => _openInMetronome(context, ref, liveSetlist),
+          ),
+          AppMenuItem(
+            icon: Icons.theaters_outlined,
+            label: 'Concert mode',
+            onTap: () => _openConcertMode(context, ref, liveSetlist),
           ),
           AppMenuItem(
             icon: Icons.share_outlined,
@@ -111,11 +147,17 @@ class SetlistViewScreen extends ConsumerWidget {
                 extra: setlist,
               ),
             ),
-          if (canEdit)
+          if (canOpenEventKit)
             AppMenuItem(
               icon: Icons.theater_comedy_outlined,
               label: 'Event kit',
-              onTap: () => _openEventKit(context, liveSetlist),
+              onTap: () => _openEventKit(
+                context,
+                liveSetlist,
+                eventPerms?.access ??
+                    {for (final a in EventArea.all) a: EventAccessLevel.edit},
+                isMember: eventPerms?.isMember ?? true,
+              ),
             ),
         ],
       ),
@@ -123,37 +165,56 @@ class SetlistViewScreen extends ConsumerWidget {
         body: SafeArea(
           bottom: false,
           child: songsAsync.when(
-            data: (songs) =>
-                _buildBody(
-                  context,
-                  ref,
-                  liveSetlist,
-                  songs,
-                  activeSongId: activeSongId,
-                ),
+            data: (songs) => _buildBody(
+              context,
+              ref,
+              liveSetlist,
+              songs,
+              activeSongId: activeSongId,
+              canEdit: canEdit,
+              isMember: isMember,
+              ownerUid: bandId == null
+                  ? ref.watch(currentUserProvider).value?.uid
+                  : null,
+            ),
             loading: () => const LoadingIndicator(),
             // A failed songs load shouldn't block the setlist details from
             // showing; song rows just fall back to "unavailable".
-            error: (_, _) =>
-                _buildBody(
-                  context,
-                  ref,
-                  liveSetlist,
-                  const [],
-                  activeSongId: activeSongId,
-                ),
+            error: (_, _) => _buildBody(
+              context,
+              ref,
+              liveSetlist,
+              const [],
+              activeSongId: activeSongId,
+              canEdit: canEdit,
+              isMember: isMember,
+              loadFailed: true,
+              ownerUid: bandId == null
+                  ? ref.watch(currentUserProvider).value?.uid
+                  : null,
+            ),
           ),
         ),
       ),
     );
   }
 
-  void _openEventKit(BuildContext context, Setlist live) {
+  void _openEventKit(
+    BuildContext context,
+    Setlist live,
+    Map<String, String> access, {
+    required bool isMember,
+  }) {
     // rootNavigator: cover the shell so its bottom bar doesn't stack under the
     // editor's own bar (the double-bar bug).
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
-        builder: (_) => EventKitEditorScreen(setlist: live, bandId: bandId),
+        builder: (_) => EventKitEditorScreen(
+          setlist: live,
+          bandId: bandId,
+          access: access,
+          isMember: isMember,
+        ),
       ),
     );
   }
@@ -164,15 +225,37 @@ class SetlistViewScreen extends ConsumerWidget {
     Setlist setlist,
     List<Song> allSongs, {
     required String? activeSongId,
+    required bool canEdit,
+    required bool isMember,
+    String? ownerUid,
+    bool loadFailed = false,
   }) {
     final songsById = {for (final song in allSongs) song.id: song};
     final items = setlist.effectiveItems;
     final lineup = peopleById(setlist.eventKit?.people ?? const []);
 
+    // What guests asked for. Band-side only — the rules make the subcollection
+    // members-only, and a guest sees their own through the event payload. It
+    // renders nothing when there is nothing to answer.
+    final inbox = isMember && (bandId != null || ownerUid != null)
+        ? EventSuggestionsInbox(
+            bandId: bandId,
+            ownerUid: ownerUid,
+            setlistId: setlist.id,
+            canResolve: canEdit,
+          )
+        : const SizedBox.shrink();
+
     if (items.isEmpty && (setlist.eventKit?.isEmpty ?? true)) {
-      return const EmptyState(
-        icon: Icons.music_note,
-        message: 'No songs in this setlist',
+      return ListView(
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        children: [
+          if (bandId == null) inbox,
+          const EmptyState(
+            icon: Icons.music_note,
+            message: 'No songs in this setlist',
+          ),
+        ],
       );
     }
 
@@ -189,11 +272,43 @@ class SetlistViewScreen extends ConsumerWidget {
       }
     }
 
+    final hasNotice =
+        loadFailed ||
+        items.any(
+          (item) => !item.isBreak && !songsById.containsKey(item.songId),
+        );
     return ListView.builder(
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      itemCount: items.length,
+      // Leading inbox and, when needed, an unavailable-songs notice.
+      itemCount: items.length + 1 + (hasNotice ? 1 : 0),
       itemBuilder: (context, index) {
-        final item = items[index];
+        if (index == 0) return inbox;
+        if (hasNotice && index == 1) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
+                child: Text(
+                  loadFailed
+                      ? 'Could not load songs. Try again later.'
+                      : 'Some songs are unavailable in the current library.',
+                ),
+              ),
+              if (!loadFailed && canEdit)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: MonoPulseSpacing.md),
+                  child: Text(
+                    'Use Menu → Edit Setlist to review these entries.',
+                  ),
+                )
+              else
+                const SizedBox(height: MonoPulseSpacing.md),
+            ],
+          );
+        }
+        final itemIndex = index - 1 - (hasNotice ? 1 : 0);
+        final item = items[itemIndex];
         if (item.isBreak) {
           return SetlistBreakRow(
             breakType: item.breakType,
@@ -202,7 +317,7 @@ class SetlistViewScreen extends ConsumerWidget {
         }
         final song = songsById[item.songId];
         return SetlistSongRow(
-          index: numbers[index],
+          index: numbers[itemIndex],
           song: song,
           performers: performerLabel(item.performerIds, lineup),
           trailing: song == null ? null : _badgesFor(context, ref, song),
@@ -212,7 +327,6 @@ class SetlistViewScreen extends ConsumerWidget {
       },
     );
   }
-
 
   /// Key/BPM badges shown when the row's song resolves. Mirrors the
   /// editable rows in `CreateSetlistScreen`.
@@ -224,10 +338,9 @@ class SetlistViewScreen extends ConsumerWidget {
           color: MonoPulseColors.accentOrange,
           child: InkWell(
             onTap: () {
-              ref.read(metronomeProvider.notifier).loadSongTempo(
-                    song,
-                    sourceBandId: bandId,
-                  );
+              ref
+                  .read(metronomeProvider.notifier)
+                  .loadSongTempo(song, sourceBandId: bandId);
               context.pushNamed('metronome');
             },
             child: const SizedBox(
@@ -239,8 +352,10 @@ class SetlistViewScreen extends ConsumerWidget {
         ),
         const SizedBox(width: MonoPulseSpacing.md),
         Container(
+          width: 44,
+          alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(
-            horizontal: MonoPulseSpacing.md,
+            horizontal: MonoPulseSpacing.xs,
             vertical: MonoPulseSpacing.xs,
           ),
           decoration: BoxDecoration(
@@ -269,12 +384,15 @@ class SetlistViewScreen extends ConsumerWidget {
     );
   }
 
-  /// Opens the tapped song's editor, band-scoped when this is a band setlist
-  /// (bandId makes the save target the band's copy — see BandSongsScreen).
+  /// Opens the tapped song's Song Page on the Sheet tab (explicit — the
+  /// page defaults to Edit, but on a setlist you usually want to play it),
+  /// band-scoped when this is a band setlist (bandId targets the band's
+  /// copy — see BandSongsScreen).
   void _openSong(BuildContext context, Song song) {
     context.pushNamed(
-      'edit-song',
+      'song',
       pathParameters: {'id': song.id},
+      queryParameters: {'tab': 'sheet', if (bandId case final b?) 'bandId': b},
       extra: bandId == null ? song : {'song': song, 'bandId': bandId},
     );
   }
@@ -283,9 +401,18 @@ class SetlistViewScreen extends ConsumerWidget {
   /// autoDispose, so awaiting `.future` (rather than a cold `.value` read)
   /// avoids the "disposed during loading" empty result (#80).
   Future<List<Song>> _resolveSongs(WidgetRef ref, Setlist setlist) async {
-    final allSongs = await ref.read(
-      bandId == null ? songsProvider.future : bandSongsProvider(bandId!).future,
-    );
+    // Same split as the build method: a guest has no access to the band's song
+    // collection, so their copies come from the scoped event payload.
+    final List<Song> allSongs;
+    if (bandId == null) {
+      allSongs = await ref.read(songsProvider.future);
+    } else if (isEventGuestOf(ref.read(bandsProvider).value, bandId!) == true) {
+      allSongs = await ref.read(
+        eventGuestSongsProvider((bandId!, setlist.id)).future,
+      );
+    } else {
+      allSongs = await ref.read(bandSongsProvider(bandId!).future);
+    }
     final songsById = {for (final song in allSongs) song.id: song};
     return setlist.songIds
         .map((id) => songsById[id])
@@ -304,11 +431,7 @@ class SetlistViewScreen extends ConsumerWidget {
     if (!context.mounted) return;
     final loaded = ref
         .read(metronomeProvider.notifier)
-        .loadSetlistQueue(
-          setlist,
-          availableSongs: songs,
-          sourceBandId: bandId,
-        );
+        .loadSetlistQueue(setlist, availableSongs: songs, sourceBandId: bandId);
     if (!loaded) {
       showAppSnackBar(
         context,
@@ -317,6 +440,31 @@ class SetlistViewScreen extends ConsumerWidget {
       return;
     }
     await context.pushNamed('metronome');
+  }
+
+  Future<void> _openConcertMode(
+    BuildContext context,
+    WidgetRef ref,
+    Setlist setlist,
+  ) async {
+    final songs = await _resolveSongs(ref, setlist);
+    if (!context.mounted) return;
+    final loaded = ref
+        .read(metronomeProvider.notifier)
+        .loadSetlistQueue(setlist, availableSongs: songs, sourceBandId: bandId);
+    if (!loaded) {
+      showAppSnackBar(
+        context,
+        'This setlist is empty or has unavailable songs.',
+      );
+      return;
+    }
+    await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const ConcertModeScreen(),
+        fullscreenDialog: true,
+      ),
+    );
   }
 
   Future<void> _share(

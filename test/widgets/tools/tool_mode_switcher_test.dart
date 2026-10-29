@@ -8,9 +8,7 @@ enum TestMode { mode1, mode2, mode3 }
 
 void main() {
   group('ToolModeSwitcher', () {
-    testWidgets('renders with required parameters', (
-      tester,
-    ) async {
+    testWidgets('renders with required parameters', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -24,7 +22,12 @@ void main() {
         ),
       );
 
-      expect(find.byWidgetPredicate((w) => w.runtimeType.toString().startsWith('ToolModeSwitcher')), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w.runtimeType.toString().startsWith('ToolModeSwitcher'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renders all mode options', (tester) async {
@@ -109,9 +112,7 @@ void main() {
       expect(opacityWidgets[1].opacity, equals(1.0)); // Mode 2 now active
     });
 
-    testWidgets('calls onModeChanged when mode is tapped', (
-      tester,
-    ) async {
+    testWidgets('calls onModeChanged when mode is tapped', (tester) async {
       TestMode? selectedMode;
 
       await tester.pumpWidget(
@@ -197,9 +198,7 @@ void main() {
       expect(hasActiveBackground, isTrue);
     });
 
-    testWidgets('inactive mode uses surface background', (
-      tester,
-    ) async {
+    testWidgets('inactive mode uses surface background', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -224,9 +223,7 @@ void main() {
       expect(hasSurfaceBackground, isTrue);
     });
 
-    testWidgets('active mode uses accentOrange border', (
-      tester,
-    ) async {
+    testWidgets('active mode uses accentOrange border', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -253,9 +250,7 @@ void main() {
       expect(hasActiveBorder, isTrue);
     });
 
-    testWidgets('inactive mode uses borderSubtle border', (
-      tester,
-    ) async {
+    testWidgets('inactive mode uses borderSubtle border', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -282,9 +277,7 @@ void main() {
       expect(hasInactiveBorder, isTrue);
     });
 
-    testWidgets('active mode text uses accentOrange color', (
-      tester,
-    ) async {
+    testWidgets('active mode text uses accentOrange color', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -308,9 +301,7 @@ void main() {
       expect(activeText.style?.color, equals(MonoPulseColors.accentOrange));
     });
 
-    testWidgets('inactive mode text uses textSecondary color', (
-      tester,
-    ) async {
+    testWidgets('inactive mode text uses textSecondary color', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -357,9 +348,7 @@ void main() {
       expect(activeText.style?.fontWeight, equals(FontWeight.w600));
     });
 
-    testWidgets('inactive mode text is normal weight (w400)', (
-      tester,
-    ) async {
+    testWidgets('inactive mode text is normal weight (w400)', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -382,9 +371,7 @@ void main() {
       expect(inactiveText.style?.fontWeight, equals(FontWeight.w400));
     });
 
-    testWidgets('uses MonoPulseTypography.labelLarge for text', (
-      tester,
-    ) async {
+    testWidgets('uses MonoPulseTypography.labelLarge for text', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -474,9 +461,7 @@ void main() {
       expect(find.byIcon(Icons.play_arrow), findsOneWidget);
     });
 
-    testWidgets('does not render icon when not provided', (
-      tester,
-    ) async {
+    testWidgets('does not render icon when not provided', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -492,9 +477,7 @@ void main() {
       expect(find.byIcon(Icons.play_arrow), findsNothing);
     });
 
-    testWidgets('active mode icon uses accentOrange color', (
-      tester,
-    ) async {
+    testWidgets('active mode icon uses accentOrange color', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -515,9 +498,7 @@ void main() {
       expect(icon.color, equals(MonoPulseColors.accentOrange));
     });
 
-    testWidgets('inactive mode icon uses textSecondary color', (
-      tester,
-    ) async {
+    testWidgets('inactive mode icon uses textSecondary color', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -607,9 +588,7 @@ void main() {
   });
 
   group('ToolModeSwitcher Animation', () {
-    testWidgets('uses AnimatedOpacity for transitions', (
-      tester,
-    ) async {
+    testWidgets('uses AnimatedOpacity for transitions', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -626,9 +605,7 @@ void main() {
       expect(find.byType(AnimatedOpacity), findsNWidgets(2));
     });
 
-    testWidgets('uses default animation duration of 250ms', (
-      tester,
-    ) async {
+    testWidgets('uses default animation duration of 250ms', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -651,9 +628,7 @@ void main() {
       );
     });
 
-    testWidgets('uses custom animation duration when provided', (
-      tester,
-    ) async {
+    testWidgets('uses custom animation duration when provided', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -677,9 +652,7 @@ void main() {
       );
     });
 
-    testWidgets('uses MonoPulseAnimation.curveCustom', (
-      tester,
-    ) async {
+    testWidgets('uses MonoPulseAnimation.curveCustom', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -699,9 +672,7 @@ void main() {
       expect(animatedOpacity.curve, equals(MonoPulseAnimation.curveCustom));
     });
 
-    testWidgets('animates opacity change on mode switch', (
-      tester,
-    ) async {
+    testWidgets('animates opacity change on mode switch', (tester) async {
       TestMode selectedMode = TestMode.mode1;
 
       await tester.pumpWidget(
@@ -778,9 +749,7 @@ void main() {
       expect(find.text('Mode 1'), findsOneWidget);
     });
 
-    testWidgets('pills have horizontal margin between them', (
-      tester,
-    ) async {
+    testWidgets('pills have horizontal margin between them', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -818,9 +787,7 @@ void main() {
   });
 
   group('ToolModeSwitcher Haptic Feedback', () {
-    testWidgets('triggers interaction on mode tap', (
-      tester,
-    ) async {
+    testWidgets('triggers interaction on mode tap', (tester) async {
       TestMode? selectedMode;
 
       await tester.pumpWidget(
@@ -875,9 +842,7 @@ void main() {
   });
 
   group('ToolModeSwitcher Accessibility', () {
-    testWidgets('pills have adequate touch target size', (
-      tester,
-    ) async {
+    testWidgets('pills have adequate touch target size', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -900,9 +865,7 @@ void main() {
       expect(gestureDetector.onTap, isNotNull);
     });
 
-    testWidgets('pills are clearly differentiated by state', (
-      tester,
-    ) async {
+    testWidgets('pills are clearly differentiated by state', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -947,18 +910,14 @@ void main() {
   });
 
   group('ToolModeOption', () {
-    testWidgets('creates option with mode and label', (
-      tester,
-    ) async {
+    testWidgets('creates option with mode and label', (tester) async {
       const option = ToolModeOption(mode: TestMode.mode1, label: 'Test Label');
 
       expect(option.mode, equals(TestMode.mode1));
       expect(option.label, equals('Test Label'));
     });
 
-    testWidgets('creates option with optional icon', (
-      tester,
-    ) async {
+    testWidgets('creates option with optional icon', (tester) async {
       const option = ToolModeOption(
         mode: TestMode.mode1,
         label: 'Test Label',

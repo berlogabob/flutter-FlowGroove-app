@@ -38,12 +38,15 @@ void main() {
       );
     });
 
-    test('returns "Invited member" if both displayName and email are empty', () {
-      expect(
-        memberLabel(displayName: '', email: ''),
-        equals('Invited member'),
-      );
-    });
+    test(
+      'returns "Invited member" if both displayName and email are empty',
+      () {
+        expect(
+          memberLabel(displayName: '', email: ''),
+          equals('Invited member'),
+        );
+      },
+    );
 
     test('returns trimmed displayName with leading/trailing whitespace', () {
       expect(

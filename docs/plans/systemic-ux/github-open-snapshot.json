@@ -1,0 +1,183 @@
+{
+  "queried_at": "2026-10-23T22:49:32.657885+00:00",
+  "issues": [
+    {
+      "labels": [
+        {
+          "id": "LA_kwDORHhnqc8AAAACW3vaeg",
+          "name": "enhancement",
+          "description": "New feature or request",
+          "color": "a2eeef"
+        }
+      ],
+      "number": 189,
+      "title": "[P6] Event sharing: /event deep links + analytics",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/189"
+    },
+    {
+      "labels": [
+        {
+          "id": "LA_kwDORHhnqc8AAAACW3vaeg",
+          "name": "enhancement",
+          "description": "New feature or request",
+          "color": "a2eeef"
+        }
+      ],
+      "number": 188,
+      "title": "[P5] Event sharing: per-person access ticks UI",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/188"
+    },
+    {
+      "labels": [
+        {
+          "id": "LA_kwDORHhnqc8AAAACW3vaeg",
+          "name": "enhancement",
+          "description": "New feature or request",
+          "color": "a2eeef"
+        }
+      ],
+      "number": 187,
+      "title": "[P4] Event sharing: suggestions inbox (band side)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/187"
+    },
+    {
+      "labels": [
+        {
+          "id": "LA_kwDORHhnqc8AAAACW3vaeg",
+          "name": "enhancement",
+          "description": "New feature or request",
+          "color": "a2eeef"
+        }
+      ],
+      "number": 186,
+      "title": "[P3] Event sharing: list and revoke active share links",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/186"
+    },
+    {
+      "labels": [
+        {
+          "id": "LA_kwDORHhnqc8AAAACW3vaeg",
+          "name": "enhancement",
+          "description": "New feature or request",
+          "color": "a2eeef"
+        },
+        {
+          "id": "LA_kwDORHhnqc8AAAACpkvjrg",
+          "name": "epic",
+          "description": "Tracking epic with sub-issues",
+          "color": "5319e7"
+        }
+      ],
+      "number": 180,
+      "title": "[epic] Event participants: scoped event sharing for non-members",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/180"
+    },
+    {
+      "labels": [],
+      "number": 179,
+      "title": "UI-vs-rules permission parity gaps (audit follow-ups)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/179"
+    },
+    {
+      "labels": [],
+      "number": 178,
+      "title": "refactor(metronome): extract live setlist/song sync out of MetronomeNotifier",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/178"
+    },
+    {
+      "labels": [],
+      "number": 177,
+      "title": "Graph-audit remediation 2026-08 (trackable, measurable)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/177"
+    },
+    {
+      "labels": [],
+      "number": 151,
+      "title": "iOS metronome: PCM feeder starvation — dropped beats up to 118s silence on older hardware + audio/animation desync",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/151"
+    },
+    {
+      "labels": [
+        {
+          "id": "LA_kwDORHhnqc8AAAACW3vaeg",
+          "name": "enhancement",
+          "description": "New feature or request",
+          "color": "a2eeef"
+        }
+      ],
+      "number": 77,
+      "title": "Remote MCP connector — one-click OAuth (Claude/ChatGPT)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/77"
+    },
+    {
+      "labels": [
+        {
+          "id": "LA_kwDORHhnqc8AAAACpkvjKQ",
+          "name": "play-store",
+          "description": "Google Play release",
+          "color": "0e8a16"
+        },
+        {
+          "id": "LA_kwDORHhnqc8AAAACpmvPjA",
+          "name": "blocker",
+          "description": "Gates shipping / other work",
+          "color": "b60205"
+        }
+      ],
+      "number": 50,
+      "title": "Play Console: org account + first release",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/50"
+    },
+    {
+      "labels": [
+        {
+          "id": "LA_kwDORHhnqc8AAAACpkvjKQ",
+          "name": "play-store",
+          "description": "Google Play release",
+          "color": "0e8a16"
+        }
+      ],
+      "number": 49,
+      "title": "Play Console: store listing assets",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/49"
+    },
+    {
+      "labels": [
+        {
+          "id": "LA_kwDORHhnqc8AAAACpkvjKQ",
+          "name": "play-store",
+          "description": "Google Play release",
+          "color": "0e8a16"
+        },
+        {
+          "id": "LA_kwDORHhnqc8AAAACpmvPjA",
+          "name": "blocker",
+          "description": "Gates shipping / other work",
+          "color": "b60205"
+        }
+      ],
+      "number": 48,
+      "title": "Play Console: App Content forms",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/48"
+    },
+    {
+      "labels": [
+        {
+          "id": "LA_kwDORHhnqc8AAAACpkvjKQ",
+          "name": "play-store",
+          "description": "Google Play release",
+          "color": "0e8a16"
+        },
+        {
+          "id": "LA_kwDORHhnqc8AAAACpkvjrg",
+          "name": "epic",
+          "description": "Tracking epic with sub-issues",
+          "color": "5319e7"
+        }
+      ],
+      "number": 42,
+      "title": "🚀 Google Play Store launch",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/42"
+    }
+  ]
+}

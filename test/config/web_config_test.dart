@@ -1,5 +1,5 @@
 /// Web Configuration Tests
-/// 
+///
 /// Tests for web-specific config loading:
 /// - getWebConfig() function
 /// - hasWebConfig() checks
@@ -15,7 +15,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_test/flutter_test.dart';
 
 // Conditional import for web-specific testing
-import 'web_config_test.web.dart' if (dart.library.io) 'web_config_test.io.dart';
+import 'web_config_test.web.dart'
+    if (dart.library.io) 'web_config_test.io.dart';
 
 void main() {
   group('WebConfig Tests', () {
@@ -93,7 +94,8 @@ void main() {
 
       test('should handle very long keys', () {
         if (!kIsWeb) {
-          const longKey = 'THIS_IS_A_VERY_LONG_KEY_NAME_THAT_EXCEEDS_NORMAL_LENGTH_EXPECTATIONS';
+          const longKey =
+              'THIS_IS_A_VERY_LONG_KEY_NAME_THAT_EXCEEDS_NORMAL_LENGTH_EXPECTATIONS';
           expect(() => stub_config.getWebConfig(longKey), returnsNormally);
           expect(() => stub_config.hasWebConfigKey(longKey), returnsNormally);
         }
@@ -103,7 +105,10 @@ void main() {
         if (!kIsWeb) {
           const unicodeKey = 'KEY_中文_🎵';
           expect(() => stub_config.getWebConfig(unicodeKey), returnsNormally);
-          expect(() => stub_config.hasWebConfigKey(unicodeKey), returnsNormally);
+          expect(
+            () => stub_config.hasWebConfigKey(unicodeKey),
+            returnsNormally,
+          );
         }
       });
     });
@@ -112,11 +117,11 @@ void main() {
       test('multiple calls should return consistent results', () {
         if (!kIsWeb) {
           const testKey = 'CONSISTENCY_TEST_KEY';
-          
+
           final result1 = stub_config.getWebConfig(testKey);
           final result2 = stub_config.getWebConfig(testKey);
           final result3 = stub_config.getWebConfig(testKey);
-          
+
           expect(result1, equals(result2));
           expect(result2, equals(result3));
           expect(result1, equals('')); // All should be empty on non-web
@@ -128,7 +133,7 @@ void main() {
           final result1 = stub_config.hasWebConfig();
           final result2 = stub_config.hasWebConfig();
           final result3 = stub_config.hasWebConfig();
-          
+
           expect(result1, equals(result2));
           expect(result2, equals(result3));
           expect(result1, isFalse); // All should be false on non-web

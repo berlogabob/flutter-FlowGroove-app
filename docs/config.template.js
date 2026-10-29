@@ -12,21 +12,12 @@ window.env = {
   // FIREBASE CONFIGURATION
   // Get from: https://console.firebase.google.com
   // =============================================================================
-  FIREBASE_API_KEY: '${FIREBASE_API_KEY}',
+  FIREBASE_API_KEY: '${FIREBASE_API_KEY}'
 
-  // =============================================================================
-  // SPOTIFY PROXY (Recommended for Production)
-  // When set, all Spotify API calls route through your secure backend
-  // See: docs/SPOTIFY_PROXY_SETUP.md
-  // =============================================================================
-  SPOTIFY_PROXY_URL: '${SPOTIFY_PROXY_URL}',
-
-  // =============================================================================
-  // API PROXY (CORS shim for public no-auth APIs: Deezer, lyrics.ovh)
-  // Web can't call those hosts directly (no CORS header); when set, autofill
-  // routes them through this Cloud Function. No secret involved.
-  // =============================================================================
-  API_PROXY_URL: '${API_PROXY_URL}'
+  // SPOTIFY_PROXY_URL and API_PROXY_URL used to live here. Spotify, Deezer and
+  // lyrics.ovh are now reached only through the lookupTrackMetadata Cloud
+  // Function, so the web client needs neither a Spotify proxy nor a CORS shim,
+  // and this file publishes nothing about them.
 };
 
 // =============================================================================

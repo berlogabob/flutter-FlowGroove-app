@@ -25,6 +25,10 @@ class AudioEngine {
     }
   }
 
+  /// The shared AudioContext (null before [initialize]); the backing engine
+  /// schedules stems on this same clock as the click.
+  Object? get audioContext => _audioContext;
+
   /// Web uses lazy AudioContext initialization, so pre-warm is a no-op.
   Future<void> preWarmPlayers() async {}
 

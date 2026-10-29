@@ -1,0 +1,18 @@
+{
+  "task": "GH-187-S",
+  "reviewer": "hermes",
+  "tested_commit": "6321d0c6967f2df50ff7290e31587f2e493fa54c",
+  "result": "accepted source/callable submission slice, not device or issue closure",
+  "worker": {"provider": "openai-codex", "model": "gpt-6-luna", "session": "local-d37756e342e99f4968bc4f2a11a77d3f766dee09c920577b70ca30ebe34cf43e", "terminal": "2026-10-25T12:16:27.920Z text_response(stop), 26 calls", "cli_disconnect": "retained; not used as model outcome"},
+  "source_sha256": {"functions/src/events.js": "15bb8ab6f41b0b56a21eeb744c0895cc8180a04afe82934f3f679a4a714f2776", "functions/test/callable-event-share.test.js": "cb0da514e8ee3cd7c092cfb5d5212a0da2e7438ec4542b900c334be73cb1185b"},
+  "checks": [
+    {"name": "parent public callable RED on original primary source", "log": "parent-red.log", "exit": 1, "result": "0 passing/1 assertion failure: Missing expected rejection, not fixture/startup failure"},
+    {"name": "parent final primary callable + callable-security-fixes", "log": "parent-green-combined-final.log", "exit": 0, "passed": 88},
+    {"name": "node --check both changed files; git diff --check", "exit": 0}
+  ],
+  "evidence_directory": "audit/2026-10-23-systemic-ux/workers/GH-187-S-LUNA-20261025-1155",
+  "scope": "Exact typed proposal persistence and validation before quota: schema/unknown fields/null, stale fingerprint, invalid IDs, unavailable song/anchor, invalid reorder, add append/anchor/remove/reorder successful persistence; no execution on submission. Band and personal token scopes. Existing notes/caps/privacy/demo tests retained.",
+  "parent_corrections": "Extended existing public regression with add/reorder targets and successful round-trip/no execution checks. No production correction needed.",
+  "retained_attempts": "Original worker fixture/patch failures retained. First combined command misspelled security fixture: 80 passes only, no security credit. Corrected final exact files produced 88 passes.",
+  "limits": "Snapshot checked during submission, atomic stale rejection remains at resolve. No UI/transport/device/human/GA4/full Graphify acceptance. Legacy missing proposal remains decision-only. No release/push/deploy/install. Hooks bypassed for bounded integration; final gates remain."
+}

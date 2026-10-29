@@ -8,7 +8,6 @@ import '../theme/mono_pulse_theme.dart';
 ///
 /// Includes semantic label for screen readers.
 class LoadingIndicator extends StatelessWidget {
-
   const LoadingIndicator({
     super.key,
     this.size = 40,
@@ -17,6 +16,7 @@ class LoadingIndicator extends StatelessWidget {
     this.message,
     this.messageStyle,
   });
+
   /// The size of the loading spinner.
   final double size;
 
@@ -69,8 +69,8 @@ class LoadingIndicator extends StatelessWidget {
 
 /// A small inline loading indicator for buttons and compact spaces.
 class LoadingSpinner extends StatelessWidget {
-
   const LoadingSpinner({super.key, this.size = 16, this.color});
+
   /// The size of the spinner.
   final double size;
 

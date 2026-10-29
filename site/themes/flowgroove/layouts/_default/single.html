@@ -1,0 +1,10 @@
+{{ define "main" }}
+<div class="{{ if eq .Section "wiki" }}wiki-layout{{ end }}">
+{{ partial "wiki-nav.html" . }}
+<article class="single">
+{{ partial "page-heading.html" . }}
+<div class="prose post-content">{{ .Content }}</div>
+{{ with .GetTerms "tags" }}<nav class="tags" aria-label="Article tags">{{ range . }}<a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}</nav>{{ end }}
+</article>
+</div>
+{{ end }}

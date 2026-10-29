@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,7 +16,7 @@ import '../models/tuner_launch_context.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
 import '../services/analytics_service.dart';
-import '../screens/audio_note_screen.dart';
+import '../services/event_share_service.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/bands/band_about_screen.dart';
@@ -34,21 +36,57 @@ import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/main_shell.dart';
 import '../screens/metronome_screen.dart';
+import '../screens/practice_regions_screen.dart';
 import '../screens/practice_screen.dart';
 import '../screens/recorder_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
+import '../screens/setlists/event_share_screen.dart';
 import '../screens/setlists/setlist_view_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/songs/add_song_screen.dart';
 import '../screens/settings/app_settings_screen.dart';
 import '../screens/songs/canonical_browse_screen.dart';
-import '../screens/songs/song_lab_screen.dart';
 import '../screens/songs/models/song_form_data.dart';
+import '../screens/songs/song_page_screen.dart';
 import '../screens/songs/song_duplicates_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
 import 'branch_stack_observer.dart';
+
+/// Builds the Song Page from a songs-branch route state. `extra` may be a
+/// bare [Song], a `{song, bandId}` map, or null (deep link / web refresh —
+/// the page then resolves the song by id from the live stream). The band
+/// scope survives refresh via the `bandId` query parameter.
+SongPageScreen _songPageFromState(GoRouterState state, {String? tab}) {
+  final extra = state.extra;
+  Song? song;
+  String? bandId;
+  if (extra is Song) {
+    song = extra;
+  } else if (extra is Map) {
+    final rawSong = extra['song'];
+    final rawBandId = extra['bandId'];
+    song = rawSong is Song ? rawSong : null;
+    bandId = rawBandId is String ? rawBandId : null;
+  }
+  bandId ??= state.uri.queryParameters['bandId'];
+  return SongPageScreen(
+    songId: state.pathParameters['id']!,
+    initialSong: song,
+    bandId: bandId,
+    initialTab: tab ?? state.uri.queryParameters['tab'],
+  );
+}
+
+/// On web, go_router JSON-encodes `extra` into browser `history.state`; when
+/// the browser back/forward button restores an entry, `extra` comes back as a
+/// decoded Map, not the original object. Treat any wrong type as absent so
+/// resolvers reload by id instead of crashing on a cast.
+T? _extraAs<T>(GoRouterState state) {
+  final extra = state.extra;
+  return extra is T ? extra : null;
+}
 
 /// Minimal auth surface needed by the app router.
 abstract class AuthRouterClient {
@@ -103,6 +141,19 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 /// Production GoRouter configuration for FlowGroove.
 final GoRouter appRouter = createAppRouter();
 
+/// The root observer that gives every named route a `screen_view` event.
+/// Without this, only hand-instrumented screens were ever tracked. Returns
+/// empty when Firebase isn't up (unit tests, config failure) so the router
+/// still builds.
+List<NavigatorObserver> _analyticsObservers() {
+  try {
+    if (Firebase.apps.isEmpty) return const [];
+    return [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)];
+  } catch (_) {
+    return const [];
+  }
+}
+
 /// Creates a GoRouter with injectable auth and route configuration.
 GoRouter createAppRouter({
   AuthRouterClient? authClient,
@@ -110,6 +161,7 @@ GoRouter createAppRouter({
   GlobalKey<NavigatorState>? navigatorKey,
   List<RouteBase>? routes,
   bool enableAuthRedirect = true,
+  List<NavigatorObserver>? observers,
 }) {
   final resolvedAuthClient = authClient ?? FirebaseAuthRouterClient();
   final authRefresh = enableAuthRedirect
@@ -119,6 +171,7 @@ GoRouter createAppRouter({
   return GoRouter(
     navigatorKey: navigatorKey ?? _rootNavigatorKey,
     initialLocation: initialLocation,
+    observers: observers ?? _analyticsObservers(),
     refreshListenable: authRefresh,
     redirect: enableAuthRedirect
         ? (context, state) {
@@ -133,6 +186,16 @@ GoRouter createAppRouter({
             final isJoinWelcome = state.matchedLocation == '/join-welcome';
             final isOnMain = state.matchedLocation.startsWith('/main');
             final joinCode = state.uri.queryParameters['code'];
+
+            // Shared event link. Deliberately reachable SIGNED OUT: a venue's
+            // art director or a wedding couple gets a read-only view and can
+            // suggest changes without ever creating an account. The token
+            // itself is the grant, and the server scopes the payload to it, so
+            // there is nothing here for the auth redirect to protect.
+            if (state.matchedLocation == '/event' ||
+                state.matchedLocation == '/event/') {
+              return null;
+            }
 
             // External join App Link / web deep link (/join or /join/) — map it
             // to the in-app join flow. When logged out, stash the code so login
@@ -164,7 +227,10 @@ GoRouter createAppRouter({
             // Not logged in and not on auth pages -> go to login.
             // If a join link (with ?code=) was opened while logged out, stash
             // the code so the login flow can resume the join afterwards.
-            if (!isLoggedIn && !isLoggingIn && !isRegistering && !isJoinWelcome) {
+            if (!isLoggedIn &&
+                !isLoggingIn &&
+                !isRegistering &&
+                !isJoinWelcome) {
               if (state.matchedLocation == '/main/join-band' &&
                   joinCode != null &&
                   joinCode.isNotEmpty) {
@@ -237,8 +303,19 @@ List<RouteBase> _buildAppRoutes() {
     GoRoute(
       path: '/join-welcome',
       name: 'join-welcome',
-      builder: (context, state) => JoinWelcomeScreen(
-        code: state.uri.queryParameters['code'] ?? '',
+      builder: (context, state) =>
+          JoinWelcomeScreen(code: state.uri.queryParameters['code'] ?? ''),
+    ),
+
+    // Shared event link (`https://app.flowgroove.app/#/event?t=<id>.<secret>`).
+    // No auth: the token is the grant. See the redirect above.
+    GoRoute(
+      path: '/event',
+      name: 'event-share',
+      builder: (context, state) => EventShareScreen(
+        token: state.uri.queryParameters['t'],
+        ownerUid: state.uri.queryParameters['ownerUid'],
+        setlistId: state.uri.queryParameters['setlistId'],
       ),
     ),
 
@@ -250,7 +327,7 @@ List<RouteBase> _buildAppRoutes() {
       branches: [
         // Home branch
         StatefulShellBranch(
-          observers: [BranchStackObserver(0)],
+          observers: [BranchStackObserver(0), ..._analyticsObservers()],
           routes: [
             GoRoute(
               path: '/main/home',
@@ -261,7 +338,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Songs branch
         StatefulShellBranch(
-          observers: [BranchStackObserver(1)],
+          observers: [BranchStackObserver(1), ..._analyticsObservers()],
           routes: [
             GoRoute(
               path: '/main/songs',
@@ -291,32 +368,29 @@ List<RouteBase> _buildAppRoutes() {
                     );
                   },
                 ),
+                // Legacy deep-link routes: both funnel into the Song Page on
+                // the matching tab, so old links and call sites keep working.
                 GoRoute(
                   path: ':id/lab',
                   name: 'song-lab',
-                  builder: (context, state) {
-                    final extra = state.extra! as Map;
-                    return SongLabScreen(
-                      song: extra['song'] as Song,
-                      bandId: extra['bandId'] as String?,
-                    );
-                  },
+                  builder: (context, state) =>
+                      _songPageFromState(state, tab: 'lab'),
                 ),
                 GoRoute(
                   path: ':id/edit',
                   name: 'edit-song',
-                  builder: (context, state) {
-                    final extra = state.extra;
-                    Song? song;
-                    String? bandId;
-                    if (extra is Song) {
-                      song = extra;
-                    } else if (extra is Map) {
-                      song = extra['song'] as Song?;
-                      bandId = extra['bandId'] as String?;
-                    }
-                    return AddSongScreen(song: song, bandId: bandId);
-                  },
+                  builder: (context, state) =>
+                      _songPageFromState(state, tab: 'edit'),
+                ),
+                // The Song Page (Sheet · Edit · Lab). Declared last: ':id'
+                // would otherwise greedily match the literal children above.
+                // Band copies MUST be opened with ?bandId= (query param, so it
+                // survives refresh/history) — without it the page treats the
+                // song as personal and saves to the wrong copy.
+                GoRoute(
+                  path: ':id',
+                  name: 'song',
+                  builder: (context, state) => _songPageFromState(state),
                 ),
               ],
             ),
@@ -324,7 +398,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Bands branch
         StatefulShellBranch(
-          observers: [BranchStackObserver(2)],
+          observers: [BranchStackObserver(2), ..._analyticsObservers()],
           routes: [
             GoRoute(
               path: '/main/bands',
@@ -346,7 +420,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'the-band',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => TheBandScreen(band: band),
                   ),
                 ),
@@ -355,7 +429,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'edit-band',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => CreateBandScreen(band: band),
                   ),
                 ),
@@ -364,7 +438,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-songs',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => BandSongsScreen(band: band),
                   ),
                 ),
@@ -373,7 +447,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-setlists',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => BandSetlistsScreen(band: band),
                   ),
                 ),
@@ -389,7 +463,7 @@ List<RouteBase> _buildAppRoutes() {
                     return SetlistRouteResolver(
                       setlistId: state.pathParameters['setlistId'],
                       bandId: bandId,
-                      extra: state.extra as Setlist?,
+                      extra: _extraAs<Setlist>(state),
                       builder: (live) => SetlistViewScreen(
                         setlist: live,
                         bandId: bandId,
@@ -403,7 +477,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-about',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => BandAboutScreen(band: band),
                   ),
                 ),
@@ -412,7 +486,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-invite',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => BandInviteScreen(band: band),
                   ),
                 ),
@@ -421,7 +495,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-members',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => BandMembersScreen(band: band),
                   ),
                 ),
@@ -430,7 +504,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-rehearsals',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => RehearsalsListScreen(band: band),
                   ),
                 ),
@@ -440,7 +514,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'create-rehearsal',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => RehearsalEditScreen(band: band),
                   ),
                 ),
@@ -451,7 +525,7 @@ List<RouteBase> _buildAppRoutes() {
                     bandId: state.pathParameters['id'],
                     builder: (band) => RehearsalEditScreen(
                       band: band,
-                      rehearsal: state.extra as Rehearsal?,
+                      rehearsal: _extraAs<Rehearsal>(state),
                     ),
                   ),
                 ),
@@ -472,7 +546,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Setlists branch
         StatefulShellBranch(
-          observers: [BranchStackObserver(3)],
+          observers: [BranchStackObserver(3), ..._analyticsObservers()],
           routes: [
             GoRoute(
               path: '/main/setlists',
@@ -504,7 +578,7 @@ List<RouteBase> _buildAppRoutes() {
                   path: ':id',
                   name: 'setlist-view',
                   builder: (context, state) {
-                    final setlist = state.extra as Setlist?;
+                    final setlist = _extraAs<Setlist>(state);
                     final scope =
                         state.uri.queryParameters['scope'] ==
                             SetlistStorageScope.band.name
@@ -527,7 +601,7 @@ List<RouteBase> _buildAppRoutes() {
                   path: ':id/edit',
                   name: 'edit-setlist',
                   builder: (context, state) {
-                    final setlist = state.extra as Setlist?;
+                    final setlist = _extraAs<Setlist>(state);
                     final scope =
                         state.uri.queryParameters['scope'] ==
                             SetlistStorageScope.band.name
@@ -552,7 +626,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Profile branch
         StatefulShellBranch(
-          observers: [BranchStackObserver(4)],
+          observers: [BranchStackObserver(4), ..._analyticsObservers()],
           routes: [
             GoRoute(
               path: '/main/profile',
@@ -606,14 +680,34 @@ List<RouteBase> _buildAppRoutes() {
       name: 'audio-note',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>?;
-        final entry = extra?['entry'] as SongLabEntry?;
-        // extra doesn't survive a refresh or a deep link; there's no id-only
+        final extra = _extraAs<Map<Object?, Object?>>(state);
+        final rawEntry = extra?['entry'];
+        final rawBandId = extra?['bandId'];
+        // extra doesn't survive a refresh, a deep link, or browser history
+        // restoration (which hands back decoded JSON); there's no id-only
         // lookup for a lab entry, so send them back to the list.
-        if (entry == null) return const RecorderScreen();
-        return AudioNoteScreen(
-          entry: entry,
-          bandId: extra?['bandId'] as String?,
+        if (rawEntry is! SongLabEntry) return const RecorderScreen();
+        return PracticeRegionsScreen(
+          entry: rawEntry,
+          bandId: rawBandId is String ? rawBandId : null,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/main/practice-regions/:id',
+      name: 'practice-regions',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final extra = _extraAs<Map<Object?, Object?>>(state);
+        final rawEntry = extra?['entry'];
+        final rawBandId = extra?['bandId'];
+        // extra doesn't survive a refresh, a deep link, or browser history
+        // restoration (which hands back decoded JSON); there's no id-only
+        // lookup for a lab entry, so send them back to the list.
+        if (rawEntry is! SongLabEntry) return const RecorderScreen();
+        return PracticeRegionsScreen(
+          entry: rawEntry,
+          bandId: rawBandId is String ? rawBandId : null,
         );
       },
     ),
@@ -667,9 +761,16 @@ extension GoRouterExtension on BuildContext {
     goNamed('add-song', queryParameters: params, extra: initialFormData);
   }
 
-  /// Navigate to edit song screen.
-  void goEditSong(Song song) =>
-      goNamed('edit-song', pathParameters: {'id': song.id}, extra: song);
+  /// Navigate to edit song screen. Band copies MUST pass [bandId] — it scopes
+  /// the save to the band's song (updateBandSong) and, as a query parameter,
+  /// survives web refresh/history where `extra` does not. Without it the page
+  /// silently edits the PERSONAL copy.
+  void goEditSong(Song song, {String? bandId}) => goNamed(
+    'edit-song',
+    pathParameters: {'id': song.id},
+    queryParameters: {'bandId': ?bandId},
+    extra: {'song': song, 'bandId': ?bandId},
+  );
 
   /// Navigate to bands list.
   void goBands() => goNamed('bands');
@@ -751,6 +852,13 @@ extension GoRouterExtension on BuildContext {
     extra: {'entry': entry, 'bandId': bandId},
   );
 
+  /// Open named regions for looping a recording or a transition.
+  void goPracticeRegions(SongLabEntry entry, {String? bandId}) => pushNamed(
+    'practice-regions',
+    pathParameters: {'id': entry.id},
+    extra: {'entry': entry, 'bandId': bandId},
+  );
+
   /// Navigate to login screen.
   void goLogin() => goNamed('login');
 
@@ -790,7 +898,9 @@ class BandRouteResolver extends ConsumerWidget {
       for (final candidate in bands) {
         if (candidate.id == bandId) return builder(candidate);
       }
-      if (extra != null) return builder(extra!);
+      // The stream has data and this band is NOT in it — the user left or was
+      // removed. Do not fall back to the stale `extra` snapshot: it would
+      // render band metadata with permission gates that can never succeed.
       return _bandLoadError(context);
     }
 
@@ -808,7 +918,10 @@ class BandRouteResolver extends ConsumerWidget {
             const Text('Failed to load band data'),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => context.pop(),
+              // This screen can be the first history entry (direct URL /
+              // browser-restored), where pop() would throw.
+              onPressed: () =>
+                  context.canPop() ? context.pop() : context.go('/main/home'),
               child: const Text('Go Back'),
             ),
           ],
@@ -840,6 +953,26 @@ class SetlistRouteResolver extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A guest cannot run the band-setlists LIST query, so for them this used to
+    // fall through to `extra` — the navigation-time snapshot. Tapping in from
+    // "Guest appearances" worked; a refresh or a cold link had no `extra` and
+    // sat on a spinner for ever. They resolve from the scoped event payload
+    // instead, which needs nothing but the two route ids.
+    //
+    // Hydration lives HERE and not in the screen so there is one owner: the
+    // resolver decides which Setlist, the screen decides which songs.
+    // `== true` on purpose: null means the band list has not loaded, and a
+    // guest guessed as a member here would fall through to the band-setlists
+    // query the rules deny them. Unknown falls to `extra`/spinner and resolves
+    // a beat later.
+    if (bandId != null &&
+        setlistId != null &&
+        isEventGuestOf(ref.watch(bandsProvider).value, bandId!) == true) {
+      final view = ref.watch(eventViewProvider((bandId!, setlistId!))).value;
+      if (view != null) return builder(setlistFromEventView(view, bandId!));
+      return builder(extra);
+    }
+
     final setlists = bandId != null
         ? ref.watch(bandSetlistsProvider(bandId!)).asData?.value
         : ref.watch(setlistsProvider).asData?.value;

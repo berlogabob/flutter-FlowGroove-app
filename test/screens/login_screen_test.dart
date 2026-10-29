@@ -15,11 +15,13 @@ void main() {
     late MockFirebaseAuth mockAuth;
     late FakeAnalyticsClient analytics;
     late FakePendingJoinCodeStore pendingJoinCodeStore;
+    late FakePendingEventTokenStore pendingEventTokenStore;
 
     List<dynamic> overrides() => [
       firebaseAuthProvider.overrideWithValue(mockAuth),
       analyticsClientProvider.overrideWithValue(analytics),
       pendingJoinCodeStoreProvider.overrideWithValue(pendingJoinCodeStore),
+      pendingEventTokenStoreProvider.overrideWithValue(pendingEventTokenStore),
       appUserProvider.overrideWith(() => TestAppUserNotifier(null)),
     ];
 
@@ -27,6 +29,7 @@ void main() {
       mockAuth = MockFirebaseAuth();
       analytics = FakeAnalyticsClient();
       pendingJoinCodeStore = FakePendingJoinCodeStore();
+      pendingEventTokenStore = FakePendingEventTokenStore();
     });
 
     testWidgets('renders login screen with all elements', (tester) async {
@@ -199,7 +202,7 @@ void main() {
           ),
         ).thenAnswer((_) async => createMockUserCredential());
 
-        final router = await pumpRoutedTestApp(
+        await pumpRoutedTestApp(
           tester,
           initialLocation: '/login',
           overrides: overrides(),
