@@ -160,6 +160,10 @@ Deploy target:
 | `flutter test` | Run the full Flutter suite | Not run in full during this audit pass |
 | `bash test/security/git_audit_test.sh` | Security audit | Passes with warnings; history still needs periodic review |
 
+## App design system
+
+The Flutter app’s current visual tokens, component patterns, and implementation guidance are documented in [FLOWGROOVE_DESIGN_SYSTEM.md](FLOWGROOVE_DESIGN_SYSTEM.md), with the existing component API catalog in [COMPONENT_LIBRARY.md](COMPONENT_LIBRARY.md) and implementation rules in [DESIGN_SYSTEM_LINT.md](DESIGN_SYSTEM_LINT.md). Preview the system without Firebase or sign-in with `flutter run -d chrome -t tool/design_system_preview.dart`; the reference includes interactive setlist, song, and add-song examples.
+
 ## Documentation
 
 ### Core Docs

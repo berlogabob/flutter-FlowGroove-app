@@ -72,6 +72,7 @@ class StatCard extends StatelessWidget {
 
     // Canonical surface card from the design system (Phase 4).
     return AppCard(
+      variant: AppCardVariant.raised,
       onTap: onTap,
       padding: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.lg,

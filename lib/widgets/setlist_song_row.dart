@@ -1,5 +1,3 @@
-import 'dart:ui' show FontFeature;
-
 import 'package:flutter/material.dart';
 
 import '../models/song.dart';
@@ -56,7 +54,11 @@ class SetlistSongRow extends StatelessWidget {
         onTap: song == null ? null : onTap,
         child: Container(
           constraints: const BoxConstraints(minHeight: 72),
-          padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.sm),
+          padding: const EdgeInsets.only(
+            top: MonoPulseSpacing.sm,
+            bottom: MonoPulseSpacing.sm,
+            right: MonoPulseSpacing.md,
+          ),
           decoration: BoxDecoration(
             color: isCurrent ? MonoPulseColors.selection : null,
             border: Border(bottom: BorderSide(color: context.mp.borderSubtle)),
@@ -74,7 +76,8 @@ class SetlistSongRow extends StatelessWidget {
               SizedBox(
                 width: 44,
                 child: Center(
-                  child: leading ??
+                  child:
+                      leading ??
                       Text(
                         '${index + 1}',
                         style: TextStyle(

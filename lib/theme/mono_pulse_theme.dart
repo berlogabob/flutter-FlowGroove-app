@@ -2,33 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// PlayNote visual system: warm paper, confident instrument controls,
-/// and a restrained orange transport accent.
+/// FlowGroove visual system: warm studio paper, dark instrument housings,
+/// readable music notation, and a confident orange transport accent.
 
 class MonoPulseColors {
   // Dark palette retained for users who choose dark appearance.
-  static const Color black = Color(0xFF171714);
-  static const Color blackSurface = Color(0xFF201F1B);
-  static const Color blackElevated = Color(0xFF292823);
-  static const Color surface = Color(0xFF24231F);
-  static const Color surfaceRaised = Color(0xFF302F29);
-  static const Color surfaceOverlay = Color(0xFF393831);
-  static const Color borderSubtle = Color(0xFF3A3932);
-  static const Color borderDefault = Color(0xFF504F46);
-  static const Color borderStrong = Color(0xFF6B695E);
-  static const Color textPrimary = Color(0xFFF5F1E8);
-  static const Color textHighEmphasis = Color(0xFFFFFCF5);
-  static const Color textSecondary = Color(0xFFC2BDAF);
-  static const Color textTertiary = Color(0xFFAAA494);
-  static const Color textDisabled = Color(0xFF797568);
+  static const Color black = Color(0xFF1E1E1C);
+  static const Color blackSurface = Color(0xFF262623);
+  static const Color blackElevated = Color(0xFF30302C);
+  static const Color surface = Color(0xFF292925);
+  static const Color surfaceRaised = Color(0xFF35352F);
+  static const Color surfaceOverlay = Color(0xFF41413A);
+  static const Color borderSubtle = Color(0xFF44443D);
+  static const Color borderDefault = Color(0xFF5A5A51);
+  static const Color borderStrong = Color(0xFF77776C);
+  static const Color textPrimary = Color(0xFFF6F5F0);
+  static const Color textHighEmphasis = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color(0xFFD8D6CC);
+  static const Color textTertiary = Color(0xFFB5B2A8);
+  static const Color textDisabled = Color(0xFF8E8C84);
 
   // Brand Accent - Orange (used surgically)
-  static const Color accentOrange = Color(0xFFCA5425);
-  static const Color accentOrangeLight = Color(0xFFE16A36);
-  static const Color accentOrangeDark = Color(0xFF9E3F1C);
-  static const Color selection = Color(0xFFDCE7DF);
-  static const Color selectionInk = Color(0xFF25483F);
-  static const Color accentOrange10 = Color(0x1ACA5425); // 10% opacity
+  static const Color paper = Color(0xFFF6F5F0);
+  static const Color stone = Color(0xFFD8D6CC);
+  static const Color fog = Color(0xFFB5B2A8);
+  static const Color charcoal = Color(0xFF1E1E1C);
+  static const Color sage = Color(0xFF8A907F);
+  static const Color petrol = Color(0xFF285E6E);
+  static const Color accentOrange = Color(0xFFFF5A36);
+  static const Color accentOrangeLight = Color(0xFFFF7555);
+  static const Color accentOrangeDark = Color(0xFFD64324);
+  static const Color selection = Color(0xFFDDE4D9);
+  static const Color selectionInk = petrol;
+  static const Color accentOrange10 = Color(0x1AFF5A36); // 10% opacity
 
   // Beat Mode Colors
   static const Color beatModeNormal = accentOrange;
@@ -92,12 +98,12 @@ class MonoPulseColors {
   static const Color error30 = Color(0x4DFF2D55); // 30%
 
   // Orange opacity variants
-  static const Color orangeSubtle5 = Color(0x0DCA5425); // 5%
+  static const Color orangeSubtle5 = Color(0x0DFF5A36); // 5%
 
   // Accent orange opacity variants (for UI elements) — canonical naming.
-  static const Color accentOrange15 = Color(0x26CA5425); // 15%
-  static const Color accentOrange20 = Color(0x33CA5425); // 20%
-  static const Color accentOrange30 = Color(0x4DCA5425); // 30%
+  static const Color accentOrange15 = Color(0x26FF5A36); // 15%
+  static const Color accentOrange20 = Color(0x33FF5A36); // 20%
+  static const Color accentOrange30 = Color(0x4DFF5A36); // 30%
 
   // Border opacity variants
   static const Color borderSubtle30 = Color(0x4D222222); // 30%
@@ -111,10 +117,10 @@ class MonoPulseColors {
     0x0AFFFFFF,
   ); // White @ 4% (subtle hover highlight)
   static const Color stateFocus = Color(
-    0x1ECA5425,
+    0x1EFF5A36,
   ); // Orange @ 12% (accent-colored focus ring)
   static const Color statePressed = Color(
-    0x29CA5425,
+    0x29FF5A36,
   ); // Orange @ 16% (darker press state)
   static const Color stateDisabled = Color(
     0x4D555555,
@@ -237,22 +243,22 @@ class MonoPulsePalette extends ThemeExtension<MonoPulsePalette> {
     textDisabled: MonoPulseColors.textDisabled,
   );
 
-/// Light PlayNote: warm paper, warm-gray dividers, and high-contrast ink.
+  /// Light FlowGroove: warm paper, stone hardware, and charcoal ink.
   static const light = MonoPulsePalette(
-    black: Color(0xFFF5F0E6),
-    blackSurface: Color(0xFFEDE6D9),
-    blackElevated: Color(0xFFE5DDCE),
-    surface: Color(0xFFFAF7F0),
-    surfaceRaised: Color(0xFFF0E9DC),
-    surfaceOverlay: Color(0xFFE9E1D3),
-    borderSubtle: Color(0xFFE3DACA),
-    borderDefault: Color(0xFFCFC5B4),
-    borderStrong: Color(0xFFAAA08F),
-    textPrimary: Color(0xFF282720),
-    textHighEmphasis: Color(0xFF171713),
-    textSecondary: Color(0xFF555349),
-    textTertiary: Color(0xFF6C695D),
-    textDisabled: Color(0xFF898578),
+    black: MonoPulseColors.paper,
+    blackSurface: Color(0xFFECEAE2),
+    blackElevated: MonoPulseColors.stone,
+    surface: Color(0xFFF9F8F3),
+    surfaceRaised: Color(0xFFE9E7DE),
+    surfaceOverlay: Color(0xFFDEDDD4),
+    borderSubtle: MonoPulseColors.stone,
+    borderDefault: MonoPulseColors.fog,
+    borderStrong: Color(0xFF77766E),
+    textPrimary: MonoPulseColors.charcoal,
+    textHighEmphasis: Color(0xFF11110F),
+    textSecondary: Color(0xFF45453F),
+    textTertiary: Color(0xFF62625A),
+    textDisabled: Color(0xFF85847B),
   );
 
   @override
@@ -320,22 +326,16 @@ extension MonoPulseContext on BuildContext {
       Theme.of(this).extension<MonoPulsePalette>() ?? MonoPulsePalette.dark;
 }
 
-/// Typography - Inter (cross-platform)
+/// FlowGroove typography: Marcellus for sign-like titles, Source Serif 4 for
+/// readable music notes and body copy, and Arial-like control labels.
 /// Strict 4-point grid scale
 class MonoPulseTypography {
   MonoPulseTypography._();
 
-  // Font Family — Inter, registered at runtime by google_fonts.
-  //
-  // IMPORTANT: keep these as a const String (not a GoogleFonts getter) so the
-  // TextStyles below can stay `const`. The whole app builds `const` widgets
-  // around these styles; making them runtime getters breaks const-ness across
-  // hundreds of call sites. The Inter family is loaded once in the theme via
-  // GoogleFonts.interTextTheme(), after which `fontFamily: 'Inter'` resolves.
-  static const String fontFamily = 'Inter';
-  // Gorton is not bundled or licensed in this repository; Inter is the
-  // existing runtime fallback for display and interface text.
-  static const String fontFamilyDisplay = 'Inter';
+  // Keep family names as const strings so existing call sites stay const.
+  static const String fontFamily = 'Source Serif 4';
+  static const String fontFamilyDisplay = 'Marcellus';
+  static const String fontFamilyControl = 'Arial';
 
   // Weights
   static const FontWeight regular = FontWeight.w400;
@@ -364,21 +364,21 @@ class MonoPulseTypography {
 
   // Headings
   static const TextStyle headlineLarge = TextStyle(
-    fontFamily: fontFamily,
+    fontFamily: fontFamilyDisplay,
     fontSize: 24,
     fontWeight: semibold,
     height: 1.38,
   );
 
   static const TextStyle headlineMedium = TextStyle(
-    fontFamily: fontFamily,
+    fontFamily: fontFamilyDisplay,
     fontSize: 20,
     fontWeight: semibold,
     height: 1.4,
   );
 
   static const TextStyle headlineSmall = TextStyle(
-    fontFamily: fontFamily,
+    fontFamily: fontFamilyDisplay,
     fontSize: 16,
     fontWeight: semibold,
     height: 1.45,
@@ -386,14 +386,14 @@ class MonoPulseTypography {
 
   // Title - For tool screens
   static const TextStyle titleLarge = TextStyle(
-    fontFamily: fontFamily,
+    fontFamily: fontFamilyDisplay,
     fontSize: 22,
     fontWeight: semibold,
     height: 1.36,
   );
 
   static const TextStyle titleMedium = TextStyle(
-    fontFamily: fontFamily,
+    fontFamily: fontFamilyDisplay,
     fontSize: 16,
     fontWeight: semibold,
     height: 1.45,
@@ -409,38 +409,38 @@ class MonoPulseTypography {
 
   static const TextStyle bodyMedium = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: regular,
     height: 1.43,
   );
 
   static const TextStyle bodySmall = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: regular,
     height: 1.33,
   );
 
   // Labels / Buttons
   static const TextStyle labelLarge = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 14,
+    fontFamily: fontFamilyControl,
+    fontSize: 15,
     fontWeight: medium,
     height: 1.43,
     letterSpacing: 0.1,
   );
 
   static const TextStyle labelMedium = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 12,
+    fontFamily: fontFamilyControl,
+    fontSize: 13,
     fontWeight: medium,
     height: 1.33,
     letterSpacing: 0.5,
   );
 
   static const TextStyle labelSmall = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 11,
+    fontFamily: fontFamilyControl,
+    fontSize: 12,
     fontWeight: medium,
     height: 1.45,
     letterSpacing: 0.5,
@@ -554,6 +554,7 @@ class MonoPulseTheme {
         : const ColorScheme.light();
     return baseScheme.copyWith(
       primary: MonoPulseColors.accentOrange,
+      onPrimary: MonoPulseColors.charcoal,
       primaryContainer: MonoPulseColors.accentOrangeDark,
       onPrimaryContainer: p.textPrimary,
       secondary: p.textSecondary,
@@ -615,14 +616,16 @@ class MonoPulseTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: MonoPulseColors.accentOrange,
-          foregroundColor: MonoPulseColors.black,
-          elevation: 0,
+          foregroundColor: MonoPulseColors.charcoal,
+          elevation: 3,
+          shadowColor: dark ? MonoPulseColors.charcoal : MonoPulseColors.fog,
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.xl,
             vertical: MonoPulseSpacing.lg,
           ),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(2)),
+            borderRadius: BorderRadius.all(Radius.circular(5)),
+            side: BorderSide(color: MonoPulseColors.charcoal, width: 1.2),
           ),
           textStyle: MonoPulseTypography.labelLarge,
         ).copyWith(overlayColor: _stateOverlay(hover)),
@@ -638,7 +641,7 @@ class MonoPulseTheme {
             vertical: MonoPulseSpacing.lg,
           ),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(2)),
+            borderRadius: BorderRadius.all(Radius.circular(5)),
           ),
           textStyle: MonoPulseTypography.labelLarge,
         ).copyWith(overlayColor: _stateOverlay(hover)),
@@ -647,7 +650,7 @@ class MonoPulseTheme {
       // Buttons - Text (Tertiary)
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: MonoPulseColors.accentOrange,
+          foregroundColor: MonoPulseColors.charcoal,
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.md,
             vertical: MonoPulseSpacing.sm,
@@ -659,7 +662,7 @@ class MonoPulseTheme {
       // Input Fields
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: p.surfaceRaised,
+        fillColor: MonoPulseColors.white,
         hintStyle: TextStyle(color: p.textTertiary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
@@ -672,7 +675,7 @@ class MonoPulseTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
           borderSide: const BorderSide(
-            color: MonoPulseColors.accentOrange,
+            color: MonoPulseColors.charcoal,
             width: 2,
           ),
         ),
@@ -693,21 +696,23 @@ class MonoPulseTheme {
       // Cards
       cardTheme: CardThemeData(
         color: p.surface,
-        elevation: 0,
-        shadowColor: MonoPulseColors.black,
+        elevation: 1,
+        shadowColor: p.borderStrong,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-          side: BorderSide(color: p.borderSubtle),
+          borderRadius: BorderRadius.circular(6),
+          side: BorderSide(color: p.borderDefault),
         ),
       ),
 
       // Floating Action Button
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: MonoPulseColors.accentOrange,
-        foregroundColor: MonoPulseColors.black,
-        elevation: 0,
+        foregroundColor: MonoPulseColors.charcoal,
+        elevation: 3,
+        splashColor: MonoPulseColors.accentOrangeDark,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
+          borderRadius: BorderRadius.circular(6),
+          side: const BorderSide(color: MonoPulseColors.charcoal, width: 1.2),
         ),
       ),
 
@@ -779,23 +784,23 @@ class MonoPulseTheme {
         ),
       ),
 
-      // Text Theme
-      // Base text theme loads/registers the Inter family at runtime
-      // (google_fonts), then we override slots with our const MonoPulse
-      // styles (fontFamily: 'Inter').
-      textTheme: GoogleFonts.interTextTheme(const TextTheme()).copyWith(
-        displayLarge: MonoPulseTypography.displayLarge,
-        displayMedium: MonoPulseTypography.displayMedium,
-        headlineLarge: MonoPulseTypography.headlineLarge,
-        headlineMedium: MonoPulseTypography.headlineMedium,
-        headlineSmall: MonoPulseTypography.headlineSmall,
-        bodyLarge: MonoPulseTypography.bodyLarge,
-        bodyMedium: MonoPulseTypography.bodyMedium,
-        bodySmall: MonoPulseTypography.bodySmall,
-        labelLarge: MonoPulseTypography.labelLarge,
-        labelMedium: MonoPulseTypography.labelMedium,
-        labelSmall: MonoPulseTypography.labelSmall,
-      ),
+      // Load both brand font families for the const styles above.
+      textTheme:
+          GoogleFonts.sourceSerif4TextTheme(
+            GoogleFonts.marcellusTextTheme(const TextTheme()),
+          ).copyWith(
+            displayLarge: MonoPulseTypography.displayLarge,
+            displayMedium: MonoPulseTypography.displayMedium,
+            headlineLarge: MonoPulseTypography.headlineLarge,
+            headlineMedium: MonoPulseTypography.headlineMedium,
+            headlineSmall: MonoPulseTypography.headlineSmall,
+            bodyLarge: MonoPulseTypography.bodyLarge,
+            bodyMedium: MonoPulseTypography.bodyMedium,
+            bodySmall: MonoPulseTypography.bodySmall,
+            labelLarge: MonoPulseTypography.labelLarge,
+            labelMedium: MonoPulseTypography.labelMedium,
+            labelSmall: MonoPulseTypography.labelSmall,
+          ),
     );
   }
 

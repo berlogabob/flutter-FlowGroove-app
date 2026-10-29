@@ -57,7 +57,11 @@ class CustomButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             padding: _padding,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+              borderRadius: BorderRadius.circular(5),
+              side: const BorderSide(
+                color: MonoPulseColors.charcoal,
+                width: 1.2,
+              ),
             ),
           ),
           child: _buildChild(),
@@ -66,12 +70,15 @@ class CustomButton extends StatelessWidget {
         return ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: context.mp.surface,
-            foregroundColor: MonoPulseColors.accentOrange,
+            backgroundColor: MonoPulseColors.white,
+            foregroundColor: MonoPulseColors.charcoal,
             padding: _padding,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-              side: const BorderSide(color: MonoPulseColors.accentOrange),
+              borderRadius: BorderRadius.circular(5),
+              side: const BorderSide(
+                color: MonoPulseColors.charcoal,
+                width: 1.2,
+              ),
             ),
           ),
           child: _buildChild(),
@@ -82,7 +89,7 @@ class CustomButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             padding: _padding,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+              borderRadius: BorderRadius.circular(5),
             ),
           ),
           child: _buildChild(),
@@ -105,7 +112,11 @@ class CustomButton extends StatelessWidget {
           height: 16,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(context.mp.textPrimary),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              variant == ButtonVariant.secondary
+                  ? MonoPulseColors.charcoal
+                  : context.mp.textPrimary,
+            ),
           ),
         ),
         if (label.isNotEmpty) ...[const SizedBox(width: 8), Text(label)],
@@ -119,8 +130,22 @@ class CustomButton extends StatelessWidget {
           onPressed: null,
           style: ElevatedButton.styleFrom(
             padding: _padding,
+            backgroundColor: variant == ButtonVariant.secondary
+                ? MonoPulseColors.white
+                : null,
+            foregroundColor: variant == ButtonVariant.secondary
+                ? MonoPulseColors.charcoal
+                : null,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+              borderRadius: BorderRadius.circular(5),
+              side: BorderSide(
+                color:
+                    variant == ButtonVariant.primary ||
+                        variant == ButtonVariant.secondary
+                    ? MonoPulseColors.charcoal
+                    : context.mp.borderDefault,
+                width: 1.2,
+              ),
             ),
           ),
           child: child,
@@ -131,7 +156,7 @@ class CustomButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             padding: _padding,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+              borderRadius: BorderRadius.circular(5),
             ),
           ),
           child: child,
