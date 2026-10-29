@@ -82,7 +82,10 @@ void main() {
         name: 'Dark',
         colorValue: const Color(0xFF000000).toARGB32(),
       );
-      expect(darkSection.contrastingTextColor.red, greaterThan(0.9));
+      expect(
+        darkSection.contrastingTextColor.computeLuminance(),
+        greaterThan(0.8),
+      );
 
       // Light color should return dark text
       final lightSection = Section(
@@ -90,7 +93,10 @@ void main() {
         name: 'Light',
         colorValue: const Color(0xFFFFFFFF).toARGB32(),
       );
-      expect(lightSection.contrastingTextColor.red, lessThan(0.1));
+      expect(
+        lightSection.contrastingTextColor.computeLuminance(),
+        lessThan(0.1),
+      );
     });
 
     test('colorIndex is consistent for same name', () {

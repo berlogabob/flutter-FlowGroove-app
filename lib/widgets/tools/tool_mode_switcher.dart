@@ -57,15 +57,17 @@ class ToolModeSwitcher<T extends Enum> extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: options.map((option) {
         final isActive = activeMode == option.mode;
-        return _ModePill(
-          label: option.label,
-          icon: option.icon,
-          isActive: isActive,
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onModeChanged(option.mode);
-          },
-          animationDuration: animationDuration,
+        return Flexible(
+          child: _ModePill(
+            label: option.label,
+            icon: option.icon,
+            isActive: isActive,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onModeChanged(option.mode);
+            },
+            animationDuration: animationDuration,
+          ),
         );
       }).toList(),
     );
@@ -134,13 +136,17 @@ class _ModePill extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
               ],
-              Text(
-                label,
-                style: MonoPulseTypography.labelLarge.copyWith(
-                  color: isActive
-                      ? MonoPulseColors.accentOrange
-                      : context.mp.textSecondary,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: MonoPulseTypography.labelLarge.copyWith(
+                    color: isActive
+                        ? MonoPulseColors.accentOrange
+                        : context.mp.textSecondary,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                  ),
                 ),
               ),
             ],
