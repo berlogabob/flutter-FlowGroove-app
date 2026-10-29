@@ -179,6 +179,46 @@ object AudioTranscoder {
         return mono.toByteArray()
     }
 
+    /**
+     * Whole file as a 16-bit WAV at [outPath], at the source rate with up to
+     * two channels, streamed to disk. Loops are sliced from it sample-exact.
+     */
+    fun toWav(inPath: String, outPath: String): Map<String, Any> {
+        var rate = 0
+        var channels = 0
+        var bytes = 0L
+        java.io.RandomAccessFile(outPath, "rw").use { file ->
+            file.setLength(0)
+            file.write(ByteArray(44))
+            val chunk = ByteBuffer.allocate(65536).order(ByteOrder.LITTLE_ENDIAN)
+            decode(inPath, { r, c ->
+                rate = r
+                channels = minOf(c, 2)
+            }) { samples, sourceChannels ->
+                val out = downmix(samples, sourceChannels, channels)
+                var at = 0
+                while (at < out.size) {
+                    chunk.clear()
+                    val n = minOf(out.size - at, chunk.capacity() / 2)
+                    chunk.asShortBuffer().put(out, at, n)
+                    file.write(chunk.array(), 0, n * 2)
+                    at += n
+                    bytes += n * 2
+                }
+            }
+            if (rate == 0) throw IOException("no audio decoded")
+            val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
+            header.put("RIFF".toByteArray()).putInt((36 + bytes).toInt())
+                .put("WAVEfmt ".toByteArray()).putInt(16)
+                .putShort(1).putShort(channels.toShort()).putInt(rate)
+                .putInt(rate * channels * 2).putShort((channels * 2).toShort())
+                .putShort(16).put("data".toByteArray()).putInt(bytes.toInt())
+            file.seek(0)
+            file.write(header.array())
+        }
+        return mapOf("sampleRate" to rate, "channels" to channels)
+    }
+
     private fun durationUs(path: String): Long {
         val ex = MediaExtractor()
         try {

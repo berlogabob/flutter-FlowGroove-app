@@ -92,6 +92,10 @@ class MainActivity : FlutterActivity() {
                             call.argument<String>("out")!!,
                             call.argument<Int>("bitrate") ?: 192_000
                         )
+                        "toWav" -> AudioTranscoder.toWav(
+                            call.argument<String>("in")!!,
+                            call.argument<String>("out")!!
+                        )
                         "decodePcm" -> AudioTranscoder.decodePcm(
                             call.argument<String>("in")!!,
                             call.argument<Int>("sampleRate")!!

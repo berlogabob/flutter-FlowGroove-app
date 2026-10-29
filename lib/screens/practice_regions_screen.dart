@@ -18,6 +18,7 @@ import '../models/metronome_session.dart';
 import '../models/midi_pattern.dart';
 import '../models/section.dart';
 import '../models/section_span.dart';
+import '../models/song.dart';
 import '../models/song_lab.dart';
 import '../models/time_signature.dart';
 import '../providers/data/backing_transport_provider.dart';
@@ -116,6 +117,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   int _clipStart = 0;
   int? _clipEnd;
   bool _changingClip = false;
+  // The cached song file, and whether the player is on a loop WAV cut from it.
+  String? _songPath;
+  bool _onLoopWav = false;
+  // A loop waiting for the current pass to end (see _queueLoop).
+  (int, int)? _pendingLoop;
   Future<void> _loopUpdate = Future<void>.value();
   int _idCounter = 0;
   double _dragMs = 0;
@@ -236,6 +242,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       try {
         path = (await _cachedFile())?.path;
       } catch (_) {}
+      _songPath = path;
+      if (path != null && Platform.isAndroid) {
+        unawaited(songWav(path).then((_) {}, onError: (_) {}));
+      }
       final duration = path == null
           ? await _player.setUrl(url)
           : await _player.setFilePath(path);
@@ -269,6 +279,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           }
           setState(() => _position = position);
         }),
+        _player.currentIndexStream.listen(_onLoopIndex),
         _player.playerStateStream.listen((state) {
           if (!mounted) return;
           if (!_sync) _clock(state.playing);
@@ -439,6 +450,82 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     await loop;
   }
 
+  /// Points the player at [start, end) of the song: a WAV slice where the
+  /// platform can cut one (loops sample-exact, no gap at the seam),
+  /// otherwise a clip of the song file.
+  Future<void> _loopSource(int start, int end) async {
+    final path = _songPath;
+    final wav = path == null ? null : await loopWav(path, start, end);
+    if (wav != null) {
+      await _player.setFilePath(wav);
+      _onLoopWav = true;
+      return;
+    }
+    if (_onLoopWav) await _wholeSongSource();
+    await _player.setClip(
+      start: Duration(milliseconds: start),
+      end: Duration(milliseconds: end),
+    );
+  }
+
+  Future<void> _wholeSongSource() async {
+    if (!_onLoopWav) {
+      await _player.setClip();
+      return;
+    }
+    _onLoopWav = false;
+    final path = _songPath;
+    if (path == null) {
+      await _player.setUrl(_entry.attachmentIds.first);
+    } else {
+      await _player.setFilePath(path);
+    }
+  }
+
+  /// While a loop plays, a new one waits for the end of the current pass,
+  /// like a launchpad block: it is queued as the playlist's next item and the
+  /// current one stops repeating, so the switch is gapless and in time.
+  /// False when it can't be queued (the caller switches straight away).
+  Future<bool> _queueLoop((int, int) span) async {
+    final path = _songPath;
+    final wav = path == null ? null : await loopWav(path, span.$1, span.$2);
+    if (wav == null || !mounted) return false;
+    // A newer tap replaces the one waiting.
+    while (_player.sequence.length > 1) {
+      await _player.removeAudioSourceAt(_player.sequence.length - 1);
+    }
+    await _player.addAudioSource(AudioSource.file(wav));
+    await _player.setLoopMode(LoopMode.off);
+    if (mounted) setState(() => _pendingLoop = span);
+    return true;
+  }
+
+  Future<void> _cancelQueuedLoop() async {
+    while (_player.sequence.length > 1) {
+      await _player.removeAudioSourceAt(_player.sequence.length - 1);
+    }
+    await _player.setLoopMode(LoopMode.one);
+    if (mounted) setState(() => _pendingLoop = null);
+  }
+
+  /// The queued loop took over: it repeats now, and the old one leaves the
+  /// playlist.
+  void _onLoopIndex(int? index) {
+    final pending = _pendingLoop;
+    if (index == null || index == 0 || pending == null) return;
+    setState(() {
+      _pendingLoop = null;
+      _clipStart = pending.$1;
+      _clipEnd = pending.$2;
+      _lastPosMs = 0;
+      _position = Duration.zero;
+    });
+    _loopUpdate = _loopUpdate.then((_) async {
+      await _player.setLoopMode(LoopMode.one);
+      await _player.removeAudioSourceAt(0);
+    });
+  }
+
   /// Serialise clip reloads so fast taps cannot leave an older loop active.
   Future<void> _applyLoop() => _loopUpdate = _loopUpdate.then((_) async {
     if (!mounted || !_loaded) return;
@@ -448,8 +535,16 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         ? null
         : loopSpan(_entry.regions, selection, preRollMs: _preRollMs);
     // Renames and edits outside the loop must not restart playback mid-pass.
-    if (span != null && span.$1 == _clipStart && span.$2 == _clipEnd) return;
+    if (span != null && span.$1 == _clipStart && span.$2 == _clipEnd) {
+      // Back to the playing loop before the switch: keep it.
+      if (_pendingLoop != null) await _cancelQueuedLoop();
+      return;
+    }
     final wasPlaying = _player.playing;
+    if (span != null && wasPlaying && _onLoopWav && await _queueLoop(span)) {
+      return;
+    }
+    if (_pendingLoop != null) setState(() => _pendingLoop = null);
     // Leaving a loop keeps playing from where the loop was, not the top.
     final resume = Duration(milliseconds: _positionMs);
     _changingClip = true;
@@ -457,7 +552,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       if (wasPlaying) await _player.pause();
       if (!mounted) return;
       if (selection == null) {
-        await _player.setClip();
+        await _wholeSongSource();
         if (!mounted) return;
         await _player.setLoopMode(LoopMode.off);
         if (!mounted) return;
@@ -474,10 +569,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           _position = Duration.zero;
           _lastPosMs = 0;
         });
-        await _player.setClip(
-          start: Duration(milliseconds: start),
-          end: Duration(milliseconds: end),
-        );
+        await _loopSource(start, end);
         if (!mounted) return;
         await _player.setLoopMode(LoopMode.one);
         if (!mounted) return;
@@ -630,8 +722,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
-  /// The song page's BPM, which picks the detected tempo's octave.
-  double? _songBpm() {
+  Song? _song() {
     if (_entry.songId.isEmpty || _entry.songId == '_inbox') return null;
     final songs = ref
         .read(
@@ -640,7 +731,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               : bandSongsProvider(widget.bandId!),
         )
         .value;
-    final song = songs?.where((s) => s.id == _entry.songId).firstOrNull;
+    return songs?.where((s) => s.id == _entry.songId).firstOrNull;
+  }
+
+  /// The song page's BPM, which picks the detected tempo's octave.
+  double? _songBpm() {
+    final song = _song();
     return (song?.ourBPM ?? song?.originalBPM)?.toDouble();
   }
 
@@ -731,6 +827,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       grid: _entry.grid,
       ensurePcm: _ensurePcm,
       songBpm: _songBpm,
+      songSections: () => _song()?.sections.length ?? 0,
       durationMs: () => _durationMs,
       snap: () => _snap,
       time: _time,
@@ -804,6 +901,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   /// the middle, so the loop's join plays over and over.
   Future<void> _loopSeam(int startMs, int endMs) async {
     _auditionTimer?.cancel();
+    _pendingLoop = null;
     if (_sync) await _setSync(false);
     if (!mounted) return;
     _flushSession();
@@ -813,10 +911,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       _changingClip = true;
       try {
         await _player.pause();
-        await _player.setClip(
-          start: Duration(milliseconds: startMs),
-          end: Duration(milliseconds: endMs),
-        );
+        await _loopSource(startMs, endMs);
         await _player.setLoopMode(LoopMode.one);
         if (!mounted) return;
         final length = endMs - startMs;
@@ -1417,6 +1512,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         },
         previewGrid: (grid) =>
             _audition(grid.offsetMs, preRollMs: 0, windowMs: 4000),
+        findSections: (grid) async {
+          final pcm = await _ensurePcm();
+          return pcm == null || pcm.isEmpty
+              ? const []
+              : sectionCuts(pcm, 22050, grid: grid);
+        },
         songSectionNames: [
           for (final section in song?.sections ?? <Section>[]) section.name,
         ],
@@ -1479,13 +1580,25 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 style: MonoPulseTypography.titleLarge,
                 decoration: InputDecoration(
                   hintText: 'Practice regions',
-                  helperText: editing ? 'Tap a pad to edit' : null,
                   border: InputBorder.none,
                 ),
                 onSubmitted: (_) => _saveTitle(),
                 onTapOutside: (_) => _titleFocus.unfocus(),
               )
             : Text(_entry.title ?? 'Practice regions'),
+        // Below the bar, not as the title field's helper: that made the field
+        // taller than the toolbar and clipped the title.
+        bottom: editing
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(20),
+                child: Text(
+                  'Tap a pad to edit',
+                  style: MonoPulseTypography.bodySmall.copyWith(
+                    color: context.mp.textSecondary,
+                  ),
+                ),
+              )
+            : null,
         actions: [
           if (editing && _focus != null)
             IconButton(
@@ -1642,8 +1755,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                       )
                     : _pads(),
               ),
-              Flexible(
-                fit: FlexFit.tight,
+              // Sized to its notes (capped), so the pads get the rest; a flex
+              // split left half the screen to an empty notes list.
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.3,
+                ),
                 child: _NotesPanel(
                   markers: entryNotes(_entry),
                   positionMs: positionMs,
@@ -1679,7 +1796,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     if (selection != null)
                       Expanded(
                         child: Text(
-                          'Looping ${_name(regions[selection.$1])}'
+                          '${_pendingLoop == null ? 'Looping' : 'Next:'} ${_name(regions[selection.$1])}'
                           '${selection.$1 == selection.$2 ? '' : ' → ${_name(regions[selection.$2])}'}',
                           textAlign: TextAlign.end,
                           maxLines: 1,
@@ -2266,6 +2383,8 @@ class _RegionsPainter extends CustomPainter {
             ..strokeWidth = 2,
         );
       }
+      // No room for a readable name: leave the colour alone, no "U…".
+      if (rect.width < 48) continue;
       canvas
         ..save()
         ..clipRect(rect);

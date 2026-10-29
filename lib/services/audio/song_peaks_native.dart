@@ -123,3 +123,103 @@ Future<Int16List?> decodeSongPcm(
     return null;
   }
 }
+
+/// A WAV of [startMs, endMs) of the song at [audioPath], for a gapless loop:
+/// just_audio repeats a whole WAV sample-exact, while a clip of compressed
+/// audio re-seeks on every pass (an audible gap). The song is decoded once to
+/// a full WAV beside [audioPath]; each loop is a byte slice of it. Android
+/// only; null elsewhere or on failure (the caller falls back to a clip).
+Future<String?> loopWav(String audioPath, int startMs, int endMs) async {
+  if (!Platform.isAndroid || endMs <= startMs) return null;
+  try {
+    final full = await songWav(audioPath);
+    final base = full.path;
+    final source = await full.open();
+    try {
+      final header = ByteData.sublistView(await source.read(44));
+      final channels = header.getUint16(22, Endian.little);
+      final rate = header.getUint32(24, Endian.little);
+      final dataBytes = header.getUint32(40, Endian.little);
+      final frame = channels * 2;
+      int at(int ms) => (ms * rate ~/ 1000 * frame).clamp(0, dataBytes);
+      final from = at(startMs), length = at(endMs) - from;
+      if (length <= 0) return null;
+      final dir = await getTemporaryDirectory();
+      final out = File(
+        '${dir.path}/loop_${base.hashCode}_${startMs}_$endMs.wav',
+      );
+      if (!out.existsSync()) {
+        await source.setPosition(44 + from);
+        final wav = BytesBuilder(copy: false)
+          ..add(_wavHeader(length, rate, channels))
+          ..add(await source.read(length));
+        await out.writeAsBytes(wav.takeBytes(), flush: true);
+      }
+      // Older loops: the player has moved on (Android keeps an open file
+      // readable after unlink).
+      for (final old in dir.listSync().whereType<File>()) {
+        final name = old.uri.pathSegments.last;
+        if (name.startsWith('loop_') && old.path != out.path) old.deleteSync();
+      }
+      return out.path;
+    } finally {
+      await source.close();
+    }
+  } catch (e) {
+    // ignore: avoid_print
+    print('loopWav failed: $e');
+    return null;
+  }
+}
+
+Uint8List _wavHeader(int dataBytes, int rate, int channels) {
+  final header = ByteData(44);
+  void ascii(int at, String text) {
+    for (var i = 0; i < text.length; i++) {
+      header.setUint8(at + i, text.codeUnitAt(i));
+    }
+  }
+
+  ascii(0, 'RIFF');
+  header.setUint32(4, 36 + dataBytes, Endian.little);
+  ascii(8, 'WAVEfmt ');
+  header
+    ..setUint32(16, 16, Endian.little)
+    ..setUint16(20, 1, Endian.little)
+    ..setUint16(22, channels, Endian.little)
+    ..setUint32(24, rate, Endian.little)
+    ..setUint32(28, rate * channels * 2, Endian.little)
+    ..setUint16(32, channels * 2, Endian.little)
+    ..setUint16(34, 16, Endian.little);
+  ascii(36, 'data');
+  header.setUint32(40, dataBytes, Endian.little);
+  return header.buffer.asUint8List();
+}
+
+final _songWavs = <String, Future<File>>{};
+
+/// The whole song at [audioPath] as a WAV beside it, decoded once. Call early
+/// so the first loop doesn't wait for the decode.
+Future<File> songWav(String audioPath) {
+  final dot = audioPath.lastIndexOf('.');
+  final base = dot > audioPath.lastIndexOf('/')
+      ? audioPath.substring(0, dot)
+      : audioPath;
+  final full = File('$base.full.wav');
+  return _songWavs.putIfAbsent(audioPath, () async {
+    try {
+      if (!full.existsSync()) {
+        final part = File('${full.path}.part');
+        await _audio.invokeMapMethod<String, Object?>('toWav', {
+          'in': audioPath,
+          'out': part.path,
+        });
+        await part.rename(full.path);
+      }
+      return full;
+    } catch (_) {
+      _songWavs.remove(audioPath);
+      rethrow;
+    }
+  });
+}

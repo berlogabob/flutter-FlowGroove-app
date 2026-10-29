@@ -66,6 +66,8 @@ extension _RecordingFileActions on _PracticeRegionsScreenState {
       try {
         file = await _cachedFile();
       } catch (_) {}
+      _songPath = file?.path;
+      _onLoopWav = false;
       if (file == null) {
         await _player.setUrl(url);
       } else {

@@ -43,3 +43,8 @@ Future<Int16List?> decodeSongPcm(
 /// Native only: the browser uploads the original file.
 Future<({Uint8List bytes, List<int> peaks, int durationMs, int primingMs})?>
 transcodeToAac(String path) async => null;
+
+/// Web loops use the player's clip; see the native version.
+Future<String?> loopWav(String audioPath, int startMs, int endMs) async => null;
+
+Future<Object> songWav(String audioPath) async => throw UnsupportedError('web');
