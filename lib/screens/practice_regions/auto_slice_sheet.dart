@@ -14,10 +14,13 @@ Future<Object?> showAutoSliceSheet(
   required int Function() durationMs,
   required bool Function() snap,
   required String Function(int) time,
+  int Function() songSections = _none,
 }) async {
   var mode = 0;
   var everyBars = 4;
   var sensitivity = 1.5;
+  List<({int ms, double strength})>? found;
+  var foundCuts = 0;
   ({double bpm, int firstDownbeatMs})? suggestion;
   final pcmFuture = ensurePcm().then((pcm) {
     if (pcm != null && pcm.isNotEmpty)
@@ -35,8 +38,17 @@ Future<Object?> showAutoSliceSheet(
           final loading = snapshot.connectionState != ConnectionState.done;
           final pcm = snapshot.data;
           final hasPcm = pcm != null && pcm.isNotEmpty;
+          if (mode == 3 && hasPcm && found == null) {
+            found = sectionCuts(pcm, 22050, grid: grid);
+            foundCuts = suggestedSectionCuts(
+              found!,
+              songSections: songSections(),
+            );
+          }
           final cuts = mode == 1 && grid != null
               ? gridCuts(grid, everyBars: everyBars, durationMs: durationMs())
+              : mode == 3 && found != null
+              ? topSectionCuts(found!, foundCuts)
               : mode == 2 && hasPcm
               ? detectOnsets(
                       pcm,
@@ -80,6 +92,7 @@ Future<Object?> showAutoSliceSheet(
                           (0, 'Suggest tempo grid'),
                           (1, 'Slice every N bars'),
                           (2, 'Chop by transients'),
+                          (3, 'Find sections'),
                         ])
                           ChoiceChip(
                             label: Text(label),
@@ -105,7 +118,7 @@ Future<Object?> showAutoSliceSheet(
                       Wrap(
                         spacing: MonoPulseSpacing.sm,
                         children: [
-                          for (final bars in [1, 2, 4, 8])
+                          for (final bars in [1, 2, 4, 8, 16, 24, 32])
                             ChoiceChip(
                               label: Text('$bars'),
                               selected: everyBars == bars,
@@ -129,6 +142,26 @@ Future<Object?> showAutoSliceSheet(
                             : null,
                       ),
                     ],
+                    if (mode == 3 && found != null)
+                      Row(
+                        children: [
+                          IconButton(
+                            tooltip: 'Fewer sections',
+                            onPressed: foundCuts > 0
+                                ? () => sheetSetState(() => foundCuts--)
+                                : null,
+                            icon: const Icon(Icons.remove),
+                          ),
+                          const Text('Fewer · More'),
+                          IconButton(
+                            tooltip: 'More sections',
+                            onPressed: foundCuts < found!.length
+                                ? () => sheetSetState(() => foundCuts++)
+                                : null,
+                            icon: const Icon(Icons.add),
+                          ),
+                        ],
+                      ),
                     if (mode != 0 && canApply) Text('$count slices'),
                     Align(
                       alignment: Alignment.centerRight,
@@ -158,3 +191,5 @@ Future<Object?> showAutoSliceSheet(
   );
   return result;
 }
+
+int _none() => 0;

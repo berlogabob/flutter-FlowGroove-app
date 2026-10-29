@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/services/audio/audio_analysis.dart';
 
 Int16List buildPCM() {
@@ -103,5 +104,26 @@ void main() {
   test('estimateGrid returns null for PCM shorter than 4 seconds', () {
     final shortPcm = Int16List(2 * 22050);
     expect(estimateGrid(shortPcm, 22050), isNull);
+  });
+
+  test('sectionCuts finds where a quiet part turns loud and back', () {
+    // 120 BPM: 2 s bars. 16 quiet bars of a soft tone, 16 loud bars of
+    // noise with hits, 16 quiet bars again.
+    const rate = 22050;
+    final song = Int16List(48 * 2 * rate);
+    final random = Random(7);
+    for (var i = 0; i < song.length; i++) {
+      final bar = i ~/ (2 * rate);
+      song[i] = bar >= 16 && bar < 32
+          ? (random.nextDouble() * 2 - 1) *
+                (i % (rate ~/ 2) < 800 ? 20000 : 6000) ~/
+                1
+          : (sin(2 * pi * 220 * i / rate) * 1500).round();
+    }
+    final cuts = sectionCuts(song, rate, grid: const AudioGrid(bpm: 120));
+    expect(topSectionCuts(cuts, 2), [32000, 64000]);
+    expect(cuts.first.strength, greaterThan(1));
+    expect(suggestedSectionCuts(cuts, songSections: 3), 2);
+    expect(suggestedSectionCuts(cuts), greaterThanOrEqualTo(2));
   });
 }

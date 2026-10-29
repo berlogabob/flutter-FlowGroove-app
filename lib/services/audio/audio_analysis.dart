@@ -6,6 +6,8 @@ library;
 import 'dart:math';
 import 'dart:typed_data';
 
+import '../../models/audio_region.dart';
+
 /// Analysis block in samples (~11.6 ms at 22.05 kHz, ~5.8 ms at 44.1 kHz).
 const _hop = 256;
 
@@ -158,3 +160,151 @@ List<int> detectOnsets(
     firstDownbeatMs: _blockMs(down, sampleRate).round(),
   );
 }
+
+/// Candidate section cuts where the song's texture changes, strongest
+/// first, at least a window apart. Per bar (or 2 s without a grid):
+/// loudness, low/mid/high band energy, brightness and hit density,
+/// z-scored; a cut scores the distance between the window (~6 s, or
+/// [windowUnits]) before and after it. Musicians phrase in 4 bars, so the strongest 4-bar phase
+/// is favoured. `strength` is in standard deviations above the mean cut.
+/// ponytail: texture only, no harmony (chroma); a verse→chorus change with
+/// the same band density and chords can be missed, mark that one by ear.
+List<({int ms, double strength})> sectionCuts(
+  Int16List pcm,
+  int sampleRate, {
+  AudioGrid? grid,
+  int? windowUnits,
+}) {
+  final durationMs = pcm.length * 1000 ~/ sampleRate;
+  final unitMs = grid?.barMs ?? 2000.0;
+  // ~6 s each side, in whole 4-bar phrases: 4 bars of a fast song is too
+  // short to tell a section from a fill.
+  final window =
+      windowUnits ??
+      (grid == null ? 4 : max(1, (6000 / unitMs / 4).ceil()) * 4);
+  final startMs = grid == null
+      ? 0.0
+      : grid.offsetMs - (grid.offsetMs / unitMs).floor() * unitMs;
+  final starts = [
+    for (var t = startMs; t + unitMs <= durationMs; t += unitMs) t,
+  ];
+  if (starts.length < 2 * window + 1) return const [];
+
+  // Two one-pole low-passes split the signal into <200 Hz, mid, >2.5 kHz.
+  double alpha(double hz) => 1 - exp(-2 * pi * hz / sampleRate);
+  final a1 = alpha(200), a2 = alpha(2500);
+  final env = onsetEnvelope(pcm);
+  var lp1 = 0.0, lp2 = 0.0;
+  var sample = 0;
+  final features = <List<double>>[];
+  for (final t in starts) {
+    final from = (t * sampleRate / 1000).round();
+    final to = min(pcm.length, ((t + unitMs) * sampleRate / 1000).round());
+    var all = 0.0, low = 0.0, mid = 0.0, high = 0.0, crossings = 0;
+    for (; sample < from; sample++) {
+      lp1 += a1 * (pcm[sample] - lp1);
+      lp2 += a2 * (pcm[sample] - lp2);
+    }
+    for (var i = from; i < to; i++, sample++) {
+      final s = pcm[i].toDouble();
+      lp1 += a1 * (s - lp1);
+      lp2 += a2 * (s - lp2);
+      all += s * s;
+      low += lp1 * lp1;
+      mid += (lp2 - lp1) * (lp2 - lp1);
+      high += (s - lp2) * (s - lp2);
+      if (i > from && (s >= 0) != (pcm[i - 1] >= 0)) crossings++;
+    }
+    final n = max(1, to - from);
+    final b0 = from ~/ 256, b1 = min(env.length, to ~/ 256);
+    var hits = 0.0;
+    for (var b = b0; b < b1; b++) {
+      hits += env[b];
+    }
+    features.add([
+      log(1 + all / n),
+      log(1 + low / n),
+      log(1 + mid / n),
+      log(1 + high / n),
+      crossings / n,
+      hits / max(1, b1 - b0),
+    ]);
+  }
+  for (var f = 0; f < features.first.length; f++) {
+    final column = [for (final row in features) row[f]];
+    final mean = column.reduce((a, b) => a + b) / column.length;
+    final sd = sqrt(
+      column.map((v) => (v - mean) * (v - mean)).reduce((a, b) => a + b) /
+          column.length,
+    );
+    for (final row in features) {
+      row[f] = sd == 0 ? 0 : (row[f] - mean) / sd;
+    }
+  }
+
+  // novelty[k]: change at the start of unit k.
+  final novelty = List<double>.filled(starts.length, 0);
+  for (var k = window; k <= starts.length - window; k++) {
+    var d = 0.0;
+    for (var f = 0; f < features.first.length; f++) {
+      var before = 0.0, after = 0.0;
+      for (var j = 0; j < window; j++) {
+        before += features[k - 1 - j][f];
+        after += features[k + j][f];
+      }
+      d += pow((after - before) / window, 2);
+    }
+    novelty[k] = sqrt(d);
+  }
+  if (grid != null) {
+    // Peaks only: a change's slopes are wide and would outvote its phase.
+    final phaseScore = List<double>.filled(4, 0);
+    for (var k = 1; k < novelty.length - 1; k++) {
+      if (novelty[k] >= novelty[k - 1] && novelty[k] >= novelty[k + 1]) {
+        phaseScore[k % 4] += novelty[k];
+      }
+    }
+    final phase = phaseScore.indexOf(phaseScore.reduce(max));
+    for (var k = 0; k < novelty.length; k++) {
+      if (k % 4 != phase) novelty[k] *= 0.6;
+    }
+  }
+  final scored = [
+    for (var k = window; k <= starts.length - window; k++) novelty[k],
+  ];
+  final mean = scored.reduce((a, b) => a + b) / scored.length;
+  final sd = sqrt(
+    scored.map((v) => (v - mean) * (v - mean)).reduce((a, b) => a + b) /
+        scored.length,
+  );
+  final peaks = [
+    for (var k = window; k <= starts.length - window; k++)
+      if (novelty[k] >= novelty[k - 1] &&
+          (k + 1 >= novelty.length || novelty[k] >= novelty[k + 1]))
+        k,
+  ]..sort((a, b) => novelty[b].compareTo(novelty[a]));
+  final picked = <int>[];
+  for (final k in peaks) {
+    if (picked.every((p) => (p - k).abs() >= window)) picked.add(k);
+  }
+  return [
+    for (final k in picked)
+      (
+        ms: starts[k].round(),
+        strength: sd == 0 ? 0.0 : (novelty[k] - mean) / sd,
+      ),
+  ];
+}
+
+/// The [count] strongest of [cuts], in time order.
+List<int> topSectionCuts(List<({int ms, double strength})> cuts, int count) =>
+    [for (final cut in cuts.take(count)) cut.ms]..sort();
+
+/// How many [cuts] to start with: one fewer than the song map's sections
+/// when it has any, otherwise the clearly strong ones (half a σ up).
+int suggestedSectionCuts(
+  List<({int ms, double strength})> cuts, {
+  int songSections = 0,
+}) => songSections > 1
+    ? min(songSections - 1, cuts.length)
+    : cuts.where((cut) => cut.strength >= 0.5).length;

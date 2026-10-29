@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/audio_region.dart';
 import '../models/section.dart';
+import '../services/audio/audio_analysis.dart';
 import '../services/audio/audio_markers.dart';
 import '../theme/mono_pulse_theme.dart';
 
@@ -19,8 +20,10 @@ Future<PracticeSetupResult?> showPracticeSetupWizard(
   required Future<({double bpm, int firstDownbeatMs})?> Function() detectGrid,
   required Future<List<FileMarker>> Function() fileMarkers,
   required Future<void> Function(AudioGrid grid) previewGrid,
-  List<String> songSectionNames = const [],
   required String Function() newId,
+  Future<List<({int ms, double strength})>> Function(AudioGrid? grid)?
+  findSections,
+  List<String> songSectionNames = const [],
 }) => showModalBottomSheet<PracticeSetupResult>(
   context: context,
   isScrollControlled: true,
@@ -31,6 +34,7 @@ Future<PracticeSetupResult?> showPracticeSetupWizard(
     detectGrid: detectGrid,
     fileMarkers: fileMarkers,
     previewGrid: previewGrid,
+    findSections: findSections,
     songSectionNames: songSectionNames,
     newId: newId,
   ),
@@ -42,6 +46,7 @@ class _SetupWizard extends StatefulWidget {
     required this.detectGrid,
     required this.fileMarkers,
     required this.previewGrid,
+    required this.findSections,
     required this.songSectionNames,
     required this.newId,
   });
@@ -50,6 +55,8 @@ class _SetupWizard extends StatefulWidget {
   final Future<({double bpm, int firstDownbeatMs})?> Function() detectGrid;
   final Future<List<FileMarker>> Function() fileMarkers;
   final Future<void> Function(AudioGrid grid) previewGrid;
+  final Future<List<({int ms, double strength})>> Function(AudioGrid? grid)?
+  findSections;
   final List<String> songSectionNames;
   final String Function() newId;
 
@@ -67,6 +74,9 @@ class _SetupWizardState extends State<_SetupWizard> {
   List<FileMarker> _markers = [];
   String _source = 'ear';
   int _bars = 8;
+  List<({int ms, double strength})> _found = [];
+  int _foundCuts = 0;
+  bool _finding = false;
   List<AudioRegion> _regions = [];
   final _names = <TextEditingController>[];
 
@@ -126,6 +136,8 @@ class _SetupWizardState extends State<_SetupWizard> {
     if (_source == 'ear' || widget.durationMs <= 0) return [];
     final cuts = _source == 'markers'
         ? _markers.map((m) => m.ms)
+        : _source == 'detected'
+        ? topSectionCuts(_found, _foundCuts)
         : gridCuts(_grid!, everyBars: _bars, durationMs: widget.durationMs);
     // Keep the pickup before the downbeat, even when shorter than an edit region.
     final boundaries = {0, ...cuts, widget.durationMs}.toList()..sort();
@@ -149,6 +161,7 @@ class _SetupWizardState extends State<_SetupWizard> {
             : _grid != null
             ? 'bars'
             : 'ear';
+        _findSections();
       }
       if (_step == 1) {
         for (final name in _names) {
@@ -160,6 +173,29 @@ class _SetupWizardState extends State<_SetupWizard> {
           ..addAll(_regions.map((r) => TextEditingController(text: r.name)));
       }
       _step++;
+    });
+  }
+
+  Future<void> _findSections() async {
+    final find = widget.findSections;
+    if (find == null) return;
+    final grid = _grid;
+    _finding = true;
+    var found = <({int ms, double strength})>[];
+    try {
+      found = await find(grid);
+    } catch (_) {}
+    if (!mounted || grid != _grid) return;
+    setState(() {
+      _finding = false;
+      _found = found;
+      _foundCuts = suggestedSectionCuts(
+        found,
+        songSections: widget.songSectionNames.length,
+      );
+      if (_step == 1 && _markers.isEmpty && _foundCuts > 0) {
+        _source = 'detected';
+      }
     });
   }
 
@@ -280,12 +316,34 @@ class _SetupWizardState extends State<_SetupWizard> {
             'markers',
             'Use ${_markers.length} markers from the file',
           ),
+        if (_finding)
+          const ListTile(
+            leading: SizedBox.square(
+              dimension: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            title: Text('Listening for section changes…'),
+          )
+        else if (_found.isNotEmpty) ...[
+          _sourceCard('detected', 'Where the music changes'),
+          _stepper(
+            '${_foundCuts + 1} sections',
+            () => setState(() {
+              _foundCuts = (_foundCuts - 1).clamp(0, _found.length);
+              _source = 'detected';
+            }),
+            () => setState(() {
+              _foundCuts = (_foundCuts + 1).clamp(0, _found.length);
+              _source = 'detected';
+            }),
+          ),
+        ],
         if (_grid != null) ...[
           _sourceCard('bars', 'Every $_bars bars'),
           Wrap(
             spacing: MonoPulseSpacing.sm,
             children: [
-              for (final bars in [4, 8])
+              for (final bars in [4, 8, 16, 24, 32])
                 ChoiceChip(
                   label: Text('$bars'),
                   selected: _bars == bars,

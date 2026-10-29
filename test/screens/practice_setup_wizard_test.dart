@@ -14,6 +14,7 @@ void main() {
     WidgetTester tester, {
     List<FileMarker> markers = const [],
     List<String> songSectionNames = const [],
+    List<({int ms, double strength})> found = const [],
   }) async {
     result = null;
     returned = false;
@@ -33,6 +34,7 @@ void main() {
                   previewGrid: (grid) async {
                     previews.add(grid);
                   },
+                  findSections: (_) async => found,
                   songSectionNames: songSectionNames,
                   newId: () => 'region-${id++}',
                 );
@@ -177,5 +179,39 @@ void main() {
     expect(fields[1].controller!.text, 'Theme');
     await finish(tester);
     expect(result!.regions!.first.name, 'Opening');
+  });
+
+  testWidgets('detected sections start at the song map size and adjust', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      songSectionNames: const ['Verse', 'Chorus', 'Outro'],
+      found: const [
+        (ms: 20000, strength: 2.0),
+        (ms: 10000, strength: 1.5),
+        (ms: 40000, strength: 0.2),
+      ],
+    );
+    await next(tester);
+    final source = tester.widget<ListTile>(
+      find.widgetWithText(ListTile, 'Where the music changes'),
+    );
+    expect(source.selected, isTrue);
+    expect(find.text('3 sections'), findsOneWidget);
+    await tester.tap(find.byTooltip('Increase 3 sections'));
+    await tester.pumpAndSettle();
+    expect(find.text('4 sections'), findsOneWidget);
+    await tester.tap(find.byTooltip('Decrease 4 sections'));
+    await tester.pumpAndSettle();
+    await next(tester);
+    await tester.tap(find.text('Suggest names'));
+    await tester.pumpAndSettle();
+    await finish(tester);
+    expect(result!.regions!.map((r) => (r.startMs, r.endMs, r.name)).toList(), [
+      (0, 10000, 'Verse'),
+      (10000, 20000, 'Chorus'),
+      (20000, 50000, 'Outro'),
+    ]);
   });
 }
