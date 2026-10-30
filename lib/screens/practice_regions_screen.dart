@@ -2046,13 +2046,21 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Click & drums'),
-                  subtitle: canSyncToClick(grid)
-                      ? null
-                      : const Text('Needs a whole-number BPM grid'),
+                  subtitle: !canSyncToClick(grid)
+                      ? const Text('Needs a whole-number BPM grid')
+                      : !_loaded
+                      ? const Text('Loading the take…')
+                      : _preparingSync
+                      ? const Text('Preparing click & drums…')
+                      : null,
                   value: _sync,
                   onChanged: canSyncToClick(grid) && _loaded && !_preparingSync
                       ? (value) async {
-                          await _setSync(value);
+                          // _setSync flags _preparingSync before its first
+                          // await; repaint now so the wait is visible.
+                          final pending = _setSync(value);
+                          sheetSetState(() {});
+                          await pending;
                           sheetSetState(() {});
                         }
                       : null,

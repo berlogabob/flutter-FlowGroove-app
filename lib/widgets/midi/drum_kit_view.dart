@@ -130,7 +130,7 @@ class _DrumKitViewState extends State<DrumKitView>
                                     : null,
                                 border: Border.all(
                                   color: offset == 0
-                                      ? colors.tertiary
+                                      ? colors.primary
                                       : colors.outline,
                                   width: offset == 0 ? 2 : 1,
                                 ),

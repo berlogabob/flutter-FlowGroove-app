@@ -81,7 +81,7 @@ void main() {
     expect(dot(tester, 'kick', 1).color, colors.onSurface);
     expect(dot(tester, 'snare', 2).color, colors.onSurface);
     expect(dot(tester, 'snare', 1).color, isNull);
-    expect(dot(tester, 'snare', 0).border!.top.color, colors.tertiary);
+    expect(dot(tester, 'snare', 0).border!.top.color, colors.primary);
     expect(find.bySemanticsLabel('Kick step 32'), findsOneWidget);
     semantics.dispose();
     expect(tester.takeException(), isNull);
