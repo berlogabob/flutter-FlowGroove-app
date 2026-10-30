@@ -346,7 +346,7 @@ class SetlistViewScreen extends ConsumerWidget {
             child: const SizedBox(
               width: 40,
               height: 40,
-              child: Icon(Icons.play_arrow, color: Colors.white),
+              child: Icon(Icons.play_arrow, color: MonoPulseColors.charcoal),
             ),
           ),
         ),

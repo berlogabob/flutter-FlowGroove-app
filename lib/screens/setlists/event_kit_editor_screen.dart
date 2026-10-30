@@ -794,12 +794,12 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
           ),
           decoration: BoxDecoration(
             color: isSelected
-                ? MonoPulseColors.accentOrange10
+                ? MonoPulseColors.stone
                 : context.mp.surfaceOverlay,
             borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
             border: Border.all(
               color: isSelected
-                  ? MonoPulseColors.accentOrange
+                  ? context.mp.borderStrong
                   : context.mp.textTertiary.withValues(alpha: 0.2),
             ),
           ),
@@ -812,7 +812,7 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
                   entry.name,
                   style: MonoPulseTypography.bodySmall.copyWith(
                     color: isSelected
-                        ? MonoPulseColors.accentOrange
+                        ? MonoPulseColors.charcoal
                         : context.mp.textHighEmphasis,
                     fontWeight: isSelected
                         ? FontWeight.w600
@@ -824,7 +824,7 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
                 const Icon(
                   Icons.check,
                   size: 18,
-                  color: MonoPulseColors.accentOrange,
+                  color: MonoPulseColors.charcoal,
                 ),
             ],
           ),
@@ -935,11 +935,17 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
                                 onDeleted: () =>
                                     setState(() => _picks.removeAt(i)),
                                 selected: true,
+                                labelStyle: const TextStyle(
+                                  color: MonoPulseColors.charcoal,
+                                ),
+                                deleteIconColor: MonoPulseColors.charcoal,
+                                side: BorderSide(
+                                  color: context.mp.borderStrong,
+                                ),
                                 onSelected: _picks[i].entry?.brandable ?? false
                                     ? (_) => _editBrand(i)
                                     : null,
                                 backgroundColor: MonoPulseColors.accentOrange10,
-                                selectedColor: MonoPulseColors.accentOrange10,
                                 padding: EdgeInsets.zero,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
@@ -978,9 +984,8 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
                               return ListTile(
                                 dense: true,
                                 selected: isSelected,
-                                selectedColor: MonoPulseColors.accentOrange,
-                                selectedTileColor:
-                                    MonoPulseColors.accentOrange10,
+                                selectedColor: MonoPulseColors.charcoal,
+                                selectedTileColor: MonoPulseColors.stone,
                                 leading: Text(
                                   icon,
                                   style: const TextStyle(fontSize: 18),
@@ -1002,7 +1007,7 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
                                     ? const Icon(
                                         Icons.check,
                                         size: 18,
-                                        color: MonoPulseColors.accentOrange,
+                                        color: MonoPulseColors.charcoal,
                                       )
                                     : null,
                                 onTap: () => _toggleMember(member),

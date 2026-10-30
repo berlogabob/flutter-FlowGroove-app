@@ -19,13 +19,19 @@ class ActivityChecks(unittest.TestCase):
         self.data = json.loads(activity.DEFAULT.read_text())
         # Synthetic pending fixture: tests must still work after real tasks close.
         for issue in self.data['issues']:
-            issue['status'], issue['resolution'] = 'open', None
+            issue['status'], issue['resolution'], issue['release_blocker'] = 'open', None, True
         for task in self.data['tasks']:
             task['status'], task['run'], task['verification'] = 'queued', None, None
 
     def test_actual_registry_and_dependency_graph(self):
         activity.validate(json.loads(activity.DEFAULT.read_text()))
         self.assertTrue(activity.blockers(self.data))
+
+    def test_open_roadmap_item_does_not_block(self):
+        for issue in self.data['issues']:
+            issue['release_blocker'] = False
+        self.assertNotIn(self.data['issues'][0]['id'], activity.blockers(self.data))
+        self.assertNotIn(self.data['issues'][0]['tasks'][0], activity.blockers(self.data))
 
     def test_duplicate_task_rejected(self):
         self.data['tasks'].append(deepcopy(self.data['tasks'][0]))

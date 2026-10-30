@@ -118,15 +118,16 @@ class _SoundSheet extends ConsumerWidget {
                 notifier.setWaveType(type);
                 HapticFeedback.selectionClick();
               },
-              selectedColor: MonoPulseColors.accentOrange,
               backgroundColor: context.mp.surfaceRaised,
-              labelStyle: MonoPulseTypography.labelMedium.copyWith(
-                color: selected ? context.mp.black : context.mp.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
+              labelStyle: selected
+                  ? null
+                  : MonoPulseTypography.labelMedium.copyWith(
+                      color: context.mp.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
               side: BorderSide(
                 color: selected
-                    ? MonoPulseColors.accentOrange
+                    ? context.mp.borderStrong
                     : context.mp.borderSubtle,
               ),
             );
@@ -228,15 +229,16 @@ class _CountInSheet extends ConsumerWidget {
                 notifier.setCountInBars(value);
                 HapticFeedback.selectionClick();
               },
-              selectedColor: MonoPulseColors.accentOrange,
               backgroundColor: context.mp.surfaceRaised,
-              labelStyle: MonoPulseTypography.labelMedium.copyWith(
-                color: selected ? context.mp.black : context.mp.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
+              labelStyle: selected
+                  ? null
+                  : MonoPulseTypography.labelMedium.copyWith(
+                      color: context.mp.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
               side: BorderSide(
                 color: selected
-                    ? MonoPulseColors.accentOrange
+                    ? context.mp.borderStrong
                     : context.mp.borderSubtle,
               ),
             );
@@ -490,12 +492,13 @@ class _SwitchRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xs),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: value
-                ? MonoPulseColors.accentOrange
-                : context.mp.textTertiary,
+          Container(
+            color: value ? MonoPulseColors.stone : null,
+            child: Icon(
+              icon,
+              size: 20,
+              color: value ? MonoPulseColors.charcoal : context.mp.textTertiary,
+            ),
           ),
           const SizedBox(width: MonoPulseSpacing.md),
           Expanded(

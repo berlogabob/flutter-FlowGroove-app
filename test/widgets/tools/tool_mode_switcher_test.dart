@@ -170,9 +170,7 @@ void main() {
   });
 
   group('ToolModeSwitcher Styling', () {
-    testWidgets('active mode uses accentOrangeSubtle background', (
-      tester,
-    ) async {
+    testWidgets('active mode uses stone background', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -186,13 +184,12 @@ void main() {
         ),
       );
 
-      // Find containers with accentOrangeSubtle background
+      // Find containers with stone background
       final containers = tester.widgetList<Container>(find.byType(Container));
       final hasActiveBackground = containers.any(
         (c) =>
             c.decoration is BoxDecoration &&
-            (c.decoration! as BoxDecoration).color ==
-                MonoPulseColors.accentOrange10,
+            (c.decoration! as BoxDecoration).color == MonoPulseColors.stone,
       );
 
       expect(hasActiveBackground, isTrue);
@@ -223,7 +220,7 @@ void main() {
       expect(hasSurfaceBackground, isTrue);
     });
 
-    testWidgets('active mode uses accentOrange border', (tester) async {
+    testWidgets('active mode uses borderStrong border', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -237,14 +234,14 @@ void main() {
         ),
       );
 
-      // Find containers with accentOrange border
+      // Find containers with borderStrong border
       final containers = tester.widgetList<Container>(find.byType(Container));
       final hasActiveBorder = containers.any(
         (c) =>
             c.decoration is BoxDecoration &&
             (c.decoration! as BoxDecoration).border != null &&
             (c.decoration! as BoxDecoration).border!.top.color ==
-                MonoPulseColors.accentOrange,
+                MonoPulsePalette.dark.borderStrong,
       );
 
       expect(hasActiveBorder, isTrue);
@@ -277,7 +274,7 @@ void main() {
       expect(hasInactiveBorder, isTrue);
     });
 
-    testWidgets('active mode text uses accentOrange color', (tester) async {
+    testWidgets('active mode text uses charcoal color', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -298,7 +295,7 @@ void main() {
         orElse: () => const Text(''),
       );
 
-      expect(activeText.style?.color, equals(MonoPulseColors.accentOrange));
+      expect(activeText.style?.color, equals(MonoPulseColors.charcoal));
     });
 
     testWidgets('inactive mode text uses textSecondary color', (tester) async {
@@ -477,7 +474,7 @@ void main() {
       expect(find.byIcon(Icons.play_arrow), findsNothing);
     });
 
-    testWidgets('active mode icon uses accentOrange color', (tester) async {
+    testWidgets('active mode icon uses charcoal color', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -495,7 +492,7 @@ void main() {
       );
 
       final icon = tester.widget<Icon>(find.byIcon(Icons.play_arrow));
-      expect(icon.color, equals(MonoPulseColors.accentOrange));
+      expect(icon.color, equals(MonoPulseColors.charcoal));
     });
 
     testWidgets('inactive mode icon uses textSecondary color', (tester) async {
@@ -904,8 +901,8 @@ void main() {
       );
 
       final text = tester.widget<Text>(find.text('Mode 1'));
-      // Active text uses accentOrange which has good contrast on dark background
-      expect(text.style?.color, equals(MonoPulseColors.accentOrange));
+      // Active text uses charcoal for contrast on the stone selection background
+      expect(text.style?.color, equals(MonoPulseColors.charcoal));
     });
   });
 

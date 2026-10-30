@@ -124,10 +124,10 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
         width: 180,
         padding: const EdgeInsets.all(MonoPulseSpacing.md),
         decoration: BoxDecoration(
-          color: selected ? MonoPulseColors.accentOrange10 : context.mp.surface,
+          color: selected ? MonoPulseColors.stone : context.mp.surface,
           border: Border.all(
             color: selected
-                ? MonoPulseColors.accentOrange
+                ? context.mp.borderStrong
                 : context.mp.borderDefault,
             width: selected ? 2 : 1,
           ),
@@ -142,7 +142,7 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
                   : 'Version ${index + 1}',
               style: MonoPulseTypography.bodySmall.copyWith(
                 color: selected
-                    ? MonoPulseColors.accentOrange
+                    ? MonoPulseColors.charcoal
                     : context.mp.textTertiary,
               ),
             ),
@@ -151,7 +151,9 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
               _valueFor(f, song),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: MonoPulseTypography.bodyMedium,
+              style: MonoPulseTypography.bodyMedium.copyWith(
+                color: selected ? MonoPulseColors.charcoal : null,
+              ),
             ),
           ],
         ),

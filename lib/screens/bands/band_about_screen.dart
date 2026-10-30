@@ -324,6 +324,12 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                   final isSelected = _tags.contains(tag);
                   return FilterChip(
                     label: Text(tag),
+                    labelStyle: isSelected
+                        ? const TextStyle(color: MonoPulseColors.charcoal)
+                        : null,
+                    side: isSelected
+                        ? BorderSide(color: context.mp.borderStrong)
+                        : null,
                     selected: isSelected,
                     onSelected: (selected) {
                       setState(() {
@@ -334,8 +340,6 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                         }
                       });
                     },
-                    selectedColor: MonoPulseColors.accentOrange10,
-                    checkmarkColor: MonoPulseColors.accentOrange,
                   );
                 }).toList(),
               ),
@@ -534,12 +538,15 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 BandMember.roleViewer,
               ])
                 ListTile(
+                  selected: _effectiveRole(member) == role,
+                  selectedColor: MonoPulseColors.charcoal,
+                  selectedTileColor: MonoPulseColors.stone,
                   leading: Icon(
                     _effectiveRole(member) == role
                         ? Icons.radio_button_checked
                         : Icons.radio_button_unchecked,
                     color: _effectiveRole(member) == role
-                        ? MonoPulseColors.accentOrange
+                        ? MonoPulseColors.charcoal
                         : context.mp.textSecondary,
                   ),
                   title: Text('${_formatRole(role)} role'),
