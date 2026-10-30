@@ -139,7 +139,7 @@ deploy-pages: check-env-test build-web-github
 	@echo ""
 	@echo "📦 Copying to docs/..."
 	@if [ -f docs/config.js ]; then cp docs/config.js /tmp/docs-config.js.backup; fi
-	@find docs -mindepth 1 -maxdepth 1 ! -name plans -exec rm -rf {} +
+	@find docs -mindepth 1 -maxdepth 1 ! -name plans ! -name landing-preview -exec rm -rf {} +
 	@cp -r build/web/* docs/
 	@if [ -f /tmp/docs-config.js.backup ]; then cp /tmp/docs-config.js.backup docs/config.js; rm /tmp/docs-config.js.backup; fi
 	@echo "✅ Files copied to docs/"
