@@ -4,7 +4,7 @@ import '../theme/mono_pulse_theme.dart';
 /// A reusable filter chip with clear selected/unselected states.
 ///
 /// Provides consistent styling for filter chips across the app:
-/// - Selected: filled accent orange + dark text + checkmark icon
+/// - Selected: stone surface + dark text, without a checkmark
 /// - Unselected: outlined border + muted text
 ///
 /// Usage:
@@ -44,27 +44,30 @@ class AppFilterChip extends StatelessWidget {
       label: Text(label),
       selected: selected,
       onSelected: onSelected,
-      // Selected state styling
-      selectedColor: MonoPulseColors.accentOrange,
+      // Stone selection stays calm; a shallow shadow makes the state legible.
+      selectedColor: MonoPulseColors.stone,
+      elevation: selected ? 2 : 0,
+      pressElevation: selected ? 2 : 1,
+      shadowColor: context.mp.borderStrong.withValues(alpha: 0.14),
+      selectedShadowColor: context.mp.borderStrong.withValues(alpha: 0.22),
       labelStyle: TextStyle(
-        color: selected ? context.mp.textPrimary : context.mp.textSecondary,
+        color: MonoPulseColors.charcoal,
         fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
       ),
       // Unselected: neutral raised surface per chipTheme (readable, not the old
       // near-black `surface` / brown tint). F-012.
-      backgroundColor: unselectedBackgroundColor ?? context.mp.surfaceRaised,
+      backgroundColor: unselectedBackgroundColor ?? MonoPulseColors.white,
       side: BorderSide(
-        color: selected ? Colors.transparent : context.mp.borderDefault,
+        color: selected ? context.mp.borderStrong : context.mp.borderDefault,
       ),
       // Show checkmark icon when selected
-      showCheckmark: selected,
-      checkmarkColor: context.mp.textPrimary,
+      showCheckmark: false,
       // Padding and shape
       padding: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.md,
         vertical: MonoPulseSpacing.sm,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
     );
   }
 }

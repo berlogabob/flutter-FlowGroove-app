@@ -297,7 +297,8 @@ class _SetupWizardState extends State<_SetupWizard> {
   Widget _sourceCard(String value, String label) => Card(
     child: ListTile(
       selected: _source == value,
-      selectedColor: MonoPulseColors.accentOrange,
+      selectedColor: MonoPulseColors.charcoal,
+      selectedTileColor: MonoPulseColors.stone,
       leading: Icon(
         _source == value ? Icons.radio_button_checked : Icons.radio_button_off,
       ),
@@ -463,15 +464,18 @@ class _SetupWizardState extends State<_SetupWizard> {
                     size: 16,
                     color: MonoPulseColors.accentOrange,
                   ),
-                Text(
-                  ['Tempo', 'Sections', 'Names'][i],
-                  style: TextStyle(
-                    color: i == _step
-                        ? MonoPulseColors.accentOrange
-                        : context.mp.textSecondary,
-                    fontWeight: i == _step
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                Container(
+                  color: i == _step ? MonoPulseColors.stone : null,
+                  child: Text(
+                    ['Tempo', 'Sections', 'Names'][i],
+                    style: TextStyle(
+                      color: i == _step
+                          ? MonoPulseColors.charcoal
+                          : context.mp.textSecondary,
+                      fontWeight: i == _step
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
                   ),
                 ),
               ],

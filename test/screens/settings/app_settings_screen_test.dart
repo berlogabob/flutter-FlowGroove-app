@@ -98,10 +98,10 @@ void main() {
     ) async {
       final container = await pump(tester);
 
-      expect(container.read(themeModeProvider), ThemeMode.dark);
-      await tester.tap(find.text('Light'));
-      await tester.pumpAndSettle();
       expect(container.read(themeModeProvider), ThemeMode.light);
+      await tester.tap(find.text('Dark'));
+      await tester.pumpAndSettle();
+      expect(container.read(themeModeProvider), ThemeMode.dark);
     });
 
     testWidgets('back arrow is present and pops the route (web escape)', (
@@ -144,17 +144,15 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      // scrollUntilVisible stops as soon as the icon is nominally within the
-      // Scrollable's bounds, which can still be covered by the fixed
-      // AppBottomBar at the very bottom of the test surface — nudge further
-      // so the tap isn't intercepted by the bar.
-      await tester.drag(find.byType(Scrollable).first, const Offset(0, -100));
+      await tester.ensureVisible(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
       expect(find.text('10 ms'), findsOneWidget);
 
+      await tester.ensureVisible(find.byIcon(Icons.remove));
+      await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.remove));
       await tester.pumpAndSettle();
       expect(find.text('0 ms'), findsOneWidget);

@@ -528,7 +528,7 @@ void main() {
         overrides: overridesFor(songs: Stream<List<Song>>.value([])),
       );
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Add Song'));
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Add Song'));
       await tester.pumpAndSettle();
 
       expect(currentRouterUri(router).path, '/main/songs/add');

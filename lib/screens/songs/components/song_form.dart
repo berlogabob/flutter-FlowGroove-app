@@ -274,13 +274,16 @@ class SongForm extends StatelessWidget {
                     label: Text(
                       tag,
                       style: MonoPulseTypography.labelLarge.copyWith(
-                        color: context.mp.textPrimary,
+                        color: selectedTags.contains(tag)
+                            ? MonoPulseColors.charcoal
+                            : context.mp.textPrimary,
                       ),
                     ),
+                    side: selectedTags.contains(tag)
+                        ? BorderSide(color: context.mp.borderStrong)
+                        : null,
                     selected: selectedTags.contains(tag),
                     onSelected: (selected) => onTagChanged(tag, selected),
-                    selectedColor: MonoPulseColors.accentOrange10,
-                    checkmarkColor: MonoPulseColors.accentOrange,
                   ),
                 ActionChip(
                   avatar: const Icon(

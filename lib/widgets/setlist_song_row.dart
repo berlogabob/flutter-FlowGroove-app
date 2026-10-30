@@ -23,6 +23,7 @@ class SetlistSongRow extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.performers,
+    this.isCurrent = false,
   });
 
   final int index;
@@ -34,6 +35,9 @@ class SetlistSongRow extends StatelessWidget {
   /// hides the line entirely.
   final String? performers;
 
+  /// Marks the currently selected song with a muted petrol fill and marker.
+  final bool isCurrent;
+
   /// Tap handler; only wired when [song] resolves (an "Unavailable song" row
   /// stays inert, same guard as [trailing]).
   final VoidCallback? onTap;
@@ -44,62 +48,85 @@ class SetlistSongRow extends StatelessWidget {
     final performers = this.performers;
     final showPerformers =
         song != null && performers != null && performers.isNotEmpty;
-    return Card(
-      margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
-      child: ListTile(
-        isThreeLine: showPerformers,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         onTap: song == null ? null : onTap,
-        leading:
-            leading ??
-            CircleAvatar(
-              backgroundColor: context.mp.surfaceRaised,
-              child: Text(
-                '${index + 1}',
-                style: TextStyle(
-                  color: context.mp.textSecondary,
-                  fontWeight: FontWeight.w700,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 72),
+          padding: const EdgeInsets.only(
+            top: MonoPulseSpacing.sm,
+            bottom: MonoPulseSpacing.sm,
+            right: MonoPulseSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: isCurrent ? MonoPulseColors.selection : null,
+            border: Border(bottom: BorderSide(color: context.mp.borderSubtle)),
+          ),
+          child: Row(
+            children: [
+              if (isCurrent)
+                Container(
+                  width: 3,
+                  height: 40,
+                  color: MonoPulseColors.selectionInk,
+                )
+              else
+                const SizedBox(width: 3),
+              SizedBox(
+                width: 44,
+                child: Center(
+                  child:
+                      leading ??
+                      Text(
+                        '${index + 1}',
+                        style: TextStyle(
+                          color: context.mp.textTertiary,
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
                 ),
               ),
-            ),
-        title: Text(
-          song?.title ?? 'Unavailable song',
-          style: TextStyle(color: context.mp.textPrimary),
-        ),
-        subtitle: song != null
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    song.artist,
-                    style: TextStyle(color: context.mp.textSecondary),
-                  ),
-                  if (showPerformers)
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.person_outline,
-                          size: 14,
-                          color: context.mp.textTertiary,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            performers,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: context.mp.textTertiary,
-                            ),
+              const SizedBox(width: MonoPulseSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      song?.title ?? 'Unavailable song',
+                      style: TextStyle(
+                        color: context.mp.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (song != null) ...[
+                      Text(
+                        song.artist,
+                        style: TextStyle(color: context.mp.textSecondary),
+                      ),
+                      if (showPerformers)
+                        Text(
+                          performers,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: context.mp.textTertiary,
                           ),
                         ),
-                      ],
-                    ),
-                ],
-              )
-            : null,
-        trailing: song == null ? null : trailing,
+                    ],
+                  ],
+                ),
+              ),
+              if (song != null && trailing != null) ...[
+                const SizedBox(width: MonoPulseSpacing.sm),
+                trailing!,
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

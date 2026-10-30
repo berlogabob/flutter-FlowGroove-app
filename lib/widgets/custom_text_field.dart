@@ -22,6 +22,7 @@ class CustomTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffix,
     this.readOnly = false,
+    this.enabled = true,
     this.inputFormatters,
     this.onFocus,
     this.onBlur,
@@ -66,6 +67,9 @@ class CustomTextField extends StatelessWidget {
   /// Whether the field is read-only.
   final bool readOnly;
 
+  /// Whether the field accepts input. Disabled fields use a stone surface.
+  final bool enabled;
+
   /// Input formatters for custom input validation.
   final List<TextInputFormatter>? inputFormatters;
 
@@ -109,10 +113,13 @@ class CustomTextField extends StatelessWidget {
           obscureText: obscureText,
           maxLines: maxLines,
           readOnly: readOnly,
+          enabled: enabled,
           inputFormatters: inputFormatters,
           onTap: onFocus,
           onEditingComplete: onBlur,
           decoration: InputDecoration(
+            filled: true,
+            fillColor: enabled ? Colors.white : MonoPulseColors.stone,
             hintText: hint,
             prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
             suffixIcon: suffix,

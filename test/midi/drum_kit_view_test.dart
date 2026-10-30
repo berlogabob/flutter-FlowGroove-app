@@ -77,9 +77,9 @@ void main() {
     final colors = Theme.of(
       tester.element(find.byType(DrumKitView)),
     ).colorScheme;
-    expect(dot(tester, 'kick', 0).color, colors.primary);
-    expect(dot(tester, 'kick', 1).color, colors.primary);
-    expect(dot(tester, 'snare', 2).color, colors.primary);
+    expect(dot(tester, 'kick', 0).color, colors.onSurface);
+    expect(dot(tester, 'kick', 1).color, colors.onSurface);
+    expect(dot(tester, 'snare', 2).color, colors.onSurface);
     expect(dot(tester, 'snare', 1).color, isNull);
     expect(dot(tester, 'snare', 0).border!.top.color, colors.tertiary);
     expect(find.bySemanticsLabel('Kick step 32'), findsOneWidget);

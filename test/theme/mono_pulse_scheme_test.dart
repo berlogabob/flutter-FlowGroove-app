@@ -67,13 +67,13 @@ void main() {
   // matches the filled-button on-accentOrange foreground.
   group('chipTheme selected state', () {
     test(
-      'selectedColor is accentOrange with black checkmark and black label',
+      'selectedColor is stone with charcoal label and no checkmark',
       () {
         final chip = MonoPulseTheme.theme.chipTheme;
-        expect(chip.selectedColor, MonoPulseColors.accentOrange);
-        expect(chip.checkmarkColor, MonoPulseColors.black);
+        expect(chip.selectedColor, MonoPulseColors.stone);
+        expect(chip.showCheckmark, isFalse);
         expect(chip.secondaryLabelStyle, isNotNull);
-        expect(chip.secondaryLabelStyle!.color, MonoPulseColors.black);
+        expect(chip.secondaryLabelStyle!.color, MonoPulseColors.charcoal);
       },
     );
   });

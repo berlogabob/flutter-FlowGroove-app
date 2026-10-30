@@ -1020,14 +1020,18 @@ void main() {
       await tester.tap(find.text('Add'));
       await tester.pumpAndSettle();
 
+      expect(find.widgetWithText(ListTile, 'Vera'), findsOneWidget);
+      final roleCard = find.widgetWithText(Card, 'Vera');
       await tester.scrollUntilVisible(
-        find.text('Role cards'),
+        roleCard,
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      // Vera renders in the crew list AND as a role card.
-      expect(find.text('Vera'), findsNWidgets(2));
-      expect(find.text('Photographer'), findsWidgets);
+      expect(roleCard, findsOneWidget);
+      expect(
+        find.descendant(of: roleCard, matching: find.text('Photographer')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a stage editor gets the stage plot and NOT the roster', (
@@ -1089,6 +1093,7 @@ void main() {
         200,
         scrollable: find.byType(Scrollable).first,
       );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Add rider item'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).last, 'XLR cables');

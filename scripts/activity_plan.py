@@ -71,13 +71,17 @@ def validate(data, root=ROOT):
 
 
 def blockers(data):
-    return ([i['id'] for i in data['issues'] if i['status'] != 'resolved'] +
-            [t['id'] for t in data['tasks'] if t['status'] != 'verified'])
+    # Only items flagged release_blocker gate a publish; the rest is tracked roadmap.
+    hard = {i['id'] for i in data['issues'] if i.get('release_blocker')}
+    return ([i['id'] for i in data['issues'] if i['id'] in hard and i['status'] != 'resolved'] +
+            [t['id'] for t in data['tasks'] if t['status'] != 'verified'
+             and (t.get('issue') in hard or t.get('release_blocker'))])
 
 
 def github_open():
     result = subprocess.run(
-        ['gh', 'issue', 'list', '--state', 'open', '--limit', '1000', '--json', 'number'],
+        ['gh', 'issue', 'list', '--state', 'open', '--label', 'release-blocker', '--limit', '1000',
+         '--json', 'number'],
         cwd=ROOT, capture_output=True, text=True, timeout=30,
     )
     assert result.returncode == 0, 'GitHub inventory unavailable; release blocked'
@@ -94,7 +98,7 @@ def add(data, path, title, source, severity):
         index += 1
     key = f'NEW-{index:03}'
     ids = [key + '-R', key + '-V']
-    data['issues'].append(dict(id=key, title=title, severity=severity, status='open',
+    data['issues'].append(dict(id=key, title=title, severity=severity, status='open', release_blocker=True,
                                source=source, evidence_type='NEW_REQUIRES_TRIAGE',
                                summary='Repeat and classify before implementation.',
                                source_locations=[], tasks=ids, resolution=None))

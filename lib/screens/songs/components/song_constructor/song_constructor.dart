@@ -406,7 +406,7 @@ class _SongConstructorState extends State<SongConstructor> {
         ],
         // Add button
         const SizedBox(height: 8),
-        ElevatedButton.icon(
+        OutlinedButton.icon(
           key: const Key('song_constructor_add_section'),
           onPressed: _showSectionPicker,
           icon: const Icon(Icons.add),

@@ -81,7 +81,7 @@ class _ModeOption extends StatelessWidget {
           vertical: MonoPulseSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: isActive ? MonoPulseColors.accentOrange10 : Colors.transparent,
+          color: isActive ? MonoPulseColors.stone : Colors.transparent,
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
         ),
         child: Row(
@@ -91,7 +91,7 @@ class _ModeOption extends StatelessWidget {
               icon,
               size: 16,
               color: isActive
-                  ? MonoPulseColors.accentOrange
+                  ? MonoPulseColors.charcoal
                   : context.mp.textTertiary,
             ),
             const SizedBox(width: MonoPulseSpacing.xs),
@@ -99,7 +99,7 @@ class _ModeOption extends StatelessWidget {
               label,
               style: MonoPulseTypography.labelMedium.copyWith(
                 color: isActive
-                    ? MonoPulseColors.accentOrange
+                    ? MonoPulseColors.charcoal
                     : context.mp.textTertiary,
                 fontWeight: isActive
                     ? MonoPulseTypography.semibold

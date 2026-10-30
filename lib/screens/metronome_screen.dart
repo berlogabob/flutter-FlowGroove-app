@@ -274,7 +274,6 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
             );
             return Switch(
               value: enabled,
-              activeThumbColor: MonoPulseColors.accentOrange,
               onChanged: (_) =>
                   ref.read(metronomeProvider.notifier).toggleHaptics(),
             );

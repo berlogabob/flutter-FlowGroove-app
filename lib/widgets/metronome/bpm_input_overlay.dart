@@ -112,7 +112,7 @@ class _ModeToggle extends StatelessWidget {
           curve: MonoPulseAnimation.curveCustom,
           padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.md),
           decoration: BoxDecoration(
-            color: selected ? MonoPulseColors.accentOrange : Colors.transparent,
+            color: selected ? MonoPulseColors.stone : Colors.transparent,
             borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
           ),
           child: Row(
@@ -121,13 +121,17 @@ class _ModeToggle extends StatelessWidget {
               Icon(
                 icon,
                 size: 18,
-                color: selected ? context.mp.black : context.mp.textSecondary,
+                color: selected
+                    ? MonoPulseColors.charcoal
+                    : context.mp.textSecondary,
               ),
               const SizedBox(width: MonoPulseSpacing.sm),
               Text(
                 label,
                 style: MonoPulseTypography.labelMedium.copyWith(
-                  color: selected ? context.mp.black : context.mp.textSecondary,
+                  color: selected
+                      ? MonoPulseColors.charcoal
+                      : context.mp.textSecondary,
                   fontWeight: FontWeight.w700,
                 ),
               ),

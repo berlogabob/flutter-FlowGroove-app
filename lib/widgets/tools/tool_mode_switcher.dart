@@ -57,15 +57,17 @@ class ToolModeSwitcher<T extends Enum> extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: options.map((option) {
         final isActive = activeMode == option.mode;
-        return _ModePill(
-          label: option.label,
-          icon: option.icon,
-          isActive: isActive,
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onModeChanged(option.mode);
-          },
-          animationDuration: animationDuration,
+        return Flexible(
+          child: _ModePill(
+            label: option.label,
+            icon: option.icon,
+            isActive: isActive,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onModeChanged(option.mode);
+            },
+            animationDuration: animationDuration,
+          ),
         );
       }).toList(),
     );
@@ -110,13 +112,11 @@ class _ModePill extends StatelessWidget {
           ),
           margin: EdgeInsets.symmetric(horizontal: ToolSpacing.sm(context)),
           decoration: BoxDecoration(
-            color: isActive
-                ? MonoPulseColors.accentOrange10
-                : context.mp.surface,
+            color: isActive ? MonoPulseColors.stone : context.mp.surface,
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             border: Border.all(
               color: isActive
-                  ? MonoPulseColors.accentOrange
+                  ? context.mp.borderStrong
                   : context.mp.borderSubtle,
               width: 1.5,
             ),
@@ -128,19 +128,23 @@ class _ModePill extends StatelessWidget {
                 Icon(
                   icon,
                   color: isActive
-                      ? MonoPulseColors.accentOrange
+                      ? MonoPulseColors.charcoal
                       : context.mp.textSecondary,
                   size: 18,
                 ),
                 const SizedBox(width: 8),
               ],
-              Text(
-                label,
-                style: MonoPulseTypography.labelLarge.copyWith(
-                  color: isActive
-                      ? MonoPulseColors.accentOrange
-                      : context.mp.textSecondary,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: MonoPulseTypography.labelLarge.copyWith(
+                    color: isActive
+                        ? MonoPulseColors.charcoal
+                        : context.mp.textSecondary,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                  ),
                 ),
               ),
             ],

@@ -410,13 +410,11 @@ class _LibraryTabButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.md),
           decoration: BoxDecoration(
-            color: selected
-                ? MonoPulseColors.accentOrange.withValues(alpha: 0.16)
-                : context.mp.blackElevated,
+            color: selected ? MonoPulseColors.stone : context.mp.blackElevated,
             border: Border(
               bottom: BorderSide(
                 color: selected
-                    ? MonoPulseColors.accentOrange
+                    ? context.mp.borderStrong
                     : context.mp.borderSubtle,
                 width: selected ? 2 : 1,
               ),
@@ -428,7 +426,7 @@ class _LibraryTabButton extends StatelessWidget {
               Icon(
                 icon,
                 color: selected
-                    ? MonoPulseColors.accentOrange
+                    ? MonoPulseColors.charcoal
                     : context.mp.textSecondary,
               ),
               const SizedBox(width: MonoPulseSpacing.sm),
@@ -436,7 +434,7 @@ class _LibraryTabButton extends StatelessWidget {
                 label,
                 style: MonoPulseTypography.labelLarge.copyWith(
                   color: selected
-                      ? MonoPulseColors.accentOrange
+                      ? MonoPulseColors.charcoal
                       : context.mp.textSecondary,
                 ),
               ),

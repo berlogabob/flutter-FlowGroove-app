@@ -159,9 +159,13 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                     deleteIcon: const Icon(Icons.close, size: 16),
                     onDeleted: () => _toggleRole(role),
                     selected: true,
+                    labelStyle: const TextStyle(
+                      color: MonoPulseColors.charcoal,
+                    ),
+                    deleteIconColor: MonoPulseColors.charcoal,
+                    side: BorderSide(color: context.mp.borderStrong),
                     onSelected: (_) => _toggleRole(role),
                     backgroundColor: MonoPulseColors.accentOrange10,
-                    selectedColor: MonoPulseColors.accentOrange10,
                     padding: EdgeInsets.zero,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   );
@@ -211,14 +215,14 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? MonoPulseColors.accentOrange10
+                            ? MonoPulseColors.stone
                             : context.mp.surfaceOverlay,
                         borderRadius: BorderRadius.circular(
                           MonoPulseRadius.medium,
                         ),
                         border: Border.all(
                           color: isSelected
-                              ? MonoPulseColors.accentOrange
+                              ? context.mp.borderStrong
                               : context.mp.textTertiary.withValues(alpha: 0.2),
                         ),
                       ),
@@ -232,7 +236,7 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                             displayName,
                             style: MonoPulseTypography.bodySmall.copyWith(
                               color: isSelected
-                                  ? MonoPulseColors.accentOrange
+                                  ? MonoPulseColors.charcoal
                                   : context.mp.textHighEmphasis,
                               fontWeight: isSelected
                                   ? FontWeight.w600

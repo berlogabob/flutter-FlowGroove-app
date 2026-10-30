@@ -270,6 +270,11 @@ void main() {
         expect(find.text('Actual song title'), findsNWidgets(2));
         expect(find.text('Removed song'), findsNothing);
         expect(find.textContaining('private song diagnostic'), findsNothing);
+        await tester.scrollUntilVisible(
+          find.text('Freestyle'),
+          150,
+          scrollable: find.byType(Scrollable).first,
+        );
         expect(find.text('Freestyle'), findsOneWidget);
       } finally {
         await songEvents.close();

@@ -268,7 +268,7 @@ void main() {
     );
     expect(repo.watches, [('song-1', 'band-1')]);
     expect(
-      tester.widget<OutlinedButton>(find.byType(OutlinedButton)).onPressed,
+      tester.widget<OutlinedButton>(find.widgetWithText(OutlinedButton, 'Import .mid')).onPressed,
       isNull,
     );
     expect(find.text('Save to Song Lab'), findsNothing);

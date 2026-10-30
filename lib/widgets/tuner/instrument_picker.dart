@@ -133,19 +133,21 @@ class _InstrumentTile extends StatelessWidget {
       children: [
         // Instrument row
         ListTile(
+          selected: isSelected,
+          selectedTileColor: MonoPulseColors.stone,
           leading: Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
               color: isSelected
-                  ? MonoPulseColors.accentOrange10
+                  ? MonoPulseColors.stone
                   : context.mp.surfaceRaised,
               borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
             ),
             child: Icon(
               _iconDataFromString(icon: instrument.icon),
               color: isSelected
-                  ? MonoPulseColors.accentOrange
+                  ? MonoPulseColors.charcoal
                   : context.mp.textSecondary,
               size: 22,
             ),
@@ -154,7 +156,7 @@ class _InstrumentTile extends StatelessWidget {
             instrument.name,
             style: MonoPulseTypography.bodyLarge.copyWith(
               color: isSelected
-                  ? MonoPulseColors.accentOrange
+                  ? MonoPulseColors.charcoal
                   : context.mp.textHighEmphasis,
               fontWeight: isSelected
                   ? MonoPulseTypography.semibold
@@ -164,12 +166,16 @@ class _InstrumentTile extends StatelessWidget {
           subtitle: Text(
             instrument.subtitle,
             style: MonoPulseTypography.bodySmall.copyWith(
-              color: context.mp.textTertiary,
+              color: isSelected
+                  ? MonoPulseColors.charcoal
+                  : context.mp.textTertiary,
             ),
           ),
           trailing: Icon(
             isExpanded ? Icons.expand_less : Icons.expand_more,
-            color: context.mp.textTertiary,
+            color: isSelected
+                ? MonoPulseColors.charcoal
+                : context.mp.textTertiary,
             size: 20,
           ),
           onTap: onTap,

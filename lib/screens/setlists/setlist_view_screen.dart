@@ -82,6 +82,7 @@ class SetlistViewScreen extends ConsumerWidget {
     // SetlistRouteResolver — one owner for "which Setlist". This screen only
     // decides which songs, and setlistSongsProvider routes a guest to the same
     // payload rather than to the band's song collection.
+    final activeSongId = ref.watch(metronomeProvider).activeSong?.id;
     final songsAsync = bandId == null
         ? ref.watch(songsProvider)
         : ref.watch(setlistSongsProvider((bandId!, setlist.id)));
@@ -166,8 +167,10 @@ class SetlistViewScreen extends ConsumerWidget {
           child: songsAsync.when(
             data: (songs) => _buildBody(
               context,
+              ref,
               liveSetlist,
               songs,
+              activeSongId: activeSongId,
               canEdit: canEdit,
               isMember: isMember,
               ownerUid: bandId == null
@@ -179,8 +182,10 @@ class SetlistViewScreen extends ConsumerWidget {
             // showing; song rows just fall back to "unavailable".
             error: (_, _) => _buildBody(
               context,
+              ref,
               liveSetlist,
               const [],
+              activeSongId: activeSongId,
               canEdit: canEdit,
               isMember: isMember,
               loadFailed: true,
@@ -216,8 +221,10 @@ class SetlistViewScreen extends ConsumerWidget {
 
   Widget _buildBody(
     BuildContext context,
+    WidgetRef ref,
     Setlist setlist,
     List<Song> allSongs, {
+    required String? activeSongId,
     required bool canEdit,
     required bool isMember,
     String? ownerUid,
@@ -313,7 +320,8 @@ class SetlistViewScreen extends ConsumerWidget {
           index: numbers[itemIndex],
           song: song,
           performers: performerLabel(item.performerIds, lineup),
-          trailing: song == null ? null : _badgesFor(song),
+          trailing: song == null ? null : _badgesFor(context, ref, song),
+          isCurrent: song?.id == activeSongId,
           onTap: song == null ? null : () => _openSong(context, song),
         );
       },
@@ -322,10 +330,27 @@ class SetlistViewScreen extends ConsumerWidget {
 
   /// Key/BPM badges shown when the row's song resolves. Mirrors the
   /// editable rows in `CreateSetlistScreen`.
-  Widget _badgesFor(Song song) {
+  Widget _badgesFor(BuildContext context, WidgetRef ref, Song song) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        Material(
+          color: MonoPulseColors.accentOrange,
+          child: InkWell(
+            onTap: () {
+              ref
+                  .read(metronomeProvider.notifier)
+                  .loadSongTempo(song, sourceBandId: bandId);
+              context.pushNamed('metronome');
+            },
+            child: const SizedBox(
+              width: 40,
+              height: 40,
+              child: Icon(Icons.play_arrow, color: MonoPulseColors.charcoal),
+            ),
+          ),
+        ),
+        const SizedBox(width: MonoPulseSpacing.md),
         Container(
           width: 44,
           alignment: Alignment.center,
@@ -334,14 +359,14 @@ class SetlistViewScreen extends ConsumerWidget {
             vertical: MonoPulseSpacing.xs,
           ),
           decoration: BoxDecoration(
-            color: MonoPulseColors.accentOrange10,
+            color: MonoPulseColors.selection,
             borderRadius: BorderRadius.circular(MonoPulseRadius.small),
           ),
           child: Text(
             song.ourKey ?? '-',
             style: const TextStyle(
               fontWeight: FontWeight.w700,
-              color: MonoPulseColors.accentOrange,
+              color: MonoPulseColors.selectionInk,
             ),
           ),
         ),
@@ -349,7 +374,10 @@ class SetlistViewScreen extends ConsumerWidget {
           const SizedBox(width: 8),
           Text(
             '${song.ourBPM}',
-            style: const TextStyle(fontWeight: FontWeight.w700),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: context.mp.textPrimary,
+            ),
           ),
         ],
       ],

@@ -246,21 +246,17 @@ class _TranspositionChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.sm),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected
-              ? MonoPulseColors.accentOrange.withValues(alpha: 0.15)
-              : context.mp.surfaceRaised,
+          color: selected ? MonoPulseColors.stone : context.mp.surfaceRaised,
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
           border: Border.all(
-            color: selected
-                ? MonoPulseColors.accentOrange
-                : context.mp.borderSubtle,
+            color: selected ? context.mp.borderStrong : context.mp.borderSubtle,
           ),
         ),
         child: Text(
           label,
           style: MonoPulseTypography.bodyMedium.copyWith(
             color: selected
-                ? MonoPulseColors.accentOrange
+                ? MonoPulseColors.charcoal
                 : context.mp.textSecondary,
             fontWeight: MonoPulseTypography.medium,
           ),
@@ -351,7 +347,6 @@ class _SettingSwitch extends StatelessWidget {
         ),
       ),
       value: value,
-      activeTrackColor: MonoPulseColors.accentOrange,
       onChanged: onChanged,
     );
   }
