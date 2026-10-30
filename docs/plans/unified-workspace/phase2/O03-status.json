@@ -1,0 +1,14 @@
+{
+  "id": "O03",
+  "cmd": [
+    "codex",
+    "exec",
+    "--ephemeral",
+    "-s",
+    "read-only"
+  ],
+  "status": "returned",
+  "timeout_seconds": 360,
+  "exit_code": 0,
+  "elapsed_seconds": 14.65
+}

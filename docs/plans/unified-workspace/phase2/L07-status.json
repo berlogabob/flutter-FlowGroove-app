@@ -1,0 +1,28 @@
+{
+  "id": "L07",
+  "model_requested": "ollama/ornith-1.5:35b",
+  "status": "returned",
+  "timeout_seconds": 240,
+  "prompt_chars": 28579,
+  "model_returned": "ollama/ornith-1.5:35b",
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 6825,
+    "completion_tokens": 3071,
+    "total_tokens": 9896,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "characters": 2613,
+  "rows": 11,
+  "quotes_unverified": [],
+  "elapsed_seconds": 51.11
+}

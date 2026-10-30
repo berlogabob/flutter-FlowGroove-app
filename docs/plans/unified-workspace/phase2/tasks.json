@@ -1,0 +1,89 @@
+[
+ {
+  "id": "C02",
+  "models": [
+   "claude-haiku-5-5"
+  ],
+  "status": "returned",
+  "elapsed_seconds": 61.62,
+  "cost_usd": 0.05658542,
+  "exit_code": 0
+ },
+ {
+  "id": "C03",
+  "models": [
+   "claude-haiku-5-5"
+  ],
+  "status": "returned",
+  "elapsed_seconds": 39.22,
+  "cost_usd": 0.013627870000000002,
+  "exit_code": 0
+ },
+ {
+  "id": "L05",
+  "model_requested": "ollama/ornith-1.5:35b",
+  "model_returned": "ollama/ornith-1.5:35b",
+  "status": "returned",
+  "finish_reason": "stop",
+  "rows": 11,
+  "quotes_unverified": [],
+  "elapsed_seconds": 72.18
+ },
+ {
+  "id": "L06",
+  "model_requested": "ollama/ornith-1.5:35b",
+  "model_returned": "ollama/ornith-1.5:35b",
+  "status": "returned",
+  "finish_reason": "stop",
+  "rows": 9,
+  "quotes_unverified": [],
+  "elapsed_seconds": 46.52
+ },
+ {
+  "id": "L07",
+  "model_requested": "ollama/ornith-1.5:35b",
+  "model_returned": "ollama/ornith-1.5:35b",
+  "status": "returned",
+  "finish_reason": "stop",
+  "rows": 11,
+  "quotes_unverified": [],
+  "elapsed_seconds": 51.11
+ },
+ {
+  "id": "L08",
+  "model_requested": "ollama/ornith-1.5:35b",
+  "model_returned": "ollama/ornith-1.5:35b",
+  "status": "returned",
+  "finish_reason": "stop",
+  "rows": 11,
+  "quotes_unverified": [],
+  "elapsed_seconds": 60.04
+ },
+ {
+  "id": "L09",
+  "model_requested": "ollama/ornith-1.5:35b",
+  "model_returned": "ollama/ornith-1.5:35b",
+  "status": "empty_final",
+  "finish_reason": "length",
+  "elapsed_seconds": 118.62
+ },
+ {
+  "id": "L09b",
+  "model_requested": "ollama/ornith-1.5:35b",
+  "model_returned": "ollama/ornith-1.5:35b",
+  "status": "returned",
+  "finish_reason": "stop",
+  "elapsed_seconds": 15.53
+ },
+ {
+  "id": "O03",
+  "status": "returned",
+  "elapsed_seconds": 14.65,
+  "exit_code": 0
+ },
+ {
+  "id": "C02-attempt1",
+  "status": "failed_infra",
+  "error": "macOS has no `timeout` binary; orchestrator bug, rerun via python subprocess timeout"
+ }
+]

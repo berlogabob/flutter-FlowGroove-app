@@ -1,0 +1,19 @@
+{
+  "id": "C03",
+  "cmd": [
+    "claude",
+    "-p",
+    "--model",
+    "haiku",
+    "--max-turns"
+  ],
+  "status": "returned",
+  "timeout_seconds": 360,
+  "exit_code": 0,
+  "models": [
+    "claude-haiku-5-5"
+  ],
+  "cost_usd": 0.013627870000000002,
+  "turns": 7,
+  "elapsed_seconds": 39.22
+}

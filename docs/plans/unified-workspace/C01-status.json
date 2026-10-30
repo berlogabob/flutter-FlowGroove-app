@@ -1,0 +1,25 @@
+{
+  "id": "C01",
+  "model_requested": "haiku",
+  "status": "returned",
+  "started": 1792774210.646477,
+  "timeout_seconds": 240,
+  "exit_code": 0,
+  "model_usage": {
+    "claude-haiku-5-5": {
+      "inputTokens": 4,
+      "outputTokens": 6740,
+      "cacheReadInputTokens": 49177,
+      "cacheCreationInputTokens": 63152,
+      "webSearchRequests": 0,
+      "costUSD": 0.01649257,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 128000,
+      "thinkingTokens": 4948,
+      "canonicalModel": "claude-haiku-5-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "elapsed_seconds": 42.34
+}

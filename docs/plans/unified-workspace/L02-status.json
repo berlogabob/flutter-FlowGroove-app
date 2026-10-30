@@ -1,0 +1,27 @@
+{
+  "id": "L02",
+  "model_requested": "ollama/ornith-1.5:35b",
+  "transport": "authenticated preconfigured Studio OpenAI-compatible client",
+  "status": "returned",
+  "timeout_seconds": 180,
+  "model_returned": "ollama/ornith-1.5:35b",
+  "usage": {
+    "prompt_tokens": 134,
+    "completion_tokens": 1685,
+    "total_tokens": 1819,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "finish_reason": "stop",
+  "characters": 2337,
+  "reasoning_characters": 4637,
+  "elapsed_seconds": 25.75
+}

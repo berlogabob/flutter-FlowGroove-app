@@ -1,0 +1,9 @@
+**Review: mostly internally consistent; three concrete gaps.**
+
+**1. View-vs-playback edge (unsafe assumption).** The design repeatedly promises view switches are transport-neutral ("no moved cursor," "does not change Loop into Song"). But it never specifies what happens when you select a track whose notes don't cover the active loop/cursor passage. Choosing such a track could silently move the cursor or break the loop — violating the "no moved cursor" guarantee. Scenario 1 only covers backing-playing, not a targeted loop. Add an explicit rule: selecting a track must not alter the active loop/cursor; if the track has no notes in range, keep the loop and show the gap.
+
+**2. Guitar ambiguity (tension).** The fretboard "shows possible positions or a clearly labeled proposed position," which inherently resolves pitch→string/fret. This sits uneasily with "pitch is the only truth; no voicing optimizer; no authoritative fingering." Rendering a concrete position without a guard recreates the ambiguity the table warns against, and no acceptance scenario stops a user from treating a proposed fret as authoritative tablature. Keep positions explicitly provisional and add a scenario where a user cannot accidentally persist a string/fret as the note's identity.
+
+**3. Song store vs. songless contexts (unresolved).** "Use existing `Song.sections`... Do not create a second song structure store" conflicts with free exercises and cross-song practice that have no song, and with "optional user-defined sections" for an empty map. The "Practice context" vocabulary item partially homes these, but it's explicitly "not an accepted schema," so where songless sections live is unsettled. Resolve before slice 0.
+
+**Handled well (no contradiction):** original preservation (immutable bytes + per-section overlay; cancel leaves both intact) and repeated sections (distinct occurrence IDs; tasks address `Section.id`, not matching names) are internally consistent.

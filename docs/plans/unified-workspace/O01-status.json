@@ -1,0 +1,9 @@
+{
+  "id": "O01",
+  "model_requested": "gpt-5.1-codex-mini",
+  "status": "failed",
+  "started": 1792774210.64639,
+  "timeout_seconds": 240,
+  "exit_code": 1,
+  "elapsed_seconds": 6.48
+}

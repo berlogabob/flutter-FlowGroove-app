@@ -1,0 +1,9 @@
+[
+  {"id":"L01","requested_model":"ollama/ornith-1.5:35b","transport":"native delegate_task","status":"failed","failure":"HTTP 401 invalid or expired API key","fallback":"Hermes source analysis","verified":true},
+  {"id":"L02","requested_model":"ollama/ornith-1.5:35b","actual_model":"ollama/ornith-1.5:35b","transport":"configured Studio client","status":"reviewed","artifact":"L02-ornith.md","elapsed_seconds":25.75,"verified":true},
+  {"id":"L03","requested_model":"ollama/ornith-1.5:35b","actual_model":"ollama/ornith-1.5:35b","transport":"configured Studio client","status":"reviewed","artifact":"L03-ornith.md","elapsed_seconds":20.15,"verified":true},
+  {"id":"L04","requested_model":"ollama/ornith-1.5:35b","actual_model":"ollama/ornith-1.5:35b","transport":"configured Studio client","status":"reviewed","artifact":"L04-ornith.md","elapsed_seconds":65.55,"verified":true},
+  {"id":"O01","requested_model":"gpt-5.1-codex-mini","transport":"Codex CLI read-only","status":"failed","failure":"model not supported with current ChatGPT account","artifact":"O01-stderr.txt","fallback":"O02 with discovered supported Luna model","verified":true},
+  {"id":"O02","requested_model":"gpt-6-luna","actual_model":"gpt-6-luna","transport":"Codex CLI read-only","status":"reviewed","artifact":"O02-openai.md","exit_code":0,"verified":true},
+  {"id":"C01","requested_model":"haiku","actual_model":"claude-haiku-5-5","transport":"Claude CLI read-only","status":"reviewed","artifact":"C01-claude.md","elapsed_seconds":42.34,"exit_code":0,"verified":true}
+]
