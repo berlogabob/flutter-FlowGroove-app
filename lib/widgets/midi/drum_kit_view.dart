@@ -126,7 +126,7 @@ class _DrumKitViewState extends State<DrumKitView>
                                     hits[lane]!.contains(
                                       (current + offset) % steps,
                                     )
-                                    ? colors.primary
+                                    ? colors.onSurface
                                     : null,
                                 border: Border.all(
                                   color: offset == 0

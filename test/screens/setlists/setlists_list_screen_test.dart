@@ -281,7 +281,7 @@ void main() {
         overrides: overridesFor(setlists: Stream<List<Setlist>>.value([])),
       );
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Create Setlist'));
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Create Setlist'));
       await tester.pumpAndSettle();
 
       expect(currentRouterUri(router).path, '/main/setlists/create');

@@ -701,13 +701,13 @@ class MonoPulseTheme {
           backgroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.disabled)) return null;
             return states.contains(WidgetState.selected)
-                ? MonoPulseColors.accentOrange
+                ? MonoPulseColors.stone
                 : null;
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.disabled)) return null;
             return states.contains(WidgetState.selected)
-                ? MonoPulseColors.black
+                ? MonoPulseColors.charcoal
                 : null;
           }),
         ),
@@ -759,11 +759,12 @@ class MonoPulseTheme {
       ),
 
       // Floating Action Button
+      // Add actions are secondary: orange stays reserved for play/primary.
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: MonoPulseColors.accentOrange,
+        backgroundColor: MonoPulseColors.white,
         foregroundColor: MonoPulseColors.charcoal,
         elevation: 3,
-        splashColor: MonoPulseColors.accentOrangeDark,
+        splashColor: MonoPulseColors.stone,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
           side: const BorderSide(color: MonoPulseColors.charcoal, width: 1.2),
@@ -797,13 +798,36 @@ class MonoPulseTheme {
         }),
       ),
 
+      // Toggles: green/grey switches, charcoal checks — never orange.
+      switchTheme: SwitchThemeData(
+        thumbColor: const WidgetStatePropertyAll(MonoPulseColors.white),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? MonoPulseColors.successGreen
+              : MonoPulseColors.fog,
+        ),
+        trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? MonoPulseColors.charcoal
+              : null,
+        ),
+        checkColor: const WidgetStatePropertyAll(MonoPulseColors.white),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStatePropertyAll(p.textPrimary),
+      ),
+
       // Chips
       chipTheme: ChipThemeData(
         backgroundColor: p.surfaceRaised,
         labelStyle: TextStyle(color: p.textPrimary),
-        secondaryLabelStyle: TextStyle(color: MonoPulseColors.black),
-        selectedColor: MonoPulseColors.accentOrange,
-        checkmarkColor: MonoPulseColors.black,
+        secondaryLabelStyle: const TextStyle(color: MonoPulseColors.charcoal),
+        selectedColor: MonoPulseColors.stone,
+        checkmarkColor: MonoPulseColors.charcoal,
+        showCheckmark: false,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
           side: BorderSide(color: p.borderDefault),

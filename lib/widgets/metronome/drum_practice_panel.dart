@@ -430,7 +430,7 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: FilledButton.icon(
+                  child: OutlinedButton.icon(
                     onPressed: _busy ? null : _openEditor,
                     icon: const Icon(Icons.add),
                     label: const Text('New pattern'),

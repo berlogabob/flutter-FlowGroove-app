@@ -148,7 +148,6 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
             );
             return Switch(
               value: enabled,
-              activeThumbColor: MonoPulseColors.accentOrange,
               onChanged: (_) =>
                   ref.read(tunerProvider.notifier).toggleStageModeEnabled(),
             );

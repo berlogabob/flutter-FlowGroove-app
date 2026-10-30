@@ -351,7 +351,6 @@ class _SettingSwitch extends StatelessWidget {
         ),
       ),
       value: value,
-      activeTrackColor: MonoPulseColors.accentOrange,
       onChanged: onChanged,
     );
   }

@@ -193,7 +193,7 @@ void main() {
         overrides: overridesFor(Stream<List<Band>>.value([])),
       );
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Create Band'));
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Create Band'));
       await tester.pumpAndSettle();
 
       expect(currentRouterUri(router).path, '/main/bands/create');

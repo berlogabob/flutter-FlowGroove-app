@@ -508,7 +508,6 @@ class _SwitchRow extends StatelessWidget {
           ),
           Switch(
             value: value,
-            activeThumbColor: MonoPulseColors.accentOrange,
             onChanged: (v) {
               onChanged(v);
               HapticFeedback.selectionClick();

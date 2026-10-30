@@ -51,7 +51,7 @@ void main() {
         );
 
         // Button requires both actionLabel AND onAction to render
-        expect(find.byType(ElevatedButton), findsNothing);
+        expect(find.widgetWithIcon(OutlinedButton, Icons.add), findsNothing);
       },
     );
 
@@ -70,7 +70,7 @@ void main() {
 
       expect(findText('Search'), findsOneWidget);
       expect(findIcon(Icons.add), findsOneWidget);
-      expect(find.byType(ElevatedButton), findsOneWidget);
+      expect(find.widgetWithIcon(OutlinedButton, Icons.add), findsOneWidget);
     });
 
     testWidgets('does not render action button when onAction is null', (
@@ -86,7 +86,7 @@ void main() {
       );
 
       // Button requires both actionLabel AND onAction
-      expect(find.byType(ElevatedButton), findsNothing);
+      expect(find.widgetWithIcon(OutlinedButton, Icons.add), findsNothing);
     });
 
     testWidgets('calls onAction when action button is tapped', (tester) async {
@@ -102,7 +102,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(ElevatedButton));
+      await tester.tap(find.widgetWithIcon(OutlinedButton, Icons.add));
       await tester.pump();
 
       expect(wasActionCalled, isTrue);
@@ -174,7 +174,7 @@ void main() {
       expect(findText('No songs yet'), findsOneWidget);
       expect(findText('Tap + to add your first song'), findsOneWidget);
       // Button won't render without onAdd callback
-      expect(find.byType(ElevatedButton), findsNothing);
+      expect(find.widgetWithIcon(OutlinedButton, Icons.add), findsNothing);
     });
 
     testWidgets('renders songs empty state with onAdd callback', (
@@ -186,7 +186,7 @@ void main() {
       expect(findText('No songs yet'), findsOneWidget);
       expect(findText('Tap + to add your first song'), findsOneWidget);
       expect(findText('Add Song'), findsOneWidget);
-      expect(find.byType(ElevatedButton), findsOneWidget);
+      expect(find.widgetWithIcon(OutlinedButton, Icons.add), findsOneWidget);
     });
 
     testWidgets('calls onAdd when Add Song button is tapped', (tester) async {
@@ -197,7 +197,7 @@ void main() {
         EmptyState.songs(onAdd: () => wasAddCalled = true),
       );
 
-      await tester.tap(find.byType(ElevatedButton));
+      await tester.tap(find.widgetWithIcon(OutlinedButton, Icons.add));
       await tester.pump();
 
       expect(wasAddCalled, isTrue);
@@ -212,7 +212,7 @@ void main() {
       expect(findText('No bands yet'), findsOneWidget);
       expect(findText('Create a band to get started'), findsOneWidget);
       // Button won't render without onCreate callback
-      expect(find.byType(ElevatedButton), findsNothing);
+      expect(find.widgetWithIcon(OutlinedButton, Icons.add), findsNothing);
     });
 
     testWidgets('renders bands empty state with onCreate callback', (
@@ -236,7 +236,7 @@ void main() {
         EmptyState.bands(onCreate: () => wasCreateCalled = true),
       );
 
-      await tester.tap(find.byType(ElevatedButton));
+      await tester.tap(find.widgetWithIcon(OutlinedButton, Icons.add));
       await tester.pump();
 
       expect(wasCreateCalled, isTrue);
@@ -266,7 +266,7 @@ void main() {
       // Check for hint message (may match multiple widgets)
       expect(find.textContaining('setlist'), findsWidgets);
       // Button won't render without onCreate callback
-      expect(find.byType(ElevatedButton), findsNothing);
+      expect(find.widgetWithIcon(OutlinedButton, Icons.add), findsNothing);
     });
 
     testWidgets('renders setlists empty state with onCreate callback', (
@@ -289,7 +289,7 @@ void main() {
         EmptyState.setlists(onCreate: () => wasCreateCalled = true),
       );
 
-      await tester.tap(find.byType(ElevatedButton));
+      await tester.tap(find.widgetWithIcon(OutlinedButton, Icons.add));
       await tester.pump();
 
       expect(wasCreateCalled, isTrue);
@@ -316,7 +316,7 @@ void main() {
     testWidgets('does not render action button', (tester) async {
       await pumpAppWidget(tester, EmptyState.search(query: 'test'));
 
-      expect(find.byType(ElevatedButton), findsNothing);
+      expect(find.widgetWithIcon(OutlinedButton, Icons.add), findsNothing);
     });
   });
 }
