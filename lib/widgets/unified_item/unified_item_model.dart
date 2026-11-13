@@ -77,16 +77,17 @@ class IconAction implements UnifiedItemAction {
 
 /// 3-dots overflow menu of (label, icon, callback) entries.
 class OverflowMenuAction implements UnifiedItemAction {
-  OverflowMenuAction({required this.entries, this.semanticLabel});
+  OverflowMenuAction({required this.entries, this.semanticLabel, this.tooltip = 'More'});
 
   final List<(String, IconData, VoidCallback)> entries;
   final String? semanticLabel;
+  final String tooltip;
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<int>(
       icon: Icon(Icons.more_vert, size: 20, semanticLabel: semanticLabel),
-      tooltip: 'More',
+      tooltip: tooltip,
       onSelected: (i) => entries[i].$3(),
       itemBuilder: (context) => [
         for (var i = 0; i < entries.length; i++)
