@@ -297,7 +297,12 @@ class MetronomePatternEditor extends StatelessWidget {
               children: List.generate(
                 regularBeats,
                 (subIndex) => Expanded(
-                  child: _buildBeatModeButton(context, beatIndex, subIndex),
+                  child: Center(
+                    child: SizedBox(
+                      width: 48,
+                      child: _buildBeatModeButton(context, beatIndex, subIndex),
+                    ),
+                  ),
                 ),
               ),
             ),
