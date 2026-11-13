@@ -200,7 +200,7 @@ void main() {
       expect(find.textContaining('3-day streak'), findsOneWidget);
     });
 
-    testWidgets('empty week shows the start nudge', (tester) async {
+    testWidgets('empty week links to progress', (tester) async {
       await pump(tester, PracticeStats.empty);
       expect(find.text('No practice yet'), findsOneWidget);
       expect(find.text('View progress'), findsOneWidget);
