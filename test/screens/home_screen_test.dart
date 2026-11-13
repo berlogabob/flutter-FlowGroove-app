@@ -139,7 +139,7 @@ void main() {
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
 
       expect(find.byIcon(Icons.tune), findsOneWidget);
-      expect(find.byIcon(Icons.speed), findsOneWidget);
+      expect(find.byIcon(Icons.av_timer), findsOneWidget);
     });
 
     testWidgets('rehearsals empty state offers Sign up for demo users (#145)', (

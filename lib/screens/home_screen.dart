@@ -68,7 +68,7 @@ class HomeScreen extends ConsumerWidget {
           onTap: () => context.pushNamed('tuner'),
         ),
         ToolButton(
-          icon: Icons.speed,
+          icon: Icons.av_timer,
           label: 'Metronome',
           onTap: () => context.pushNamed('metronome'),
         ),
