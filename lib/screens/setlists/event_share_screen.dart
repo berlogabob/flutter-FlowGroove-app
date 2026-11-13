@@ -553,11 +553,8 @@ class _SuggestSheetState extends State<_SuggestSheet> {
                 ReorderableListView(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  onReorder: (oldIndex, newIndex) => setState(() {
-                    final target = newIndex > oldIndex
-                        ? newIndex - 1
-                        : newIndex;
-                    _items.insert(target, _items.removeAt(oldIndex));
+                  onReorderItem: (oldIndex, newIndex) => setState(() {
+                    _items.insert(newIndex, _items.removeAt(oldIndex));
                   }),
                   children: [
                     for (final item in _items)
