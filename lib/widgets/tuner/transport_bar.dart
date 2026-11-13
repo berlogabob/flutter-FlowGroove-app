@@ -109,10 +109,16 @@ class _MainActionButton extends StatelessWidget {
       }
     }
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
+    return Semantics(
+      button: true,
+      label: mode == TunerMode.listen
+          ? (isActive ? 'Stop listening' : 'Start listening')
+          : (isActive ? 'Stop tone' : 'Play tone'),
+      enabled: onTap != null,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
         curve: MonoPulseAnimation.curveCustom,
         // Oval shape: 80px wide, 64px tall
@@ -152,6 +158,7 @@ class _MainActionButton extends StatelessWidget {
               ),
           ],
         ),
+      ),
       ),
     );
   }
