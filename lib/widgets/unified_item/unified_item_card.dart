@@ -46,7 +46,9 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: Semantics(
+        label: item is SetlistItemAdapter ? 'Open setlist ${item.title}' : null,
+        child: InkWell(
         onTap: onTap,
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
@@ -104,6 +106,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }
