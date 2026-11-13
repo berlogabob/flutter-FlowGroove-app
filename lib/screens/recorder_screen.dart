@@ -150,12 +150,16 @@ class _RecordingCard extends ConsumerWidget {
               style: MonoPulseTypography.bodySmall,
             ),
             if (recording.attachmentIds.isNotEmpty)
-              LabAudioPlayer(url: recording.attachmentIds.first),
+              LabAudioPlayer(
+                url: recording.attachmentIds.first,
+                recordingTitle: recording.title ?? 'Take · ${d.day}/${d.month}',
+              ),
           ],
         ),
         trailing: uid == null
             ? null
             : PopupMenuButton<String>(
+                tooltip: 'Menu for ${recording.title ?? 'Take · ${d.day}/${d.month}'}',
                 onSelected: (v) {
                   if (!context.mounted || _editableUid(ref) != uid) return;
                   switch (v) {
