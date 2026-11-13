@@ -141,7 +141,7 @@ class CentralDial extends ConsumerWidget {
                       ),
                       scaleIntervals:
                           allMusicModes[state.musicModeIndex].intervals,
-                      textTertiary: context.mp.textTertiary,
+                      textTertiary: context.mp.textSecondary,
                     ),
                   ),
                 ),
@@ -233,13 +233,7 @@ class _DialNotesPainter extends CustomPainter {
     for (var i = 0; i < notes.length; i++) {
       final isCurrent = i == currentNoteIndex;
       final isInScale = scaleIntervals.contains(i);
-      final color =
-          (isCurrent
-                  ? MonoPulseColors.accentOrange
-                  : isInScale
-                  ? MonoPulseColors.white
-                  : textTertiary)
-              .withValues(alpha: isCurrent ? 1.0 : 0.5);
+      final color = isCurrent ? MonoPulseColors.accentOrange : textTertiary;
       final direction = Offset(
         math.cos(TunerDialGeometry.angleForNoteIndex(i)),
         math.sin(TunerDialGeometry.angleForNoteIndex(i)),
