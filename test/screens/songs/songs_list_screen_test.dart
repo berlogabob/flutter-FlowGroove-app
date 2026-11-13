@@ -619,7 +619,7 @@ void main() {
           find.text('Exact Our BPM; songs without one stay visible'),
           findsOneWidget,
         );
-        await tester.tap(find.text('G#'));
+        await tester.tap(find.textContaining('G#'));
         await tester.pumpAndSettle();
 
         // Dismiss the bottom sheet via the barrier.
