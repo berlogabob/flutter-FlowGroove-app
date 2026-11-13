@@ -328,7 +328,7 @@ class CanonicalSong extends Equatable {
   ];
 }
 
-List<Link> _linksFromJson(value) {
+List<Link> _linksFromJson(dynamic value) {
   if (value == null) return [];
   if (value is List<Link>) return value;
   if (value is! List) return [];
@@ -342,7 +342,7 @@ List<Map<String, dynamic>> _linksToJson(List<Link> links) {
   return links.map((link) => link.toJson()).toList();
 }
 
-List<Section> _sectionsFromJson(value) {
+List<Section> _sectionsFromJson(dynamic value) {
   if (value == null) return [];
   if (value is List<Section>) return value;
   if (value is! List) return [];
@@ -356,7 +356,7 @@ List<Map<String, dynamic>> _sectionsToJson(List<Section> sections) {
   return sections.map((section) => section.toJson()).toList();
 }
 
-List<List<BeatMode>> _beatModesFromJson(value) {
+List<List<BeatMode>> _beatModesFromJson(dynamic value) {
   if (value == null) return [];
 
   if (value is List) {
@@ -422,7 +422,7 @@ Map<String, String> _beatModesToJson(List<List<BeatMode>> value) {
   return result;
 }
 
-DateTime _parseDateTime(value) {
+DateTime _parseDateTime(dynamic value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   try {
