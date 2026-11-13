@@ -264,7 +264,7 @@ void main() {
           'id': 'band-id-4',
           'name': 'Empty Band',
           'createdBy': 'user-empty',
-          'members': [],
+          'members': <dynamic>[],
           'createdAt': testDate.toIso8601String(),
         };
 
@@ -321,7 +321,7 @@ void main() {
         expect(json['name'], 'Serialize Band');
         expect(json['description'], 'Band for serialization test');
         expect(json['createdBy'], 'user-serialize');
-        expect(json['members'], isA<List>());
+        expect(json['members'], isA<List<dynamic>>());
         expect(json['members'].length, 3);
         expect(json['inviteCode'], 'SERIALIZE123');
         expect(json['createdAt'], testDate.toIso8601String());
@@ -341,7 +341,7 @@ void main() {
         expect(json['name'], 'Null Band');
         expect(json['description'], isNull);
         expect(json['createdBy'], 'user-null');
-        expect(json['members'], isA<List>());
+        expect(json['members'], isA<List<dynamic>>());
         expect(json['members'].length, 0);
         expect(json['inviteCode'], isNull);
       });
