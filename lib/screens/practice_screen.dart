@@ -85,22 +85,22 @@ class PracticeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
           _sectionTitle(context, 'Tools'),
-          Row(
+          Column(
             children: [
               _quickStartButton(
                 context,
-                icon: Icons.av_timer,
+                icon: Icons.speed,
                 label: 'Metronome',
                 route: 'metronome',
               ),
-              const SizedBox(width: MonoPulseSpacing.md),
+              const SizedBox(height: MonoPulseSpacing.sm),
               _quickStartButton(
                 context,
                 icon: Icons.tune,
                 label: 'Tuner',
                 route: 'tuner',
               ),
-              const SizedBox(width: MonoPulseSpacing.md),
+              const SizedBox(height: MonoPulseSpacing.sm),
               _quickStartButton(
                 context,
                 icon: Icons.mic,
@@ -144,14 +144,13 @@ class PracticeScreen extends ConsumerWidget {
     );
   }
 
-  /// One-line quick-start button: FittedBox scales the label down instead
-  /// of letting "Metronome"/"Recorder" wrap to two lines at phone width.
   Widget _quickStartButton(
     BuildContext context, {
     required IconData icon,
     required String label,
     required String route,
-  }) => Expanded(
+  }) => SizedBox(
+    width: double.infinity,
     // Dark surface + orange, matching the Home tool tiles, instead of the
     // Material tonal grey pill (secondaryContainer). F-005.
     child: FilledButton.icon(
@@ -162,10 +161,7 @@ class PracticeScreen extends ConsumerWidget {
         side: BorderSide(color: context.mp.borderDefault),
       ),
       icon: Icon(icon),
-      label: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(label, maxLines: 1, style: MonoPulseTypography.bodySmall),
-      ),
+      label: Text(label, style: MonoPulseTypography.bodySmall),
     ),
   );
 

@@ -149,6 +149,9 @@ void main() {
   testWidgets('recent sessions loading and error have local retry', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(800, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     final pending = Completer<List<MetronomeSession>>();
     Future<List<MetronomeSession>> Function() loadSessions = () =>
         pending.future;
@@ -206,6 +209,9 @@ void main() {
   testWidgets(
     'song titles resolve after loading and cached titles survive refresh',
     (tester) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       final songEvents = StreamController<List<Song>>();
       final now = DateTime.now();
       const stats = PracticeStats(
