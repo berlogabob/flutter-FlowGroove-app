@@ -120,7 +120,7 @@ class CentralDial extends ConsumerWidget {
                           ? 'Too quiet — play one note louder'
                           : 'Play a note',
                     'unstable' => 'Let the note ring',
-                    _ => 'Tap Listen to start',
+                    _ => 'Tap the microphone to start',
                   },
                   targetNoteIndex: state.mode == TunerMode.listen
                       ? _noteNameToIndex(
