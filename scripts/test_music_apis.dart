@@ -96,7 +96,7 @@ class MusicApiTester {
       final result = await testMusicBrainz(song['title']!, song['artist']!);
       results.add(result);
       print(result);
-      await Future.delayed(const Duration(seconds: 2)); // Rate limiting
+      await Future<void>.delayed(const Duration(seconds: 2)); // Rate limiting
     }
 
     // Test Deezer
@@ -113,7 +113,7 @@ class MusicApiTester {
       final result = await testDiscogs(song['title']!, song['artist']!);
       results.add(result);
       print(result);
-      await Future.delayed(const Duration(seconds: 3)); // Rate limiting
+      await Future<void>.delayed(const Duration(seconds: 3)); // Rate limiting
     }
 
     // Test edge cases
