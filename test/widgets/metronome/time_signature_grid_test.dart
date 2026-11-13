@@ -133,8 +133,8 @@ void main() {
 
       expect(
         beat.width,
-        lessThan(48),
-        reason: 'guard is pointless if the clamp still applies at this width',
+        greaterThanOrEqualTo(48),
+        reason: 'cells must retain the minimum tappable width',
       );
       expect(sub.width, beat.width);
       expect(

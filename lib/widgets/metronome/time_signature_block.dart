@@ -153,17 +153,16 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
 /// Maximum touch-target size for a single beat/subdivision circle.
 const double _kMaxCircleContainer = 48;
 
-/// Smaller maximum used on narrow screens.
-const double _kMaxCircleContainerSmall = 44;
+/// Maximum used on narrow screens.
+const double _kMaxCircleContainerSmall = 48;
 
 /// Minimum tap-target extent (Material 48dp). The visible dot stays small, but
 /// the touchable area is padded up to this so beat toggles aren't mis-tap-prone
 /// when the strip shrinks to fit many beats (UX audit F-006).
 const double _kMinTapTarget = 48;
 
-/// Minimum tappable width for a circle cell. Four cells fit at 360dp; longer
-/// strips scroll when they cannot fit without shrinking the tap targets.
-const double _kMinCircleContainer = 44;
+/// Minimum tappable width for a circle cell. Longer strips wrap or scroll.
+const double _kMinCircleContainer = 48;
 
 /// Spacing between circles, used only by the (rare) scroll fallback. In the
 /// normal fit-to-width layout each cell carries its own padding around the dot,
