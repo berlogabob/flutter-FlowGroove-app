@@ -50,6 +50,10 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
       padding: EdgeInsets.all(blockPadding),
       child: Column(
         children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text('Beats (badge = count)', style: TextStyle(color: context.mp.textSecondary)),
+          ),
           // Top row - Beats
           _BeatsRow(
             count: beats,
@@ -83,6 +87,10 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
             },
           ),
           SizedBox(height: rowSpacing),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text('Subdivisions (badge = count)', style: TextStyle(color: context.mp.textSecondary)),
+          ),
           // Bottom row - Subdivisions
           _SubdivisionsRow(
             count: subdivisions,
@@ -112,6 +120,13 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
                 metronome.setRegularBeats(subdivisions - 1);
               }
             },
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Dot: normal · Star: accent · ⊘: silent. Tap to change; subdivisions can be changed while playing. The glowing circle is playing now.',
+              style: TextStyle(color: context.mp.textSecondary),
+            ),
           ),
         ],
       ),
