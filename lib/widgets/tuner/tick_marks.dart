@@ -88,8 +88,7 @@ class _TickMarksPainter extends CustomPainter {
       canvas.drawLine(
         Offset(x1, y1),
         Offset(x2, y2),
-        tickPaint
-          ..color = isMajor ? palette.borderDefault : palette.borderSubtle,
+        tickPaint..color = palette.textSecondary,
       );
 
       // Draw labels for major ticks
