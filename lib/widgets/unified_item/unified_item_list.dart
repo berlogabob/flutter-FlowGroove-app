@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/mono_pulse_theme.dart';
 import 'adapters/band_item_adapter.dart';
+import 'adapters/setlist_item_adapter.dart';
 import 'unified_item_card.dart';
 import 'unified_item_model.dart';
 
@@ -80,7 +81,7 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
               return false;
             },
             child: GestureDetector(
-              excludeFromSemantics: item is BandItemAdapter,
+              excludeFromSemantics: item is SetlistItemAdapter,
               behavior: HitTestBehavior.opaque,
               child: UnifiedItemCard<T>(
                 item: item,
