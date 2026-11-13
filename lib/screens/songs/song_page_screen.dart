@@ -11,6 +11,7 @@ import '../../services/export/chordpro_export.dart';
 import '../../services/export/pdf_service.dart';
 import '../../services/export/setlist_export_sheet.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/chordpro.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/confirmation_dialog.dart';
@@ -343,6 +344,15 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                if (activeTab == _SongTab.sheet && _transpose != 0)
+                  if ((song.ourKey ?? song.originalKey) case final k?
+                      when k.trim().isNotEmpty)
+                    Text(
+                      'Original key: ${k.trim()} → ${transposeChord(k.trim(), _transpose)}',
+                      style: MonoPulseTypography.labelLarge.copyWith(
+                        color: context.mp.textSecondary,
+                      ),
+                    ),
               ],
             ),
           ),
@@ -362,7 +372,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
       sections: song.sections,
       bpm: song.ourBPM ?? song.originalBPM,
       initialTranspose: _transpose,
-      onTransposeChanged: (t) => _transpose = t,
+      onTransposeChanged: (t) => setState(() => _transpose = t),
       emptyState: Center(
         child: Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.xl),
