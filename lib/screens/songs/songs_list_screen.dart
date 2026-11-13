@@ -510,8 +510,18 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                         final selected =
                             canonicalCurrentKey != null &&
                             canonicalCurrentKey == canonicalKey(value);
+                        final flat = const {
+                          'C#': 'Db',
+                          'D#': 'Eb',
+                          'F#': 'Gb',
+                          'G#': 'Ab',
+                          'A#': 'Bb',
+                        }[root];
+                        final label = flat == null
+                            ? value
+                            : '$value/$flat${keyIsMinor ? 'm' : ''}';
                         return AppFilterChip(
-                          label: value,
+                          label: label,
                           selected: selected,
                           onSelected: (_) {
                             ref
