@@ -93,6 +93,7 @@ dependencies:
 
   # QR codes for band invite sharing
   qr_flutter: ^4.1.0
+  material_ui: ^1.11.0
 dev_dependencies:
   build_runner: ^2.12.2
   flutter_lints: ^6.0.0
@@ -107,6 +108,9 @@ dev_dependencies:
   just_audio_platform_interface: ^4.6.0
   riverpod_generator: ^4.0.4
 
+  shared_preferences_platform_interface: any
+  firebase_core_platform_interface: any
+  share_plus_platform_interface: any
 flutter:
   uses-material-design: true
 
