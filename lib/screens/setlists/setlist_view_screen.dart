@@ -296,10 +296,21 @@ class SetlistViewScreen extends ConsumerWidget {
                 ),
               ),
               if (!loadFailed && canEdit)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: MonoPulseSpacing.md),
-                  child: Text(
-                    'Use Menu → Edit Setlist to review these entries.',
+                Padding(
+                  padding: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
+                  child: TextButton(
+                    onPressed: () => context.pushNamed(
+                      'edit-setlist',
+                      pathParameters: {'id': setlist.id},
+                      queryParameters: {
+                        'bandId': ?bandId,
+                        'scope': storageScope.name,
+                      },
+                      extra: setlist,
+                    ),
+                    child: const Text(
+                      'Use Menu → Edit Setlist to review these entries.',
+                    ),
                   ),
                 )
               else
@@ -319,6 +330,9 @@ class SetlistViewScreen extends ConsumerWidget {
         return SetlistSongRow(
           index: numbers[itemIndex],
           song: song,
+          savedTitle: item.songTitle,
+          savedArtist: item.songArtist,
+          loadFailed: loadFailed,
           performers: performerLabel(item.performerIds, lineup),
           trailing: song == null ? null : _badgesFor(context, ref, song),
           isCurrent: song?.id == activeSongId,

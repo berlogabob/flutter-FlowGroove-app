@@ -289,7 +289,7 @@ void main() {
 
       expect(
         find.text('Could not load songs. Try again later.'),
-        findsOneWidget,
+        findsNWidgets(3),
       );
       expect(
         find.text('Some songs are unavailable in the current library.'),
