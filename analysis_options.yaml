@@ -8,6 +8,7 @@ analyzer:
     - "**/*.mocks.dart"
     - "lib/firebase_options.dart"
     - "oldarchive/**"
+    - "audit/**"
     - build/**
     - android/**
     - ios/**
