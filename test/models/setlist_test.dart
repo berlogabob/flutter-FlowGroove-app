@@ -268,7 +268,7 @@ void main() {
           'id': 'setlist-id-4',
           'bandId': 'band-4',
           'name': 'Empty Setlist',
-          'songIds': [],
+          'songIds': <dynamic>[],
           'createdAt': testDate.toIso8601String(),
           'updatedAt': testDate.toIso8601String(),
         };
@@ -325,7 +325,7 @@ void main() {
         expect(json['description'], 'Setlist for serialization test');
         expect(json['eventDateTime'], DateTime(2024, 8, 25).toIso8601String());
         expect(json['eventLocation'], 'Serialize Venue');
-        expect(json['songIds'], isA<List>());
+        expect(json['songIds'], isA<List<dynamic>>());
         expect(json['songIds'].length, 3);
         expect(json['totalDuration'], 5400);
         expect(json['createdAt'], testDate.toIso8601String());
@@ -349,7 +349,7 @@ void main() {
         expect(json['description'], isNull);
         expect(json['eventDateTime'], isNull);
         expect(json['eventLocation'], isNull);
-        expect(json['songIds'], isA<List>());
+        expect(json['songIds'], isA<List<dynamic>>());
         expect(json['songIds'].length, 0);
         expect(json['totalDuration'], isNull);
       });
