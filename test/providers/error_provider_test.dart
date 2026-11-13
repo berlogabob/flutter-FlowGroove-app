@@ -134,7 +134,7 @@ void main() {
 
         notifier.handleError(error);
 
-        final exported = notifier.exportErrorHistory();
+        final List<Map<String, dynamic>> exported = notifier.exportErrorHistory();
         expect(exported, isA<List>());
         expect(exported.length, 1);
         expect(exported.first['type'], 'network');
