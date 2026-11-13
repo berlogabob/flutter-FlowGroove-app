@@ -103,7 +103,7 @@ class PracticeDashboardCard extends ConsumerWidget {
                 Text(
                   'Tap to start',
                   style: MonoPulseTypography.bodySmall.copyWith(
-                    color: context.mp.textPrimary.withOpacity(0.85),
+                    color: context.mp.textPrimary.withValues(alpha: 0.85),
                   ),
                 ),
                 const Icon(Icons.chevron_right, size: 16),
