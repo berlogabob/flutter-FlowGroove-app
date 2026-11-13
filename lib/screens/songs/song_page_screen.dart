@@ -332,8 +332,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
                   style: MonoPulseTypography.titleLarge.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                 ),
                 if (meta.isNotEmpty)
                   Text(
