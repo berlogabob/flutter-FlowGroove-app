@@ -85,17 +85,14 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
               ),
               child: Row(
                 children: [
-                  // Expand/collapse icon
-                  AnimatedRotation(
-                    turns: _isExpanded ? 0 : -0.25,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      widget.icon ?? Icons.keyboard_arrow_down,
+                  if (widget.icon != null) ...[
+                    Icon(
+                      widget.icon,
                       color: context.mp.textSecondary,
                       size: 20,
                     ),
-                  ),
-                  const SizedBox(width: 8),
+                    const SizedBox(width: 8),
+                  ],
                   // Title (compact — leaves room for the collapsed preview).
                   Text(
                     widget.title,
@@ -124,6 +121,16 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
                     const SizedBox(width: 8),
                     widget.action!,
                   ],
+                  const SizedBox(width: 8),
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0 : -0.25,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: context.mp.textSecondary,
+                      size: 20,
+                    ),
+                  ),
                 ],
               ),
             ),
