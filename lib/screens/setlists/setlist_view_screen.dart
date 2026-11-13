@@ -334,19 +334,24 @@ class SetlistViewScreen extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Material(
-          color: MonoPulseColors.accentOrange,
-          child: InkWell(
-            onTap: () {
-              ref
-                  .read(metronomeProvider.notifier)
-                  .loadSongTempo(song, sourceBandId: bandId);
-              context.pushNamed('metronome');
-            },
-            child: const SizedBox(
-              width: 40,
-              height: 40,
-              child: Icon(Icons.play_arrow, color: MonoPulseColors.charcoal),
+        Semantics(
+          container: true,
+          button: true,
+          label: 'Play ${song.title}',
+          child: Material(
+            color: MonoPulseColors.accentOrange,
+            child: InkWell(
+              onTap: () {
+                ref
+                    .read(metronomeProvider.notifier)
+                    .loadSongTempo(song, sourceBandId: bandId);
+                context.pushNamed('metronome');
+              },
+              child: const SizedBox(
+                width: 48,
+                height: 48,
+                child: Icon(Icons.play_arrow, color: MonoPulseColors.charcoal),
+              ),
             ),
           ),
         ),
