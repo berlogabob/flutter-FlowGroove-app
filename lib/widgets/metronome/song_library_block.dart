@@ -11,13 +11,6 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 
-typedef _LoadedSongState = ({
-  Song song,
-  Setlist? setlist,
-  String? sourceBandId,
-  List<Song> loadedSetlistSongs,
-});
-
 class SongLibraryBlock extends ConsumerWidget {
   const SongLibraryBlock({super.key});
 
