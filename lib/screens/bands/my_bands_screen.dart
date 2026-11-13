@@ -387,6 +387,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
           // Overflow menu for parity with Songs/Setlists (UX audit F-008) —
           // makes Edit/Delete discoverable, not just tap/swipe.
           OverflowMenuAction(
+            tooltip: 'More actions for ${adapter.band.name}',
             entries: [
               // Band-doc edits are admin-only per rules; hide the entry for
               // everyone else. "Delete" = leave band and is open to any
@@ -619,7 +620,7 @@ class _ViewSongsAction implements UnifiedItemAction {
     return IconButton(
       icon: const Icon(Icons.music_note, size: 20),
       onPressed: () => onNavigate(band),
-      tooltip: 'View Songs',
+      tooltip: 'View songs for ${band.name}',
     );
   }
 }
