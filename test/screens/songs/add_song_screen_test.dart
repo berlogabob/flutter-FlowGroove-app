@@ -372,8 +372,10 @@ void main() {
       await tester.tap(find.text('Key & BPM'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Original'), findsOneWidget);
-      expect(find.text('Our'), findsOneWidget);
+      expect(find.text('Original version'), findsOneWidget);
+      expect(find.text('Our version'), findsOneWidget);
+      expect(find.text('Root'), findsNWidgets(2));
+      expect(find.text('Accidental / quality'), findsNWidgets(2));
     });
 
     testWidgets('displays links section', (tester) async {
