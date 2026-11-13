@@ -103,6 +103,7 @@ Future<void> showSetlistQuickActionPicker(
 List<UnifiedItemAction> buildSetlistActions({
   required String quick,
   required bool canEdit,
+  String? setlistName,
   required VoidCallback onMetronome,
   required VoidCallback onEdit,
   required VoidCallback onEventKit,
@@ -130,11 +131,12 @@ List<UnifiedItemAction> buildSetlistActions({
   return [
     IconAction(
       icon: pinnedIcon,
-      tooltip: pinnedLabel,
+      tooltip: setlistName == null ? pinnedLabel : '$pinnedLabel: $setlistName',
       color: MonoPulseColors.accentOrange,
       onPressed: handlerFor(pinned),
     ),
     OverflowMenuAction(
+      tooltip: setlistName == null ? 'More' : 'More: $setlistName',
       entries: [
         if (canEdit) ('Edit setlist', Icons.edit_outlined, onEdit),
         if (canEdit) ('Event kit', Icons.theater_comedy_outlined, onEventKit),
