@@ -70,7 +70,7 @@ class PracticeDashboardCard extends ConsumerWidget {
       label: statsAsync.when(
         data: (stats) => stats.isEmptyWeek
             ? tappable
-                  ? 'No practice yet this week. Tap to start practicing.'
+                  ? 'No practice yet this week. View progress.'
                   : 'No practice yet this week. Start the metronome to log time.'
             : 'Practiced ${formatMinutes(stats.totalSecondsThisWeek)} this '
                   'week across ${stats.sessionCountThisWeek} sessions, '
@@ -101,7 +101,7 @@ class PracticeDashboardCard extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Tap to start',
+                  'View progress',
                   style: MonoPulseTypography.bodySmall.copyWith(
                     color: context.mp.textPrimary.withValues(alpha: 0.85),
                   ),

@@ -39,9 +39,9 @@ void main() {
             .getSemantics(find.byType(PracticeDashboardCard))
             .getSemanticsData()
             .label;
-        expect(label, isNot(contains('Tap to start')));
+        expect(label, isNot(contains('View progress')));
         expect(label, contains('Start the metronome to log time'));
-        expect(find.text('Tap to start'), findsNothing);
+        expect(find.text('View progress'), findsNothing);
         expect(find.text('Start the metronome to log time'), findsOneWidget);
         await pump(tester, PracticeStats.empty);
         expect(
@@ -49,9 +49,9 @@ void main() {
               .getSemantics(find.byType(PracticeDashboardCard))
               .getSemanticsData()
               .label,
-          contains('Tap to start practicing'),
+          contains('View progress'),
         );
-        expect(find.text('Tap to start'), findsOneWidget);
+        expect(find.text('View progress'), findsOneWidget);
       } finally {
         semantics.dispose();
       }
@@ -203,7 +203,7 @@ void main() {
     testWidgets('empty week shows the start nudge', (tester) async {
       await pump(tester, PracticeStats.empty);
       expect(find.text('No practice yet'), findsOneWidget);
-      expect(find.text('Tap to start'), findsOneWidget);
+      expect(find.text('View progress'), findsOneWidget);
     });
   });
 }
