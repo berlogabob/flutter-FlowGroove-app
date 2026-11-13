@@ -12,7 +12,7 @@ import 'package:flowgroove/services/audio/midi/drum_map.dart';
 import 'package:flowgroove/services/audio/midi/drum_player.dart';
 import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
 import 'package:flowgroove/widgets/midi/drum_kit_view.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

@@ -10,7 +10,7 @@ import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/midi/arrangement_sheet.dart';
 import 'package:flowgroove/widgets/midi/midi_song_panel.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

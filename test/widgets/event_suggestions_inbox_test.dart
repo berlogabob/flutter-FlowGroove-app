@@ -6,7 +6,7 @@ import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flowgroove/widgets/event_suggestions_inbox.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

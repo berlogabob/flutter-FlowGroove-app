@@ -6,7 +6,7 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/setlists/create_setlist_screen.dart';
 import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flowgroove/widgets/primary_action_bar.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';

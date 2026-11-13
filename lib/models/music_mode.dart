@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Music mode model for tuner scale visualization
 /// Represents different musical modes/scales with their interval patterns

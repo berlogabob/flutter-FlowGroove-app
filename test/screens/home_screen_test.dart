@@ -7,7 +7,7 @@ import 'package:flowgroove/widgets/dashboard_grid.dart';
 import 'package:flowgroove/widgets/quick_action_button.dart';
 import 'package:flowgroove/widgets/stat_card.dart';
 import 'package:flowgroove/widgets/tool_button.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

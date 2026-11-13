@@ -17,7 +17,7 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/setlists/event_share_screen.dart';
 import 'package:flowgroove/services/analytics_service.dart';
 import 'package:flowgroove/services/event_share_service.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

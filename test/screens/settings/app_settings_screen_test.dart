@@ -3,7 +3,7 @@ import 'package:flowgroove/providers/haptics_provider.dart';
 import 'package:flowgroove/providers/keep_screen_on_provider.dart';
 import 'package:flowgroove/providers/theme_mode_provider.dart';
 import 'package:flowgroove/screens/settings/app_settings_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';

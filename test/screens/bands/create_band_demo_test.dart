@@ -3,7 +3,7 @@ import 'package:flowgroove/screens/bands/create_band_screen.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/error_banner.dart';
 import 'package:flowgroove/widgets/primary_action_bar.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

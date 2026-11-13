@@ -5,7 +5,7 @@
 library;
 
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
-import 'package:flutter/material.dart' show debugPrint;
+import 'package:material_ui/material_ui.dart' show debugPrint;
 import '../config/env_config.dart';
 
 /// Result of configuration validation

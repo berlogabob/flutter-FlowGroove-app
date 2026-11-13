@@ -2,7 +2,7 @@ import 'package:flowgroove/models/canonical_song.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/repositories/canonical_song_repository.dart';
 import 'package:flowgroove/screens/songs/canonical_browse_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

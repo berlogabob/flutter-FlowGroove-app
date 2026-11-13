@@ -11,7 +11,7 @@ import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/recorder_screen.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
 import 'package:flowgroove/services/pending_storage_deletes.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

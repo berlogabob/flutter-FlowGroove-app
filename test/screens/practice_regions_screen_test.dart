@@ -18,7 +18,7 @@ import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
 import 'package:flowgroove/services/audio/song_peaks.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';

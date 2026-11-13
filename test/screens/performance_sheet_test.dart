@@ -1,7 +1,7 @@
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/screens/performance_sheet_screen.dart';
 import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

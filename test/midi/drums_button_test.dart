@@ -6,7 +6,7 @@ import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
 import 'package:flowgroove/widgets/metronome/song_library_block.dart';
 import 'package:flowgroove/widgets/metronome/time_signature_block.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../models/midi_pattern.dart';
 import '../../services/audio/midi/drum_map.dart';

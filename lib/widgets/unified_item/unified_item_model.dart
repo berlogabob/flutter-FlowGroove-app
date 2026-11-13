@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Base interface for all unified items (Song, Band, Setlist)
 abstract class UnifiedItemModel {

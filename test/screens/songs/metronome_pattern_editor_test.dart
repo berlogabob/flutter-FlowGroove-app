@@ -1,6 +1,6 @@
 import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/screens/songs/components/metronome_pattern_editor.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -10,7 +10,7 @@ import 'package:flowgroove/screens/setlists/create_setlist_screen.dart'
     show SetlistStorageScope;
 import 'package:flowgroove/screens/setlists/setlist_view_screen.dart';
 import 'package:flowgroove/widgets/menu_items_scope.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

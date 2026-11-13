@@ -1,7 +1,7 @@
 import 'package:flowgroove/screens/settings/app_settings_screen.dart';
 import 'package:flowgroove/services/wakelock_controller.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

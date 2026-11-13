@@ -6,7 +6,7 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/repositories/rehearsal_repository.dart';
 import 'package:flowgroove/screens/bands/rehearsals/rehearsal_detail_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';

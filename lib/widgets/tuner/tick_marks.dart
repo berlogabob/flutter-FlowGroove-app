@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 /// Static Tick Marks widget for Tuner dial

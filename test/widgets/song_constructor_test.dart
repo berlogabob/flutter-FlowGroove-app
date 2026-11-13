@@ -1,7 +1,7 @@
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/song_constructor.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/widgets/pill_view.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

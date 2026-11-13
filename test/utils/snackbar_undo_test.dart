@@ -1,6 +1,6 @@
 import 'package:flowgroove/services/analytics_service.dart';
 import 'package:flowgroove/utils/snackbar.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

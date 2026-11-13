@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../theme/mono_pulse_theme.dart';
 import 'adapters/setlist_item_adapter.dart';

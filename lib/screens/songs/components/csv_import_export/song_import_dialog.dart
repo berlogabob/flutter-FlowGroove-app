@@ -8,7 +8,7 @@ import 'package:flowgroove/services/csv/song_csv_service.dart';
 import 'package:flowgroove/services/csv/song_import_analyzer.dart';
 import 'package:flowgroove/services/json/song_ai_prompt.dart';
 import 'package:flowgroove/services/json/song_json_codec.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../theme/mono_pulse_theme.dart';

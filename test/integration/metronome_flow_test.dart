@@ -16,7 +16,7 @@ import 'package:flowgroove/models/metronome_state.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/time_signature.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uuid/uuid.dart';
