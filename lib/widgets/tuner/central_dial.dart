@@ -85,10 +85,10 @@ class CentralDial extends ConsumerWidget {
         final circleSize = constraints.maxWidth * 0.55;
         final clampedSize = circleSize.clamp(280.0, 320.0);
         final noteRadius = clampedSize / 2 * 1.08;
-        final hitTestSize = noteRadius * 2 + 44;
+        final hitTestSize = noteRadius * 2 + 48;
         final hitTestRadius = math.min(
           noteRadius,
-          (constraints.biggest.shortestSide - 44) / 2,
+          (constraints.biggest.shortestSide - 48) / 2,
         );
 
         return Center(
@@ -179,7 +179,7 @@ class CentralDial extends ConsumerWidget {
                             notifier.setTargetNoteByIndex(index);
                           },
                           behavior: HitTestBehavior.opaque,
-                          child: const SizedBox(width: 44, height: 44),
+                          child: const SizedBox(width: 48, height: 48),
                         ),
                       ),
                     ),
