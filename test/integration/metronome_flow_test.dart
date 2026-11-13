@@ -788,7 +788,7 @@ void main() {
           'accentPattern': [true, false, false, false],
           'accentBeats': 4,
           'regularBeats': 1,
-          'beatModes': [],
+          'beatModes': <dynamic>[],
         };
 
         // Act: Deserialize from JSON
