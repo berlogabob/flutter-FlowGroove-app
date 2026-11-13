@@ -241,7 +241,7 @@ class _MainShellState extends ConsumerState<MainShell> {
           ? (entry?.items ?? const [])
           : [
               AppMenuItem(
-                icon: Icons.timer_outlined,
+                icon: Icons.av_timer,
                 label: 'Metronome',
                 onTap: () => context.pushNamed('metronome'),
               ),
