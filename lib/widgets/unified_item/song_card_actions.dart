@@ -162,12 +162,14 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       IconAction(
         icon: quickIcon,
         tooltip: quickLabel,
+        semanticLabel: '$quickLabel for ${song.title}',
         color: MonoPulseColors.accentOrange,
         onPressed: () => _runQuickAction(quick, song, targetBands),
       ),
       // Tools only: content views (performance sheet, Lab) are tabs on the
       // Song Page the card tap opens, so they no longer live in this menu.
       OverflowMenuAction(
+        semanticLabel: 'More actions for ${song.title}',
         entries: [
           ('Metronome', Icons.av_timer, () => openInMetronome(song)),
           if (song.spotifyUrl != null)
