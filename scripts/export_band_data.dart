@@ -541,7 +541,7 @@ void _printRecommendations(Map<String, dynamic> exportData) {
   print('');
 }
 
-String _formatArray(array) {
+String _formatArray(dynamic array) {
   if (array == null) return 'MISSING';
   if (array is List) {
     if (array.isEmpty) return '[] (empty)';
