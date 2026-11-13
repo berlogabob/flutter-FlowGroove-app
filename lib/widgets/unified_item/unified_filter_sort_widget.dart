@@ -64,18 +64,21 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
                 width: 0.5,
               ),
             ),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: widget.hintText,
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: MonoPulseSpacing.lg,
-                  vertical: MonoPulseSpacing.sm,
+            child: Semantics(
+              label: widget.hintText,
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: widget.hintText,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: MonoPulseSpacing.lg,
+                    vertical: MonoPulseSpacing.sm,
+                  ),
                 ),
+                controller: _controller,
+                onChanged: widget.onFilterChanged,
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               ),
-              controller: _controller,
-              onChanged: widget.onFilterChanged,
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
         ),
