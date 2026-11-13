@@ -89,7 +89,7 @@ class PracticeScreen extends ConsumerWidget {
             children: [
               _quickStartButton(
                 context,
-                icon: Icons.speed,
+                icon: Icons.av_timer,
                 label: 'Metronome',
                 route: 'metronome',
               ),
