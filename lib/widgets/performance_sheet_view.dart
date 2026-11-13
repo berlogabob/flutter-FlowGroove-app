@@ -257,7 +257,7 @@ class _AutoScrollBar extends StatelessWidget {
                   color: context.mp.textSecondary,
                 ),
                 const SizedBox(width: MonoPulseSpacing.sm),
-                const Text('Transpose', style: MonoPulseTypography.labelLarge),
+                const Text('Semitones', style: MonoPulseTypography.labelLarge),
                 const Spacer(),
                 IconButton(
                   onPressed: onTransposeDown,
