@@ -134,7 +134,7 @@ void main() {
       expect(
         beat.width,
         greaterThanOrEqualTo(48),
-        reason: 'cells must retain the minimum tappable width',
+        reason: 'beat targets must be at least 48dp wide',
       );
       expect(sub.width, beat.width);
       expect(
