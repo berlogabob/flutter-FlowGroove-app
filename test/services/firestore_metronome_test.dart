@@ -106,7 +106,7 @@ void main() {
           'originalBPM': 120,
           'ourKey': 'D',
           'ourBPM': 130,
-          'links': [],
+          'links': <String>[],
           'tags': ['rock'],
           'createdAt': '2024-01-01T00:00:00.000',
           'updatedAt': '2024-01-01T00:00:00.000',
