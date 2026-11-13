@@ -437,11 +437,12 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       return;
     }
 
-    // _selectedItems is already the source of truth (kept in sync by
-    // reorder/add/remove below) — no need to reconcile against a resolved
-    // song list here. This is what makes the save round-trip unresolved
-    // ("unavailable song") entries unchanged instead of dropping them.
-    final items = List<SetlistItem>.from(_selectedItems);
+    final items = _selectedItems.map((item) {
+      final song = _songsById[item.songId];
+      return song == null
+          ? item
+          : item.copyWith(songTitle: song.title, songArtist: song.artist);
+    }).toList();
     final setlist = Setlist(
       id: _setlistId,
       bandId: bandId ?? '',
@@ -873,6 +874,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                             child: SetlistSongRow(
                               index: songNumber,
                               song: song,
+                              savedTitle: item.songTitle,
+                              savedArtist: item.songArtist,
                               // Assigned people are always materialised into the
                               // kit roster, so it alone resolves the labels.
                               performers: performerLabel(
