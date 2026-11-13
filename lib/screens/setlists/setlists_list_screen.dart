@@ -330,6 +330,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
         return buildSetlistActions(
           quick: quick,
           canEdit: canEdit,
+          setlistName: setlist.name,
           onMetronome: () => _openInMetronome(setlist),
           onEdit: () => _handleEdit(index),
           onEventKit: () => _openEventKit(setlist),
