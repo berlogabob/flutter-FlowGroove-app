@@ -266,9 +266,15 @@ class PracticeScreen extends ConsumerWidget {
           ),
         );
       }
+      final snapshot = s.songTitle?.trim();
+      final currentTitle = titles[s.songId];
       final song = s.songId == null
           ? 'Freestyle'
-          : titles[s.songId] ?? missingTitle;
+          : snapshot != null && snapshot.isNotEmpty
+          ? currentTitle == null
+                ? '$snapshot · $missingTitle'
+                : snapshot
+          : currentTitle ?? missingTitle;
       rows.add(
         Row(
           children: [
