@@ -151,17 +151,6 @@ class SongForm extends StatelessWidget {
       key: formKey,
       child: Column(
         children: [
-          // Song search autocomplete: type to find an existing song and
-          // autofill the form. Only shown when a handler is wired.
-          if (onSuggestionSelected != null) ...[
-            AutocompleteTypeAhead(
-              onSuggestionSelected: onSuggestionSelected!,
-              onSearchWeb: onSearchWeb,
-              bandId: bandId,
-              hint: 'Search a song to autofill…',
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
-          ],
           // Title field
           TextFormField(
             controller: titleController,
@@ -177,6 +166,17 @@ class SongForm extends StatelessWidget {
             decoration: const InputDecoration(labelText: 'Artist'),
             textInputAction: TextInputAction.done,
           ),
+          // Song search autocomplete: type to find an existing song and
+          // autofill the form. Only shown when a handler is wired.
+          if (onSuggestionSelected != null) ...[
+            const SizedBox(height: MonoPulseSpacing.lg),
+            AutocompleteTypeAhead(
+              onSuggestionSelected: onSuggestionSelected!,
+              onSearchWeb: onSearchWeb,
+              bandId: bandId,
+              hint: 'Search the web to autofill',
+            ),
+          ],
           const SizedBox(height: MonoPulseSpacing.xxl),
           // Key & BPM — one collapsible bubble. Collapsed shows Our (or Original
           // when Our isn't set); expanded shows an aligned Original/Our grid.
