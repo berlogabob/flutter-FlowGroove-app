@@ -399,7 +399,7 @@ class _SongConstructorState extends State<SongConstructor> {
             child: Text(
               'No sections yet',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
+                color: context.mp.textSecondary,
               ),
             ),
           ),
