@@ -441,6 +441,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
 
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {
           final state = ref.read(songsFilterSortProvider);
