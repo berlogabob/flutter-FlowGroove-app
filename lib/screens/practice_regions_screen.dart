@@ -1538,11 +1538,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       if (!mounted) return;
       if (result.markByEar) {
         await _changeRegions(const []);
-        if (mounted)
+        if (mounted) {
           setState(() {
             _editing = true;
             _heldPad = null;
           });
+        }
       }
     } finally {
       _setupOpen = false;
@@ -1551,9 +1552,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final songs = ref.watch(
-      widget.bandId == null ? songsProvider : bandSongsProvider(widget.bandId!),
-    ).value;
+    final songs = ref
+        .watch(
+          widget.bandId == null
+              ? songsProvider
+              : bandSongsProvider(widget.bandId!),
+        )
+        .value;
     final song = songs?.where((song) => song.id == _entry.songId).firstOrNull;
     if (song != null && song.title.trim().isNotEmpty) {
       _sessionSongTitle = song.title;
@@ -1588,7 +1593,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 controller: _title,
                 focusNode: _titleFocus,
                 style: MonoPulseTypography.titleLarge,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Practice regions',
                   border: InputBorder.none,
                 ),
@@ -2450,7 +2455,8 @@ class _RegionsPainter extends CustomPainter {
       final from = (start + px * perPixel).floor().clamp(0, samples.length);
       final to = (start + (px + 1) * perPixel).ceil().clamp(0, samples.length);
       if (from >= to) continue;
-      var low = 0, high = 0;
+      var low = 0;
+      var high = 0;
       // ponytail: strided scan, plenty for a phone-width column.
       final stride = math.max(1, (to - from) ~/ 256);
       for (var i = from; i < to; i += stride) {

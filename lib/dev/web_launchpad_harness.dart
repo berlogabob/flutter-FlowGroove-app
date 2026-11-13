@@ -104,10 +104,10 @@ void main() {
             child: LaunchpadView(
               entry: entry,
               sections: [
-                Section(id: 's1', name: 'Intro', duration: 1),
-                Section(id: 's2', name: 'Verse', duration: 1),
-                Section(id: 's3', name: 'Chorus', duration: 1),
-                Section(id: 's4', name: 'Outro', duration: 1),
+                Section(id: 's1', name: 'Intro'),
+                Section(id: 's2', name: 'Verse'),
+                Section(id: 's3', name: 'Chorus'),
+                Section(id: 's4', name: 'Outro'),
               ],
             ),
           ),

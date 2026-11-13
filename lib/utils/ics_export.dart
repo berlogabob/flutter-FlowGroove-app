@@ -32,7 +32,7 @@ String? rehearsalToIcs(Rehearsal rehearsal, {String? setlistName}) {
     'SUMMARY:${_esc(rehearsal.title)}',
     if (rehearsal.location != null && rehearsal.location!.isNotEmpty)
       'LOCATION:${_esc(rehearsal.location!)}',
-    if (descParts.isNotEmpty) 'DESCRIPTION:${_esc(descParts.join('\\n'))}',
+    if (descParts.isNotEmpty) 'DESCRIPTION:${_esc(descParts.join(r'\n'))}',
     'END:VEVENT',
     'END:VCALENDAR',
   ];
@@ -79,10 +79,10 @@ String _ics(DateTime dt) {
 
 /// Escapes text per RFC 5545 (commas, semicolons, backslashes, newlines).
 String _esc(String s) => s
-    .replaceAll('\\', '\\\\')
-    .replaceAll(',', '\\,')
-    .replaceAll(';', '\\;')
-    .replaceAll('\n', '\\n');
+    .replaceAll(r'\', r'\\')
+    .replaceAll(',', r'\,')
+    .replaceAll(';', r'\;')
+    .replaceAll('\n', r'\n');
 
 String _sanitize(String title) {
   final cleaned = title.trim().replaceAll(RegExp(r'[^\w\s-]'), '').trim();

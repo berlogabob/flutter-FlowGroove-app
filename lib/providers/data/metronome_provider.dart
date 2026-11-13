@@ -297,10 +297,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
             )
             .toList(growable: false);
     final songsById = {for (final song in resolvedSongs) song.id: song};
-    final queue = [
-      for (final item in items)
-        if (songsById[item.songId] case final song?) song,
-    ];
+    final queue = [for (final item in items) ?songsById[item.songId]];
     if (queue.isEmpty) return null;
     return queue;
   }

@@ -52,7 +52,10 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
         children: [
           Align(
             alignment: Alignment.centerLeft,
-            child: Text('Beats (badge = count)', style: TextStyle(color: context.mp.textSecondary)),
+            child: Text(
+              'Beats (badge = count)',
+              style: TextStyle(color: context.mp.textSecondary),
+            ),
           ),
           // Top row - Beats
           _BeatsRow(
@@ -89,7 +92,10 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
           SizedBox(height: rowSpacing),
           Align(
             alignment: Alignment.centerLeft,
-            child: Text('Subdivisions (badge = count)', style: TextStyle(color: context.mp.textSecondary)),
+            child: Text(
+              'Subdivisions (badge = count)',
+              style: TextStyle(color: context.mp.textSecondary),
+            ),
           ),
           // Bottom row - Subdivisions
           _SubdivisionsRow(
@@ -297,7 +303,7 @@ class _BeatsRow extends StatelessWidget {
     final addBtnSpacing = isSmallScreen
         ? MonoPulseSpacing.xs
         : MonoPulseSpacing.sm;
-    final buttonSize = 48.0;
+    const buttonSize = 48.0;
 
     return Row(
       children: [
@@ -399,7 +405,7 @@ class _SubdivisionsRow extends StatelessWidget {
     final addBtnSpacing = isSmallScreen
         ? MonoPulseSpacing.xs
         : MonoPulseSpacing.sm;
-    final buttonSize = 48.0;
+    const buttonSize = 48.0;
 
     return Row(
       children: [

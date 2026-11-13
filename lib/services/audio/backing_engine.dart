@@ -27,10 +27,10 @@ class BackingCommand {
   const BackingCommand({
     required this.token,
     required this.kind,
+    required this.atBar,
     this.fromBar = 0,
     this.bars = 0,
     this.loop = true,
-    required this.atBar,
   });
 
   final int token;

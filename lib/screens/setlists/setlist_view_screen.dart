@@ -6,8 +6,8 @@ import '../../models/event_access.dart';
 import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
-import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
+import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
@@ -411,7 +411,7 @@ class SetlistViewScreen extends ConsumerWidget {
     context.pushNamed(
       'song',
       pathParameters: {'id': song.id},
-      queryParameters: {'tab': 'sheet', if (bandId case final b?) 'bandId': b},
+      queryParameters: {'tab': 'sheet', 'bandId': ?bandId},
       extra: bandId == null ? song : {'song': song, 'bandId': bandId},
     );
   }

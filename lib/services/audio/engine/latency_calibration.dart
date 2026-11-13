@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 enum AudioRoute { speaker, wired, bluetooth }
 
 class LatencyCalibration {
-  LatencyCalibration({required SharedPreferences prefs}) : _prefs = prefs {
+  LatencyCalibration({required this._prefs}) {
     _userOffsetMs = _prefs.getInt(_key) ?? 0;
   }
 

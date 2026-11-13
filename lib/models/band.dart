@@ -188,7 +188,7 @@ class Band {
   }
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   try {
@@ -206,7 +206,7 @@ DateTime _parseDateTime(dynamic value) {
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
 
-List<BandMember> _membersFromJson(dynamic value) {
+List<BandMember> _membersFromJson(value) {
   if (value == null) return [];
   if (value is List<BandMember>) return value;
   return (value as List<dynamic>)

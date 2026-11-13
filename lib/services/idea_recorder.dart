@@ -163,7 +163,7 @@ Future<void> captureIdea(
       if (index + 1 < parts.length) {
         await uploadPart(index + 1);
       } else if (true) {
-        debugPrint("DBG saved idx=$index mounted=${context.mounted}");
+        debugPrint('DBG saved idx=$index mounted=${context.mounted}');
       }
       if (index + 1 >= parts.length && multiple && context.mounted) {
         showAppSnackBar(context, 'Saved ${parts.length} parts');

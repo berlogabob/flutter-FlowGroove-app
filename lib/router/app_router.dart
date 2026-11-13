@@ -15,8 +15,6 @@ import '../models/song_lab.dart';
 import '../models/tuner_launch_context.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
-import '../services/analytics_service.dart';
-import '../services/event_share_service.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/bands/band_about_screen.dart';
@@ -38,20 +36,22 @@ import '../screens/main_shell.dart';
 import '../screens/metronome_screen.dart';
 import '../screens/practice_regions_screen.dart';
 import '../screens/practice_screen.dart';
-import '../screens/recorder_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/recorder_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/setlists/event_share_screen.dart';
 import '../screens/setlists/setlist_view_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
-import '../screens/songs/add_song_screen.dart';
 import '../screens/settings/app_settings_screen.dart';
+import '../screens/songs/add_song_screen.dart';
 import '../screens/songs/canonical_browse_screen.dart';
 import '../screens/songs/models/song_form_data.dart';
-import '../screens/songs/song_page_screen.dart';
 import '../screens/songs/song_duplicates_screen.dart';
+import '../screens/songs/song_page_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
+import '../services/analytics_service.dart';
+import '../services/event_share_service.dart';
 import 'branch_stack_observer.dart';
 
 /// Builds the Song Page from a songs-branch route state. `extra` may be a
@@ -969,7 +969,7 @@ class SetlistRouteResolver extends ConsumerWidget {
         setlistId != null &&
         isEventGuestOf(ref.watch(bandsProvider).value, bandId!) == true) {
       final view = ref.watch(eventViewProvider((bandId!, setlistId!))).value;
-      if (view != null) return builder(setlistFromEventView(view, bandId!));
+      if (view != null) return builder(setlistFromEventView(view, bandId));
       return builder(extra);
     }
 

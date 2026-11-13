@@ -289,7 +289,7 @@ class Song {
 }
 
 // Helper methods for BeatMode serialization
-List<List<BeatMode>> _beatModesFromJson(dynamic value) {
+List<List<BeatMode>> _beatModesFromJson(value) {
   if (value == null) return [];
 
   // Support both nested arrays (legacy) and map format (new)
@@ -369,14 +369,14 @@ Map<String, String> _beatModesToJson(List<List<BeatMode>> value) {
   return result;
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   if (value is Timestamp) return value.toDate();
   return DateTime.parse(value as String);
 }
 
-DateTime? _parseNullableDateTime(dynamic value) {
+DateTime? _parseNullableDateTime(value) {
   if (value == null) return null;
   if (value is DateTime) return value;
   if (value is Timestamp) return value.toDate();
@@ -385,7 +385,7 @@ DateTime? _parseNullableDateTime(dynamic value) {
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
 
-List<Link> _linksFromJson(dynamic value) {
+List<Link> _linksFromJson(value) {
   if (value == null) return [];
   if (value is List<Link>) return value;
   return (value as List<dynamic>)
@@ -397,7 +397,7 @@ List<Map<String, dynamic>> _linksToJson(List<Link> links) {
   return links.map((l) => l.toJson()).toList();
 }
 
-List<Section> _sectionsFromJson(dynamic value) {
+List<Section> _sectionsFromJson(value) {
   if (value == null) return [];
   if (value is List<Section>) return value;
   return (value as List<dynamic>)

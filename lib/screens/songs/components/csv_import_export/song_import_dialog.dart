@@ -120,8 +120,8 @@ class _SongImportDialogState extends State<SongImportDialog> {
               ),
               const SizedBox(height: 24),
               const Text(
-                "No file? Ask your own AI. Copy a prompt, paste it into "
-                "ChatGPT/Claude/Gemini, then paste its result back here.",
+                'No file? Ask your own AI. Copy a prompt, paste it into '
+                'ChatGPT/Claude/Gemini, then paste its result back here.',
                 textAlign: TextAlign.center,
                 style: MonoPulseTypography.bodyMedium,
               ),

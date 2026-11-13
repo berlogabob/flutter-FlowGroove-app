@@ -109,8 +109,9 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
       builder: (_) => _SuggestSheet(view: view),
     );
     if (result == null ||
-        (result.proposal == null && result.text.trim().isEmpty))
+        (result.proposal == null && result.text.trim().isEmpty)) {
       return;
+    }
     try {
       await ref
           .read(eventShareServiceProvider)
@@ -127,8 +128,9 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
       if (mounted) showAppSnackBar(context, 'Sent to the band. Thanks!');
     } catch (e) {
       if (mounted) await _load();
-      if (mounted)
+      if (mounted) {
         showAppSnackBar(context, 'Could not send that: please try again.');
+      }
     }
   }
 
@@ -454,7 +456,9 @@ class _SuggestSheetState extends State<_SuggestSheet> {
   String? _selectedItemId;
   String? _selectedSongId;
   String _kind = 'note';
-  late List<Map<String, dynamic>> _items = [...?widget.view.runningOrderItems];
+  late final List<Map<String, dynamic>> _items = [
+    ...?widget.view.runningOrderItems,
+  ];
 
   bool get _orderReady =>
       widget.view.canSee(EventArea.runningOrder) &&
@@ -536,8 +540,7 @@ class _SuggestSheetState extends State<_SuggestSheet> {
               if (_kind == 'remove')
                 RadioGroup<String>(
                   groupValue: _selectedItemId,
-                  onChanged: (value) =>
-                      setState(() => _selectedItemId = value),
+                  onChanged: (value) => setState(() => _selectedItemId = value),
                   child: Column(
                     children: [
                       for (final (index, item) in _items.indexed)
@@ -562,7 +565,7 @@ class _SuggestSheetState extends State<_SuggestSheet> {
                         key: ValueKey(item['id']),
                         title: Text(
                           item['type'] == 'break'
-                              ? '— ${(item['breakLabel'] as String? ?? 'Break')} —'
+                              ? '— ${item['breakLabel'] as String? ?? 'Break'} —'
                               : _titleFor(item),
                         ),
                         leading: const Icon(Icons.drag_handle),
@@ -571,7 +574,7 @@ class _SuggestSheetState extends State<_SuggestSheet> {
                 ),
             ] else ...[
               const SizedBox(height: MonoPulseSpacing.sm),
-              Text(
+              const Text(
                 'Typed running-order options are unavailable until the shared order is ready. You can still send a note.',
                 style: MonoPulseTypography.bodySmall,
               ),

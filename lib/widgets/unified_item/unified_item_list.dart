@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../theme/mono_pulse_theme.dart';
-import 'adapters/band_item_adapter.dart';
 import 'adapters/setlist_item_adapter.dart';
 import 'unified_item_card.dart';
 import 'unified_item_model.dart';

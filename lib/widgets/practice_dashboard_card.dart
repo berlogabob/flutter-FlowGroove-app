@@ -42,7 +42,6 @@ class PracticeDashboardCard extends ConsumerWidget {
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: statsAsync.when(
             data: (stats) => Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(child: _headline(context, stats)),
                 const SizedBox(width: MonoPulseSpacing.lg),
@@ -95,7 +94,7 @@ class PracticeDashboardCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text('No practice yet', style: MonoPulseTypography.titleMedium),
+          const Text('No practice yet', style: MonoPulseTypography.titleMedium),
           if (tappable)
             Row(
               mainAxisSize: MainAxisSize.min,

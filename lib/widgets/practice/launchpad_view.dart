@@ -11,14 +11,14 @@ import '../../models/section.dart';
 import '../../models/section_span.dart';
 import '../../models/song_lab.dart';
 import '../../providers/data/backing_transport_provider.dart';
-import '../../providers/data/metronome_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/data/metronome_provider.dart';
+import '../../providers/data/midi_hidden_provider.dart';
 import '../../providers/data/midi_song_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/audio/midi/midi_song_meta_builder.dart';
 import '../../services/audio/midi/note_edit.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../providers/data/midi_hidden_provider.dart';
 import '../midi/arrangement_sheet.dart';
 import '../midi/midi_import_flow.dart';
 import 'note_editor_sheet.dart';
@@ -439,9 +439,8 @@ const _kSyncTest = bool.fromEnvironment('SYNC_TEST');
 Future<void> _startSyncCapture() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
   try {
-    await const MethodChannel(
-      'com.flowgroove/metronome',
-    ).invokeMethod<String>('syncCaptureStart', {'seconds': 130});
+    await const MethodChannel('com.flowgroove/metronome')
+        .invokeMethod<String>('syncCaptureStart', {'seconds': 130});
   } on Object {
     // Diagnostic only.
   }

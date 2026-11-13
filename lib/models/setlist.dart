@@ -313,7 +313,7 @@ class Setlist {
   }
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   if (value is Timestamp) return value.toDate();
@@ -336,7 +336,7 @@ DateTime _parseDateTime(dynamic value) {
   return DateTime.now();
 }
 
-DateTime? _parseTimestamp(dynamic value) {
+DateTime? _parseTimestamp(value) {
   if (value == null) return null;
   if (value is DateTime) return value;
   if (value is Timestamp) return value.toDate();
@@ -360,7 +360,7 @@ DateTime? _parseTimestamp(dynamic value) {
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
 
-Map<String, SetlistAssignment> _assignmentsFromJson(dynamic value) {
+Map<String, SetlistAssignment> _assignmentsFromJson(value) {
   if (value == null) return {};
   if (value is Map) {
     final result = <String, SetlistAssignment>{};
@@ -384,7 +384,7 @@ Map<String, dynamic> _assignmentsToJson(Map<String, SetlistAssignment> value) {
   return value.map((key, val) => MapEntry(key, val.toJson()));
 }
 
-List<SetlistItem> _itemsFromJson(dynamic value) {
+List<SetlistItem> _itemsFromJson(value) {
   if (value is! List) return const [];
   return value
       .whereType<Map<dynamic, dynamic>>()
@@ -398,7 +398,7 @@ List<Map<String, dynamic>> _itemsToJson(List<SetlistItem> value) {
   return value.map((item) => item.toJson()).toList();
 }
 
-EventKit? _eventKitFromJson(dynamic value) =>
+EventKit? _eventKitFromJson(value) =>
     value is Map ? EventKit.fromJson(Map<String, dynamic>.from(value)) : null;
 
 Map<String, dynamic>? _eventKitToJson(EventKit? kit) => kit?.toJson();

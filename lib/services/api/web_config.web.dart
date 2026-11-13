@@ -8,7 +8,7 @@ import 'dart:js_interop_unsafe';
 JSObject? get _env {
   final env = globalContext.getProperty('env'.toJS);
   if (env.isUndefinedOrNull || !env.isA<JSObject>()) return null;
-  return env as JSObject;
+  return env! as JSObject;
 }
 
 /// Get a value from window.env object

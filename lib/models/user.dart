@@ -90,7 +90,7 @@ class AppUser {
   Map<String, dynamic> toJson() => _$AppUserToJson(this);
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   if (value is Timestamp) return value.toDate();

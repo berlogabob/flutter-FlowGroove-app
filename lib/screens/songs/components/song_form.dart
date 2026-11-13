@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../models/beat_mode.dart';
 import '../../../models/link.dart';
 import '../../../models/section.dart';
@@ -381,7 +382,7 @@ Widget _keyBpmPreview({
   final key = ourKey.isNotEmpty ? ourKey : origKey;
   final bpm = uBpm.isNotEmpty ? uBpm : oBpm;
   final parts = <String>[
-    key.isEmpty ? 'Not set' : key,
+    if (key.isEmpty) 'Not set' else key,
     if (bpm.isNotEmpty) '$bpm BPM',
   ];
   return _previewAccent(parts.join('  ·  '));

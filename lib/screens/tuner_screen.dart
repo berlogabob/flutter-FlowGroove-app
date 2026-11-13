@@ -243,7 +243,7 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
             const SizedBox(height: MonoPulseSpacing.lg),
             // Minimum 44 logical px per segment for touch targets (WCAG 2.5.5).
             ConstrainedBox(
-              constraints: BoxConstraints(minHeight: 44),
+              constraints: const BoxConstraints(minHeight: 44),
               child: const DetectionModeToggle(),
             ),
             // Mic-privacy copy lives in Settings only (Mono Pulse: "main window

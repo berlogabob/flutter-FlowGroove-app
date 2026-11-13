@@ -1,22 +1,20 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+
 import 'audio_sink.dart';
 import 'pcm_click_renderer.dart';
 import 'render_config.dart';
 
 class MetronomeScheduler {
   MetronomeScheduler({
-    required AudioSink sink,
-    required PcmClickRenderer renderer,
+    required this._sink,
+    required this._renderer,
     this.chunk = const Duration(milliseconds: 200),
-    int sampleRate = 48000,
-    bool testMode = false,
-    int Function()? clockMicros,
-  }) : _sink = sink,
-       _renderer = renderer,
-       _sampleRate = sampleRate,
-       _testMode = testMode,
-       _clockMicros = clockMicros {
+    this._sampleRate = 48000,
+    this._testMode = false,
+    this._clockMicros,
+  }) {
     _sub = _sink.events.listen(_onSinkEvent);
   }
 

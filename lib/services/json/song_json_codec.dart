@@ -199,13 +199,7 @@ class SongJsonCodec {
     );
   }
 
-  String? _key(
-    dynamic v,
-    String field,
-    String title,
-    int idx,
-    List<String> errors,
-  ) {
+  String? _key(v, String field, String title, int idx, List<String> errors) {
     if (v == null) return null;
     final key = v.toString();
     if (!SongCsvValidation.isValidKey(key)) {
@@ -218,13 +212,7 @@ class SongJsonCodec {
     return key;
   }
 
-  int? _bpm(
-    dynamic v,
-    String field,
-    String title,
-    int idx,
-    List<String> errors,
-  ) {
+  int? _bpm(v, String field, String title, int idx, List<String> errors) {
     if (v == null) return null;
     if (!SongCsvValidation.isValidBpm(v)) {
       errors.add(
@@ -235,7 +223,7 @@ class SongJsonCodec {
     return (v as num).toInt();
   }
 
-  List<Link> _links(dynamic v, String title, int idx, List<String> errors) {
+  List<Link> _links(v, String title, int idx, List<String> errors) {
     if (v is! List) return const [];
     final links = <Link>[];
     for (final e in v) {
@@ -250,7 +238,7 @@ class SongJsonCodec {
     return links;
   }
 
-  List<Section> _sections(dynamic v) {
+  List<Section> _sections(v) {
     if (v is! List) return const [];
     final sections = <Section>[];
     for (final e in v) {

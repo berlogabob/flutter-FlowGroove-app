@@ -19,10 +19,10 @@ import '../utils/snackbar.dart';
 /// commented on looks exactly as it did before.
 class EventSuggestionsInbox extends ConsumerStatefulWidget {
   const EventSuggestionsInbox({
-    this.bandId,
-    this.ownerUid,
     required this.setlistId,
     required this.canResolve,
+    this.bandId,
+    this.ownerUid,
     super.key,
   });
 

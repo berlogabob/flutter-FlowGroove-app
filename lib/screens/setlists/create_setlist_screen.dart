@@ -344,8 +344,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     });
 
     final currentlySelected = [
-      for (final item in _selectedItems)
-        if (_songsById[item.songId] case final song?) song,
+      for (final item in _selectedItems) ?_songsById[item.songId],
     ];
 
     await showModalBottomSheet<void>(

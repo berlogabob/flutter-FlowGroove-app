@@ -311,8 +311,8 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
   Widget _header(Song song, _SongTab activeTab) {
     final meta = [
       if (song.artist.trim().isNotEmpty) song.artist.trim(),
-      if ((song.ourKey ?? song.originalKey) case final k? when k.isNotEmpty) k,
-      if ((song.ourBPM ?? song.originalBPM) case final b?) '$b BPM',
+      if (song.ourKey ?? song.originalKey case final k? when k.isNotEmpty) k,
+      if (song.ourBPM ?? song.originalBPM case final b?) '$b BPM',
     ].join(' · ');
 
     return Padding(
@@ -345,7 +345,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
                     overflow: TextOverflow.ellipsis,
                   ),
                 if (activeTab == _SongTab.sheet && _transpose != 0)
-                  if ((song.ourKey ?? song.originalKey) case final k?
+                  if (song.ourKey ?? song.originalKey case final k?
                       when k.trim().isNotEmpty)
                     Text(
                       'Original key: ${k.trim()} → ${transposeChord(k.trim(), _transpose)}',
@@ -382,9 +382,8 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
               Text(
                 'No lyrics or chords yet.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: context.mp.textSecondary,
-                ),
+                style: Theme.of(context).textTheme.bodyLarge
+                    ?.copyWith(color: context.mp.textSecondary),
               ),
               const SizedBox(height: MonoPulseSpacing.xl),
               // Second door into the Edit tab — hidden with it for viewers.

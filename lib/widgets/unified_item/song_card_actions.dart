@@ -185,8 +185,7 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               Icons.add_to_queue,
               () => unawaited(pickBandAndAdd(song, targetBands)),
             ),
-          if (onDelete != null)
-            ('Delete', Icons.delete_outline, onDelete),
+          if (onDelete != null) ('Delete', Icons.delete_outline, onDelete),
           (
             'Quick action…',
             Icons.push_pin_outlined,
@@ -286,8 +285,9 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           appUser.hasError ||
           auth.asData?.value?.uid != user.uid ||
           appUser.asData?.value?.uid != user.uid ||
-          !ref.read(canEditProvider))
+          !ref.read(canEditProvider)) {
         return false;
+      }
       if (bandId == null) return true;
       final bands = ref.read(bandsProvider);
       return !bands.isLoading &&

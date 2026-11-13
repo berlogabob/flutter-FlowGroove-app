@@ -114,7 +114,9 @@ List<int> detectOnsets(
     return n == 0 ? 0 : s / n;
   }
 
-  var period = lagOf(coarse), phase = 0.0, score = -1.0;
+  var period = lagOf(coarse);
+  var phase = 0.0;
+  var score = -1.0;
   for (var bpm = coarse - 1; bpm <= coarse + 1; bpm += 0.05) {
     final p = lagOf(bpm);
     for (var o = 0; o < p; o++) {
@@ -192,15 +194,21 @@ List<({int ms, double strength})> sectionCuts(
 
   // Two one-pole low-passes split the signal into <200 Hz, mid, >2.5 kHz.
   double alpha(double hz) => 1 - exp(-2 * pi * hz / sampleRate);
-  final a1 = alpha(200), a2 = alpha(2500);
+  final a1 = alpha(200);
+  final a2 = alpha(2500);
   final env = onsetEnvelope(pcm);
-  var lp1 = 0.0, lp2 = 0.0;
+  var lp1 = 0.0;
+  var lp2 = 0.0;
   var sample = 0;
   final features = <List<double>>[];
   for (final t in starts) {
     final from = (t * sampleRate / 1000).round();
     final to = min(pcm.length, ((t + unitMs) * sampleRate / 1000).round());
-    var all = 0.0, low = 0.0, mid = 0.0, high = 0.0, crossings = 0;
+    var all = 0.0;
+    var low = 0.0;
+    var mid = 0.0;
+    var high = 0.0;
+    var crossings = 0;
     for (; sample < from; sample++) {
       lp1 += a1 * (pcm[sample] - lp1);
       lp2 += a2 * (pcm[sample] - lp2);
@@ -216,7 +224,8 @@ List<({int ms, double strength})> sectionCuts(
       if (i > from && (s >= 0) != (pcm[i - 1] >= 0)) crossings++;
     }
     final n = max(1, to - from);
-    final b0 = from ~/ 256, b1 = min(env.length, to ~/ 256);
+    final b0 = from ~/ 256;
+    final b1 = min(env.length, to ~/ 256);
     var hits = 0.0;
     for (var b = b0; b < b1; b++) {
       hits += env[b];
@@ -247,7 +256,8 @@ List<({int ms, double strength})> sectionCuts(
   for (var k = window; k <= starts.length - window; k++) {
     var d = 0.0;
     for (var f = 0; f < features.first.length; f++) {
-      var before = 0.0, after = 0.0;
+      var before = 0.0;
+      var after = 0.0;
       for (var j = 0; j < window; j++) {
         before += features[k - 1 - j][f];
         after += features[k + j][f];

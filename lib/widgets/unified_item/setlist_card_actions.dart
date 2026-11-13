@@ -103,7 +103,6 @@ Future<void> showSetlistQuickActionPicker(
 List<UnifiedItemAction> buildSetlistActions({
   required String quick,
   required bool canEdit,
-  String? setlistName,
   required VoidCallback onMetronome,
   required VoidCallback onEdit,
   required VoidCallback onEventKit,
@@ -111,6 +110,7 @@ List<UnifiedItemAction> buildSetlistActions({
   required VoidCallback onCopyLinks,
   required VoidCallback onExportPdf,
   required VoidCallback onPickQuickAction,
+  String? setlistName,
 }) {
   VoidCallback handlerFor(String key) => switch (key) {
     'eventkit' => onEventKit,

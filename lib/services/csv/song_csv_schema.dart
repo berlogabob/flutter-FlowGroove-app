@@ -239,9 +239,8 @@ class SongCsvSchema {
 
     try {
       // Parse: {{4,2},{[1,0,0,0],[1,0,0,0]}}
-      final outerMatch = RegExp(
-        r'\{(\d+),(\d+)\},\{(.+)\}',
-      ).firstMatch(pattern);
+      final outerMatch = RegExp(r'\{(\d+),(\d+)\},\{(.+)\}')
+          .firstMatch(pattern);
       if (outerMatch == null) return null;
 
       final accentBeats = int.parse(outerMatch.group(1)!);
@@ -325,7 +324,7 @@ class SongCsvSchema {
 /// Validation rules for CSV data
 class SongCsvValidation {
   /// Validate BPM value (must be integer between 40-300)
-  static bool isValidBpm(dynamic value) {
+  static bool isValidBpm(value) {
     if (value == null || value.toString().isEmpty) return true; // Optional
     final bpm = int.tryParse(value.toString());
     return bpm != null && bpm >= 40 && bpm <= 300;
@@ -380,7 +379,7 @@ class SongCsvValidation {
   }
 
   /// Validate duration (positive number)
-  static bool isValidDuration(dynamic value) {
+  static bool isValidDuration(value) {
     if (value == null || value.toString().isEmpty) return true; // Optional
     final duration = double.tryParse(value.toString());
     return duration != null && duration > 0;

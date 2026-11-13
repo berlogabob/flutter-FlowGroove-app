@@ -74,10 +74,11 @@ Future<Uint8List?> encodeWavToMp3(
       Int16List.sublistView(samples, i, end).toJS,
     );
     final bytes = chunk.toDart;
-    if (bytes.isNotEmpty)
+    if (bytes.isNotEmpty) {
       out.add(
         Uint8List.view(bytes.buffer, bytes.offsetInBytes, bytes.lengthInBytes),
       );
+    }
     processed = end;
 
     if (++sinceYield >= _framesPerSlice) {

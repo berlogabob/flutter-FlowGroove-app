@@ -284,8 +284,9 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
       await repo.deleteEntry(widget.song.id, entry.id, bandId: widget.bandId);
     } catch (_) {
       if (url != null) await pending.cancel(url);
-      if (mounted)
+      if (mounted) {
         showAppSnackBar(context, 'Could not delete entry. Try again.');
+      }
       return;
     }
     if (url != null) unawaited(pending.flushAfter(url, undoGracePeriod));

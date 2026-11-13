@@ -5,17 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/song.dart';
 import '../models/song_lab.dart';
-import '../providers/data/data_providers.dart';
 import '../providers/auth/auth_provider.dart';
-
+import '../providers/data/data_providers.dart';
 import '../router/app_router.dart';
-import '../services/idea_recorder.dart';
 import '../services/audio/audio_note_edit.dart' show entryNotes;
+import '../services/idea_recorder.dart';
 import '../services/pending_storage_deletes.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
-import 'songs/components/lab_recording_sheet.dart';
 import '../widgets/tools/tool_scaffold.dart';
+import 'songs/components/lab_recording_sheet.dart';
 
 String? _editableUid(WidgetRef ref) {
   final user = ref.read(appUserProvider);
@@ -88,8 +87,8 @@ class _RecorderScreenState extends ConsumerState<RecorderScreen> {
             label: const Text('Record'),
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
-          Padding(
-            padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
+          const Padding(
+            padding: EdgeInsets.only(bottom: MonoPulseSpacing.sm),
             child: Text('Recordings', style: MonoPulseTypography.titleMedium),
           ),
           if (recordings.isEmpty)
@@ -159,7 +158,8 @@ class _RecordingCard extends ConsumerWidget {
         trailing: uid == null
             ? null
             : PopupMenuButton<String>(
-                tooltip: 'Menu for ${recording.title ?? 'Take · ${d.day}/${d.month}'}',
+                tooltip:
+                    'Menu for ${recording.title ?? 'Take · ${d.day}/${d.month}'}',
                 onSelected: (v) {
                   if (!context.mounted || _editableUid(ref) != uid) return;
                   switch (v) {

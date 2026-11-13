@@ -23,8 +23,9 @@ Future<Object?> showAutoSliceSheet(
   var foundCuts = 0;
   ({double bpm, int firstDownbeatMs})? suggestion;
   final pcmFuture = ensurePcm().then((pcm) {
-    if (pcm != null && pcm.isNotEmpty)
+    if (pcm != null && pcm.isNotEmpty) {
       suggestion = estimateGrid(pcm, 22050, hintBpm: songBpm());
+    }
     return pcm;
   });
   final result = await showModalBottomSheet<Object>(

@@ -434,9 +434,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     // survives setModalState calls. Defaults to whichever mode the current
     // filter (if any) is already in.
     var keyIsMinor =
-        canonicalKey(
-          ref.read(songsFilterSortProvider).keyFilter,
-        )?.endsWith('m') ??
+        canonicalKey(ref.read(songsFilterSortProvider).keyFilter)
+            ?.endsWith('m') ??
         false;
 
     showModalBottomSheet<void>(
@@ -471,7 +470,6 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                   ),
                   const SizedBox(height: 8),
                   Wrap(
-                    alignment: WrapAlignment.start,
                     spacing: 8,
                     runSpacing: 8,
                     children: [
@@ -731,7 +729,6 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
               Expanded(
                 child: UnifiedFilterSortWidget(
                   currentSort: state.sortOption,
-                  hintText: 'Search...',
                   onSortChanged: (option) {
                     if (option != null) {
                       ref

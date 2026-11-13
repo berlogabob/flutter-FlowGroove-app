@@ -162,7 +162,7 @@ class _SoundSheet extends ConsumerWidget {
           label: 'Subdivision volume',
           value: state.subdivisionGain.clamp(0.5, 2.0),
           min: 0.5,
-          max: 2.0,
+          max: 2,
           display: '${(state.subdivisionGain * 100).round()}%',
           onChanged: notifier.setSubdivisionGain,
         ),

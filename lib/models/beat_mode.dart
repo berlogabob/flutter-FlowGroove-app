@@ -54,7 +54,7 @@ double resolveClickGain({
   required bool accentEnabled,
   required double subdivisionGain,
 }) {
-  if (mode == BeatMode.accent) return 1.0;
-  if (isMainBeat && accentEnabled) return 1.0;
+  if (mode == BeatMode.accent) return 1;
+  if (isMainBeat && accentEnabled) return 1;
   return subdivisionGain;
 }

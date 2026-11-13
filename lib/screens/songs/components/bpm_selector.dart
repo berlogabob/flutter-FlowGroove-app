@@ -131,7 +131,7 @@ class KeyBpmGrid extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Root', style: MonoPulseTypography.labelMedium),
+                  const Text('Root', style: MonoPulseTypography.labelMedium),
                   const SizedBox(height: MonoPulseSpacing.xs),
                   _keyMiniDropdown(
                     context,
@@ -147,7 +147,10 @@ class KeyBpmGrid extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Accidental / quality', style: MonoPulseTypography.labelMedium),
+                  const Text(
+                    'Accidental / quality',
+                    style: MonoPulseTypography.labelMedium,
+                  ),
                   const SizedBox(height: MonoPulseSpacing.xs),
                   _keyMiniDropdown(
                     context,
@@ -162,7 +165,10 @@ class KeyBpmGrid extends StatelessWidget {
             Expanded(
               child: TextFormField(
                 controller: bpm,
-                decoration: const InputDecoration(labelText: 'BPM', isDense: true),
+                decoration: const InputDecoration(
+                  labelText: 'BPM',
+                  isDense: true,
+                ),
                 keyboardType: TextInputType.number,
               ),
             ),
@@ -171,7 +177,6 @@ class KeyBpmGrid extends StatelessWidget {
       ],
     );
   }
-
 }
 
 /// Shared compact note/accidental dropdown used by the key grid.
@@ -196,7 +201,6 @@ Widget _keyMiniDropdown(
       // used rather than '' because a caller may pass an item list without it.
       value: items.contains(value) ? value : null,
       isExpanded: true,
-      isDense: false,
       underline: const SizedBox(),
       dropdownColor: context.mp.surfaceOverlay,
       iconEnabledColor: context.mp.textSecondary,
