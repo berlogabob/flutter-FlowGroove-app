@@ -147,6 +147,7 @@ class SongForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final metronomeKey = GlobalKey();
     return Form(
       key: formKey,
       child: Column(
@@ -309,7 +310,22 @@ class SongForm extends StatelessWidget {
             title: 'Metronome Settings',
             icon: Icons.music_note,
             initiallyExpanded: false,
+            onExpandedChanged: (expanded) async {
+              if (!expanded) return;
+              await Future<void>.delayed(const Duration(milliseconds: 250));
+              final editorContext = metronomeKey.currentContext;
+              if (editorContext == null || !editorContext.mounted) return;
+              final visibility = editorContext
+                  .findAncestorWidgetOfExactType<Visibility>();
+              if (visibility?.visible != true) return;
+              await Scrollable.ensureVisible(
+                editorContext,
+                alignment: 0,
+                duration: const Duration(milliseconds: 200),
+              );
+            },
             child: MetronomePatternEditor(
+              key: metronomeKey,
               accentBeats: accentBeats,
               regularBeats: regularBeats,
               beatModes: beatModes,
