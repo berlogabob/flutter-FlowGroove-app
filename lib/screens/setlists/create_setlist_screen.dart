@@ -595,18 +595,21 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                           ),
                         ),
                       ),
-                      IconButton(
-                        tooltip: _showEventDetails
-                            ? 'Hide event details'
-                            : 'Show event details',
-                        icon: Icon(
-                          _showEventDetails
-                              ? Icons.expand_less
-                              : Icons.expand_more,
-                          color: context.mp.textSecondary,
-                        ),
-                        onPressed: () => setState(
-                          () => _showEventDetails = !_showEventDetails,
+                      Semantics(
+                        expanded: _showEventDetails,
+                        child: IconButton(
+                          tooltip: _showEventDetails
+                              ? 'Hide event details'
+                              : 'Show event details',
+                          icon: Icon(
+                            _showEventDetails
+                                ? Icons.expand_less
+                                : Icons.expand_more,
+                            color: context.mp.textSecondary,
+                          ),
+                          onPressed: () => setState(
+                            () => _showEventDetails = !_showEventDetails,
+                          ),
                         ),
                       ),
                     ],
