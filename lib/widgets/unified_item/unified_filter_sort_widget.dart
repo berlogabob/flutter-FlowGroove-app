@@ -107,7 +107,12 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
             items: SortOption.values.map((option) {
               return DropdownMenuItem<SortOption>(
                 value: option,
-                child: Text(option.label),
+                child: Text(
+                  option.label,
+                  style: const TextStyle(
+                    fontFamily: MonoPulseTypography.fontFamilyControl,
+                  ),
+                ),
               );
             }).toList(),
             underline: Container(),
