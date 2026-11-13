@@ -97,7 +97,7 @@ void main() {
             'Metronome',
             'Tuner',
             'Recorder',
-            'Progress / history',
+            'Progress',
             'Test User',
             'Settings',
             'Support',

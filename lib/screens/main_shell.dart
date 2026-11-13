@@ -257,7 +257,7 @@ class _MainShellState extends ConsumerState<MainShell> {
               ),
               AppMenuItem(
                 icon: Icons.history,
-                label: 'Progress / history',
+                label: 'Progress',
                 onTap: () => context.pushNamed('practice'),
               ),
             ],
