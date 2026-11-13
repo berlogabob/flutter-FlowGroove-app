@@ -88,6 +88,7 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
 
 class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   late SongLabEntry _entry;
+  String? _sessionSongTitle;
   late final TextEditingController _title;
 
   /// Saves the title whenever the field loses focus (tap outside, back).
@@ -329,9 +330,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (selection == null) return null;
     final (a, b) = selection;
     final regions = _entry.regions;
-    return a == b
-        ? _name(regions[a])
-        : '${_name(regions[a])} → ${_name(regions[b])}';
+    String label(int index) => regions[index].name.trim().isEmpty
+        ? 'Section ${index + 1}'
+        : regions[index].name;
+    return a == b ? label(a) : '${label(a)} → ${label(b)}';
   }
 
   /// Writes the current loop's practice to the log and starts a fresh one.
@@ -351,6 +353,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 endedAt: DateTime.now(),
                 startBpm: _entry.grid?.bpm.round() ?? 0,
                 songId: songId.isEmpty || songId == '_inbox' ? null : songId,
+                songTitle: _sessionSongTitle,
                 elapsedSeconds: _playedMs ~/ 1000,
                 regionName: _loopLabel() ?? 'Whole song',
                 loopReps: _reps,
@@ -1548,6 +1551,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final songs = ref.watch(
+      widget.bandId == null ? songsProvider : bandSongsProvider(widget.bandId!),
+    ).value;
+    final song = songs?.where((song) => song.id == _entry.songId).firstOrNull;
+    if (song != null && song.title.trim().isNotEmpty) {
+      _sessionSongTitle = song.title;
+    }
     final canEdit =
         !_busy &&
         !ref.watch(isDemoUserProvider) &&
