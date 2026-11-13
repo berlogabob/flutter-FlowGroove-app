@@ -152,19 +152,25 @@ class SongForm extends StatelessWidget {
       child: Column(
         children: [
           // Title field
-          TextFormField(
-            controller: titleController,
-            decoration: const InputDecoration(labelText: 'Title *'),
-            textInputAction: TextInputAction.next,
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Title required' : null,
+          Semantics(
+            label: 'Title, required',
+            child: TextFormField(
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Title *'),
+              textInputAction: TextInputAction.next,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Title required' : null,
+            ),
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
           // Artist field
-          TextFormField(
-            controller: artistController,
-            decoration: const InputDecoration(labelText: 'Artist'),
-            textInputAction: TextInputAction.done,
+          Semantics(
+            label: 'Artist',
+            child: TextFormField(
+              controller: artistController,
+              decoration: const InputDecoration(labelText: 'Artist'),
+              textInputAction: TextInputAction.done,
+            ),
           ),
           // Song search autocomplete: type to find an existing song and
           // autofill the form. Only shown when a handler is wired.
