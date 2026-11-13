@@ -204,7 +204,7 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
             options: const [
               ToolModeOption(
                 mode: TunerMode.listen,
-                label: 'Listen',
+                label: 'Listen mode',
                 icon: Icons.mic,
               ),
               ToolModeOption(
