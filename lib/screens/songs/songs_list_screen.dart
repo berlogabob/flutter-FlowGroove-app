@@ -933,8 +933,11 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
       onReorder: _handleReorder,
       onDelete: _deleteSongByIndex,
       onEdit: _navigateToEditByIndex,
-      additionalActionsBuilder: (index) =>
-          buildSongActions(songAdapters[index].song, bands: bands),
+      additionalActionsBuilder: (index) => buildSongActions(
+        songAdapters[index].song,
+        bands: bands,
+        onDelete: songAdapters[index].onDelete,
+      ),
     );
   }
 
