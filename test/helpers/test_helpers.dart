@@ -43,7 +43,7 @@ Future<void> pumpAndSettleUntil(
 Stream<T> createMockStream<T>(List<T> values, {Duration? delay}) async* {
   for (final value in values) {
     if (delay != null) {
-      await Future.delayed(delay);
+      await Future.delayed<void>(delay);
     }
     yield value;
   }
@@ -198,8 +198,8 @@ UserCredential createMockUserCredential({
 /// Mock navigator observer for testing navigation
 class MockNavigatorObserver extends NavigatorObserver {
   MockNavigatorObserver({this.onPush, this.onPop});
-  final Function(Route<dynamic>)? onPush;
-  final Function(Route<dynamic>)? onPop;
+  final void Function(Route<dynamic>)? onPush;
+  final void Function(Route<dynamic>)? onPop;
   final List<Route<dynamic>> pushedRoutes = [];
   final List<Route<dynamic>> poppedRoutes = [];
 
