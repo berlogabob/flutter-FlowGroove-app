@@ -579,17 +579,20 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: TextFormField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Setlist Name *',
-                            prefixIcon: Icon(Icons.queue_music),
+                        child: Semantics(
+                          label: 'Setlist Name, required',
+                          child: TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Setlist Name *',
+                              prefixIcon: Icon(Icons.queue_music),
+                            ),
+                            textInputAction: TextInputAction.next,
+                            onChanged: (_) => _markAsChanged(),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Required'
+                                : null,
                           ),
-                          textInputAction: TextInputAction.next,
-                          onChanged: (_) => _markAsChanged(),
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Required'
-                              : null,
                         ),
                       ),
                       IconButton(
