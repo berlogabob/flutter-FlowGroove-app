@@ -150,6 +150,7 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   List<UnifiedItemAction> buildSongActions(
     Song song, {
     required List<Band> bands,
+    VoidCallback? onDelete,
   }) {
     // ponytail: chosen action missing on this song (no sheet/Spotify/bands)
     // falls back to Practice rather than an empty slot.
@@ -182,6 +183,8 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               Icons.add_to_queue,
               () => unawaited(pickBandAndAdd(song, targetBands)),
             ),
+          if (onDelete != null)
+            ('Delete', Icons.delete_outline, onDelete),
           (
             'Quick action…',
             Icons.push_pin_outlined,
