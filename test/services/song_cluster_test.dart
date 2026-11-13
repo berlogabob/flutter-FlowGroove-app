@@ -37,7 +37,7 @@ void main() {
     test('chained pairs fold into one cluster (A-B, B-C → A,B,C)', () {
       final a = _song('a', year: 2022);
       final b = _song('b', year: 2023);
-      final c = _song('c', year: 2024);
+      final c = _song('c');
 
       final clusters = clusterCandidates([_pair(a, b), _pair(b, c)]);
 
@@ -70,7 +70,7 @@ void main() {
 
     test('keeper of many prefers canonical link, then oldest', () {
       final old = _song('old', year: 2020);
-      final linked = _song('linked', canonicalSongId: 'c1', year: 2024);
+      final linked = _song('linked', canonicalSongId: 'c1');
       expect(
         resolver.preferredKeeperOfMany([old, linked, _song('z')]).id,
         'linked',

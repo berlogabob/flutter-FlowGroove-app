@@ -1,9 +1,9 @@
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/screens/performance_sheet_screen.dart';
 import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Regression test for #96 ("freezing on performance sheet"). Two dispose-time
 /// bugs fired every time the sheet was closed, on any song:
@@ -46,10 +46,10 @@ void main() {
 
   testWidgets('empty state shows action buttons', (tester) async {
     await tester.pumpWidget(
-      ProviderScope(
+      const ProviderScope(
         child: MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(size: Size(400, 800)),
+            data: MediaQueryData(size: Size(400, 800)),
             child: PerformanceSheetScreen(title: 'Empty Song', sections: []),
           ),
         ),
@@ -74,10 +74,10 @@ void main() {
 
   testWidgets('import lyrics button opens import dialog', (tester) async {
     await tester.pumpWidget(
-      ProviderScope(
+      const ProviderScope(
         child: MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(size: Size(400, 800)),
+            data: MediaQueryData(size: Size(400, 800)),
             child: PerformanceSheetScreen(title: 'Empty Song', sections: []),
           ),
         ),

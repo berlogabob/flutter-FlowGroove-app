@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/services/audio/midi/drum_map.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('drum map', () {

@@ -15,15 +15,15 @@
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/screens/songs/components/bpm_selector.dart';
 import 'package:flowgroove/screens/songs/models/song_form_data.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The picker's modifier slot. Any value _parseKey produces must be in here or
 /// DropdownButton will assert at build time.
 const _pickerModifiers = ['', '#', 'b', 'm', '#m', 'bm'];
 const _pickerBases = ['', 'C', 'D', 'E', 'F', 'G', 'A', 'B'];
 
-final _epoch = DateTime.utc(2026, 1, 1);
+final _epoch = DateTime.utc(2026);
 
 SongFormData _formFor(String? originalKey, {String? ourKey}) {
   return SongFormData.fromSong(
@@ -218,4 +218,4 @@ void main() {
   });
 }
 
-void _noopKey(String _, String __) {}
+void _noopKey(String _, String _) {}

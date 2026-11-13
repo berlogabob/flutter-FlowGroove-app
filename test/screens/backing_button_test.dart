@@ -1,8 +1,8 @@
 import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/widgets/bottom_nav_or_action_bar.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 

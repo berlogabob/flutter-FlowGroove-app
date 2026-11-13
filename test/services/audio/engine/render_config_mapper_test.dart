@@ -1,9 +1,9 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/providers/metronome_runtime_providers.dart';
 import 'package:flowgroove/services/audio/engine/latency_calibration.dart';
 import 'package:flowgroove/services/audio/engine/render_config_mapper.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 MetronomePlaybackConfig _config({
   int bpm = 120,

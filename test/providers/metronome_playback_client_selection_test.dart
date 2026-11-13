@@ -1,6 +1,6 @@
+import 'package:flowgroove/providers/metronome_runtime_providers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/providers/metronome_runtime_providers.dart';
 
 void main() {
   group('useNativeAndroidPlayback', () {

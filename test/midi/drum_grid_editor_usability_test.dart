@@ -5,9 +5,9 @@ import 'package:flowgroove/providers/data/drum_practice_provider.dart';
 import 'package:flowgroove/screens/songs/components/drum_grid_editor.dart';
 import 'package:flowgroove/services/audio/midi/drum_map.dart';
 import 'package:flowgroove/services/audio/midi/drum_player.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 
@@ -134,9 +134,9 @@ void main() {
     await tester.ensureVisible(find.text('Play'));
     await tester.tap(find.text('Play'));
     await tester.pumpAndSettle();
-    final highlight = Theme.of(
-      tester.element(column(0)),
-    ).colorScheme.secondaryContainer;
+    final highlight = Theme.of(tester.element(column(0)))
+        .colorScheme
+        .secondaryContainer;
     expect(color(0), highlight);
     expect(color(4), isNull);
     player.steps.add(4);

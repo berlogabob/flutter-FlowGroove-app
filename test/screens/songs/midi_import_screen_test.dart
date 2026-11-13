@@ -1,8 +1,8 @@
 import 'package:flowgroove/models/midi_song.dart';
 import 'package:flowgroove/screens/songs/midi_import_screen.dart';
 import 'package:flowgroove/services/midi_song_import.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 const _preview = MidiImportPreview(
   data: MidiSongData(

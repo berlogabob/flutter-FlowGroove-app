@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('nextBoundaryFrame', () {
     int quantize({
-      Quantize mode = Quantize.bar,
       required int nowFrame,
+      Quantize mode = Quantize.bar,
       int leadFrames = 0,
       int epochFrame = 0,
     }) => nextBoundaryFrame(

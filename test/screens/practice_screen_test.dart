@@ -8,9 +8,9 @@ import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/screens/practice_screen.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:flowgroove/services/last_practice_context.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 import '../helpers/routed_test_harness.dart';

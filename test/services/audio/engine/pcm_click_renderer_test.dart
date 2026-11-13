@@ -1,7 +1,7 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/beat_mode.dart';
-import 'package:flowgroove/services/audio/engine/render_config.dart';
 import 'package:flowgroove/services/audio/engine/pcm_click_renderer.dart';
+import 'package:flowgroove/services/audio/engine/render_config.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 RenderConfig cfg({
   int bpm = 120,
@@ -22,7 +22,7 @@ RenderConfig cfg({
   accentFrequency: accentFrequency,
   beatFrequency: beatFrequency,
   accentBeatFrequency: accentBeatFrequency,
-  volume: 1.0,
+  volume: 1,
   countInBars: 0,
   latencyOffsetFrames: latency,
   waveType: wave,
@@ -30,7 +30,8 @@ RenderConfig cfg({
 
 // fraction of a click's samples driven to near full scale (|v| > 0.9)
 double fullScaleFraction(List<double> pcm) {
-  var loud = 0, total = 0;
+  var loud = 0;
+  var total = 0;
   for (final v in pcm) {
     if (v.abs() > 0.001) {
       total++;
@@ -52,7 +53,7 @@ void main() {
   const sr = 48000;
   test('frameForTick spaces ticks by exact sample interval', () {
     final r = PcmClickRenderer(sampleRate: sr);
-    final c = cfg(bpm: 120, sub: 1); // 0.5s per tick => 24000 frames
+    final c = cfg(); // 0.5s per tick => 24000 frames
     expect(r.frameForTick(c, 0), 0);
     expect(r.frameForTick(c, 1), 24000);
     expect(r.frameForTick(c, 2), 48000);
@@ -62,12 +63,12 @@ void main() {
     'subdivision 2 places a click at the exact half-beat frame, zero drift',
     () {
       final r = PcmClickRenderer(sampleRate: sr);
-      final c = cfg(bpm: 120, sub: 2); // 0.25s per tick => 12000 frames
+      final c = cfg(sub: 2); // 0.25s per tick => 12000 frames
       final pcm = r
           .renderChunk(config: c, startFrame: 0, frameCount: 48000)
           .toList();
       // clicks expected at frames 0, 12000, 24000, 36000 (+/- a couple frames of attack)
-      expect((firstOnset(pcm, 0)).abs() <= 5, isTrue);
+      expect(firstOnset(pcm, 0).abs() <= 5, isTrue);
       expect((firstOnset(pcm, 11990) - 12000).abs() <= 5, isTrue);
       expect((firstOnset(pcm, 23990) - 24000).abs() <= 5, isTrue);
       expect((firstOnset(pcm, 35990) - 36000).abs() <= 5, isTrue);
@@ -78,7 +79,7 @@ void main() {
     'latency offset shifts every click earlier by exactly latencyOffsetFrames',
     () {
       final r = PcmClickRenderer(sampleRate: sr);
-      final c = cfg(bpm: 120, sub: 1, latency: 480); // 10ms @48k
+      final c = cfg(latency: 480); // 10ms @48k
       final pcm = r
           .renderChunk(config: c, startFrame: 0, frameCount: 48000)
           .toList();
@@ -89,7 +90,7 @@ void main() {
 
   test('no accumulating drift: click at tick 100 lands at the exact frame', () {
     final r = PcmClickRenderer(sampleRate: sr);
-    final c = cfg(bpm: 120, sub: 1); // 24000 frames per tick
+    final c = cfg(); // 24000 frames per tick
     const tick = 100;
     final expected = r.frameForTick(c, tick); // 2,400,000
     // render a window around the far tick
@@ -154,28 +155,25 @@ void main() {
       [BeatMode.normal],
     ];
 
-    test(
-      'a marked-accent cell renders at the accent pitch, not the primary pitch',
-      () {
-        final r = PcmClickRenderer(sampleRate: sr);
-        final pcm = r
-            .renderChunk(
-              config: cfg(
-                accentFrequency: 1600,
-                beatFrequency: 800,
-                accentBeatFrequency: 2400,
-                beatModes: accentBeat,
-              ),
-              startFrame: 0,
-              frameCount: 2000,
-            )
-            .toList();
-        final pitch = estimatePitch(pcm, sr);
-        // The first click is a main beat marked as accent: it must sound at the
-        // accent pitch (2400), clearly nearer 2400 than the primary pitch (1600).
-        expect((pitch - 2400).abs() < (pitch - 1600).abs(), isTrue);
-      },
-    );
+    test('a marked-accent cell renders at the accent pitch, not the primary pitch', () {
+      final r = PcmClickRenderer(sampleRate: sr);
+      final pcm = r
+          .renderChunk(
+            config: cfg(
+              accentFrequency: 1600,
+              beatFrequency: 800,
+              accentBeatFrequency: 2400,
+              beatModes: accentBeat,
+            ),
+            startFrame: 0,
+            frameCount: 2000,
+          )
+          .toList();
+      final pitch = estimatePitch(pcm, sr);
+      // The first click is a main beat marked as accent: it must sound at the
+      // accent pitch (2400), clearly nearer 2400 than the primary pitch (1600).
+      expect((pitch - 2400).abs() < (pitch - 1600).abs(), isTrue);
+    });
 
     test('a normal main beat ignores the accent pitch entirely', () {
       final r = PcmClickRenderer(sampleRate: sr);
@@ -222,7 +220,8 @@ void main() {
 /// apart); not a precise frequency meter.
 double estimatePitch(List<double> pcm, int sampleRate) {
   var crossings = 0;
-  var first = -1, last = -1;
+  var first = -1;
+  var last = -1;
   var prev = 0.0;
   for (var i = 0; i < pcm.length; i++) {
     final v = pcm[i];
@@ -230,8 +229,9 @@ double estimatePitch(List<double> pcm, int sampleRate) {
       if (first < 0) first = i;
       last = i;
     }
-    if (prev != 0 && ((prev < 0 && v >= 0) || (prev > 0 && v <= 0)))
+    if (prev != 0 && ((prev < 0 && v >= 0) || (prev > 0 && v <= 0))) {
       crossings++;
+    }
     prev = v;
   }
   if (first < 0 || last <= first) return 0;

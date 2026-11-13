@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flowgroove/router/app_router.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockUser extends Mock implements User {}
@@ -93,7 +93,6 @@ void main() {
 
       final router = createAppRouter(
         authClient: auth,
-        enableAuthRedirect: true,
         initialLocation: '/join?code=ABC123',
         navigatorKey: GlobalKey<NavigatorState>(),
         routes: _routes(),
@@ -123,7 +122,6 @@ void main() {
 
       final router = createAppRouter(
         authClient: auth,
-        enableAuthRedirect: true,
         initialLocation: '/join?code=ABC123',
         navigatorKey: GlobalKey<NavigatorState>(),
         routes: _routes(),
@@ -153,7 +151,6 @@ void main() {
 
       final router = createAppRouter(
         authClient: auth,
-        enableAuthRedirect: true,
         initialLocation: '/join?code=ABC123',
         navigatorKey: GlobalKey<NavigatorState>(),
         routes: _routes(),

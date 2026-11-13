@@ -1,6 +1,7 @@
 import 'dart:typed_data';
-import 'package:flutter_test/flutter_test.dart';
+
 import 'package:flowgroove/services/audio/midi/smf_parser.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 Uint8List smf(List<int> track, {int ppq = 480}) {
   final b = <int>[
@@ -58,7 +59,7 @@ void main() {
   test('maxBars drops hits beyond the window', () {
     // second hit at tick 9600 = bar 6 (VLQ 0xCB 0x00); maxBars 4 drops it
     final t = [0, 0x99, 36, 100, 0xCB, 0x00, 0x99, 38, 100, 0, 0xFF, 0x2F, 0];
-    final p = parseDrumSmf(smf(t), maxBars: 4);
+    final p = parseDrumSmf(smf(t));
     expect(p.hits.length, 1);
     expect(p.bars, 1);
   });

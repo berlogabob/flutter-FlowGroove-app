@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/services/audio/audio_note_edit.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/song_lab.dart';
 
 const _rate = 8000; // small enough to keep fixtures readable
 const _bytesPerMs = _rate * 2 ~/ 1000; // mono 16-bit -> 16 bytes/ms
@@ -134,9 +134,8 @@ void main() {
     test('clamps a data size that overruns the buffer', () {
       final wav = _wav(50);
       // Claim twice as many sample bytes as are actually present.
-      ByteData.sublistView(
-        wav,
-      ).setUint32(40, 50 * _bytesPerMs * 2, Endian.little);
+      ByteData.sublistView(wav)
+          .setUint32(40, 50 * _bytesPerMs * 2, Endian.little);
       expect(parseWav(wav)!.length, 50 * _bytesPerMs);
     });
   });

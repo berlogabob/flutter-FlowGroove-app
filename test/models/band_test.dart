@@ -614,7 +614,7 @@ void main() {
         id: 'b1',
         name: 'The Band',
         createdBy: 'u1',
-        createdAt: DateTime.utc(2026, 1, 1),
+        createdAt: DateTime.utc(2026),
         photoURL: 'https://example.com/b1.jpg',
       );
       final json = band.toJson();

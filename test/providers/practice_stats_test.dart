@@ -27,7 +27,7 @@ void main() {
     test('buckets sessions per day, oldest→today', () {
       final stats = computePracticeStats([
         _s(DateTime(2026, 7, 15, 9), seconds: 300), // today → index 6
-        _s(DateTime(2026, 7, 14, 22), seconds: 600), // yesterday → index 5
+        _s(DateTime(2026, 7, 14, 22)), // yesterday → index 5
         _s(DateTime(2026, 7, 9, 8), seconds: 120), // 6 days ago → index 0
         _s(DateTime(2026, 7, 8, 8), seconds: 999), // 7 days ago → outside
       ], now);

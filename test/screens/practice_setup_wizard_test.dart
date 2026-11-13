@@ -1,8 +1,8 @@
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/screens/practice_setup_wizard.dart';
 import 'package:flowgroove/services/audio/audio_markers.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   PracticeSetupResult? result;

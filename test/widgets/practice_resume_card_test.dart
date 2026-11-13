@@ -1,9 +1,9 @@
 import 'package:flowgroove/services/last_practice_context.dart';
 import 'package:flowgroove/widgets/practice_resume_card.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 

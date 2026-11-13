@@ -1,18 +1,17 @@
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
-import 'package:flowgroove/providers/data/drum_active_provider.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/widgets/metronome/central_tempo_circle.dart';
-import 'package:flowgroove/widgets/metronome/tempo_control_cluster.dart';
 import 'package:flowgroove/widgets/metronome/song_library_block.dart';
+import 'package:flowgroove/widgets/metronome/tempo_control_cluster.dart';
 import 'package:flowgroove/widgets/metronome/time_signature_block.dart';
 import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
 import 'package:flowgroove/widgets/tools/tool_transport_bar.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 
 import '../helpers/metronome_test_runtime.dart';

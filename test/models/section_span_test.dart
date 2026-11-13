@@ -12,7 +12,7 @@ void main() {
     });
 
     test('fromJson handles missing fields with defaults', () {
-      final span = SectionSpan.fromJson(<String, dynamic>{});
+      final span = SectionSpan.fromJson(const <String, dynamic>{});
 
       expect(span.sectionId, equals(''));
       expect(span.startBar, equals(0));
@@ -20,8 +20,8 @@ void main() {
     });
 
     test('equal spans have equal hashCode', () {
-      final span1 = SectionSpan(sectionId: 'verse', startBar: 2, bars: 8);
-      final span2 = SectionSpan(sectionId: 'verse', startBar: 2, bars: 8);
+      const span1 = SectionSpan(sectionId: 'verse', startBar: 2, bars: 8);
+      const span2 = SectionSpan(sectionId: 'verse', startBar: 2, bars: 8);
 
       expect(span1, equals(span2));
       expect(span1.hashCode, equals(span2.hashCode));

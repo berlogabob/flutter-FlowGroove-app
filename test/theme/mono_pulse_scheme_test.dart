@@ -1,6 +1,6 @@
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   group('MonoPulse ColorScheme derived slots (#149 cyan regression)', () {
@@ -66,15 +66,12 @@ void main() {
   // (black) text and a black checkmark — the secondaryLabelStyle foreground
   // matches the filled-button on-accentOrange foreground.
   group('chipTheme selected state', () {
-    test(
-      'selectedColor is stone with charcoal label and no checkmark',
-      () {
-        final chip = MonoPulseTheme.theme.chipTheme;
-        expect(chip.selectedColor, MonoPulseColors.stone);
-        expect(chip.showCheckmark, isFalse);
-        expect(chip.secondaryLabelStyle, isNotNull);
-        expect(chip.secondaryLabelStyle!.color, MonoPulseColors.charcoal);
-      },
-    );
+    test('selectedColor is stone with charcoal label and no checkmark', () {
+      final chip = MonoPulseTheme.theme.chipTheme;
+      expect(chip.selectedColor, MonoPulseColors.stone);
+      expect(chip.showCheckmark, isFalse);
+      expect(chip.secondaryLabelStyle, isNotNull);
+      expect(chip.secondaryLabelStyle!.color, MonoPulseColors.charcoal);
+    });
   });
 }

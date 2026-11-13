@@ -45,7 +45,7 @@ void main() {
         breakType: 'guest_set',
         label: 'EUSTACE',
       );
-      expect(labelled.copyWith(breakLabel: null).breakLabel, 'EUSTACE');
+      expect(labelled.copyWith().breakLabel, 'EUSTACE');
       expect(labelled.copyWith(clearBreakLabel: true).breakLabel, isNull);
       // And the cleared label stays cleared through a save.
       final cleared = labelled.copyWith(clearBreakLabel: true);

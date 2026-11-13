@@ -18,8 +18,8 @@
 library;
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Initialize Firebase with mocks for integration tests
 /// Note: Firebase is initialized with test options, actual mocking is done

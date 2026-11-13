@@ -8,9 +8,9 @@ import 'package:flowgroove/providers/data/midi_song_practice_provider.dart';
 import 'package:flowgroove/services/audio/midi/midi_song_meta_builder.dart';
 import 'package:flowgroove/services/audio/midi/smf_song_parser.dart';
 import 'package:flowgroove/widgets/midi/midi_song_panel.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 Uint8List _smf(List<List<int>> tracks) => Uint8List.fromList([
   ...'MThd'.codeUnits,

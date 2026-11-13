@@ -1,6 +1,8 @@
 import 'dart:typed_data';
-import 'package:flutter_test/flutter_test.dart';
+
 import 'package:flowgroove/services/audio/engine/audio_sink.dart';
+import 'package:flutter_test/flutter_test.dart';
+
 import '../../../helpers/fake_audio_sink.dart';
 
 void main() {

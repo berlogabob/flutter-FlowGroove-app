@@ -1,7 +1,7 @@
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/tools/tool_mode_switcher.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 // Test enum for mode switcher
 enum TestMode { mode1, mode2, mode3 }

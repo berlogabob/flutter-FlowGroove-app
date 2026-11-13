@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/musicbrainz_recording.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/services/musicbrainz_service.dart';
 import 'package:flowgroove/services/song_suggestion_service.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 /// MusicBrainz stub returning a fixed recording list (no network).
 class _FakeMusicBrainz extends MusicBrainzService {

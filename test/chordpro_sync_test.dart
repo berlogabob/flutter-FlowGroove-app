@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/screens/songs/chordpro_sync_controller.dart';
 import 'package:flowgroove/utils/chordpro.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   Song blank() => Song(

@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/midi_pattern.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('pattern json round trip + totalSteps', () {
@@ -9,8 +9,8 @@ void main() {
       beatsPerBar: 4,
       stepsPerBeat: 4,
       hits: [
-        MidiHit(step: 0, note: 36, vel: 100),
-        MidiHit(step: 4, note: 38, vel: 90),
+        const MidiHit(step: 0, note: 36, vel: 100),
+        const MidiHit(step: 4, note: 38, vel: 90),
       ],
     );
     expect(p.totalSteps, 32);
@@ -26,7 +26,7 @@ void main() {
       bars: 2,
       beatsPerBar: 4,
       stepsPerBeat: 4,
-      hits: [MidiHit(step: 0, note: 36, vel: 100)],
+      hits: [const MidiHit(step: 0, note: 36, vel: 100)],
     );
     final q = p.withName('x');
     expect(q.name, 'x');

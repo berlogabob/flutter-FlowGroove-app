@@ -1,7 +1,7 @@
 import 'package:flowgroove/screens/settings/design_system_screen.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   testWidgets('shows brand tokens and instrument component patterns', (

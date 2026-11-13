@@ -1,18 +1,19 @@
 import 'dart:async';
 
 import 'package:flowgroove/models/band.dart';
-import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/models/instrument.dart';
 import 'package:flowgroove/models/tuner_preset.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/repositories/tuner_preset_repository.dart';
-import 'package:mockito/mockito.dart';
-import '../helpers/mocks.mocks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../helpers/mocks.mocks.dart';
 
 class _Identity extends AppUserNotifier {
   _Identity(this.initial);
@@ -359,38 +360,32 @@ void main() {
       },
     );
 
-    test(
-      'loaded personal preset cannot be deleted or overwritten by another owner',
-      () async {
-        repository.loaded = [
-          TunerPreset(
-            id: tuning.id,
-            name: tuning.name,
-            instrumentType: InstrumentType.custom,
-            tuningNotes: [],
-            scope: TunerPresetScope.account,
-            ownerId: 'other',
-            createdAt: DateTime(2026),
-            updatedAt: DateTime(2026),
-          ),
-        ];
-        await notifier.loadContextPresets();
-        await expectLater(
-          notifier.removeCustomTuning(tuning.id),
-          throwsStateError,
-        );
-        await expectLater(
-          notifier.addCustomTuning(tuning, scope: TunerPresetScope.account),
-          throwsStateError,
-        );
-        expect(repository.saved, isEmpty);
-        expect(repository.deleted, isEmpty);
-        expect(
-          container.read(tunerProvider).customTunings.single.id,
-          tuning.id,
-        );
-      },
-    );
+    test('loaded personal preset cannot be deleted or overwritten by another owner', () async {
+      repository.loaded = [
+        TunerPreset(
+          id: tuning.id,
+          name: tuning.name,
+          instrumentType: InstrumentType.custom,
+          tuningNotes: [],
+          scope: TunerPresetScope.account,
+          ownerId: 'other',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ];
+      await notifier.loadContextPresets();
+      await expectLater(
+        notifier.removeCustomTuning(tuning.id),
+        throwsStateError,
+      );
+      await expectLater(
+        notifier.addCustomTuning(tuning, scope: TunerPresetScope.account),
+        throwsStateError,
+      );
+      expect(repository.saved, isEmpty);
+      expect(repository.deleted, isEmpty);
+      expect(container.read(tunerProvider).customTunings.single.id, tuning.id);
+    });
 
     test('account change during save does not publish stale success', () async {
       repository.pending = Completer<void>();

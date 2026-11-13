@@ -4,9 +4,9 @@ import 'package:flowgroove/models/tuner_launch_context.dart';
 import 'package:flowgroove/models/tuner_preset.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/screens/tuner_screen.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../helpers/mocks.dart';
 

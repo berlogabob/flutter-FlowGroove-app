@@ -130,7 +130,7 @@ void main() {
       test('parses Firestore Timestamp createdAt without throwing', () {
         final json = {
           'uid': 'user-id-ts',
-          'createdAt': Timestamp.fromDate(DateTime(2026, 1, 1)),
+          'createdAt': Timestamp.fromDate(DateTime(2026)),
         };
 
         expect(() => AppUser.fromJson(json), returnsNormally);

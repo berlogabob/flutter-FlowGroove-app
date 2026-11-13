@@ -17,10 +17,10 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/setlists/event_share_screen.dart';
 import 'package:flowgroove/services/analytics_service.dart';
 import 'package:flowgroove/services/event_share_service.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 
 import '../../helpers/mocks.mocks.dart';
@@ -55,11 +55,11 @@ class FakeEventShareService implements EventShareService {
 
   @override
   Future<void> submitSuggestion({
+    required String type,
     String? token,
     String? bandId,
     String? ownerUid,
     String? setlistId,
-    required String type,
     String? songId,
     String? text,
     Map<String, dynamic>? proposal,
@@ -109,7 +109,6 @@ EventView _view({
       if (withChart) 'ourBPM': 96,
     },
   ],
-  people: const [],
   suggestionCandidates: candidates,
   runningOrderReady: ready,
   baseFingerprint: ready ? 'f' * 64 : null,
@@ -422,8 +421,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(fake.suggestions, isEmpty);
       expect(analyticsEvents, isEmpty);
-      if (action == 'failure')
+      if (action == 'failure') {
         expect(find.textContaining('Could not send that:'), findsOneWidget);
+      }
     });
   }
 
@@ -812,8 +812,9 @@ void main() {
           expect(fake.submissions, isEmpty);
           expect(analyticsEvents, isEmpty);
         }
-        if (outcome == 'failure')
+        if (outcome == 'failure') {
           expect(find.textContaining('Could not send that:'), findsOneWidget);
+        }
         expect(tester.takeException(), isNull);
       },
     );
@@ -878,12 +879,12 @@ void main() {
   ) async {
     await pump(
       tester,
-      EventView(
+      const EventView(
         setlistId: 'sl1',
         name: 'Gig',
-        access: const {EventArea.stage: EventAccessLevel.view},
+        access: {EventArea.stage: EventAccessLevel.view},
         canSuggest: false,
-        stage: const {
+        stage: {
           'back-left': [
             {'kind': 'equipment', 'label': 'Drum kit'},
           ],

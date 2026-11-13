@@ -3,9 +3,9 @@ import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/offline_indicator.dart';
 import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 const Size _testViewport = Size(1200, 800);
 

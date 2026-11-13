@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:flowgroove/services/audio/backing_engine.dart';
 import 'package:flowgroove/services/audio/backing_engine_factory.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeClock implements BackingClock {
@@ -89,17 +88,16 @@ void main() {
     addTearDown(subscription.cancel);
 
     await engine.command(
-      BackingCommand(
+      const BackingCommand(
         token: 1,
         kind: BackingKind.launch,
-        fromBar: 0,
         bars: 4,
         loop: false,
         atBar: 4,
       ),
     );
     await engine.command(
-      BackingCommand(
+      const BackingCommand(
         token: 2,
         kind: BackingKind.launch,
         fromBar: 4,

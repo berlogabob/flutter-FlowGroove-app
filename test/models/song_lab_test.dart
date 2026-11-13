@@ -15,7 +15,6 @@ void main() {
         status: 'active',
         tags: const ['arrangement'],
         authorId: 'u1',
-        visibility: 'band',
         createdAt: DateTime(2026, 7, 16, 12),
         updatedAt: DateTime(2026, 7, 16, 12),
         attachmentIds: const ['a1'],
@@ -52,14 +51,14 @@ void main() {
         title: 'Learn the solo',
         assignedToUserId: 'u2',
         status: SongTaskStatus.doing,
-        dueAt: DateTime(2026, 8, 1),
+        dueAt: DateTime(2026, 8),
         priority: 1,
         createdAt: DateTime(2026, 7, 16),
         updatedAt: DateTime(2026, 7, 16),
       );
       final back = SongTask.fromJson(task.toJson());
       expect(back.status, SongTaskStatus.doing);
-      expect(back.dueAt, DateTime(2026, 8, 1));
+      expect(back.dueAt, DateTime(2026, 8));
       expect(back.isOpen, isTrue);
       expect(back.copyWith(status: SongTaskStatus.done).isOpen, isFalse);
     });

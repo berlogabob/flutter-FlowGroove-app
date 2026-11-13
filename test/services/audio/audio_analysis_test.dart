@@ -1,21 +1,21 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/services/audio/audio_analysis.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 Int16List buildPCM() {
   const sampleRate = 22050;
   const duration = 20; // seconds
-  final samples = sampleRate * duration;
+  const samples = sampleRate * duration;
   final pcm = Int16List(samples);
   const bpm = 120.0;
   final intervalSamples = (sampleRate * 60.0 / bpm).round();
-  final startMs = 300;
-  final startSample = (startMs * sampleRate ~/ 1000);
+  const startMs = 300;
+  const startSample = startMs * sampleRate ~/ 1000;
   const burstMs = 10;
-  final burstSamples = (burstMs * sampleRate ~/ 1000);
+  const burstSamples = burstMs * sampleRate ~/ 1000;
 
   var i = 0;
   for (var t = startSample; t < samples - burstSamples; t += intervalSamples) {

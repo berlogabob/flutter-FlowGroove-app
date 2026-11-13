@@ -1,7 +1,7 @@
 import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/menu_items_scope.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Branch indices used by the shell: songs = 1, bands = 2.
 void main() {

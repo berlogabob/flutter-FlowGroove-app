@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/utils/member_label.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('memberLabel', () {
@@ -11,10 +11,7 @@ void main() {
     });
 
     test('returns email if displayName is null', () {
-      expect(
-        memberLabel(displayName: null, email: 'bob@example.com'),
-        equals('bob@example.com'),
-      );
+      expect(memberLabel(email: 'bob@example.com'), equals('bob@example.com'));
     });
 
     test('returns email if displayName is empty string', () {
@@ -32,10 +29,7 @@ void main() {
     });
 
     test('returns "Invited member" if both displayName and email are null', () {
-      expect(
-        memberLabel(displayName: null, email: null),
-        equals('Invited member'),
-      );
+      expect(memberLabel(), equals('Invited member'));
     });
 
     test(

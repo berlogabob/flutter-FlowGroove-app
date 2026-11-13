@@ -201,8 +201,8 @@ void main() {
           'id': 'test-id-ts',
           'title': 'Timestamp Song',
           'artist': 'Timestamp Artist',
-          'createdAt': Timestamp.fromDate(DateTime(2026, 1, 1)),
-          'updatedAt': Timestamp.fromDate(DateTime(2026, 1, 1)),
+          'createdAt': Timestamp.fromDate(DateTime(2026)),
+          'updatedAt': Timestamp.fromDate(DateTime(2026)),
         };
 
         expect(() => Song.fromJson(json), returnsNormally);
