@@ -19,7 +19,7 @@ class DetectionModeToggle extends ConsumerWidget {
     final notifier = ref.read(tunerProvider.notifier);
 
     return Container(
-      height: 40,
+      height: 56,
       padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       decoration: BoxDecoration(
         color: context.mp.surfaceRaised,
