@@ -40,7 +40,7 @@ class PracticeScreen extends ConsumerWidget {
       mainWidget: ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [
-          const PracticeResumeCard(),
+          const PracticeResumeCard(replaceRoute: true),
           FilledButton.icon(
             onPressed: () => context.pushNamed('metronome'),
             icon: const Icon(Icons.play_arrow),
