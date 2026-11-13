@@ -534,15 +534,21 @@ class _SuggestSheetState extends State<_SuggestSheet> {
                     ),
                   ),
               if (_kind == 'remove')
-                for (final (index, item) in _items.indexed)
-                  if (item['type'] == 'song')
-                    RadioListTile<String>(
-                      title: Text('${index + 1}. ${_titleFor(item)}'),
-                      value: item['id'] as String,
-                      groupValue: _selectedItemId,
-                      onChanged: (value) =>
-                          setState(() => _selectedItemId = value),
-                    ),
+                RadioGroup<String>(
+                  groupValue: _selectedItemId,
+                  onChanged: (value) =>
+                      setState(() => _selectedItemId = value),
+                  child: Column(
+                    children: [
+                      for (final (index, item) in _items.indexed)
+                        if (item['type'] == 'song')
+                          RadioListTile<String>(
+                            title: Text('${index + 1}. ${_titleFor(item)}'),
+                            value: item['id'] as String,
+                          ),
+                    ],
+                  ),
+                ),
               if (_kind == 'reorder')
                 ReorderableListView(
                   shrinkWrap: true,
