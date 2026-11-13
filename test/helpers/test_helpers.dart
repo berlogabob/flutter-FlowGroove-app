@@ -43,7 +43,7 @@ Future<void> pumpAndSettleUntil(
 Stream<T> createMockStream<T>(List<T> values, {Duration? delay}) async* {
   for (final value in values) {
     if (delay != null) {
-      await Future.delayed<void>(delay);
+      await Future<void>.delayed(delay);
     }
     yield value;
   }
