@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../models/song.dart';
 import '../../providers/auth/auth_provider.dart';
@@ -12,6 +13,7 @@ import '../../services/export/setlist_export_sheet.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
+import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/performance_sheet_view.dart';
 import '../../widgets/unified_item/song_card_actions.dart';
@@ -221,6 +223,38 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
         !ref.read(isDemoUserProvider);
   }
 
+  Future<void> _deleteSong(Song song) async {
+    if (!_canEditSongNow()) return;
+    final confirmed = await ConfirmationDialog.showDeleteDialog(
+      context,
+      title: 'Delete Song',
+      message: 'Are you sure you want to delete "${song.title}"?',
+    );
+    if (!confirmed || !mounted || !_canEditSongNow()) return;
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return;
+    try {
+      final repo = ref.read(songRepositoryProvider);
+      final bandId = widget.bandId;
+      if (bandId == null) {
+        await repo.deleteSong(song.id, uid: user.uid);
+      } else {
+        await repo.deleteBandSong(bandId, song.id);
+      }
+      if (!mounted) return;
+      if (context.canPop()) {
+        context.pop();
+      } else if (bandId == null) {
+        context.goNamed('songs');
+      } else {
+        context.goNamed('band-songs', pathParameters: {'id': bandId});
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, 'Delete failed: $e');
+    }
+  }
+
   List<AppMenuItem> _menuItems(Song song) {
     // Only bands the user can write to — viewers' bands would fail at save.
     final bands = editableBands(ref.watch(bandsProvider).value ?? const []);
@@ -252,6 +286,13 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
           icon: Icons.edit_note,
           label: 'Song editor',
           onTap: () => _openSongEditor(song),
+        ),
+      if (_canEditSong())
+        AppMenuItem(
+          icon: Icons.delete_outline,
+          label: 'Delete',
+          destructive: true,
+          onTap: () => _deleteSong(song),
         ),
       AppMenuItem(
         icon: Icons.picture_as_pdf_outlined,
