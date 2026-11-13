@@ -77,7 +77,7 @@ void main() {
         ).thenAnswer((_) => Stream.value(null));
 
         final authState = container.read(authStateProvider);
-        expect(authState, isA<AsyncValue>());
+        expect(authState, isA<AsyncValue<User?>>());
       });
 
       test('authStateProvider emits user when signed in', () async {
@@ -807,7 +807,7 @@ void main() {
 
         final authState = container.read(authStateProvider);
 
-        await Future.delayed(const Duration(milliseconds: 50));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
         expect(authState, isNotNull);
         verify(mockFirebaseAuth.authStateChanges()).called(1);
