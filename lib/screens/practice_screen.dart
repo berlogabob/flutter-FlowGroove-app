@@ -277,21 +277,25 @@ class PracticeScreen extends ConsumerWidget {
           : currentTitle ?? missingTitle;
       rows.add(
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(Icons.music_note, size: 16, color: context.mp.textSecondary),
             const SizedBox(width: MonoPulseSpacing.sm),
             Expanded(
               child: Text(
                 s.regionName == null ? song : '$song · ${s.regionName}',
-                overflow: TextOverflow.ellipsis,
               ),
             ),
-            Text(
-              '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'
-              '${s.loopReps > 0 ? ' · ${s.loopReps} loops' : ''}'
-              '${s.startBpm > 0 ? ' · ${s.startBpm} BPM' : ''}',
-              style: MonoPulseTypography.bodySmall.copyWith(
-                color: context.mp.textSecondary,
+            const SizedBox(width: MonoPulseSpacing.sm),
+            Expanded(
+              child: Text(
+                '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'
+                '${s.loopReps > 0 ? ' · ${s.loopReps} loops' : ''}'
+                '${s.startBpm > 0 ? ' · ${s.startBpm} BPM' : ''}',
+                textAlign: TextAlign.right,
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: context.mp.textSecondary,
+                ),
               ),
             ),
           ],
