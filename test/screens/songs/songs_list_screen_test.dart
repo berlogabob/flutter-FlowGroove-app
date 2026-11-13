@@ -147,7 +147,7 @@ void main() {
       // No top app bar; only the shell's Songs nav tab label names the
       // screen (root screens show no title anywhere else).
       expect(find.text('Songs'), findsOneWidget);
-      expect(find.text('Search songs...'), findsOneWidget);
+      expect(find.text('Search...'), findsOneWidget);
       expect(find.text('Filters:'), findsOneWidget);
       expect(find.byIcon(Icons.sort), findsOneWidget);
     });

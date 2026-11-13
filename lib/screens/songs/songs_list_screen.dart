@@ -731,7 +731,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
               Expanded(
                 child: UnifiedFilterSortWidget(
                   currentSort: state.sortOption,
-                  hintText: 'Search songs...',
+                  hintText: 'Search...',
                   onSortChanged: (option) {
                     if (option != null) {
                       ref
