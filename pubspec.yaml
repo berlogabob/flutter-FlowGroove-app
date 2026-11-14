@@ -51,7 +51,9 @@ dependencies:
 
   # Audio
   flutter_soloud: ^5.2.0
-  record: ^7.1.0
+  # Pinned: record 7.2.0 pulls record_android 2.3.0, which fails to compile in the release
+  # build (Unresolved reference AudioInterruptionPolicy). Re-test with an APK build before unpinning.
+  record: 7.1.2
   # Tuner: iOS measurement-mode session (disables voice processing during capture)
   audio_session: ^0.2.4
   just_audio: ^0.10.0
