@@ -7,14 +7,15 @@ import 'package:web/web.dart' as web;
 
 import 'backing_engine.dart';
 import 'backing_engine_factory.dart';
+import 'backing_engine_stub.dart' show StubBackingEngine;
 
 BackingEngine createBackingEngine({BackingWebHooks? hooks}) {
   final context = hooks?.context;
-  if (hooks == null || !context.isA<web.AudioContext>()) {
+  if (hooks == null || context is! web.AudioContext) {
     return StubBackingEngine();
   }
   return WebBackingEngine(
-    context: context.jsify()! as web.AudioContext,
+    context: context,
     barTimeSeconds: hooks.barTimeSeconds,
     bpm: hooks.bpm,
   );
