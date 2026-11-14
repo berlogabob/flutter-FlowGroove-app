@@ -17,7 +17,7 @@ Future<File?> _cachedAudioFile(
   String url,
   Future<Uint8List> Function(String) fetch,
 ) {
-  if (kIsWeb) return Future.value(null);
+  if (kIsWeb) return Future.value();
   final uri = Uri.parse(url);
   final marker = uri.path.indexOf('/o/');
   final object = marker < 0

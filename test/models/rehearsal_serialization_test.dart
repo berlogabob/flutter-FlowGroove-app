@@ -16,8 +16,8 @@ void main() {
           endTime: DateTime(2026, 7, 2, 21),
         ),
       ],
-      createdAt: DateTime(2026, 7, 1),
-      updatedAt: DateTime(2026, 7, 1),
+      createdAt: DateTime(2026, 7),
+      updatedAt: DateTime(2026, 7),
     );
 
     final json = rehearsal.toJson();
@@ -38,8 +38,8 @@ void main() {
       title: 'Rehearsal',
       responseDeadline: DateTime(2026, 7, 3, 18),
       venueType: Rehearsal.venueCustom,
-      createdAt: DateTime(2026, 7, 1),
-      updatedAt: DateTime(2026, 7, 1),
+      createdAt: DateTime(2026, 7),
+      updatedAt: DateTime(2026, 7),
     );
 
     final back = Rehearsal.fromJson(rehearsal.toJson());
@@ -53,8 +53,8 @@ void main() {
       bandId: 'b1',
       createdBy: 'u1',
       title: 'Rehearsal',
-      createdAt: DateTime(2026, 7, 1),
-      updatedAt: DateTime(2026, 7, 1),
+      createdAt: DateTime(2026, 7),
+      updatedAt: DateTime(2026, 7),
     );
 
     final json = rehearsal.toJson();
@@ -73,8 +73,8 @@ void main() {
       createdBy: 'u1',
       title: 'Rehearsal',
       location: 'Studio A',
-      createdAt: DateTime(2026, 7, 1),
-      updatedAt: DateTime(2026, 7, 1),
+      createdAt: DateTime(2026, 7),
+      updatedAt: DateTime(2026, 7),
     );
     expect(withLocation.effectiveVenueType, Rehearsal.venueCustom);
 

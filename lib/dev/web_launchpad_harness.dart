@@ -4,7 +4,7 @@
 // engine schedules stems against the click clock. Not part of the app.
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/section.dart';
@@ -104,10 +104,10 @@ void main() {
             child: LaunchpadView(
               entry: entry,
               sections: [
-                Section(id: 's1', name: 'Intro', duration: 1),
-                Section(id: 's2', name: 'Verse', duration: 1),
-                Section(id: 's3', name: 'Chorus', duration: 1),
-                Section(id: 's4', name: 'Outro', duration: 1),
+                Section(id: 's1', name: 'Intro'),
+                Section(id: 's2', name: 'Verse'),
+                Section(id: 's3', name: 'Chorus'),
+                Section(id: 's4', name: 'Outro'),
               ],
             ),
           ),

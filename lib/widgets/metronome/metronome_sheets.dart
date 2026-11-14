@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -162,7 +162,7 @@ class _SoundSheet extends ConsumerWidget {
           label: 'Subdivision volume',
           value: state.subdivisionGain.clamp(0.5, 2.0),
           min: 0.5,
-          max: 2.0,
+          max: 2,
           display: '${(state.subdivisionGain * 100).round()}%',
           onChanged: notifier.setSubdivisionGain,
         ),

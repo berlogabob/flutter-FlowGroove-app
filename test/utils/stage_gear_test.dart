@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/utils/stage_gear.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   const categories = {

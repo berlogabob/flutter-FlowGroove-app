@@ -1,5 +1,4 @@
-import '../../utils/event_share_url.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -15,6 +14,7 @@ import '../../providers/permissions_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../services/event_share_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/event_share_url.dart';
 import '../../utils/member_label.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
@@ -1101,7 +1101,7 @@ class _AccessPreview extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('They will see', style: MonoPulseTypography.labelSmall),
+          const Text('They will see', style: MonoPulseTypography.labelSmall),
           const SizedBox(height: 4),
           for (final area in granted)
             Text(
@@ -1111,7 +1111,7 @@ class _AccessPreview extends StatelessWidget {
               style: MonoPulseTypography.bodySmall,
             ),
           if (granted.isEmpty)
-            Text('Nothing yet.', style: MonoPulseTypography.bodySmall),
+            const Text('Nothing yet.', style: MonoPulseTypography.bodySmall),
           for (final area in hidden)
             Text(
               '\u2212 ${EventArea.label(area)}',
@@ -1230,7 +1230,7 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
             // made. Sharing a whole event with someone who only needs the
             // running order is both a leak and a support call ("I don't
             // understand this"), so the grant is never invisible.
-            Text(
+            const Text(
               'Access for this event',
               style: MonoPulseTypography.labelMedium,
             ),
@@ -1261,7 +1261,7 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
                   ),
                 ],
               ),
-            Text(
+            const Text(
               'Role changes reset custom access to the role defaults.',
               style: MonoPulseTypography.bodySmall,
             ),
@@ -1334,10 +1334,13 @@ class _ShareInventoryDialog extends StatefulWidget {
 
 class _ShareInventoryDialogState extends State<_ShareInventoryDialog> {
   final _shares = <EventShareSummary>[];
-  final _revoked = <String>{}, _revoking = <String>{};
+  final _revoked = <String>{};
+  final _revoking = <String>{};
   String? _cursor;
   String? _error;
-  bool _loading = true, _hasMore = false, _loadFailed = false;
+  bool _loading = true;
+  bool _hasMore = false;
+  bool _loadFailed = false;
 
   @override
   void initState() {
@@ -1462,7 +1465,6 @@ class _ShareInventoryDialogState extends State<_ShareInventoryDialog> {
                         ),
                       if (_hasMore)
                         Align(
-                          alignment: Alignment.center,
                           child: TextButton(
                             onPressed: _loading
                                 ? null

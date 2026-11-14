@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -344,8 +344,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     });
 
     final currentlySelected = [
-      for (final item in _selectedItems)
-        if (_songsById[item.songId] case final song?) song,
+      for (final item in _selectedItems) ?_songsById[item.songId],
     ];
 
     await showModalBottomSheet<void>(
@@ -437,11 +436,12 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       return;
     }
 
-    // _selectedItems is already the source of truth (kept in sync by
-    // reorder/add/remove below) — no need to reconcile against a resolved
-    // song list here. This is what makes the save round-trip unresolved
-    // ("unavailable song") entries unchanged instead of dropping them.
-    final items = List<SetlistItem>.from(_selectedItems);
+    final items = _selectedItems.map((item) {
+      final song = _songsById[item.songId];
+      return song == null
+          ? item
+          : item.copyWith(songTitle: song.title, songArtist: song.artist);
+    }).toList();
     final setlist = Setlist(
       id: _setlistId,
       bandId: bandId ?? '',
@@ -579,31 +579,37 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: TextFormField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Setlist Name *',
-                            prefixIcon: Icon(Icons.queue_music),
+                        child: Semantics(
+                          label: 'Setlist Name, required',
+                          child: TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Setlist Name *',
+                              prefixIcon: Icon(Icons.queue_music),
+                            ),
+                            textInputAction: TextInputAction.next,
+                            onChanged: (_) => _markAsChanged(),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Required'
+                                : null,
                           ),
-                          textInputAction: TextInputAction.next,
-                          onChanged: (_) => _markAsChanged(),
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Required'
-                              : null,
                         ),
                       ),
-                      IconButton(
-                        tooltip: _showEventDetails
-                            ? 'Hide event details'
-                            : 'Show event details',
-                        icon: Icon(
-                          _showEventDetails
-                              ? Icons.expand_less
-                              : Icons.expand_more,
-                          color: context.mp.textSecondary,
-                        ),
-                        onPressed: () => setState(
-                          () => _showEventDetails = !_showEventDetails,
+                      Semantics(
+                        expanded: _showEventDetails,
+                        child: IconButton(
+                          tooltip: _showEventDetails
+                              ? 'Hide event details'
+                              : 'Show event details',
+                          icon: Icon(
+                            _showEventDetails
+                                ? Icons.expand_less
+                                : Icons.expand_more,
+                            color: context.mp.textSecondary,
+                          ),
+                          onPressed: () => setState(
+                            () => _showEventDetails = !_showEventDetails,
+                          ),
                         ),
                       ),
                     ],
@@ -867,6 +873,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                             child: SetlistSongRow(
                               index: songNumber,
                               song: song,
+                              savedTitle: item.songTitle,
+                              savedArtist: item.songArtist,
                               // Assigned people are always materialised into the
                               // kit roster, so it alone resolves the labels.
                               performers: performerLabel(

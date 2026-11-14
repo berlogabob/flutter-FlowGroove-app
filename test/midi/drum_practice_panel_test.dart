@@ -10,17 +10,17 @@ import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/services/audio/midi/drum_map.dart';
 import 'package:flowgroove/services/audio/midi/drum_player.dart';
+import 'package:flowgroove/utils/snackbar.dart' show rootScaffoldMessengerKey;
 import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
 import 'package:flowgroove/widgets/midi/drum_kit_view.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 import '../helpers/mocks.mocks.dart';
-import 'package:flowgroove/utils/snackbar.dart' show rootScaffoldMessengerKey;
 
 class _Player implements DrumPlayer {
   @override
@@ -268,7 +268,11 @@ void main() {
     );
     expect(repo.watches, [('song-1', 'band-1')]);
     expect(
-      tester.widget<OutlinedButton>(find.widgetWithText(OutlinedButton, 'Import .mid')).onPressed,
+      tester
+          .widget<OutlinedButton>(
+            find.widgetWithText(OutlinedButton, 'Import .mid'),
+          )
+          .onPressed,
       isNull,
     );
     expect(find.text('Save to Song Lab'), findsNothing);

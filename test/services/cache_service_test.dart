@@ -30,7 +30,7 @@ void main() {
       expect(await Hive.boxExists('setlists_$testUid'), isFalse);
     });
 
-    test('clearAllUserCache leaves other users\' boxes alone', () async {
+    test("clearAllUserCache leaves other users' boxes alone", () async {
       final box = await Hive.openBox<dynamic>('songs_other-user');
       await box.put('data', ['keep']);
       await box.close();

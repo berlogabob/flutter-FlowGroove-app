@@ -216,11 +216,10 @@ class EventView {
 /// How a callable actually gets invoked. The one seam between these wrappers
 /// and Firebase, so a test can assert the name and the arguments a wrapper
 /// sends without standing up a mock of the whole Functions SDK.
-typedef CallableInvoker =
-    Future<Map<String, dynamic>> Function(
-      String name,
-      Map<String, dynamic> args,
-    );
+typedef CallableInvoker = Future<Map<String, dynamic>> Function(
+  String name,
+  Map<String, dynamic> args,
+);
 
 /// Metadata only: raw link tokens, account IDs and hashes are not retained.
 class EventShareSummary {
@@ -235,18 +234,18 @@ class EventShareSummary {
     required this.state,
   });
 
-  final String tokenId, participantId, name, role, state;
+  final String tokenId;
+  final String participantId;
+  final String name;
+  final String role;
+  final String state;
   final Map<String, String> access;
-  final DateTime? createdAt, expiresAt;
+  final DateTime? createdAt;
+  final DateTime? expiresAt;
 }
 
 class EventSharePage {
   const EventSharePage({required this.shares, required this.nextCursor});
-
-  final List<EventShareSummary> shares;
-  final String? nextCursor;
-  bool get hasMore => nextCursor != null;
-
   factory EventSharePage.fromMap(Map<String, dynamic> map) {
     Never invalid() => throw const FormatException('Invalid event share page');
     bool validId(Object? value) =>
@@ -256,11 +255,13 @@ class EventSharePage {
         !value.contains(RegExp(r'[\\/]'));
     DateTime? date(Object? value) {
       if (value == null) return null;
-      if (value is! String || !RegExp(r'^\d{4}-\d{2}-\d{2}T').hasMatch(value))
+      if (value is! String || !RegExp(r'^\d{4}-\d{2}-\d{2}T').hasMatch(value)) {
         invalid();
+      }
       final parsed = DateTime.tryParse(value);
-      if (parsed == null || parsed.toUtc().toIso8601String() != value)
+      if (parsed == null || parsed.toUtc().toIso8601String() != value) {
         invalid();
+      }
       return parsed;
     }
 
@@ -270,8 +271,9 @@ class EventSharePage {
     if (rows is! List ||
         rows.length > 50 ||
         more is! bool ||
-        (more ? !validId(cursor) || rows.isEmpty : cursor != null))
+        (more ? !validId(cursor) || rows.isEmpty : cursor != null)) {
       invalid();
+    }
     final seen = <String>{};
     final shares = <EventShareSummary>[];
     for (final row in rows) {
@@ -286,14 +288,16 @@ class EventSharePage {
             'revoked',
             'expired',
             'unavailable',
-          ].contains(row['state']))
+          ].contains(row['state'])) {
         invalid();
+      }
       final id = row['tokenId'] as String;
       if (!seen.add(id)) invalid();
       final access = row['access'] as Map;
       if (access.keys.any((k) => k is! String) ||
-          access.values.any((v) => v is! String))
+          access.values.any((v) => v is! String)) {
         invalid();
+      }
       shares.add(
         EventShareSummary(
           tokenId: id,
@@ -315,12 +319,14 @@ class EventSharePage {
       nextCursor: cursor as String?,
     );
   }
+
+  final List<EventShareSummary> shares;
+  final String? nextCursor;
+  bool get hasMore => nextCursor != null;
 }
 
 class EventShareService {
-  EventShareService({FirebaseFunctions? functions, CallableInvoker? invoker})
-    : _functions = functions,
-      _invoker = invoker;
+  EventShareService({this._functions, this._invoker});
 
   // Resolved on first use, not in the initializer: touching
   // FirebaseFunctions.instance needs an initialized Firebase app, which a unit
@@ -357,10 +363,10 @@ class EventShareService {
   /// The raw token is returned ONCE and never stored — only its hash is kept
   /// server-side, so this is the only moment the link can be captured.
   Future<String> createShare({
-    String? bandId,
-    String? ownerUid,
     required String setlistId,
     required String participantId,
+    String? bandId,
+    String? ownerUid,
   }) async {
     final out = await _call('createEventShare', {
       'bandId': bandId,
@@ -372,9 +378,9 @@ class EventShareService {
   }
 
   Future<EventSharePage> listShares({
+    required String setlistId,
     String? bandId,
     String? ownerUid,
-    required String setlistId,
     String? cursor,
   }) async {
     final out = await _call('listEventShares', {
@@ -432,11 +438,11 @@ class EventShareService {
   });
 
   Future<void> submitSuggestion({
+    required String type,
     String? token,
     String? bandId,
     String? ownerUid,
     String? setlistId,
-    required String type,
     String? songId,
     String? text,
     Map<String, dynamic>? proposal,
@@ -452,11 +458,11 @@ class EventShareService {
   });
 
   Future<void> resolveSuggestion({
-    String? bandId,
-    String? ownerUid,
     required String setlistId,
     required String suggestionId,
     required bool accept,
+    String? bandId,
+    String? ownerUid,
   }) => _call('resolveSuggestion', {
     'bandId': bandId,
     'ownerUid': ownerUid,

@@ -1,5 +1,5 @@
-import 'dart:typed_data';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flowgroove/services/audio/midi/drum_map.dart';
 import 'package:flowgroove/services/audio/midi/drum_samples.dart';

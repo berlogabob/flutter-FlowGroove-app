@@ -1,8 +1,8 @@
 import 'package:flowgroove/models/midi_pattern.dart';
 import 'package:flowgroove/services/audio/midi/drum_map.dart';
 import 'package:flowgroove/widgets/midi/drum_kit_view.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   final pattern = MidiPattern(
@@ -74,9 +74,8 @@ void main() {
       }
       expect(find.byKey(ValueKey('dot-$lane-16')), findsNothing);
     }
-    final colors = Theme.of(
-      tester.element(find.byType(DrumKitView)),
-    ).colorScheme;
+    final colors = Theme.of(tester.element(find.byType(DrumKitView)))
+        .colorScheme;
     expect(dot(tester, 'kick', 0).color, colors.onSurface);
     expect(dot(tester, 'kick', 1).color, colors.onSurface);
     expect(dot(tester, 'snare', 2).color, colors.onSurface);

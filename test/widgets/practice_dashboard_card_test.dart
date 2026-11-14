@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/widgets/practice_dashboard_card.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../helpers/routed_test_harness.dart';
 
@@ -39,9 +39,9 @@ void main() {
             .getSemantics(find.byType(PracticeDashboardCard))
             .getSemanticsData()
             .label;
-        expect(label, isNot(contains('Tap to start')));
+        expect(label, isNot(contains('View progress')));
         expect(label, contains('Start the metronome to log time'));
-        expect(find.text('Tap to start'), findsNothing);
+        expect(find.text('View progress'), findsNothing);
         expect(find.text('Start the metronome to log time'), findsOneWidget);
         await pump(tester, PracticeStats.empty);
         expect(
@@ -49,9 +49,9 @@ void main() {
               .getSemantics(find.byType(PracticeDashboardCard))
               .getSemanticsData()
               .label,
-          contains('Tap to start practicing'),
+          contains('View progress'),
         );
-        expect(find.text('Tap to start'), findsOneWidget);
+        expect(find.text('View progress'), findsOneWidget);
       } finally {
         semantics.dispose();
       }
@@ -200,10 +200,10 @@ void main() {
       expect(find.textContaining('3-day streak'), findsOneWidget);
     });
 
-    testWidgets('empty week shows the start nudge', (tester) async {
+    testWidgets('empty week links to progress', (tester) async {
       await pump(tester, PracticeStats.empty);
       expect(find.text('No practice yet'), findsOneWidget);
-      expect(find.text('Tap to start'), findsOneWidget);
+      expect(find.text('View progress'), findsOneWidget);
     });
   });
 }

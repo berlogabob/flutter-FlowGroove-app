@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -110,6 +110,7 @@ List<UnifiedItemAction> buildSetlistActions({
   required VoidCallback onCopyLinks,
   required VoidCallback onExportPdf,
   required VoidCallback onPickQuickAction,
+  String? setlistName,
 }) {
   VoidCallback handlerFor(String key) => switch (key) {
     'eventkit' => onEventKit,
@@ -130,11 +131,12 @@ List<UnifiedItemAction> buildSetlistActions({
   return [
     IconAction(
       icon: pinnedIcon,
-      tooltip: pinnedLabel,
+      tooltip: setlistName == null ? pinnedLabel : '$pinnedLabel: $setlistName',
       color: MonoPulseColors.accentOrange,
       onPressed: handlerFor(pinned),
     ),
     OverflowMenuAction(
+      tooltip: setlistName == null ? 'More' : 'More: $setlistName',
       entries: [
         if (canEdit) ('Edit setlist', Icons.edit_outlined, onEdit),
         if (canEdit) ('Event kit', Icons.theater_comedy_outlined, onEventKit),

@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -667,9 +667,10 @@ class _RecordingWavePainter extends CustomPainter {
 
 /// Minimal play/pause for a recording entry — capture, don't edit (#69).
 class LabAudioPlayer extends ConsumerStatefulWidget {
-  const LabAudioPlayer({required this.url, super.key});
+  const LabAudioPlayer({required this.url, this.recordingTitle, super.key});
 
   final String url;
+  final String? recordingTitle;
 
   @override
   ConsumerState<LabAudioPlayer> createState() => _LabAudioPlayerState();
@@ -723,7 +724,12 @@ class _LabAudioPlayerState extends ConsumerState<LabAudioPlayer> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              visualDensity: VisualDensity.compact,
+              visualDensity: widget.recordingTitle == null
+                  ? VisualDensity.compact
+                  : VisualDensity.standard,
+              tooltip: widget.recordingTitle == null
+                  ? null
+                  : '${playing && !done ? 'Pause' : 'Play'} ${widget.recordingTitle}',
               icon: Icon(
                 playing && !done ? Icons.pause_circle : Icons.play_circle,
                 color: MonoPulseColors.accentOrange,

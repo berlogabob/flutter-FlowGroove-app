@@ -23,13 +23,13 @@ void main() {
 
       // Collect tick times for ~10 seconds
       final completer = Completer<void>();
-      Stream.periodic(const Duration(milliseconds: 10)).listen((_) {
+      Stream<void>.periodic(const Duration(milliseconds: 10)).listen((_) {
         if (DateTime.now().difference(DateTime.now()).inSeconds >= 10) {
           completer.complete();
         }
       });
 
-      await Future.delayed(const Duration(seconds: 10));
+      await Future<void>.delayed(const Duration(seconds: 10));
       metronome.stop();
 
       // Verify the metronome was running
@@ -51,7 +51,7 @@ void main() {
       // This is a smoke test — the actual drift test is in scheduler_drift_test.dart
       final metronome = container.read(metronomeProvider.notifier);
       metronome.start();
-      await Future.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 2));
       metronome.stop();
 
       expect(runtime.playback.startCalls, 1);

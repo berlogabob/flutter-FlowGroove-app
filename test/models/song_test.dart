@@ -184,8 +184,8 @@ void main() {
           'id': 'test-id',
           'title': 'Test',
           'artist': 'Artist',
-          'links': [],
-          'tags': [],
+          'links': <Map<String, dynamic>>[],
+          'tags': <String>[],
           'createdAt': testDate.toIso8601String(),
           'updatedAt': testDate.toIso8601String(),
         };
@@ -201,8 +201,8 @@ void main() {
           'id': 'test-id-ts',
           'title': 'Timestamp Song',
           'artist': 'Timestamp Artist',
-          'createdAt': Timestamp.fromDate(DateTime(2026, 1, 1)),
-          'updatedAt': Timestamp.fromDate(DateTime(2026, 1, 1)),
+          'createdAt': Timestamp.fromDate(DateTime(2026)),
+          'updatedAt': Timestamp.fromDate(DateTime(2026)),
         };
 
         expect(() => Song.fromJson(json), returnsNormally);
@@ -270,7 +270,7 @@ void main() {
         expect(json['originalBPM'], 100);
         expect(json['ourKey'], 'A Major');
         expect(json['ourBPM'], 105);
-        expect(json['links'], isA<List>());
+        expect(json['links'], isA<List<dynamic>>());
         expect(json['links'].length, 2);
         expect(json['notes'], 'Serialization test notes');
         expect(json['tags'], equals(testTags));
@@ -298,10 +298,10 @@ void main() {
         expect(json['originalBPM'], isNull);
         expect(json['ourKey'], isNull);
         expect(json['ourBPM'], isNull);
-        expect(json['links'], isA<List>());
+        expect(json['links'], isA<List<dynamic>>());
         expect(json['links'].length, 0);
         expect(json['notes'], isNull);
-        expect(json['tags'], isA<List>());
+        expect(json['tags'], isA<List<dynamic>>());
         expect(json['tags'].length, 0);
         expect(json['bandId'], isNull);
         expect(json['spotifyUrl'], isNull);

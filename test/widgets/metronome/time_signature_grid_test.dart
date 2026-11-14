@@ -15,9 +15,9 @@
 import 'package:flowgroove/models/metronome_state.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/widgets/metronome/time_signature_block.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 class TestMetronomeNotifier extends MetronomeNotifier {
   TestMetronomeNotifier(this.initialState);
@@ -133,8 +133,8 @@ void main() {
 
       expect(
         beat.width,
-        lessThan(48),
-        reason: 'guard is pointless if the clamp still applies at this width',
+        greaterThanOrEqualTo(48),
+        reason: 'beat targets must be at least 48dp wide',
       );
       expect(sub.width, beat.width);
       expect(

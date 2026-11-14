@@ -210,7 +210,7 @@ void main() {
           'updatedAt': testDate.toIso8601String(),
           'accentBeats': 4,
           'regularBeats': 2,
-          'beatModes': [],
+          'beatModes': <dynamic>[],
         };
 
         final song = Song.fromJson(json);
@@ -242,7 +242,7 @@ void main() {
 
         expect(json['accentBeats'], 4);
         expect(json['regularBeats'], 2);
-        expect(json['beatModes'], isA<Map>());
+        expect(json['beatModes'], isA<Map<dynamic, dynamic>>());
         expect(json['beatModes']['0-0'], 'accent');
         expect(json['beatModes']['0-1'], 'normal');
         expect(json['beatModes']['1-0'], 'silent');
@@ -262,8 +262,8 @@ void main() {
 
         expect(json['accentBeats'], 4);
         expect(json['regularBeats'], 1);
-        expect(json['beatModes'], isA<Map>());
-        expect((json['beatModes'] as Map).isEmpty, isTrue);
+        expect(json['beatModes'], isA<Map<dynamic, dynamic>>());
+        expect((json['beatModes'] as Map<dynamic, dynamic>).isEmpty, isTrue);
       });
 
       test('toJson and fromJson are inverses for metronome settings', () {
@@ -608,7 +608,7 @@ void main() {
           'originalBPM': 120,
           'ourKey': 'D',
           'ourBPM': 130,
-          'links': [],
+          'links': <dynamic>[],
           'tags': ['rock'],
           'createdAt': testDate.toIso8601String(),
           'updatedAt': testDate.toIso8601String(),
@@ -647,8 +647,8 @@ void main() {
 
         expect(json['accentBeats'], 5);
         expect(json['regularBeats'], 3);
-        expect(json['beatModes'], isA<Map>());
-        expect((json['beatModes'] as Map).length, 15); // 5 rows x 3 cols
+        expect(json['beatModes'], isA<Map<dynamic, dynamic>>());
+        expect((json['beatModes'] as Map<dynamic, dynamic>).length, 15); // 5 rows x 3 cols
         expect(json['beatModes']['0-0'], 'accent');
         expect(json['beatModes']['4-1'], 'silent');
       });

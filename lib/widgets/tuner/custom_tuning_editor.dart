@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../models/instrument.dart';
 import '../../models/tuner_preset.dart';
 import '../../providers/auth/auth_provider.dart';
@@ -275,8 +276,9 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
     final value = user.value;
     if (value == null || value.accessRole == 'demo') return scopes;
     try {
-      if (ref.read(firebaseAuthProvider).currentUser?.uid != value.uid)
+      if (ref.read(firebaseAuthProvider).currentUser?.uid != value.uid) {
         return scopes;
+      }
     } catch (_) {
       return scopes;
     }
@@ -345,9 +347,7 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
       setState(() => _isSaving = false);
       showAppSnackBar(
         context,
-        scope == TunerPresetScope.local
-            ? 'The preset could not be saved.'
-            : 'Sign in and check your band permissions before syncing this preset.',
+        scope == TunerPresetScope.local ? 'The preset could not be saved.' : 'Sign in and check your band permissions before syncing this preset.',
       );
     }
   }

@@ -5,9 +5,9 @@ import 'package:flowgroove/providers/song_form_provider.dart';
 import 'package:flowgroove/screens/songs/add_song_screen.dart';
 import 'package:flowgroove/screens/songs/models/song_form_data.dart';
 import 'package:flowgroove/widgets/menu_items_scope.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../helpers/mocks.dart';
 import '../../helpers/mocks.mocks.dart';
@@ -372,8 +372,10 @@ void main() {
       await tester.tap(find.text('Key & BPM'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Original'), findsOneWidget);
-      expect(find.text('Our'), findsOneWidget);
+      expect(find.text('Original version'), findsOneWidget);
+      expect(find.text('Our version'), findsOneWidget);
+      expect(find.text('Root'), findsNWidgets(2));
+      expect(find.text('Accidental / quality'), findsNWidgets(2));
     });
 
     testWidgets('displays links section', (tester) async {

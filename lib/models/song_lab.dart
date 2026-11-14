@@ -50,8 +50,7 @@ enum SongTaskStatus {
 
 DateTime _parseDate(dynamic v) =>
     v is String ? (DateTime.tryParse(v) ?? DateTime.now()) : DateTime.now();
-DateTime? _parseDateOrNull(dynamic v) =>
-    v is String ? DateTime.tryParse(v) : null;
+DateTime? _parseDateOrNull(dynamic v) => v is String ? DateTime.tryParse(v) : null;
 
 MidiSongMeta? _parseMidiSong(Object? v) {
   if (v is! Map<String, dynamic>) return null;

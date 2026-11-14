@@ -35,18 +35,13 @@ class ChordProSyncMeta {
 class ChordProSyncController extends ChangeNotifier {
   ChordProSyncController({
     required List<Section> sections,
-    String? title,
-    String? artist,
-    String? ourKey,
-    int? ourBpm,
-    int? timeTop,
+    this._title,
+    this._artist,
+    this._ourKey,
+    this._ourBpm,
+    this._timeTop,
     this.debounce = const Duration(milliseconds: 400),
-  }) : _sections = List.of(sections),
-       _title = title,
-       _artist = artist,
-       _ourKey = ourKey,
-       _ourBpm = ourBpm,
-       _timeTop = timeTop {
+  }) : _sections = List.of(sections) {
     _text = _render();
   }
 

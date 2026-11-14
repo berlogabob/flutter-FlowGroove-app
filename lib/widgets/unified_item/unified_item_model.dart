@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Base interface for all unified items (Song, Band, Setlist)
 abstract class UnifiedItemModel {
@@ -56,17 +56,19 @@ class IconAction implements UnifiedItemAction {
     required this.tooltip,
     required this.onPressed,
     this.color,
+    this.semanticLabel,
   });
 
   final IconData icon;
   final String tooltip;
   final VoidCallback onPressed;
   final Color? color;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(icon, size: 20, color: color),
+      icon: Icon(icon, size: 20, color: color, semanticLabel: semanticLabel),
       onPressed: onPressed,
       tooltip: tooltip,
     );
@@ -75,15 +77,17 @@ class IconAction implements UnifiedItemAction {
 
 /// 3-dots overflow menu of (label, icon, callback) entries.
 class OverflowMenuAction implements UnifiedItemAction {
-  OverflowMenuAction({required this.entries});
+  OverflowMenuAction({required this.entries, this.semanticLabel, this.tooltip = 'More'});
 
   final List<(String, IconData, VoidCallback)> entries;
+  final String? semanticLabel;
+  final String tooltip;
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<int>(
-      icon: const Icon(Icons.more_vert, size: 20),
-      tooltip: 'More',
+      icon: Icon(Icons.more_vert, size: 20, semanticLabel: semanticLabel),
+      tooltip: tooltip,
       onSelected: (i) => entries[i].$3(),
       itemBuilder: (context) => [
         for (var i = 0; i < entries.length; i++)

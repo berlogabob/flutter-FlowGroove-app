@@ -1,6 +1,6 @@
+import 'package:flowgroove/services/audio/engine/latency_calibration.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flowgroove/services/audio/engine/latency_calibration.dart';
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));

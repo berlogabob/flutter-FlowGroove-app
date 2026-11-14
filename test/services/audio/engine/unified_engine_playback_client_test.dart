@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flowgroove/providers/metronome_runtime_providers.dart'
     show MetronomePlaybackClient;
 import 'package:flowgroove/services/audio/engine/unified_engine_playback_client.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

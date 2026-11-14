@@ -2,7 +2,7 @@
 """adb capture helpers: cap(name) -> screenshot + hierarchy json; nodes(); tap(x,y)."""
 import subprocess, re, json, sys, os, time, html
 ADB=os.path.expanduser("~/Library/Android/sdk/platform-tools/adb"); S="XPH0219904001750"
-RUN=open("/private/tmp/claude-501/sp/rundir").read().strip()
+RUN=os.environ.get("AUDIT_RUN") or open("/private/tmp/claude-501/sp/rundir").read().strip()
 BASE="/Users/berloga/Documents/GitHub/flutter_repsync_app/"
 def adb(*a, **k): return subprocess.run([ADB,"-s",S,*a],capture_output=True,**k)
 def dump():
@@ -27,8 +27,8 @@ def nodes(x=None):
 def shot(path): open(path,"wb").write(adb("exec-out","screencap","-p").stdout)
 def cap(name):
     x=dump(); ns=nodes(x)
-    shot(BASE+RUN+f"/screens/{name}.png")
-    json.dump([dict(accessibilityText=n["label"],bounds=f"[{n['bounds'][0]},{n['bounds'][1]}][{n['bounds'][2]},{n['bounds'][3]}]",clickable=n["clickable"]) for n in ns],open(BASE+RUN+f"/hierarchy/{name}.json","w"),ensure_ascii=False)
+    shot(os.path.join(BASE,RUN,f"screens/{name}.png"))
+    json.dump([dict(accessibilityText=n["label"],bounds=f"[{n['bounds'][0]},{n['bounds'][1]}][{n['bounds'][2]},{n['bounds'][3]}]",clickable=n["clickable"]) for n in ns],open(os.path.join(BASE,RUN,f"hierarchy/{name}.json"),"w"),ensure_ascii=False)
     return ns
 def tap(x,y): adb("shell","input","tap",str(x),str(y)); time.sleep(1.8)
 def center(n): b=n["bounds"]; return (b[0]+b[2])//2,(b[1]+b[3])//2

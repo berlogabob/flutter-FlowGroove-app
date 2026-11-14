@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -40,7 +40,7 @@ class PracticeScreen extends ConsumerWidget {
       mainWidget: ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [
-          const PracticeResumeCard(),
+          const PracticeResumeCard(replaceRoute: true),
           FilledButton.icon(
             onPressed: () => context.pushNamed('metronome'),
             icon: const Icon(Icons.play_arrow),
@@ -85,7 +85,7 @@ class PracticeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
           _sectionTitle(context, 'Tools'),
-          Row(
+          Column(
             children: [
               _quickStartButton(
                 context,
@@ -93,14 +93,14 @@ class PracticeScreen extends ConsumerWidget {
                 label: 'Metronome',
                 route: 'metronome',
               ),
-              const SizedBox(width: MonoPulseSpacing.md),
+              const SizedBox(height: MonoPulseSpacing.sm),
               _quickStartButton(
                 context,
                 icon: Icons.tune,
                 label: 'Tuner',
                 route: 'tuner',
               ),
-              const SizedBox(width: MonoPulseSpacing.md),
+              const SizedBox(height: MonoPulseSpacing.sm),
               _quickStartButton(
                 context,
                 icon: Icons.mic,
@@ -144,14 +144,13 @@ class PracticeScreen extends ConsumerWidget {
     );
   }
 
-  /// One-line quick-start button: FittedBox scales the label down instead
-  /// of letting "Metronome"/"Recorder" wrap to two lines at phone width.
   Widget _quickStartButton(
     BuildContext context, {
     required IconData icon,
     required String label,
     required String route,
-  }) => Expanded(
+  }) => SizedBox(
+    width: double.infinity,
     // Dark surface + orange, matching the Home tool tiles, instead of the
     // Material tonal grey pill (secondaryContainer). F-005.
     child: FilledButton.icon(
@@ -162,10 +161,7 @@ class PracticeScreen extends ConsumerWidget {
         side: BorderSide(color: context.mp.borderDefault),
       ),
       icon: Icon(icon),
-      label: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(label, maxLines: 1, style: MonoPulseTypography.bodySmall),
-      ),
+      label: Text(label, style: MonoPulseTypography.bodySmall),
     ),
   );
 
@@ -266,26 +262,36 @@ class PracticeScreen extends ConsumerWidget {
           ),
         );
       }
+      final snapshot = s.songTitle?.trim();
+      final currentTitle = titles[s.songId];
       final song = s.songId == null
           ? 'Freestyle'
-          : titles[s.songId] ?? missingTitle;
+          : snapshot != null && snapshot.isNotEmpty
+          ? currentTitle == null
+                ? '$snapshot · $missingTitle'
+                : snapshot
+          : currentTitle ?? missingTitle;
       rows.add(
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(Icons.music_note, size: 16, color: context.mp.textSecondary),
             const SizedBox(width: MonoPulseSpacing.sm),
             Expanded(
               child: Text(
                 s.regionName == null ? song : '$song · ${s.regionName}',
-                overflow: TextOverflow.ellipsis,
               ),
             ),
-            Text(
-              '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'
-              '${s.loopReps > 0 ? ' · ${s.loopReps} loops' : ''}'
-              '${s.startBpm > 0 ? ' · ${s.startBpm} BPM' : ''}',
-              style: MonoPulseTypography.bodySmall.copyWith(
-                color: context.mp.textSecondary,
+            const SizedBox(width: MonoPulseSpacing.sm),
+            Expanded(
+              child: Text(
+                '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'
+                '${s.loopReps > 0 ? ' · ${s.loopReps} loops' : ''}'
+                '${s.startBpm > 0 ? ' · ${s.startBpm} BPM' : ''}',
+                textAlign: TextAlign.right,
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: context.mp.textSecondary,
+                ),
               ),
             ),
           ],

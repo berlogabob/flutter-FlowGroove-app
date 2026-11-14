@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../../models/beat_mode.dart';
 import '../../../theme/mono_pulse_theme.dart';
 
@@ -297,7 +297,12 @@ class MetronomePatternEditor extends StatelessWidget {
               children: List.generate(
                 regularBeats,
                 (subIndex) => Expanded(
-                  child: _buildBeatModeButton(context, beatIndex, subIndex),
+                  child: Center(
+                    child: SizedBox(
+                      width: 48,
+                      child: _buildBeatModeButton(context, beatIndex, subIndex),
+                    ),
+                  ),
                 ),
               ),
             ),

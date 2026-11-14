@@ -1,12 +1,11 @@
 import 'dart:async';
 
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-
-import 'package:cloud_functions/cloud_functions.dart';
 
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
@@ -160,7 +159,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (bandId.isEmpty) {
         await context.pushNamed(
           'event-share',
-          queryParameters: {'ownerUid': ownerUid!, 'setlistId': setlistId},
+          queryParameters: {'ownerUid': ownerUid, 'setlistId': setlistId},
         );
         return;
       }
@@ -173,8 +172,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       showAppSnackBar(context, switch (e.code) {
         'permission-denied' =>
           'That link has already been used, or is no longer valid.',
-        'failed-precondition' =>
-          'The demo account cannot join an event. Sign in with your own account.',
+        'failed-precondition' => 'The demo account cannot join an event. Sign in with your own account.',
         _ => 'Could not open that event: ${e.message ?? e.code}',
       });
       context.go('/main/home');
@@ -335,17 +333,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 48),
               Text(
                 'FlowGroove',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: Theme.of(context).textTheme.headlineMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 'Sign in to manage your band',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: context.mp.textSecondary,
-                ),
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(color: context.mp.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -456,9 +452,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 16),
               Text(
                 'Just looking around?',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: context.mp.textSecondary,
-                ),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: context.mp.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
@@ -475,10 +470,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 8),
               Text(
                 'Read-only access to explore all features',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: context.mp.textTertiary,
-                  fontSize: 11,
-                ),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: context.mp.textTertiary, fontSize: 11),
                 textAlign: TextAlign.center,
               ),
             ],

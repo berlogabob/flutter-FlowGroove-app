@@ -16,9 +16,9 @@ import 'package:flowgroove/models/metronome_state.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/time_signature.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
@@ -788,7 +788,7 @@ void main() {
           'accentPattern': [true, false, false, false],
           'accentBeats': 4,
           'regularBeats': 1,
-          'beatModes': [],
+          'beatModes': <dynamic>[],
         };
 
         // Act: Deserialize from JSON

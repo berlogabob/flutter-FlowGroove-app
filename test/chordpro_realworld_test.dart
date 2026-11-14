@@ -1,13 +1,13 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/utils/chordpro.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 /// A real-world ChordPro chart (as a musician would paste it): plain `: Label`
 /// section headers, a `{comment: Intro}` header with chords before the first
 /// block, repeated choruses, and a slash-named final section. Guards that
 /// [chordProToSong] syncs the header metadata AND the full section/song-map
 /// structure — not just FlowGroove's own `songToChordPro` output.
-const _backToBlack = r'''
+const _backToBlack = '''
 {title: Back to Black}
 {artist: Amy Winehouse}
 {key: Dm}

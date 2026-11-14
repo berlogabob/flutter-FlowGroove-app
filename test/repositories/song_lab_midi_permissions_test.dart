@@ -6,10 +6,10 @@ import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/screens/songs/midi_import_screen.dart';
 import 'package:flowgroove/screens/songs/song_lab_screen.dart';
 import 'package:flowgroove/services/audio/audio_file_cache.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 final _permissionProvider = NotifierProvider<_Permission, bool>(
   _Permission.new,

@@ -23,7 +23,7 @@ import 'analytics_events.dart';
 /// All events are logged to Firebase Analytics with consistent parameter naming.
 class AnalyticsService {
   static final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
-  static final bool _debugMode = kDebugMode;
+  static const bool _debugMode = kDebugMode;
 
   /// Whether analytics events are allowed to leave the device. Wired from
   /// `analyticsConsentProvider` at startup and on toggle (mirrors how

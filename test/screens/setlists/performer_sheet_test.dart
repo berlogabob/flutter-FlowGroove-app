@@ -1,8 +1,8 @@
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/event_kit.dart';
 import 'package:flowgroove/screens/setlists/performer_sheet.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Opens the sheet and returns whatever it pops.
 Future<PerformerSheetResult?> _open(

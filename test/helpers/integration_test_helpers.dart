@@ -21,8 +21,8 @@ library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -104,15 +104,13 @@ class AuthIntegrationFixture {
   }
 
   void setupPasswordReset() {
-    when(
-      mockAuth.sendPasswordResetEmail(email: anyNamed('email')),
-    ).thenAnswer((_) async => {});
+    when(mockAuth.sendPasswordResetEmail(email: anyNamed('email')))
+        .thenAnswer((_) async => {});
   }
 
   void setupAuthStateChanges() {
-    when(
-      mockAuth.authStateChanges(),
-    ).thenAnswer((_) => Stream<User?>.value(mockUser));
+    when(mockAuth.authStateChanges())
+        .thenAnswer((_) => Stream<User?>.value(mockUser));
   }
 
   void setupFailedSignUp(String errorCode, String message) {

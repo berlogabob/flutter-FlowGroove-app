@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import '../../../../../models/section.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
+import '../../../../../utils/snackbar.dart' show showGlobalSnackBar;
 import '../core/theme/app_colors.dart';
 import '../core/theme/section_color_manager.dart';
 import 'color_picker_dialog.dart';
-import '../../../../../utils/snackbar.dart' show showGlobalSnackBar;
 
 /// Bottom sheet dialog for selecting or creating a section with 2 tabs:
 /// - Parts: Section type matrix
@@ -71,9 +72,8 @@ class _SectionPickerState extends State<SectionPicker>
             ),
             const SizedBox(height: 20),
             Divider(
-              color: Theme.of(
-                context,
-              ).colorScheme.outline.withValues(alpha: 0.3),
+              color: Theme.of(context).colorScheme.outline
+                  .withValues(alpha: 0.3),
               thickness: 1.5,
             ),
             const SizedBox(height: 16),

@@ -4,24 +4,24 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flowgroove/models/audio_region.dart';
-import 'package:flowgroove/models/song_lab.dart';
-import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/models/metronome_session.dart';
+import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/providers/data/backing_transport_provider.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
-import 'package:flowgroove/services/audio/audio_file_cache.dart';
-import 'package:flowgroove/services/audio/backing_engine.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
-import 'package:flowgroove/repositories/metronome_session_repository.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
+import 'package:flowgroove/repositories/metronome_session_repository.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
+import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
+import 'package:flowgroove/services/audio/backing_engine.dart';
 import 'package:flowgroove/services/audio/song_peaks.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/mocks.mocks.dart';
@@ -572,8 +572,11 @@ void main() {
 
   testWidgets('empty practice offers section setup to editors', (tester) async {
     final previousDecode = PracticeRegionsScreen.decodePcm;
-    PracticeRegionsScreen.decodePcm =
-        (bytes, {required sampleRate, required durationMs}) async => null;
+    PracticeRegionsScreen.decodePcm = (
+      bytes, {
+      required sampleRate,
+      required durationMs,
+    }) async => null;
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry(regions: const []));
     expect(find.text('No sections yet'), findsOneWidget);
@@ -588,8 +591,11 @@ void main() {
       PracticeRegionsScreen.autoOpenSetup = true;
       _FakeAudioPlayer.sourceDuration = const Duration(seconds: 60);
       final previousDecode = PracticeRegionsScreen.decodePcm;
-      PracticeRegionsScreen.decodePcm =
-          (bytes, {required sampleRate, required durationMs}) async => null;
+      PracticeRegionsScreen.decodePcm = (
+        bytes, {
+        required sampleRate,
+        required durationMs,
+      }) async => null;
       addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
       await pump(tester, _entry(regions: const []));
       expect(find.text('Set up for practice'), findsOneWidget);
@@ -634,8 +640,11 @@ void main() {
     tester,
   ) async {
     final previousDecode = PracticeRegionsScreen.decodePcm;
-    PracticeRegionsScreen.decodePcm =
-        (bytes, {required sampleRate, required durationMs}) async => null;
+    PracticeRegionsScreen.decodePcm = (
+      bytes, {
+      required sampleRate,
+      required durationMs,
+    }) async => null;
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry());
     await openMore(tester, 'Re-run setup');
@@ -774,8 +783,11 @@ void main() {
     tester,
   ) async {
     final previousDecode = PracticeRegionsScreen.decodePcm;
-    PracticeRegionsScreen.decodePcm =
-        (bytes, {required sampleRate, required durationMs}) async => null;
+    PracticeRegionsScreen.decodePcm = (
+      bytes, {
+      required sampleRate,
+      required durationMs,
+    }) async => null;
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     const grid = AudioGrid(bpm: 120, offsetMs: 1000);
     await pump(tester, _entry(grid: grid));
@@ -809,9 +821,11 @@ void main() {
     'transient slicing previews snapped cuts and can cancel replacement',
     (tester) async {
       final previousDecode = PracticeRegionsScreen.decodePcm;
-      PracticeRegionsScreen.decodePcm =
-          (bytes, {required sampleRate, required durationMs}) async =>
-              _clickTrack();
+      PracticeRegionsScreen.decodePcm = (
+        bytes, {
+        required sampleRate,
+        required durationMs,
+      }) async => _clickTrack();
       addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
       await pump(tester, _entry(grid: const AudioGrid(bpm: 120)));
       Future<void> preview() async {
@@ -855,8 +869,11 @@ void main() {
     (tester) async {
       final previousDecode = PracticeRegionsScreen.decodePcm;
       final decoded = Completer<Int16List?>();
-      PracticeRegionsScreen.decodePcm =
-          (bytes, {required sampleRate, required durationMs}) => decoded.future;
+      PracticeRegionsScreen.decodePcm = (
+        bytes, {
+        required sampleRate,
+        required durationMs,
+      }) => decoded.future;
       addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
       await pump(tester, _entry(regions: const []));
       await openMore(tester, 'Auto slice');
@@ -1018,9 +1035,8 @@ void main() {
     await tester.tap(find.text('+10 ms'));
     await tester.pump();
     // Dismissing the sheet discards its local preview.
-    Navigator.of(
-      tester.element(find.widgetWithText(FilledButton, 'Done')),
-    ).pop();
+    Navigator.of(tester.element(find.widgetWithText(FilledButton, 'Done')))
+        .pop();
     await settleAudio(tester);
     expect(repo.saved, hasLength(1));
     await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
@@ -1032,9 +1048,8 @@ void main() {
       ),
       findsOneWidget,
     );
-    Navigator.of(
-      tester.element(find.widgetWithText(FilledButton, 'Done')),
-    ).pop();
+    Navigator.of(tester.element(find.widgetWithText(FilledButton, 'Done')))
+        .pop();
     await settleAudio(tester);
   });
 
@@ -1042,8 +1057,11 @@ void main() {
     tester,
   ) async {
     final previousDecode = PracticeRegionsScreen.decodePcm;
-    PracticeRegionsScreen.decodePcm =
-        (bytes, {required sampleRate, required durationMs}) async => null;
+    PracticeRegionsScreen.decodePcm = (
+      bytes, {
+      required sampleRate,
+      required durationMs,
+    }) async => null;
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry());
     await tester.tap(find.byKey(const ValueKey('shift')));
@@ -1077,8 +1095,11 @@ void main() {
   testWidgets('Fine-tune stays available when PCM decoding fails', (
     tester,
   ) async {
-    PracticeRegionsScreen.decodePcm =
-        (bytes, {required sampleRate, required durationMs}) async => null;
+    PracticeRegionsScreen.decodePcm = (
+      bytes, {
+      required sampleRate,
+      required durationMs,
+    }) async => null;
     addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
     await pump(tester, _entry());
     await tester.tap(find.byKey(const ValueKey('shift')));
@@ -1106,8 +1127,11 @@ void main() {
   testWidgets(
     'Audition clears the selected loop and pauses after two seconds',
     (tester) async {
-      PracticeRegionsScreen.decodePcm =
-          (bytes, {required sampleRate, required durationMs}) async => null;
+      PracticeRegionsScreen.decodePcm = (
+        bytes, {
+        required sampleRate,
+        required durationMs,
+      }) async => null;
       addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
       await pump(tester, _entry());
       await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
@@ -1130,9 +1154,8 @@ void main() {
       await settleAudio(tester);
       expect(player.pauseCalls, pauses + 1);
       expect(repo.saved, isEmpty);
-      Navigator.of(
-        tester.element(find.widgetWithText(FilledButton, 'Done')),
-      ).pop();
+      Navigator.of(tester.element(find.widgetWithText(FilledButton, 'Done')))
+          .pop();
       await settleAudio(tester);
     },
   );

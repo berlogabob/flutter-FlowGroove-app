@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -434,13 +434,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     // survives setModalState calls. Defaults to whichever mode the current
     // filter (if any) is already in.
     var keyIsMinor =
-        canonicalKey(
-          ref.read(songsFilterSortProvider).keyFilter,
-        )?.endsWith('m') ??
+        canonicalKey(ref.read(songsFilterSortProvider).keyFilter)
+            ?.endsWith('m') ??
         false;
 
     showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {
           final state = ref.read(songsFilterSortProvider);
@@ -470,7 +470,6 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                   ),
                   const SizedBox(height: 8),
                   Wrap(
-                    alignment: WrapAlignment.start,
                     spacing: 8,
                     runSpacing: 8,
                     children: [
@@ -510,8 +509,18 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                         final selected =
                             canonicalCurrentKey != null &&
                             canonicalCurrentKey == canonicalKey(value);
+                        final flat = const {
+                          'C#': 'Db',
+                          'D#': 'Eb',
+                          'F#': 'Gb',
+                          'G#': 'Ab',
+                          'A#': 'Bb',
+                        }[root];
+                        final label = flat == null
+                            ? value
+                            : '$value/$flat${keyIsMinor ? 'm' : ''}';
                         return AppFilterChip(
-                          label: value,
+                          label: label,
                           selected: selected,
                           onSelected: (_) {
                             ref
@@ -720,7 +729,6 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
               Expanded(
                 child: UnifiedFilterSortWidget(
                   currentSort: state.sortOption,
-                  hintText: 'Search songs...',
                   onSortChanged: (option) {
                     if (option != null) {
                       ref
@@ -933,8 +941,11 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
       onReorder: _handleReorder,
       onDelete: _deleteSongByIndex,
       onEdit: _navigateToEditByIndex,
-      additionalActionsBuilder: (index) =>
-          buildSongActions(songAdapters[index].song, bands: bands),
+      additionalActionsBuilder: (index) => buildSongActions(
+        songAdapters[index].song,
+        bands: bands,
+        onDelete: songAdapters[index].onDelete,
+      ),
     );
   }
 

@@ -142,7 +142,8 @@ Future<String?> loopWav(String audioPath, int startMs, int endMs) async {
       final dataBytes = header.getUint32(40, Endian.little);
       final frame = channels * 2;
       int at(int ms) => (ms * rate ~/ 1000 * frame).clamp(0, dataBytes);
-      final from = at(startMs), length = at(endMs) - from;
+      final from = at(startMs);
+      final length = at(endMs) - from;
       if (length <= 0) return null;
       final dir = await getTemporaryDirectory();
       final out = File(

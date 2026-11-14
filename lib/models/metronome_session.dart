@@ -8,6 +8,7 @@ class MetronomeSession {
     this.endedAt,
     this.presetId,
     this.songId,
+    this.songTitle,
     this.setlistId,
     this.midiEntryId,
     this.endBpm,
@@ -30,6 +31,7 @@ class MetronomeSession {
           : DateTime.parse(json['endedAt'] as String),
       presetId: json['presetId'] as String?,
       songId: json['songId'] as String?,
+      songTitle: json['songTitle'] as String?,
       setlistId: json['setlistId'] as String?,
       midiEntryId: json['midiEntryId'] as String?,
       startBpm: (json['startBpm'] as num?)?.toInt() ?? 120,
@@ -54,6 +56,7 @@ class MetronomeSession {
   final DateTime? endedAt;
   final String? presetId;
   final String? songId;
+  final String? songTitle;
   final String? setlistId;
   final String? midiEntryId;
   final int startBpm;
@@ -77,6 +80,7 @@ class MetronomeSession {
     if (endedAt != null) 'endedAt': endedAt!.toIso8601String(),
     if (presetId != null) 'presetId': presetId,
     if (songId != null) 'songId': songId,
+    if (songTitle != null) 'songTitle': songTitle,
     if (setlistId != null) 'setlistId': setlistId,
     if (midiEntryId != null) 'midiEntryId': midiEntryId,
     'startBpm': startBpm,
@@ -97,6 +101,7 @@ class MetronomeSession {
     DateTime? endedAt,
     String? presetId,
     String? songId,
+    String? songTitle,
     String? setlistId,
     String? midiEntryId,
     int? startBpm,
@@ -116,6 +121,7 @@ class MetronomeSession {
       endedAt: endedAt ?? this.endedAt,
       presetId: presetId ?? this.presetId,
       songId: songId ?? this.songId,
+      songTitle: songTitle ?? this.songTitle,
       setlistId: setlistId ?? this.setlistId,
       midiEntryId: midiEntryId ?? this.midiEntryId,
       startBpm: startBpm ?? this.startBpm,

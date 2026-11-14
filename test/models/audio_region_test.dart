@@ -451,11 +451,11 @@ void main() {
       AudioRegion(id: 'c', name: 'C', startMs: 6000, endMs: 9000),
     ];
     final r = cropRegions(regions, startMs: 1000, endMs: 6000);
-    expect([for (final x in r) (x.name, x.startMs, x.endMs)], [
-      ('A', 0, 2000),
-      ('B', 2000, 5000),
-    ]);
-    const grid = AudioGrid(bpm: 120, offsetMs: 500, beatsPerBar: 4);
+    expect(
+      [for (final x in r) (x.name, x.startMs, x.endMs)],
+      [('A', 0, 2000), ('B', 2000, 5000)],
+    );
+    const grid = AudioGrid(bpm: 120, offsetMs: 500);
     // Bar lines (every 2 s from 0.5 s) stay on the same audio.
     expect(cropGrid(grid, 1000).offsetMs, 1500);
   });

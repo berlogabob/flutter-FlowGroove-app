@@ -117,7 +117,7 @@ void main() {
           'id': 'setlist-1',
           'bandId': 'band-1',
           'name': 'Test Setlist',
-          'songIds': [],
+          'songIds': <dynamic>[],
           'createdAt': '2024-01-01T00:00:00.000',
           'updatedAt': '2024-01-01T00:00:00.000',
         };
@@ -134,7 +134,7 @@ void main() {
           'id': 'setlist-1',
           'bandId': 'band-1',
           'name': 'Test Setlist',
-          'songIds': [],
+          'songIds': <dynamic>[],
         };
 
         final setlist = Setlist.fromJson(json);
@@ -274,7 +274,7 @@ void main() {
           'ourBPM': 130,
           'links': [],
           'notes': 'Test Notes',
-          'tags': ['rock', 'classic'],
+          'tags': <String>['rock', 'classic'],
           'createdAt': '2024-01-01T00:00:00.000',
           'updatedAt': '2024-01-02T00:00:00.000',
         };

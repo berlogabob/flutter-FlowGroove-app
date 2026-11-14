@@ -13,7 +13,7 @@ import 'package:flutter/foundation.dart'
         kDebugMode,
         kIsWeb,
         kReleaseMode;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -65,7 +65,7 @@ Licensed under the LGPL. lamejs is loaded as a separate, unmodified script
   // debugPrint still emits in release builds; silence the app's ~250 log
   // call sites globally instead of guarding each one.
   if (kReleaseMode) {
-    debugPrint = (String? message, {int? wrapWidth}) {};
+    debugPrint = (message, {wrapWidth}) {};
   }
 
   // iOS: without an explicit playback session the app inherits soloAmbient,
@@ -445,9 +445,8 @@ class FirebaseErrorApp extends StatelessWidget {
                   const SizedBox(height: 24),
                   Text(
                     'Firebase Initialization Error',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),

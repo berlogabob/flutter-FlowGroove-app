@@ -8,10 +8,10 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
 import 'package:flowgroove/widgets/unified_item/song_card_actions.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/metronome_test_runtime.dart';
@@ -97,7 +97,7 @@ void main() {
             'Metronome',
             'Tuner',
             'Recorder',
-            'Progress / history',
+            'Progress',
             'Test User',
             'Settings',
             'Support',
@@ -147,7 +147,7 @@ void main() {
       // No top app bar; only the shell's Songs nav tab label names the
       // screen (root screens show no title anywhere else).
       expect(find.text('Songs'), findsOneWidget);
-      expect(find.text('Search songs...'), findsOneWidget);
+      expect(find.text('Search...'), findsOneWidget);
       expect(find.text('Filters:'), findsOneWidget);
       expect(find.byIcon(Icons.sort), findsOneWidget);
     });
@@ -619,7 +619,7 @@ void main() {
           find.text('Exact Our BPM; songs without one stay visible'),
           findsOneWidget,
         );
-        await tester.tap(find.text('G#'));
+        await tester.tap(find.textContaining('G#'));
         await tester.pumpAndSettle();
 
         // Dismiss the bottom sheet via the barrier.

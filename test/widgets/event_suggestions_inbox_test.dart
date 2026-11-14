@@ -6,9 +6,9 @@ import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flowgroove/widgets/event_suggestions_inbox.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Records what the inbox sent, so the test asserts the answer that reaches
 /// the server rather than that a button merely existed.
@@ -137,10 +137,8 @@ void main() {
             ),
           ],
 
-          setlistSuggestionsProvider((
-            'band-1',
-            'sl-1',
-          )).overrideWith((ref) => Stream.value(suggestions)),
+          setlistSuggestionsProvider(('band-1', 'sl-1'))
+              .overrideWith((ref) => Stream.value(suggestions)),
           eventShareServiceProvider.overrideWithValue(
             EventShareService(invoker: recorder.call),
           ),
@@ -258,10 +256,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          setlistSuggestionsProvider((
-            'band-1',
-            'sl-1',
-          )).overrideWith((ref) => controller.stream),
+          setlistSuggestionsProvider(('band-1', 'sl-1'))
+              .overrideWith((ref) => controller.stream),
         ],
         child: const MaterialApp(
           home: Scaffold(
@@ -405,7 +401,7 @@ void main() {
     await pump(
       tester,
       suggestions: [
-        suggestion(id: 'a', status: 'open', text: 'still open'),
+        suggestion(id: 'a', text: 'still open'),
         suggestion(id: 'b', status: 'declined', text: 'already declined'),
       ],
     );

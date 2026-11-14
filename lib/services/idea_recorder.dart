@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -163,7 +163,7 @@ Future<void> captureIdea(
       if (index + 1 < parts.length) {
         await uploadPart(index + 1);
       } else if (true) {
-        debugPrint("DBG saved idx=$index mounted=${context.mounted}");
+        debugPrint('DBG saved idx=$index mounted=${context.mounted}');
       }
       if (index + 1 >= parts.length && multiple && context.mounted) {
         showAppSnackBar(context, 'Saved ${parts.length} parts');

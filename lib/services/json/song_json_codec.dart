@@ -199,13 +199,7 @@ class SongJsonCodec {
     );
   }
 
-  String? _key(
-    dynamic v,
-    String field,
-    String title,
-    int idx,
-    List<String> errors,
-  ) {
+  String? _key(dynamic v, String field, String title, int idx, List<String> errors) {
     if (v == null) return null;
     final key = v.toString();
     if (!SongCsvValidation.isValidKey(key)) {
@@ -218,13 +212,7 @@ class SongJsonCodec {
     return key;
   }
 
-  int? _bpm(
-    dynamic v,
-    String field,
-    String title,
-    int idx,
-    List<String> errors,
-  ) {
+  int? _bpm(dynamic v, String field, String title, int idx, List<String> errors) {
     if (v == null) return null;
     if (!SongCsvValidation.isValidBpm(v)) {
       errors.add(

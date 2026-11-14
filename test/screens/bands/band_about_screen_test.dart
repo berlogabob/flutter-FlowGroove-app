@@ -2,8 +2,8 @@ import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/bands/band_about_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../helpers/mocks.dart';
 import '../../helpers/routed_test_harness.dart';
@@ -43,9 +43,8 @@ Future<void> pumpAbout(
       bandsProvider.overrideWith((ref) => Stream.value([band])),
       appUserProvider.overrideWith(
         () => TestAppUserNotifier(
-          MockDataHelper.createMockAppUser(
-            uid: uid,
-          ).copyWith(accessRole: demo ? 'demo' : 'user'),
+          MockDataHelper.createMockAppUser(uid: uid)
+              .copyWith(accessRole: demo ? 'demo' : 'user'),
         ),
       ),
     ],

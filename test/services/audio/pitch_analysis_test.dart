@@ -157,8 +157,9 @@ Uint8List _noisySine(
   final data = ByteData.sublistView(bytes);
   for (var index = 0; index < sampleCount; index++) {
     var value = amplitude * math.sin(2 * math.pi * frequency * index / 44100);
-    if (noiseAmplitude > 0)
+    if (noiseAmplitude > 0) {
       value += noiseAmplitude * (rng.nextDouble() * 2 - 1);
+    }
     data.setInt16(
       index * 2,
       (value.clamp(-1.0, 1.0) * 32767).round(),

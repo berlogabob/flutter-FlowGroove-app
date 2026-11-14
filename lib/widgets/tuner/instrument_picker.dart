@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/instrument.dart';
@@ -263,12 +263,12 @@ class _TuningChip extends StatelessWidget {
               ),
             ),
             const SizedBox(width: MonoPulseSpacing.sm),
-            // Notes get at most ~55% of the row so long names keep their words.
+            // Leave enough room for tuning names beside the notes.
             Flexible(
               flex: 0,
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: MediaQuery.sizeOf(context).width * 0.5,
+                  maxWidth: MediaQuery.sizeOf(context).width * 0.4,
                 ),
                 child: Text(
                   tuning.notes.join(' · '),

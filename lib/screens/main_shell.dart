@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../router/branch_stack_observer.dart';
@@ -241,7 +241,7 @@ class _MainShellState extends ConsumerState<MainShell> {
           ? (entry?.items ?? const [])
           : [
               AppMenuItem(
-                icon: Icons.timer_outlined,
+                icon: Icons.av_timer,
                 label: 'Metronome',
                 onTap: () => context.pushNamed('metronome'),
               ),
@@ -257,7 +257,7 @@ class _MainShellState extends ConsumerState<MainShell> {
               ),
               AppMenuItem(
                 icon: Icons.history,
-                label: 'Progress / history',
+                label: 'Progress',
                 onTap: () => context.pushNamed('practice'),
               ),
             ],

@@ -8,7 +8,7 @@ import 'package:flowgroove/services/csv/song_csv_service.dart';
 import 'package:flowgroove/services/csv/song_import_analyzer.dart';
 import 'package:flowgroove/services/json/song_ai_prompt.dart';
 import 'package:flowgroove/services/json/song_json_codec.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../theme/mono_pulse_theme.dart';
@@ -120,8 +120,8 @@ class _SongImportDialogState extends State<SongImportDialog> {
               ),
               const SizedBox(height: 24),
               const Text(
-                "No file? Ask your own AI. Copy a prompt, paste it into "
-                "ChatGPT/Claude/Gemini, then paste its result back here.",
+                'No file? Ask your own AI. Copy a prompt, paste it into '
+                'ChatGPT/Claude/Gemini, then paste its result back here.',
                 textAlign: TextAlign.center,
                 style: MonoPulseTypography.bodyMedium,
               ),

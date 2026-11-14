@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import '../../../models/beat_mode.dart';
 import '../../../models/link.dart';
 import '../../../models/section.dart';
@@ -147,36 +148,43 @@ class SongForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final metronomeKey = GlobalKey();
     return Form(
       key: formKey,
       child: Column(
         children: [
+          // Title field
+          Semantics(
+            label: 'Title, required',
+            child: TextFormField(
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Title *'),
+              textInputAction: TextInputAction.next,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Title required' : null,
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          // Artist field
+          Semantics(
+            label: 'Artist',
+            child: TextFormField(
+              controller: artistController,
+              decoration: const InputDecoration(labelText: 'Artist'),
+              textInputAction: TextInputAction.done,
+            ),
+          ),
           // Song search autocomplete: type to find an existing song and
           // autofill the form. Only shown when a handler is wired.
           if (onSuggestionSelected != null) ...[
+            const SizedBox(height: MonoPulseSpacing.lg),
             AutocompleteTypeAhead(
               onSuggestionSelected: onSuggestionSelected!,
               onSearchWeb: onSearchWeb,
               bandId: bandId,
-              hint: 'Search a song to autofill…',
+              hint: 'Search the web to autofill',
             ),
-            const SizedBox(height: MonoPulseSpacing.lg),
           ],
-          // Title field
-          TextFormField(
-            controller: titleController,
-            decoration: const InputDecoration(labelText: 'Title *'),
-            textInputAction: TextInputAction.next,
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Title required' : null,
-          ),
-          const SizedBox(height: MonoPulseSpacing.lg),
-          // Artist field
-          TextFormField(
-            controller: artistController,
-            decoration: const InputDecoration(labelText: 'Artist'),
-            textInputAction: TextInputAction.done,
-          ),
           const SizedBox(height: MonoPulseSpacing.xxl),
           // Key & BPM — one collapsible bubble. Collapsed shows Our (or Original
           // when Our isn't set); expanded shows an aligned Original/Our grid.
@@ -303,7 +311,22 @@ class SongForm extends StatelessWidget {
             title: 'Metronome Settings',
             icon: Icons.music_note,
             initiallyExpanded: false,
+            onExpandedChanged: (expanded) async {
+              if (!expanded) return;
+              await Future<void>.delayed(const Duration(milliseconds: 250));
+              final editorContext = metronomeKey.currentContext;
+              if (editorContext == null || !editorContext.mounted) return;
+              final visibility = editorContext
+                  .findAncestorWidgetOfExactType<Visibility>();
+              if (visibility?.visible != true) return;
+              await Scrollable.ensureVisible(
+                editorContext,
+                alignment: 0,
+                duration: const Duration(milliseconds: 200),
+              );
+            },
             child: MetronomePatternEditor(
+              key: metronomeKey,
               accentBeats: accentBeats,
               regularBeats: regularBeats,
               beatModes: beatModes,
@@ -359,7 +382,7 @@ Widget _keyBpmPreview({
   final key = ourKey.isNotEmpty ? ourKey : origKey;
   final bpm = uBpm.isNotEmpty ? uBpm : oBpm;
   final parts = <String>[
-    key.isEmpty ? 'Not set' : key,
+    if (key.isEmpty) 'Not set' else key,
     if (bpm.isNotEmpty) '$bpm BPM',
   ];
   return _previewAccent(parts.join('  ·  '));

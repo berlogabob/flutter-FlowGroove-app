@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -42,7 +42,6 @@ class PracticeDashboardCard extends ConsumerWidget {
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: statsAsync.when(
             data: (stats) => Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(child: _headline(context, stats)),
                 const SizedBox(width: MonoPulseSpacing.lg),
@@ -70,7 +69,7 @@ class PracticeDashboardCard extends ConsumerWidget {
       label: statsAsync.when(
         data: (stats) => stats.isEmptyWeek
             ? tappable
-                  ? 'No practice yet this week. Tap to start practicing.'
+                  ? 'No practice yet this week. View progress.'
                   : 'No practice yet this week. Start the metronome to log time.'
             : 'Practiced ${formatMinutes(stats.totalSecondsThisWeek)} this '
                   'week across ${stats.sessionCountThisWeek} sessions, '
@@ -95,15 +94,15 @@ class PracticeDashboardCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text('No practice yet', style: MonoPulseTypography.titleMedium),
+          const Text('No practice yet', style: MonoPulseTypography.titleMedium),
           if (tappable)
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Tap to start',
+                  'View progress',
                   style: MonoPulseTypography.bodySmall.copyWith(
-                    color: context.mp.textPrimary.withOpacity(0.85),
+                    color: context.mp.textPrimary.withValues(alpha: 0.85),
                   ),
                 ),
                 const Icon(Icons.chevron_right, size: 16),

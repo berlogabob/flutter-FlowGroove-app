@@ -5,21 +5,20 @@ import 'package:firebase_core/firebase_core.dart';
 // Firebase Core's installed test mocks; no production dependency is needed.
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core_platform_interface/test.dart';
-import 'package:flowgroove/models/event_kit.dart';
 import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/event_kit.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
-
 import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flowgroove/services/analytics_service.dart';
 import 'package:flowgroove/services/event_share_service.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 
 import '../../helpers/mocks.mocks.dart';
@@ -71,9 +70,8 @@ void main() {
         overrides: [
           firestoreProvider.overrideWithValue(firestore),
           songsProvider.overrideWith((ref) => Stream.value(songs)),
-          bandSongsProvider(
-            'band-1',
-          ).overrideWith((ref) => Stream.value(songs)),
+          bandSongsProvider('band-1')
+              .overrideWith((ref) => Stream.value(songs)),
           if (shareService != null)
             eventShareServiceProvider.overrideWithValue(shareService),
           currentUserProvider.overrideWithValue(
@@ -366,9 +364,10 @@ void main() {
             }
             return {
               'shares': [
-                args['cursor'] == null
-                    ? shareRow('a', 'Ana')
-                    : shareRow('b', 'Bob', state: 'expired'),
+                if (args['cursor'] == null)
+                  shareRow('a', 'Ana')
+                else
+                  shareRow('b', 'Bob', state: 'expired'),
               ],
               'hasMore': args['cursor'] == null,
               'nextCursor': args['cursor'] == null ? 'a' : null,
@@ -414,12 +413,13 @@ void main() {
         shareService: EventShareService(
           invoker: (name, args) async {
             if (name == 'getEventView') return {};
-            if (name == 'listEventShares')
+            if (name == 'listEventShares') {
               return {
                 'shares': [shareRow('a', 'Ana'), shareRow('b', 'Bob')],
                 'hasMore': false,
                 'nextCursor': null,
               };
+            }
             expect(name, 'revokeEventShare');
             expect(args, {'tokenId': 'a'});
             revoked.add(args['tokenId'] as String);
@@ -481,8 +481,9 @@ void main() {
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
         SystemChannels.platform,
         (call) async {
-          if (call.method == 'Clipboard.setData')
+          if (call.method == 'Clipboard.setData') {
             copiedLink = (call.arguments as Map)['text'] as String;
+          }
           return null;
         },
       );
@@ -755,7 +756,6 @@ void main() {
                   role: 'client',
                   notes: 'Keep this',
                   access: {'stage': 'edit'},
-                  canSuggest: false,
                 ),
               ],
             ),

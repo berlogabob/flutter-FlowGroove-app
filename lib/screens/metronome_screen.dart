@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,13 +19,13 @@ import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
 import '../models/song.dart';
 import '../models/song_lab.dart';
-import '../repositories/repositories.dart' show SongRepository;
+import '../providers/data/midi_hidden_provider.dart';
 import '../providers/metronome_runtime_providers.dart';
 import '../providers/wakelock_provider.dart';
+import '../repositories/repositories.dart' show SongRepository;
 import '../services/power_reliability.dart';
 import '../services/wakelock_controller.dart';
 import '../utils/snackbar.dart' show showGlobalSnackBar;
-import '../providers/data/midi_hidden_provider.dart';
 import '../widgets/metronome/backing_sheet.dart';
 import '../widgets/metronome/metronome_sheets.dart';
 import '../widgets/metronome/reliability_sheet.dart';
@@ -136,8 +136,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
       await showReliabilitySheet(
         context,
         power: power,
-        notice:
-            "Last time playback was cut off: your phone's battery manager stopped FlowGroove in the background.",
+        notice: "Last time playback was cut off: your phone's battery manager stopped FlowGroove in the background.",
       );
     } catch (_) {
       // Guidance only; never interrupt the metronome.
@@ -439,10 +438,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     context.pushNamed(
       'song',
       pathParameters: {'id': song.id},
-      queryParameters: {
-        'tab': 'edit',
-        if (state.sourceBandId case final b?) 'bandId': b,
-      },
+      queryParameters: {'tab': 'edit', 'bandId': ?state.sourceBandId},
       extra: state.sourceBandId == null
           ? song
           : {'song': song, 'bandId': state.sourceBandId},

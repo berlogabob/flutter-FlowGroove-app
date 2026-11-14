@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -50,6 +50,13 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
       padding: EdgeInsets.all(blockPadding),
       child: Column(
         children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Beats (badge = count)',
+              style: TextStyle(color: context.mp.textSecondary),
+            ),
+          ),
           // Top row - Beats
           _BeatsRow(
             count: beats,
@@ -83,6 +90,13 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
             },
           ),
           SizedBox(height: rowSpacing),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Subdivisions (badge = count)',
+              style: TextStyle(color: context.mp.textSecondary),
+            ),
+          ),
           // Bottom row - Subdivisions
           _SubdivisionsRow(
             count: subdivisions,
@@ -113,6 +127,13 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
               }
             },
           ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Dot: normal · Star: accent · ⊘: silent. Tap to change; subdivisions can be changed while playing. The glowing circle is playing now.',
+              style: TextStyle(color: context.mp.textSecondary),
+            ),
+          ),
         ],
       ),
     );
@@ -138,17 +159,16 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
 /// Maximum touch-target size for a single beat/subdivision circle.
 const double _kMaxCircleContainer = 48;
 
-/// Smaller maximum used on narrow screens.
-const double _kMaxCircleContainerSmall = 44;
+/// Maximum used on narrow screens.
+const double _kMaxCircleContainerSmall = 48;
 
 /// Minimum tap-target extent (Material 48dp). The visible dot stays small, but
 /// the touchable area is padded up to this so beat toggles aren't mis-tap-prone
 /// when the strip shrinks to fit many beats (UX audit F-006).
 const double _kMinTapTarget = 48;
 
-/// Minimum tappable width for a circle cell. Four cells fit at 360dp; longer
-/// strips scroll when they cannot fit without shrinking the tap targets.
-const double _kMinCircleContainer = 44;
+/// Minimum tappable width for a circle cell. Longer strips wrap or scroll.
+const double _kMinCircleContainer = 48;
 
 /// Spacing between circles, used only by the (rare) scroll fallback. In the
 /// normal fit-to-width layout each cell carries its own padding around the dot,
@@ -283,7 +303,7 @@ class _BeatsRow extends StatelessWidget {
     final addBtnSpacing = isSmallScreen
         ? MonoPulseSpacing.xs
         : MonoPulseSpacing.sm;
-    final buttonSize = 48.0;
+    const buttonSize = 48.0;
 
     return Row(
       children: [
@@ -385,7 +405,7 @@ class _SubdivisionsRow extends StatelessWidget {
     final addBtnSpacing = isSmallScreen
         ? MonoPulseSpacing.xs
         : MonoPulseSpacing.sm;
-    final buttonSize = 48.0;
+    const buttonSize = 48.0;
 
     return Row(
       children: [

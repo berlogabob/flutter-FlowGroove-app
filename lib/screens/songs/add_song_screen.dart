@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -539,7 +539,12 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
             child: !_formReady
                 ? const SizedBox.shrink()
                 : ListView(
-                    padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                    padding: const EdgeInsets.fromLTRB(
+                      MonoPulseSpacing.lg,
+                      MonoPulseSpacing.lg,
+                      MonoPulseSpacing.lg,
+                      MonoPulseSpacing.massive + MonoPulseSpacing.lg,
+                    ),
                     children: [
                       // Error banner
                       if (error != null) ...[

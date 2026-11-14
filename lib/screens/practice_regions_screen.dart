@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -88,6 +88,7 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
 
 class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   late SongLabEntry _entry;
+  String? _sessionSongTitle;
   late final TextEditingController _title;
 
   /// Saves the title whenever the field loses focus (tap outside, back).
@@ -329,9 +330,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (selection == null) return null;
     final (a, b) = selection;
     final regions = _entry.regions;
-    return a == b
-        ? _name(regions[a])
-        : '${_name(regions[a])} → ${_name(regions[b])}';
+    String label(int index) => regions[index].name.trim().isEmpty
+        ? 'Section ${index + 1}'
+        : regions[index].name;
+    return a == b ? label(a) : '${label(a)} → ${label(b)}';
   }
 
   /// Writes the current loop's practice to the log and starts a fresh one.
@@ -351,6 +353,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 endedAt: DateTime.now(),
                 startBpm: _entry.grid?.bpm.round() ?? 0,
                 songId: songId.isEmpty || songId == '_inbox' ? null : songId,
+                songTitle: _sessionSongTitle,
                 elapsedSeconds: _playedMs ~/ 1000,
                 regionName: _loopLabel() ?? 'Whole song',
                 loopReps: _reps,
@@ -1535,11 +1538,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       if (!mounted) return;
       if (result.markByEar) {
         await _changeRegions(const []);
-        if (mounted)
+        if (mounted) {
           setState(() {
             _editing = true;
             _heldPad = null;
           });
+        }
       }
     } finally {
       _setupOpen = false;
@@ -1548,6 +1552,17 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final songs = ref
+        .watch(
+          widget.bandId == null
+              ? songsProvider
+              : bandSongsProvider(widget.bandId!),
+        )
+        .value;
+    final song = songs?.where((song) => song.id == _entry.songId).firstOrNull;
+    if (song != null && song.title.trim().isNotEmpty) {
+      _sessionSongTitle = song.title;
+    }
     final canEdit =
         !_busy &&
         !ref.watch(isDemoUserProvider) &&
@@ -1578,7 +1593,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 controller: _title,
                 focusNode: _titleFocus,
                 style: MonoPulseTypography.titleLarge,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Practice regions',
                   border: InputBorder.none,
                 ),
@@ -2440,7 +2455,8 @@ class _RegionsPainter extends CustomPainter {
       final from = (start + px * perPixel).floor().clamp(0, samples.length);
       final to = (start + (px + 1) * perPixel).ceil().clamp(0, samples.length);
       if (from >= to) continue;
-      var low = 0, high = 0;
+      var low = 0;
+      var high = 0;
       // ponytail: strided scan, plenty for a phone-width column.
       final stride = math.max(1, (to - from) ~/ 256);
       for (var i = from; i < to; i += stride) {

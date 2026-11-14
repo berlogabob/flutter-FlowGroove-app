@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -331,30 +331,36 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                             ),
                             const SizedBox(height: 24),
                           ],
-                          TextFormField(
-                            controller: _nameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Band Name *',
-                              prefixIcon: Icon(Icons.groups),
+                          Semantics(
+                            label: 'Band Name, required',
+                            child: TextFormField(
+                              controller: _nameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Band Name *',
+                                prefixIcon: Icon(Icons.groups),
+                              ),
+                              textInputAction: TextInputAction.next,
+                              onChanged: (_) => _markAsChanged(),
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
                             ),
-                            textInputAction: TextInputAction.next,
-                            onChanged: (_) => _markAsChanged(),
-                            validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Required'
-                                : null,
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _descriptionController,
-                            decoration: const InputDecoration(
-                              labelText: 'Description',
+                          Semantics(
+                            label: 'Description',
+                            child: TextFormField(
+                              controller: _descriptionController,
+                              decoration: const InputDecoration(
+                                labelText: 'Description',
+                              ),
+                              textInputAction: TextInputAction.done,
+                              onChanged: (_) => _markAsChanged(),
+                              onFieldSubmitted: (_) {
+                                if (canEdit) _saveBand();
+                              },
+                              maxLines: 3,
                             ),
-                            textInputAction: TextInputAction.done,
-                            onChanged: (_) => _markAsChanged(),
-                            onFieldSubmitted: (_) {
-                              if (canEdit) _saveBand();
-                            },
-                            maxLines: 3,
                           ),
                         ],
                       ),

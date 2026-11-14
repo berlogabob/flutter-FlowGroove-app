@@ -18,9 +18,8 @@ const undoGracePeriod = Duration(seconds: 8);
 /// that device. Fine while an entry's audio is only ever deleted by the person
 /// looking at it; move to a Firestore-backed sweep if that stops being true.
 class PendingStorageDeletes {
-  PendingStorageDeletes({SharedPreferences? prefs, StorageService? storage})
-    : _prefs = prefs,
-      _storage = storage ?? StorageService();
+  PendingStorageDeletes({this._prefs, StorageService? storage})
+    : _storage = storage ?? StorageService();
 
   static const _key = 'pending_storage_deletes';
 

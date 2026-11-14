@@ -1,11 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
+import 'package:flowgroove/utils/snackbar.dart' show rootScaffoldMessengerKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
-
-import 'package:flowgroove/utils/snackbar.dart' show rootScaffoldMessengerKey;
 
 import 'mocks.mocks.dart';
 
@@ -44,7 +43,7 @@ Future<void> pumpAndSettleUntil(
 Stream<T> createMockStream<T>(List<T> values, {Duration? delay}) async* {
   for (final value in values) {
     if (delay != null) {
-      await Future.delayed(delay);
+      await Future<void>.delayed(delay);
     }
     yield value;
   }
@@ -199,8 +198,8 @@ UserCredential createMockUserCredential({
 /// Mock navigator observer for testing navigation
 class MockNavigatorObserver extends NavigatorObserver {
   MockNavigatorObserver({this.onPush, this.onPop});
-  final Function(Route<dynamic>)? onPush;
-  final Function(Route<dynamic>)? onPop;
+  final void Function(Route<dynamic>)? onPush;
+  final void Function(Route<dynamic>)? onPop;
   final List<Route<dynamic>> pushedRoutes = [];
   final List<Route<dynamic>> poppedRoutes = [];
 

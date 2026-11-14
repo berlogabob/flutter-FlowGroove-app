@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../models/section.dart';
@@ -257,7 +257,7 @@ class _AutoScrollBar extends StatelessWidget {
                   color: context.mp.textSecondary,
                 ),
                 const SizedBox(width: MonoPulseSpacing.sm),
-                const Text('Transpose', style: MonoPulseTypography.labelLarge),
+                const Text('Semitones', style: MonoPulseTypography.labelLarge),
                 const Spacer(),
                 IconButton(
                   onPressed: onTransposeDown,

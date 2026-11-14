@@ -20,9 +20,9 @@ import 'package:flowgroove/widgets/practice/section_card.dart';
 import 'package:flowgroove/widgets/practice/section_pad.dart';
 import 'package:flowgroove/widgets/practice/track_console.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 
 import '../helpers/mocks.mocks.dart';
@@ -387,10 +387,8 @@ void main() {
               canEditProvider.overrideWithValue(false),
               metronomeProvider.overrideWith(() => _Metronome(song: song)),
               backingTransportProvider.overrideWith(() => transport),
-              labEntriesProvider((
-                'song',
-                null,
-              )).overrideWith((ref) => Stream.value([_entry])),
+              labEntriesProvider(('song', null))
+                  .overrideWith((ref) => Stream.value([_entry])),
               midiSongProvider(_entry).overrideWith((ref) async => _midi),
             ],
             child: const MaterialApp(home: MetronomeScreen()),

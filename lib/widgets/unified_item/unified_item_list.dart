@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../theme/mono_pulse_theme.dart';
+import 'adapters/setlist_item_adapter.dart';
 import 'unified_item_card.dart';
 import 'unified_item_model.dart';
 
@@ -79,14 +80,8 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
               return false;
             },
             child: GestureDetector(
+              excludeFromSemantics: item is SetlistItemAdapter,
               behavior: HitTestBehavior.opaque,
-              onTap: () {
-                if (widget.onTap != null) {
-                  widget.onTap!(index);
-                } else if (widget.onEdit != null) {
-                  widget.onEdit!(index);
-                }
-              },
               child: UnifiedItemCard<T>(
                 item: item,
                 showCompact: widget.showCompact,
@@ -98,7 +93,11 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
                 onDelete: widget.onDelete != null
                     ? () => widget.onDelete!(index)
                     : null,
-                onTap: widget.onTap != null ? () => widget.onTap!(index) : null,
+                onTap: widget.onTap != null
+                    ? () => widget.onTap!(index)
+                    : widget.onEdit != null
+                    ? () => widget.onEdit!(index)
+                    : null,
               ),
             ),
           ),

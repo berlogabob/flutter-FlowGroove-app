@@ -16,7 +16,7 @@ class HomeworkItem {
 
 final myHomeworkProvider = FutureProvider.autoDispose<List<HomeworkItem>>((
   ref,
-) async {
+) => Future<List<HomeworkItem>>.sync(() async {
   final songs = await ref.watch(songsProvider.future);
   final repo = ref.watch(labRepositoryProvider);
 
@@ -40,4 +40,4 @@ final myHomeworkProvider = FutureProvider.autoDispose<List<HomeworkItem>>((
     return b.task.createdAt.compareTo(a.task.createdAt);
   });
   return items;
-});
+}).timeout(const Duration(seconds: 30)));

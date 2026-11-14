@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+
 import '../models/api_error.dart';
 import '../models/event_suggestion.dart';
-import 'firestore_timeout.dart';
 import '../models/setlist.dart';
 import '../services/analytics_service.dart';
+import 'firestore_timeout.dart';
 import 'setlist_repository.dart';
 
 class FirestoreSetlistRepository implements SetlistRepository {
@@ -302,6 +303,7 @@ class FirestoreSetlistRepository implements SetlistRepository {
   ///
   /// The returned Setlists are LIST-CARD shaped (name, date, location). Opening
   /// one reads its scoped payload through `getEventView`.
+  @override
   Stream<List<Setlist>> watchGuestEvents(String uid) {
     try {
       final stream = _firestore
@@ -365,7 +367,8 @@ class FirestoreSetlistRepository implements SetlistRepository {
           all.sort((a, b) {
             // Open first — the inbox exists to be emptied — then newest.
             if (a.isOpen != b.isOpen) return a.isOpen ? -1 : 1;
-            final at = a.createdAt, bt = b.createdAt;
+            final at = a.createdAt;
+            final bt = b.createdAt;
             if (at == null || bt == null) return 0;
             return bt.compareTo(at);
           });

@@ -1,7 +1,7 @@
 import 'package:flowgroove/services/analytics_service.dart';
 import 'package:flowgroove/utils/snackbar.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   group('showAppSnackBar - analytics', () {
@@ -12,7 +12,7 @@ void main() {
 
     testWidgets(
       'logs undo_shown when actionLabel and analyticsAction are both provided',
-      (WidgetTester tester) async {
+      (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -47,9 +47,7 @@ void main() {
       },
     );
 
-    testWidgets('does not log when analyticsAction is omitted', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('does not log when analyticsAction is omitted', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -80,7 +78,7 @@ void main() {
   group('showAppSnackBar - Action Rendering', () {
     testWidgets(
       'renders snackbar with action when both actionLabel and onAction provided',
-      (WidgetTester tester) async {
+      (tester) async {
         bool actionCalled = false;
 
         await tester.pumpWidget(
@@ -125,7 +123,7 @@ void main() {
     );
 
     testWidgets('renders snackbar without action when only message provided', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -153,9 +151,7 @@ void main() {
       expect(find.byType(SnackBarAction), findsNothing);
     });
 
-    testWidgets('uses longer duration when action is present', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('uses longer duration when action is present', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -187,9 +183,7 @@ void main() {
       expect(snackBar.duration, const Duration(seconds: 5));
     });
 
-    testWidgets('ignores onAction if actionLabel is null', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('ignores onAction if actionLabel is null', (tester) async {
       bool actionCalled = false;
 
       await tester.pumpWidget(

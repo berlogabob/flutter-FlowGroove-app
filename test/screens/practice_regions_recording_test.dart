@@ -16,16 +16,16 @@ import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flowgroove/services/audio/audio_note_edit.dart';
 import 'package:flowgroove/services/pending_storage_deletes.dart';
 import 'package:flowgroove/services/storage_service.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 // ignore: depend_on_referenced_packages
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart'
     show SharePlatform;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/mocks.mocks.dart';
 import '../providers/backing_transport_test.dart'
@@ -791,9 +791,11 @@ void main() {
     tester,
   ) async {
     final previousDecode = PracticeRegionsScreen.decodePcm;
-    PracticeRegionsScreen.decodePcm =
-        (bytes, {required sampleRate, required durationMs}) async =>
-            Int16List(sampleRate * durationMs ~/ 1000);
+    PracticeRegionsScreen.decodePcm = (
+      bytes, {
+      required sampleRate,
+      required durationMs,
+    }) async => Int16List(sampleRate * durationMs ~/ 1000);
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(
       tester,

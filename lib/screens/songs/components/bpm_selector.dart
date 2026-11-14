@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../theme/mono_pulse_theme.dart';
 
@@ -87,26 +87,21 @@ class KeyBpmGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Table(
-      columnWidths: const {
-        0: IntrinsicColumnWidth(),
-        1: IntrinsicColumnWidth(),
-        2: IntrinsicColumnWidth(),
-        3: FlexColumnWidth(),
-      },
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _row(
           context,
-          'Original',
+          'Original version',
           originalBase,
           originalModifier,
           originalBpmController,
           onOriginalKeyChanged,
         ),
+        const SizedBox(height: MonoPulseSpacing.sm),
         _row(
           context,
-          'Our',
+          'Our version',
           ourBase,
           ourModifier,
           ourBpmController,
@@ -116,7 +111,7 @@ class KeyBpmGrid extends StatelessWidget {
     );
   }
 
-  TableRow _row(
+  Widget _row(
     BuildContext context,
     String label,
     String base,
@@ -124,40 +119,60 @@ class KeyBpmGrid extends StatelessWidget {
     TextEditingController bpm,
     void Function(String, String) onKey,
   ) {
-    return TableRow(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: MonoPulseSpacing.sm,
-            horizontal: MonoPulseSpacing.xs,
-          ),
-          child: Text(label, style: MonoPulseTypography.labelMedium),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(MonoPulseSpacing.xs),
-          child: _keyMiniDropdown(
-            context,
-            base,
-            keyBases,
-            (v) => onKey(v ?? '', modifier),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(MonoPulseSpacing.xs),
-          child: _keyMiniDropdown(
-            context,
-            modifier,
-            keyModifiers,
-            (v) => onKey(base, v ?? ''),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(MonoPulseSpacing.xs),
-          child: TextFormField(
-            controller: bpm,
-            decoration: const InputDecoration(labelText: 'BPM', isDense: true),
-            keyboardType: TextInputType.number,
-          ),
+        Text(label, style: MonoPulseTypography.labelMedium),
+        const SizedBox(height: MonoPulseSpacing.xs),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Root', style: MonoPulseTypography.labelMedium),
+                  const SizedBox(height: MonoPulseSpacing.xs),
+                  _keyMiniDropdown(
+                    context,
+                    base,
+                    keyBases,
+                    (v) => onKey(v ?? '', modifier),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: MonoPulseSpacing.xs),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Accidental / quality',
+                    style: MonoPulseTypography.labelMedium,
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.xs),
+                  _keyMiniDropdown(
+                    context,
+                    modifier,
+                    keyModifiers,
+                    (v) => onKey(base, v ?? ''),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: MonoPulseSpacing.xs),
+            Expanded(
+              child: TextFormField(
+                controller: bpm,
+                decoration: const InputDecoration(
+                  labelText: 'BPM',
+                  isDense: true,
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -172,6 +187,7 @@ Widget _keyMiniDropdown(
   ValueChanged<String?> onChanged,
 ) {
   return Container(
+    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
     padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
     decoration: BoxDecoration(
       color: context.mp.surfaceRaised,
@@ -184,7 +200,7 @@ Widget _keyMiniDropdown(
       // anything, so fall back to unset rather than take the app down. null is
       // used rather than '' because a caller may pass an item list without it.
       value: items.contains(value) ? value : null,
-      isDense: true,
+      isExpanded: true,
       underline: const SizedBox(),
       dropdownColor: context.mp.surfaceOverlay,
       iconEnabledColor: context.mp.textSecondary,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/instrument.dart';
@@ -19,7 +19,7 @@ class DetectionModeToggle extends ConsumerWidget {
     final notifier = ref.read(tunerProvider.notifier);
 
     return Container(
-      height: 40,
+      height: 56,
       padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       decoration: BoxDecoration(
         color: context.mp.surfaceRaised,

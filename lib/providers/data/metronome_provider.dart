@@ -297,10 +297,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
             )
             .toList(growable: false);
     final songsById = {for (final song in resolvedSongs) song.id: song};
-    final queue = [
-      for (final item in items)
-        if (songsById[item.songId] case final song?) song,
-    ];
+    final queue = [for (final item in items) ?songsById[item.songId]];
     if (queue.isEmpty) return null;
     return queue;
   }
@@ -865,6 +862,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       startedAt: DateTime.now(),
       presetId: state.activePresetId,
       songId: state.activeSong?.id,
+      songTitle: state.activeSong?.title,
       setlistId: state.loadedSetlist?.id,
       startBpm: state.bpm,
       usedCountIn: state.countInBars > 0,
@@ -889,6 +887,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       endedAt: DateTime.now(),
       presetId: session.presetId,
       songId: session.songId,
+      songTitle: session.songTitle,
       setlistId: session.setlistId,
       startBpm: session.startBpm,
       endBpm: state.bpm,

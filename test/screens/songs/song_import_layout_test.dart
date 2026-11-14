@@ -1,8 +1,8 @@
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/screens/songs/components/csv_import_export/song_import_dialog.dart';
 import 'package:flowgroove/screens/songs/song_cluster_merge_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   Song song(String id, String title) => Song(

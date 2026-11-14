@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/song.dart';
 import '../theme/mono_pulse_theme.dart';
@@ -23,11 +23,17 @@ class SetlistSongRow extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.performers,
+    this.savedTitle,
+    this.savedArtist,
+    this.loadFailed = false,
     this.isCurrent = false,
   });
 
   final int index;
   final Song? song;
+  final String? savedTitle;
+  final String? savedArtist;
+  final bool loadFailed;
   final Widget? leading;
   final Widget? trailing;
 
@@ -95,12 +101,28 @@ class SetlistSongRow extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      song?.title ?? 'Unavailable song',
+                      song?.title ??
+                          (savedTitle?.trim().isNotEmpty == true
+                              ? savedTitle!
+                              : 'Unavailable song'),
                       style: TextStyle(
                         color: context.mp.textPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+                    if (song == null) ...[
+                      if (savedArtist?.trim().isNotEmpty == true)
+                        Text(
+                          savedArtist!,
+                          style: TextStyle(color: context.mp.textSecondary),
+                        ),
+                      Text(
+                        loadFailed
+                            ? 'Could not load songs. Try again later.'
+                            : 'Deleted or no longer shared with you.',
+                        style: TextStyle(color: context.mp.textSecondary),
+                      ),
+                    ],
                     if (song != null) ...[
                       Text(
                         song.artist,

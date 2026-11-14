@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/event_suggestion.dart';
@@ -19,10 +19,10 @@ import '../utils/snackbar.dart';
 /// commented on looks exactly as it did before.
 class EventSuggestionsInbox extends ConsumerStatefulWidget {
   const EventSuggestionsInbox({
-    this.bandId,
-    this.ownerUid,
     required this.setlistId,
     required this.canResolve,
+    this.bandId,
+    this.ownerUid,
     super.key,
   });
 

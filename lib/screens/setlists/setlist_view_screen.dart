@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,8 +6,8 @@ import '../../models/event_access.dart';
 import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
-import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
+import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
@@ -296,10 +296,21 @@ class SetlistViewScreen extends ConsumerWidget {
                 ),
               ),
               if (!loadFailed && canEdit)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: MonoPulseSpacing.md),
-                  child: Text(
-                    'Use Menu → Edit Setlist to review these entries.',
+                Padding(
+                  padding: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
+                  child: TextButton(
+                    onPressed: () => context.pushNamed(
+                      'edit-setlist',
+                      pathParameters: {'id': setlist.id},
+                      queryParameters: {
+                        'bandId': ?bandId,
+                        'scope': storageScope.name,
+                      },
+                      extra: setlist,
+                    ),
+                    child: const Text(
+                      'Use Menu → Edit Setlist to review these entries.',
+                    ),
                   ),
                 )
               else
@@ -319,6 +330,9 @@ class SetlistViewScreen extends ConsumerWidget {
         return SetlistSongRow(
           index: numbers[itemIndex],
           song: song,
+          savedTitle: item.songTitle,
+          savedArtist: item.songArtist,
+          loadFailed: loadFailed,
           performers: performerLabel(item.performerIds, lineup),
           trailing: song == null ? null : _badgesFor(context, ref, song),
           isCurrent: song?.id == activeSongId,
@@ -334,19 +348,24 @@ class SetlistViewScreen extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Material(
-          color: MonoPulseColors.accentOrange,
-          child: InkWell(
-            onTap: () {
-              ref
-                  .read(metronomeProvider.notifier)
-                  .loadSongTempo(song, sourceBandId: bandId);
-              context.pushNamed('metronome');
-            },
-            child: const SizedBox(
-              width: 40,
-              height: 40,
-              child: Icon(Icons.play_arrow, color: MonoPulseColors.charcoal),
+        Semantics(
+          container: true,
+          button: true,
+          label: 'Play ${song.title}',
+          child: Material(
+            color: MonoPulseColors.accentOrange,
+            child: InkWell(
+              onTap: () {
+                ref
+                    .read(metronomeProvider.notifier)
+                    .loadSongTempo(song, sourceBandId: bandId);
+                context.pushNamed('metronome');
+              },
+              child: const SizedBox(
+                width: 48,
+                height: 48,
+                child: Icon(Icons.play_arrow, color: MonoPulseColors.charcoal),
+              ),
             ),
           ),
         ),
@@ -392,7 +411,7 @@ class SetlistViewScreen extends ConsumerWidget {
     context.pushNamed(
       'song',
       pathParameters: {'id': song.id},
-      queryParameters: {'tab': 'sheet', if (bandId case final b?) 'bandId': b},
+      queryParameters: {'tab': 'sheet', 'bandId': ?bandId},
       extra: bandId == null ? song : {'song': song, 'bandId': bandId},
     );
   }

@@ -40,9 +40,9 @@ class CandidateSlot {
 class RehearsalVote {
   RehearsalVote({
     required this.uid,
+    required this.updatedAt,
     this.answers = const {},
     this.comment,
-    required this.updatedAt,
   });
 
   factory RehearsalVote.fromJson(Map<String, dynamic> json) =>
@@ -77,6 +77,8 @@ class Rehearsal {
     required this.bandId,
     required this.createdBy,
     required this.title,
+    required this.createdAt,
+    required this.updatedAt,
     this.description,
     this.candidateSlots = const [],
     this.durationMinutes,
@@ -90,8 +92,6 @@ class Rehearsal {
     this.confirmedSlotId,
     this.responseDeadline,
     this.venueType,
-    required this.createdAt,
-    required this.updatedAt,
   });
 
   factory Rehearsal.fromJson(Map<String, dynamic> json) =>

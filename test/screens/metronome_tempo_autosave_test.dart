@@ -6,16 +6,15 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/repositories/repositories.dart';
 import 'package:flowgroove/screens/metronome_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 import '../helpers/mocks.mocks.dart';
-
 @GenerateMocks([SongRepository])
 import 'metronome_tempo_autosave_test.mocks.dart';
 
@@ -59,12 +58,10 @@ void main() {
       when(mockFirebaseUser.uid).thenReturn(uid);
 
       mockSongRepository = MockSongRepository();
-      when(
-        mockSongRepository.updateSong(any, uid: anyNamed('uid')),
-      ).thenAnswer((_) async {});
-      when(
-        mockSongRepository.updateBandSong(any, any),
-      ).thenAnswer((_) async {});
+      when(mockSongRepository.updateSong(any, uid: anyNamed('uid')))
+          .thenAnswer((_) async {});
+      when(mockSongRepository.updateBandSong(any, any))
+          .thenAnswer((_) async {});
     });
 
     tearDown(() async {
@@ -137,9 +134,8 @@ void main() {
       tester,
     ) async {
       final song = buildSong();
-      when(
-        mockSongRepository.getSongs(uid),
-      ).thenAnswer((_) async => [song.copyWith(latestCommitId: 'commit-2')]);
+      when(mockSongRepository.getSongs(uid))
+          .thenAnswer((_) async => [song.copyWith(latestCommitId: 'commit-2')]);
       await pumpLoadedScreen(tester, song: song, extraOverrides: const []);
 
       final metronome = container.read(metronomeProvider.notifier);
@@ -148,9 +144,9 @@ void main() {
       metronome.setBpm(150);
       await tester.pump(const Duration(seconds: 3));
 
-      final saved = verify(
-        mockSongRepository.updateSong(captureAny, uid: uid),
-      ).captured.cast<Song>();
+      final saved = verify(mockSongRepository.updateSong(captureAny, uid: uid))
+          .captured
+          .cast<Song>();
       expect(saved, hasLength(2));
       expect(saved.last.ourBPM, 150);
       expect(saved.last.latestCommitId, 'commit-2');

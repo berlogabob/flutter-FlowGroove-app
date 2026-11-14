@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../../models/section.dart';
@@ -399,7 +399,7 @@ class _SongConstructorState extends State<SongConstructor> {
             child: Text(
               'No sections yet',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
+                color: context.mp.textSecondary,
               ),
             ),
           ),

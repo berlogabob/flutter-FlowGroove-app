@@ -41,7 +41,7 @@ void main() {
 
       // Verify the response structure
       expect(mockResponse['tracks'], isNotNull);
-      expect((mockResponse['tracks']! as Map)['items'], isA<List>());
+      expect((mockResponse['tracks']! as Map)['items'], isA<List<dynamic>>());
       expect(
         ((mockResponse['tracks']! as Map)['items'] as List).length,
         equals(1),
@@ -50,7 +50,7 @@ void main() {
 
     test('returns empty results when no tracks found', () async {
       final mockResponse = {
-        'tracks': {'items': []},
+        'tracks': {'items': <dynamic>[]},
       };
 
       expect((mockResponse['tracks']! as Map)['items'], isEmpty);
@@ -148,12 +148,12 @@ void main() {
         ],
       };
 
-      expect(mockResponse['recordings'], isA<List>());
+      expect(mockResponse['recordings'], isA<List<dynamic>>());
       expect((mockResponse['recordings']! as List).length, equals(1));
     });
 
     test('returns empty results when no recordings found', () async {
-      final mockResponse = {'recordings': []};
+      final mockResponse = {'recordings': <dynamic>[]};
 
       expect(mockResponse['recordings'], isEmpty);
     });
@@ -192,7 +192,7 @@ void main() {
         ],
       };
 
-      expect(recordingWithBpm['relations'], isA<List>());
+      expect(recordingWithBpm['relations'], isA<List<dynamic>>());
     });
 
     test('handles API error response', () async {
@@ -345,7 +345,7 @@ void main() {
       when(
         mockClient.get(Uri.parse('https://api.example.com/timeout')),
       ).thenAnswer((_) async {
-        await Future.delayed(const Duration(seconds: 30));
+        await Future<void>.delayed(const Duration(seconds: 30));
         return http.Response('Timeout', 504);
       });
 
@@ -372,7 +372,7 @@ void main() {
         'created': '2024-01-01T00:00:00.000Z',
         'count': 100,
         'offset': 0,
-        'recordings': [],
+        'recordings': <dynamic>[],
       };
 
       expect(searchResponse['count'], equals(100));

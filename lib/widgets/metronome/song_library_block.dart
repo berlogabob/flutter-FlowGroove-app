@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,13 +10,6 @@ import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../error_banner.dart' show ErrorBanner, ErrorBannerStyle;
-
-typedef _LoadedSongState = ({
-  Song song,
-  Setlist? setlist,
-  String? sourceBandId,
-  List<Song> loadedSetlistSongs,
-});
 
 class SongLibraryBlock extends ConsumerWidget {
   const SongLibraryBlock({super.key});

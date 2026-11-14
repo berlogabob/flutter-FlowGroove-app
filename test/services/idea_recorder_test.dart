@@ -11,9 +11,9 @@ import 'package:flowgroove/screens/songs/components/lab_recording_sheet.dart';
 import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
 import 'package:flowgroove/services/storage_service.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/mocks.mocks.dart';
@@ -543,9 +543,8 @@ void main() {
     identity.identity = AsyncData(
       AppUser(uid: 'u2', createdAt: DateTime(2026)),
     );
-    Navigator.of(
-      tester.element(find.byType(LabRecordingSheet)),
-    ).pop(LabRecordingResult(bytes: Uint8List.fromList([1]), ext: 'aac'));
+    Navigator.of(tester.element(find.byType(LabRecordingSheet)))
+        .pop(LabRecordingResult(bytes: Uint8List.fromList([1]), ext: 'aac'));
     await tester.pumpAndSettle();
     expect(storage.calls, 0);
     expect(
@@ -589,9 +588,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Capture'));
       await tester.pumpAndSettle();
-      Navigator.of(
-        tester.element(find.byType(LabRecordingSheet)),
-      ).pop(LabRecordingResult(bytes: Uint8List.fromList([1]), ext: 'aac'));
+      Navigator.of(tester.element(find.byType(LabRecordingSheet)))
+          .pop(LabRecordingResult(bytes: Uint8List.fromList([1]), ext: 'aac'));
       await tester.pumpAndSettle();
       expect(storage.calls, 1);
       expect(storage.target, 's1');

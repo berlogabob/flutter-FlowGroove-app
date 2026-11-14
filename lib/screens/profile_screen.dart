@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -293,8 +293,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       userId = await TelegramService.createLinkToken();
     } on Object catch (e) {
       debugPrint('Telegram link token failed: $e');
-      if (mounted)
+      if (mounted) {
         showAppSnackBar(context, 'Could not start Telegram linking.');
+      }
       return;
     }
     if (!mounted) return;
@@ -496,7 +497,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: Padding(
               padding: const EdgeInsets.all(MonoPulseSpacing.lg),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   GestureDetector(
                     onTap: isDemo ? null : _showPhotoOptions,

@@ -26,6 +26,8 @@ class SetlistItem {
   const SetlistItem({
     required this.id,
     this.songId = '',
+    this.songTitle,
+    this.songArtist,
     this.tuningPresetId,
     this.type = itemTypeSong,
     this.breakType,
@@ -50,6 +52,8 @@ class SetlistItem {
   factory SetlistItem.fromJson(Map<String, dynamic> json) => SetlistItem(
     id: json['id'] as String? ?? '',
     songId: json['songId'] as String? ?? '',
+    songTitle: json['songTitle'] as String?,
+    songArtist: json['songArtist'] as String?,
     tuningPresetId: json['tuningPresetId'] as String?,
     type: json['type'] as String? ?? itemTypeSong,
     breakType: json['breakType'] as String?,
@@ -64,6 +68,8 @@ class SetlistItem {
 
   final String id;
   final String songId;
+  final String? songTitle;
+  final String? songArtist;
   final String? tuningPresetId;
 
   /// `'song'` or `'break'`.
@@ -84,6 +90,8 @@ class SetlistItem {
   SetlistItem copyWith({
     String? id,
     String? songId,
+    String? songTitle,
+    String? songArtist,
     String? tuningPresetId,
     String? type,
     String? breakType,
@@ -95,6 +103,8 @@ class SetlistItem {
     return SetlistItem(
       id: id ?? this.id,
       songId: songId ?? this.songId,
+      songTitle: songTitle ?? this.songTitle,
+      songArtist: songArtist ?? this.songArtist,
       tuningPresetId: clearTuningPreset
           ? null
           : (tuningPresetId ?? this.tuningPresetId),
@@ -110,6 +120,8 @@ class SetlistItem {
   Map<String, dynamic> toJson() => <String, dynamic>{
     'id': id,
     'songId': songId,
+    if (songTitle != null) 'songTitle': songTitle,
+    if (songArtist != null) 'songArtist': songArtist,
     if (tuningPresetId != null) 'tuningPresetId': tuningPresetId,
     if (type != itemTypeSong) 'type': type,
     if (breakType != null) 'breakType': breakType,

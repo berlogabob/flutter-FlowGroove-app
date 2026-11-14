@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../models/audio_region.dart';
 import '../models/section.dart';
@@ -459,7 +459,7 @@ class _SetupWizardState extends State<_SetupWizard> {
               for (var i = 0; i < 3; i++) ...[
                 if (i > 0) const Text(' · '),
                 if (i < _step)
-                  Icon(
+                  const Icon(
                     Icons.check,
                     size: 16,
                     color: MonoPulseColors.accentOrange,

@@ -96,7 +96,7 @@ void main() {
       });
 
       test('handles empty bandIds list', () {
-        final json = {
+        final json = <String, dynamic> {
           'uid': 'user-id-4',
           'bandIds': [],
           'createdAt': testDate.toIso8601String(),
@@ -130,7 +130,7 @@ void main() {
       test('parses Firestore Timestamp createdAt without throwing', () {
         final json = {
           'uid': 'user-id-ts',
-          'createdAt': Timestamp.fromDate(DateTime(2026, 1, 1)),
+          'createdAt': Timestamp.fromDate(DateTime(2026)),
         };
 
         expect(() => AppUser.fromJson(json), returnsNormally);
@@ -186,7 +186,7 @@ void main() {
         expect(json['displayName'], 'Serialize User');
         expect(json['email'], 'serialize@example.com');
         expect(json['photoURL'], 'https://example.com/serialize.jpg');
-        expect(json['bandIds'], isA<List>());
+        expect(json['bandIds'], isA<List<dynamic>>());
         expect(json['bandIds'].length, 3);
         expect(json['createdAt'], testDate.toIso8601String());
       });
@@ -200,7 +200,7 @@ void main() {
         expect(json['displayName'], isNull);
         expect(json['email'], isNull);
         expect(json['photoURL'], isNull);
-        expect(json['bandIds'], isA<List>());
+        expect(json['bandIds'], isA<List<dynamic>>());
         expect(json['bandIds'].length, 0);
       });
 
@@ -234,7 +234,7 @@ void main() {
 
         final json = user.toJson();
 
-        expect(json['bandIds'], isA<List>());
+        expect(json['bandIds'], isA<List<dynamic>>());
         expect(json['bandIds'].length, 0);
       });
     });

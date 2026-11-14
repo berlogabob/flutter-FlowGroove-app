@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../theme/mono_pulse_theme.dart';
 import 'app_filter_chip.dart';
 
@@ -24,7 +24,7 @@ class TagCloudWidget extends StatelessWidget {
     final tags = tagCounts.entries.take(maxTags).toList();
 
     return SizedBox(
-      height: 40,
+      height: 48,
       // Right-edge fade signals the row scrolls horizontally (F-021: the last
       // chip used to clip flush against the screen edge with no affordance).
       child: ShaderMask(

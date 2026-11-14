@@ -1,10 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/services/audio/engine/render_config.dart';
-import 'package:flowgroove/services/audio/engine/pcm_click_renderer.dart';
-import 'package:flowgroove/services/audio/engine/metronome_scheduler.dart';
 import 'package:flowgroove/services/audio/engine/audio_sink.dart';
+import 'package:flowgroove/services/audio/engine/metronome_scheduler.dart';
+import 'package:flowgroove/services/audio/engine/pcm_click_renderer.dart';
+import 'package:flowgroove/services/audio/engine/render_config.dart';
+import 'package:flutter_test/flutter_test.dart';
+
 import '../../../helpers/fake_audio_sink.dart';
 
 RenderConfig cfg({int subdivisions = 2}) => RenderConfig(
@@ -16,7 +17,7 @@ RenderConfig cfg({int subdivisions = 2}) => RenderConfig(
   accentFrequency: 1600,
   beatFrequency: 800,
   accentBeatFrequency: 2000,
-  volume: 1.0,
+  volume: 1,
   countInBars: 0,
   latencyOffsetFrames: 0,
 );
@@ -128,7 +129,7 @@ void main() {
     t.sink.pushed.clear();
     t.s.pumpForTest();
 
-    final resyncFrame = 120007 * kSampleRate ~/ 1000;
+    const resyncFrame = 120007 * kSampleRate ~/ 1000;
     expect(t.s.starvationEvents, 1);
 
     // Concatenate what was rendered from the resync point and find the click.
@@ -159,7 +160,7 @@ void main() {
       reason: 'click at absolute frame $absolute is off the $tickFrames grid',
     );
     // And it is the FIRST tick at or after the resync point.
-    final expectedTick =
+    const expectedTick =
         ((resyncFrame + tickFrames - 1) ~/ tickFrames) * tickFrames;
     expect((absolute - expectedTick).abs(), lessThan(64));
   });
@@ -173,7 +174,7 @@ void main() {
     t.sink.recoverEmits = const SinkEvent(SinkEventType.deviceChanged);
 
     t.sink.emit(const SinkEvent(SinkEventType.deviceChanged));
-    await pumpEventQueue(times: 20);
+    await pumpEventQueue();
 
     expect(t.sink.recoverCount, 1);
   });
@@ -187,7 +188,7 @@ void main() {
 
     t.advanceMs(400); // buffer drained while recovering
     t.sink.emit(const SinkEvent(SinkEventType.deviceChanged));
-    await pumpEventQueue(times: 20);
+    await pumpEventQueue();
 
     expect(t.sink.recoverCount, 1);
     expect(t.sink.lastRecoverFrame, isNotNull);

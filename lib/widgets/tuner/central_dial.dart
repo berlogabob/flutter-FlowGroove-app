@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/music_mode.dart';
@@ -85,10 +85,10 @@ class CentralDial extends ConsumerWidget {
         final circleSize = constraints.maxWidth * 0.55;
         final clampedSize = circleSize.clamp(280.0, 320.0);
         final noteRadius = clampedSize / 2 * 1.08;
-        final hitTestSize = noteRadius * 2 + 44;
+        final hitTestSize = noteRadius * 2 + 48;
         final hitTestRadius = math.min(
           noteRadius,
-          (constraints.biggest.shortestSide - 44) / 2,
+          (constraints.biggest.shortestSide - 48) / 2,
         );
 
         return Center(
@@ -120,7 +120,7 @@ class CentralDial extends ConsumerWidget {
                           ? 'Too quiet — play one note louder'
                           : 'Play a note',
                     'unstable' => 'Let the note ring',
-                    _ => 'Tap Listen to start',
+                    _ => 'Tap the microphone to start',
                   },
                   targetNoteIndex: state.mode == TunerMode.listen
                       ? _noteNameToIndex(
@@ -141,7 +141,7 @@ class CentralDial extends ConsumerWidget {
                       ),
                       scaleIntervals:
                           allMusicModes[state.musicModeIndex].intervals,
-                      textTertiary: context.mp.textTertiary,
+                      textTertiary: context.mp.textSecondary,
                     ),
                   ),
                 ),
@@ -179,7 +179,7 @@ class CentralDial extends ConsumerWidget {
                             notifier.setTargetNoteByIndex(index);
                           },
                           behavior: HitTestBehavior.opaque,
-                          child: const SizedBox(width: 44, height: 44),
+                          child: const SizedBox(width: 48, height: 48),
                         ),
                       ),
                     ),
@@ -233,13 +233,7 @@ class _DialNotesPainter extends CustomPainter {
     for (var i = 0; i < notes.length; i++) {
       final isCurrent = i == currentNoteIndex;
       final isInScale = scaleIntervals.contains(i);
-      final color =
-          (isCurrent
-                  ? MonoPulseColors.accentOrange
-                  : isInScale
-                  ? MonoPulseColors.white
-                  : textTertiary)
-              .withValues(alpha: isCurrent ? 1.0 : 0.5);
+      final color = isCurrent ? MonoPulseColors.accentOrange : textTertiary;
       final direction = Offset(
         math.cos(TunerDialGeometry.angleForNoteIndex(i)),
         math.sin(TunerDialGeometry.angleForNoteIndex(i)),
@@ -589,7 +583,7 @@ class _EdgeHandle extends StatelessWidget {
 
     // Position at top edge (12 o'clock position)
     return Transform.translate(
-      offset: Offset(0, -(size / 2 - handleSize / 2)),
+      offset: Offset(0, -(size / 2 - handleSize / 2 - 32)),
       child: Container(
         width: handleSize,
         height: handleSize,

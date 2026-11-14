@@ -1,5 +1,6 @@
 /// Pure helpers for the desktop wiki panel. No Flutter UI deps so they are
 /// trivially testable.
+library;
 
 /// Strips a leading Hugo front-matter block (YAML `---` or TOML `+++`) from
 /// [raw], returning the markdown body. Returns [raw] unchanged if there is no

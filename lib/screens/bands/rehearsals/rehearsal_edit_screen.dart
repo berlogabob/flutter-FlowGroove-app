@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
@@ -295,7 +295,7 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
               value: _setlistId,
               hint: const Text('No setlist'),
               items: [
-                const DropdownMenuItem(value: null, child: Text('No setlist')),
+                const DropdownMenuItem(child: Text('No setlist')),
                 for (final Setlist s in setlists)
                   DropdownMenuItem(value: s.id, child: Text(s.name)),
               ],
@@ -325,7 +325,6 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
                 child: ChoiceChip(
                   label: const Text('Rehearsal studio'),
                   selected: _venueType == Rehearsal.venueStudio,
-                  onSelected: null,
                 ),
               ),
             ],

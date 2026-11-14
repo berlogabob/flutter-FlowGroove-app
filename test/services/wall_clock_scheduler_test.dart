@@ -12,7 +12,7 @@ void main() {
         firedTimes.add(scheduler.elapsedMilliseconds);
       });
 
-      await Future.delayed(const Duration(milliseconds: 550));
+      await Future<void>.delayed(const Duration(milliseconds: 550));
       scheduler.stop();
 
       expect(firedTimes.length, greaterThanOrEqualTo(4));
@@ -29,17 +29,17 @@ void main() {
       var callCount = 0;
 
       scheduler.start(const Duration(milliseconds: 50), () => callCount++);
-      await Future.delayed(const Duration(milliseconds: 120));
+      await Future<void>.delayed(const Duration(milliseconds: 120));
       scheduler.stop();
       final countAfterStop = callCount;
-      await Future.delayed(const Duration(milliseconds: 120));
+      await Future<void>.delayed(const Duration(milliseconds: 120));
       expect(callCount, countAfterStop);
     });
 
     test('updateInterval changes cadence without resetting the phase', () async {
       final scheduler = WallClockScheduler();
       scheduler.start(const Duration(milliseconds: 50), () {});
-      await Future.delayed(const Duration(milliseconds: 170)); // ~3 ticks
+      await Future<void>.delayed(const Duration(milliseconds: 170)); // ~3 ticks
       final countBefore = scheduler.tickCount;
       expect(countBefore, greaterThanOrEqualTo(2));
 
@@ -48,7 +48,7 @@ void main() {
       scheduler.updateInterval(const Duration(milliseconds: 50));
       expect(scheduler.tickCount, countBefore);
 
-      await Future.delayed(const Duration(milliseconds: 120));
+      await Future<void>.delayed(const Duration(milliseconds: 120));
       scheduler.stop();
       expect(scheduler.tickCount, greaterThan(countBefore));
     });
@@ -71,7 +71,7 @@ void main() {
         }
       });
 
-      await Future.delayed(const Duration(milliseconds: 900));
+      await Future<void>.delayed(const Duration(milliseconds: 900));
       scheduler.stop();
 
       // Missed ticks were skipped, not replayed: no two callbacks fire
@@ -94,7 +94,7 @@ void main() {
     test('tickCount tracks number of ticks', () async {
       final scheduler = WallClockScheduler();
       scheduler.start(const Duration(milliseconds: 50), () {});
-      await Future.delayed(const Duration(milliseconds: 270));
+      await Future<void>.delayed(const Duration(milliseconds: 270));
       scheduler.stop();
       expect(scheduler.tickCount, greaterThanOrEqualTo(4));
       expect(scheduler.tickCount, lessThanOrEqualTo(6));

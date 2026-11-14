@@ -12,10 +12,10 @@ import 'package:flowgroove/screens/songs/add_song_screen.dart';
 import 'package:flowgroove/screens/songs/song_page_screen.dart';
 import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flowgroove/widgets/performance_sheet_view.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 
 import '../../helpers/mocks.dart';
@@ -66,9 +66,8 @@ void main() {
       List<Section> sections = const [],
       AppUserNotifier? appUserNotifier,
     }) {
-      final song = MockDataHelper.createMockSong(
-        id: 's1',
-      ).copyWith(sections: sections);
+      final song = MockDataHelper.createMockSong(id: 's1')
+          .copyWith(sections: sections);
       return [
         firebaseAuthProvider.overrideWith((ref) => mockAuth),
         appUserProvider.overrideWith(

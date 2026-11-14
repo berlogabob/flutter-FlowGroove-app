@@ -7,9 +7,9 @@ import 'package:flowgroove/widgets/dashboard_grid.dart';
 import 'package:flowgroove/widgets/quick_action_button.dart';
 import 'package:flowgroove/widgets/stat_card.dart';
 import 'package:flowgroove/widgets/tool_button.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../helpers/mocks.dart';
 import '../helpers/mocks.mocks.dart';
@@ -139,7 +139,7 @@ void main() {
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
 
       expect(find.byIcon(Icons.tune), findsOneWidget);
-      expect(find.byIcon(Icons.speed), findsOneWidget);
+      expect(find.byIcon(Icons.av_timer), findsOneWidget);
     });
 
     testWidgets('rehearsals empty state offers Sign up for demo users (#145)', (

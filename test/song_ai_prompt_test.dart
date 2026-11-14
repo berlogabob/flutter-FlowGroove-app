@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/services/json/song_ai_prompt.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('prompt states the FlowGroove Song JSON contract', () {

@@ -69,7 +69,6 @@ List<FileMarker>? _readWav(Uint8List b) {
         if (dataStart + 8 <= dataEnd) {
           sampleRate = _readU32LE(b, dataStart + 4);
         }
-        break;
       case 'cue ':
         if (dataStart + 4 <= dataEnd) {
           final int count = _readU32LE(b, dataStart);
@@ -87,7 +86,6 @@ List<FileMarker>? _readWav(Uint8List b) {
             cueMss.add(ms);
           }
         }
-        break;
       case 'LIST':
         if (dataStart + 4 <= dataEnd && _asciiEquals(b, dataStart, 'adtl')) {
           _readAdtlSubchunks(
@@ -100,7 +98,6 @@ List<FileMarker>? _readWav(Uint8List b) {
             cueEndMss,
           );
         }
-        break;
     }
 
     // Chunks are word-aligned: pad byte when size is odd.
@@ -144,7 +141,9 @@ void _readAdtlSubchunks(
       final int cuePointId = _readU32LE(b, dataStart);
       final int textStart = dataStart + 4;
       int end = textStart;
-      while (end < dataEnd && b[end] != 0) end++;
+      while (end < dataEnd && b[end] != 0) {
+        end++;
+      }
       final String name = utf8.decode(
         b.sublist(textStart, end),
         allowMalformed: true,
@@ -205,7 +204,9 @@ FileMarker? _readChap(Uint8List b, int dataStart, int dataEnd, int ver) {
   int p = dataStart;
   if (p >= dataEnd || b[p] == 0) return null;
   int idEnd = p;
-  while (idEnd < dataEnd && b[idEnd] != 0) idEnd++;
+  while (idEnd < dataEnd && b[idEnd] != 0) {
+    idEnd++;
+  }
   final String elementId = String.fromCharCodes(b.sublist(p, idEnd));
   if (elementId.isEmpty) return null;
 
@@ -242,7 +243,9 @@ String _decodeTit2(Uint8List b, int start, int bodyLen) {
   final int enc = b[start];
   // Growable copy: trailing NULs and the BOM are removed in place.
   final List<int> rest = b.sublist(start + 1, start + bodyLen).toList();
-  while (rest.isNotEmpty && rest.last == 0) rest.removeLast();
+  while (rest.isNotEmpty && rest.last == 0) {
+    rest.removeLast();
+  }
 
   if (enc == 0 || enc == 3) {
     return enc == 3

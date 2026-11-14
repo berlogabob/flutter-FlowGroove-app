@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/section.dart';
@@ -380,7 +380,9 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
                 MonoPulseSpacing.sm,
               ),
               child: Text(
-                'No sections yet — type ChordPro below, or use Import / Add.',
+                'No sections yet. Type lyrics below with chords in brackets, '
+                'for example [Am]Hello. To add a section or import lyrics '
+                'and chords, open Menu at the bottom.',
                 style: MonoPulseTypography.bodySmall.copyWith(
                   color: context.mp.textSecondary,
                 ),

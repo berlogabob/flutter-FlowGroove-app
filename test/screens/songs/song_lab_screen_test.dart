@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/section.dart';
-import 'package:flowgroove/services/audio/audio_file_cache.dart';
-import 'package:flowgroove/widgets/standard_screen_scaffold.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/models/user.dart';
@@ -12,10 +10,12 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/screens/songs/song_lab_screen.dart';
+import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flowgroove/services/pending_storage_deletes.dart';
-import 'package:flutter/material.dart';
+import 'package:flowgroove/widgets/standard_screen_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 
 import '../../helpers/mocks.mocks.dart';
@@ -302,8 +302,9 @@ void main() {
           if (permission == 'author viewer') {
             expect(find.text('Undo'), findsNothing);
           } else {
-            if (permission == 'revoked')
+            if (permission == 'revoked') {
               identity.change(const AsyncValue.data(null));
+            }
             await tester.tap(find.text('Undo'));
             await tester.pumpAndSettle();
             expect(
@@ -650,7 +651,7 @@ void main() {
           overrides: [
             labRepositoryProvider.overrideWithValue(repo),
             firebaseAuthProvider.overrideWith((ref) => auth),
-            appUserProvider.overrideWith(() => _DemoUserNotifier()),
+            appUserProvider.overrideWith(_DemoUserNotifier.new),
           ],
           child: MaterialApp(
             home: SongLabScreen(

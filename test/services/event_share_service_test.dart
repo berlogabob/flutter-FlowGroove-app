@@ -77,9 +77,8 @@ void main() {
       {'id': 's1', 'title': 'Open song', 'artist': 'Artist'},
     ];
     expect(
-      EventView.fromMap({
-        'suggestionCandidates': candidates,
-      }).suggestionCandidates,
+      EventView.fromMap({'suggestionCandidates': candidates})
+          .suggestionCandidates,
       candidates,
     );
     expect(EventView.fromMap({}).suggestionCandidates, isEmpty);
@@ -368,9 +367,8 @@ void main() {
       ]) {
         final invoker = _RecordingInvoker(bad);
         await expectLater(
-          EventShareService(
-            invoker: invoker.call,
-          ).listShares(ownerUid: 'owner', setlistId: 'event'),
+          EventShareService(invoker: invoker.call)
+              .listShares(ownerUid: 'owner', setlistId: 'event'),
           throwsFormatException,
           reason: '$bad',
         );
@@ -386,12 +384,13 @@ void main() {
         invoker: (name, args) async {
           expect(name, 'listEventShares');
           calls.add(args);
-          if (args['cursor'] != null)
+          if (args['cursor'] != null) {
             return {
               'shares': <Object?>[],
               'hasMore': false,
               'nextCursor': null,
             };
+          }
           return {
             'shares': [
               for (final state in [
@@ -429,7 +428,7 @@ void main() {
           'unavailable',
         ]);
         expect(page.shares.last.expiresAt, DateTime.utc(2026, 10, 26));
-        expect(() => page.shares.clear(), throwsUnsupportedError);
+        expect(page.shares.clear, throwsUnsupportedError);
         expect(() => page.shares.first.access.clear(), throwsUnsupportedError);
         final end = await service.listShares(
           bandId: personal ? null : 'band',
@@ -450,9 +449,8 @@ void main() {
       }
       final failure = StateError('permission denied');
       await expectLater(
-        EventShareService(
-          invoker: (_, _) async => throw failure,
-        ).listShares(ownerUid: 'owner', setlistId: 'event'),
+        EventShareService(invoker: (_, _) async => throw failure)
+            .listShares(ownerUid: 'owner', setlistId: 'event'),
         throwsA(same(failure)),
       );
     },
@@ -479,9 +477,8 @@ void main() {
       });
       for (final cursor in ['link-2', 'link-3']) {
         await expectLater(
-          EventShareService(
-            invoker: invoker.call,
-          ).listShares(bandId: 'band', setlistId: 'event', cursor: cursor),
+          EventShareService(invoker: invoker.call)
+              .listShares(bandId: 'band', setlistId: 'event', cursor: cursor),
           throwsFormatException,
         );
       }

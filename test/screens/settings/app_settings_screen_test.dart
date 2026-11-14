@@ -3,10 +3,10 @@ import 'package:flowgroove/providers/haptics_provider.dart';
 import 'package:flowgroove/providers/keep_screen_on_provider.dart';
 import 'package:flowgroove/providers/theme_mode_provider.dart';
 import 'package:flowgroove/screens/settings/app_settings_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -112,12 +112,12 @@ void main() {
         routes: [
           GoRoute(
             path: '/home',
-            builder: (_, __) => const Scaffold(body: Text('home-screen')),
+            builder: (_, _) => const Scaffold(body: Text('home-screen')),
           ),
           GoRoute(
             path: '/settings',
             name: 'settings',
-            builder: (_, __) => const AppSettingsScreen(),
+            builder: (_, _) => const AppSettingsScreen(),
           ),
         ],
       );

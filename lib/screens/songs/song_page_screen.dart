@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../models/song.dart';
 import '../../providers/auth/auth_provider.dart';
@@ -10,8 +11,10 @@ import '../../services/export/chordpro_export.dart';
 import '../../services/export/pdf_service.dart';
 import '../../services/export/setlist_export_sheet.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/chordpro.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
+import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/performance_sheet_view.dart';
 import '../../widgets/unified_item/song_card_actions.dart';
@@ -221,6 +224,38 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
         !ref.read(isDemoUserProvider);
   }
 
+  Future<void> _deleteSong(Song song) async {
+    if (!_canEditSongNow()) return;
+    final confirmed = await ConfirmationDialog.showDeleteDialog(
+      context,
+      title: 'Delete Song',
+      message: 'Are you sure you want to delete "${song.title}"?',
+    );
+    if (!confirmed || !mounted || !_canEditSongNow()) return;
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return;
+    try {
+      final repo = ref.read(songRepositoryProvider);
+      final bandId = widget.bandId;
+      if (bandId == null) {
+        await repo.deleteSong(song.id, uid: user.uid);
+      } else {
+        await repo.deleteBandSong(bandId, song.id);
+      }
+      if (!mounted) return;
+      if (context.canPop()) {
+        context.pop();
+      } else if (bandId == null) {
+        context.goNamed('songs');
+      } else {
+        context.goNamed('band-songs', pathParameters: {'id': bandId});
+      }
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, 'Delete failed: $e');
+    }
+  }
+
   List<AppMenuItem> _menuItems(Song song) {
     // Only bands the user can write to — viewers' bands would fail at save.
     final bands = editableBands(ref.watch(bandsProvider).value ?? const []);
@@ -253,6 +288,13 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
           label: 'Song editor',
           onTap: () => _openSongEditor(song),
         ),
+      if (_canEditSong())
+        AppMenuItem(
+          icon: Icons.delete_outline,
+          label: 'Delete',
+          destructive: true,
+          onTap: () => _deleteSong(song),
+        ),
       AppMenuItem(
         icon: Icons.picture_as_pdf_outlined,
         label: 'Export PDF',
@@ -269,8 +311,8 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
   Widget _header(Song song, _SongTab activeTab) {
     final meta = [
       if (song.artist.trim().isNotEmpty) song.artist.trim(),
-      if ((song.ourKey ?? song.originalKey) case final k? when k.isNotEmpty) k,
-      if ((song.ourBPM ?? song.originalBPM) case final b?) '$b BPM',
+      if (song.ourKey ?? song.originalKey case final k? when k.isNotEmpty) k,
+      if (song.ourBPM ?? song.originalBPM case final b?) '$b BPM',
     ].join(' · ');
 
     return Padding(
@@ -291,8 +333,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
                   style: MonoPulseTypography.titleLarge.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                 ),
                 if (meta.isNotEmpty)
                   Text(
@@ -303,6 +344,15 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                if (activeTab == _SongTab.sheet && _transpose != 0)
+                  if (song.ourKey ?? song.originalKey case final k?
+                      when k.trim().isNotEmpty)
+                    Text(
+                      'Original key: ${k.trim()} → ${transposeChord(k.trim(), _transpose)}',
+                      style: MonoPulseTypography.labelLarge.copyWith(
+                        color: context.mp.textSecondary,
+                      ),
+                    ),
               ],
             ),
           ),
@@ -322,7 +372,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
       sections: song.sections,
       bpm: song.ourBPM ?? song.originalBPM,
       initialTranspose: _transpose,
-      onTransposeChanged: (t) => _transpose = t,
+      onTransposeChanged: (t) => setState(() => _transpose = t),
       emptyState: Center(
         child: Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.xl),
@@ -332,9 +382,8 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
               Text(
                 'No lyrics or chords yet.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: context.mp.textSecondary,
-                ),
+                style: Theme.of(context).textTheme.bodyLarge
+                    ?.copyWith(color: context.mp.textSecondary),
               ),
               const SizedBox(height: MonoPulseSpacing.xl),
               // Second door into the Edit tab — hidden with it for viewers.

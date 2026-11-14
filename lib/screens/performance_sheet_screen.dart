@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -165,9 +165,16 @@ class _PerformanceSheetScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Pushed imperatively (Navigator.push), so it lives outside go_router
-      // and can't use the shell's bottom bar — this screen renders its own
-      // pushed-mode bar (Back/title/Menu). There is no top app bar.
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        actions: [
+          TextButton.icon(
+            onPressed: _handleBack,
+            icon: const Icon(Icons.fullscreen_exit),
+            label: const Text('Exit stage mode'),
+          ),
+        ],
+      ),
       body: SafeArea(
         bottom: false,
         child: PerformanceSheetView(

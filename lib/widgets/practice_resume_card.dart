@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/last_practice_context.dart';
 
 class PracticeResumeCard extends ConsumerWidget {
-  const PracticeResumeCard({super.key});
+  const PracticeResumeCard({super.key, this.replaceRoute = false});
+
+  final bool replaceRoute;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -15,11 +17,21 @@ class PracticeResumeCard extends ConsumerWidget {
       last.title,
       if (last.bpm != null) '${last.bpm} BPM',
     ].join(' · ');
-    void openSong() => context.pushNamed(
-      'song',
-      pathParameters: {'id': last.songId},
-      queryParameters: {if (last.bandId != null) 'bandId': last.bandId},
-    );
+    void openSong() {
+      if (replaceRoute) {
+        context.goNamed(
+          'song',
+          pathParameters: {'id': last.songId},
+          queryParameters: {if (last.bandId != null) 'bandId': last.bandId},
+        );
+      } else {
+        context.pushNamed(
+          'song',
+          pathParameters: {'id': last.songId},
+          queryParameters: {if (last.bandId != null) 'bandId': last.bandId},
+        );
+      }
+    }
     return Semantics(
       onTap: openSong,
       label: 'Continue $subtitle',

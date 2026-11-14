@@ -6,9 +6,9 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/setlists/create_setlist_screen.dart';
 import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flowgroove/widgets/primary_action_bar.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 
 import '../../helpers/mocks.dart' show MockDataHelper;
@@ -30,9 +30,8 @@ void main() {
       when(firebaseUser.uid).thenReturn('test-user-id');
 
       final firestore = MockFirestoreService();
-      when(
-        firestore.saveSetlist(any, uid: anyNamed('uid')),
-      ).thenAnswer((_) async {});
+      when(firestore.saveSetlist(any, uid: anyNamed('uid')))
+          .thenAnswer((_) async {});
 
       await tester.pumpWidget(
         ProviderScope(
@@ -155,13 +154,7 @@ void main() {
                 (ref, bandId) => Stream<List<Setlist>>.value([]),
               ),
             ],
-            child: MaterialApp(
-              home: CreateSetlistScreen(
-                setlist: existing,
-                // Deliberately wrong — this is what the buggy caller passed.
-                storageScope: SetlistStorageScope.personal,
-              ),
-            ),
+            child: MaterialApp(home: CreateSetlistScreen(setlist: existing)),
           ),
         );
         await tester.pumpAndSettle();
@@ -182,9 +175,8 @@ void main() {
       when(firebaseUser.uid).thenReturn('test-user-id');
 
       final firestore = MockFirestoreService();
-      when(
-        firestore.saveBandSetlist(any, any),
-      ).thenThrow(Exception('permission-denied'));
+      when(firestore.saveBandSetlist(any, any))
+          .thenThrow(Exception('permission-denied'));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -233,9 +225,8 @@ void main() {
         when(firebaseUser.uid).thenReturn('test-user-id');
 
         final firestore = MockFirestoreService();
-        when(
-          firestore.saveSetlist(any, uid: anyNamed('uid')),
-        ).thenAnswer((_) async {});
+        when(firestore.saveSetlist(any, uid: anyNamed('uid')))
+            .thenAnswer((_) async {});
 
         // One entry resolves (song-1), one doesn't (orphan-song) — e.g. the
         // song behind it was deleted. Both must survive editing and saving.
