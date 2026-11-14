@@ -345,7 +345,12 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         Expanded(
           child: filteredBands.isEmpty
               ? _buildEmptyState(bands.isEmpty)
-              : _buildBandList(filteredBands),
+              : Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 56 + MonoPulseSpacing.lg,
+                  ),
+                  child: _buildBandList(filteredBands),
+                ),
         ),
       ],
     );
