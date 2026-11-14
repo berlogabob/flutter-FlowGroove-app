@@ -93,7 +93,11 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
                 onDelete: widget.onDelete != null
                     ? () => widget.onDelete!(index)
                     : null,
-                onTap: widget.onTap != null ? () => widget.onTap!(index) : null,
+                onTap: widget.onTap != null
+                    ? () => widget.onTap!(index)
+                    : widget.onEdit != null
+                    ? () => widget.onEdit!(index)
+                    : null,
               ),
             ),
           ),

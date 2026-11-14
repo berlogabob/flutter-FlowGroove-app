@@ -47,6 +47,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Semantics(
+        button: onTap != null,
         label: item is SetlistItemAdapter ? 'Open setlist ${item.title}' : null,
         child: InkWell(
         onTap: onTap,
