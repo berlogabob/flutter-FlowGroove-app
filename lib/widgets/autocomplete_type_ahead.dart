@@ -214,7 +214,6 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
         controller: _controller,
         focusNode: _focusNode,
         decoration: InputDecoration(
-          label: Semantics(label: widget.hint, child: const SizedBox.shrink()),
           hintText: widget.hint,
           prefixIcon: Icon(widget.icon),
           suffixIcon: _buildSuffixIcon(searchState.isLoading),
