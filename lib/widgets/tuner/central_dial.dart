@@ -583,7 +583,7 @@ class _EdgeHandle extends StatelessWidget {
 
     // Position at top edge (12 o'clock position)
     return Transform.translate(
-      offset: Offset(0, -(size / 2 - handleSize / 2)),
+      offset: Offset(0, -(size / 2 - handleSize / 2 - 32)),
       child: Container(
         width: handleSize,
         height: handleSize,
