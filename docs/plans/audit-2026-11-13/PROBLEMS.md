@@ -13,7 +13,7 @@ Status: open / tasked / fixed / verified / deferred. Evidence paths are relative
 | M-07 | - | Remaining dart fix codes in lib/ and test/ | migration/report.md | fixed (lib via codex, test via direct dart fix) |
 | M-08 | - | 54 analyzer warnings in lib/ and test/ | migration/report.md | fixed (84 -> 6 warnings; 6 remaining not analysed) |
 | M-09 | - | Legacy analyzer plugin deprecation warning | migration/report.md | fixed |
-| M-10 | - | Wasm interop warning lib/services/audio/backing_engine_web.dart:14 | migration/report.md | fixed |
+| M-10 | - | Wasm interop warning lib/services/audio/backing_engine_web.dart:14 | migration/report.md | open (fix reverted in 0.34.1: it broke the web build, see N-014; Wasm dry-run warning is back) |
 | M-11 | - | Same-major dependency bumps | migration/report.md | deferred (upgrade reverted: broke the release build, see N-012; redo one package at a time with an APK build gate) |
 | M-12 | - | Major dependency bumps (Firebase family, file_picker 13) | migration/report.md | not started (major dependency bumps; need APK-build gate) |
 | M-13 | - | Full re-crawl on the Flutter 3.50 build | migration/report.md | done: full re-crawl audit/2026-11-13-r1 on Flutter 3.50 build |
@@ -75,3 +75,4 @@ Status: open / tasked / fixed / verified / deferred. Evidence paths are relative
 | N-012 | 3 | Same-major dependency upgrade (M-11) pulled record_android 2.3.0, which fails to compile in the release build; unit tests did not catch it | docs/plans/audit-2026-11-13/build_r5.txt | fixed (M-11 lockfile reverted, record pinned 7.1.2; APK build verified) |
 | N-013 | 4 | REGRESSION (device-confirmed on final build): tapping a song card in the Songs list no longer opens the song; the row is no longer exposed as clickable (was clickable before the F-011/F-012/F-013 accessibility-label changes). Bands and Setlists rows use the same unified item and must be checked too | audit/2026-11-13-r2/screens/flow_song_detail.png | verified on device (build r6: song card opens; add song to new and existing setlist works; regression test added) |
 | N-014 | 4 | Web build broken on the merged branch: M-10 (ornith) rewrote the AudioContext check and M-07 dart fix removed the StubBackingEngine import in the web-only backing engine; VM tests and the APK build do not compile this file | scratchpad deploy log | fixed (file restored from v0.34.0; web build verified); M-10 reopened |
+| N-015 | 3 | Setlists: swipe-left on a setlist row deletes it immediately with no confirmation dialog (songs ask first); undo not checked. Seen on 0.34.1 pre-release build 2026-11-14 | manual device check | open |

@@ -4,6 +4,16 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## 0.34.1+378 — 2026-11-14
+
+Audit 2026-11-13 remediation + Flutter 3.50 / Dart 3.14 migration. Trace: `docs/plans/audit-2026-11-13/` (PLAN.md, PROBLEMS.md, TRACE.md).
+
+- Toolchain: Gradle 9.5.0, AGP 9.3.1, Kotlin 2.4.20 (`compilerOptions`), `sdk: ^3.14.0`, `package:material_ui` imports, `dart fix` sweep, analyzer warnings 84 -> 5.
+- UX: 34 audit findings verified on device (Huawei P30), including blank screen after Progress > Continue, Delete in song menus, Title-first Add Song form, tuner dial contrast, per-item accessibility names on list actions, filter/metronome/tag layout overlaps.
+- Regressions introduced and fixed before release: list cards not opening (songs, add-song-to-setlist), web build of `backing_engine_web.dart`.
+- `record` pinned to 7.1.2 (`record_android` 2.3.0 fails the release build); same-major dependency upgrade reverted.
+- Known open: setlist swipe-delete has no confirmation (N-015); Wasm interop warning (M-10); removed-song titles not stored (F-004, F-017); major dependency bumps not attempted.
+
 ## Unreleased — verified UX implementation slices (2026-10-24)
 
 - UX-007: create-song FAB tooltip and rendered accessible name; issue remains open for device/TalkBack acceptance.
