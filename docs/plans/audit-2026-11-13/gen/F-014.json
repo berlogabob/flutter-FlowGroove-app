@@ -1,0 +1,24 @@
+[
+  {
+    "id": "F-014-a",
+    "finding": "F-014",
+    "executor": "pi",
+    "title": "Label song search for accessibility",
+    "files": ["lib/widgets/autocomplete_type_ahead.dart"],
+    "prompt": "In lib/widgets/autocomplete_type_ahead.dart, replace these exact lines:\n      child: TextField(\n        controller: _controller,\n        focusNode: _focusNode,\n        decoration: InputDecoration(\n          hintText: widget.hint,\nwith:\n      child: TextField(\n        controller: _controller,\n        focusNode: _focusNode,\n        decoration: InputDecoration(\n          label: Semantics(label: widget.hint, child: const SizedBox.shrink()),\n          hintText: widget.hint,\nThis supplies a persistent semantic label without changing the visible hint. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'label: Semantics(label: widget.hint, child: const SizedBox.shrink()),' lib/widgets/autocomplete_type_ahead.dart && dart analyze lib/widgets/autocomplete_type_ahead.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-014-b",
+    "finding": "F-014",
+    "executor": "pi",
+    "title": "Label title and artist fields",
+    "files": ["lib/screens/songs/components/song_form.dart"],
+    "prompt": "In lib/screens/songs/components/song_form.dart, replace these exact lines:\n          TextFormField(\n            controller: titleController,\n            decoration: const InputDecoration(labelText: 'Title *'),\n            textInputAction: TextInputAction.next,\n            validator: (v) =>\n                (v == null || v.trim().isEmpty) ? 'Title required' : null,\n          ),\n          const SizedBox(height: MonoPulseSpacing.lg),\n          // Artist field\n          TextFormField(\n            controller: artistController,\n            decoration: const InputDecoration(labelText: 'Artist'),\n            textInputAction: TextInputAction.done,\n          ),\nwith:\n          Semantics(\n            label: 'Title, required',\n            child: TextFormField(\n              controller: titleController,\n              decoration: const InputDecoration(labelText: 'Title *'),\n              textInputAction: TextInputAction.next,\n              validator: (v) =>\n                  (v == null || v.trim().isEmpty) ? 'Title required' : null,\n            ),\n          ),\n          const SizedBox(height: MonoPulseSpacing.lg),\n          // Artist field\n          Semantics(\n            label: 'Artist',\n            child: TextFormField(\n              controller: artistController,\n              decoration: const InputDecoration(labelText: 'Artist'),\n              textInputAction: TextInputAction.done,\n            ),\n          ),\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"label: 'Title, required',\" lib/screens/songs/components/song_form.dart && rg -Fq \"label: 'Artist',\" lib/screens/songs/components/song_form.dart && dart analyze lib/screens/songs/components/song_form.dart && flutter test test/screens/songs/add_song_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

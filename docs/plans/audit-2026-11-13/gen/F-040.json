@@ -1,0 +1,46 @@
+[
+  {
+    "id": "F-040-a",
+    "finding": "F-040",
+    "executor": "pi",
+    "title": "Align More metronome icon",
+    "files": ["lib/screens/main_shell.dart"],
+    "prompt": "In lib/screens/main_shell.dart, replace the exact lines:\n                icon: Icons.timer_outlined,\n                label: 'Metronome',\nwith:\n                icon: Icons.av_timer,\n                label: 'Metronome',\nThis matches the existing metronome action icon in song and setlist menus. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F 'icon: Icons.av_timer,' lib/screens/main_shell.dart && dart analyze lib/screens/main_shell.dart && flutter test test/screens/songs/songs_list_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-040-b",
+    "finding": "F-040",
+    "executor": "pi",
+    "title": "Update Home icon assertion",
+    "files": ["test/screens/home_screen_test.dart"],
+    "prompt": "In test/screens/home_screen_test.dart, replace the exact line:\n      expect(find.byIcon(Icons.speed), findsOneWidget);\nwith:\n      expect(find.byIcon(Icons.av_timer), findsOneWidget);\nThis prepares the existing assertion for the Home metronome icon change. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F 'expect(find.byIcon(Icons.av_timer), findsOneWidget);' test/screens/home_screen_test.dart && dart analyze test/screens/home_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-040-c",
+    "finding": "F-040",
+    "executor": "pi",
+    "title": "Align Home metronome icon",
+    "files": ["lib/screens/home_screen.dart"],
+    "prompt": "In lib/screens/home_screen.dart, replace the exact lines:\n          icon: Icons.speed,\n          label: 'Metronome',\nwith:\n          icon: Icons.av_timer,\n          label: 'Metronome',\nThis matches the existing metronome action icon in song and setlist menus. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F 'icon: Icons.av_timer,' lib/screens/home_screen.dart && dart analyze lib/screens/home_screen.dart && flutter test test/screens/home_screen_test.dart",
+    "after": ["F-040-b"],
+    "status": "pending"
+  },
+  {
+    "id": "F-040-d",
+    "finding": "F-040",
+    "executor": "pi",
+    "title": "Align Progress metronome icon",
+    "files": ["lib/screens/practice_screen.dart"],
+    "prompt": "In lib/screens/practice_screen.dart, replace the exact lines:\n                icon: Icons.speed,\n                label: 'Metronome',\nwith:\n                icon: Icons.av_timer,\n                label: 'Metronome',\nThis matches the existing metronome action icon in song and setlist menus. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F 'icon: Icons.av_timer,' lib/screens/practice_screen.dart && dart analyze lib/screens/practice_screen.dart && flutter test test/screens/practice_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

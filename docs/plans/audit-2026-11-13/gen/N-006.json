@@ -1,0 +1,15 @@
+[
+  {
+    "id": "N-006-a",
+    "finding": "N-006",
+    "executor": "codex",
+    "title": "Give tuning names more room",
+    "files": [
+      "lib/widgets/tuner/instrument_picker.dart"
+    ],
+    "prompt": "In lib/widgets/tuner/instrument_picker.dart, reduce the maximum width reserved for tuning notes so the Standard label fits on one line on the reported device. Replace these exact existing lines:\n            // Notes get at most ~55% of the row so long names keep their words.\n            Flexible(\n              flex: 0,\n              child: ConstrainedBox(\n                constraints: BoxConstraints(\n                  maxWidth: MediaQuery.sizeOf(context).width * 0.5,\nwith:\n            // Leave enough room for tuning names beside the notes.\n            Flexible(\n              flex: 0,\n              child: ConstrainedBox(\n                constraints: BoxConstraints(\n                  maxWidth: MediaQuery.sizeOf(context).width * 0.4,\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/widgets/tuner/instrument_picker.dart && dart analyze lib/widgets/tuner/instrument_picker.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

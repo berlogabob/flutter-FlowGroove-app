@@ -1,0 +1,30 @@
+[
+  {
+    "id": "F-007-a",
+    "finding": "F-007",
+    "executor": "pi",
+    "title": "Label and enlarge key selectors",
+    "files": [
+      "lib/screens/songs/components/bpm_selector.dart"
+    ],
+    "prompt": "In lib/screens/songs/components/bpm_selector.dart, replace the entire block beginning with `  @override\n  Widget build(BuildContext context) {\n    return Table(` inside KeyBpmGrid and ending immediately before `}\n\n/// Shared compact note/accidental dropdown used by the key grid.` with:\n\n  @override\n  Widget build(BuildContext context) {\n    return Column(\n      crossAxisAlignment: CrossAxisAlignment.start,\n      children: [\n        _row(\n          context,\n          'Original version',\n          originalBase,\n          originalModifier,\n          originalBpmController,\n          onOriginalKeyChanged,\n        ),\n        const SizedBox(height: MonoPulseSpacing.sm),\n        _row(\n          context,\n          'Our version',\n          ourBase,\n          ourModifier,\n          ourBpmController,\n          onOurKeyChanged,\n        ),\n      ],\n    );\n  }\n\n  Widget _row(\n    BuildContext context,\n    String label,\n    String base,\n    String modifier,\n    TextEditingController bpm,\n    void Function(String, String) onKey,\n  ) {\n    return Column(\n      crossAxisAlignment: CrossAxisAlignment.start,\n      children: [\n        Text(label, style: MonoPulseTypography.labelMedium),\n        const SizedBox(height: MonoPulseSpacing.xs),\n        Row(\n          crossAxisAlignment: CrossAxisAlignment.end,\n          children: [\n            Expanded(\n              child: Column(\n                crossAxisAlignment: CrossAxisAlignment.start,\n                children: [\n                  Text('Root', style: MonoPulseTypography.labelMedium),\n                  const SizedBox(height: MonoPulseSpacing.xs),\n                  _keyMiniDropdown(\n                    context,\n                    base,\n                    keyBases,\n                    (v) => onKey(v ?? '', modifier),\n                  ),\n                ],\n              ),\n            ),\n            const SizedBox(width: MonoPulseSpacing.xs),\n            Expanded(\n              child: Column(\n                crossAxisAlignment: CrossAxisAlignment.start,\n                children: [\n                  Text('Accidental / quality', style: MonoPulseTypography.labelMedium),\n                  const SizedBox(height: MonoPulseSpacing.xs),\n                  _keyMiniDropdown(\n                    context,\n                    modifier,\n                    keyModifiers,\n                    (v) => onKey(base, v ?? ''),\n                  ),\n                ],\n              ),\n            ),\n            const SizedBox(width: MonoPulseSpacing.xs),\n            Expanded(\n              child: TextFormField(\n                controller: bpm,\n                decoration: const InputDecoration(labelText: 'BPM', isDense: true),\n                keyboardType: TextInputType.number,\n              ),\n            ),\n          ],\n        ),\n      ],\n    );\n  }\n\nThen replace the exact line `    padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),` in _keyMiniDropdown with:\n\n    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),\n    padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),\n\nFinally replace the exact line `      isDense: true,` in _keyMiniDropdown with:\n\n      isExpanded: true,\n      isDense: false,\n\nThe modifier choices combine accidentals and minor quality, so the label must describe both. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"'Original version'\" lib/screens/songs/components/bpm_selector.dart && rg -Fq \"'Our version'\" lib/screens/songs/components/bpm_selector.dart && rg -Fq \"Text('Root'\" lib/screens/songs/components/bpm_selector.dart && rg -Fq \"Text('Accidental / quality'\" lib/screens/songs/components/bpm_selector.dart && rg -Fq 'BoxConstraints(minWidth: 48, minHeight: 48)' lib/screens/songs/components/bpm_selector.dart && rg -Fq 'isExpanded: true' lib/screens/songs/components/bpm_selector.dart && dart analyze lib/screens/songs/components/bpm_selector.dart && flutter test test/models/song_form_key_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-007-b",
+    "finding": "F-007",
+    "executor": "pi",
+    "title": "Update version label assertions",
+    "files": [
+      "test/screens/songs/add_song_screen_test.dart"
+    ],
+    "prompt": "In test/screens/songs/add_song_screen_test.dart, replace these exact lines:\n\n      expect(find.text('Original'), findsOneWidget);\n      expect(find.text('Our'), findsOneWidget);\n\nwith:\n\n      expect(find.text('Original version'), findsOneWidget);\n      expect(find.text('Our version'), findsOneWidget);\n      expect(find.text('Root'), findsNWidgets(2));\n      expect(find.text('Accidental / quality'), findsNWidgets(2));\n\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"expect(find.text('Original version'), findsOneWidget);\" test/screens/songs/add_song_screen_test.dart && rg -Fq \"expect(find.text('Accidental / quality'), findsNWidgets(2));\" test/screens/songs/add_song_screen_test.dart && dart analyze test/screens/songs/add_song_screen_test.dart && flutter test test/screens/songs/add_song_screen_test.dart",
+    "after": [
+      "F-007-a"
+    ],
+    "status": "pending"
+  }
+]

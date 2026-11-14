@@ -1,0 +1,15 @@
+[
+  {
+    "id": "F-036-a",
+    "finding": "F-036",
+    "executor": "pi",
+    "title": "Timeout stalled homework requests",
+    "files": [
+      "lib/providers/homework_provider.dart"
+    ],
+    "prompt": "In lib/providers/homework_provider.dart, apply a 30-second timeout to the entire homework load so a stalled songs or task request reaches the existing error message and Retry button. Replace these exact lines:\nfinal myHomeworkProvider = FutureProvider.autoDispose<List<HomeworkItem>>((\n  ref,\n) async {\nwith:\nfinal myHomeworkProvider = FutureProvider.autoDispose<List<HomeworkItem>>((\n  ref,\n) => Future<List<HomeworkItem>>.sync(() async {\nThen replace these exact lines at the end of the provider:\n  return items;\n});\nwith:\n  return items;\n}).timeout(const Duration(seconds: 30)));\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q '}).timeout(const Duration(seconds: 30)));' lib/providers/homework_provider.dart && dart analyze lib/providers/homework_provider.dart && flutter test test/screens/practice_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

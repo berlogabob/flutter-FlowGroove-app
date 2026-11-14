@@ -1,0 +1,162 @@
+[
+ {
+  "id": "F-001",
+  "screen": "This week → Continue",
+  "severity": 3,
+  "evidence": "Continue from Progress opens a blank content area with only bottom navigation rendered and Songs selected; no song, loading indicator, or error appears. The song opens from the Home Continue card. Reproduced twice on device after an eight-second wait.",
+  "recommendation": "Open the selected song from Progress and show a loading or recoverable error state if it cannot be opened.",
+  "screenshot": "screens/flow_verify_progress_continue.png"
+ },
+ {
+  "id": "F-003",
+  "screen": "Add Song",
+  "severity": 3,
+  "evidence": "The optional autofill search is the first large field and resembles the required Title input. The CRUD flow initially entered the title there and received a Title required error.",
+  "recommendation": "Clearly distinguish optional catalog search from manual entry and make the required Title field prominent.",
+  "screenshot": "screens/04_add_song.png"
+ },
+ {
+  "id": "F-005",
+  "screen": "Tuner",
+  "severity": 3,
+  "evidence": "Note names and tick marks around the dial are nearly white against pale gray and difficult to distinguish in the idle state.",
+  "recommendation": "Use sufficiently contrasting colors for dial labels and markings in active and idle states.",
+  "screenshot": "screens/15_this_week__tuner.png"
+ },
+ {
+  "id": "F-007",
+  "screen": "Add Song → Key & BPM",
+  "severity": 2,
+  "evidence": "Each row has two unlabeled dropdowns displaying a dash, and Original and Our do not clearly explain the versions. The adjacent selectors have small targets.",
+  "recommendation": "Label root and quality controls, clarify the version names, and provide distinct targets of at least 48 × 48 dp.",
+  "screenshot": "screens/24_add_song__key_bpm.png"
+ },
+ {
+  "id": "F-009",
+  "screen": "Tuner",
+  "severity": 2,
+  "evidence": "The idle instruction says Tap Listen, but a top Listen control and a large microphone button are both visible; the accessibility tree reports two Listen controls. Auto, Manual, and note targets are small.",
+  "recommendation": "Distinguish mode selection from starting detection and provide at least 48 × 48 dp targets.",
+  "screenshot": "screens/15_this_week__tuner.png"
+ },
+ {
+  "id": "F-011",
+  "screen": "Songs",
+  "severity": 2,
+  "evidence": "Search has no accessible label, and repeated Metronome and More actions do not identify their songs.",
+  "recommendation": "Label search and include song titles in accessible action labels.",
+  "screenshot": "screens/09_songs.png"
+ },
+ {
+  "id": "F-013",
+  "screen": "Setlists",
+  "severity": 2,
+  "evidence": "Search and setlist rows are unlabeled clickable nodes, and repeated metronome and More actions do not identify their setlists.",
+  "recommendation": "Label search and rows and include setlist names in action labels.",
+  "screenshot": "screens/11_setlists.png"
+ },
+ {
+  "id": "F-015",
+  "screen": "Create Band",
+  "severity": 2,
+  "evidence": "Band Name and Description are reported as unlabeled clickable nodes despite visible placeholders.",
+  "recommendation": "Expose accessible labels and announce that Band Name is required.",
+  "screenshot": "screens/05_add_band.png"
+ },
+ {
+  "id": "F-017",
+  "screen": "Progress → recent sessions",
+  "severity": 2,
+  "evidence": "Most visible history entries say Removed song without identifying information; some also say Unnamed sections, making sessions difficult to interpret.",
+  "recommendation": "Retain readable song and section name snapshots and indicate when the source song is unavailable.",
+  "screenshot": "screens/17_this_week__swipe.png"
+ },
+ {
+  "id": "F-019",
+  "screen": "Song sheet → transpose",
+  "severity": 2,
+  "evidence": "After transposing down, the control reads -1 while the header still displays Dm, leaving the sounding key and adjustment unit unclear.",
+  "recommendation": "Label the adjustment in semitones and show the resulting key alongside the original.",
+  "screenshot": "screens/21_continue_back_to_black_123_b__transpose_down.png"
+ },
+ {
+  "id": "F-021",
+  "screen": "Songs → Key / BPM filter",
+  "severity": 2,
+  "evidence": "The filter offers sharp note names only while song cards display flat keys such as Bbm and Ab, requiring users to infer enharmonic equivalents.",
+  "recommendation": "Display equivalent sharp and flat names together and match both spellings.",
+  "screenshot": "screens/73_songs__swipe__key_bpm.png"
+ },
+ {
+  "id": "F-023",
+  "screen": "Songs → tag filters",
+  "severity": 2,
+  "evidence": "Adjacent tag filter chips have touch targets shorter than 48 dp.",
+  "recommendation": "Increase each chip's interactive height to at least 48 dp.",
+  "screenshot": "screens/09_songs.png"
+ },
+ {
+  "id": "F-025",
+  "screen": "Setlists → testo tiras",
+  "severity": 2,
+  "evidence": "Play controls for available songs are unlabeled in the accessibility hierarchy and have small touch areas.",
+  "recommendation": "Label each play action with its song title and enlarge its target to at least 48 dp.",
+  "screenshot": "screens/58_setlists__testo_tiras.png"
+ },
+ {
+  "id": "F-027",
+  "screen": "Songs → Key / BPM filter",
+  "severity": 2,
+  "evidence": "Bottom navigation covers the lower part of the filter sheet, including the BPM selector.",
+  "recommendation": "Place the sheet above navigation or provide enough bottom inset and scrolling.",
+  "screenshot": "screens/73_songs__swipe__key_bpm.png"
+ },
+ {
+  "id": "F-029",
+  "screen": "Song detail → Basketcase",
+  "severity": 2,
+  "evidence": "The song title is truncated in both the header and bottom bar, so the full title cannot be read on the detail screen.",
+  "recommendation": "Allow the title to wrap or provide another visible way to read it.",
+  "screenshot": "screens/45_songs__basketcase_live_at_the_point.png"
+ },
+ {
+  "id": "F-031",
+  "screen": "Progress → recent sessions",
+  "severity": 2,
+  "evidence": "Tightly packed session names run into duration information or truncate when metadata is longer.",
+  "recommendation": "Give names and metadata separate flexible regions and allow wrapping.",
+  "screenshot": "screens/17_this_week__swipe.png"
+ },
+ {
+  "id": "F-033",
+  "screen": "Metronome → song sections",
+  "severity": 2,
+  "evidence": "Section cards use colored borders to distinguish categories, but repeated labels such as Solo have no accompanying category marker or legend.",
+  "recommendation": "Where border colors convey meaning, pair them with a text label, icon, or other non-color cue.",
+  "screenshot": "screens/71_songs__metronome__swipe.png"
+ },
+ {
+  "id": "F-035",
+  "screen": "Home → This week",
+  "severity": 2,
+  "evidence": "The card says Tap to start but opens Progress, where starting practice requires another action; More calls the destination Progress / history.",
+  "recommendation": "Label the card as a route to progress or make its stated start action lead to practice, and name the destination consistently.",
+  "screenshot": "screens/02_this_week.png"
+ },
+ {
+  "id": "F-037",
+  "screen": "Add Song → expanded sections",
+  "severity": 1,
+  "evidence": "Icons for Key & BPM, Links, Song Structure, and Notes change when their sections expand.",
+  "recommendation": "Keep identifying icons consistent and use a consistent expansion indicator.",
+  "screenshot": "screens/24_add_song__key_bpm.png"
+ },
+ {
+  "id": "F-039",
+  "screen": "Recorder",
+  "severity": 1,
+  "evidence": "The orange Record button is markedly rounder than the orange creation buttons; the theme specifies a 12px radius for filled buttons.",
+  "recommendation": "Use the shared primary button shape and label treatment.",
+  "screenshot": "screens/16_this_week__recorder.png"
+ }
+]

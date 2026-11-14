@@ -1,0 +1,15 @@
+[
+  {
+    "id": "F-018-a",
+    "finding": "F-018",
+    "executor": "pi",
+    "title": "Add stage mode exit control",
+    "files": [
+      "lib/screens/performance_sheet_screen.dart"
+    ],
+    "prompt": "In lib/screens/performance_sheet_screen.dart, replace these exact lines:\n\n    return Scaffold(\n      // Pushed imperatively (Navigator.push), so it lives outside go_router\n      // and can't use the shell's bottom bar — this screen renders its own\n      // pushed-mode bar (Back/title/Menu). There is no top app bar.\n      body: SafeArea(\n\nwith:\n\n    return Scaffold(\n      appBar: AppBar(\n        automaticallyImplyLeading: false,\n        actions: [\n          TextButton.icon(\n            onPressed: _handleBack,\n            icon: const Icon(Icons.fullscreen_exit),\n            label: const Text('Exit stage mode'),\n          ),\n        ],\n      ),\n      body: SafeArea(\n\nThis gives users a visible, accessible exit control and uses the existing back handler to stop scrolling and return to the previous screen. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"label: const Text('Exit stage mode'),\" lib/screens/performance_sheet_screen.dart && dart analyze lib/screens/performance_sheet_screen.dart && flutter test test/screens/performance_sheet_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

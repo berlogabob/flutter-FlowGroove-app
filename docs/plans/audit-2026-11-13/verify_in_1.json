@@ -1,0 +1,162 @@
+[
+ {
+  "id": "F-002",
+  "screen": "Songs → song actions",
+  "severity": 3,
+  "evidence": "Delete is absent from the song detail, editor, and list-row menus. The CRUD flow found deletion only through an undocumented left swipe, then confirmed it.",
+  "recommendation": "Expose Delete in a visible song action menu while retaining swipe and confirmation.",
+  "screenshot": "screens/flow_song_menu.png"
+ },
+ {
+  "id": "F-004",
+  "screen": "Setlist → testo tiras",
+  "severity": 3,
+  "evidence": "Four of six entries say only Unavailable song. Their titles and the reason for unavailability are absent, and the instruction directs users through Menu to edit the setlist.",
+  "recommendation": "Preserve and display last-known titles, explain availability where known, and provide a direct review or repair action.",
+  "screenshot": "screens/58_setlists__testo_tiras.png"
+ },
+ {
+  "id": "F-006",
+  "screen": "Add Song → offline search",
+  "severity": 2,
+  "evidence": "After entering a search offline and waiting eight seconds, the form shows no results, offline explanation, or retry; the offline banner visible on Home is absent. [Orchestrator note: the flow typed the query but did not submit it, so absence of an error is not proven; downgraded 3->2, unverified.]",
+  "recommendation": "Explain that catalog search needs a connection, offer retry, and make manual entry clear.",
+  "screenshot": "screens/flow_offline_search.png"
+ },
+ {
+  "id": "F-008",
+  "screen": "Metronome",
+  "severity": 2,
+  "evidence": "Two rows of circles and plus/minus controls lack labels for beats and subdivisions; the numbered badges and dot states are also unclear. Main beat targets are narrow.",
+  "recommendation": "Label the rows, explain dot states, and enlarge each beat target to at least 48 dp.",
+  "screenshot": "screens/14_this_week__start_practice.png"
+ },
+ {
+  "id": "F-010",
+  "screen": "Recorder",
+  "severity": 2,
+  "evidence": "Playback controls are unlabeled and repeated recording menus share the generic Show menu label, so actions cannot be associated reliably with recordings.",
+  "recommendation": "Include recording titles in playback and menu labels and enlarge playback targets to at least 48 dp.",
+  "screenshot": "screens/16_this_week__recorder.png"
+ },
+ {
+  "id": "F-012",
+  "screen": "Bands",
+  "severity": 2,
+  "evidence": "Search and several band rows are unlabeled clickable nodes, and repeated View Songs and More actions lack band context.",
+  "recommendation": "Expose band names and give search and actions contextual accessible labels.",
+  "screenshot": "screens/10_bands.png"
+ },
+ {
+  "id": "F-014",
+  "screen": "Add Song",
+  "severity": 2,
+  "evidence": "Autofill, Title, and Artist are reported as unlabeled clickable nodes, preventing reliable identification by assistive technology.",
+  "recommendation": "Expose persistent semantic labels and required state for the fields.",
+  "screenshot": "screens/04_add_song.png"
+ },
+ {
+  "id": "F-016",
+  "screen": "Create Setlist",
+  "severity": 2,
+  "evidence": "The Setlist Name input is an unlabeled clickable node; the adjacent collapsed chevron does not indicate that it reveals event details.",
+  "recommendation": "Expose the field label and required state, and label the event-details toggle and its state.",
+  "screenshot": "screens/06_add_setlist.png"
+ },
+ {
+  "id": "F-018",
+  "screen": "Song sheet → stage mode",
+  "severity": 2,
+  "evidence": "The fullscreen control disappears after entering stage mode, and no visible control explains how to exit; Back does not clarify whether it exits the mode or the song.",
+  "recommendation": "Provide a discoverable, accessible Exit stage mode control or instruction.",
+  "screenshot": "screens/18_continue_back_to_black_123_b__stage_mode.png"
+ },
+ {
+  "id": "F-020",
+  "screen": "Add Song → Metronome Settings",
+  "severity": 2,
+  "evidence": "Expanding Metronome Settings leaves its controls below the fixed Save Song bar, with only partial field headings visible.",
+  "recommendation": "Scroll the expanded section into view and make its controls reachable above the fixed bar.",
+  "screenshot": "screens/29_add_song__metronome_settings.png"
+ },
+ {
+  "id": "F-022",
+  "screen": "Song editor",
+  "severity": 2,
+  "evidence": "The empty editor instructs users to type ChordPro or use Import / Add, but neither referenced action is visible.",
+  "recommendation": "Expose or explain the referenced actions and provide contextual ChordPro help.",
+  "screenshot": "screens/flow_song_editor.png"
+ },
+ {
+  "id": "F-024",
+  "screen": "Add Song → Tags",
+  "severity": 2,
+  "evidence": "The ready, easy, and hard controls are partly obscured by the fixed Save Song area and have small exposed targets.",
+  "recommendation": "Allow tags to scroll fully above the fixed bar and provide at least 48 dp touch targets.",
+  "screenshot": "screens/28_add_song__tags.png"
+ },
+ {
+  "id": "F-026",
+  "screen": "Songs → Metronome",
+  "severity": 2,
+  "evidence": "Fixed playback controls partially cover the Backing tracks button, obscuring its label and touch area.",
+  "recommendation": "Reserve space for fixed transport controls so the button can be fully exposed.",
+  "screenshot": "screens/43_songs__metronome.png"
+ },
+ {
+  "id": "F-028",
+  "screen": "Songs → search",
+  "severity": 2,
+  "evidence": "The search placeholder is truncated to Search s… while the adjacent sort control displays its longer label.",
+  "recommendation": "Give search enough space for its purpose or use a compact sort control and concise label.",
+  "screenshot": "screens/09_songs.png"
+ },
+ {
+  "id": "F-030",
+  "screen": "Progress → Tools",
+  "severity": 2,
+  "evidence": "The Metronome label is much smaller than Tuner and Recorder despite their equivalent roles.",
+  "recommendation": "Use consistent readable label sizing and adjust the layout to fit.",
+  "screenshot": "screens/02_this_week.png"
+ },
+ {
+  "id": "F-032",
+  "screen": "Bands",
+  "severity": 2,
+  "evidence": "The floating add button overlaps and partly obscures the lower band's overflow action.",
+  "recommendation": "Add bottom padding so list actions can scroll clear of the floating button.",
+  "screenshot": "screens/10_bands.png"
+ },
+ {
+  "id": "F-034",
+  "screen": "Add Song → Song Structure",
+  "severity": 2,
+  "evidence": "The No sections yet empty-state text is very pale against its light background.",
+  "recommendation": "Use a sufficiently contrasting secondary text color.",
+  "screenshot": "screens/26_add_song__song_structure.png"
+ },
+ {
+  "id": "F-036",
+  "screen": "Progress → homework",
+  "severity": 1,
+  "evidence": "The captured screen shows Loading homework… without a way to distinguish a slow request from a stalled one.",
+  "recommendation": "On failure or a reasonable timeout, show an explanation and retry action.",
+  "screenshot": "screens/02_this_week.png"
+ },
+ {
+  "id": "F-038",
+  "screen": "Songs → sort menu",
+  "severity": 1,
+  "evidence": "The sort control and options use a serif face while adjacent controls use sans serif.",
+  "recommendation": "Apply the shared control typography to the sort control and menu.",
+  "screenshot": "screens/39_songs__alphabetical.png"
+ },
+ {
+  "id": "F-040",
+  "screen": "More",
+  "severity": 1,
+  "evidence": "More represents Metronome with a stopwatch while Home and Progress use a gauge-style icon for the same destination.",
+  "recommendation": "Use one metronome icon consistently across navigation, tools, and menus.",
+  "screenshot": "screens/12_more.png"
+ }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "F-027-a",
+    "finding": "F-027",
+    "executor": "pi",
+    "title": "Show filter above navigation",
+    "files": [
+      "lib/screens/songs/songs_list_screen.dart"
+    ],
+    "prompt": "In lib/screens/songs/songs_list_screen.dart, locate this exact code in _showFilterOptions:\n\n    showModalBottomSheet<void>(\n      context: context,\n      builder: (context) => StatefulBuilder(\n\nReplace it with:\n\n    showModalBottomSheet<void>(\n      context: context,\n      useRootNavigator: true,\n      builder: (context) => StatefulBuilder(\n\nThis places the existing scrollable filter sheet above the app's bottom navigation. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F '      useRootNavigator: true,' lib/screens/songs/songs_list_screen.dart && dart analyze lib/screens/songs/songs_list_screen.dart && flutter test test/screens/songs/songs_list_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

@@ -1,0 +1,46 @@
+[
+  {
+    "id": "M-05-a",
+    "finding": "M-05",
+    "executor": "pi",
+    "title": "Migrate remove selection to RadioGroup",
+    "files": ["lib/screens/setlists/event_share_screen.dart"],
+    "prompt": "In lib/screens/setlists/event_share_screen.dart, replace this exact block:\n              if (_kind == 'remove')\n                for (final (index, item) in _items.indexed)\n                  if (item['type'] == 'song')\n                    RadioListTile<String>(\n                      title: Text('${index + 1}. ${_titleFor(item)}'),\n                      value: item['id'] as String,\n                      groupValue: _selectedItemId,\n                      onChanged: (value) =>\n                          setState(() => _selectedItemId = value),\n                    ),\nwith:\n              if (_kind == 'remove')\n                RadioGroup<String>(\n                  groupValue: _selectedItemId,\n                  onChanged: (value) =>\n                      setState(() => _selectedItemId = value),\n                  child: Column(\n                    children: [\n                      for (final (index, item) in _items.indexed)\n                        if (item['type'] == 'song')\n                          RadioListTile<String>(\n                            title: Text('${index + 1}. ${_titleFor(item)}'),\n                            value: item['id'] as String,\n                          ),\n                    ],\n                  ),\n                ),\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q 'groupValue: _selectedItemId,' lib/screens/setlists/event_share_screen.dart && rg -U -q 'RadioGroup<String>\\(\\s*groupValue: _selectedItemId,' lib/screens/setlists/event_share_screen.dart && dart analyze lib/screens/setlists/event_share_screen.dart && flutter test test/screens/setlists/event_share_render_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "M-05-b",
+    "finding": "M-05",
+    "executor": "pi",
+    "title": "Migrate reorder callback",
+    "files": ["lib/screens/setlists/event_share_screen.dart"],
+    "prompt": "In lib/screens/setlists/event_share_screen.dart, replace this exact block:\n                  onReorder: (oldIndex, newIndex) => setState(() {\n                    final target = newIndex > oldIndex\n                        ? newIndex - 1\n                        : newIndex;\n                    _items.insert(target, _items.removeAt(oldIndex));\n                  }),\nwith:\n                  onReorderItem: (oldIndex, newIndex) => setState(() {\n                    _items.insert(newIndex, _items.removeAt(oldIndex));\n                  }),\nThe new callback supplies an already-adjusted index. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q 'onReorderItem: (oldIndex, newIndex) => setState(() {' lib/screens/setlists/event_share_screen.dart && rg -F -q '_items.insert(newIndex, _items.removeAt(oldIndex));' lib/screens/setlists/event_share_screen.dart && dart analyze lib/screens/setlists/event_share_screen.dart && flutter test test/screens/setlists/event_share_render_test.dart",
+    "after": ["M-05-a"],
+    "status": "pending"
+  },
+  {
+    "id": "M-05-c",
+    "finding": "M-05",
+    "executor": "pi",
+    "title": "Read picked bytes through supported API",
+    "files": ["lib/utils/picked_file.dart"],
+    "prompt": "In lib/utils/picked_file.dart, replace this exact block:\n/// Bytes of a picked file. On Android/iOS `pickFile` returns a path without\n/// bytes, and `PlatformFile.readAsBytes()` then throws, so fall back to the\n/// byte stream (works on every platform).\nFuture<Uint8List> readPickedBytes(PlatformFile file) async {\n  final bytes = file.bytes;\n  if (bytes != null) return bytes;\n  final builder = BytesBuilder(copy: false);\nwith:\n/// Bytes of a picked file. Fall back to the byte stream when the picker\n/// provides a path without bytes.\nFuture<Uint8List> readPickedBytes(PlatformFile file) async {\n  try {\n    return await file.readAsBytes();\n  } on StateError {\n    // Path-only files are read from the stream below.\n  }\n  final builder = BytesBuilder(copy: false);\nKeep the existing stream loop and return below this block. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q 'return await file.readAsBytes();' lib/utils/picked_file.dart && rg -F -q 'await for (final chunk in file.readAsByteStream()) {' lib/utils/picked_file.dart && dart analyze lib/utils/picked_file.dart && flutter test test/utils/picked_file_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "M-05-d",
+    "finding": "M-05",
+    "executor": "pi",
+    "title": "Migrate practice card opacity",
+    "files": ["lib/widgets/practice_dashboard_card.dart"],
+    "prompt": "In lib/widgets/practice_dashboard_card.dart, replace the exact line:\n                    color: context.mp.textPrimary.withOpacity(0.85),\nwith:\n                    color: context.mp.textPrimary.withValues(alpha: 0.85),\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q 'color: context.mp.textPrimary.withValues(alpha: 0.85),' lib/widgets/practice_dashboard_card.dart && dart analyze lib/widgets/practice_dashboard_card.dart && flutter test test/widgets/practice_dashboard_card_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

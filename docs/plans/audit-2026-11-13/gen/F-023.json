@@ -1,0 +1,13 @@
+[
+  {
+    "id": "F-023-a",
+    "finding": "F-023",
+    "executor": "pi",
+    "title": "Increase tag filter row height",
+    "files": ["lib/widgets/tag_cloud_widget.dart"],
+    "prompt": "In lib/widgets/tag_cloud_widget.dart, replace these exact lines:\n    return SizedBox(\n      height: 40,\nwith:\n    return SizedBox(\n      height: 48,\nThe horizontal ListView gives each tag chip the row's full height, making its touch target at least 48 dp. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F 'height: 48,' lib/widgets/tag_cloud_widget.dart && dart analyze lib/widgets/tag_cloud_widget.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

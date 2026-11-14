@@ -1,0 +1,46 @@
+[
+  {
+    "id": "F-017-a",
+    "finding": "F-017",
+    "executor": "pi",
+    "title": "Persist session song titles",
+    "files": ["lib/models/metronome_session.dart"],
+    "prompt": "In lib/models/metronome_session.dart, add an optional song title snapshot to the model and preserve it through JSON and copyWith. Make these exact replacements:\n1. Replace `    this.songId,` with `    this.songId,\\n    this.songTitle,`.\n2. Replace `      songId: json['songId'] as String?,` with `      songId: json['songId'] as String?,\\n      songTitle: json['songTitle'] as String?,`.\n3. Replace `  final String? songId;` with `  final String? songId;\\n  final String? songTitle;`.\n4. Replace `    if (songId != null) 'songId': songId,` with `    if (songId != null) 'songId': songId,\\n    if (songTitle != null) 'songTitle': songTitle,`.\n5. Replace `    String? songId,` with `    String? songId,\\n    String? songTitle,`.\n6. Replace `      songId: songId ?? this.songId,` with `      songId: songId ?? this.songId,\\n      songTitle: songTitle ?? this.songTitle,`.\nIn each replacement, turn the displayed `\\n` into an actual newline. Existing sessions without the field must continue to deserialize. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"songTitle: json['songTitle'] as String?,\" lib/models/metronome_session.dart && rg -Fq \"if (songTitle != null) 'songTitle': songTitle,\" lib/models/metronome_session.dart && rg -Fq 'songTitle: songTitle ?? this.songTitle,' lib/models/metronome_session.dart && dart analyze lib/models/metronome_session.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-017-b",
+    "finding": "F-017",
+    "executor": "pi",
+    "title": "Capture metronome song title",
+    "files": ["lib/providers/data/metronome_provider.dart"],
+    "prompt": "In lib/providers/data/metronome_provider.dart, save the active song title at session start and carry it to the completed session. Replace `      songId: state.activeSong?.id,` with `      songId: state.activeSong?.id,\\n      songTitle: state.activeSong?.title,`. Replace `      songId: session.songId,` with `      songId: session.songId,\\n      songTitle: session.songTitle,`. Turn each displayed `\\n` into an actual newline. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'songTitle: state.activeSong?.title,' lib/providers/data/metronome_provider.dart && rg -Fq 'songTitle: session.songTitle,' lib/providers/data/metronome_provider.dart && dart analyze lib/providers/data/metronome_provider.dart",
+    "after": ["F-017-a"],
+    "status": "pending"
+  },
+  {
+    "id": "F-017-c",
+    "finding": "F-017",
+    "executor": "pi",
+    "title": "Capture practice region context",
+    "files": ["lib/screens/practice_regions_screen.dart"],
+    "prompt": "In lib/screens/practice_regions_screen.dart, cache the linked song title while the screen is built, and save it with the session. Also give unnamed regions a numbered label in the saved session. Make these exact replacements:\n1. Replace `  late SongLabEntry _entry;` with `  late SongLabEntry _entry;\\n  String? _sessionSongTitle;`.\n2. Replace `  Widget build(BuildContext context) {\\n    final canEdit =` with `  Widget build(BuildContext context) {\\n    final songs = ref.watch(\\n      widget.bandId == null ? songsProvider : bandSongsProvider(widget.bandId!),\\n    ).value;\\n    final song = songs?.where((song) => song.id == _entry.songId).firstOrNull;\\n    if (song != null && song.title.trim().isNotEmpty) {\\n      _sessionSongTitle = song.title;\\n    }\\n    final canEdit =`.\n3. Replace `                songId: songId.isEmpty || songId == '_inbox' ? null : songId,` with `                songId: songId.isEmpty || songId == '_inbox' ? null : songId,\\n                songTitle: _sessionSongTitle,`.\n4. Replace `    return a == b\\n        ? _name(regions[a])\\n        : '${_name(regions[a])} → ${_name(regions[b])}';` with `    String label(int index) => regions[index].name.trim().isEmpty\\n        ? 'Section ${index + 1}'\\n        : regions[index].name;\\n    return a == b ? label(a) : '${label(a)} → ${label(b)}';`.\nTurn the displayed `\\n` sequences into actual newlines. The existing regionName field already stores the resulting section label. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'songTitle: _sessionSongTitle,' lib/screens/practice_regions_screen.dart && rg -Fq \"? 'Section \u0024{index + 1}'\" lib/screens/practice_regions_screen.dart && dart analyze lib/screens/practice_regions_screen.dart",
+    "after": ["F-017-a"],
+    "status": "pending"
+  },
+  {
+    "id": "F-017-d",
+    "finding": "F-017",
+    "executor": "pi",
+    "title": "Show saved titles in history",
+    "files": ["lib/screens/practice_screen.dart"],
+    "prompt": "In lib/screens/practice_screen.dart, replace the exact block `      final song = s.songId == null\\n          ? 'Freestyle'\\n          : titles[s.songId] ?? missingTitle;` with `      final snapshot = s.songTitle?.trim();\\n      final currentTitle = titles[s.songId];\\n      final song = s.songId == null\\n          ? 'Freestyle'\\n          : snapshot != null && snapshot.isNotEmpty\\n          ? currentTitle == null\\n                ? '$snapshot · $missingTitle'\\n                : snapshot\\n          : currentTitle ?? missingTitle;`. Turn the displayed `\\n` sequences into actual newlines. This displays the recorded title and the existing loading, unavailable, or removed status when the source cannot be found; older sessions keep their existing fallback. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'final snapshot = s.songTitle?.trim();' lib/screens/practice_screen.dart && rg -Fq 'currentTitle == null' lib/screens/practice_screen.dart && dart analyze lib/screens/practice_screen.dart && flutter test test/screens/practice_screen_test.dart",
+    "after": ["F-017-a"],
+    "status": "pending"
+  }
+]

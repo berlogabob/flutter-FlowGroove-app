@@ -1,0 +1,30 @@
+[
+  {
+    "id": "F-001-a",
+    "finding": "F-001",
+    "executor": "pi",
+    "title": "Allow resume navigation from Progress",
+    "files": [
+      "lib/widgets/practice_resume_card.dart"
+    ],
+    "prompt": "In lib/widgets/practice_resume_card.dart, replace these exact lines:\n\n  const PracticeResumeCard({super.key});\n\nwith:\n\n  const PracticeResumeCard({super.key, this.replaceRoute = false});\n\n  final bool replaceRoute;\n\nThen replace these exact lines:\n\n    void openSong() => context.pushNamed(\n      'song',\n      pathParameters: {'id': last.songId},\n      queryParameters: {if (last.bandId != null) 'bandId': last.bandId},\n    );\n\nwith:\n\n    void openSong() {\n      if (replaceRoute) {\n        context.goNamed(\n          'song',\n          pathParameters: {'id': last.songId},\n          queryParameters: {if (last.bandId != null) 'bandId': last.bandId},\n        );\n      } else {\n        context.pushNamed(\n          'song',\n          pathParameters: {'id': last.songId},\n          queryParameters: {if (last.bandId != null) 'bandId': last.bandId},\n        );\n      }\n    }\n\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'this.replaceRoute = false' lib/widgets/practice_resume_card.dart && rg -Fq 'context.goNamed(' lib/widgets/practice_resume_card.dart && dart analyze lib/widgets/practice_resume_card.dart && flutter test test/widgets/practice_resume_card_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-001-b",
+    "finding": "F-001",
+    "executor": "pi",
+    "title": "Open song directly from Progress",
+    "files": [
+      "lib/screens/practice_screen.dart"
+    ],
+    "prompt": "In lib/screens/practice_screen.dart, replace this exact line:\n\n          const PracticeResumeCard(),\n\nwith:\n\n          const PracticeResumeCard(replaceRoute: true),\n\nThis navigates from the root-level Progress route to the song's shell route. The song page already displays a loading indicator while its song loads. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'const PracticeResumeCard(replaceRoute: true),' lib/screens/practice_screen.dart && dart analyze lib/screens/practice_screen.dart && flutter test test/screens/practice_screen_test.dart",
+    "after": [
+      "F-001-a"
+    ],
+    "status": "pending"
+  }
+]

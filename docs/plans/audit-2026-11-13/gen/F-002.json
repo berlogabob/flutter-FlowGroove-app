@@ -1,0 +1,35 @@
+[
+  {
+    "id": "F-002-a",
+    "finding": "F-002",
+    "executor": "pi",
+    "title": "Allow delete in song card menu",
+    "files": ["lib/widgets/unified_item/song_card_actions.dart"],
+    "prompt": "In lib/widgets/unified_item/song_card_actions.dart, replace the exact lines:\n    required List<Band> bands,\n  }) {\nwith:\n    required List<Band> bands,\n    VoidCallback? onDelete,\n  }) {\n\nThen replace the exact lines:\n          (\n            'Quick action…',\n            Icons.push_pin_outlined,\nwith:\n          if (onDelete != null)\n            ('Delete', Icons.delete_outline, onDelete),\n          (\n            'Quick action…',\n            Icons.push_pin_outlined,\n\nThe optional callback keeps other callers unchanged. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q \"('Delete', Icons.delete_outline, onDelete)\" lib/widgets/unified_item/song_card_actions.dart && dart analyze lib/widgets/unified_item/song_card_actions.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-002-b",
+    "finding": "F-002",
+    "executor": "pi",
+    "title": "Connect list menu to existing deletion",
+    "files": ["lib/screens/songs/songs_list_screen.dart"],
+    "prompt": "In lib/screens/songs/songs_list_screen.dart, replace the exact lines:\n      additionalActionsBuilder: (index) =>\n          buildSongActions(songAdapters[index].song, bands: bands),\nwith:\n      additionalActionsBuilder: (index) => buildSongActions(\n        songAdapters[index].song,\n        bands: bands,\n        onDelete: songAdapters[index].onDelete,\n      ),\n\nThe adapter already supplies _deleteSong only when the user can edit. Keep the existing swipe action unchanged. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q 'onDelete: songAdapters[index].onDelete,' lib/screens/songs/songs_list_screen.dart && dart analyze lib/screens/songs/songs_list_screen.dart && flutter test test/screens/songs/songs_list_screen_test.dart",
+    "after": ["F-002-a"],
+    "status": "pending"
+  },
+  {
+    "id": "F-002-c",
+    "finding": "F-002",
+    "executor": "pi",
+    "title": "Add confirmed deletion to song page",
+    "files": ["lib/screens/songs/song_page_screen.dart"],
+    "prompt": "In lib/screens/songs/song_page_screen.dart, replace the exact line:\nimport 'package:flutter_riverpod/flutter_riverpod.dart';\nwith:\nimport 'package:flutter_riverpod/flutter_riverpod.dart';\nimport 'package:go_router/go_router.dart';\n\nReplace the exact line:\nimport '../../widgets/app_menu_sheet.dart';\nwith:\nimport '../../widgets/app_menu_sheet.dart';\nimport '../../widgets/confirmation_dialog.dart';\n\nReplace the exact lines:\n  List<AppMenuItem> _menuItems(Song song) {\n    // Only bands the user can write to — viewers' bands would fail at save.\nwith:\n  Future<void> _deleteSong(Song song) async {\n    if (!_canEditSongNow()) return;\n    final confirmed = await ConfirmationDialog.showDeleteDialog(\n      context,\n      title: 'Delete Song',\n      message: 'Are you sure you want to delete \"${song.title}\"?',\n    );\n    if (!confirmed || !mounted || !_canEditSongNow()) return;\n    final user = ref.read(currentUserProvider).value;\n    if (user == null) return;\n    try {\n      final repo = ref.read(songRepositoryProvider);\n      final bandId = widget.bandId;\n      if (bandId == null) {\n        await repo.deleteSong(song.id, uid: user.uid);\n      } else {\n        await repo.deleteBandSong(bandId, song.id);\n      }\n      if (!mounted) return;\n      if (context.canPop()) {\n        context.pop();\n      } else if (bandId == null) {\n        context.goNamed('songs');\n      } else {\n        context.goNamed('band-songs', pathParameters: {'id': bandId});\n      }\n    } catch (e) {\n      if (!mounted) return;\n      showAppSnackBar(context, 'Delete failed: $e');\n    }\n  }\n\n  List<AppMenuItem> _menuItems(Song song) {\n    // Only bands the user can write to — viewers' bands would fail at save.\n\nReplace the exact lines:\n      AppMenuItem(\n        icon: Icons.picture_as_pdf_outlined,\n        label: 'Export PDF',\nwith:\n      if (_canEditSong())\n        AppMenuItem(\n          icon: Icons.delete_outline,\n          label: 'Delete',\n          destructive: true,\n          onTap: () => _deleteSong(song),\n        ),\n      AppMenuItem(\n        icon: Icons.picture_as_pdf_outlined,\n        label: 'Export PDF',\n\nThis uses the existing confirmation dialog and deletes the personal or band copy according to the page's scope. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q 'onTap: () => _deleteSong(song),' lib/screens/songs/song_page_screen.dart && rg -F -q 'ConfirmationDialog.showDeleteDialog(' lib/screens/songs/song_page_screen.dart && dart analyze lib/screens/songs/song_page_screen.dart && flutter test test/screens/songs/song_page_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "id": "F-025-a",
+    "finding": "F-025",
+    "executor": "pi",
+    "title": "Label and enlarge play controls",
+    "files": ["lib/screens/setlists/setlist_view_screen.dart"],
+    "prompt": "In lib/screens/setlists/setlist_view_screen.dart, replace this exact block:\n\n        Material(\n          color: MonoPulseColors.accentOrange,\n          child: InkWell(\n            onTap: () {\n              ref\n                  .read(metronomeProvider.notifier)\n                  .loadSongTempo(song, sourceBandId: bandId);\n              context.pushNamed('metronome');\n            },\n            child: const SizedBox(\n              width: 40,\n              height: 40,\n              child: Icon(Icons.play_arrow, color: MonoPulseColors.charcoal),\n            ),\n          ),\n        ),\n\nwith:\n\n        Semantics(\n          container: true,\n          button: true,\n          label: 'Play ${song.title}',\n          child: Material(\n            color: MonoPulseColors.accentOrange,\n            child: InkWell(\n              onTap: () {\n                ref\n                    .read(metronomeProvider.notifier)\n                    .loadSongTempo(song, sourceBandId: bandId);\n                context.pushNamed('metronome');\n              },\n              child: const SizedBox(\n                width: 48,\n                height: 48,\n                child: Icon(Icons.play_arrow, color: MonoPulseColors.charcoal),\n              ),\n            ),\n          ),\n        ),\n\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q 'Play ${song.title}' lib/screens/setlists/setlist_view_screen.dart && rg -F -q 'width: 48,' lib/screens/setlists/setlist_view_screen.dart && rg -F -q 'height: 48,' lib/screens/setlists/setlist_view_screen.dart && dart analyze lib/screens/setlists/setlist_view_screen.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

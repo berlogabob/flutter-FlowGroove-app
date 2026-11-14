@@ -1,0 +1,30 @@
+[
+  {
+    "id": "N-003-a",
+    "finding": "N-003",
+    "executor": "codex",
+    "title": "Support named setlist actions",
+    "files": [
+      "lib/widgets/unified_item/setlist_card_actions.dart"
+    ],
+    "prompt": "In lib/widgets/unified_item/setlist_card_actions.dart, allow callers to name the setlist in the pinned action and overflow tooltips, while preserving the existing tooltips when no name is supplied. Replace the exact lines:\n  required String quick,\n  required bool canEdit,\nwith:\n  required String quick,\n  required bool canEdit,\n  String? setlistName,\nReplace the exact line:\n      tooltip: pinnedLabel,\nwith:\n      tooltip: setlistName == null ? pinnedLabel : '$pinnedLabel: $setlistName',\nReplace the exact lines:\n    OverflowMenuAction(\n      entries: [\nwith:\n    OverflowMenuAction(\n      tooltip: setlistName == null ? 'More' : 'More: $setlistName',\n      entries: [\nRun flutter test test/widgets/setlist_card_actions_test.dart and flutter test test/screens/bands/band_setlists_screen_test.dart. Update only assertions about the changed UI if necessary. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/widgets/unified_item/setlist_card_actions.dart && dart analyze lib/widgets/unified_item/setlist_card_actions.dart && flutter test test/widgets/setlist_card_actions_test.dart && flutter test test/screens/bands/band_setlists_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "N-003-b",
+    "finding": "N-003",
+    "executor": "codex",
+    "title": "Name actions on setlist rows",
+    "files": [
+      "lib/screens/setlists/setlists_list_screen.dart"
+    ],
+    "prompt": "In lib/screens/setlists/setlists_list_screen.dart, pass each setlist's name to its action builder so the pinned action and More tooltip identify the setlist. Replace the exact lines:\n        return buildSetlistActions(\n          quick: quick,\n          canEdit: canEdit,\nwith:\n        return buildSetlistActions(\n          quick: quick,\n          canEdit: canEdit,\n          setlistName: setlist.name,\nRun flutter test test/screens/setlists/setlists_list_screen_test.dart and flutter test test/widgets/setlist_card_actions_test.dart. Update only assertions about the changed UI if necessary. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/screens/setlists/setlists_list_screen.dart && dart analyze lib/screens/setlists/setlists_list_screen.dart && flutter test test/screens/setlists/setlists_list_screen_test.dart && flutter test test/widgets/setlist_card_actions_test.dart",
+    "after": [
+      "N-003-a"
+    ],
+    "status": "pending"
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "id": "F-034-a",
+    "finding": "F-034",
+    "executor": "pi",
+    "title": "Improve empty-state text contrast",
+    "files": ["lib/screens/songs/components/song_constructor/song_constructor.dart"],
+    "prompt": "In lib/screens/songs/components/song_constructor/song_constructor.dart, replace the exact lines:\n              'No sections yet',\n              style: Theme.of(context).textTheme.bodyMedium?.copyWith(\n                color: Theme.of(context).colorScheme.outline,\n              ),\nwith:\n              'No sections yet',\n              style: Theme.of(context).textTheme.bodyMedium?.copyWith(\n                color: context.mp.textSecondary,\n              ),\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -U -q -F $'\\x27No sections yet\\x27,\\n              style: Theme.of(context).textTheme.bodyMedium?.copyWith(\\n                color: context.mp.textSecondary,' lib/screens/songs/components/song_constructor/song_constructor.dart && dart analyze lib/screens/songs/components/song_constructor/song_constructor.dart && flutter test test/widgets/song_constructor_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

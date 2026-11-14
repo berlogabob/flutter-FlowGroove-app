@@ -1,0 +1,15 @@
+[
+  {
+    "id": "F-037-a",
+    "finding": "F-037",
+    "executor": "pi",
+    "title": "Keep section icons stationary",
+    "files": [
+      "lib/screens/songs/components/collapsible_section.dart"
+    ],
+    "prompt": "In lib/screens/songs/components/collapsible_section.dart, replace this exact block:\n\n                  // Expand/collapse icon\n                  AnimatedRotation(\n                    turns: _isExpanded ? 0 : -0.25,\n                    duration: const Duration(milliseconds: 200),\n                    child: Icon(\n                      widget.icon ?? Icons.keyboard_arrow_down,\n                      color: context.mp.textSecondary,\n                      size: 20,\n                    ),\n                  ),\n                  const SizedBox(width: 8),\n\nwith:\n\n                  if (widget.icon != null) ...[\n                    Icon(\n                      widget.icon,\n                      color: context.mp.textSecondary,\n                      size: 20,\n                    ),\n                    const SizedBox(width: 8),\n                  ],\n\nThen replace this exact block:\n\n                  // Action button\n                  if (widget.action != null) ...[\n                    const SizedBox(width: 8),\n                    widget.action!,\n                  ],\n\nwith:\n\n                  // Action button\n                  if (widget.action != null) ...[\n                    const SizedBox(width: 8),\n                    widget.action!,\n                  ],\n                  const SizedBox(width: 8),\n                  AnimatedRotation(\n                    turns: _isExpanded ? 0 : -0.25,\n                    duration: const Duration(milliseconds: 200),\n                    child: Icon(\n                      Icons.keyboard_arrow_down,\n                      color: context.mp.textSecondary,\n                      size: 20,\n                    ),\n                  ),\n\nThis keeps identifying icons fixed and gives every section the same rotating expansion indicator. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'if (widget.icon != null) ...[' lib/screens/songs/components/collapsible_section.dart && rg -Fq '                      Icons.keyboard_arrow_down,' lib/screens/songs/components/collapsible_section.dart && dart analyze lib/screens/songs/components/collapsible_section.dart && flutter test test/screens/songs/collapsible_section_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

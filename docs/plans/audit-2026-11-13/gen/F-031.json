@@ -1,0 +1,15 @@
+[
+  {
+    "id": "F-031-a",
+    "finding": "F-031",
+    "executor": "pi",
+    "title": "Separate and wrap session details",
+    "files": [
+      "lib/screens/practice_screen.dart"
+    ],
+    "prompt": "In lib/screens/practice_screen.dart, replace this exact block:\n\n        Row(\n          children: [\n            Icon(Icons.music_note, size: 16, color: context.mp.textSecondary),\n            const SizedBox(width: MonoPulseSpacing.sm),\n            Expanded(\n              child: Text(\n                s.regionName == null ? song : '$song · ${s.regionName}',\n                overflow: TextOverflow.ellipsis,\n              ),\n            ),\n            Text(\n              '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'\n              '${s.loopReps > 0 ? ' · ${s.loopReps} loops' : ''}'\n              '${s.startBpm > 0 ? ' · ${s.startBpm} BPM' : ''}',\n              style: MonoPulseTypography.bodySmall.copyWith(\n                color: context.mp.textSecondary,\n              ),\n            ),\n          ],\n        ),\n\nwith:\n\n        Row(\n          crossAxisAlignment: CrossAxisAlignment.start,\n          children: [\n            Icon(Icons.music_note, size: 16, color: context.mp.textSecondary),\n            const SizedBox(width: MonoPulseSpacing.sm),\n            Expanded(\n              child: Text(\n                s.regionName == null ? song : '$song · ${s.regionName}',\n              ),\n            ),\n            const SizedBox(width: MonoPulseSpacing.sm),\n            Expanded(\n              child: Text(\n                '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'\n                '${s.loopReps > 0 ? ' · ${s.loopReps} loops' : ''}'\n                '${s.startBpm > 0 ? ' · ${s.startBpm} BPM' : ''}',\n                textAlign: TextAlign.right,\n                style: MonoPulseTypography.bodySmall.copyWith(\n                  color: context.mp.textSecondary,\n                ),\n              ),\n            ),\n          ],\n        ),\n\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'textAlign: TextAlign.right,' lib/screens/practice_screen.dart && dart analyze lib/screens/practice_screen.dart && flutter test test/screens/practice_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

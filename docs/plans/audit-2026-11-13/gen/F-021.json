@@ -1,0 +1,24 @@
+[
+  {
+    "id": "F-021-a",
+    "finding": "F-021",
+    "executor": "pi",
+    "title": "Update key chip test",
+    "files": ["test/screens/songs/songs_list_screen_test.dart"],
+    "prompt": "In test/screens/songs/songs_list_screen_test.dart, replace the exact line `        await tester.tap(find.text('G#'));` with `        await tester.tap(find.textContaining('G#'));`. This keeps the existing test working when the chip label includes its flat equivalent. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F \"await tester.tap(find.textContaining('G#'));\" test/screens/songs/songs_list_screen_test.dart && dart analyze test/screens/songs/songs_list_screen_test.dart && flutter test test/screens/songs/songs_list_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-021-b",
+    "finding": "F-021",
+    "executor": "pi",
+    "title": "Show enharmonic key names",
+    "files": ["lib/screens/songs/songs_list_screen.dart"],
+    "prompt": "In lib/screens/songs/songs_list_screen.dart, replace these exact lines:\n                        return AppFilterChip(\n                          label: value,\n                          selected: selected,\nwith:\n                        final flat = const {\n                          'C#': 'Db',\n                          'D#': 'Eb',\n                          'F#': 'Gb',\n                          'G#': 'Ab',\n                          'A#': 'Bb',\n                        }[root];\n                        final label = flat == null\n                            ? value\n                            : '$value/$flat${keyIsMinor ? 'm' : ''}';\n                        return AppFilterChip(\n                          label: label,\n                          selected: selected,\nKeep `value` as the stored filter value: the existing keyMatchesFilter and canonicalKey helpers already match sharp and flat spellings, including minor keys. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F \"'A#': 'Bb',\" lib/screens/songs/songs_list_screen.dart && rg -q -F 'label: label,' lib/screens/songs/songs_list_screen.dart && dart analyze lib/screens/songs/songs_list_screen.dart && flutter test test/screens/songs/songs_list_screen_test.dart && flutter test test/utils/key_utils_test.dart",
+    "after": ["F-021-a"],
+    "status": "pending"
+  }
+]

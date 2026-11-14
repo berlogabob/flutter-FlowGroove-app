@@ -1,0 +1,57 @@
+[
+  {
+    "id": "F-009-a",
+    "finding": "F-009",
+    "executor": "pi",
+    "title": "Identify the listen mode",
+    "files": ["lib/screens/tuner_screen.dart"],
+    "prompt": "In lib/screens/tuner_screen.dart, replace the unique lines:\n                mode: TunerMode.listen,\n                label: 'Listen',\n                icon: Icons.mic,\nwith:\n                mode: TunerMode.listen,\n                label: 'Listen mode',\n                icon: Icons.mic,\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"label: 'Listen mode',\" lib/screens/tuner_screen.dart && dart analyze lib/screens/tuner_screen.dart && flutter test test/screens/tuner_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-009-b",
+    "finding": "F-009",
+    "executor": "pi",
+    "title": "Label the microphone action",
+    "files": ["lib/widgets/tuner/transport_bar.dart"],
+    "prompt": "In lib/widgets/tuner/transport_bar.dart, inside _MainActionButton.build, replace the unique lines:\n    return GestureDetector(\n      onTap: onTap,\n      behavior: HitTestBehavior.opaque,\n      child: AnimatedContainer(\nwith:\n    return Semantics(\n      button: true,\n      label: mode == TunerMode.listen\n          ? (isActive ? 'Stop listening' : 'Start listening')\n          : (isActive ? 'Stop tone' : 'Play tone'),\n      enabled: onTap != null,\n      child: GestureDetector(\n        onTap: onTap,\n        behavior: HitTestBehavior.opaque,\n        child: AnimatedContainer(\nThen replace the unique end of _MainActionButton, immediately before class _VolumeControl:\n          ],\n        ),\n      ),\n    );\n  }\n}\n\nclass _VolumeControl\nwith:\n          ],\n        ),\n      ),\n      ),\n    );\n  }\n}\n\nclass _VolumeControl\nThis gives the action an accessible name distinct from the mode selector. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"? (isActive ? 'Stop listening' : 'Start listening')\" lib/widgets/tuner/transport_bar.dart && dart analyze lib/widgets/tuner/transport_bar.dart && flutter test test/screens/tuner_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-009-c",
+    "finding": "F-009",
+    "executor": "pi",
+    "title": "Clarify the idle instruction",
+    "files": ["lib/widgets/tuner/central_dial.dart"],
+    "prompt": "In lib/widgets/tuner/central_dial.dart, replace the unique line:\n                    _ => 'Tap Listen to start',\nwith:\n                    _ => 'Tap the microphone to start',\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"_ => 'Tap the microphone to start',\" lib/widgets/tuner/central_dial.dart && dart analyze lib/widgets/tuner/central_dial.dart && flutter test test/screens/tuner_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-009-d",
+    "finding": "F-009",
+    "executor": "pi",
+    "title": "Enlarge detection mode targets",
+    "files": ["lib/widgets/tuner/detection_mode_toggle.dart"],
+    "prompt": "In lib/widgets/tuner/detection_mode_toggle.dart, replace the unique lines:\n    return Container(\n      height: 40,\n      padding: const EdgeInsets.all(MonoPulseSpacing.xs),\nwith:\n    return Container(\n      height: 56,\n      padding: const EdgeInsets.all(MonoPulseSpacing.xs),\nThe 4 dp padding on each side leaves each option 48 dp high. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'height: 56,' lib/widgets/tuner/detection_mode_toggle.dart && dart analyze lib/widgets/tuner/detection_mode_toggle.dart && flutter test test/screens/tuner_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-009-e",
+    "finding": "F-009",
+    "executor": "pi",
+    "title": "Enlarge dial note targets",
+    "files": ["lib/widgets/tuner/central_dial.dart"],
+    "prompt": "In lib/widgets/tuner/central_dial.dart, replace the unique lines:\n        final hitTestSize = noteRadius * 2 + 44;\n        final hitTestRadius = math.min(\n          noteRadius,\n          (constraints.biggest.shortestSide - 44) / 2,\nwith:\n        final hitTestSize = noteRadius * 2 + 48;\n        final hitTestRadius = math.min(\n          noteRadius,\n          (constraints.biggest.shortestSide - 48) / 2,\nAlso replace the unique line:\n                          child: const SizedBox(width: 44, height: 44),\nwith:\n                          child: const SizedBox(width: 48, height: 48),\nThis preserves the existing positioning while giving each note a 48 by 48 dp hit area. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'final hitTestSize = noteRadius * 2 + 48;' lib/widgets/tuner/central_dial.dart && rg -Fq '(constraints.biggest.shortestSide - 48) / 2,' lib/widgets/tuner/central_dial.dart && rg -Fq 'child: const SizedBox(width: 48, height: 48),' lib/widgets/tuner/central_dial.dart && dart analyze lib/widgets/tuner/central_dial.dart && flutter test test/screens/tuner_screen_test.dart",
+    "after": ["F-009-c"],
+    "status": "pending"
+  }
+]

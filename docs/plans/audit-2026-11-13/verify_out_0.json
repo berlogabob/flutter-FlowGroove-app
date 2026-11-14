@@ -1,0 +1,138 @@
+{
+  "results": [
+    {
+      "id": "F-001",
+      "verdict": "not-covered",
+      "after": null,
+      "reason": "The captured song detail was reached from Home Continue, not from Progress Continue."
+    },
+    {
+      "id": "F-003",
+      "verdict": "still-open",
+      "after": "screens/04_add_song.png",
+      "reason": "The icon-only field remains visually unexplained, so its optional autofill purpose is not clear."
+    },
+    {
+      "id": "F-005",
+      "verdict": "verified",
+      "after": "screens/08_tuner.png",
+      "reason": "The idle dial's note names and tick marks are dark and clearly visible against the pale background."
+    },
+    {
+      "id": "F-007",
+      "verdict": "verified",
+      "after": "screens/23_add_song__key_bpm.png",
+      "reason": "The expanded panel labels the versions Original version and Our version and labels the selectors Root and Accidental / quality."
+    },
+    {
+      "id": "F-009",
+      "verdict": "verified",
+      "after": "screens/08_tuner.png",
+      "reason": "The instruction names the microphone, while the hierarchy distinguishes Listen mode from Start listening and gives the note targets 144-pixel bounds."
+    },
+    {
+      "id": "F-011",
+      "verdict": "still-open",
+      "after": "screens/12_songs.png",
+      "reason": "The hierarchy names each song's actions, but the clickable search field still has empty accessibility text."
+    },
+    {
+      "id": "F-013",
+      "verdict": "still-open",
+      "after": "screens/14_setlists.png",
+      "reason": "The hierarchy names setlist rows and their actions, but the clickable search field still has empty accessibility text."
+    },
+    {
+      "id": "F-015",
+      "verdict": "still-open",
+      "after": "screens/05_add_band.png",
+      "reason": "Both clickable form fields have empty accessibility text in the AFTER hierarchy."
+    },
+    {
+      "id": "F-017",
+      "verdict": "still-open",
+      "after": "screens/16_this_week__swipe.png",
+      "reason": "Most recent sessions still display Removed song without identifying the original song."
+    },
+    {
+      "id": "F-019",
+      "verdict": "verified",
+      "after": "screens/20_continue_back_to_black_123_b__transpose_down.png",
+      "reason": "The control is labeled Semitones and the header shows Original key: Dm → C#m at -1."
+    },
+    {
+      "id": "F-021",
+      "verdict": "verified",
+      "after": "screens/61_songs__key_bpm.png",
+      "reason": "The filter displays paired spellings such as C#/Db and A#/Bb."
+    },
+    {
+      "id": "F-023",
+      "verdict": "verified",
+      "after": "screens/12_songs.png",
+      "reason": "The hierarchy reports 144-pixel-high interactive bounds for the visible tag chips."
+    },
+    {
+      "id": "F-025",
+      "verdict": "verified",
+      "after": "screens/76_setlists__open_setlist_testo_tiras.png",
+      "reason": "The hierarchy labels the actions Play Message in a Bottle and Play Lola, each with 144-by-144-pixel bounds."
+    },
+    {
+      "id": "F-027",
+      "verdict": "not-covered",
+      "after": null,
+      "reason": "The AFTER filter capture ends at the BPM description and does not show the selector or its scrolling behavior."
+    },
+    {
+      "id": "F-029",
+      "verdict": "not-covered",
+      "after": null,
+      "reason": "No AFTER capture shows the Basketcase song detail screen."
+    },
+    {
+      "id": "F-031",
+      "verdict": "verified",
+      "after": "screens/16_this_week__swipe.png",
+      "reason": "Long session names wrap separately from the right-aligned duration and tempo instead of running into them."
+    },
+    {
+      "id": "F-033",
+      "verdict": "not-covered",
+      "after": null,
+      "reason": "No AFTER capture shows the metronome's song section cards."
+    },
+    {
+      "id": "F-035",
+      "verdict": "verified",
+      "after": "screens/01_home.png",
+      "reason": "The This week card no longer says Tap to start, and the destination is labeled Progress."
+    },
+    {
+      "id": "F-037",
+      "verdict": "verified",
+      "after": "screens/23_add_song__key_bpm.png",
+      "reason": "Key & BPM retains the same note icon when expanded, and the other captured sections retain their identifying icons."
+    },
+    {
+      "id": "F-039",
+      "verdict": "still-open",
+      "after": "screens/11_recorder.png",
+      "reason": "The Record button remains markedly rounder than the creation buttons shown on the Add Song and Create Band screens."
+    }
+  ],
+  "new_issues": [
+    {
+      "screen": "Tuner → Select Instrument",
+      "after": "screens/37_tuner__guitar_standard.png",
+      "severity": 2,
+      "evidence": "The Standard tuning label wraps in the middle of the word as “Standar” and “d”."
+    },
+    {
+      "screen": "Add Song → Metronome Settings",
+      "after": "screens/28_add_song__metronome_settings.png",
+      "severity": 2,
+      "evidence": "Beat pattern circles expand to most of the screen width, leaving only two beats visible and pushing the remaining controls far down the form."
+    }
+  ]
+}

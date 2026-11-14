@@ -1,0 +1,68 @@
+[
+  {
+    "id": "F-013-a",
+    "finding": "F-013",
+    "executor": "pi",
+    "title": "Label the search field",
+    "files": ["lib/widgets/unified_item/unified_filter_sort_widget.dart"],
+    "prompt": "In lib/widgets/unified_item/unified_filter_sort_widget.dart, replace the unique line `            child: TextField(` with `            child: Semantics(\n              label: widget.hintText,\n              child: TextField(`. Then replace the unique lines `              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),\n            ),\n          ),` with `              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),\n              ),\n            ),\n          ),`. The existing hint supplies the search field's accessible label without changing its appearance. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'label: widget.hintText,' lib/widgets/unified_item/unified_filter_sort_widget.dart && dart analyze lib/widgets/unified_item/unified_filter_sort_widget.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-013-b",
+    "finding": "F-013",
+    "executor": "pi",
+    "title": "Label setlist row taps",
+    "files": ["lib/widgets/unified_item/unified_item_card.dart"],
+    "prompt": "In lib/widgets/unified_item/unified_item_card.dart, replace the unique lines `      child: InkWell(\n        onTap: onTap,` with `      child: Semantics(\n        label: item is SetlistItemAdapter ? 'Open setlist ${item.title}' : null,\n        child: InkWell(\n        onTap: onTap,`. Then replace the unique lines `      ),\n    );\n  }\n\n  List<Widget> _leading(BuildContext context) {` with `      ),\n      ),\n    );\n  }\n\n  List<Widget> _leading(BuildContext context) {`. Keep the existing row and trailing action semantics available. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'Open setlist ${item.title}' lib/widgets/unified_item/unified_item_card.dart && dart analyze lib/widgets/unified_item/unified_item_card.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-013-c",
+    "finding": "F-013",
+    "executor": "pi",
+    "title": "Remove duplicate setlist tap semantics",
+    "files": ["lib/widgets/unified_item/unified_item_list.dart"],
+    "prompt": "In lib/widgets/unified_item/unified_item_list.dart, replace `import 'unified_item_card.dart';` with `import 'adapters/setlist_item_adapter.dart';\nimport 'unified_item_card.dart';`. Replace the unique lines `            child: GestureDetector(\n              behavior: HitTestBehavior.opaque,` with `            child: GestureDetector(\n              excludeFromSemantics: item is SetlistItemAdapter,\n              behavior: HitTestBehavior.opaque,`. This removes the duplicate unlabeled outer tap node for setlists while retaining its gesture and the labeled card tap. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'excludeFromSemantics: item is SetlistItemAdapter,' lib/widgets/unified_item/unified_item_list.dart && dart analyze lib/widgets/unified_item/unified_item_list.dart",
+    "after": ["F-013-b"],
+    "status": "pending"
+  },
+  {
+    "id": "F-013-d",
+    "finding": "F-013",
+    "executor": "pi",
+    "title": "Allow named overflow tooltips",
+    "files": ["lib/widgets/unified_item/unified_item_model.dart"],
+    "prompt": "In lib/widgets/unified_item/unified_item_model.dart, replace `  OverflowMenuAction({required this.entries});\n\n  final List<(String, IconData, VoidCallback)> entries;` with `  OverflowMenuAction({required this.entries, this.tooltip = 'More'});\n\n  final List<(String, IconData, VoidCallback)> entries;\n  final String tooltip;`. In the same class, replace the unique lines `      icon: const Icon(Icons.more_vert, size: 20),\n      tooltip: 'More',` with `      icon: const Icon(Icons.more_vert, size: 20),\n      tooltip: tooltip,`. Existing callers retain their current tooltip. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"OverflowMenuAction({required this.entries, this.tooltip = 'More'});\" lib/widgets/unified_item/unified_item_model.dart && dart analyze lib/widgets/unified_item/unified_item_model.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-013-e",
+    "finding": "F-013",
+    "executor": "pi",
+    "title": "Support named setlist actions",
+    "files": ["lib/widgets/unified_item/setlist_card_actions.dart"],
+    "prompt": "In lib/widgets/unified_item/setlist_card_actions.dart, replace `List<UnifiedItemAction> buildSetlistActions({\n  required String quick,` with `List<UnifiedItemAction> buildSetlistActions({\n  String? setlistName,\n  required String quick,`. Replace `      tooltip: pinnedLabel,` with `      tooltip: setlistName == null ? pinnedLabel : '$pinnedLabel for $setlistName',`. Replace `    OverflowMenuAction(\n      entries: [` with `    OverflowMenuAction(\n      tooltip: setlistName == null ? 'More' : 'More options for $setlistName',\n      entries: [`. The optional name preserves existing callers and their tests. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'More options for $setlistName' lib/widgets/unified_item/setlist_card_actions.dart && rg -Fq '$pinnedLabel for $setlistName' lib/widgets/unified_item/setlist_card_actions.dart && dart analyze lib/widgets/unified_item/setlist_card_actions.dart && flutter test test/widgets/setlist_card_actions_test.dart",
+    "after": ["F-013-d"],
+    "status": "pending"
+  },
+  {
+    "id": "F-013-f",
+    "finding": "F-013",
+    "executor": "pi",
+    "title": "Name actions on setlist rows",
+    "files": ["lib/screens/setlists/setlists_list_screen.dart"],
+    "prompt": "In lib/screens/setlists/setlists_list_screen.dart, replace the unique lines `        return buildSetlistActions(\n          quick: quick,` with `        return buildSetlistActions(\n          setlistName: setlist.name,\n          quick: quick,`. This gives the pinned action and More button labels that identify their setlist. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'setlistName: setlist.name,' lib/screens/setlists/setlists_list_screen.dart && dart analyze lib/screens/setlists/setlists_list_screen.dart && flutter test test/screens/setlists/setlists_list_screen_test.dart",
+    "after": ["F-013-e"],
+    "status": "pending"
+  }
+]

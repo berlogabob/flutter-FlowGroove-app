@@ -1,0 +1,60 @@
+[
+  {
+    "id": "F-004-a",
+    "finding": "F-004",
+    "executor": "codex",
+    "title": "Store song details on setlist items",
+    "files": [
+      "lib/models/setlist.dart"
+    ],
+    "prompt": "In lib/models/setlist.dart, add optional last-known song details to SetlistItem and preserve them through JSON and copyWith. Make these exact replacements:\n1. Replace `    this.songId = '',\n    this.tuningPresetId,` with `    this.songId = '',\n    this.songTitle,\n    this.songArtist,\n    this.tuningPresetId,`.\n2. Replace `    songId: json['songId'] as String? ?? '',\n    tuningPresetId: json['tuningPresetId'] as String?,` with `    songId: json['songId'] as String? ?? '',\n    songTitle: json['songTitle'] as String?,\n    songArtist: json['songArtist'] as String?,\n    tuningPresetId: json['tuningPresetId'] as String?,`.\n3. Replace `  final String songId;\n  final String? tuningPresetId;` with `  final String songId;\n  final String? songTitle;\n  final String? songArtist;\n  final String? tuningPresetId;`.\n4. Replace `    String? songId,\n    String? tuningPresetId,` with `    String? songId,\n    String? songTitle,\n    String? songArtist,\n    String? tuningPresetId,`.\n5. Replace `      songId: songId ?? this.songId,\n      tuningPresetId: clearTuningPreset` with `      songId: songId ?? this.songId,\n      songTitle: songTitle ?? this.songTitle,\n      songArtist: songArtist ?? this.songArtist,\n      tuningPresetId: clearTuningPreset`.\n6. Replace `    'songId': songId,\n    if (tuningPresetId != null)` with `    'songId': songId,\n    if (songTitle != null) 'songTitle': songTitle,\n    if (songArtist != null) 'songArtist': songArtist,\n    if (tuningPresetId != null)`.\nRun the verification command, including the existing test. Update only assertions about the changed UI if any need updating. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/models/setlist.dart && dart analyze lib/models/setlist.dart && flutter test test/models/setlist_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-004-b",
+    "finding": "F-004",
+    "executor": "codex",
+    "title": "Show unavailable song details",
+    "files": [
+      "lib/widgets/setlist_song_row.dart"
+    ],
+    "prompt": "In lib/widgets/setlist_song_row.dart, let callers provide saved details and distinguish a failed library load. Make these exact replacements:\n1. Replace `    this.performers,\n    this.isCurrent = false,` with `    this.performers,\n    this.savedTitle,\n    this.savedArtist,\n    this.loadFailed = false,\n    this.isCurrent = false,`.\n2. Replace `  final Song? song;\n  final Widget? leading;` with `  final Song? song;\n  final String? savedTitle;\n  final String? savedArtist;\n  final bool loadFailed;\n  final Widget? leading;`.\n3. Replace `                      song?.title ?? 'Unavailable song',` with `                      song?.title ??\n                          (savedTitle?.trim().isNotEmpty == true\n                              ? savedTitle!\n                              : 'Unavailable song'),`.\n4. Replace `                    if (song != null) ...[\\n                      Text(\\n                        song.artist,` with `                    if (song == null) ...[\\n                      if (savedArtist?.trim().isNotEmpty == true)\\n                        Text(\\n                          savedArtist!,\\n                          style: TextStyle(color: context.mp.textSecondary),\\n                        ),\\n                      Text(\\n                        loadFailed\\n                            ? 'Could not load songs. Try again later.'\\n                            : 'Deleted or no longer shared with you.',\\n                        style: TextStyle(color: context.mp.textSecondary),\\n                      ),\\n                    ],\\n                    if (song != null) ...[\\n                      Text(\\n                        song.artist,` (the `\\n` sequences in this instruction represent actual line breaks).\nRun the verification command, including the existing tests. Update only assertions about the changed UI if any need updating. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/widgets/setlist_song_row.dart && dart analyze lib/widgets/setlist_song_row.dart && flutter test test/screens/setlists/setlist_view_screen_test.dart && flutter test test/screens/setlists/create_setlist_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-004-c",
+    "finding": "F-004",
+    "executor": "codex",
+    "title": "Save and show song snapshots",
+    "files": [
+      "lib/screens/setlists/create_setlist_screen.dart"
+    ],
+    "prompt": "In lib/screens/setlists/create_setlist_screen.dart, save the latest available title and artist whenever the editor saves, retaining existing snapshots for unavailable songs, and pass snapshots to the row. Replace `    final items = List<SetlistItem>.from(_selectedItems);` with `    final items = _selectedItems.map((item) {\n      final song = _songsById[item.songId];\n      return song == null\n          ? item\n          : item.copyWith(songTitle: song.title, songArtist: song.artist);\n    }).toList();`. Replace `                              song: song,\n                              // Assigned people` with `                              song: song,\n                              savedTitle: item.songTitle,\n                              savedArtist: item.songArtist,\n                              // Assigned people`. The existing swipe-to-remove action must remain intact. Run the verification command, including the existing test. Update only assertions about the changed UI if any need updating. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/screens/setlists/create_setlist_screen.dart && dart analyze lib/screens/setlists/create_setlist_screen.dart && flutter test test/screens/setlists/create_setlist_screen_test.dart",
+    "after": [
+      "F-004-a",
+      "F-004-b"
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "F-004-d",
+    "finding": "F-004",
+    "executor": "codex",
+    "title": "Open review directly from setlist",
+    "files": [
+      "lib/screens/setlists/setlist_view_screen.dart"
+    ],
+    "prompt": "In lib/screens/setlists/setlist_view_screen.dart, show saved song details and make the existing review instruction a direct editor action for users who can edit. Replace `          song: song,\n          performers: performerLabel(item.performerIds, lineup),` with `          song: song,\n          savedTitle: item.songTitle,\n          savedArtist: item.songArtist,\n          loadFailed: loadFailed,\n          performers: performerLabel(item.performerIds, lineup),`. Replace `                const Padding(\n                  padding: EdgeInsets.only(bottom: MonoPulseSpacing.md),\n                  child: Text(\n                    'Use Menu → Edit Setlist to review these entries.',\n                  ),\n                )` with `                Padding(\n                  padding: const EdgeInsets.only(bottom: MonoPulseSpacing.md),\n                  child: TextButton(\n                    onPressed: () => context.pushNamed(\n                      'edit-setlist',\n                      pathParameters: {'id': setlist.id},\n                      queryParameters: {\n                        'bandId': ?bandId,\n                        'scope': storageScope.name,\n                      },\n                      extra: setlist,\n                    ),\n                    child: const Text(\n                      'Use Menu → Edit Setlist to review these entries.',\n                    ),\n                  ),\n                )`. Keep the existing text so current UI assertions remain valid; the text itself is now a direct action. Run the verification command, including the existing test. Update only assertions about the changed UI if any need updating. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/screens/setlists/setlist_view_screen.dart && dart analyze lib/screens/setlists/setlist_view_screen.dart && flutter test test/screens/setlists/setlist_view_screen_test.dart",
+    "after": [
+      "F-004-a",
+      "F-004-b"
+    ],
+    "status": "pending"
+  }
+]

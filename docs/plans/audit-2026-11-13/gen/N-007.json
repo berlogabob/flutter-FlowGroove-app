@@ -1,0 +1,15 @@
+[
+  {
+    "id": "N-007-a",
+    "finding": "N-007",
+    "executor": "codex",
+    "title": "Limit beat pattern button size",
+    "files": [
+      "lib/screens/songs/components/metronome_pattern_editor.dart"
+    ],
+    "prompt": "In lib/screens/songs/components/metronome_pattern_editor.dart, within _buildBeatRow, replace these exact lines:\n                (subIndex) => Expanded(\n                  child: _buildBeatModeButton(context, beatIndex, subIndex),\n                ),\nwith:\n                (subIndex) => Expanded(\n                  child: Center(\n                    child: SizedBox(\n                      width: 48,\n                      child: _buildBeatModeButton(context, beatIndex, subIndex),\n                    ),\n                  ),\n                ),\nThis caps each square beat button at 48 logical pixels while allowing it to shrink in narrow subdivision columns. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/screens/songs/components/metronome_pattern_editor.dart && dart analyze lib/screens/songs/components/metronome_pattern_editor.dart && flutter test test/screens/songs/metronome_pattern_editor_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "id": "F-028-a",
+    "finding": "F-028",
+    "executor": "pi",
+    "title": "Shorten songs search placeholder",
+    "files": [
+      "lib/screens/songs/songs_list_screen.dart"
+    ],
+    "prompt": "In lib/screens/songs/songs_list_screen.dart, replace the exact line `                  hintText: 'Search songs...',` with `                  hintText: 'Search...',`. This concise placeholder fits the available search field while retaining its purpose. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F \"hintText: 'Search...',\" lib/screens/songs/songs_list_screen.dart && dart analyze lib/screens/songs/songs_list_screen.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-028-b",
+    "finding": "F-028",
+    "executor": "pi",
+    "title": "Update search placeholder assertion",
+    "files": [
+      "test/screens/songs/songs_list_screen_test.dart"
+    ],
+    "prompt": "In test/screens/songs/songs_list_screen_test.dart, replace the exact line `      expect(find.text('Search songs...'), findsOneWidget);` with `      expect(find.text('Search...'), findsOneWidget);` to match the updated songs search placeholder. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F \"expect(find.text('Search...'), findsOneWidget);\" test/screens/songs/songs_list_screen_test.dart && dart analyze test/screens/songs/songs_list_screen_test.dart && flutter test test/screens/songs/songs_list_screen_test.dart",
+    "after": [
+      "F-028-a"
+    ],
+    "status": "pending"
+  }
+]

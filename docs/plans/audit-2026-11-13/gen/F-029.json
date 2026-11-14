@@ -1,0 +1,15 @@
+[
+  {
+    "id": "F-029-a",
+    "finding": "F-029",
+    "executor": "pi",
+    "title": "Wrap the song detail title",
+    "files": [
+      "lib/screens/songs/song_page_screen.dart"
+    ],
+    "prompt": "In lib/screens/songs/song_page_screen.dart, replace this exact block:\n                Text(\n                  song.title.trim().isEmpty ? 'Song' : song.title.trim(),\n                  style: MonoPulseTypography.titleLarge.copyWith(\n                    fontWeight: FontWeight.w700,\n                  ),\n                  maxLines: 1,\n                  overflow: TextOverflow.ellipsis,\n                ),\nwith:\n                Text(\n                  song.title.trim().isEmpty ? 'Song' : song.title.trim(),\n                  style: MonoPulseTypography.titleLarge.copyWith(\n                    fontWeight: FontWeight.w700,\n                  ),\n                  softWrap: true,\n                ),\nThis makes the full title readable in the header while leaving the bottom bar unchanged. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F 'softWrap: true,' lib/screens/songs/song_page_screen.dart && dart analyze lib/screens/songs/song_page_screen.dart && flutter test test/screens/songs/song_page_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

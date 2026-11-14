@@ -1,0 +1,15 @@
+[
+  {
+    "id": "N-011-a",
+    "finding": "N-011",
+    "executor": "codex",
+    "title": "Keep band rows clear of FAB",
+    "files": [
+      "lib/screens/bands/my_bands_screen.dart"
+    ],
+    "prompt": "In lib/screens/bands/my_bands_screen.dart, the list already has bottom scroll padding, but that does not prevent a visible row from appearing underneath the floating button. Reserve space below the list viewport as well. Replace these exact lines:\n\n        Expanded(\n          child: filteredBands.isEmpty\n              ? _buildEmptyState(bands.isEmpty)\n              : _buildBandList(filteredBands),\n        ),\n\nwith:\n\n        Expanded(\n          child: filteredBands.isEmpty\n              ? _buildEmptyState(bands.isEmpty)\n              : Padding(\n                  padding: const EdgeInsets.only(\n                    bottom: 56 + MonoPulseSpacing.lg,\n                  ),\n                  child: _buildBandList(filteredBands),\n                ),\n        ),\n\nThe 56 logical pixels are the standard FAB height, and MonoPulseSpacing.lg supplies the additional 16 pixels. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/screens/bands/my_bands_screen.dart && dart analyze lib/screens/bands/my_bands_screen.dart && flutter test test/screens/bands/my_bands_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

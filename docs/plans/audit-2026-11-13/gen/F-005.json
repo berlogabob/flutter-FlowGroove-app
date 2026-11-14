@@ -1,0 +1,24 @@
+[
+  {
+    "id": "F-005-a",
+    "finding": "F-005",
+    "executor": "pi",
+    "title": "Improve dial note contrast",
+    "files": ["lib/widgets/tuner/central_dial.dart"],
+    "prompt": "In lib/widgets/tuner/central_dial.dart, replace the exact line `                      textTertiary: context.mp.textTertiary,` with `                      textTertiary: context.mp.textSecondary,`. Then replace this exact block:\n```\n      final color =\n          (isCurrent\n                  ? MonoPulseColors.accentOrange\n                  : isInScale\n                  ? MonoPulseColors.white\n                  : textTertiary)\n              .withValues(alpha: isCurrent ? 1.0 : 0.5);\n```\nwith:\n```\n      final color = isCurrent ? MonoPulseColors.accentOrange : textTertiary;\n```\nThis gives inactive note names and their tick marks the theme secondary text color while keeping the current note's orange emphasis. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'textTertiary: context.mp.textSecondary,' lib/widgets/tuner/central_dial.dart && rg -Fq 'final color = isCurrent ? MonoPulseColors.accentOrange : textTertiary;' lib/widgets/tuner/central_dial.dart && dart analyze lib/widgets/tuner/central_dial.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-005-b",
+    "finding": "F-005",
+    "executor": "pi",
+    "title": "Improve outer tick contrast",
+    "files": ["lib/widgets/tuner/tick_marks.dart"],
+    "prompt": "In lib/widgets/tuner/tick_marks.dart, replace the exact lines:\n```\n        tickPaint\n          ..color = isMajor ? palette.borderDefault : palette.borderSubtle,\n```\nwith:\n```\n        tickPaint..color = palette.textSecondary,\n```\nThis gives the outer dial tick marks the theme secondary text color in both themes. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'tickPaint..color = palette.textSecondary,' lib/widgets/tuner/tick_marks.dart && dart analyze lib/widgets/tuner/tick_marks.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

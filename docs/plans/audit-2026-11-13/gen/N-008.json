@@ -1,0 +1,15 @@
+[
+  {
+    "id": "N-008-a",
+    "finding": "N-008",
+    "executor": "codex",
+    "title": "Move dial marker inside note labels",
+    "files": [
+      "lib/widgets/tuner/central_dial.dart"
+    ],
+    "prompt": "In lib/widgets/tuner/central_dial.dart, move the selected-note handle inward so it no longer overlaps the dial labels. In _EdgeHandle.build, replace the exact line:\n      offset: Offset(0, -(size / 2 - handleSize / 2)),\nwith:\n      offset: Offset(0, -(size / 2 - handleSize / 2 - 32)),\nThis keeps the handle aligned with the selected note while separating it from the label. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/widgets/tuner/central_dial.dart && dart analyze lib/widgets/tuner/central_dial.dart && flutter test test/widgets/tuner/central_dial_geometry_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

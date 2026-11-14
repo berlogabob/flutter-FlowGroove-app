@@ -1,0 +1,35 @@
+[
+  {
+    "id": "F-008-a",
+    "finding": "F-008",
+    "executor": "pi",
+    "title": "Label beat controls and states",
+    "files": ["lib/widgets/metronome/time_signature_block.dart"],
+    "prompt": "In lib/widgets/metronome/time_signature_block.dart, replace the exact lines:\n          // Top row - Beats\n          _BeatsRow(\nwith:\n          Align(\n            alignment: Alignment.centerLeft,\n            child: Text('Beats (badge = count)', style: TextStyle(color: context.mp.textSecondary)),\n          ),\n          // Top row - Beats\n          _BeatsRow(\nReplace the exact lines:\n          // Bottom row - Subdivisions\n          _SubdivisionsRow(\nwith:\n          Align(\n            alignment: Alignment.centerLeft,\n            child: Text('Subdivisions (badge = count)', style: TextStyle(color: context.mp.textSecondary)),\n          ),\n          // Bottom row - Subdivisions\n          _SubdivisionsRow(\nReplace the exact lines:\n            onDecrement: () {\n              HapticFeedback.lightImpact();\n              if (subdivisions > 1) {\n                metronome.setRegularBeats(subdivisions - 1);\n              }\n            },\n          ),\n        ],\nwith:\n            onDecrement: () {\n              HapticFeedback.lightImpact();\n              if (subdivisions > 1) {\n                metronome.setRegularBeats(subdivisions - 1);\n              }\n            },\n          ),\n          Align(\n            alignment: Alignment.centerLeft,\n            child: Text(\n              'Dot: normal · Star: accent · ⊘: silent. Tap to change; subdivisions can be changed while playing. The glowing circle is playing now.',\n              style: TextStyle(color: context.mp.textSecondary),\n            ),\n          ),\n        ],\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'Beats (badge = count)' lib/widgets/metronome/time_signature_block.dart && rg -Fq 'Subdivisions (badge = count)' lib/widgets/metronome/time_signature_block.dart && rg -Fq 'Dot: normal · Star: accent' lib/widgets/metronome/time_signature_block.dart && dart analyze lib/widgets/metronome/time_signature_block.dart && flutter test test/widgets/metronome/time_signature_block_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-008-b",
+    "finding": "F-008",
+    "executor": "pi",
+    "title": "Enlarge beat tap targets",
+    "files": ["lib/widgets/metronome/time_signature_block.dart"],
+    "prompt": "In lib/widgets/metronome/time_signature_block.dart, replace the exact lines:\n/// Smaller maximum used on narrow screens.\nconst double _kMaxCircleContainerSmall = 44;\nwith:\n/// Maximum used on narrow screens.\nconst double _kMaxCircleContainerSmall = 48;\nReplace the exact lines:\n/// Minimum tappable width for a circle cell. Four cells fit at 360dp; longer\n/// strips scroll when they cannot fit without shrinking the tap targets.\nconst double _kMinCircleContainer = 44;\nwith:\n/// Minimum tappable width for a circle cell. Longer strips wrap or scroll.\nconst double _kMinCircleContainer = 48;\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'const double _kMaxCircleContainerSmall = 48;' lib/widgets/metronome/time_signature_block.dart && rg -Fq 'const double _kMinCircleContainer = 48;' lib/widgets/metronome/time_signature_block.dart && dart analyze lib/widgets/metronome/time_signature_block.dart && flutter test test/widgets/metronome/time_signature_block_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-008-c",
+    "finding": "F-008",
+    "executor": "pi",
+    "title": "Update tap target assertion",
+    "files": ["test/widgets/metronome/time_signature_grid_test.dart"],
+    "prompt": "In test/widgets/metronome/time_signature_grid_test.dart, replace the exact lines:\n        lessThan(48),\n        reason: 'guard is pointless if the clamp still applies at this width',\nwith:\n        greaterThanOrEqualTo(48),\n        reason: 'beat targets must be at least 48dp wide',\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"reason: 'beat targets must be at least 48dp wide'\" test/widgets/metronome/time_signature_grid_test.dart && dart analyze test/widgets/metronome/time_signature_grid_test.dart && flutter test test/widgets/metronome/time_signature_grid_test.dart",
+    "after": ["F-008-b"],
+    "status": "pending"
+  }
+]

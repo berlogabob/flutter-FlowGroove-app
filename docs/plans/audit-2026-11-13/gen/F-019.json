@@ -1,0 +1,28 @@
+[
+  {
+    "id": "F-019-a",
+    "finding": "F-019",
+    "executor": "pi",
+    "title": "Label transpose units",
+    "files": [
+      "lib/widgets/performance_sheet_view.dart"
+    ],
+    "prompt": "In lib/widgets/performance_sheet_view.dart, replace the exact line:\n                const Text('Transpose', style: MonoPulseTypography.labelLarge),\nwith:\n                const Text('Semitones', style: MonoPulseTypography.labelLarge),\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"const Text('Semitones', style: MonoPulseTypography.labelLarge),\" lib/widgets/performance_sheet_view.dart && dart analyze lib/widgets/performance_sheet_view.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-019-b",
+    "finding": "F-019",
+    "executor": "pi",
+    "title": "Show transposed key in header",
+    "files": [
+      "lib/screens/songs/song_page_screen.dart"
+    ],
+    "prompt": "In lib/screens/songs/song_page_screen.dart, make these three exact replacements.\n\nReplace:\nimport '../../utils/snackbar.dart';\nwith:\nimport '../../utils/chordpro.dart';\nimport '../../utils/snackbar.dart';\n\nReplace:\n                if (meta.isNotEmpty)\n                  Text(\n                    meta,\n                    style: MonoPulseTypography.labelLarge.copyWith(\n                      color: context.mp.textSecondary,\n                    ),\n                    maxLines: 1,\n                    overflow: TextOverflow.ellipsis,\n                  ),\nwith:\n                if (meta.isNotEmpty)\n                  Text(\n                    meta,\n                    style: MonoPulseTypography.labelLarge.copyWith(\n                      color: context.mp.textSecondary,\n                    ),\n                    maxLines: 1,\n                    overflow: TextOverflow.ellipsis,\n                  ),\n                if (activeTab == _SongTab.sheet &&\n                    _transpose != 0 &&\n                    (song.ourKey ?? song.originalKey) case final k?\n                        when k.trim().isNotEmpty)\n                  Text(\n                    'Original key: ${k.trim()} → ${transposeChord(k.trim(), _transpose)}',\n                    style: MonoPulseTypography.labelLarge.copyWith(\n                      color: context.mp.textSecondary,\n                    ),\n                  ),\n\nReplace:\n      onTransposeChanged: (t) => _transpose = t,\nwith:\n      onTransposeChanged: (t) => setState(() => _transpose = t),\n\nThe original key here means the sheet's untransposed key, using the same ourKey/originalKey fallback as the existing header. The separate line keeps both keys visible when the artist and BPM fill the metadata line. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'Original key: ${k.trim()} → ${transposeChord(k.trim(), _transpose)}' lib/screens/songs/song_page_screen.dart && rg -Fq 'onTransposeChanged: (t) => setState(() => _transpose = t),' lib/screens/songs/song_page_screen.dart && dart analyze lib/screens/songs/song_page_screen.dart && flutter test test/screens/songs/song_page_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

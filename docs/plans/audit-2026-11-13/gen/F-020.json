@@ -1,0 +1,15 @@
+[
+  {
+    "id": "F-020-a",
+    "finding": "F-020",
+    "executor": "pi",
+    "title": "Scroll metronome controls into view",
+    "files": [
+      "lib/screens/songs/components/song_form.dart"
+    ],
+    "prompt": "In lib/screens/songs/components/song_form.dart, replace these exact lines:\n  Widget build(BuildContext context) {\n    return Form(\nwith:\n  Widget build(BuildContext context) {\n    final metronomeKey = GlobalKey();\n    return Form(\n\nThen replace these exact lines:\n            title: 'Metronome Settings',\n            icon: Icons.music_note,\n            initiallyExpanded: false,\n            child: MetronomePatternEditor(\nwith:\n            title: 'Metronome Settings',\n            icon: Icons.music_note,\n            initiallyExpanded: false,\n            onExpandedChanged: (expanded) async {\n              if (!expanded) return;\n              await Future<void>.delayed(const Duration(milliseconds: 250));\n              final editorContext = metronomeKey.currentContext;\n              if (editorContext == null || !editorContext.mounted) return;\n              final visibility = editorContext\n                  .findAncestorWidgetOfExactType<Visibility>();\n              if (visibility?.visible != true) return;\n              await Scrollable.ensureVisible(\n                editorContext,\n                alignment: 0,\n                duration: const Duration(milliseconds: 200),\n              );\n            },\n            child: MetronomePatternEditor(\n              key: metronomeKey,\n\nThe delay lets the existing 200 ms expansion finish before scrolling. The existing ListView and fixed action bar then keep the controls reachable by scrolling. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q 'final metronomeKey = GlobalKey();' lib/screens/songs/components/song_form.dart && rg -F -q 'await Scrollable.ensureVisible(' lib/screens/songs/components/song_form.dart && rg -F -q 'key: metronomeKey,' lib/screens/songs/components/song_form.dart && dart analyze lib/screens/songs/components/song_form.dart && flutter test test/screens/songs/add_song_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

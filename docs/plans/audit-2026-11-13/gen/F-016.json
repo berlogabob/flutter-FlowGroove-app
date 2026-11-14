@@ -1,0 +1,30 @@
+[
+  {
+    "id": "F-016-a",
+    "finding": "F-016",
+    "executor": "pi",
+    "title": "Label the required setlist name",
+    "files": [
+      "lib/screens/setlists/create_setlist_screen.dart"
+    ],
+    "prompt": "In lib/screens/setlists/create_setlist_screen.dart, replace this exact block:\n```dart\n                      Expanded(\n                        child: TextFormField(\n                          controller: _nameController,\n                          decoration: const InputDecoration(\n                            labelText: 'Setlist Name *',\n                            prefixIcon: Icon(Icons.queue_music),\n                          ),\n                          textInputAction: TextInputAction.next,\n                          onChanged: (_) => _markAsChanged(),\n                          validator: (v) => (v == null || v.trim().isEmpty)\n                              ? 'Required'\n                              : null,\n                        ),\n                      ),\n```\nwith:\n```dart\n                      Expanded(\n                        child: Semantics(\n                          label: 'Setlist Name, required',\n                          child: TextFormField(\n                            controller: _nameController,\n                            decoration: const InputDecoration(\n                              labelText: 'Setlist Name *',\n                              prefixIcon: Icon(Icons.queue_music),\n                            ),\n                            textInputAction: TextInputAction.next,\n                            onChanged: (_) => _markAsChanged(),\n                            validator: (v) => (v == null || v.trim().isEmpty)\n                                ? 'Required'\n                                : null,\n                          ),\n                        ),\n                      ),\n```\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"label: 'Setlist Name, required',\" lib/screens/setlists/create_setlist_screen.dart && dart analyze lib/screens/setlists/create_setlist_screen.dart && flutter test test/screens/setlists/create_setlist_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-016-b",
+    "finding": "F-016",
+    "executor": "pi",
+    "title": "Expose event details toggle state",
+    "files": [
+      "lib/screens/setlists/create_setlist_screen.dart"
+    ],
+    "prompt": "In lib/screens/setlists/create_setlist_screen.dart, replace this exact block:\n```dart\n                      IconButton(\n                        tooltip: _showEventDetails\n                            ? 'Hide event details'\n                            : 'Show event details',\n                        icon: Icon(\n                          _showEventDetails\n                              ? Icons.expand_less\n                              : Icons.expand_more,\n                          color: context.mp.textSecondary,\n                        ),\n                        onPressed: () => setState(\n                          () => _showEventDetails = !_showEventDetails,\n                        ),\n                      ),\n```\nwith:\n```dart\n                      Semantics(\n                        expanded: _showEventDetails,\n                        child: IconButton(\n                          tooltip: _showEventDetails\n                              ? 'Hide event details'\n                              : 'Show event details',\n                          icon: Icon(\n                            _showEventDetails\n                                ? Icons.expand_less\n                                : Icons.expand_more,\n                            color: context.mp.textSecondary,\n                          ),\n                          onPressed: () => setState(\n                            () => _showEventDetails = !_showEventDetails,\n                          ),\n                        ),\n                      ),\n```\nThe existing tooltip supplies the toggle's action label; the Semantics widget supplies its expanded state. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'expanded: _showEventDetails,' lib/screens/setlists/create_setlist_screen.dart && dart analyze lib/screens/setlists/create_setlist_screen.dart && flutter test test/screens/setlists/create_setlist_screen_test.dart",
+    "after": [
+      "F-016-a"
+    ],
+    "status": "pending"
+  }
+]

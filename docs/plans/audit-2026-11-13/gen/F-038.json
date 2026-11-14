@@ -1,0 +1,15 @@
+[
+  {
+    "id": "F-038-a",
+    "finding": "F-038",
+    "executor": "pi",
+    "title": "Use control font for sort labels",
+    "files": [
+      "lib/widgets/unified_item/unified_filter_sort_widget.dart"
+    ],
+    "prompt": "In lib/widgets/unified_item/unified_filter_sort_widget.dart, replace the exact line:\n                child: Text(option.label),\nwith:\n                child: Text(\n                  option.label,\n                  style: const TextStyle(\n                    fontFamily: MonoPulseTypography.fontFamilyControl,\n                  ),\n                ),\nThis applies the shared control font to both the selected sort label and the menu options while retaining their inherited size and color. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -q -F 'fontFamily: MonoPulseTypography.fontFamilyControl,' lib/widgets/unified_item/unified_filter_sort_widget.dart && dart analyze lib/widgets/unified_item/unified_filter_sort_widget.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

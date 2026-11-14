@@ -1,0 +1,15 @@
+[
+  {
+    "id": "N-010-a",
+    "finding": "N-010",
+    "executor": "codex",
+    "title": "Add scroll clearance below song form",
+    "files": [
+      "lib/screens/songs/add_song_screen.dart"
+    ],
+    "prompt": "In lib/screens/songs/add_song_screen.dart, replace the exact line `                    padding: const EdgeInsets.all(MonoPulseSpacing.lg),` with:\n```dart\n                    padding: const EdgeInsets.fromLTRB(\n                      MonoPulseSpacing.lg,\n                      MonoPulseSpacing.lg,\n                      MonoPulseSpacing.lg,\n                      MonoPulseSpacing.massive + MonoPulseSpacing.lg,\n                    ),\n```\nThis adds bottom scroll clearance for the expanded Tags section above the fixed Save Song bar. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/screens/songs/add_song_screen.dart && dart analyze lib/screens/songs/add_song_screen.dart && flutter test test/screens/songs/add_song_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

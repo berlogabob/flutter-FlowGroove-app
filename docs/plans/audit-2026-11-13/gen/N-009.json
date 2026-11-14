@@ -1,0 +1,15 @@
+[
+  {
+    "id": "N-009-a",
+    "finding": "N-009",
+    "executor": "codex",
+    "title": "Show autofill search hint",
+    "files": [
+      "lib/widgets/autocomplete_type_ahead.dart"
+    ],
+    "prompt": "In lib/widgets/autocomplete_type_ahead.dart, remove the invisible label so Flutter displays the existing hint when the field is empty and unfocused. Replace these exact lines:\n```dart\n          label: Semantics(label: widget.hint, child: const SizedBox.shrink()),\n          hintText: widget.hint,\n```\nwith:\n```dart\n          hintText: widget.hint,\n```\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/widgets/autocomplete_type_ahead.dart && dart analyze lib/widgets/autocomplete_type_ahead.dart && flutter test test/screens/songs/add_song_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

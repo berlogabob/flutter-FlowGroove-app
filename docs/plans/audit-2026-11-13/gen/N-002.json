@@ -1,0 +1,15 @@
+[
+  {
+    "id": "N-002-a",
+    "finding": "N-002",
+    "executor": "codex",
+    "title": "Add band names to action labels",
+    "files": [
+      "lib/screens/bands/my_bands_screen.dart"
+    ],
+    "prompt": "In lib/screens/bands/my_bands_screen.dart, give both repeated band actions context using the existing band names. Replace the exact lines:\n          OverflowMenuAction(\n            entries: [\nwith:\n          OverflowMenuAction(\n            tooltip: 'More actions for ${adapter.band.name}',\n            entries: [\nAlso replace the exact line:\n      tooltip: 'View Songs',\nwith:\n      tooltip: 'View songs for ${band.name}',\nRun dart analyze lib/screens/bands/my_bands_screen.dart and flutter test test/screens/bands/my_bands_screen_test.dart. Update only assertions about the changed UI if any require updating; the existing test has no assertions for these action labels. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/screens/bands/my_bands_screen.dart && dart analyze lib/screens/bands/my_bands_screen.dart && flutter test test/screens/bands/my_bands_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

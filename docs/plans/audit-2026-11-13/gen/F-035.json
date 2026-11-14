@@ -1,0 +1,46 @@
+[
+  {
+    "id": "F-035-a",
+    "finding": "F-035",
+    "executor": "pi",
+    "title": "Label the card destination",
+    "files": ["lib/widgets/practice_dashboard_card.dart"],
+    "prompt": "In lib/widgets/practice_dashboard_card.dart, replace the exact line `                  ? 'No practice yet this week. Tap to start practicing.'` with `                  ? 'No practice yet this week. View progress.'`. Replace the exact line `                  'Tap to start',` with `                  'View progress',`. Leave navigation and the non-tappable card unchanged. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"? 'No practice yet this week. View progress.'\" lib/widgets/practice_dashboard_card.dart && rg -Fq \"'View progress',\" lib/widgets/practice_dashboard_card.dart && dart analyze lib/widgets/practice_dashboard_card.dart && flutter test test/widgets/practice_dashboard_card_test.dart",
+    "after": ["F-035-b"],
+    "status": "pending"
+  },
+  {
+    "id": "F-035-b",
+    "finding": "F-035",
+    "executor": "pi",
+    "title": "Update card label assertions",
+    "files": ["test/widgets/practice_dashboard_card_test.dart"],
+    "prompt": "In test/widgets/practice_dashboard_card_test.dart, replace `        expect(label, isNot(contains('Tap to start')));` with `        expect(label, isNot(contains('View progress')));`. Replace `        expect(find.text('Tap to start'), findsNothing);` with `        expect(find.text('View progress'), findsNothing);`. Replace `          contains('Tap to start practicing'),` with `          contains('View progress'),`. Replace both occurrences of `      expect(find.text('Tap to start'), findsOneWidget);` with `      expect(find.text('View progress'), findsOneWidget);`, preserving each line's existing indentation. Replace `    testWidgets('empty week shows the start nudge', (tester) async {` with `    testWidgets('empty week links to progress', (tester) async {`. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"contains('View progress'),\" test/widgets/practice_dashboard_card_test.dart && rg -Fq \"empty week links to progress\" test/widgets/practice_dashboard_card_test.dart && dart analyze test/widgets/practice_dashboard_card_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-035-c",
+    "finding": "F-035",
+    "executor": "pi",
+    "title": "Use consistent menu destination",
+    "files": ["lib/screens/main_shell.dart"],
+    "prompt": "In lib/screens/main_shell.dart, replace the exact line `                label: 'Progress / history',` with `                label: 'Progress',`. Keep its navigation unchanged. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"label: 'Progress',\" lib/screens/main_shell.dart && dart analyze lib/screens/main_shell.dart && flutter test test/screens/songs/songs_list_screen_test.dart",
+    "after": ["F-035-d"],
+    "status": "pending"
+  },
+  {
+    "id": "F-035-d",
+    "finding": "F-035",
+    "executor": "pi",
+    "title": "Update menu label assertion",
+    "files": ["test/screens/songs/songs_list_screen_test.dart"],
+    "prompt": "In test/screens/songs/songs_list_screen_test.dart, replace the exact line `            'Progress / history',` with `            'Progress',`. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"'Progress',\" test/screens/songs/songs_list_screen_test.dart && ! rg -Fq 'Progress / history' test/screens/songs/songs_list_screen_test.dart && dart analyze test/screens/songs/songs_list_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

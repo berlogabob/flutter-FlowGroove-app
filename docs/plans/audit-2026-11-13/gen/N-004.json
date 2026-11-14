@@ -1,0 +1,30 @@
+[
+  {
+    "id": "N-004-a",
+    "finding": "N-004",
+    "executor": "codex",
+    "title": "Label the card destination",
+    "files": [
+      "lib/widgets/practice_dashboard_card.dart",
+      "test/widgets/practice_dashboard_card_test.dart"
+    ],
+    "prompt": "In lib/widgets/practice_dashboard_card.dart, replace `? 'No practice yet this week. Tap to start practicing.'` with `? 'No practice yet this week. View progress.'`, and replace `'Tap to start',` with `'View progress',`. In test/widgets/practice_dashboard_card_test.dart, replace `expect(label, isNot(contains('Tap to start')));` with `expect(label, isNot(contains('View progress')));`, replace `expect(find.text('Tap to start'), findsNothing);` with `expect(find.text('View progress'), findsNothing);`, replace `contains('Tap to start practicing'),` with `contains('View progress'),`, and replace both occurrences of `expect(find.text('Tap to start'), findsOneWidget);` with `expect(find.text('View progress'), findsOneWidget);`. Update only assertions about the changed UI. Run `flutter test test/widgets/practice_dashboard_card_test.dart`. Edit only the listed files; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/widgets/practice_dashboard_card.dart && dart analyze lib/widgets/practice_dashboard_card.dart && flutter test test/widgets/practice_dashboard_card_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "N-004-b",
+    "finding": "N-004",
+    "executor": "codex",
+    "title": "Match the More menu destination",
+    "files": [
+      "lib/screens/main_shell.dart",
+      "test/screens/songs/songs_list_screen_test.dart"
+    ],
+    "prompt": "In lib/screens/main_shell.dart, replace `label: 'Progress / history',` with `label: 'Progress',`. In test/screens/songs/songs_list_screen_test.dart, replace `'Progress / history',` with `'Progress',` in the expected global More items. Update only the assertion about the changed UI. Run `flutter test test/screens/songs/songs_list_screen_test.dart`. Edit only the listed files; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/screens/main_shell.dart && dart analyze lib/screens/main_shell.dart && flutter test test/screens/songs/songs_list_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

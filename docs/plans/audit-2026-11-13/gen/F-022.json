@@ -1,0 +1,13 @@
+[
+  {
+    "id": "F-022-a",
+    "finding": "F-022",
+    "executor": "pi",
+    "title": "Clarify empty editor guidance",
+    "files": ["lib/screens/songs/song_editor_screen.dart"],
+    "prompt": "In lib/screens/songs/song_editor_screen.dart, replace the exact line:\n                'No sections yet — type ChordPro below, or use Import / Add.',\nwith these lines:\n                'No sections yet. Type lyrics below with chords in brackets, '\n                'for example [Am]Hello. To add a section or import lyrics '\n                'and chords, open Menu at the bottom.',\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'for example [Am]Hello. To add a section or import lyrics ' lib/screens/songs/song_editor_screen.dart && rg -Fq 'and chords, open Menu at the bottom.' lib/screens/songs/song_editor_screen.dart && dart analyze lib/screens/songs/song_editor_screen.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

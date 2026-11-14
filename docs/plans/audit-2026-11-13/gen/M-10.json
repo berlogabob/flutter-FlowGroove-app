@@ -1,0 +1,15 @@
+[
+  {
+    "id": "M-10-a",
+    "finding": "M-10",
+    "executor": "pi",
+    "title": "Use Wasm-safe audio context check",
+    "files": [
+      "lib/services/audio/backing_engine_web.dart"
+    ],
+    "prompt": "In lib/services/audio/backing_engine_web.dart, replace these exact lines:\n  if (hooks == null || context is! web.AudioContext) {\n    return StubBackingEngine();\n  }\n  return WebBackingEngine(\n    context: context,\nwith:\n  if (hooks == null || !context.isA<web.AudioContext>()) {\n    return StubBackingEngine();\n  }\n  return WebBackingEngine(\n    context: context.jsify() as web.AudioContext,\nThe isA check verifies the JavaScript type, and jsify preserves an existing JavaScript value before the cast. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq '!context.isA<web.AudioContext>()' lib/services/audio/backing_engine_web.dart && rg -Fq 'context: context.jsify() as web.AudioContext,' lib/services/audio/backing_engine_web.dart && dart analyze lib/services/audio/backing_engine_web.dart && flutter test test/services/audio/backing_engine_web_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

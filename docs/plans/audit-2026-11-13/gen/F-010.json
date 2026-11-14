@@ -1,0 +1,24 @@
+[
+  {
+    "id": "F-010-a",
+    "finding": "F-010",
+    "executor": "pi",
+    "title": "Label and enlarge playback control",
+    "files": ["lib/screens/songs/components/lab_recording_sheet.dart"],
+    "prompt": "In lib/screens/songs/components/lab_recording_sheet.dart, replace these exact lines:\n  const LabAudioPlayer({required this.url, super.key});\n\n  final String url;\nwith:\n  const LabAudioPlayer({required this.url, this.recordingTitle, super.key});\n\n  final String url;\n  final String? recordingTitle;\n\nIn the same file, replace these exact lines:\n            IconButton(\n              visualDensity: VisualDensity.compact,\n              icon: Icon(\nwith:\n            IconButton(\n              visualDensity: widget.recordingTitle == null\n                  ? VisualDensity.compact\n                  : VisualDensity.standard,\n              tooltip: widget.recordingTitle == null\n                  ? null\n                  : '${playing && !done ? 'Pause' : 'Play'} ${widget.recordingTitle}',\n              icon: Icon(\n\nThe standard visual density gives the named playback control Flutter's default 48 dp minimum target. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q 'final String? recordingTitle;' lib/screens/songs/components/lab_recording_sheet.dart && rg -F -q 'visualDensity: widget.recordingTitle == null' lib/screens/songs/components/lab_recording_sheet.dart && rg -F -q 'tooltip: widget.recordingTitle == null' lib/screens/songs/components/lab_recording_sheet.dart && dart analyze lib/screens/songs/components/lab_recording_sheet.dart && flutter test test/screens/recorder_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-010-b",
+    "finding": "F-010",
+    "executor": "pi",
+    "title": "Name recorder playback and menus",
+    "files": ["lib/screens/recorder_screen.dart"],
+    "prompt": "In lib/screens/recorder_screen.dart, replace these exact lines:\n              LabAudioPlayer(url: recording.attachmentIds.first),\nwith:\n              LabAudioPlayer(\n                url: recording.attachmentIds.first,\n                recordingTitle: recording.title ?? 'Take · ${d.day}/${d.month}',\n              ),\n\nIn the same file, replace these exact lines:\n            : PopupMenuButton<String>(\n                onSelected: (v) {\nwith:\n            : PopupMenuButton<String>(\n                tooltip: 'Menu for ${recording.title ?? 'Take · ${d.day}/${d.month}'}',\n                onSelected: (v) {\n\nBoth labels must use the same title or fallback displayed on the card. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -q 'recordingTitle: recording.title' lib/screens/recorder_screen.dart && rg -F -q \"tooltip: 'Menu for\" lib/screens/recorder_screen.dart && dart analyze lib/screens/recorder_screen.dart && flutter test test/screens/recorder_screen_test.dart",
+    "after": ["F-010-a"],
+    "status": "pending"
+  }
+]

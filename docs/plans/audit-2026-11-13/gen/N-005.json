@@ -1,0 +1,16 @@
+[
+  {
+    "id": "N-005-a",
+    "finding": "N-005",
+    "executor": "codex",
+    "title": "Align Home metronome icon",
+    "files": [
+      "lib/screens/home_screen.dart",
+      "test/screens/home_screen_test.dart"
+    ],
+    "prompt": "In lib/screens/home_screen.dart, replace the exact lines `          icon: Icons.speed,\n          label: 'Metronome',` with `          icon: Icons.av_timer,\n          label: 'Metronome',`. In test/screens/home_screen_test.dart, replace `      expect(find.byIcon(Icons.speed), findsOneWidget);` with `      expect(find.byIcon(Icons.av_timer), findsOneWidget);`. Update only assertions about the changed UI. Run `dart analyze lib/screens/home_screen.dart` and `flutter test test/screens/home_screen_test.dart`. Edit only the listed files; change nothing else; no refactors. When done print DONE.",
+    "verify": "! git diff --quiet HEAD -- lib/screens/home_screen.dart && dart analyze lib/screens/home_screen.dart && flutter test test/screens/home_screen_test.dart",
+    "after": [],
+    "status": "pending"
+  }
+]

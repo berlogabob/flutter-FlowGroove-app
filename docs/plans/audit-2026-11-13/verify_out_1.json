@@ -1,0 +1,138 @@
+{
+  "results": [
+    {
+      "id": "F-002",
+      "verdict": "verified",
+      "after": "screens/63_songs__more_actions_for_back_to_bla.png",
+      "reason": "The song’s list-row action menu visibly includes Delete."
+    },
+    {
+      "id": "F-004",
+      "verdict": "still-open",
+      "after": "screens/76_setlists__open_setlist_testo_tiras.png",
+      "reason": "The four entries still lack their last-known titles and the screen still directs users through Menu to edit, although it now explains possible reasons."
+    },
+    {
+      "id": "F-006",
+      "verdict": "not-covered",
+      "after": null,
+      "reason": "The offline capture shows text entered in the Title field, not a catalog search."
+    },
+    {
+      "id": "F-008",
+      "verdict": "verified",
+      "after": "screens/09_metronome.png",
+      "reason": "The rows are labeled Beats and Subdivisions, the badges and dot states are explained, and the controls have larger targets."
+    },
+    {
+      "id": "F-010",
+      "verdict": "verified",
+      "after": "screens/11_recorder.png",
+      "reason": "The hierarchy identifies controls by recording, including Play test from web and Menu for test from web, with enlarged bounds."
+    },
+    {
+      "id": "F-012",
+      "verdict": "still-open",
+      "after": "screens/13_bands.png",
+      "reason": "Band rows and actions now include band names in the hierarchy, but the search field remains an unlabeled clickable node."
+    },
+    {
+      "id": "F-014",
+      "verdict": "still-open",
+      "after": "screens/04_add_song.png",
+      "reason": "The hierarchy still reports the Title, Artist, and autofill fields as clickable nodes with empty accessibility text."
+    },
+    {
+      "id": "F-016",
+      "verdict": "still-open",
+      "after": "screens/06_add_setlist.png",
+      "reason": "The hierarchy labels the adjacent control Show event details, but the Setlist Name input remains an unlabeled clickable node."
+    },
+    {
+      "id": "F-018",
+      "verdict": "verified",
+      "after": "screens/17_continue_back_to_black_123_b__stage_mode.png",
+      "reason": "Stage mode visibly provides an Exit stage mode control."
+    },
+    {
+      "id": "F-020",
+      "verdict": "verified",
+      "after": "screens/28_add_song__metronome_settings.png",
+      "reason": "The expanded settings have been scrolled above the fixed Save Song bar, exposing the beat and subdivision controls."
+    },
+    {
+      "id": "F-022",
+      "verdict": "not-covered",
+      "after": null,
+      "reason": "No AFTER capture shows the empty song editor."
+    },
+    {
+      "id": "F-024",
+      "verdict": "still-open",
+      "after": "screens/27_add_song__tags.png",
+      "reason": "The ready, easy, and hard tag controls remain partly hidden behind the fixed Save Song area."
+    },
+    {
+      "id": "F-026",
+      "verdict": "not-covered",
+      "after": null,
+      "reason": "The AFTER song metronome capture does not show the Backing tracks button."
+    },
+    {
+      "id": "F-028",
+      "verdict": "verified",
+      "after": "screens/12_songs.png",
+      "reason": "The search field displays the complete concise placeholder Search...."
+    },
+    {
+      "id": "F-030",
+      "verdict": "verified",
+      "after": "screens/02_this_week.png",
+      "reason": "The tool buttons use similarly sized, readable labels in a vertical layout."
+    },
+    {
+      "id": "F-032",
+      "verdict": "still-open",
+      "after": "screens/13_bands.png",
+      "reason": "The floating add button overlaps the Millennium row’s overflow action."
+    },
+    {
+      "id": "F-034",
+      "verdict": "verified",
+      "after": "screens/25_add_song__song_structure.png",
+      "reason": "No sections yet is rendered in a clearly darker gray against the light background."
+    },
+    {
+      "id": "F-036",
+      "verdict": "not-covered",
+      "after": null,
+      "reason": "The AFTER capture shows the loaded empty homework state, not a failed or stalled request."
+    },
+    {
+      "id": "F-038",
+      "verdict": "verified",
+      "after": "screens/57_songs__alphabetical.png",
+      "reason": "The sort control and its menu options use sans serif typography consistent with adjacent controls."
+    },
+    {
+      "id": "F-040",
+      "verdict": "verified",
+      "after": "screens/15_more.png",
+      "reason": "More now uses the same metronome icon visible on Home."
+    }
+  ],
+  "new_issues": [
+    {
+      "screen": "Tuner → Select Instrument",
+      "after": "screens/37_tuner__guitar_standard.png",
+      "severity": 2,
+      "evidence": "Standard wraps within the word, leaving its final letter alone on a second line."
+    },
+    {
+      "screen": "Tuner → Tone",
+      "after": "screens/40_tuner__select_note_c.png",
+      "severity": 2,
+      "evidence": "The selected-note marker overlaps and obscures the C# label on the dial."
+    }
+  ]
+}

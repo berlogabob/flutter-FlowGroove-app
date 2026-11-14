@@ -1,0 +1,13 @@
+[
+  {
+    "id": "M-09-a",
+    "finding": "M-09",
+    "executor": "pi",
+    "title": "Remove stale analyzer plugin",
+    "files": ["analysis_options.yaml"],
+    "prompt": "In analysis_options.yaml, replace these exact lines:\n    strict-raw-types: true\n  plugins:\n    - custom_lint\n  errors:\nwith:\n    strict-raw-types: true\n  errors:\nThe project does not declare custom_lint or riverpod_lint as dependencies. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -F -U -q $'    strict-raw-types: true\\n  errors:' analysis_options.yaml && dart analyze analysis_options.yaml",
+    "after": [],
+    "status": "pending"
+  }
+]

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "F-011-a",
+    "finding": "F-011",
+    "executor": "pi",
+    "title": "Label the search field",
+    "files": ["lib/widgets/unified_item/unified_filter_sort_widget.dart"],
+    "prompt": "In lib/widgets/unified_item/unified_filter_sort_widget.dart, replace exactly:\n            child: TextField(\n              decoration: InputDecoration(\n                hintText: widget.hintText,\n                border: InputBorder.none,\n                contentPadding: const EdgeInsets.symmetric(\n                  horizontal: MonoPulseSpacing.lg,\n                  vertical: MonoPulseSpacing.sm,\n                ),\n              ),\n              controller: _controller,\n              onChanged: widget.onFilterChanged,\n              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),\n            ),\nwith:\n            child: Semantics(\n              label: widget.hintText,\n              child: TextField(\n                decoration: InputDecoration(\n                  hintText: widget.hintText,\n                  border: InputBorder.none,\n                  contentPadding: const EdgeInsets.symmetric(\n                    horizontal: MonoPulseSpacing.lg,\n                    vertical: MonoPulseSpacing.sm,\n                  ),\n                ),\n                controller: _controller,\n                onChanged: widget.onFilterChanged,\n                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),\n              ),\n            ),\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'label: widget.hintText,' lib/widgets/unified_item/unified_filter_sort_widget.dart && dart analyze lib/widgets/unified_item/unified_filter_sort_widget.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-011-b",
+    "finding": "F-011",
+    "executor": "pi",
+    "title": "Support action icon semantic labels",
+    "files": ["lib/widgets/unified_item/unified_item_model.dart"],
+    "prompt": "In lib/widgets/unified_item/unified_item_model.dart, make these exact replacements. Replace:\n    required this.onPressed,\n    this.color,\n  });\n\n  final IconData icon;\n  final String tooltip;\n  final VoidCallback onPressed;\n  final Color? color;\nwith:\n    required this.onPressed,\n    this.color,\n    this.semanticLabel,\n  });\n\n  final IconData icon;\n  final String tooltip;\n  final VoidCallback onPressed;\n  final Color? color;\n  final String? semanticLabel;\nReplace:\n      icon: Icon(icon, size: 20, color: color),\nwith:\n      icon: Icon(icon, size: 20, color: color, semanticLabel: semanticLabel),\nReplace:\n  OverflowMenuAction({required this.entries});\n\n  final List<(String, IconData, VoidCallback)> entries;\nwith:\n  OverflowMenuAction({required this.entries, this.semanticLabel});\n\n  final List<(String, IconData, VoidCallback)> entries;\n  final String? semanticLabel;\nReplace:\n      icon: const Icon(Icons.more_vert, size: 20),\nwith:\n      icon: Icon(Icons.more_vert, size: 20, semanticLabel: semanticLabel),\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'icon: Icon(icon, size: 20, color: color, semanticLabel: semanticLabel),' lib/widgets/unified_item/unified_item_model.dart && rg -Fq 'icon: Icon(Icons.more_vert, size: 20, semanticLabel: semanticLabel),' lib/widgets/unified_item/unified_item_model.dart && dart analyze lib/widgets/unified_item/unified_item_model.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-011-c",
+    "finding": "F-011",
+    "executor": "pi",
+    "title": "Identify songs in action labels",
+    "files": ["lib/widgets/unified_item/song_card_actions.dart"],
+    "prompt": "In lib/widgets/unified_item/song_card_actions.dart, replace exactly:\n        icon: quickIcon,\n        tooltip: quickLabel,\n        color: MonoPulseColors.accentOrange,\nwith:\n        icon: quickIcon,\n        tooltip: quickLabel,\n        semanticLabel: '$quickLabel for ${song.title}',\n        color: MonoPulseColors.accentOrange,\nThen replace exactly:\n      OverflowMenuAction(\n        entries: [\n          ('Metronome', Icons.av_timer, () => openInMetronome(song)),\nwith:\n      OverflowMenuAction(\n        semanticLabel: 'More actions for ${song.title}',\n        entries: [\n          ('Metronome', Icons.av_timer, () => openInMetronome(song)),\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'semanticLabel: '\\''$quickLabel for ${song.title}'\\'',' lib/widgets/unified_item/song_card_actions.dart && rg -Fq 'semanticLabel: '\\''More actions for ${song.title}'\\'',' lib/widgets/unified_item/song_card_actions.dart && dart analyze lib/widgets/unified_item/song_card_actions.dart && flutter test test/screens/songs/songs_list_screen_test.dart",
+    "after": ["F-011-b"],
+    "status": "pending"
+  }
+]

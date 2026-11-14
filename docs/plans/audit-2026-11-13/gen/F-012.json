@@ -1,0 +1,46 @@
+[
+  {
+    "id": "F-012-a",
+    "finding": "F-012",
+    "executor": "pi",
+    "title": "Label the bands search field",
+    "files": ["lib/widgets/unified_item/unified_filter_sort_widget.dart"],
+    "prompt": "In lib/widgets/unified_item/unified_filter_sort_widget.dart, replace exactly:\n            child: TextField(\n              decoration: InputDecoration(\n                hintText: widget.hintText,\n                border: InputBorder.none,\n                contentPadding: const EdgeInsets.symmetric(\n                  horizontal: MonoPulseSpacing.lg,\n                  vertical: MonoPulseSpacing.sm,\n                ),\n              ),\n              controller: _controller,\n              onChanged: widget.onFilterChanged,\n              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),\n            ),\nwith:\n            child: Semantics(\n              label: widget.hintText == 'Search bands...' ? 'Search bands' : null,\n              child: TextField(\n                decoration: InputDecoration(\n                  hintText: widget.hintText,\n                  border: InputBorder.none,\n                  contentPadding: const EdgeInsets.symmetric(\n                    horizontal: MonoPulseSpacing.lg,\n                    vertical: MonoPulseSpacing.sm,\n                  ),\n                ),\n                controller: _controller,\n                onChanged: widget.onFilterChanged,\n                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),\n              ),\n            ),\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"label: widget.hintText == 'Search bands...' ? 'Search bands' : null,\" lib/widgets/unified_item/unified_filter_sort_widget.dart && dart analyze lib/widgets/unified_item/unified_filter_sort_widget.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-012-b",
+    "finding": "F-012",
+    "executor": "pi",
+    "title": "Remove duplicate band row semantics",
+    "files": ["lib/widgets/unified_item/unified_item_list.dart"],
+    "prompt": "In lib/widgets/unified_item/unified_item_list.dart, replace exactly:\nimport 'unified_item_card.dart';\nwith:\nimport 'adapters/band_item_adapter.dart';\nimport 'unified_item_card.dart';\nThen replace exactly:\n            child: GestureDetector(\n              behavior: HitTestBehavior.opaque,\nwith:\n            child: GestureDetector(\n              excludeFromSemantics: item is BandItemAdapter,\n              behavior: HitTestBehavior.opaque,\nThe card's inner InkWell retains the tap action and exposes the band title. Edit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'excludeFromSemantics: item is BandItemAdapter,' lib/widgets/unified_item/unified_item_list.dart && dart analyze lib/widgets/unified_item/unified_item_list.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-012-c",
+    "finding": "F-012",
+    "executor": "pi",
+    "title": "Allow contextual overflow labels",
+    "files": ["lib/widgets/unified_item/unified_item_model.dart"],
+    "prompt": "In lib/widgets/unified_item/unified_item_model.dart, replace exactly:\n  OverflowMenuAction({required this.entries});\n\n  final List<(String, IconData, VoidCallback)> entries;\nwith:\n  OverflowMenuAction({required this.entries, this.tooltip = 'More'});\n\n  final List<(String, IconData, VoidCallback)> entries;\n  final String tooltip;\nThen replace exactly:\n      tooltip: 'More',\n      onSelected: (i) => entries[i].$3(),\nwith:\n      tooltip: tooltip,\n      onSelected: (i) => entries[i].$3(),\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq \"OverflowMenuAction({required this.entries, this.tooltip = 'More'});\" lib/widgets/unified_item/unified_item_model.dart && rg -Fq 'tooltip: tooltip,' lib/widgets/unified_item/unified_item_model.dart && dart analyze lib/widgets/unified_item/unified_item_model.dart",
+    "after": [],
+    "status": "pending"
+  },
+  {
+    "id": "F-012-d",
+    "finding": "F-012",
+    "executor": "pi",
+    "title": "Add band names to action labels",
+    "files": ["lib/screens/bands/my_bands_screen.dart"],
+    "prompt": "In lib/screens/bands/my_bands_screen.dart, replace exactly:\n          OverflowMenuAction(\n            entries: [\nwith:\n          OverflowMenuAction(\n            tooltip: 'More options for ${adapter.band.name}',\n            entries: [\nThen replace exactly:\n      tooltip: 'View Songs',\nwith:\n      tooltip: 'View Songs for ${band.name}',\nEdit only the listed file; change nothing else; no refactors. When done print DONE.",
+    "verify": "rg -Fq 'More options for ${adapter.band.name}' lib/screens/bands/my_bands_screen.dart && rg -Fq 'View Songs for ${band.name}' lib/screens/bands/my_bands_screen.dart && dart analyze lib/screens/bands/my_bands_screen.dart && flutter test test/screens/bands/my_bands_screen_test.dart",
+    "after": ["F-012-c"],
+    "status": "pending"
+  }
+]
