@@ -54,6 +54,21 @@ void main() {
     );
   });
 
+  for (final bpm in [170, 163, 75]) {
+    test('estimateGrid recovers $bpm BPM without a hint', () {
+      // At this rate the old search picks half tempo for both fast trains.
+      const sampleRate = 16875;
+      final train = Int16List(sampleRate * 20);
+      for (var beat = 0; ; beat++) {
+        final onset = ((0.3 + beat * 60 / bpm) * sampleRate).round();
+        if (onset >= train.length) break;
+        train[onset] = beat % 4 == 0 ? 30000 : 12000;
+      }
+
+      expect(estimateGrid(train, sampleRate)!.bpm, closeTo(bpm, 0.5));
+    });
+  }
+
   test('3+3+2 pulse at 80 keeps the bar rather than the dotted ghost beat', () {
     const sr = 22050;
     final dotted = Int16List(sr * 48);

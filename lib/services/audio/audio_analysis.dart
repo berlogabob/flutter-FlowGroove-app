@@ -62,12 +62,11 @@ double snapBpm(double bpm) => (bpm - bpm.round()).abs() <= 0.05
     ? bpm.roundToDouble()
     : (bpm * 10).round() / 10;
 
-/// Tempo grid suggestion, 4/4 assumed. BPM from the envelope's
-/// autocorrelation in 70–180 BPM (beat + half-bar + bar lags), refined
-/// ±1 BPM on a beat comb; beat phase from that envelope, downbeat from a
-/// trusted first kick (low-band comb fallback). Null for
-/// clips under 4 s. [hintBpm] (the song's BPM) picks the octave: the
-/// detector can't tell 85 from 170, the song page usually can.
+/// Tempo grid suggestion, 4/4 assumed. Without a hint, Lua's weighted
+/// autocorrelation searches 60–200 BPM. With [hintBpm] (the song's BPM),
+/// beat, half-bar and bar lags estimate the pulse and the hint picks its
+/// octave. A beat comb refines tempo and phase, and a trusted first kick
+/// anchors the downbeat (low-band comb fallback). Null for clips under 4 s.
 /// ponytail: one global tempo; songs that drift need the manual grid.
 ({double bpm, int firstDownbeatMs})? estimateGrid(
   Int16List pcm,
@@ -76,6 +75,7 @@ double snapBpm(double bpm) => (bpm - bpm.round()).abs() <= 0.05
 }) {
   if (pcm.length < sampleRate * 4) return null;
   final env = onsetEnvelope(pcm);
+  if (env.isEmpty) return null;
   final mean = env.reduce((a, b) => a + b) / env.length;
   final x = [for (final e in env) e - mean];
 
@@ -89,15 +89,36 @@ double snapBpm(double bpm) => (bpm - bpm.round()).abs() <= 0.05
   }
 
   double lagOf(double bpm) => 60 * sampleRate / (bpm * _hop);
-  // A beat echoes at 2 and 4 beats (half bar, bar in 4/4); a 3:2 or 2:3
-  // ghost tempo doesn't, so the sum picks the real beat, not a polyrhythm.
+  double bpmAtLag(int lag) => 60 * sampleRate / (lag * _hop);
+  final hasHint = hintBpm != null && hintBpm > 0;
   var coarse = 70.0;
+  var refineRadius = 1.0;
   var bestScore = double.negativeInfinity;
-  for (var bpm = 70.0; bpm <= 180; bpm += 0.5) {
-    final lag = lagOf(bpm);
-    final score =
-        ac(lag.round()) + ac((2 * lag).round()) + ac((4 * lag).round());
-    if (score > bestScore) (bestScore, coarse) = (score, bpm);
+  if (hasHint) {
+    // Preserve the beat, half-bar and bar search used with song BPM hints.
+    for (var bpm = 70.0; bpm <= 180; bpm += 0.5) {
+      final lag = lagOf(bpm);
+      final score =
+          ac(lag.round()) + ac((2 * lag).round()) + ac((4 * lag).round());
+      if (score > bestScore) (bestScore, coarse) = (score, bpm);
+    }
+  } else {
+    final minLag = max(1, lagOf(200).ceil());
+    final maxLag = lagOf(60).floor();
+    if (maxLag <= minLag || x.length < 2 * maxLag) return null;
+    var bestLag = minLag;
+    var spread = 0.0;
+    for (var lag = minLag; lag <= maxLag; lag++) {
+      final correlation = ac(lag) / (x.length - lag);
+      spread += correlation.abs();
+      final distance = log(bpmAtLag(lag) / 120) / ln2 / 0.9;
+      final score = correlation * exp(-0.5 * distance * distance);
+      if (score > bestScore) (bestScore, bestLag) = (score, lag);
+    }
+    if (spread == 0) return null;
+    coarse = bpmAtLag(bestLag);
+    // A single bucket of lag can span several BPM at fast tempos.
+    refineRadius = max(refineRadius, bpmAtLag(max(1, bestLag - 1)) - coarse);
   }
   // Mean envelope on a beat comb; averaging over the whole song makes a
   // fine BPM search far more precise than the autocorrelation lag alone.
@@ -119,12 +140,12 @@ double snapBpm(double bpm) => (bpm - bpm.round()).abs() <= 0.05
     return n == 0 ? 0 : s / n;
   }
 
-  ({double period, double phase}) refine(double center) {
+  ({double period, double phase}) refine(double center, {double radius = 1}) {
     var period = lagOf(center);
     var phase = 0.0;
     var score = -1.0;
-    for (var step = 0; step <= 40; step++) {
-      final p = lagOf(center - 1 + step * 0.05);
+    for (var step = 0; step <= 2 * radius / 0.05; step++) {
+      final p = lagOf(center - radius + step * 0.05);
       for (var o = 0; o < p; o++) {
         final v = comb(o.toDouble(), p);
         if (v > score) (score, period, phase) = (v, p, o.toDouble());
@@ -133,7 +154,7 @@ double snapBpm(double bpm) => (bpm - bpm.round()).abs() <= 0.05
     return (period: period, phase: phase);
   }
 
-  var refined = refine(coarse);
+  var refined = refine(coarse, radius: refineRadius);
   final measured = 60 * sampleRate / (refined.period * _hop);
   final metered = meterBpm(env, sampleRate / _hop, measured);
   if (metered != measured) refined = refine(metered);
@@ -141,7 +162,7 @@ double snapBpm(double bpm) => (bpm - bpm.round()).abs() <= 0.05
   var phase = refined.phase;
   var bpm = 60 * sampleRate / (period * _hop);
   // Keep octave hints on the final meter before choosing the downbeat.
-  if (hintBpm != null && hintBpm > 0) {
+  if (hasHint) {
     for (final octave in [bpm * 2, bpm / 2]) {
       if ((octave - hintBpm).abs() < (bpm - hintBpm).abs() &&
           (octave - hintBpm).abs() <= hintBpm * 0.08) {
