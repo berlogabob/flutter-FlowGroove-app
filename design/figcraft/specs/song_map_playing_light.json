@@ -1,0 +1,219 @@
+{
+  "name": "Song Map · PLAYING + RANGE (Light)",
+  "mode": "light",
+  "slot": 9,
+  "page": "Song Map",
+  "source": "lib/screens/practice_regions_screen.dart",
+  "pad": [
+    12,
+    16,
+    12,
+    16
+  ],
+  "gap": 8,
+  "top": [
+    {
+      "t": "appbar",
+      "v": "Inocente",
+      "actions": [
+        {
+          "t": "chip",
+          "v": "170 BPM ✓"
+        },
+        {
+          "t": "iconbtn",
+          "v": "edit"
+        }
+      ]
+    }
+  ],
+  "body": [
+    {
+      "t": "row",
+      "gap": 8,
+      "cross": "center",
+      "c": [
+        {
+          "t": "text",
+          "v": "SECTION",
+          "style": "labelLarge",
+          "color": "textSecondary"
+        },
+        {
+          "t": "text",
+          "v": "Chorus 1 · 16 bars",
+          "style": "labelMedium",
+          "color": "textPrimary"
+        }
+      ]
+    },
+    {
+      "t": "minimap",
+      "sections": [
+        {
+          "color": "section1",
+          "w": 56
+        },
+        {
+          "color": "section3",
+          "w": 72
+        },
+        {
+          "color": "section5",
+          "w": 160
+        },
+        {
+          "color": "section7",
+          "w": 96
+        }
+      ],
+      "viewport": [
+        118,
+        168
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 4,
+      "c": [
+        {
+          "t": "secblock",
+          "name": "Intro",
+          "letter": "A",
+          "color": "section1",
+          "w": 76
+        },
+        {
+          "t": "secblock",
+          "name": "Verse 1",
+          "letter": "B",
+          "color": "section3",
+          "w": 92
+        },
+        {
+          "t": "secblock",
+          "name": "Chorus 1",
+          "letter": "C",
+          "color": "section5",
+          "w": 144,
+          "state": "playing"
+        },
+        {
+          "t": "secblock",
+          "name": "Bridge",
+          "letter": "D",
+          "color": "section7",
+          "w": 72
+        }
+      ]
+    },
+    {
+      "t": "box",
+      "name": "Waveform",
+      "w": "fill",
+      "h": 56,
+      "bg": "surfaceRaised",
+      "radius": 8
+    },
+    {
+      "t": "ruler",
+      "labels": [
+        17,
+        21,
+        25,
+        29
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "cross": "center",
+      "main": "spaceBetween",
+      "c": [
+        {
+          "t": "section",
+          "v": "Practice pads",
+          "action": "Range: tap first and last"
+        },
+        {
+          "t": "iconbtn",
+          "v": "more_vert"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part B 1",
+          "sub": "4 bars · in range",
+          "color": "section3",
+          "state": "selected",
+          "w": 186
+        },
+        {
+          "t": "pad",
+          "label": "Part B 2",
+          "sub": "4 bars · in range",
+          "color": "section3",
+          "state": "selected",
+          "w": 186
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part C 1",
+          "sub": "8 bars · in range",
+          "color": "section5",
+          "state": "selected",
+          "w": 186
+        },
+        {
+          "t": "pad",
+          "label": "Chorus 1",
+          "sub": "16 bars · in range",
+          "color": "section5",
+          "state": "playing",
+          "progress": 0.62,
+          "w": 186
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part D 1",
+          "sub": "4 bars",
+          "color": "section7",
+          "state": "queued",
+          "w": 186
+        },
+        {
+          "t": "pad",
+          "label": "Part D 2",
+          "sub": "4 bars",
+          "color": "section7",
+          "w": 186
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "transport",
+      "speed": 75,
+      "loop": true,
+      "playing": true
+    }
+  ]
+}
