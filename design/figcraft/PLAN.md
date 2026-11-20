@@ -59,6 +59,7 @@ Full plan: ~/.claude/plans/clever-baking-axolotl.md. Order: 1 → 3.1–3.3 → 
 - [x] Song Map SONG screen specs: Inocente section timeline, waveform, ruler, playhead, section pads and transport in Dark and Light.
 - [x] Song Map SECTION screen specs: Chorus 1 (bars 18–30), minimap viewport, parts, selected bar 26 boundary, context controls and pads in Dark and Light.
 - [x] Song Map PART screen specs: Chorus 1 part b, minimap, four-bar beat grid, beat boundary nudge, Listen across and part pads in Dark and Light.
+- [ ] Song Map REVIEW screen specs: candidate sections after Analyze, with sheet-less replacement and tempo banners in Dark and Light.
 
 ## Phase 3.4–3.5
 - [x] Spec repair loop: Codex fixed 8 mismatched specs from the screenshots (only those files changed); Metronome dial redone by hand.
