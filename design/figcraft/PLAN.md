@@ -56,6 +56,7 @@ Full plan: ~/.claude/plans/clever-baking-axolotl.md. Order: 1 → 3.1–3.3 → 
 - [ ] Pattern components from repeated spec subtrees.
 - [x] Docs: usage notes, contrast matrix, touch-target note (48×48 dp minimum).
 - [x] Song Map components and spec nodes, Light and Dark modes, required pad contrast, and a demo spec.
+- [x] Song Map SONG screen specs: Inocente section timeline, waveform, ruler, playhead, section pads and transport in Dark and Light.
 
 ## Phase 3.4–3.5
 - [x] Spec repair loop: Codex fixed 8 mismatched specs from the screenshots (only those files changed); Metronome dial redone by hand.
