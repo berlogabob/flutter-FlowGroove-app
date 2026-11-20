@@ -1,0 +1,52 @@
+{
+  "name": "Song Map demo",
+  "page": "Song Map",
+  "mode": "light",
+  "source": "lib/screens/practice_regions_screen.dart",
+  "slot": 0,
+  "pad": [12, 16, 12, 16],
+  "gap": 8,
+  "top": [
+    {"t": "appbar", "v": "Inocente", "actions": [{"t": "chip", "v": "170 BPM ✓"}, {"t": "iconbtn", "v": "edit"}]}
+  ],
+  "body": [
+    {"t": "breadcrumb", "items": ["Song", "Chorus 1", "b"]},
+    {"t": "minimap", "sections": [
+      {"color": "section1", "w": 72},
+      {"color": "section5", "w": 164},
+      {"color": "section7", "w": 144}
+    ], "viewport": [64, 180]},
+    {"t": "row", "gap": 4, "c": [
+      {"t": "secblock", "name": "Intro", "letter": "A", "color": "section1", "w": 92, "state": "confirmed"},
+      {"t": "secblock", "name": "Chorus 1", "letter": "B", "color": "section5", "w": 172, "state": "playing"},
+      {"t": "secblock", "name": "Bridge", "letter": "C", "color": "section7", "w": 108, "state": "candidate"}
+    ]},
+    {"t": "box", "name": "Waveform", "w": "fill", "h": 64, "bg": "surfaceRaised", "radius": 8},
+    {"t": "ruler", "labels": [17, 21, 25, 29]},
+    {"t": "row", "gap": 4, "c": [
+      {"t": "partblock", "letter": "a", "bars": 4, "color": "section5", "w": 92},
+      {"t": "partblock", "letter": "b", "bars": 4, "color": "section5", "w": 92, "state": "selected"},
+      {"t": "partblock", "letter": "a", "bars": 4, "color": "section5", "w": 92},
+      {"t": "partblock", "letter": "b", "bars": 4, "color": "section5", "w": 92, "state": "candidate"}
+    ]},
+    {"t": "beatgrid", "beats": 4, "bars": 4},
+    {"t": "section", "v": "Parts", "action": "Range"},
+    {"t": "row", "gap": 8, "c": [
+      {"t": "pad", "label": "Whole section", "sub": "16 bars", "color": "section5", "w": 186},
+      {"t": "pad", "label": "Part a", "sub": "4 bars", "color": "section5", "state": "selected", "w": 186}
+    ]},
+    {"t": "row", "gap": 8, "c": [
+      {"t": "pad", "label": "Part b", "sub": "4 bars", "state": "playing", "progress": 0.4, "w": 186},
+      {"t": "pad", "label": "Part a2", "sub": "4 bars", "color": "section5", "state": "queued", "w": 186}
+    ]},
+    {"t": "pad", "label": "Part b2", "sub": "4 bars", "color": "section5", "state": "disabled", "w": 186}
+  ],
+  "bottom": [
+    {"t": "transport", "speed": 75, "loop": true, "click": true, "playing": true}
+  ],
+  "overlay": [
+    {"x": 153, "y": 168, "node": {"t": "playhead", "h": 120}},
+    {"x": 198, "y": 322, "node": {"t": "boundary", "state": "selected", "h": 104}},
+    {"x": 294, "y": 322, "node": {"t": "boundary", "state": "candidate", "h": 104}}
+  ]
+}

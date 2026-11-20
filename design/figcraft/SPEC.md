@@ -6,7 +6,7 @@
 - `make design` runs `python3 design/figcraft/build.py all` to rebuild the FigCraft library. FigCraft must already be running with its control channel; this target does not start it.
 
 One JSON file per screen in `design/figcraft/specs/<screen>.json`. `build.py` turns it into an
-editable 412x915 auto-layout frame in FigCraft (Android phone, dark theme). Check a spec offline
+editable 412x915 auto-layout frame in FigCraft (Android phone, Dark by default). Check a spec offline
 with `python3 design/figcraft/build.py check design/figcraft/specs/<screen>.json`.
 `specs/songs_list.json` is the worked example.
 
@@ -15,7 +15,8 @@ with `python3 design/figcraft/build.py check design/figcraft/specs/<screen>.json
 ```json
 {
   "name": "Songs",                 // frame name, unique
-  "page": "Songs",                 // Auth | Home & Tools | Songs | Setlists | Bands | Settings
+  "page": "Songs",                 // Auth | Home & Tools | Songs | Setlists | Bands | Settings | Song Map
+  "mode": "dark",                  // optional: light | dark, selects the MonoPulse variable mode
   "source": "lib/screens/...dart", // the Dart file it recreates
   "slot": 0,                       // position on the page (0,1,2... per page, unique per page)
   "links": [{"from": "Back", "to": "Songs"}], // optional prototype connections (node name -> frame name)
@@ -68,6 +69,29 @@ Defaults: in a column, children fill the width; in a row, they hug.
 | `actionbar` | `primary` label, `icon` | pushed screens' bottom bar: Back, primary action, Menu |
 | `sheet` | `c`, `bottom` (default true) | bottom sheet / dialog surface |
 | `raw` | `type`, `props` (FigCraft node.set keys), `v` | escape hatch |
+
+### Song Map nodes
+
+See [song_map_demo.json](examples/song_map_demo.json) for a 412×915 example using every node. The same
+spec renders in the other theme by changing `mode` to `dark`.
+
+| `t` | Keys | Rendering |
+|---|---|---|
+| `pad` | `label`, `sub`, `color` (stripe token, defaults to `section1`), `state` (idle, selected, playing, queued, disabled), `progress` (0..1, defaults to 0), optional numeric `w` (180 px) | Idle has a 6 px stripe. Selected has a 3 px `textPrimary` border. Playing has an `accentOrange` fill, charcoal text, play icon and 4 px bottom progress bar. Queued has a 3 px `accentOrange` border and a “next” label. Disabled uses 38% opacity. |
+| `secblock` | `name` (visible section name), `letter`, `color` (defaults to `section1`), numeric `w` (112 px), `state` (confirmed, candidate, selected, playing) | Tinted section block. Candidate borders are dashed. Selected has a 3 px `textPrimary` outline. Playing has a 3 px `accentOrange` outline and a darker tint. |
+| `partblock` | `letter`, `bars` (defaults to 4), numeric `w` (80 px), optional `color`, `state` | Same states as `secblock`, with a bar count as the label. |
+| `boundary` | `state` (confirmed, candidate, selected), optional `h` (72 px) | Seam handle with a dashed stem for candidates. Use `overlay` to place it over the timeline. |
+| `playhead` | Optional `h` (72 px) | Orange playback marker. Set its position with the screen's `overlay` coordinates. |
+| `minimap` | `sections` (list of objects with `color` and numeric `w`), `viewport` (`[x, w]` in px relative to the strip) | A strip as wide as the sum of section widths. The viewport defaults to the whole strip. |
+| `ruler` | `labels` (list of strings or numbers) | Evenly spaced bar labels with ticks. |
+| `beatgrid` | `beats` per bar (defaults to 4), `bars` (defaults to 1), both positive integers | A numbered tick per beat, with a taller tick on each downbeat. |
+| `breadcrumb` | `items` (list of labels) | Ordered zoom path with chevron separators. |
+| `transport` | `speed` (percent number or display string, defaults to 100), boolean `loop`, `click`, `playing`, `countIn`, `drums` (all default to false) | Sticky playback controls for the screen's `bottom`. |
+
+The default state is idle for pads and confirmed for section blocks, part blocks and boundaries.
+Pad contrast is required in both themes. Playing text needs 4.5:1 on `accentOrange`. The selected
+border, queued border and playing fill each need 3:1 against the idle pad surface. Dark pads use
+`surface` and Light pads use `white` so the orange states clear 3:1.
 
 ## Tokens
 
@@ -127,8 +151,13 @@ Examples: `examples/modal_dialog.json`, `examples/modal_sheet.json`.
 - **Card:** variant Direction, Content slot.
 - **Sheet:** variant Docked, Content slot.
 - **Dialog:** Content and Actions slots.
+- **Song Map:** Pad, SectionBlock, PartBlock, Boundary, Playhead, Minimap, Ruler, BeatGrid,
+  Breadcrumb and Transport have Mode (Dark, Light) variants using the MonoPulse collection.
+  Pad, SectionBlock, PartBlock and Boundary also have a State variant. The builder selects
+  the Mode variant from the screen's `mode` key. Pad and block labels are text properties.
+  Minimap, Ruler, BeatGrid, Breadcrumb and Transport use slots populated from their spec data.
 
-Labels, titles and icons are text properties. An icon property holds the Material glyph, and the icon layer is renamed `icon/<name>`. Optional parts have `Show …` boolean properties. Spec keys an instance can't express, such as a wrapping card, fall back to plain layers. The spec format is unchanged.
+Labels, titles and icons are text properties. An icon property holds the Material glyph, and the icon layer is renamed `icon/<name>`. Optional parts have `Show …` boolean properties. Spec keys an instance can't express, such as a wrapping card, fall back to plain layers.
 
 Rebuild one screen: `build.py screen specs/x.json`. It needs `.components.json`, written by `setup` and `all`.
 

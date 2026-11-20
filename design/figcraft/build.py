@@ -11,11 +11,13 @@ Spec format: design/figcraft/SPEC.md
 """
 import glob, json, os, re, socket, subprocess, sys
 from contrast import matrix as contrast_matrix
+from contrast import PAD_SURFACES
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PORT = int(os.environ.get("FIGCRAFT_PORT", "47321"))
 W, H = 412, 915
 COL = "MonoPulse"
+MODES = {"dark": "Dark", "light": "Light"}
 
 # ---------------------------------------------------------------- transport
 _sock = _rf = None
@@ -97,8 +99,9 @@ def text_props(style, col, extra=None):
 
 # ---------------------------------------------------------------- spec -> commands
 class Emit:
-    def __init__(self):
+    def __init__(self, mode="dark"):
         self.cmds, self.n = [], 0
+        self.mode = mode
 
     def ref(self):
         self.n += 1
@@ -695,6 +698,194 @@ def m_raw(e, n, parent, pdir):
                     w=n.get("width"), h=n.get("height"))
 
 
+def pad_progress(n):
+    value = n.get("progress", 0)
+    if type(value) not in (int, float) or not 0 <= value <= 1:
+        raise ValueError("pad progress must be between 0 and 1")
+    return {"width": max(1, n.get("w", 180) * value), "visible": value > 0}
+
+
+def m_pad(e, n, parent, pdir):
+    state = n.get("state", "idle")
+    playing = state == "playing"
+    fg = "charcoal" if playing else "textPrimary"
+    border = {"selected": "textPrimary", "queued": "accentOrange"}.get(state)
+    props = frame_props({"bg": "accentOrange" if playing else PAD_SURFACES[e.mode], "radius": 8,
+                         "cross": "center", "gap": 8, "pad": [0, 8, 0, 8 if playing or border else 0], "clip": True,
+                         "opacity": .38 if state == "disabled" else 1,
+                         **({"border": border, "borderW": 3} if border else {})}, "horizontal")
+    w = n.get("w", 180)
+    props.update(size_props({"w": w, "h": 80}, pdir))
+    r = e.create("frame", parent, n.get("name", "Pad"), props)
+    if playing:
+        m_icon(e, {"v": "play_arrow", "size": 20, "color": fg}, r, "h")
+    else:
+        stripe = {"w": 6, "h": "fill", "bg": n.get("color", "section1"), "name": "Stripe"}
+        if border:
+            stripe["h"] = 64
+        m_box(e, stripe, r, "h")
+    kids = [{"t": "text", "name": "Label", "v": n.get("label", ""), "style": "labelLarge",
+             "color": fg, "maxLines": 1},
+            {"t": "text", "name": "Subtitle", "v": n.get("sub", ""), "style": "bodySmall",
+             "color": fg if playing else "textSecondary", "maxLines": 1}]
+    if state == "queued":
+        kids.append({"t": "text", "v": "next", "style": "labelSmall"})
+    m_container("v")(e, {"w": "fill", "c": kids}, r, "h")
+    if playing:
+        e.create("rectangle", r, "Loop progress", {"fill": color("charcoal"), "absolute": True,
+                                                  "x": 0, "y": 76, "height": 4, **pad_progress(n)})
+    return r
+
+
+def m_secblock(e, n, parent, pdir):
+    part = n["t"] == "partblock"
+    w = n.get("w", 80 if part else 112)
+    state = n.get("state", "confirmed")
+    border = {"selected": "textPrimary", "playing": "accentOrange"}.get(state, "borderStrong")
+    props = frame_props({"bg": "surface", "radius": 5, "clip": True, "border": border,
+                         "borderW": 3 if state in ("selected", "playing") else 1,
+                         "main": "center", "pad": [0, 4, 0, 4]}, "vertical")
+    props.update(size_props({"w": w, "h": 48}, pdir))
+    if state == "candidate":
+        props["dashes"] = [4, 3]
+    r = e.create("frame", parent, n.get("name", "PartBlock" if part else "SectionBlock"), props)
+    tint = color(n.get("color", "section1"))
+    e.create("rectangle", r, "Tint", {"absolute": True, "x": 3, "y": 3, "height": 42,
+                                     "width": max(1, w - 6), "fill": tint, "opacity": .2})
+    if state == "playing":
+        e.create("rectangle", r, "Playing tint", {"absolute": True, "x": 3, "y": 3, "height": 42,
+                                                 "width": max(1, w - 6), "fill": color("charcoal"), "opacity": .12})
+    for layer, value, style in (("Letter", n.get("letter", ""), "labelSmall"),
+                                ("Label", block_label(n), "bodySmall")):
+        m_text(e, {"name": layer, "v": value, "style": style, "maxLines": 1}, r, "v")
+    return r
+
+
+def block_label(n):
+    if n["t"] == "partblock":
+        bars = n.get("bars", 4)
+        return f"{bars} bar" if bars == 1 else f"{bars} bars"
+    return n.get("name", "")
+
+
+def timeline_marker(e, n, parent, pdir, name, ink, tip, dashes=False):
+    props = frame_props({"cross": "center"}, "vertical")
+    props.update(size_props({"w": 16, "h": n.get("h", 72)}, pdir))
+    r = e.create("frame", parent, n.get("name", name), props)
+    m_icon(e, {"v": tip, "size": 16, "color": ink}, r, "v")
+    stem = {"sizingV": "fill", "width": 2, "fill": color(ink)}
+    if dashes:
+        stem.update(fill="none", width=3, stroke=color(ink), strokeWeight=1,
+                    strokeAlign="inside", dashes=[3, 3])
+    e.create("rectangle", r, "Stem", stem)
+    return r
+
+
+def m_boundary(e, n, parent, pdir):
+    state = n.get("state", "confirmed")
+    ink = "textPrimary" if state == "selected" else "borderStrong"
+    return timeline_marker(e, n, parent, pdir, "Boundary", ink, "drag_indicator", state == "candidate")
+
+
+def m_playhead(e, n, parent, pdir):
+    return timeline_marker(e, n, parent, pdir, "Playhead", "accentOrange", "arrow_drop_down")
+
+
+def minimap_sections(n):
+    return [{"t": "box", "bg": s["color"], "w": s["w"], "h": 12} for s in n.get("sections", [])]
+
+
+def minimap_viewport(n):
+    total = sum(s["w"] for s in n.get("sections", []))
+    x, w = n.get("viewport", [0, total])
+    if x < 0 or w < 0 or x + w > total:
+        raise ValueError("minimap viewport must fit within the section strip")
+    return total, {"x": x, "width": max(1, w), "visible": w > 0}
+
+
+def m_minimap(e, n, parent, pdir):
+    total, viewport = minimap_viewport(n)
+    r = m_container("h")(e, {"name": n.get("name", "Minimap"), "w": max(1, total), "h": 16,
+                             "cross": "center", "c": [{"t": "row", "name": "Sections", "w": "fill",
+                             "h": 12, "c": [] if n.get("_slots") else minimap_sections(n)}]}, parent, pdir)
+    e.create("rectangle", r, "Viewport", {"absolute": True, "y": 0, "height": 16, "fill": "none",
+                                          "stroke": color("textPrimary"), "strokeWeight": 2,
+                                          "strokeAlign": "inside", **viewport})
+    return r
+
+
+def ruler_labels(n):
+    return [{"t": "col", "w": "fill", "cross": "center", "gap": 2, "c": [
+        {"t": "box", "w": 1, "h": 6, "bg": "borderStrong"},
+        {"t": "text", "v": label, "w": "hug", "style": "caption", "color": "textSecondary"}]}
+        for label in n.get("labels", [])]
+
+
+def beatgrid_bars(n):
+    beats, bars = n.get("beats", 4), n.get("bars", 1)
+    if any(type(v) is not int or v < 1 for v in (beats, bars)):
+        raise ValueError("beatgrid beats and bars must be positive integers")
+    return [{"t": "row", "w": "fill", "border": "borderSubtle", "c": [
+        {"t": "col", "w": "fill", "cross": "center", "gap": 4, "c": [
+            {"t": "box", "w": 1, "h": 12 if beat == 1 else 6, "bg": "borderStrong"},
+            {"t": "text", "v": beat, "w": "hug", "style": "caption",
+             "color": "textPrimary" if beat == 1 else "textSecondary"}]}
+        for beat in range(1, beats + 1)]} for _ in range(bars)]
+
+
+def breadcrumb_items(n):
+    kids = []
+    items = n.get("items", [])
+    for i, item in enumerate(items):
+        if i:
+            kids.append({"t": "icon", "v": "chevron_right", "size": 16, "color": "textSecondary"})
+        kids.append({"t": "text", "v": item, "style": "labelMedium",
+                     "color": "textPrimary" if i == len(items) - 1 else "textSecondary"})
+    return kids
+
+
+def transport_controls(n):
+    playing = n.get("playing", False)
+    speed = n.get("speed", 100)
+    controls = [("stop" if playing else "play_arrow", "Stop" if playing else "Play", True),
+                ("loop", "Loop", n.get("loop", False)),
+                ("speed", f"{speed}%" if isinstance(speed, (int, float)) else speed, False),
+                ("timer", "Count-in", n.get("countIn", False)),
+                ("volume_up", "Click", n.get("click", False)),
+                ("graphic_eq", "Drums", n.get("drums", False))]
+    return [{"t": "col", "w": "fill", "h": 48, "cross": "center", "main": "center",
+             "radius": 8, "bg": "accentOrange" if i == 0 else "surfaceRaised",
+             **({"border": "textPrimary", "borderW": 2} if on and i else {}),
+             "c": [{"t": "icon", "v": icon, "size": 20, "color": "charcoal" if i == 0 else "textPrimary"},
+                   {"t": "text", "v": label, "w": "hug", "style": "caption",
+                    "color": "charcoal" if i == 0 else "textPrimary"}]}
+            for i, (icon, label, on) in enumerate(controls)]
+
+
+def m_song_map_row(e, n, parent, pdir, name, layer, kids, **props):
+    return m_container("v")(e, {"name": n.get("name", name), "w": n.get("w", "fill"),
+                                "c": [{"t": "row", "name": layer, "w": "fill",
+                                       "c": [] if n.get("_slots") else kids(n), **props}]}, parent, pdir)
+
+
+def m_ruler(e, n, parent, pdir):
+    return m_song_map_row(e, n, parent, pdir, "Ruler", "Labels", ruler_labels, h=26)
+
+
+def m_beatgrid(e, n, parent, pdir):
+    return m_song_map_row(e, n, parent, pdir, "BeatGrid", "Bars", beatgrid_bars, h=40, gap=2)
+
+
+def m_breadcrumb(e, n, parent, pdir):
+    return m_song_map_row(e, n, parent, pdir, "Breadcrumb", "Items", breadcrumb_items,
+                          h=32, gap=4, cross="center")
+
+
+def m_transport(e, n, parent, pdir):
+    return m_song_map_row(e, n, parent, pdir, "Transport", "Controls", transport_controls,
+                          h=64, gap=4, pad=8, bg="blackSurface", cross="center")
+
+
 MACROS = {
     "col": m_container("v"), "row": m_container("h"), "text": m_text, "icon": m_icon, "box": m_box,
     "spacer": m_spacer, "divider": m_divider, "card": m_card, "button": m_button, "chip": m_chip,
@@ -704,6 +895,9 @@ MACROS = {
     "appbar": m_appbar, "bottomnav": m_bottomnav, "actionbar": m_actionbar, "fab": m_fab,
     "sheet": m_sheet, "dialog": m_dialog, "raw": m_raw, "tab": m_tab, "segment": m_segment,
     "navitem": m_navitem, "statusbar": m_statusbar,
+    "pad": m_pad, "secblock": m_secblock, "partblock": m_secblock, "boundary": m_boundary,
+    "playhead": m_playhead, "minimap": m_minimap, "ruler": m_ruler, "beatgrid": m_beatgrid,
+    "breadcrumb": m_breadcrumb, "transport": m_transport,
 }
 
 
@@ -1073,6 +1267,84 @@ comp("Dialog", ["dialog"], lambda v: {"t": "dialog", "_slots": True}, i_dialog, 
      slots=[("Content", "Content", "v"), ("Actions", "Actions", "h")])
 
 
+# --- song map
+PAD_STATES = ["Idle", "Selected", "Playing", "Queued", "Disabled"]
+BLOCK_STATES = ["Confirmed", "Candidate", "Selected", "Playing"]
+BOUNDARY_STATES = ["Confirmed", "Candidate", "Selected"]
+
+
+def i_pad(n, pdir):
+    state = n.get("state", "idle")
+    progress = pad_progress(n)
+    over = {"Loop progress": progress} if state == "playing" else {
+        "Stripe": {"fill": color(n.get("color", "section1"))}}
+    return dict(v={"State": state.title()}, p={"Label": str(n.get("label", "")),
+                "Subtitle": str(n.get("sub", ""))}, over=over, w=180, h=80)
+
+
+def i_secblock(n, pdir):
+    state = n.get("state", "confirmed")
+    default_w = 80 if n["t"] == "partblock" else 112
+    tint_w = max(1, n.get("w", default_w) - 6)
+    over = {"Tint": {"fill": color(n.get("color", "section1")), "width": tint_w}}
+    if state == "playing":
+        over["Playing tint"] = {"width": tint_w}
+    return dict(v={"State": state.title()}, p={"Letter": str(n.get("letter", "")), "Label": str(block_label(n))},
+                over=over, w=default_w, h=48)
+
+
+def i_boundary(n, pdir):
+    return dict(v={"State": n.get("state", "confirmed").title()}, w=16, h=72)
+
+
+def i_playhead(n, pdir):
+    return dict(w=16, h=72)
+
+
+def i_minimap(n, pdir):
+    total, viewport = minimap_viewport(n)
+    return dict(over={"Viewport": viewport}, slots={"Sections": minimap_sections(n)}, w=max(1, total), h=16)
+
+
+def song_map_component(name, t, inst, sample=None, states=None, labels=(), slot=None, main_w=380):
+    axes = {"Mode": list(MODES.values())}
+    if states:
+        axes["State"] = states
+
+    def draw(v):
+        node = {"t": t, **(sample or {})}
+        if states:
+            node["state"] = v["State"].lower()
+        if slot:
+            node["_slots"] = True
+        return node
+
+    comp(name, [t], draw, inst, axes=axes, main_w=main_w,
+         props=[(label, "text", label, None) for label in labels],
+         slots=[(slot, slot, "h")] if slot else [])
+
+
+song_map_component("Pad", "pad", i_pad, {"label": "Chorus 1", "sub": "16 bars", "progress": .4},
+                   PAD_STATES, ("Label", "Subtitle"), main_w=180)
+song_map_component("SectionBlock", "secblock", i_secblock, {"name": "Chorus 1", "letter": "C"},
+                   BLOCK_STATES, ("Letter", "Label"), main_w=112)
+song_map_component("PartBlock", "partblock", i_secblock, {"letter": "b", "bars": 4},
+                   BLOCK_STATES, ("Letter", "Label"), main_w=80)
+song_map_component("Boundary", "boundary", i_boundary, states=BOUNDARY_STATES, main_w=16)
+song_map_component("Playhead", "playhead", i_playhead, main_w=16)
+song_map_component("Minimap", "minimap", i_minimap,
+                   {"sections": [{"color": "section1", "w": 88}, {"color": "section5", "w": 112},
+                                 {"color": "section7", "w": 80}], "viewport": [72, 144]}, slot="Sections")
+song_map_component("Ruler", "ruler", lambda n, pdir: dict(w="fill", slots={"Labels": ruler_labels(n)}),
+                   {"labels": [1, 9, 17, 25]}, slot="Labels")
+song_map_component("BeatGrid", "beatgrid", lambda n, pdir: dict(w="fill", slots={"Bars": beatgrid_bars(n)}),
+                   {"bars": 4}, slot="Bars")
+song_map_component("Breadcrumb", "breadcrumb", lambda n, pdir: dict(w="fill", slots={"Items": breadcrumb_items(n)}),
+                   {"items": ["Song", "Chorus 1", "b"]}, slot="Items")
+song_map_component("Transport", "transport", lambda n, pdir: dict(w="fill", slots={"Controls": transport_controls(n)}),
+                   {"speed": 75, "loop": True, "click": True}, slot="Controls")
+
+
 MAT = "package:flutter/material.dart"
 APP = "package:flowgroove/widgets/"
 # Code Connect: component -> (import, code name, flutter template, description). Templates are text:
@@ -1149,6 +1421,16 @@ CONNECT = {
 }
 DESC_ONLY = {
     "StatusBar": "System status bar placeholder (not app code).",
+    "Pad": "Section or part launcher. The playing pad shows loop progress and a queued pad is marked next.",
+    "SectionBlock": "Song timeline section. Repeats reuse a letter and colour. Dashed borders mark candidates.",
+    "PartBlock": "Part lane block with a letter and bar count.",
+    "Boundary": "Timeline seam handle. A dashed stem marks a candidate boundary.",
+    "Playhead": "Playback position marker for a timeline overlay.",
+    "Minimap": "Whole-song section strip with an outlined window for the current viewport.",
+    "Ruler": "Evenly spaced bar labels for the visible timeline span.",
+    "BeatGrid": "Visible bars divided into beats, with a taller tick on each downbeat.",
+    "Breadcrumb": "Zoom path from Song to the current section or part.",
+    "Transport": "Sticky playback controls with speed, loop, count-in, click and drums.",
 }
 
 
@@ -1180,6 +1462,8 @@ def use(e, cname, n, parent, pdir):
     c = C[cname]
     spec = c["inst"](n, pdir)
     v = spec.get("v", {})
+    if "Mode" in c["axes"]:
+        v["Mode"] = MODES[e.mode]
     for a, vals in c["axes"].items():
         if v.get(a) not in vals:
             raise ValueError(f"{cname}: {a}={v.get(a)!r} not in {vals}")
@@ -1245,6 +1529,7 @@ def build_components():
         e.drawing = set(c["types"])
         starts, vs = [], combos(c)
         for i, v in enumerate(vs):
+            e.mode = v.get("Mode", "Dark").lower()
             starts.append(len(e.cmds))
             emit(e, c["draw"](v), None, "v")  # drawn as if in a column; fill -> fixed main_w
             cmd = e.cmds[starts[-1]]["params"]
@@ -1255,6 +1540,9 @@ def build_components():
                 cmd["props"]["sizingV"] = "hug"
         res = ex("command.batch", {"label": f"Component {cname}", "commands": e.cmds, "onError": "abort"})
         ids = [res[i]["id"] for i in starts]
+        for mode in c["axes"].get("Mode", []):
+            ex("variable.setMode", {"ids": [i for i, v in zip(ids, vs) if v["Mode"] == mode],
+                                    "collection": COL, "mode": mode})
         ex("component.createMultiple", {"ids": ids})
         top = ids[0]
         if c["axes"]:
@@ -1381,7 +1669,8 @@ def build_docs(reg):
             "gap": 12, "w": 560, "c": [
                 {"t": "text", "v": cname, "style": "headlineLarge"},
                 {"t": "text", "v": desc, "style": "bodySmall", "color": "textSecondary"},
-                {"t": "col", "name": "Preview", "bg": "black", "radius": 10, "pad": 16, "w": "fill", "cross": "min",
+                {"t": "col", "name": "Preview", "bg": "black", "radius": 10, "pad": 16, "gap": 8,
+                 "w": "fill", "cross": "min",
                  "c": []},
                 {"t": "text", "v": "Properties", "style": "labelMedium", "color": "textTertiary"}] + rows + (
                 [{"t": "text", "v": "Flutter (Code Connect)", "style": "labelMedium", "color": "textTertiary"},
@@ -1390,10 +1679,10 @@ def build_docs(reg):
                 [{"t": "text", "v": "No Code Connect link: no shared widget in lib/ yet.", "style": "caption",
                   "color": "warning"}])}))
     contrast_rows = [{"t": "row", "gap": 8, "w": "fill", "c": [
-        {"t": "text", "v": f"{mode} · {kind}", "style": "caption", "w": 100},
-        {"t": "text", "v": f"{fg} on {bg}", "style": "caption", "w": 240},
+        {"t": "text", "v": f"{mode} · {kind}", "style": "caption", "w": 150},
+        {"t": "text", "v": f"{fg} on {bg}", "style": "caption", "w": 200},
         {"t": "text", "v": f"{value:.2f}:1 (min {minimum:.1f})" + (" · decorative" if not required else ""),
-         "style": "caption", "color": "textSecondary", "w": 180}]} for mode, kind, fg, bg, value, minimum, required in contrast_matrix()]
+         "style": "caption", "color": "textSecondary", "w": "fill"}]} for mode, kind, fg, bg, value, minimum, required in contrast_matrix()]
     cards.append(("Contrast", None, {"t": "col", "name": "Doc/Contrast", "bg": "surface", "border": "borderSubtle",
         "radius": 16, "pad": 24, "gap": 12, "w": 560, "c": [
             {"t": "text", "v": "Contrast", "style": "headlineLarge"},
@@ -1416,9 +1705,25 @@ def build_docs(reg):
             previews.append((cname, prev))
     res = ex("command.batch", {"label": "Docs", "commands": e.cmds, "onError": "abort"})
     ref_id = {c["as"]: r.get("id") for c, r in zip(e.cmds, res) if c.get("as") and isinstance(r, dict)}
-    for cname, prev in previews:  # one live instance of the default variant per card
-        v = next(iter(reg[cname].values()))
-        ex("instance.create", {"component": v, "parent": ref_id[prev]})
+    for cname, prev in previews:
+        c = C[cname]
+        if "Mode" not in c["axes"]:
+            v = next(iter(reg[cname].values()))
+            ex("instance.create", {"component": v, "parent": ref_id[prev]})
+            continue
+        for mode in MODES:
+            e = Emit(mode)
+            values = {axis: options[0] for axis, options in c["axes"].items()}
+            values["Mode"] = MODES[mode]
+            sample = c["draw"](values)
+            sample.pop("_slots", None)
+            panel = e.create("frame", ref_id[prev], MODES[mode], {
+                "fill": color("black"), "layout": "vertical", "padding": 8, "gap": 4,
+                "sizingH": "fill", "sizingV": "hug"})
+            m_text(e, {"v": MODES[mode], "style": "caption"}, panel, "v")
+            emit(e, sample, panel, "v")
+            result = ex("command.batch", {"label": f"{cname} · {MODES[mode]}", "commands": e.cmds, "onError": "abort"})
+            ex("variable.setMode", {"ids": [result[0]["id"]], "collection": COL, "mode": MODES[mode]})
 
 
 def export_connect():
@@ -1443,7 +1748,7 @@ def drop_lib():
 
 # ---------------------------------------------------------------- document
 PAGES = ["Foundations", "Components", "Docs", "Auth", "Home & Tools", "Songs", "Setlists", "Bands", "Settings",
-         "Sheets & Dialogs", "Parity"]
+         "Sheets & Dialogs", "Parity", "Song Map"]
 
 
 def page_ids():
@@ -1549,7 +1854,15 @@ def place(page, idx):
     return (idx % cols) * (2 * W + 200), (idx // cols) * (H + 200)
 
 
+def screen_mode(spec):
+    mode = spec.get("mode", "dark")
+    if mode not in MODES:
+        raise ValueError("mode must be light or dark")
+    return mode
+
+
 def build_screen(spec):
+    mode = screen_mode(spec)
     ids = page_ids()
     page = spec.get("page", "Home & Tools")
     if page not in ids:
@@ -1564,7 +1877,7 @@ def build_screen(spec):
     idx = spec.get("slot", SLOTS.get(page, 0))
     SLOTS[page] = idx + 1
     x, y = place(page, idx)
-    e = Emit()
+    e = Emit(mode)
     root = e.ref()
     e.cmds.append({"command": "node.create", "as": root, "params": {
         "type": "frame", "x": x, "y": y, "width": W, "height": H, "name": spec["name"], "select": False,
@@ -1585,6 +1898,8 @@ def build_screen(spec):
         emit(e, n, root, "v")
     res = ex("command.batch", {"label": spec["name"], "commands": e.cmds, "onError": "abort"})
     root_id = res[0]["id"]
+    if "mode" in spec:
+        ex("variable.setMode", {"ids": [root_id], "collection": COL, "mode": MODES[mode]})
     # Keep the concrete source node ids with the screen's declared prototype links.
     node_ids = {}
     for cmd, result in zip(e.cmds, res):
@@ -1592,7 +1907,7 @@ def build_screen(spec):
         if name and isinstance(result, dict) and result.get("id"):
             node_ids[name] = result["id"]
     for o in spec.get("overlay", []):  # absolutely positioned layers (FAB, sheets, scrims)
-        oe = Emit()
+        oe = Emit(mode)
         r = emit(oe, o["node"], root_id, "v")
         oe.cmds.append({"command": "node.set", "params": {
             "ids": [pref(r)], "props": {"absolute": True, "x": o.get("x", 0), "y": o.get("y", 0)}}})
@@ -1680,7 +1995,7 @@ def parity():
         mode = "Dark" if meta.get("night", "").endswith("yes") else "Light"  # compare in the device's theme
         ex("variable.setMode", {"ids": [fid], "collection": COL, "mode": mode})
         export_png(fid, design)
-        ex("variable.setMode", {"ids": [fid], "collection": COL, "mode": "Dark"})
+        ex("variable.setMode", {"ids": [fid], "collection": COL, "mode": MODES[screen_mode(spec)]})
         score = rmse(design, png)
         img = ex("image.place", {"path": os.path.abspath(png), "x": pos["x"] + W + 40, "y": pos["y"],
                                  "width": W, "name": f"Real · {spec['name']}"})
@@ -1923,7 +2238,7 @@ def main():
                 for link in spec_links(spec):
                     assert isinstance(link.get("from"), str) and link["from"], "link needs a source node name"
                     assert link.get("to") in frame_names, f"link target frame {link.get('to')!r} does not exist"
-                e = Emit()
+                e = Emit(screen_mode(spec))
                 for n in spec.get("top", []) + spec.get("body", []) + spec.get("bottom", []):
                     emit(e, n, "root", "v")
                 for o in spec.get("overlay", []):

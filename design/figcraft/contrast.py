@@ -7,10 +7,16 @@ import sys
 TOKENS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tokens", "tokens.json")
 TEXT = ("textPrimary", "textHighEmphasis", "textSecondary", "textTertiary", "textDisabled")
 BACKGROUNDS = ("black", "blackSurface", "blackElevated", "surface", "surfaceRaised", "surfaceOverlay")
-# (foreground, background, required). Decorative pairs are reported but do not gate the palette.
-PAIRS = (("accentOrange", "surface", False), ("borderSubtle", "surface", False),
-         ("textPrimary", "accentOrange", False))
 TEXT_MIN, UI_MIN = 4.5, 3.0
+PAD_SURFACES = {"dark": "surface", "light": "white"}
+# (use, foreground, background, minimum, required). Pad pairs use the rendered pad surface.
+PAIRS = (("UI", "accentOrange", "surface", UI_MIN, False),
+         ("UI", "borderSubtle", "surface", UI_MIN, False),
+         ("UI", "textPrimary", "accentOrange", UI_MIN, False),
+         ("Pad playing text", "charcoal", "accentOrange", TEXT_MIN, True),
+         ("Pad selected border", "textPrimary", "padSurface", UI_MIN, True),
+         ("Pad queued border", "accentOrange", "padSurface", UI_MIN, True),
+         ("Pad playing fill", "accentOrange", "padSurface", UI_MIN, True))
 DECORATIVE_TEXT_PAIRS = {("textTertiary", "blackElevated")}
 
 
@@ -47,20 +53,21 @@ def matrix():
                 # Disabled labels are exempt; this tertiary-on-elevated use is decorative.
                 required = fg != "textDisabled" and (fg, bg) not in DECORATIVE_TEXT_PAIRS
                 rows.append((mode, "Text", fg, bg, contrast, TEXT_MIN, required))
-        for fg, bg, required in PAIRS:
+        for use, fg, bg, minimum, required in PAIRS:
+            bg = PAD_SURFACES[theme] if bg == "padSurface" else bg
             contrast = ratio(value(fg, theme), value(bg, theme))
-            rows.append((mode, "UI", fg, bg, contrast, UI_MIN, required))
+            rows.append((mode, use, fg, bg, contrast, minimum, required))
     return rows
 
 
 def main():
     rows = matrix()
-    print(f"{'Mode':<6} {'Kind':<5} {'Foreground':<20} {'Background':<18} {'Ratio':>7} {'Min':>5} {'Status':<12}")
+    print(f"{'Mode':<6} {'Kind':<19} {'Foreground':<20} {'Background':<18} {'Ratio':>7} {'Min':>5} {'Status':<12}")
     failures = []
     for mode, kind, fg, bg, value, minimum, required in rows:
         passed = value >= minimum
         status = "PASS" if passed else ("FAIL" if required else "decorative")
-        print(f"{mode:<6} {kind:<5} {fg:<20} {bg:<18} {value:>6.2f}:1 {minimum:>5.1f} {status:<12}")
+        print(f"{mode:<6} {kind:<19} {fg:<20} {bg:<18} {value:>6.2f}:1 {minimum:>5.1f} {status:<12}")
         if required and not passed:
             failures.append((mode, fg, bg, value))
     if failures:
