@@ -1756,8 +1756,36 @@ def build_docs(reg):
 
 def export_connect():
     out = os.path.abspath(os.path.join(HERE, "figcraft.connect.json"))
-    ex("codeConnect.export", {"path": out})
+    links_by_name = dict(CONNECT)
+    for name in ICONS:
+        links_by_name[f"Icon/{name}"] = (MAT, "Icon", f"const Icon(Icons.{name})", f"Material icon {name}.")
+    links = [{"component": cname, "importPath": imp, "language": "flutter", "name": name, "template": tpl}
+             for cname, (imp, name, tpl, _) in links_by_name.items()]
+    json.dump({"links": sorted(links, key=lambda x: x["component"]), "version": 1}, open(out, "w"), indent=2)
     return out
+
+
+def build_icons_page():
+    """Build one swappable Material glyph component per name in icons.txt."""
+    ex("page.select", {"id": page_ids()["Icons"]})
+    e, starts = Emit(), []
+    for i, name in enumerate(ICONS):
+        x, y = (i % 10) * 112, (i // 10) * 100
+        start = len(e.cmds)
+        frame = e.create("frame", None, f"Icon/{name}", {
+            "fill": "none", "layout": "vertical", "crossAlign": "center", "gap": 6,
+            "padding": 8, "width": 96, "height": 88, "sizingH": "fixed", "sizingV": "fixed"})
+        e.cmds[-1]["params"].update(x=x, y=y)
+        m_icon(e, {"v": name, "size": 24}, frame, "v")
+        m_text(e, {"v": name, "style": "caption", "color": "textPrimary", "w": "hug"}, frame, "v")
+        starts.append((start, name))
+    res = ex("command.batch", {"label": "Icons page", "commands": e.cmds, "onError": "abort"})
+    ids = [res[index]["id"] for index, _ in starts]
+    ex("component.createMultiple", {"ids": ids})
+    for (_, name), cid in zip(starts, ids):
+        ex("component.addProperty", {"id": cid, "name": "Icon", "type": "text", "layer": f"icon/{name}"})
+        ex("codeConnect.set", {"id": cid, "language": "flutter", "importPath": MAT, "name": "Icon",
+                                "template": f"const Icon(Icons.{name})"})
 
 
 def load_lib():
@@ -1775,7 +1803,7 @@ def drop_lib():
 
 
 # ---------------------------------------------------------------- document
-PAGES = ["Foundations", "Components", "Docs", "Auth", "Home & Tools", "Songs", "Setlists", "Bands", "Settings",
+PAGES = ["Foundations", "Components", "Docs", "Icons", "Auth", "Home & Tools", "Songs", "Setlists", "Bands", "Settings",
          "Sheets & Dialogs", "Parity", "Song Map"]
 
 
@@ -2282,6 +2310,8 @@ def main():
             print("FAIL", e)
         print(f"verify-components: {checked} linked widgets checked, {len(errors)} problem(s)")
         sys.exit(1 if errors else 0)
+    elif a[0] == "export-connect":
+        print("connect file:", export_connect())
     elif a[0] == "parity":  # after capture.py: real screens beside frames, scores, code links
         rows = parity()
         got = [r for r in rows if r[0] is not None]
@@ -2307,6 +2337,7 @@ def main():
         reg = build_components()
         build_foundations()
         build_docs(reg)
+        build_icons_page()
         failed = []
         pending_links, frame_ids, named_nodes = [], {}, {}
         for path in sorted(glob.glob(os.path.join(HERE, "specs", "*.json"))):
