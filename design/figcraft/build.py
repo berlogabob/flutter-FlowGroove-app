@@ -1750,7 +1750,7 @@ def build_docs(reg):
         {"t": "text", "v": f"{fg} on {bg}", "style": "caption", "w": 200},
         {"t": "text", "v": f"{value:.2f}:1 (min {minimum:.1f})" + (" · decorative" if not required else ""),
          "style": "caption", "color": "textSecondary", "w": "fill"}]} for mode, kind, fg, bg, value, minimum, required in contrast_matrix()]
-    cards.append(("Contrast", None, {"t": "col", "name": "Doc/Contrast", "bg": "surface", "border": "borderSubtle",
+    cards.append((None, None, {"t": "col", "name": "Doc/Contrast", "bg": "surface", "border": "borderSubtle",
         "radius": 16, "pad": 24, "gap": 12, "w": 560, "c": [
             {"t": "text", "v": "Contrast", "style": "headlineLarge"},
             {"t": "text", "v": "Text pairs use WCAG 4.5:1; UI pairs use 3.0:1. Decorative pairs are informational.",
@@ -1814,7 +1814,7 @@ def build_icons_page():
         frame = e.create("frame", None, f"Icon/{name}", {
             "fill": "none", "layout": "vertical", "crossAlign": "center", "gap": 6,
             "padding": 8, "width": 96, "height": 88, "sizingH": "fixed", "sizingV": "fixed"})
-        e.cmds[-1]["params"].update(x=x, y=y)
+        e.cmds[start]["params"].update(x=x, y=y)  # the create; later cmds are token binds
         m_icon(e, {"v": name, "size": 24}, frame, "v")
         m_text(e, {"v": name, "style": "caption", "color": "textPrimary", "w": "hug"}, frame, "v")
         starts.append((start, name))
