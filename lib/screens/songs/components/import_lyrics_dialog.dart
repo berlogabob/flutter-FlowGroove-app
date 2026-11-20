@@ -10,6 +10,7 @@ import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/chordpro.dart';
 import '../../../utils/snackbar.dart';
 import '../../../widgets/chord_chart_view.dart';
+import '../../../widgets/custom_button.dart';
 
 /// Result of the paste-import sheet: the sections plus any song-level metadata
 /// recovered from a full ChordPro document (title/artist/key/tempo/time). The
@@ -246,13 +247,11 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton(
+                CustomButton(
                   onPressed: canImport ? _import : null,
-                  child: Text(
-                    parsed.sections.isEmpty
-                        ? 'Import'
-                        : 'Import ${parsed.sections.length}',
-                  ),
+                  label: parsed.sections.isEmpty
+                      ? 'Import'
+                      : 'Import ${parsed.sections.length}',
                 ),
               ],
             ),

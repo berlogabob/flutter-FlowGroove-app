@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../services/power_reliability.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../custom_button.dart';
 
 Future<void> showReliabilitySheet(
   BuildContext context, {
@@ -53,9 +54,10 @@ Future<void> showReliabilitySheet(
               onPressed: reliability.requestIgnoreOptimizations,
               child: const Text('Allow unrestricted battery'),
             ),
-            OutlinedButton(
+            CustomButton(
               onPressed: reliability.openVendorSettings,
-              child: const Text('Open phone battery settings'),
+              label: 'Open phone battery settings',
+              variant: ButtonVariant.outline,
             ),
             TextButton(
               onPressed: () async {

@@ -25,6 +25,7 @@ import '../../utils/responsive_breakpoints.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../utils/snackbar.dart';
+import '../widgets/custom_button.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -401,16 +402,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               icon: const Icon(Icons.send),
               label: const Text('Open Telegram'),
             ),
-            ElevatedButton.icon(
+            CustomButton(
               onPressed: () async {
                 Navigator.pop(context);
                 await copyLink(this.context);
               },
-              icon: const Icon(Icons.copy),
-              label: const Text('Copy link'),
+              icon: Icons.copy,
+              label: 'Copy link',
             ),
           ] else
-            ElevatedButton.icon(
+            CustomButton(
               onPressed: () async {
                 Navigator.pop(context);
                 final opened = await telegramService.openBotChat(userId);
@@ -422,8 +423,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   );
                 }
               },
-              icon: const Icon(Icons.send),
-              label: const Text('Open Telegram'),
+              icon: Icons.send,
+              label: 'Open Telegram',
             ),
         ],
       ),

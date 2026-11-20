@@ -7,6 +7,7 @@ import '../../models/metronome_runtime_state.dart';
 import '../../models/metronome_tempo_range.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../custom_button.dart';
 
 /// Opens the tempo-input overlay shown when the dial centre is tapped.
 ///
@@ -309,9 +310,10 @@ class _TapTempoPanelState extends ConsumerState<_TapTempoPanel> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton(
+              child: CustomButton(
                 onPressed: hasBpm ? _reset : null,
-                child: const Text('Reset'),
+                label: 'Reset',
+                variant: ButtonVariant.outline,
               ),
             ),
             const SizedBox(width: MonoPulseSpacing.md),

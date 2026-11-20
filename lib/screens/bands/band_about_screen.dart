@@ -12,6 +12,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/member_label.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/app_badge.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/role_picker_widget.dart';
@@ -210,37 +211,10 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     required String label,
     VoidCallback? onTap,
   }) {
-    final chip = Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.md,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrange10,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: MonoPulseColors.accentOrange),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: MonoPulseTypography.bodySmall.copyWith(
-              color: MonoPulseColors.accentOrange,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          if (onTap != null) ...[
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.chevron_right,
-              size: 16,
-              color: MonoPulseColors.accentOrange,
-            ),
-          ],
-        ],
-      ),
+    final chip = AppBadge(
+      label: label,
+      icon: icon,
+      trailingIcon: onTap == null ? null : Icons.chevron_right,
     );
     if (onTap == null) return chip;
     return InkWell(

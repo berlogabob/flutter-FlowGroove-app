@@ -4,6 +4,7 @@ import '../../../../../models/section.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
 import '../../../../../utils/snackbar.dart';
 import '../../../../../widgets/chord_chart_view.dart';
+import '../../../../../widgets/custom_button.dart';
 
 /// Dialog for editing a section's name, duration, and notes.
 class EditSectionDialog extends StatefulWidget {
@@ -207,7 +208,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton(
+                CustomButton(
                   onPressed: () {
                     if (_nameController.text.trim().isEmpty) {
                       showAppSnackBar(context, 'Section name cannot be empty');
@@ -220,7 +221,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                       'chordChart': _chordController.text.trim(),
                     });
                   },
-                  child: const Text('Save'),
+                  label: 'Save',
                 ),
               ],
             ),

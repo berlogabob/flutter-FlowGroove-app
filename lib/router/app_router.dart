@@ -52,6 +52,7 @@ import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
 import '../services/analytics_service.dart';
 import '../services/event_share_service.dart';
+import '../widgets/custom_button.dart';
 import 'branch_stack_observer.dart';
 
 /// Builds the Song Page from a songs-branch route state. `extra` may be a
@@ -917,12 +918,12 @@ class BandRouteResolver extends ConsumerWidget {
           children: [
             const Text('Failed to load band data'),
             const SizedBox(height: 16),
-            ElevatedButton(
+            CustomButton(
               // This screen can be the first history entry (direct URL /
               // browser-restored), where pop() would throw.
               onPressed: () =>
                   context.canPop() ? context.pop() : context.go('/main/home'),
-              child: const Text('Go Back'),
+              label: 'Go Back',
             ),
           ],
         ),

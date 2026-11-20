@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../theme/mono_pulse_theme.dart';
 
 /// Canonical instrument-panel surfaces for consistent styling across the app.
@@ -75,7 +76,7 @@ class AppCard extends StatelessWidget {
     final card = DecoratedBox(
       decoration: BoxDecoration(
         color: backgroundColor ?? _getBackgroundColor(context),
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.card),
         border: border ?? _getDefaultBorder(context),
         boxShadow: variant == AppCardVariant.raised
             ? [
@@ -99,7 +100,7 @@ class AppCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.card),
           child: card,
         ),
       );

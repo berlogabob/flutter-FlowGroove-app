@@ -19,6 +19,7 @@ import '../../../services/audio/take_splitter.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/picked_file.dart';
 import '../../../utils/snackbar.dart';
+import '../../../widgets/custom_button.dart';
 
 enum _RecordingPermissionState {
   granted,
@@ -517,15 +518,16 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
-            OutlinedButton(
+            CustomButton(
               onPressed: tooBig
                   ? null
                   : () => Navigator.pop(context, _result()),
-              child: const Text('Upload as one'),
+              label: 'Upload as one',
+              variant: ButtonVariant.outline,
             ),
-            ElevatedButton(
+            CustomButton(
               onPressed: count == 0 ? null : _saveParts,
-              child: Text('Upload $count parts'),
+              label: 'Upload $count parts',
             ),
           ],
         ),
@@ -574,18 +576,20 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: FilledButton.tonalIcon(
+                    child: CustomButton(
                       onPressed: _converting ? null : _toggleRecord,
-                      icon: Icon(_recording ? Icons.stop : Icons.mic),
-                      label: Text(_recording ? 'Stop' : 'Record'),
+                      icon: _recording ? Icons.stop : Icons.mic,
+                      label: _recording ? 'Stop' : 'Record',
+                      variant: ButtonVariant.tonal,
                     ),
                   ),
                   const SizedBox(width: MonoPulseSpacing.md),
                   Expanded(
-                    child: OutlinedButton.icon(
+                    child: CustomButton(
                       onPressed: _recording || _converting ? null : _pickFile,
-                      icon: const Icon(Icons.attach_file),
-                      label: const Text('Attach file'),
+                      icon: Icons.attach_file,
+                      label: 'Attach file',
+                      variant: ButtonVariant.outline,
                     ),
                   ),
                 ],
@@ -619,11 +623,11 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
                     child: const Text('Cancel'),
                   ),
                   const SizedBox(width: MonoPulseSpacing.sm),
-                  ElevatedButton(
+                  CustomButton(
                     onPressed: canSave
                         ? () => Navigator.pop(context, _result())
                         : null,
-                    child: const Text('Save'),
+                    label: 'Save',
                   ),
                 ],
               ),

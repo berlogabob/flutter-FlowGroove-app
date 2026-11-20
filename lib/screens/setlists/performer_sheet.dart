@@ -6,6 +6,7 @@ import '../../models/event_kit.dart';
 import '../../models/lineup.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
+import '../../widgets/custom_button.dart';
 import '../../widgets/role_picker_widget.dart';
 
 /// What the sheet hands back. The caller owns persistence: it writes
@@ -311,10 +312,11 @@ class _AddPersonFormState extends State<_AddPersonForm> {
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.md),
-          OutlinedButton.icon(
+          CustomButton(
             onPressed: _pickRole,
-            icon: const Icon(Icons.music_note),
-            label: Text(_role.isEmpty ? 'Pick role' : _role),
+            icon: Icons.music_note,
+            label: _role.isEmpty ? 'Pick role' : _role,
+            variant: ButtonVariant.outline,
           ),
           CheckboxListTile(
             value: _allSongs,

@@ -10,6 +10,7 @@ import '../../utils/chordpro.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
+import '../../widgets/custom_button.dart';
 import 'chordpro_sync_controller.dart';
 import 'components/import_lyrics_dialog.dart';
 import 'components/song_constructor/widgets/edit_section_dialog.dart';
@@ -172,9 +173,9 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
               onPressed: () => Navigator.pop(dctx, ImportMode.append),
               child: const Text('Append'),
             ),
-            ElevatedButton(
+            CustomButton(
               onPressed: () => Navigator.pop(dctx, ImportMode.replace),
-              child: const Text('Replace'),
+              label: 'Replace',
             ),
           ],
         ),

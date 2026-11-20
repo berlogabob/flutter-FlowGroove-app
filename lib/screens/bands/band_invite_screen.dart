@@ -7,6 +7,7 @@ import '../../models/band.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/custom_button.dart';
 import '../../widgets/menu_items_scope.dart';
 
 /// Invite/share screen: QR code + invite code with copy-link and native share.
@@ -88,10 +89,11 @@ class BandInviteScreen extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: OutlinedButton.icon(
+                            child: CustomButton(
                               onPressed: () => _copyLink(context),
-                              icon: const Icon(Icons.link),
-                              label: const Text('Copy link'),
+                              icon: Icons.link,
+                              label: 'Copy link',
+                              variant: ButtonVariant.outline,
                             ),
                           ),
                           const SizedBox(width: MonoPulseSpacing.md),

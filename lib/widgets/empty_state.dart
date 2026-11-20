@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import '../theme/mono_pulse_theme.dart';
+import 'custom_button.dart';
 
 /// A widget for displaying an empty state message.
 ///
@@ -119,18 +120,20 @@ class EmptyState extends StatelessWidget {
           ],
           if (actionLabel != null && onAction != null) ...[
             const SizedBox(height: 24),
-            OutlinedButton.icon(
+            CustomButton(
               onPressed: onAction,
-              icon: const Icon(Icons.add),
-              label: Text(actionLabel!),
+              icon: Icons.add,
+              label: actionLabel!,
+              variant: ButtonVariant.outline,
             ),
           ],
           if (secondaryActionLabel != null && onSecondaryAction != null) ...[
             const SizedBox(height: 8),
-            OutlinedButton.icon(
+            CustomButton(
               onPressed: onSecondaryAction,
-              icon: const Icon(Icons.group_add),
-              label: Text(secondaryActionLabel!),
+              icon: Icons.group_add,
+              label: secondaryActionLabel!,
+              variant: ButtonVariant.outline,
             ),
           ],
         ],

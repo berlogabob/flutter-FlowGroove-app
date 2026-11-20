@@ -13,6 +13,7 @@ import '../providers/auth/error_provider.dart';
 import '../services/event_share_service.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
+import '../widgets/custom_button.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/google_sign_in_button_stub.dart'
     if (dart.library.js_interop) '../widgets/google_sign_in_button_web.dart';
@@ -395,23 +396,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
+              CustomButton(
                 onPressed: _isLoading ? null : _login,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: MonoPulseSpacing.lg,
-                  ),
-                ),
-                child: _isLoading
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: context.mp.textPrimary,
-                        ),
-                      )
-                    : const Text('Sign In'),
+                label: 'Sign In',
+                isLoading: _isLoading,
               ),
               const SizedBox(height: 12),
               if (kIsWeb)

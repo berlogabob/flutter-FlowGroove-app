@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../section_header.dart';
 
 class TunerSettingsSheet extends ConsumerWidget {
   const TunerSettingsSheet({super.key});
@@ -155,14 +156,11 @@ class _SectionLabel extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: MonoPulseTypography.labelMedium.copyWith(
-        color: context.mp.textSecondary,
-      ),
-    );
-  }
+  Widget build(BuildContext context) => SectionHeader(
+    text,
+    style: SectionHeaderStyle.label,
+    padding: EdgeInsets.zero,
+  );
 }
 
 class _PresetSummary extends StatelessWidget {

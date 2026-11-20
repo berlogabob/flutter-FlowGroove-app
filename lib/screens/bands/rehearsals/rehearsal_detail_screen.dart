@@ -13,6 +13,7 @@ import '../../../utils/ics_export.dart';
 import '../../../utils/member_label.dart';
 import '../../../utils/rehearsal_scoring.dart';
 import '../../../utils/snackbar.dart';
+import '../../../widgets/custom_button.dart';
 import '../../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/standard_screen_scaffold.dart';
@@ -237,16 +238,18 @@ class _Body extends ConsumerWidget {
         const SizedBox(height: MonoPulseSpacing.xxl),
         if (canEdit) ...[
           if (confirmed)
-            OutlinedButton.icon(
-              icon: const Icon(Icons.event_busy),
-              label: const Text('Reopen voting'),
+            CustomButton(
+              icon: Icons.event_busy,
+              label: 'Reopen voting',
               onPressed: () => _setStatus(ref, Rehearsal.statusCollecting),
+              variant: ButtonVariant.outline,
             )
           else
-            OutlinedButton.icon(
-              icon: const Icon(Icons.cancel_outlined),
-              label: const Text('Cancel rehearsal'),
+            CustomButton(
+              icon: Icons.cancel_outlined,
+              label: 'Cancel rehearsal',
               onPressed: () => _setStatus(ref, Rehearsal.statusCancelled),
+              variant: ButtonVariant.outline,
             ),
           TextButton.icon(
             icon: const Icon(Icons.edit),

@@ -15,6 +15,7 @@ import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/confirmation_dialog.dart';
+import '../../widgets/custom_button.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
@@ -314,10 +315,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
           ),
         ],
         if (bands.isNotEmpty)
-          OutlinedButton.icon(
-            icon: const Icon(Icons.group_add_outlined),
-            label: const Text('Join band'),
+          CustomButton(
+            icon: Icons.group_add_outlined,
+            label: 'Join band',
             onPressed: () => context.pushNamed('join-band'),
+            variant: ButtonVariant.outline,
           ),
         // Unified filter/sort widget
         Padding(

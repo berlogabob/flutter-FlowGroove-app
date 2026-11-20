@@ -19,6 +19,7 @@ import '../../providers/permissions_provider.dart';
 import '../../services/audio/midi/midi_song_meta_builder.dart';
 import '../../services/audio/midi/note_edit.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../custom_button.dart';
 import '../midi/arrangement_sheet.dart';
 import '../midi/midi_import_flow.dart';
 import 'note_editor_sheet.dart';
@@ -413,14 +414,15 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                   ],
                 ),
                 if (kDebugMode || _kSyncTest)
-                  OutlinedButton(
+                  CustomButton(
                     onPressed: state.rendering
                         ? null
                         : () {
                             unawaited(_startSyncCapture());
                             unawaited(transport.launchDiagnostic());
                           },
-                    child: const Text('Sync test'),
+                    label: 'Sync test',
+                    variant: ButtonVariant.outline,
                   ),
               ],
             ),

@@ -16,6 +16,7 @@ import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/confirmed_write.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/custom_button.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/setlist_break_row.dart';
@@ -1030,9 +1031,9 @@ class _SongPickerSheetState extends State<_SongPickerSheet> {
                 'Select Songs (${_tempSelected.length})',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              ElevatedButton(
+              CustomButton(
                 onPressed: () => widget.onConfirm(_tempSelected),
-                child: const Text('Done'),
+                label: 'Done',
               ),
             ],
           ),

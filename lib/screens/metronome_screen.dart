@@ -26,6 +26,7 @@ import '../repositories/repositories.dart' show SongRepository;
 import '../services/power_reliability.dart';
 import '../services/wakelock_controller.dart';
 import '../utils/snackbar.dart' show showGlobalSnackBar;
+import '../widgets/custom_button.dart';
 import '../widgets/metronome/backing_sheet.dart';
 import '../widgets/metronome/metronome_sheets.dart';
 import '../widgets/metronome/reliability_sheet.dart';
@@ -613,10 +614,11 @@ class _MetronomeSongLibrary extends ConsumerWidget {
     final backingButton = Tooltip(
       message: 'Backing tracks',
       child: active == null
-          ? OutlinedButton.icon(
-              icon: const Icon(Icons.album_outlined),
-              label: const Text('Backing tracks'),
+          ? CustomButton(
+              icon: Icons.album_outlined,
+              label: 'Backing tracks',
               onPressed: onPressed,
+              variant: ButtonVariant.outline,
             )
           : FilledButton.icon(
               icon: const Icon(Icons.album_outlined),

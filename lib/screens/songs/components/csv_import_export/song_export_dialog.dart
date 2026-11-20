@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../theme/mono_pulse_theme.dart';
 import '../../../../utils/snackbar.dart';
+import '../../../../widgets/custom_button.dart';
 import '../../../../widgets/loading_indicator.dart';
 
 /// Dialog for exporting songs to CSV file.
@@ -96,26 +97,27 @@ class _SongExportDialogState extends State<SongExportDialog> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Save to file
-            ElevatedButton.icon(
+            CustomButton(
               onPressed: _exportToFile,
-              icon: const Icon(Icons.save),
-              label: const Text('Save to Device'),
+              icon: Icons.save,
+              label: 'Save to Device',
             ),
             const SizedBox(width: 16),
             // Share
-            ElevatedButton.icon(
+            CustomButton(
               onPressed: _exportAndShare,
-              icon: const Icon(Icons.share),
-              label: const Text('Share'),
+              icon: Icons.share,
+              label: 'Share',
             ),
           ],
         ),
         const SizedBox(height: 12),
         // Copy FlowGroove Song JSON (round-trips with paste-import; AI-friendly)
-        OutlinedButton.icon(
+        CustomButton(
           onPressed: _copyJson,
-          icon: const Icon(Icons.data_object),
-          label: const Text('Copy as JSON'),
+          icon: Icons.data_object,
+          label: 'Copy as JSON',
+          variant: ButtonVariant.outline,
         ),
         const SizedBox(height: 16),
         Text(

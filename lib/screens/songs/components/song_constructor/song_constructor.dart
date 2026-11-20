@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../../models/section.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
 import '../../../../../utils/snackbar.dart';
+import '../../../../widgets/custom_button.dart';
 import 'widgets/edit_section_dialog.dart';
 import 'widgets/pill_view.dart';
 import 'widgets/section_card.dart';
@@ -406,11 +407,12 @@ class _SongConstructorState extends State<SongConstructor> {
         ],
         // Add button
         const SizedBox(height: 8),
-        OutlinedButton.icon(
+        CustomButton(
           key: const Key('song_constructor_add_section'),
           onPressed: _showSectionPicker,
-          icon: const Icon(Icons.add),
-          label: const Text('Add Section'),
+          icon: Icons.add,
+          label: 'Add Section',
+          variant: ButtonVariant.outline,
         ),
       ],
     );

@@ -25,6 +25,7 @@ import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/confirmation_dialog.dart';
+import '../../widgets/custom_button.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/midi/midi_import_flow.dart';
 import '../../widgets/midi/midi_song_panel.dart';
@@ -979,7 +980,7 @@ class _ComposeEntrySheetState extends State<_ComposeEntrySheet> {
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: MonoPulseSpacing.sm),
-                ElevatedButton(
+                CustomButton(
                   onPressed: () => Navigator.pop(
                     context,
                     _ComposeResult(
@@ -988,7 +989,7 @@ class _ComposeEntrySheetState extends State<_ComposeEntrySheet> {
                       _sectionId,
                     ),
                   ),
-                  child: const Text('Save'),
+                  label: 'Save',
                 ),
               ],
             ),
@@ -1054,13 +1055,11 @@ class _ComposeTaskSheetState extends State<_ComposeTaskSheet> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.event, size: 18),
-                    label: Text(
-                      _dueAt == null
-                          ? 'Due date (optional)'
-                          : 'Due ${_dueAt!.day}/${_dueAt!.month}',
-                    ),
+                  child: CustomButton(
+                    icon: Icons.event,
+                    label: _dueAt == null
+                        ? 'Due date (optional)'
+                        : 'Due ${_dueAt!.day}/${_dueAt!.month}',
                     onPressed: () async {
                       final picked = await showDatePicker(
                         context: context,
@@ -1070,6 +1069,7 @@ class _ComposeTaskSheetState extends State<_ComposeTaskSheet> {
                       );
                       if (picked != null) setState(() => _dueAt = picked);
                     },
+                    variant: ButtonVariant.outline,
                   ),
                 ),
               ],
@@ -1104,7 +1104,7 @@ class _ComposeTaskSheetState extends State<_ComposeTaskSheet> {
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: MonoPulseSpacing.sm),
-                ElevatedButton(
+                CustomButton(
                   onPressed: () {
                     final title = _title.text.trim();
                     if (title.isEmpty) return;
@@ -1123,7 +1123,7 @@ class _ComposeTaskSheetState extends State<_ComposeTaskSheet> {
                       ),
                     );
                   },
-                  child: const Text('Add'),
+                  label: 'Add',
                 ),
               ],
             ),
@@ -1207,7 +1207,7 @@ class _SaveVersionSheetState extends State<_SaveVersionSheet> {
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: MonoPulseSpacing.sm),
-                ElevatedButton(
+                CustomButton(
                   onPressed: () {
                     final name = _name.text.trim();
                     if (name.isEmpty) return;
@@ -1217,7 +1217,7 @@ class _SaveVersionSheetState extends State<_SaveVersionSheet> {
                       _makeCurrent,
                     ));
                   },
-                  child: const Text('Save'),
+                  label: 'Save',
                 ),
               ],
             ),

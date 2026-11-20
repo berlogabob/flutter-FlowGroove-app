@@ -162,5 +162,31 @@ void main() {
 
       expect(findText('No Icon'), findsOneWidget);
     });
+
+    testWidgets('tonal is a FilledButton, danger is red and disables while '
+        'loading', (tester) async {
+      await pumpAppWidget(
+        tester,
+        const Column(
+          children: [
+            CustomButton(label: 'Add', variant: ButtonVariant.tonal),
+            CustomButton(
+              label: 'Delete',
+              variant: ButtonVariant.danger,
+              isLoading: true,
+            ),
+          ],
+        ),
+      );
+
+      expect(find.byType(FilledButton), findsOneWidget);
+      final danger = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+      expect(danger.onPressed, isNull);
+      expect(
+        danger.style!.backgroundColor!.resolve({}),
+        const Color(0xFFFF2D55),
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
   });
 }

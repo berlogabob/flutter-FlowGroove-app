@@ -5,6 +5,7 @@ import '../../widgets/app_card.dart';
 import '../../widgets/app_filter_chip.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/section_header.dart';
 import 'design_system_screen_examples.dart';
 
 /// Internal visual reference for the FlowGroove application design system.
@@ -186,23 +187,19 @@ class DesignSystemScreen extends StatelessWidget {
             const SizedBox(height: MonoPulseSpacing.md),
             const _RuleLine(
               number: '01',
-              text:
-                  'Paper is the default stage; charcoal is the instrument face.',
+              text: 'Paper is the default stage; charcoal is the instrument face.',
             ),
             const _RuleLine(
               number: '02',
-              text:
-                  'Orange marks the main action. Stone and Fog mark selections; gray keeps secondary details quiet.',
+              text: 'Orange marks the main action. Stone and Fog mark selections; gray keeps secondary details quiet.',
             ),
             const _RuleLine(
               number: '03',
-              text:
-                  'Use raised, screw-down surfaces for grouped controls and song data.',
+              text: 'Use raised, screw-down surfaces for grouped controls and song data.',
             ),
             const _RuleLine(
               number: '04',
-              text:
-                  'Keep labels legible and secondary information calm, never tiny.',
+              text: 'Keep labels legible and secondary information calm, never tiny.',
             ),
             const SizedBox(height: MonoPulseSpacing.xxl),
             _sectionTitle(context, '06 / Screen examples'),
@@ -220,9 +217,9 @@ class DesignSystemScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionTitle(BuildContext context, String title) => Padding(
+  Widget _sectionTitle(BuildContext context, String title) => SectionHeader(
+    title,
     padding: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
-    child: Text(title, style: Theme.of(context).textTheme.titleMedium),
   );
 }
 
@@ -272,9 +269,8 @@ class _DataPlate extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(
-            context,
-          ).textTheme.labelSmall?.copyWith(color: context.mp.textTertiary),
+          style: Theme.of(context).textTheme.labelSmall
+              ?.copyWith(color: context.mp.textTertiary),
         ),
         Text(value, style: Theme.of(context).textTheme.titleMedium),
       ],

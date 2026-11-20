@@ -19,6 +19,7 @@ import '../../utils/key_utils.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
 import '../../widgets/confirmation_dialog.dart';
+import '../../widgets/custom_button.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
@@ -587,14 +588,15 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                   // Clear all filters button
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
+                    child: CustomButton(
                       onPressed: () {
                         ref
                             .read(songsFilterSortProvider.notifier)
                             .clearFilters();
                         Navigator.pop(context);
                       },
-                      child: const Text('Clear All Filters'),
+                      label: 'Clear All Filters',
+                      variant: ButtonVariant.outline,
                     ),
                   ),
                   const SizedBox(height: 8),

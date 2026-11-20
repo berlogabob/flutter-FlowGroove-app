@@ -8,6 +8,7 @@ import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/canonical_import.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/custom_button.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 
@@ -163,10 +164,12 @@ class _CanonicalBrowseScreenState extends ConsumerState<CanonicalBrowseScreen> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : FilledButton.tonalIcon(
+              : CustomButton(
                   onPressed: () => _import(c),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add'),
+                  icon: Icons.add,
+                  label: 'Add',
+                  variant: ButtonVariant.tonal,
+                  size: ButtonSize.small,
                 ),
         );
       },

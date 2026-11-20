@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../theme/mono_pulse_theme.dart';
 import '../../../../utils/snackbar.dart';
+import '../../../../widgets/custom_button.dart';
 import '../../../../widgets/loading_indicator.dart';
 
 class SongImportDialog extends StatefulWidget {
@@ -112,10 +113,11 @@ class _SongImportDialogState extends State<SongImportDialog> {
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
-                child: OutlinedButton.icon(
+                child: CustomButton(
                   onPressed: _importFromClipboard,
-                  icon: const Icon(Icons.content_paste),
-                  label: const Text('Paste from clipboard'),
+                  icon: Icons.content_paste,
+                  label: 'Paste from clipboard',
+                  variant: ButtonVariant.outline,
                 ),
               ),
               const SizedBox(height: 24),

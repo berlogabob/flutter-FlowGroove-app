@@ -12,6 +12,7 @@ import '../../services/secure_storage_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
+import '../../widgets/custom_button.dart';
 
 class JoinBandScreen extends ConsumerStatefulWidget {
   const JoinBandScreen({super.key, this.inviteCode});
@@ -302,38 +303,19 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        ElevatedButton(
+                        CustomButton(
                           onPressed: _isLoading ? null : _loadBand,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: MonoPulseSpacing.lg,
-                            ),
-                          ),
-                          child: _isLoading
-                              ? CircularProgressIndicator(
-                                  color: context.mp.textPrimary,
-                                )
-                              : const Text('Find Band'),
+                          label: 'Find Band',
+                          isLoading: _isLoading,
                         ),
                       ],
 
                       // Join button (if band is loaded)
                       if (_band != null) ...[
-                        ElevatedButton(
+                        CustomButton(
                           onPressed: (_isLoading || isDemo) ? null : _joinBand,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: MonoPulseColors.accentOrange,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: MonoPulseSpacing.lg,
-                            ),
-                          ),
-                          child: _isLoading
-                              ? CircularProgressIndicator(
-                                  color: context.mp.textPrimary,
-                                )
-                              : Text(
-                                  isLoggedIn ? 'Join Band' : 'Login to Join',
-                                ),
+                          label: isLoggedIn ? 'Join Band' : 'Login to Join',
+                          isLoading: _isLoading,
                         ),
 
                         if (isDemo) ...[

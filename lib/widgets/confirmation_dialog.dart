@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../theme/mono_pulse_theme.dart';
+import 'custom_button.dart';
 
 /// A confirmation dialog widget.
 ///
@@ -63,15 +65,10 @@ class ConfirmationDialog extends StatelessWidget {
             style: TextStyle(color: context.mp.textSecondary),
           ),
         ),
-        ElevatedButton(
+        CustomButton(
           onPressed: () => Navigator.pop(context, true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isDestructive
-                ? MonoPulseColors.error
-                : MonoPulseColors.accentOrange,
-            foregroundColor: context.mp.black,
-          ),
-          child: Text(confirmLabel),
+          label: confirmLabel,
+          variant: isDestructive ? ButtonVariant.danger : ButtonVariant.primary,
         ),
       ],
     );

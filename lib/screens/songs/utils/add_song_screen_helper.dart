@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../models/api_error.dart';
 import '../../../providers/auth/error_provider.dart';
+import '../../../widgets/custom_button.dart';
 import '../models/song_form_data.dart';
 
 /// Mixin providing helper methods for the AddSongScreen.
@@ -74,12 +75,12 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          CustomButton(
             onPressed: () {
               Navigator.pop(context);
               openUrl(spotifyUrl);
             },
-            child: const Text('Open Spotify'),
+            label: 'Open Spotify',
           ),
         ],
       ),

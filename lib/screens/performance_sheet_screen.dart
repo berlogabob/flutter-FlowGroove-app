@@ -13,6 +13,7 @@ import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
 import '../widgets/app_menu_sheet.dart';
 import '../widgets/bottom_nav_or_action_bar.dart';
+import '../widgets/custom_button.dart';
 import '../widgets/performance_sheet_view.dart';
 import 'songs/chordpro_sync_controller.dart';
 import 'songs/components/import_lyrics_dialog.dart';
@@ -144,9 +145,9 @@ class _PerformanceSheetScreenState
               onPressed: () => Navigator.pop(dctx, ImportMode.append),
               child: const Text('Append'),
             ),
-            ElevatedButton(
+            CustomButton(
               onPressed: () => Navigator.pop(dctx, ImportMode.replace),
-              child: const Text('Replace'),
+              label: 'Replace',
             ),
           ],
         ),
@@ -234,10 +235,11 @@ class _EmptyState extends StatelessWidget {
               ).textTheme.bodyLarge?.copyWith(color: context.mp.textSecondary),
             ),
             const SizedBox(height: MonoPulseSpacing.xl),
-            OutlinedButton.icon(
+            CustomButton(
               onPressed: onImportLyrics,
-              icon: const Icon(Icons.playlist_add),
-              label: const Text('Import lyrics & chords'),
+              icon: Icons.playlist_add,
+              label: 'Import lyrics & chords',
+              variant: ButtonVariant.outline,
             ),
           ],
         ),

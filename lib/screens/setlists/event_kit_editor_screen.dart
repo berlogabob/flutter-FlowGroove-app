@@ -20,6 +20,8 @@ import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
 import '../../utils/stage_gear.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/section_header.dart';
 import '../../widgets/user_avatar.dart';
 
 /// Event Kit editor (#53): who stands where (3×3 stage zone grid), crew &
@@ -433,10 +435,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
     );
   }
 
-  Widget _sectionTitle(String t) => Padding(
-    padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
-    child: Text(t, style: MonoPulseTypography.titleMedium),
-  );
+  Widget _sectionTitle(String t) => SectionHeader(t);
 
   /// Role cards (#54): band members + crew/guests, initials-avatar cards.
   ///
@@ -758,9 +757,9 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
               onPressed: () => Navigator.pop(context, ''),
               child: const Text('Clear'),
             ),
-            ElevatedButton(
+            CustomButton(
               onPressed: () => Navigator.pop(context, selected.trim()),
-              child: const Text('Done'),
+              label: 'Done',
             ),
           ],
         ),
@@ -770,14 +769,11 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
     return result;
   }
 
-  Widget _sectionLabel(String label) => Padding(
+  Widget _sectionLabel(String label) => SectionHeader(
+    label,
+    style: SectionHeaderStyle.label,
+    textStyle: MonoPulseTypography.labelSmall,
     padding: const EdgeInsets.only(top: MonoPulseSpacing.sm, bottom: 4),
-    child: Text(
-      label,
-      style: MonoPulseTypography.labelSmall.copyWith(
-        color: context.mp.textSecondary,
-      ),
-    ),
   );
 
   Widget _gearTile(GearEntry entry) {
@@ -1039,17 +1035,13 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
                       child: const Text('Cancel'),
                     ),
                     const SizedBox(width: MonoPulseSpacing.sm),
-                    ElevatedButton(
+                    CustomButton(
                       onPressed: _picks.isEmpty
                           ? null
                           : () => Navigator.pop(context, [
                               for (final pick in _picks) pick.placement,
                             ]),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: MonoPulseColors.accentOrange,
-                        foregroundColor: context.mp.textPrimary,
-                      ),
-                      child: const Text('Done'),
+                      label: 'Done',
                     ),
                   ],
                 ),
@@ -1283,7 +1275,7 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: MonoPulseSpacing.sm),
-                ElevatedButton(
+                CustomButton(
                   onPressed: () {
                     final name = _name.text.trim();
                     if (name.isEmpty) return;
@@ -1304,7 +1296,7 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
                       ),
                     );
                   },
-                  child: Text(widget.person == null ? 'Add' : 'Save'),
+                  label: widget.person == null ? 'Add' : 'Save',
                 ),
               ],
             ),

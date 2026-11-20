@@ -16,6 +16,7 @@ import '../../screens/songs/components/drum_grid_editor.dart';
 import '../../services/analytics_service.dart';
 import '../../services/audio/midi/smf_parser.dart';
 import '../../utils/picked_file.dart';
+import '../custom_button.dart';
 import '../midi/drum_kit_view.dart';
 
 class DrumPracticePanel extends ConsumerStatefulWidget {
@@ -422,18 +423,20 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: CustomButton(
                     onPressed: canImport && !_busy ? _import : null,
-                    icon: const Icon(Icons.file_upload_outlined),
-                    label: const Text('Import .mid'),
+                    icon: Icons.file_upload_outlined,
+                    label: 'Import .mid',
+                    variant: ButtonVariant.outline,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: CustomButton(
                     onPressed: _busy ? null : _openEditor,
-                    icon: const Icon(Icons.add),
-                    label: const Text('New pattern'),
+                    icon: Icons.add,
+                    label: 'New pattern',
+                    variant: ButtonVariant.outline,
                   ),
                 ),
               ],

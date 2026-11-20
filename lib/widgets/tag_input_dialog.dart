@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import '../../theme/mono_pulse_theme.dart';
+import 'custom_button.dart';
 
 class TagInputDialog extends StatefulWidget {
   const TagInputDialog({
@@ -166,9 +167,9 @@ class _TagInputDialogState extends State<TagInputDialog> {
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: CustomButton(
               onPressed: () => Navigator.pop(context, _tags),
-              child: const Text('Save'),
+              label: 'Save',
             ),
           ),
           const SizedBox(height: 8),

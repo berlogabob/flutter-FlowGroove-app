@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/api_error.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/custom_button.dart';
 
 /// Forgot Password Screen - Firebase password reset
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -215,30 +216,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 },
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
+              CustomButton(
                 onPressed: (!_isLoading && !_emailSent) ? _resetPassword : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MonoPulseColors.accentOrange,
-                  foregroundColor: context.mp.textPrimary,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: MonoPulseSpacing.lg,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                  ),
-                ),
-                child: _isLoading
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: context.mp.textPrimary,
-                        ),
-                      )
-                    : _emailSent
-                    ? const Text('Email Sent')
-                    : const Text('Send Reset Email'),
+                label: _emailSent ? 'Email Sent' : 'Send Reset Email',
+                isLoading: _isLoading,
               ),
               const SizedBox(height: 16),
               if (_emailSent)

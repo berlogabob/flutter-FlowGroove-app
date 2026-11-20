@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../theme/mono_pulse_theme.dart';
+import 'custom_button.dart';
 
 /// A widget for displaying error messages to the user.
 ///
@@ -45,14 +46,11 @@ class ErrorBanner extends StatelessWidget {
   }
 
   Widget _retryButton() {
-    return ElevatedButton.icon(
+    return CustomButton(
       onPressed: onRetry,
-      icon: const Icon(Icons.refresh, size: 16),
-      label: const Text('Retry'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: MonoPulseColors.error,
-        foregroundColor: MonoPulseColors.white,
-      ),
+      icon: Icons.refresh,
+      label: 'Retry',
+      variant: ButtonVariant.danger,
     );
   }
 

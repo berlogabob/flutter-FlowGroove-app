@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../../../models/section.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
 import '../../../../../utils/snackbar.dart' show showGlobalSnackBar;
+import '../../../../../widgets/custom_button.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/section_color_manager.dart';
 import 'color_picker_dialog.dart';
@@ -140,19 +141,13 @@ class _SectionPickerState extends State<SectionPicker>
           ),
         ),
         const SizedBox(width: 12),
-        ElevatedButton(
+        CustomButton(
           onPressed: () {
             if (_customController.text.trim().isNotEmpty) {
               widget.onSectionSelected(_customController.text.trim());
             }
           },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(
-              horizontal: MonoPulseSpacing.xxl,
-              vertical: MonoPulseSpacing.lg,
-            ),
-          ),
-          child: const Text('Add', style: TextStyle(fontSize: 15)),
+          label: 'Add',
         ),
       ],
     );

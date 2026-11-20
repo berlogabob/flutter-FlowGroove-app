@@ -1,7 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../theme/mono_pulse_theme.dart';
 import '../services/connectivity_service.dart';
+import 'app_badge.dart';
 
 /// Offline Indicator Widget - Shows connectivity status
 ///
@@ -70,34 +72,10 @@ class OfflineIndicator extends ConsumerWidget {
   }
 
   Widget _buildChip(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.md,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrange10,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-        border: Border.all(color: MonoPulseColors.accentOrange),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.wifi_off,
-            color: MonoPulseColors.accentOrange,
-            size: 16,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'Offline',
-            style: MonoPulseTypography.bodySmall.copyWith(
-              color: context.mp.textPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
+    return const AppBadge(
+      label: 'Offline',
+      icon: Icons.wifi_off,
+      outlined: true,
     );
   }
 

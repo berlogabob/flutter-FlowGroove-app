@@ -11,6 +11,7 @@ import '../../services/event_share_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/custom_button.dart';
 import 'event_kit_editor_screen.dart';
 
 /// What someone opening a shared event link sees — a venue's art director, a
@@ -596,7 +597,7 @@ class _SuggestSheetState extends State<_SuggestSheet> {
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: MonoPulseSpacing.sm),
-                ElevatedButton(
+                CustomButton(
                   onPressed: () {
                     final proposal = switch (_kind) {
                       'add' when _selectedSongId != null => {
@@ -628,7 +629,7 @@ class _SuggestSheetState extends State<_SuggestSheet> {
                       _SuggestionDraft(_controller.text, proposal),
                     );
                   },
-                  child: const Text('Send'),
+                  label: 'Send',
                 ),
               ],
             ),

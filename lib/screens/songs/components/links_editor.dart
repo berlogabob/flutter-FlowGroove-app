@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../models/link.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/custom_button.dart';
 
 /// A widget for managing a collection of links.
 ///
@@ -145,14 +146,14 @@ class LinksEditor extends StatelessWidget {
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
-            ElevatedButton(
+            CustomButton(
               onPressed: () {
                 if (urlController.text.isNotEmpty) {
                   onAddLink(Link(type: selectedType, url: urlController.text));
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Add'),
+              label: 'Add',
             ),
           ],
         );

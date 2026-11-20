@@ -10,6 +10,7 @@ import '../providers/practice_stats_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/practice_dashboard_card.dart';
 import '../widgets/practice_resume_card.dart';
+import '../widgets/section_header.dart';
 import '../widgets/tools/tool_scaffold.dart';
 
 /// Progress journal (#133): the workbook-lite — weekly stats, where the
@@ -165,10 +166,8 @@ class PracticeScreen extends ConsumerWidget {
     ),
   );
 
-  Widget _sectionTitle(BuildContext context, String title) => Padding(
-    padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
-    child: Text(title, style: MonoPulseTypography.titleMedium),
-  );
+  Widget _sectionTitle(BuildContext context, String title) =>
+      SectionHeader(title);
 
   Widget _quietText(BuildContext context, String text) => Padding(
     padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),

@@ -11,6 +11,7 @@ import '../../providers/permissions_provider.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../custom_button.dart';
 
 /// Custom Tuning Editor - Bottom sheet for creating custom tunings.
 ///
@@ -256,11 +257,11 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
             padding: const EdgeInsets.all(MonoPulseSpacing.xl),
             child: SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: CustomButton(
                 onPressed: _isSaving
                     ? null
                     : () => _saveCustomTuning(selectedScope, saveUid),
-                child: Text(_isSaving ? 'Saving...' : 'Save Custom Tuning'),
+                label: _isSaving ? 'Saving...' : 'Save Custom Tuning',
               ),
             ),
           ),

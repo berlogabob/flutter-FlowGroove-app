@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/custom_button.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -219,23 +220,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 },
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
+              CustomButton(
                 onPressed: _isLoading ? null : _register,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: MonoPulseSpacing.lg,
-                  ),
-                ),
-                child: _isLoading
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: context.mp.textPrimary,
-                        ),
-                      )
-                    : const Text('Create Account'),
+                label: 'Create Account',
+                isLoading: _isLoading,
               ),
               const SizedBox(height: 16),
               Row(

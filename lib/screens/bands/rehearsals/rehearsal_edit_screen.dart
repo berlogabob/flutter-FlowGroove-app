@@ -12,6 +12,7 @@ import '../../../services/analytics_service.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/member_label.dart';
 import '../../../utils/snackbar.dart';
+import '../../../widgets/section_header.dart';
 import '../../../widgets/standard_screen_scaffold.dart';
 import 'rehearsal_format.dart';
 
@@ -361,8 +362,6 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
     );
   }
 
-  Widget _sectionLabel(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
-    child: Text(text, style: Theme.of(context).textTheme.titleSmall),
-  );
+  Widget _sectionLabel(String text) =>
+      SectionHeader(text, textStyle: Theme.of(context).textTheme.titleSmall);
 }

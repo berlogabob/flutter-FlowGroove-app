@@ -8,6 +8,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/band_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/custom_button.dart';
 
 /// Welcome screen shown when a signed-out (or demo) visitor opens a shared band
 /// invite link (`https://flowgroove.app/join?code=XXXX`). It previews the band
@@ -144,13 +145,7 @@ class _JoinWelcomeScreenState extends ConsumerState<JoinWelcomeScreen> {
           ),
         ),
         const SizedBox(height: MonoPulseSpacing.xxl),
-        ElevatedButton(
-          onPressed: _loginAndJoin,
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
-          ),
-          child: const Text('Log in & Join'),
-        ),
+        CustomButton(onPressed: _loginAndJoin, label: 'Log in & Join'),
       ],
     );
   }
@@ -180,12 +175,10 @@ class _JoinWelcomeScreenState extends ConsumerState<JoinWelcomeScreen> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: MonoPulseSpacing.xxl),
-        OutlinedButton(
+        CustomButton(
           onPressed: () => context.go('/login'),
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
-          ),
-          child: const Text('Go to app'),
+          label: 'Go to app',
+          variant: ButtonVariant.outline,
         ),
       ],
     );
