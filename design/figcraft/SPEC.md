@@ -2,8 +2,10 @@
 
 ## Make targets
 
-- `make design-check` runs the offline spec check, Code Connect component verification, and contrast matrix. It fails if any command fails and does not require FigCraft.
+- `make design-check` runs the offline spec check, the FigCraft command dry run, Code Connect component verification, and the contrast matrix. It fails if any command fails and does not require FigCraft.
 - `make design` runs `python3 design/figcraft/build.py all` to rebuild the FigCraft library. FigCraft must already be running with its control channel; this target does not start it.
+
+`python3 design/figcraft/build.py dryrun [commands.json]` runs the build with simulated FigCraft responses. It checks command IDs and top-level parameter names, including commands inside batches. It uses the catalog at `../_plans/song-map/fc_commands.json` relative to the repository root by default. The dry run uses temporary registries and simulates image export and parity scores.
 
 One JSON file per screen in `design/figcraft/specs/<screen>.json`. `build.py` turns it into an
 editable 412x915 auto-layout frame in FigCraft (Android phone, Dark by default). Check a spec offline
@@ -30,8 +32,9 @@ with `python3 design/figcraft/build.py check design/figcraft/specs/<screen>.json
 
 A status bar (28 px) is added automatically on top.
 
-`links` connects a named node in this screen to a destination frame by its `name`. `all` applies
-these connections after building every frame; `check` verifies that every destination frame exists.
+`links` connects a named node in this screen to a destination frame by its `name`. `all` adds
+click-to-navigate interactions after building every frame. `check` verifies destination frame names
+and `dryrun` also checks that the source nodes were built.
 
 ## Nodes
 
@@ -142,7 +145,7 @@ Examples: `examples/modal_dialog.json`, `examples/modal_sheet.json`.
 - **Input:** variants State (Hint, Filled, Focus, Error, Disabled) and Lines (Single, Multi). Focus uses a 2 px `accentOrange` border; Error uses an `error` border and helper text; Disabled uses 38% opacity.
 - **Slider, Progress:** variant Value, in 10% steps.
 - **Tab, Segment, NavItem:** variant State.
-- **BottomNav:** variant Tab.
+- **BottomNav:** variant Tab in the library. Screen footers place individual NavItem instances so each tab can carry its own prototype link.
 - **StatusBar, SectionHeader:** single components.
 - **ListTile:** variant State (Default, Selected) and Leading and Trailing slots. Selected uses an `accentOrange10` background.
 - **SwitchRow:** variant State, Leading slot.

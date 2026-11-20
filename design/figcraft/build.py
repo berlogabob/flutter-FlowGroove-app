@@ -7,9 +7,12 @@ FigCraft must run with its control channel:
   python3 design/figcraft/build.py setup            # new doc: variables, text styles, pages, components
   python3 design/figcraft/build.py screen specs/x.json [--png out.png]
   python3 design/figcraft/build.py all              # setup + every spec + save
+  python3 design/figcraft/build.py dryrun           # validate all commands without FigCraft
 Spec format: design/figcraft/SPEC.md
 """
 import glob, json, os, re, socket, subprocess, sys
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 from contrast import matrix as contrast_matrix
 from contrast import PAD_SURFACES
 
@@ -40,6 +43,135 @@ def raw(method, params=None, timeout_ms=None):
 
 def ex(command, params=None):
     return raw("engine.execute", {"command": command, "params": params or {}}, 300000)
+
+
+def command_keys(doc):
+    # Keep only the outer parameter list, dropping nested schemas and explanations.
+    depth = 0
+    outer = doc.lstrip().startswith("{")
+    text = []
+    for token in re.findall(r'"(?:\\.|[^"\\])*"|.', doc, re.S):
+        if token in ("{", "[", "("):
+            depth += 1
+        elif token in ("}", "]", ")"):
+            depth -= 1
+            if outer and depth == 0:
+                break
+        elif depth == int(outer):
+            text.append(token)
+    return set(re.findall(r"(?:^|,|\s\|)\s*([A-Za-z_]\w*)", "".join(text)))
+
+
+class DryTransport:
+    def __init__(self, commands):
+        self.keys = {row["id"]: command_keys(row["params"]) for row in commands}
+        # node.set lists editable properties. Its envelope is omitted, and
+        # inspect.readyForDev documents the devStatus key on node.set.
+        if "node.set" in self.keys:
+            self.keys["node.set"].update(("ids", "props"))
+            if any("node.set {devStatus}" in row["params"] for row in commands):
+                self.keys["node.set"].add("devStatus")
+        self.calls, self.problems = [], {}
+        self.pages = {"Page:0": "Page 1"}
+        self.nodes, self.inherited = {}, set()
+        self.component_sets, self.properties = {}, {}
+        self.page = "Page:0"
+
+    def __call__(self, method, params, timeout_ms=None):
+        assert method == "engine.execute", method
+        return self.execute(params["command"], params["params"])
+
+    def execute(self, command, p, label="document", refs=None):
+        self.calls.append((command, p))
+        node_id = f"Dry:{len(self.calls)}"
+        if command not in self.keys:
+            self.problems.setdefault(f"{command}: unknown command", label)
+        else:
+            for key in p.keys() - self.keys[command]:
+                self.problems.setdefault(f"{command}: undocumented parameter {key!r}", label)
+
+        if command == "command.batch":
+            results, batch_refs = [], {}
+            for cmd in p["commands"]:
+                result = self.execute(cmd["command"], cmd.get("params", {}), p.get("label", label), batch_refs)
+                results.append(result)
+                if "as" in cmd:
+                    batch_refs[cmd["as"]] = result
+            return results
+
+        def resolve(target):
+            if refs is None or not isinstance(target, dict) or "$ref" not in target:
+                return target
+            result = refs[target["$ref"]]
+            for field in target.get("field", "id").split("/"):
+                result = result[int(field)] if isinstance(result, list) else result[field]
+            return result
+
+        if command == "page.list":
+            return [{"id": pid, "name": name} for pid, name in self.pages.items()]
+        if command == "page.add":
+            self.pages[node_id] = p["name"]
+        if command == "page.rename":
+            self.pages[p["id"]] = p["name"]
+        if command == "page.select":
+            self.page = p["id"]
+        if command == "variable.create":
+            return {"id": f"VariableID:{len(self.calls)}"}
+        if command == "node.create":
+            node = self.nodes[node_id] = {"id": node_id, "name": p.get("name", p["type"]),
+                                          "type": p["type"].upper(), "page": self.page, "children": []}
+            parent = resolve(p.get("parent"))
+            if parent in self.nodes:
+                self.nodes[parent]["children"].append(node)
+        if command in ("instance.create", "edit.duplicate"):
+            copies = {}
+
+            def clone(node, cid, kind):
+                copies[node["id"]] = cid
+                copy = self.nodes[cid] = dict(node, id=cid, type=kind)
+                copy["children"] = [clone(child, f"{cid}:{i}", child["type"])
+                                    for i, child in enumerate(node["children"])]
+                self.inherited.update(child["id"] for child in copy["children"])
+                return copy
+
+            if command == "instance.create":
+                clone(self.nodes[p["component"]], node_id, "INSTANCE")
+            else:
+                ids = [f"{node_id}:{i}" for i in range(len(p["ids"]))]
+                for source, cid in zip(p["ids"], ids):
+                    clone(self.nodes[resolve(source)], cid, "INSTANCE")
+                return {"ids": ids, "map": copies}
+        if command == "node.reparent":
+            parent = resolve(p["parent"])
+            self.nodes[parent]["children"].extend(self.nodes[resolve(t)] for t in p["ids"])
+        if command == "node.set":
+            for target in p.get("ids", []):
+                tid = resolve(target)
+                if tid in self.inherited:
+                    self.problems.setdefault("node.set: cannot edit a layer inherited from a main component", label)
+                if tid in self.nodes and "name" in p.get("props", {}):
+                    self.nodes[tid]["name"] = p["props"]["name"]
+        if command == "node.get":
+            if p.get("outline"):
+                return self.nodes[p["id"]]
+            return {"absoluteBounds": {"y": 0, "height": 100}, "x": 0, "y": 0}
+        if command == "node.find":
+            ids = [n["id"] for n in self.nodes.values() if n["page"] == self.page
+                   and p.get("name", "").casefold() in n["name"].casefold()
+                   and n["type"] == p.get("type", n["type"]).upper()]
+            return {"ids": ids[:p.get("limit", 100)], "total": len(ids)}
+        if command == "component.combineVariants":
+            self.component_sets.update(dict.fromkeys(p["ids"], node_id))
+        if command == "component.addProperty":
+            self.properties.setdefault(p["id"], []).append(
+                {key: p[key] for key in ("type", "name", "default") if key in p})
+        if command == "component.properties":
+            return {"properties": self.properties.get(self.component_sets.get(p["id"], p["id"]), [])}
+        if command == "inspect.componentCode":
+            return {"connected": {"code": "Widget()"}}
+        if command == "image.place":
+            return {"id": node_id, "height": H}
+        return {"id": node_id}
 
 
 # ---------------------------------------------------------------- tokens
@@ -105,6 +237,7 @@ def text_props(style, col, extra=None):
 class Emit:
     def __init__(self, mode="dark"):
         self.cmds, self.n = [], 0
+        self.named_instances = {}
         self.mode = mode
 
     def ref(self):
@@ -1521,7 +1654,7 @@ TOPS = {}  # cname -> component or set id (filled by build_components)
 
 def pref(x):
     """A parent/target: an emit ref name, a ready {"$ref"} object, or a plain id."""
-    return {"$ref": x} if isinstance(x, str) else x
+    return {"$ref": x} if isinstance(x, str) and re.fullmatch(r"n[0-9]+", x) else x
 
 
 def use(e, cname, n, parent, pdir):
@@ -1536,6 +1669,10 @@ def use(e, cname, n, parent, pdir):
             raise ValueError(f"{cname}: {a}={v.get(a)!r} not in {vals}")
     if not ONLINE:  # offline check: the mapping is valid; draw plain layers to validate the rest
         return MACROS[n["t"]](e, n, parent, pdir)
+    # Draw custom child styling and geometry at creation time. Instance layers
+    # inherit these from the main; icon glyphs already use text properties.
+    if any(props.keys() - {"name"} for props in spec.get("over", {}).values()):
+        raise Unsupported("custom child properties")
     lib = LIB[cname][vkey(c, v)]
 
     def L(name):
@@ -1544,6 +1681,8 @@ def use(e, cname, n, parent, pdir):
         return {"$ref": r, "field": f"map/{lib['layers'][name]}"}
 
     r = e.ref()
+    if "name" in n:
+        e.named_instances[len(e.cmds)] = n["name"]
     e.cmds.append({"command": "edit.duplicate", "params": {"ids": [lib["tpl"]], "map": True}, "as": r})
     me = {"$ref": r, "field": "ids/0"}
     e.cmds.append({"command": "node.reparent", "params": {"ids": [me], "parent": pref(parent)}})
@@ -1554,10 +1693,6 @@ def use(e, cname, n, parent, pdir):
     root.update(size_props({"w": n.get("w", spec.get("w")), "h": n.get("h", spec.get("h"))}, pdir))
     e.cmds.append({"command": "node.set", "params": {"ids": [me], "props": root}})
     e.cmds += bind_cmds(me, root)
-    for name, props in spec.get("over", {}).items():
-        if props:
-            e.cmds.append({"command": "node.set", "params": {"ids": [L(name)], "props": props}})
-            e.cmds += bind_cmds(L(name), props)
     for name, props in spec.get("nested", {}).items():
         e.cmds.append({"command": "instance.setProperties", "params": {"ids": [L(name)], "properties": props}})
     slot_dir = {s: d for s, _, d in c["slots"]}
@@ -1793,8 +1928,8 @@ def build_docs(reg):
             ex("variable.setMode", {"ids": [result[0]["id"]], "collection": COL, "mode": MODES[mode]})
 
 
-def export_connect():
-    out = os.path.abspath(os.path.join(HERE, "figcraft.connect.json"))
+def export_connect(out=None):
+    out = out or os.path.join(HERE, "figcraft.connect.json")
     links_by_name = dict(CONNECT)
     for name in USED_ICONS:
         links_by_name[f"Icon/{name}"] = (MAT, "Icon", f"const Icon(Icons.{name})", f"Material icon {name}.")
@@ -1932,7 +2067,7 @@ def spec_links(spec):
     links = list(spec.get("links", []))
     # The main shell's five destinations are stable shared navigation affordances.
     for node in spec.get("bottom", []):
-        if node.get("t") == "bottomnav":
+        if isinstance(node, dict) and node.get("t") == "bottomnav":
             links.extend({"from": label, "to": MAIN_NAV[label]} for label, _ in NAV_TABS)
     return links
 
@@ -1990,14 +2125,20 @@ def build_screen(spec):
                     pad=0 if modal == "sheet" else [24, 24, 24, 24], name="Scrim")
     emit(e, body, root, "v")
     for n in spec.get("bottom", []):
-        emit(e, n, root, "v")
+        if isinstance(n, dict) and n.get("t") == "bottomnav":
+            # Each tab needs its own instance root to attach a screen-specific link.
+            m_bottomnav(e, n, root, "v")
+        else:
+            emit(e, n, root, "v")
     res = ex("command.batch", {"label": spec["name"], "commands": e.cmds, "onError": "abort"})
     root_id = res[0]["id"]
     if "mode" in spec:
         ex("variable.setMode", {"ids": [root_id], "collection": COL, "mode": MODES[mode]})
     # Keep the concrete source node ids with the screen's declared prototype links.
     node_ids = {}
-    for cmd, result in zip(e.cmds, res):
+    for i, (cmd, result) in enumerate(zip(e.cmds, res)):
+        if i in e.named_instances:
+            node_ids[e.named_instances[i]] = result["ids"][0]
         name = cmd.get("params", {}).get("name")
         if name and isinstance(result, dict) and result.get("id"):
             node_ids[name] = result["id"]
@@ -2016,7 +2157,8 @@ def apply_links(links, frame_ids, node_ids):
     """Connect named screen nodes to already-built destination frames."""
     for source, target in links:
         source_id = node_ids.get(source, source)
-        ex("prototype.connect", {"from": source_id, "to": frame_ids[target]})
+        ex("proto.interaction.add", {"id": source_id, "trigger": {"type": "onClick"},
+                                     "action": {"type": "navigate", "dest": frame_ids[target]}})
 
 
 def export_png(node_id, path, scale=1):
@@ -2045,11 +2187,12 @@ def rmse(a, b):
     return round(float(m.group(1)) * 100, 1)
 
 
-def parity():
+def parity(dryrun=False):
     """Link every screen frame to its code, and put each captured real screen beside its frame."""
     reg = load_reg()
     index = json.load(open(os.path.join(REAL, "index.json"))) if os.path.exists(os.path.join(REAL, "index.json")) else {}
-    os.makedirs(os.path.join(HERE, "logs"), exist_ok=True)
+    if not dryrun:
+        os.makedirs(os.path.join(HERE, "logs"), exist_ok=True)
     pages, rows = page_ids(), []
     for path in sorted(glob.glob(os.path.join(HERE, "specs", "*.json"))):
         key, spec = os.path.basename(path)[:-5], json.load(open(path))
@@ -2091,7 +2234,7 @@ def parity():
         ex("variable.setMode", {"ids": [fid], "collection": COL, "mode": mode})
         export_png(fid, design)
         ex("variable.setMode", {"ids": [fid], "collection": COL, "mode": MODES[screen_mode(spec)]})
-        score = rmse(design, png)
+        score = 0.0 if dryrun else rmse(design, png)
         img = ex("image.place", {"path": os.path.abspath(png), "x": pos["x"] + W + 40, "y": pos["y"],
                                  "width": W, "name": f"Real · {spec['name']}"})
         note = ex("node.create", {"type": "text", "x": pos["x"] + W + 40, "y": pos["y"] + img["height"] + 12,
@@ -2299,8 +2442,31 @@ def verify_components():
     return checked, errors
 
 
-def main():
-    a = sys.argv[1:]
+def dryrun(path):
+    try:
+        with open(path) as f:
+            transport = DryTransport(json.load(f))
+    except (OSError, ValueError, KeyError, TypeError) as err:
+        print(f"FAIL {path}: {err}")
+        return 1
+    with TemporaryDirectory() as tmp, patch.multiple(
+        sys.modules[__name__], raw=transport, REG=os.path.join(tmp, "frames.json"),
+        CREG=os.path.join(tmp, "components.json"), TOKENS=os.path.join(tmp, "tokens.json"),
+    ):
+        try:
+            failed = main(["all"], dry_dir=tmp)
+        except Exception as err:
+            print(f"FAIL dryrun: {err}")
+            failed = 1
+    for problem, label in transport.problems.items():
+        print(f"FAIL {problem} (first seen in {label})")
+    print(f"dryrun: {len(transport.calls)} commands, {failed + len(transport.problems)} problem(s)")
+    return int(bool(failed or transport.problems))
+
+
+def main(a=None, dry_dir=None):
+    if a is None:
+        a = sys.argv[1:]
     if not a:
         print(__doc__)
         return
@@ -2349,6 +2515,9 @@ def main():
             print("FAIL", e)
         print(f"verify-components: {checked} linked widgets checked, {len(errors)} problem(s)")
         sys.exit(1 if errors else 0)
+    elif a[0] == "dryrun":
+        catalog = os.path.join(HERE, "..", "..", "..", "_plans", "song-map", "fc_commands.json")
+        sys.exit(dryrun(a[1] if len(a) > 1 else catalog))
     elif a[0] == "export-connect":
         print("connect file:", export_connect())
     elif a[0] == "parity":  # after capture.py: real screens beside frames, scores, code links
@@ -2391,21 +2560,27 @@ def main():
                 failed.append(path)
                 print(f"FAIL {os.path.basename(path)}: {err}")
         for source_frame, link in pending_links:
-            if link["from"] not in named_nodes.get(source_frame, {}):
-                print(f"skip link: source node {link['from']!r} was not built")
+            source_id = named_nodes[source_frame].get(link["from"])
+            if not source_id or link["to"] not in frame_ids:
+                failed.append(source_frame)
+                print(f"FAIL {source_frame}: link {link['from']!r} → {link['to']!r} has a missing endpoint")
                 continue
-            apply_links([(named_nodes[source_frame][link["from"]], link["to"])], frame_ids, {})
+            apply_links([(source_id, link["to"])], frame_ids, {})
         drop_lib()
-        rows = parity()
+        rows = parity(dryrun=dry_dir is not None)
         print("parity:", sum(r[0] is not None for r in rows), "captured of", len(rows))
         print("tokens bound:", STATS["on"], "off-scale values:", STATS["off"],
               sorted(STATS["off_values"].items(), key=lambda x: -x[1])[:12])
-        print("connect file:", export_connect())
+        connect_path = os.path.join(dry_dir, "figcraft.connect.json") if dry_dir else None
+        connect_file = export_connect(connect_path)
+        if not dry_dir:
+            print("connect file:", connect_file)
         ex("library.publish", {"description": "FlowGroove MonoPulse: colour, type, spacing and radius tokens; "
                                               "24 components linked to Flutter widgets."})
         out = os.path.join(HERE, "..", "flowgroove-screens.figcraft")
         ex("file.saveAs", {"path": os.path.abspath(out)})
-        print("saved", os.path.abspath(out), "failed:", len(failed))
+        print("would save" if dry_dir else "saved", os.path.abspath(out), "failed:", len(failed))
+        return len(failed)
     else:
         print(__doc__)
 

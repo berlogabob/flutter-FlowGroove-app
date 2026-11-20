@@ -65,9 +65,11 @@ Full plan: ~/.claude/plans/clever-baking-axolotl.md. Order: 1 → 3.1–3.3 → 
 ## Phase 3.4–3.5
 - [x] Spec repair loop: Codex fixed 8 mismatched specs from the screenshots (only those files changed); Metronome dial redone by hand.
 - [x] Prototype links: collect spec `links`, connect them after `all` builds every frame, and check destination frame names offline. Main tab navigation links are generated for the five shell destinations.
+- [x] N6: use `proto.interaction.add` for click navigation. Draw Song Map nodes with custom child geometry directly so the main component retains control of inherited instance layers.
 
 ## Phase 4
 - [x] `make design` and `make design-check` targets; offline checks in the test gate; commit `design/`; library version bump.
+- [x] N7: run the full build with a fake FigCraft transport in `make design-check`, validating command IDs and parameters against the command catalog.
 
 ## Done before (2026-11-17)
 130 screens as editable frames; 24 components; 21 Code Connect links; Foundations and Docs pages; library version 1.

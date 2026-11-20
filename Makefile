@@ -33,6 +33,7 @@ design:
 
 design-check:
 	python3 design/figcraft/build.py check
+	python3 design/figcraft/build.py dryrun
 	python3 design/figcraft/build.py verify-components
 	python3 design/figcraft/contrast.py
 
