@@ -58,7 +58,7 @@ Full plan: ~/.claude/plans/clever-baking-axolotl.md. Order: 1 → 3.1–3.3 → 
 
 ## Phase 3.4–3.5
 - [x] Spec repair loop: Codex fixed 8 mismatched specs from the screenshots (only those files changed); Metronome dial redone by hand.
-- [ ] Prototype links (bottom nav, Back, list → detail, sheet triggers).
+- [x] Prototype links: collect spec `links`, connect them after `all` builds every frame, and check destination frame names offline. Main tab navigation links are generated for the five shell destinations.
 
 ## Phase 4
 - [ ] `make design`; offline checks in the test gate; commit `design/`; library version bump.

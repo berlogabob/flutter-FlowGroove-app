@@ -13,6 +13,7 @@ with `python3 design/figcraft/build.py check design/figcraft/specs/<screen>.json
   "page": "Songs",                 // Auth | Home & Tools | Songs | Setlists | Bands | Settings
   "source": "lib/screens/...dart", // the Dart file it recreates
   "slot": 0,                       // position on the page (0,1,2... per page, unique per page)
+  "links": [{"from": "Back", "to": "Songs"}], // optional prototype connections (node name -> frame name)
   "bg": "black",                   // optional screen background token
   "top": [ ... ],                  // fixed header nodes (usually one appbar)
   "body": [ ... ],                 // content, top to bottom, clipped at the bottom
@@ -22,6 +23,9 @@ with `python3 design/figcraft/build.py check design/figcraft/specs/<screen>.json
 ```
 
 A status bar (28 px) is added automatically on top.
+
+`links` connects a named node in this screen to a destination frame by its `name`. `all` applies
+these connections after building every frame; `check` verifies that every destination frame exists.
 
 ## Nodes
 

@@ -1524,6 +1524,17 @@ def setup():
 
 SLOTS = {}  # page -> next index
 REG = os.path.join(HERE, ".frames.json")  # spec name -> frame id in the open document
+MAIN_NAV = {"Home": "Home", "Songs": "Songs", "Bands": "My bands", "Setlists": "Setlists",
+            "More": "App menu sheet sheet L53"}
+
+
+def spec_links(spec):
+    links = list(spec.get("links", []))
+    # The main shell's five destinations are stable shared navigation affordances.
+    for node in spec.get("bottom", []):
+        if node.get("t") == "bottomnav":
+            links.extend({"from": label, "to": MAIN_NAV[label]} for label, _ in NAV_TABS)
+    return links
 
 
 def load_reg():
@@ -1574,6 +1585,12 @@ def build_screen(spec):
         emit(e, n, root, "v")
     res = ex("command.batch", {"label": spec["name"], "commands": e.cmds, "onError": "abort"})
     root_id = res[0]["id"]
+    # Keep the concrete source node ids with the screen's declared prototype links.
+    node_ids = {}
+    for cmd, result in zip(e.cmds, res):
+        name = cmd.get("params", {}).get("name")
+        if name and isinstance(result, dict) and result.get("id"):
+            node_ids[name] = result["id"]
     for o in spec.get("overlay", []):  # absolutely positioned layers (FAB, sheets, scrims)
         oe = Emit()
         r = emit(oe, o["node"], root_id, "v")
@@ -1582,7 +1599,14 @@ def build_screen(spec):
         ex("command.batch", {"label": spec["name"] + " overlay", "commands": oe.cmds})
     reg[spec["name"]] = root_id
     json.dump(reg, open(REG, "w"), indent=1)
-    return root_id, len(e.cmds)
+    return root_id, len(e.cmds), node_ids
+
+
+def apply_links(links, frame_ids, node_ids):
+    """Connect named screen nodes to already-built destination frames."""
+    for source, target in links:
+        source_id = node_ids.get(source, source)
+        ex("prototype.connect", {"from": source_id, "to": frame_ids[target]})
 
 
 def export_png(node_id, path, scale=1):
@@ -1880,7 +1904,7 @@ def main():
         spec = json.load(open(a[1]))
         load_lib()
         try:
-            rid, n = build_screen(spec)
+            rid, n, _ = build_screen(spec)
         finally:
             drop_lib()
         print(f"{spec['name']}: frame {rid}, {n} commands")
@@ -1888,11 +1912,17 @@ def main():
             export_png(rid, os.path.abspath(a[a.index("--png") + 1]))
     elif a[0] == "check":  # offline: expand specs without FigCraft, report errors
         bad = 0
-        for path in a[1:] or sorted(glob.glob(os.path.join(HERE, "specs", "*.json"))):
+        all_paths = sorted(glob.glob(os.path.join(HERE, "specs", "*.json")))
+        paths = a[1:] or all_paths
+        specs = [json.load(open(path)) for path in paths]
+        frame_names = {json.load(open(path))["name"] for path in all_paths}
+        for path, spec in zip(paths, specs):
             try:
-                spec = json.load(open(path))
                 assert spec.get("page") in PAGES, f"page must be one of {PAGES}"
                 assert spec.get("modal") in (None, "sheet", "dialog"), "modal must be sheet or dialog"
+                for link in spec_links(spec):
+                    assert isinstance(link.get("from"), str) and link["from"], "link needs a source node name"
+                    assert link.get("to") in frame_names, f"link target frame {link.get('to')!r} does not exist"
                 e = Emit()
                 for n in spec.get("top", []) + spec.get("body", []) + spec.get("bottom", []):
                     emit(e, n, "root", "v")
@@ -1935,14 +1965,23 @@ def main():
         build_foundations()
         build_docs(reg)
         failed = []
+        pending_links, frame_ids, named_nodes = [], {}, {}
         for path in sorted(glob.glob(os.path.join(HERE, "specs", "*.json"))):
             try:
                 spec = json.load(open(path))
-                rid, n = build_screen(spec)
+                rid, n, nodes = build_screen(spec)
+                frame_ids[spec["name"]] = rid
+                named_nodes[spec["name"]] = nodes
+                pending_links.extend((spec["name"], link) for link in spec_links(spec))
                 print(f"ok   {os.path.basename(path)}: {n} commands")
             except Exception as err:  # keep going; report at the end
                 failed.append(path)
                 print(f"FAIL {os.path.basename(path)}: {err}")
+        for source_frame, link in pending_links:
+            if link["from"] not in named_nodes.get(source_frame, {}):
+                print(f"skip link: source node {link['from']!r} was not built")
+                continue
+            apply_links([(named_nodes[source_frame][link["from"]], link["to"])], frame_ids, {})
         drop_lib()
         rows = parity()
         print("parity:", sum(r[0] is not None for r in rows), "captured of", len(rows))
