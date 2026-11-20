@@ -78,6 +78,10 @@ with open(os.path.join(HERE, "icons.txt")) as f:
     for line in f:
         n, cp = line.split()
         ICONS[n] = int(cp, 16)
+# Icons page and Code Connect cover only the glyphs the app uses (ICONS stays the full codepoint lookup).
+USED_ICONS = sorted({m for m in re.findall(r"Icons\.([a-z0-9_]+)", "".join(
+    open(os.path.join(r, f)).read() for r, _, fs in os.walk(os.path.join(HERE, "..", "..", "lib"))
+    for f in fs if f.endswith(".dart"))) if m in ICONS})
 
 
 def color(c):
@@ -1792,7 +1796,7 @@ def build_docs(reg):
 def export_connect():
     out = os.path.abspath(os.path.join(HERE, "figcraft.connect.json"))
     links_by_name = dict(CONNECT)
-    for name in ICONS:
+    for name in USED_ICONS:
         links_by_name[f"Icon/{name}"] = (MAT, "Icon", f"const Icon(Icons.{name})", f"Material icon {name}.")
     links = [{"component": cname, "importPath": imp, "language": "flutter", "name": name, "template": tpl}
              for cname, (imp, name, tpl, _) in links_by_name.items()]
@@ -1804,7 +1808,7 @@ def build_icons_page():
     """Build one swappable Material glyph component per name in icons.txt."""
     ex("page.select", {"id": page_ids()["Icons"]})
     e, starts = Emit(), []
-    for i, name in enumerate(ICONS):
+    for i, name in enumerate(USED_ICONS):
         x, y = (i % 10) * 112, (i // 10) * 100
         start = len(e.cmds)
         frame = e.create("frame", None, f"Icon/{name}", {
