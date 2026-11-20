@@ -54,7 +54,7 @@ Full plan: ~/.claude/plans/clever-baking-axolotl.md. Order: 1 → 3.1–3.3 → 
 - [ ] Icons page (226 icons) with instance swap and Code Connect `Icons.<name>`.
 - [ ] States: button disabled and loading; input focus, error and disabled; chip disabled; list tile selected.
 - [ ] Pattern components from repeated spec subtrees.
-- [ ] Docs: usage notes, contrast matrix, touch-target note.
+- [x] Docs: usage notes, contrast matrix, touch-target note (48×48 dp minimum).
 
 ## Phase 3.4–3.5
 - [x] Spec repair loop: Codex fixed 8 mismatched specs from the screenshots (only those files changed); Metronome dial redone by hand.

@@ -10,6 +10,7 @@ FigCraft must run with its control channel:
 Spec format: design/figcraft/SPEC.md
 """
 import glob, json, os, re, socket, subprocess, sys
+from contrast import matrix as contrast_matrix
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PORT = int(os.environ.get("FIGCRAFT_PORT", "47321"))
@@ -1388,6 +1389,17 @@ def build_docs(reg):
                   "c": [{"t": "text", "v": code.strip(), "style": "mono", "color": "textSecondary"}]}] if code else
                 [{"t": "text", "v": "No Code Connect link: no shared widget in lib/ yet.", "style": "caption",
                   "color": "warning"}])}))
+    contrast_rows = [{"t": "row", "gap": 8, "w": "fill", "c": [
+        {"t": "text", "v": f"{mode} · {kind}", "style": "caption", "w": 100},
+        {"t": "text", "v": f"{fg} on {bg}", "style": "caption", "w": 240},
+        {"t": "text", "v": f"{value:.2f}:1 (min {minimum:.1f})" + (" · decorative" if not required else ""),
+         "style": "caption", "color": "textSecondary", "w": 180}]} for mode, kind, fg, bg, value, minimum, required in contrast_matrix()]
+    cards.append(("Contrast", None, {"t": "col", "name": "Doc/Contrast", "bg": "surface", "border": "borderSubtle",
+        "radius": 16, "pad": 24, "gap": 12, "w": 560, "c": [
+            {"t": "text", "v": "Contrast", "style": "headlineLarge"},
+            {"t": "text", "v": "Text pairs use WCAG 4.5:1; UI pairs use 3.0:1. Decorative pairs are informational.",
+             "style": "bodySmall", "color": "textSecondary"},
+            {"t": "text", "v": "Touch targets: minimum 48×48 dp.", "style": "bodySmall"}] + contrast_rows}))
     e = Emit()
     root = e.create("frame", None, "Component docs", {"fill": "none", "layout": "horizontal", "wrap": True,
                                                         "gap": 32, "crossGap": 32, "width": 1840,
@@ -1396,9 +1408,12 @@ def build_docs(reg):
     for cname, any_id, card in cards:
         start = len(e.cmds)
         emit(e, card, root, "h")
+        if cname is None:
+            continue
         # the Preview frame is the 4th create of the card
         prev = [c["as"] for c in e.cmds[start:] if c["command"] == "node.create" and c["params"].get("name") == "Preview"][0]
-        previews.append((cname, prev))
+        if cname is not None:
+            previews.append((cname, prev))
     res = ex("command.batch", {"label": "Docs", "commands": e.cmds, "onError": "abort"})
     ref_id = {c["as"]: r.get("id") for c, r in zip(e.cmds, res) if c.get("as") and isinstance(r, dict)}
     for cname, prev in previews:  # one live instance of the default variant per card
