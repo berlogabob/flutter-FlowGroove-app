@@ -1,191 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+part 'mono_pulse_tokens.g.dart';
 
 /// FlowGroove visual system: warm studio paper, dark instrument housings,
 /// readable music notation, and a confident orange transport accent.
-
-class MonoPulseColors {
-  // Dark palette retained for users who choose dark appearance.
-  static const Color black = Color(0xFF1E1E1C);
-  static const Color blackSurface = Color(0xFF262623);
-  static const Color blackElevated = Color(0xFF30302C);
-  static const Color surface = Color(0xFF292925);
-  static const Color surfaceRaised = Color(0xFF35352F);
-  static const Color surfaceOverlay = Color(0xFF41413A);
-  static const Color borderSubtle = Color(0xFF44443D);
-  static const Color borderDefault = Color(0xFF5A5A51);
-  static const Color borderStrong = Color(0xFF77776C);
-  static const Color textPrimary = Color(0xFFF6F5F0);
-  static const Color textHighEmphasis = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xFFD8D6CC);
-  static const Color textTertiary = Color(0xFFB5B2A8);
-  static const Color textDisabled = Color(0xFF8E8C84);
-
-  // Brand Accent - Orange (used surgically)
-  static const Color paper = Color(0xFFF6F5F0);
-  static const Color stone = Color(0xFFD8D6CC);
-  static const Color fog = Color(0xFFB5B2A8);
-  static const Color charcoal = Color(0xFF1E1E1C);
-  static const Color sage = Color(0xFF8A907F);
-  static const Color petrol = Color(0xFF285E6E);
-  static const Color accentOrange = Color(0xFFFF5A36);
-  static const Color accentOrangeLight = Color(0xFFFF7555);
-  static const Color accentOrangeDark = Color(0xFFD64324);
-  static const Color selection = Color(0xFFDDE4D9);
-  static const Color selectionInk = petrol;
-  static const Color accentOrange10 = Color(0x1AFF5A36); // 10% opacity
-
-  // Beat Mode Colors
-  static const Color beatModeNormal = accentOrange;
-  static const Color beatModeAccent = Color(0xFF00BCD4); // Cyan
-  static const Color beatModeSilent = Color(0xFFE91E63); // Magenta
-
-  // Bright versions for active state
-  static const Color beatModeNormalBright = Color(0xFFFF7B33); // Bright Orange
-  static const Color beatModeAccentBright = Color(0xFF26C6DA); // Bright Cyan
-  static const Color beatModeSilentBright = Color(0xFFEC407A); // Bright Magenta
-
-  // Error - Muted Red (very rare)
-  static const Color error = Color(0xFFFF2D55);
-  static const Color error10 = Color(0x1AFF2D55);
-
-  // Success - Orange or White
-  static const Color success = accentOrange;
-  static const Color successAlt = textPrimary;
-
-  // ============================================
-  // Status Colors
-  // ============================================
-
-  // Success (green - for non-orange success states)
-  static const Color successGreen = Color(0xFF4CAF50);
-  static const Color successGreen5 = Color(0x0D4CAF50); // 5% opacity
-
-  // Warning
-  static const Color warning = Color(0xFFFF9800);
-  static const Color warning5 = Color(0x0DFF9800); // 5% opacity
-
-  // Info
-  static const Color info = Color(0xFF2196F3);
-  static const Color info5 = Color(0x0D2196F3); // 5% opacity
-
-  // ============================================
-  // Role Colors
-  // ============================================
-
-  static const Color roleAdmin = Color(0xFFFF5252);
-  static const Color roleEditor = Color(0xFF42A5F5);
-  static const Color roleViewer = Color(0xFF9E9E9E);
-
-  // ============================================
-  // Match Grade Colors
-  // ============================================
-
-  static const Color matchExact = Color(0xFF4CAF50);
-  static const Color matchHigh = Color(0xFF8BC34A);
-  static const Color matchMedium = Color(0xFFFF9800);
-  static const Color matchLow = Color(0xFFF57C00);
-  static const Color matchNone = Color(0xFFF44336);
-
-  // ============================================
-  // Opacity Variants
-  // ============================================
-
-  // Error opacity variants — canonical naming convention (error{NN})
-  static const Color error5 = Color(0x0DFF2D55); // 5%
-  static const Color error20 = Color(0x33FF2D55); // 20%
-  static const Color error30 = Color(0x4DFF2D55); // 30%
-
-  // Orange opacity variants
-  static const Color orangeSubtle5 = Color(0x0DFF5A36); // 5%
-
-  // Accent orange opacity variants (for UI elements) — canonical naming.
-  static const Color accentOrange15 = Color(0x26FF5A36); // 15%
-  static const Color accentOrange20 = Color(0x33FF5A36); // 20%
-  static const Color accentOrange30 = Color(0x4DFF5A36); // 30%
-
-  // Border opacity variants
-  static const Color borderSubtle30 = Color(0x4D222222); // 30%
-
-  // ============================================
-  // Interaction State Overlays
-  // ============================================
-  // Used for hover, focus, pressed, and disabled states on both Material and custom surfaces.
-
-  static const Color stateHover = Color(
-    0x0AFFFFFF,
-  ); // White @ 4% (subtle hover highlight)
-  static const Color stateFocus = Color(
-    0x1EFF5A36,
-  ); // Orange @ 12% (accent-colored focus ring)
-  static const Color statePressed = Color(
-    0x29FF5A36,
-  ); // Orange @ 16% (darker press state)
-  static const Color stateDisabled = Color(
-    0x4D555555,
-  ); // Disabled text color @ 30% (reduced opacity)
-
-  // ============================================
-  // Section Colors (for song organization)
-  // ============================================
-  // 14 visually distinct colors that work on dark background
-  // Intentional exceptions to the monochrome + orange rule, enabling visual grouping in songs.
-
-  static const Color section1 = Color(0xFFE91E63); // Pink
-  static const Color section2 = Color(0xFF9C27B0); // Purple
-  static const Color section3 = Color(0xFF673AB7); // Deep Purple
-  static const Color section4 = Color(0xFF3F51B5); // Indigo
-  static const Color section5 = Color(0xFF03A9F4); // Light Blue
-  static const Color section6 = Color(0xFF00BCD4); // Cyan
-  static const Color section7 = Color(0xFF009688); // Teal
-  static const Color section8 = Color(0xFF4CAF50); // Green
-  static const Color section9 = Color(0xFF8BC34A); // Light Green
-  static const Color section10 = Color(0xFFCDDC39); // Lime
-  static const Color section11 = Color(0xFFFFEB3B); // Yellow
-  static const Color section12 = Color(0xFFFFC107); // Amber
-  static const Color section13 = Color(0xFFFF9800); // Orange
-  static const Color section14 = Color(0xFFFF5722); // Deep Orange
-
-  /// Complete list of section colors for easy iteration.
-  static const List<Color> sectionColors = [
-    section1,
-    section2,
-    section3,
-    section4,
-    section5,
-    section6,
-    section7,
-    section8,
-    section9,
-    section10,
-    section11,
-    section12,
-    section13,
-    section14,
-  ];
-
-  // ============================================
-  // Shared/Copy State Colors
-  // ============================================
-  // For indicating shared/copied songs in unified item cards
-
-  static const Color sharedBackground = Color(0xFFFFE0B2);
-  static const Color sharedIcon = Color(0xFFFF9800);
-
-  // ============================================
-  // Chart / Data-viz (practice minutes bar charts, #133)
-  // ============================================
-  // Sequential warm-sand pair alongside accentOrange, contrast-validated
-  // only against the dark surface — light-theme contrast is unverified
-  // (light mode is still a beta migration, see theme_mode_provider.dart).
-  static const Color chartWarmSecondary = Color(0xFFD9B49A);
-  static const Color chartWarmTertiary = Color(0xFF8A6A50);
-
-  // Special
-  static const Color transparent = Colors.transparent;
-  static const Color white = Color(0xFFFFFFFF);
-}
 
 /// Theme-dependent neutrals (#132): the 14 names above that must flip
 /// between dark and light. Brand accent, beat, status and section colors are
@@ -245,20 +64,20 @@ class MonoPulsePalette extends ThemeExtension<MonoPulsePalette> {
 
   /// Light FlowGroove: warm paper, stone hardware, and charcoal ink.
   static const light = MonoPulsePalette(
-    black: MonoPulseColors.paper,
-    blackSurface: Color(0xFFECEAE2),
-    blackElevated: MonoPulseColors.stone,
-    surface: Color(0xFFF9F8F3),
-    surfaceRaised: Color(0xFFE9E7DE),
-    surfaceOverlay: Color(0xFFDEDDD4),
-    borderSubtle: MonoPulseColors.stone,
-    borderDefault: MonoPulseColors.fog,
-    borderStrong: Color(0xFF77766E),
-    textPrimary: MonoPulseColors.charcoal,
-    textHighEmphasis: Color(0xFF11110F),
-    textSecondary: Color(0xFF45453F),
-    textTertiary: Color(0xFF62625A),
-    textDisabled: Color(0xFF85847B),
+    black: MonoPulseLight.black,
+    blackSurface: MonoPulseLight.blackSurface,
+    blackElevated: MonoPulseLight.blackElevated,
+    surface: MonoPulseLight.surface,
+    surfaceRaised: MonoPulseLight.surfaceRaised,
+    surfaceOverlay: MonoPulseLight.surfaceOverlay,
+    borderSubtle: MonoPulseLight.borderSubtle,
+    borderDefault: MonoPulseLight.borderDefault,
+    borderStrong: MonoPulseLight.borderStrong,
+    textPrimary: MonoPulseLight.textPrimary,
+    textHighEmphasis: MonoPulseLight.textHighEmphasis,
+    textSecondary: MonoPulseLight.textSecondary,
+    textTertiary: MonoPulseLight.textTertiary,
+    textDisabled: MonoPulseLight.textDisabled,
   );
 
   @override
@@ -326,180 +145,6 @@ extension MonoPulseContext on BuildContext {
       Theme.of(this).extension<MonoPulsePalette>() ?? MonoPulsePalette.dark;
 }
 
-/// FlowGroove typography: Marcellus for sign-like titles, Source Serif 4 for
-/// readable music notes and body copy, and Arial-like control labels.
-/// Strict 4-point grid scale
-class MonoPulseTypography {
-  MonoPulseTypography._();
-
-  // Keep family names as const strings so existing call sites stay const.
-  static const String fontFamily = 'Source Serif 4';
-  static const String fontFamilyDisplay = 'Marcellus';
-  static const String fontFamilyControl = 'Arial';
-
-  // Weights
-  static const FontWeight regular = FontWeight.w400;
-  static const FontWeight medium = FontWeight.w500;
-  static const FontWeight semibold = FontWeight.w600;
-  static const FontWeight bold = FontWeight.w700;
-
-  // Scale (4-point grid: 4, 8, 12, 16, 20, 24, 32, 40, 48)
-
-  // Display - Hero titles only
-  static const TextStyle displayLarge = TextStyle(
-    fontFamily: fontFamilyDisplay,
-    fontSize: 40,
-    fontWeight: semibold,
-    height: 1.32,
-    letterSpacing: -0.5,
-  );
-
-  static const TextStyle displayMedium = TextStyle(
-    fontFamily: fontFamilyDisplay,
-    fontSize: 32,
-    fontWeight: semibold,
-    height: 1.35,
-    letterSpacing: -0.25,
-  );
-
-  // Headings
-  static const TextStyle headlineLarge = TextStyle(
-    fontFamily: fontFamilyDisplay,
-    fontSize: 24,
-    fontWeight: semibold,
-    height: 1.38,
-  );
-
-  static const TextStyle headlineMedium = TextStyle(
-    fontFamily: fontFamilyDisplay,
-    fontSize: 20,
-    fontWeight: semibold,
-    height: 1.4,
-  );
-
-  static const TextStyle headlineSmall = TextStyle(
-    fontFamily: fontFamilyDisplay,
-    fontSize: 16,
-    fontWeight: semibold,
-    height: 1.45,
-  );
-
-  // Title - For tool screens
-  static const TextStyle titleLarge = TextStyle(
-    fontFamily: fontFamilyDisplay,
-    fontSize: 22,
-    fontWeight: semibold,
-    height: 1.36,
-  );
-
-  static const TextStyle titleMedium = TextStyle(
-    fontFamily: fontFamilyDisplay,
-    fontSize: 16,
-    fontWeight: semibold,
-    height: 1.45,
-  );
-
-  // Body
-  static const TextStyle bodyLarge = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 16,
-    fontWeight: regular,
-    height: 1.45,
-  );
-
-  static const TextStyle bodyMedium = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 15,
-    fontWeight: regular,
-    height: 1.43,
-  );
-
-  static const TextStyle bodySmall = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 13,
-    fontWeight: regular,
-    height: 1.33,
-  );
-
-  // Labels / Buttons
-  static const TextStyle labelLarge = TextStyle(
-    fontFamily: fontFamilyControl,
-    fontSize: 15,
-    fontWeight: medium,
-    height: 1.43,
-    letterSpacing: 0.1,
-  );
-
-  static const TextStyle labelMedium = TextStyle(
-    fontFamily: fontFamilyControl,
-    fontSize: 13,
-    fontWeight: medium,
-    height: 1.33,
-    letterSpacing: 0.5,
-  );
-
-  static const TextStyle labelSmall = TextStyle(
-    fontFamily: fontFamilyControl,
-    fontSize: 12,
-    fontWeight: medium,
-    height: 1.45,
-    letterSpacing: 0.5,
-  );
-}
-
-/// Spacing - 4-point grid system
-/// Generous padding for negative space
-class MonoPulseSpacing {
-  static const double xxs = 2;
-  static const double xs = 4;
-  static const double sm = 8;
-  static const double md = 12;
-  static const double lg = 16;
-  static const double xl = 20;
-  static const double xxl = 24;
-  static const double xxxl = 32;
-  static const double huge = 40;
-  static const double massive = 48;
-}
-
-/// Border Radius
-/// 12-16px cards/buttons, 8-10px small, 20-24px large
-class MonoPulseRadius {
-  static const double small = 8;
-  static const double medium = 10;
-  static const double large = 12;
-  static const double xlarge = 16;
-  static const double huge = 20;
-  static const double massive = 24;
-}
-
-/// Elevation & Shadows
-/// Very soft, subtle depth
-class MonoPulseElevation {
-  static const double none = 0;
-  static const double low = 2;
-  static const double medium = 4;
-  static const double high = 8;
-
-  static BoxShadow shadowLow = BoxShadow(
-    color: MonoPulseColors.black.withValues(alpha: 0.3),
-    blurRadius: 8,
-    offset: const Offset(0, 2),
-  );
-
-  static BoxShadow shadowMedium = BoxShadow(
-    color: MonoPulseColors.black.withValues(alpha: 0.4),
-    blurRadius: 16,
-    offset: const Offset(0, 4),
-  );
-
-  static BoxShadow shadowHigh = BoxShadow(
-    color: MonoPulseColors.black.withValues(alpha: 0.5),
-    blurRadius: 24,
-    offset: const Offset(0, 8),
-  );
-}
-
 /// Animation & Motion
 /// Short (120-180ms), buttery-smooth, purposeful
 class MonoPulseAnimation {
@@ -516,26 +161,6 @@ class MonoPulseAnimation {
   static const Curve curveCustom = Cubic(0.4, 0, 0.2, 1);
 }
 
-/// Icon Theme
-/// 1.5-2px line weight, outline preferred
-class MonoPulseIcons {
-  static const double sizeSmall = 16;
-  static const double sizeMedium = 20;
-  static const double sizeLarge = 24;
-  static const double sizeXLarge = 32;
-
-  static const double strokeWidthDefault = 1.5;
-  static const double strokeWidthBold = 2;
-}
-
-/// Border Widths
-/// For dividers, borders, and outlines
-class MonoPulseBorder {
-  static const double thin = 1;
-  static const double default_ = 1.5;
-  static const double bold = 2;
-}
-
 /// Mono Pulse theme — one parameterized builder (#132): dark and light share
 /// the exact ThemeData structure, differing only by [MonoPulsePalette].
 class MonoPulseTheme {
@@ -545,7 +170,7 @@ class MonoPulseTheme {
   static ThemeData get theme => _build(MonoPulsePalette.dark, Brightness.dark);
 
   /// The ColorScheme both themes share, exposed for direct testing (the
-  /// full ThemeData pulls GoogleFonts, which tests can't load).
+  /// full ThemeData is heavier than a scheme test needs).
   @visibleForTesting
   static ColorScheme schemeFor(MonoPulsePalette p, Brightness brightness) {
     final dark = brightness == Brightness.dark;
@@ -586,19 +211,6 @@ class MonoPulseTheme {
   }
 
   static ThemeData _build(MonoPulsePalette p, Brightness brightness) {
-    // google_fonts 9 builds on material_ui's TextTheme, a different type from
-    // this SDK's, so the *TextTheme() helpers no longer type-check. Kick off
-    // the per-weight loads directly; the const MonoPulse styles resolve the
-    // families by name afterwards.
-    for (final w in const [
-      FontWeight.w400,
-      FontWeight.w500,
-      FontWeight.w600,
-      FontWeight.w700,
-    ]) {
-      GoogleFonts.marcellus(fontWeight: w);
-      GoogleFonts.sourceSerif4(fontWeight: w);
-    }
     final dark = brightness == Brightness.dark;
     // White-based hover reads on dark; flip to black-based on light.
     final hover = dark ? MonoPulseColors.stateHover : const Color(0x0A000000);
@@ -637,33 +249,45 @@ class MonoPulseTheme {
             vertical: MonoPulseSpacing.lg,
           ),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(5)),
+            borderRadius: BorderRadius.all(
+              Radius.circular(MonoPulseRadius.button),
+            ),
             side: BorderSide(color: MonoPulseColors.charcoal, width: 1.2),
           ),
           textStyle: MonoPulseTypography.labelLarge,
         ).copyWith(overlayColor: _stateOverlay(hover)),
       ),
 
-      // Buttons - Filled. FilledButton had NO theme entry, so all ~34 usages
-      // fell back to Material's default StadiumBorder — that is why the
-      // Recorder's 'Record' was a pill while every other orange CTA was a
-      // rounded square (UX audit F-018).
+      // Buttons - Filled. One orange CTA look app-wide: FilledButton takes
+      // the same shape, charcoal border, shadow and label as the
+      // ElevatedButton theme (= CustomButton primary, FigCraft Button/Primary).
+      // Before 2026-11 it was radius 12 with no border, so a screen could show
+      // two different orange buttons (Save Song vs Share).
       //
-      // SHAPE LANGUAGE, which F-018 asked to have written down:
-      //   radius large (12)  — buttons that sit in a layout
+      // SHAPE LANGUAGE (UX audit F-018):
+      //   radius button (5)  — every button that sits in a layout
       //   radius xlarge (16) — floating / transport controls (FAB)
       //   stadium            — nowhere
       //
-      // Shape only, deliberately. background/foreground already resolve
-      // on-token through colorScheme.primary (accentOrange) / onPrimary
-      // (black); pinning colours here would repaint all 34 call sites orange,
-      // including the ones that are not primary CTAs.
+      // Colours are deliberately not pinned: they resolve through
+      // colorScheme.primary / onPrimary, so the few sites that repaint a
+      // FilledButton (neutral tool buttons) keep their own background.
+      // Padding stays Material's compact default: FilledButton is the
+      // dialog / sheet / inline CTA; full-width form CTAs use CustomButton.
+      // FilledButton.tonal shares this theme, so CustomButton's tonal variant
+      // clears the border and shadow itself; use it, not a raw .tonal.
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          elevation: 3,
+          shadowColor: dark ? MonoPulseColors.charcoal : MonoPulseColors.fog,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(MonoPulseRadius.button),
+            ),
+            side: BorderSide(color: MonoPulseColors.charcoal, width: 1.2),
           ),
-        ),
+          textStyle: MonoPulseTypography.labelLarge,
+        ).copyWith(overlayColor: _stateOverlay(hover)),
       ),
 
       // Buttons - Outlined (Secondary)
@@ -676,7 +300,9 @@ class MonoPulseTheme {
             vertical: MonoPulseSpacing.lg,
           ),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(5)),
+            borderRadius: BorderRadius.all(
+              Radius.circular(MonoPulseRadius.button),
+            ),
           ),
           textStyle: MonoPulseTypography.labelLarge,
         ).copyWith(overlayColor: _stateOverlay(hover)),
@@ -753,7 +379,7 @@ class MonoPulseTheme {
         elevation: 1,
         shadowColor: p.borderStrong,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.cardMaterial),
           side: BorderSide(color: p.borderDefault),
         ),
       ),
@@ -766,7 +392,7 @@ class MonoPulseTheme {
         elevation: 3,
         splashColor: MonoPulseColors.stone,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.fab),
           side: const BorderSide(color: MonoPulseColors.charcoal, width: 1.2),
         ),
       ),
@@ -865,13 +491,20 @@ class MonoPulseTheme {
         ),
       ),
 
-      // Load both brand font families for the const styles above.
-      textTheme: TextTheme(
+      // Brand fonts are bundled assets (pubspec `fonts:`), registered under
+      // the exact family names the const styles use. google_fonts registered
+      // them as e.g. "Marcellus_regular", so those styles never matched and
+      // every screen fell back to Roboto (fixed 2026-11-19).
+      textTheme: const TextTheme(
         // Slots the MonoPulse set does not define.
-        displaySmall: GoogleFonts.marcellus(),
-        titleLarge: GoogleFonts.marcellus(),
-        titleMedium: GoogleFonts.sourceSerif4(),
-        titleSmall: GoogleFonts.sourceSerif4(),
+        displaySmall: TextStyle(
+          fontFamily: MonoPulseTypography.fontFamilyDisplay,
+        ),
+        titleLarge: TextStyle(
+          fontFamily: MonoPulseTypography.fontFamilyDisplay,
+        ),
+        titleMedium: TextStyle(fontFamily: MonoPulseTypography.fontFamily),
+        titleSmall: TextStyle(fontFamily: MonoPulseTypography.fontFamily),
         displayLarge: MonoPulseTypography.displayLarge,
         displayMedium: MonoPulseTypography.displayMedium,
         headlineLarge: MonoPulseTypography.headlineLarge,
