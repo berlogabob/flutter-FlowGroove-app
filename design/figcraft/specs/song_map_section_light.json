@@ -1,0 +1,245 @@
+{
+  "name": "Song Map Section Light",
+  "page": "Song Map",
+  "mode": "light",
+  "source": "lib/screens/practice_regions_screen.dart",
+  "slot": 3,
+  "pad": [
+    12,
+    16,
+    12,
+    16
+  ],
+  "gap": 8,
+  "top": [
+    {
+      "t": "appbar",
+      "v": "Inocente",
+      "actions": [
+        {
+          "t": "chip",
+          "v": "170 BPM \u2713"
+        },
+        {
+          "t": "iconbtn",
+          "v": "edit"
+        }
+      ]
+    }
+  ],
+  "body": [
+    {
+      "t": "breadcrumb",
+      "items": [
+        "Song",
+        "Chorus 1"
+      ]
+    },
+    {
+      "t": "minimap",
+      "sections": [
+        {
+          "color": "section1",
+          "w": 58
+        },
+        {
+          "color": "section5",
+          "w": 180
+        },
+        {
+          "color": "section7",
+          "w": 130
+        }
+      ],
+      "viewport": [
+        118,
+        105
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "cross": "center",
+      "c": [
+        {
+          "t": "text",
+          "v": "SECTION",
+          "style": "labelSmall",
+          "color": "textSecondary"
+        },
+        {
+          "t": "text",
+          "v": "Bars 18\u201330",
+          "style": "labelMedium",
+          "color": "textPrimary"
+        }
+      ]
+    },
+    {
+      "t": "box",
+      "name": "Waveform",
+      "w": "fill",
+      "h": 72,
+      "bg": "surfaceRaised",
+      "radius": 8
+    },
+    {
+      "t": "ruler",
+      "labels": [
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 4,
+      "c": [
+        {
+          "t": "partblock",
+          "letter": "a",
+          "bars": 4,
+          "color": "section5",
+          "w": 122
+        },
+        {
+          "t": "partblock",
+          "letter": "b",
+          "bars": 4,
+          "color": "section5",
+          "w": 122,
+          "state": "selected"
+        },
+        {
+          "t": "partblock",
+          "letter": "a",
+          "bars": 4,
+          "color": "section5",
+          "w": 122
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 6,
+      "cross": "center",
+      "c": [
+        {
+          "t": "text",
+          "v": "Bar 26 \u00b7 0:47.1",
+          "style": "labelMedium",
+          "color": "textPrimary"
+        },
+        {
+          "t": "iconbtn",
+          "v": "arrow_left",
+          "size": 32
+        },
+        {
+          "t": "iconbtn",
+          "v": "arrow_right",
+          "size": 32
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 6,
+      "c": [
+        {
+          "t": "button",
+          "v": "Listen across",
+          "kind": "secondary",
+          "small": true
+        },
+        {
+          "t": "button",
+          "v": "Delete",
+          "kind": "danger",
+          "small": true
+        },
+        {
+          "t": "button",
+          "v": "Split",
+          "kind": "secondary",
+          "small": true
+        }
+      ]
+    },
+    {
+      "t": "section",
+      "v": "Parts",
+      "action": "Range"
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Whole section",
+          "sub": "12 bars \u00b7 Chorus 1",
+          "color": "section5",
+          "w": 186
+        },
+        {
+          "t": "pad",
+          "label": "Part a",
+          "sub": "4 bars \u00b7 Bars 18\u201321",
+          "color": "section5",
+          "w": 186
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part b",
+          "sub": "4 bars \u00b7 Bars 22\u201325",
+          "color": "section5",
+          "state": "queued",
+          "w": 186
+        },
+        {
+          "t": "pad",
+          "label": "Part a2",
+          "sub": "4 bars \u00b7 Bars 26\u201329",
+          "color": "section5",
+          "w": 186
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "transport",
+      "speed": 100,
+      "loop": true,
+      "click": true
+    }
+  ],
+  "overlay": [
+    {
+      "x": 270,
+      "y": 266,
+      "node": {
+        "t": "boundary",
+        "state": "selected",
+        "h": 102
+      }
+    }
+  ]
+}
