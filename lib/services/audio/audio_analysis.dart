@@ -58,10 +58,14 @@ List<int> detectOnsets(
   return onsets;
 }
 
+double snapBpm(double bpm) => (bpm - bpm.round()).abs() <= 0.05
+    ? bpm.roundToDouble()
+    : (bpm * 10).round() / 10;
+
 /// Tempo grid suggestion, 4/4 assumed. BPM from the envelope's
 /// autocorrelation in 70–180 BPM (beat + half-bar + bar lags), refined
 /// ±1 BPM on a beat comb; beat phase from that envelope, downbeat from a
-/// low-band comb (full-band fallback when nearly flat). Null for
+/// trusted first kick (low-band comb fallback). Null for
 /// clips under 4 s. [hintBpm] (the song's BPM) picks the octave: the
 /// detector can't tell 85 from 170, the song page usually can.
 /// ponytail: one global tempo; songs that drift need the manual grid.
@@ -87,7 +91,8 @@ List<int> detectOnsets(
   double lagOf(double bpm) => 60 * sampleRate / (bpm * _hop);
   // A beat echoes at 2 and 4 beats (half bar, bar in 4/4); a 3:2 or 2:3
   // ghost tempo doesn't, so the sum picks the real beat, not a polyrhythm.
-  var coarse = 70.0, bestScore = double.negativeInfinity;
+  var coarse = 70.0;
+  var bestScore = double.negativeInfinity;
   for (var bpm = 70.0; bpm <= 180; bpm += 0.5) {
     final lag = lagOf(bpm);
     final score =
@@ -114,15 +119,37 @@ List<int> detectOnsets(
     return n == 0 ? 0 : s / n;
   }
 
-  var period = lagOf(coarse);
-  var phase = 0.0;
-  var score = -1.0;
-  for (var bpm = coarse - 1; bpm <= coarse + 1; bpm += 0.05) {
-    final p = lagOf(bpm);
-    for (var o = 0; o < p; o++) {
-      final v = comb(o.toDouble(), p);
-      if (v > score) (score, period, phase) = (v, p, o.toDouble());
+  ({double period, double phase}) refine(double center) {
+    var period = lagOf(center);
+    var phase = 0.0;
+    var score = -1.0;
+    for (var step = 0; step <= 40; step++) {
+      final p = lagOf(center - 1 + step * 0.05);
+      for (var o = 0; o < p; o++) {
+        final v = comb(o.toDouble(), p);
+        if (v > score) (score, period, phase) = (v, p, o.toDouble());
+      }
     }
+    return (period: period, phase: phase);
+  }
+
+  var refined = refine(coarse);
+  final measured = 60 * sampleRate / (refined.period * _hop);
+  final metered = meterBpm(env, sampleRate / _hop, measured);
+  if (metered != measured) refined = refine(metered);
+  var period = refined.period;
+  var phase = refined.phase;
+  var bpm = 60 * sampleRate / (period * _hop);
+  // Keep octave hints on the final meter before choosing the downbeat.
+  if (hintBpm != null && hintBpm > 0) {
+    for (final octave in [bpm * 2, bpm / 2]) {
+      if ((octave - hintBpm).abs() < (bpm - hintBpm).abs() &&
+          (octave - hintBpm).abs() <= hintBpm * 0.08) {
+        bpm = octave;
+      }
+    }
+    period = lagOf(bpm);
+    phase %= period;
   }
   var down = phase;
   for (var k = 1; k < 4; k++) {
@@ -147,20 +174,142 @@ List<int> detectOnsets(
   if (lowMean > 0 && lowMax / lowMean >= 1.1) {
     down = phase + lowScores.indexOf(lowMax) * period;
   }
-  var bpm = 60 * sampleRate / (period * _hop);
-  // Octave only (x2, /2): x1.5 would bring back the 3:2 ghost tempo.
-  if (hintBpm != null && hintBpm > 0) {
-    for (final octave in [bpm * 2, bpm / 2]) {
-      if ((octave - hintBpm).abs() < (bpm - hintBpm).abs() &&
-          (octave - hintBpm).abs() <= hintBpm * 0.08) {
-        bpm = octave;
-      }
-    }
-  }
+  final kick = firstKickSeconds(pcm, sampleRate);
+  final phaseSeconds = phase * _hop / sampleRate;
+  final beatSeconds = period * _hop / sampleRate;
+  final k = kickDownbeatIndex(
+    kick,
+    phaseSeconds,
+    beatSeconds,
+    ((down - phase) / period).round(),
+  );
+  down = phase + k * period;
   return (
-    bpm: (bpm * 10).round() / 10,
+    bpm: snapBpm(bpm),
     firstDownbeatMs: _blockMs(down, sampleRate).round(),
   );
+}
+
+/// Lua's beat + bar meter comparison, interpolating fractional AC lags.
+double meterBpm(List<double> strength, double rate, double bpm) {
+  final n = strength.length;
+  if (rate <= 0 || bpm <= 0 || n <= (4 * rate * 60 / (bpm * 3 / 4)).ceil()) {
+    return bpm;
+  }
+  final mean = strength.reduce((a, b) => a + b) / n;
+  double at(int k) {
+    var sum = 0.0;
+    for (var i = 0; i < n - k; i++) {
+      sum += (strength[i] - mean) * (strength[i + k] - mean);
+    }
+    return sum / (n - k);
+  }
+
+  double ac(double lag) {
+    final k = lag.floor();
+    final fraction = lag - lag.floor();
+    return at(k) * (1 - fraction) + at(k + 1) * fraction;
+  }
+
+  double score(double candidate) {
+    final beat = rate * 60 / candidate;
+    return ac(beat) + ac(4 * beat);
+  }
+
+  return score(bpm * 3 / 4) > score(bpm) ? bpm * 3 / 4 : bpm;
+}
+
+/// Only an on-beat first kick may override the full-song downbeat comb.
+int kickDownbeatIndex(double? kick, double phase, double period, int comb) {
+  if (kick == null) return comb;
+  final beats = (kick - phase) / period;
+  final beat = (beats + 0.5).floor();
+  return (beats - beat).abs() <= 0.25 ? beat % 4 : comb;
+}
+
+/// First low-band drum entry, using kick.lua's cascaded 110 Hz biquads and
+/// 10 ms energy buckets. Null for silence; callers gate against the beat phase.
+double? firstKickSeconds(Int16List pcm, int sampleRate) {
+  if (sampleRate <= 220 || pcm.isEmpty) return null;
+  final w = 2 * pi * 110 / sampleRate;
+  final c = cos(w);
+  final alpha = sin(w) / (2 * 0.70710678);
+  final a0 = 1 + alpha;
+  final b0 = (1 - c) / (2 * a0);
+  final b1 = (1 - c) / a0;
+  final a1 = -2 * c / a0;
+  final a2 = (1 - alpha) / a0;
+  double z1 = 0;
+  double z2 = 0;
+  double z3 = 0;
+  double z4 = 0;
+  double sum = 0;
+  var bucket = 0;
+  var count = 0;
+  final low = <double>[];
+  for (var i = 0; i < pcm.length; i++) {
+    final next = i * 100 ~/ sampleRate;
+    if (next != bucket) {
+      low.add(sum / count);
+      bucket = next;
+      sum = 0;
+      count = 0;
+    }
+    final x = pcm[i] / 32768;
+    final y = b0 * x + z1;
+    z1 = b1 * x - a1 * y + z2;
+    z2 = b0 * x - a2 * y;
+    final value = b0 * y + z3;
+    z3 = b1 * y - a1 * value + z4;
+    z4 = b0 * y - a2 * value;
+    sum += value * value;
+    count++;
+  }
+  if (count > 0) low.add(sum / count);
+  return kickEntrySeconds(low, 100);
+}
+
+/// Pure envelope decoder, also used by the Lua reference's synthetic checks.
+double? kickEntrySeconds(List<double> low, double rate) {
+  if (low.isEmpty) return null;
+  final energy = [for (final x in low) log(1 + 1e4 * x)];
+  final onsets = [
+    for (var i = 0; i < energy.length; i++)
+      max(0, energy[i] - (i == 0 ? 0 : energy[i - 1])),
+  ];
+  final sorted = [...energy]..sort();
+  if (sorted.last == 0) return null;
+  final median =
+      (sorted[(sorted.length - 1) ~/ 2] + sorted[sorted.length ~/ 2]) / 2;
+  final window = max(1, rate.round());
+  var sum = 0.0;
+  var entry = -1;
+  for (var i = 0; i < energy.length; i++) {
+    sum += energy[i] - (i >= window ? energy[i - window] : 0);
+    if (sum / min(i + 1, window) >= 0.5 * median) {
+      entry = i;
+      break;
+    }
+  }
+  if (entry < 0) return null;
+  final peaks = [...onsets]..sort();
+  final threshold = peaks[(0.97 * peaks.length).ceil() - 1];
+  int? strongest;
+  for (
+    var i = max(0, (entry - rate).ceil());
+    i <= min(onsets.length - 1, (entry + 0.5 * rate).floor());
+    i++
+  ) {
+    if (onsets[i] > (i == 0 ? 0 : onsets[i - 1]) &&
+        onsets[i] >= (i + 1 == onsets.length ? 0 : onsets[i + 1])) {
+      if (onsets[i] > threshold) {
+        strongest = i;
+        break;
+      }
+      if (strongest == null || onsets[i] > onsets[strongest]) strongest = i;
+    }
+  }
+  return (strongest ?? entry) / rate;
 }
 
 /// Candidate section cuts where the song's texture changes, strongest
