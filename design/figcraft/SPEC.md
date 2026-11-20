@@ -134,17 +134,17 @@ Examples: `examples/modal_dialog.json`, `examples/modal_sheet.json`.
 ## Components
 
 `setup` and `all` build a component library on the "Components" page, and screens use instances of it:
-- **Button:** variants Variant (Primary, Secondary, Outline, Text, Tonal, Danger, following CustomButton) and Size (Small, Medium, Large). Spec `kind: secondary` still means Outline; `kind: white` gives CustomButton's white Secondary; `size: small|medium|large` is optional.
+- **Button:** variants Variant (Primary, Secondary, Outline, Text, Tonal, Danger, following CustomButton), Size (Small, Medium, Large), and State (Default, Disabled, Loading). Disabled uses 38% opacity; Loading shows a spinner glyph instead of the label. Spec `kind: secondary` still means Outline; `kind: white` gives CustomButton's white Secondary; `size: small|medium|large` is optional.
 - **FAB, IconButton, Badge:** single components.
-- **Chip:** variant State.
+- **Chip:** variant State (Default, Selected, Disabled). Disabled uses 38% opacity.
 - **Avatar:** variant Type (Initials, Icon).
 - **Switch, Checkbox:** variant State (On, Off).
-- **Input:** variants State (Hint, Filled) and Lines (Single, Multi).
+- **Input:** variants State (Hint, Filled, Focus, Error, Disabled) and Lines (Single, Multi). Focus uses a 2 px `accentOrange` border; Error uses an `error` border and helper text; Disabled uses 38% opacity.
 - **Slider, Progress:** variant Value, in 10% steps.
 - **Tab, Segment, NavItem:** variant State.
 - **BottomNav:** variant Tab.
 - **StatusBar, SectionHeader:** single components.
-- **ListTile:** Leading and Trailing slots.
+- **ListTile:** variant State (Default, Selected) and Leading and Trailing slots. Selected uses an `accentOrange10` background.
 - **SwitchRow:** variant State, Leading slot.
 - **AppBar:** variant Leading (Back, None), Actions slot.
 - **ActionBar:** a nested Primary button.

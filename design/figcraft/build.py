@@ -368,10 +368,15 @@ def m_button(e, n, parent, pdir):
         d.update(border=border, borderW=1.2 if variant in ("primary", "secondary", "danger", "fab") else 1)
     if variant in ("primary", "secondary", "danger", "fab"):
         d["shadow"] = True
+    state = n.get("state", "default")
+    if state == "disabled":
+        d["opacity"] = .38
     kids = []
-    if n.get("icon"):
+    if state == "loading":
+        kids.append({"t": "icon", "v": "autorenew", "size": 18, "color": fg, "layer": "Loading"})
+    if n.get("icon") and state != "loading":
         kids.append({"t": "icon", "v": n["icon"], "size": isz, "color": fg, "layer": "Icon"})
-    if n.get("v"):
+    if n.get("v") and state != "loading":
         kids.append({"t": "text", "v": n["v"], "style": "labelLarge", "color": fg, "w": "hug",
                      "name": "Label"})
     d["c"] = kids
@@ -382,6 +387,8 @@ def m_chip(e, n, parent, pdir):
     sel = n.get("sel")
     d = {"name": "Chip", "bg": "stone" if sel else "surfaceRaised", "border": "borderDefault",
          "radius": 10, "pad": [6, 12, 6, 12], "gap": 4, "cross": "center", "w": "hug"}
+    if n.get("state") == "disabled":
+        d["opacity"] = .38
     fg = "charcoal" if sel else "textPrimary"
     kids = [{"t": "icon", "v": n["icon"], "size": 16, "color": fg, "layer": "Icon"}] if n.get("icon") else []
     kids.append({"t": "text", "v": n.get("v", ""), "style": "labelMedium", "color": fg, "w": "hug",
@@ -395,7 +402,9 @@ def m_input(e, n, parent, pdir):
     if n.get("label"):
         kids.append({"t": "text", "v": n["label"], "style": "labelMedium", "color": "textSecondary",
                      "name": "Label"})
-    field = {"name": "Field", "bg": "white", "border": "borderDefault", "radius": 10,
+    state = n.get("state", "filled" if n.get("v") else "hint")
+    field = {"name": "Field", "bg": "white", "border": "accentOrange" if state == "focus" else "error" if state == "error" else "borderDefault",
+             "borderW": 2 if state == "focus" else 1, "radius": 10,
              "pad": [14, 14, 14, 14], "gap": 10, "cross": "min" if n.get("lines") else "center",
              "c": []}
     if n.get("lines"):
@@ -408,7 +417,11 @@ def m_input(e, n, parent, pdir):
     if n.get("trail"):
         field["c"].append({"t": "icon", "v": n["trail"], "size": 20, "color": "#62625A", "layer": "Trail"})
     kids.append(dict(field, t="row"))
+    if state == "error":
+        kids.append({"t": "text", "name": "Helper", "v": n.get("helper", "Please check this field"),
+                      "style": "bodySmall", "color": "error"})
     return m_container("v")(e, {"name": n.get("name", "Input"), "gap": 6, "c": kids,
+                                "opacity": .38 if state == "disabled" else 1,
                                 "w": n.get("w", "fill" if pdir == "v" else "hug")}, parent, pdir)
 
 
@@ -456,6 +469,8 @@ def m_tile(e, n, parent, pdir):
     for k in ("border", "radius"):
         if k in n:
             d[k] = n[k]
+    if n.get("selected"):
+        d["bg"] = "accentOrange10"
     return m_container("h")(e, d, parent, pdir)
 
 
@@ -984,16 +999,18 @@ def i_button(n, pdir):
     p, over = {"Label": str(n.get("v", "")), "Show label": bool(n.get("v"))}, {}
     icon_prop(p, over, n.get("icon"))
     size = n.get("size") or ("small" if n.get("small") else "medium")
-    return dict(v={"Variant": SPEC_KIND[kind].capitalize(), "Size": size.capitalize()}, p=p, over=over, w="hug")
+    state = n.get("state", "default").capitalize()
+    return dict(v={"Variant": SPEC_KIND[kind].capitalize(), "Size": size.capitalize(), "State": state},
+                p=p, over=over, root={"opacity": .38} if state == "Disabled" else {}, w="hug")
 
 
 INV_KIND = {"Primary": "primary", "Secondary": "white", "Outline": "secondary", "Text": "text", "Tonal": "tonal",
             "Danger": "danger"}
 comp("Button", ["button"],
      lambda v: {"t": "button", "kind": INV_KIND[v["Variant"]], "size": v["Size"].lower(), "v": "Button",
-                "icon": "add"},
+                "icon": "add", "state": v["State"].lower()},
      i_button, axes={"Variant": ["Primary", "Secondary", "Outline", "Text", "Tonal", "Danger"],
-                     "Size": ["Medium", "Small", "Large"]},
+                     "Size": ["Medium", "Small", "Large"], "State": ["Default", "Disabled", "Loading"]},
      props=[("Label", "text", "Label", None), ("Show label", "boolean", "Label", True),
             ("Icon", "text", "Icon", None), ("Show icon", "boolean", "Icon", False)])
 
@@ -1027,11 +1044,13 @@ comp("IconButton", ["iconbtn"], lambda v: {"t": "iconbtn", "v": "settings"}, i_i
 def i_chip(n, pdir):
     p, over = {"Label": str(n.get("v", ""))}, {}
     icon_prop(p, over, n.get("icon"))
-    return dict(v={"State": "Selected" if n.get("sel") else "Default"}, p=p, over=over, w="hug")
+    state = "Disabled" if n.get("state") == "disabled" else "Selected" if n.get("sel") else "Default"
+    return dict(v={"State": state}, p=p, over=over, root={"opacity": .38} if state == "Disabled" else {}, w="hug")
 
 
-comp("Chip", ["chip"], lambda v: {"t": "chip", "v": "Chip", "icon": "add", "sel": v["State"] == "Selected"},
-     i_chip, axes={"State": ["Default", "Selected"]},
+comp("Chip", ["chip"], lambda v: {"t": "chip", "v": "Chip", "icon": "add", "sel": v["State"] == "Selected",
+                                   "state": "disabled" if v["State"] == "Disabled" else "default"},
+     i_chip, axes={"State": ["Default", "Selected", "Disabled"]},
      props=[("Label", "text", "Label", None), ("Icon", "text", "Icon", None),
             ("Show icon", "boolean", "Icon", False)])
 
@@ -1085,14 +1104,17 @@ def i_input(n, pdir):
     icon_prop(p, over, n.get("trail"), layer="Trail", show="Show trail")
     if n.get("trail"):
         p["Trail"] = p.pop("Trail")
-    return dict(v={"State": "Filled" if n.get("v") else "Hint", "Lines": "Multi" if n.get("lines") else "Single"},
-                p=p, over=over, w=fill_w(pdir))
+    state = n.get("state") or ("filled" if n.get("v") else "hint")
+    return dict(v={"State": state.capitalize(), "Lines": "Multi" if n.get("lines") else "Single"},
+                p=p, over=over, root={"opacity": .38} if state == "disabled" else {}, w=fill_w(pdir))
 
 
 comp("Input", ["input"],
      lambda v: {"t": "input", "label": "Label", "icon": "search", "trail": "close", "hint": "Hint",
-                "v": "Value" if v["State"] == "Filled" else None, "lines": 3 if v["Lines"] == "Multi" else None},
-     i_input, axes={"State": ["Hint", "Filled"], "Lines": ["Single", "Multi"]},
+                "v": "Value" if v["State"] in ("Filled", "Focus", "Error") else None,
+                "state": v["State"].lower(), "helper": "Please check this field",
+                "lines": 3 if v["Lines"] == "Multi" else None},
+     i_input, axes={"State": ["Hint", "Filled", "Focus", "Error", "Disabled"], "Lines": ["Single", "Multi"]},
      props=[("Label", "text", "Label", None), ("Show label", "boolean", "Label", True),
             ("Value", "text", "Value", None), ("Icon", "text", "Icon", None),
             ("Show icon", "boolean", "Icon", False), ("Trail", "text", "Trail", None),
@@ -1176,6 +1198,10 @@ def i_tile(n, pdir, switch=None):
         slots["Trailing"] = [trail_node(t) for t in trail]
     over = {"Title": {"textStyle": f"Type/{n['titleStyle']}"}} if n.get("titleStyle") else {}
     out = dict(p=p, over=over, slots=slots, root=frame_over(n, ("bg", "border", "radius", "pad")), w=fill_w(pdir))
+    if switch is None:
+        out["v"] = {"State": "Selected" if n.get("selected") else "Default"}
+        if n.get("selected"):
+            out["root"]["fill"] = color("accentOrange10")
     if switch is not None:
         out["v"] = {"State": "On" if switch else "Off"}
     return out
@@ -1183,7 +1209,9 @@ def i_tile(n, pdir, switch=None):
 
 TILE_PROPS = [("Title", "text", "Title", None), ("Subtitle", "text", "Subtitle", None),
               ("Show subtitle", "boolean", "Subtitle", True), ("Show leading", "boolean", "Leading", False)]
-comp("ListTile", ["tile"], lambda v: {"t": "tile", "title": "Title", "sub": "Subtitle", "_slots": True}, i_tile,
+comp("ListTile", ["tile"], lambda v: {"t": "tile", "title": "Title", "sub": "Subtitle", "_slots": True,
+                                        "selected": v["State"] == "Selected"}, i_tile,
+     axes={"State": ["Default", "Selected"]},
      props=TILE_PROPS + [("Show trailing", "boolean", "Trailing", False)],
      slots=[("Leading", "Leading", "h"), ("Trailing", "Trailing", "h")])
 comp("SwitchRow", ["switchrow"],
@@ -1355,7 +1383,7 @@ CONNECT = {
                'CustomButton(label: {Label}, variant: {Variant}, size: {Size},{Show icon ? " icon: Icons.add /* icon */," : ""} onPressed: () {})',
                "CustomButton. Primary = orange CTA, Secondary = white raised, Outline = OutlinedButton, Text = TextButton, "
                "Tonal = FilledButton.tonal (no border, no shadow), Danger = destructive (error red). Radius 5 (Radius/button). "
-               "Use it instead of raw ElevatedButton / OutlinedButton."),
+               "State: Default, Disabled (38% opacity), Loading (spinner glyph). Use it instead of raw ElevatedButton / OutlinedButton."),
     "FAB": (MAT, "FloatingActionButton",
             'FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add /* icon */))',
             "FloatingActionButton (theme: white, charcoal 1.2 border, radius 6). Add actions only; orange is reserved for play/primary."),
@@ -1363,7 +1391,7 @@ CONNECT = {
                    "Material IconButton, 48x48 hit area."),
     "Chip": (APP + "app_filter_chip.dart", "AppFilterChip",
              'AppFilterChip(label: {Label}, selected: {State} == ChipState.selected, onSelected: (_) {})',
-             "AppFilterChip: filters and single choices. Selected = stone fill."),
+             "AppFilterChip: filters and single choices. Selected = stone fill; Disabled = 38% opacity."),
     "Avatar": (APP + "user_avatar.dart", "UserAvatar", 'UserAvatar(photoURL: null, displayName: {Initials})',
                "UserAvatar / CircleAvatar: initials or an icon on surfaceOverlay."),
     "Switch": (MAT, "Switch", 'Switch(value: {State} == SwitchState.on, onChanged: (v) {})', "Material Switch."),
@@ -1371,7 +1399,7 @@ CONNECT = {
     "Input": (APP + "custom_text_field.dart", "CustomTextField",
               'CustomTextField(label: {Show label ? "" : "null /* "}{Label}{Show label ? "" : " */"}, hint: {Value},'
               '{Show icon ? " prefixIcon: Icons.search /* icon */," : ""} maxLines: {Lines} == InputLines.multi ? 3 : 1)',
-              "CustomTextField / TextField: white fill, borderDefault, radius 10 (MonoPulseRadius.medium)."),
+              "CustomTextField / TextField: white fill, borderDefault, radius 10 (MonoPulseRadius.medium). Focus = 2px accentOrange border; Error = error border and helper text; Disabled = 38% opacity."),
     "Slider": (MAT, "Slider", 'Slider(value: 0.5 /* {Value} */, onChanged: (v) {})', "Material Slider; Value variants in 10% steps."),
     "Progress": (MAT, "LinearProgressIndicator", 'LinearProgressIndicator(value: 0.5 /* {Value} */)',
                  "LinearProgressIndicator; Value variants in 10% steps."),
@@ -1393,7 +1421,7 @@ CONNECT = {
                  'ListTile(title: Text({Title}), subtitle: {Show subtitle ? "Text(" : "null /* "}{Subtitle}{Show subtitle ? ")" : " */"},'
                  '{Show leading ? " leading: /* Leading slot */ const Icon(Icons.circle)," : ""}'
                  '{Show trailing ? " trailing: /* Trailing slot */ const Icon(Icons.chevron_right)," : ""})',
-                 "Material ListTile. Leading and Trailing are slots."),
+                 "Material ListTile. Selected uses accentOrange10 background. Leading and Trailing are slots."),
     "SwitchRow": (MAT, "SwitchListTile",
                   'SwitchListTile(title: Text({Title}), subtitle: {Show subtitle ? "Text(" : "null /* "}{Subtitle}{Show subtitle ? ")" : " */"}, '
                   'value: {State} == SwitchRowState.on, onChanged: (v) {})',

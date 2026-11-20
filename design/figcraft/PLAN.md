@@ -52,7 +52,7 @@ Full plan: ~/.claude/plans/clever-baking-axolotl.md. Order: 1 → 3.1–3.3 → 
 - [x] One orange CTA (2026-11-19): `filledButtonTheme` = primary look (radius 5, charcoal border, shadow, labelLarge). Colours stay on colorScheme, padding stays compact. No call-site churn for the ~50 FilledButtons; raw `.tonal` sites moved to `CustomButton(tonal)`, which clears the border and shadow. FigCraft tonal is now radius 5. Verified: P30 before/after, tests 3335, APK and web builds.
 - [x] Font bug (2026-11-19): every screen rendered in Roboto, because google_fonts registers "Marcellus_regular" while the const styles ask for "Marcellus". Fonts are now bundled (assets/fonts, OFL, hash-verified from gstatic) under the exact names, and google_fonts is removed. Verified on the P30, tests 3335, APK and web builds.
 - [ ] Icons page (226 icons) with instance swap and Code Connect `Icons.<name>`.
-- [ ] States: button disabled and loading; input focus, error and disabled; chip disabled; list tile selected.
+- [x] States: button disabled and loading; input focus, error and disabled; chip disabled; list tile selected.
 - [ ] Pattern components from repeated spec subtrees.
 - [x] Docs: usage notes, contrast matrix, touch-target note (48×48 dp minimum).
 - [x] Song Map components and spec nodes, Light and Dark modes, required pad contrast, and a demo spec.
