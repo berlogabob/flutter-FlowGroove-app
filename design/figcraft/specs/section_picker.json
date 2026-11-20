@@ -1,0 +1,42 @@
+{
+  "name": "Section Picker",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/components/song_constructor/song_constructor.dart:79",
+  "slot": 2,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Add Section",
+      "c": [
+        {
+          "t": "tabs",
+          "items": ["Parts", "Colors"],
+          "sel": 0
+        },
+        {
+          "t": "row",
+          "wrap": true,
+          "gap": 8,
+          "c": [
+            {"t": "chip", "v": "Intro"},
+            {"t": "chip", "v": "Verse"},
+            {"t": "chip", "v": "Chorus"},
+            {"t": "chip", "v": "Bridge"},
+            {"t": "chip", "v": "Pre-Chorus"},
+            {"t": "chip", "v": "Outro"},
+            {"t": "chip", "v": "Instrumental"},
+            {"t": "chip", "v": "Solo"},
+            {"t": "chip", "v": "Pause"}
+          ]
+        },
+        {"t": "divider"},
+        {"t": "text", "v": "Or create custom:", "style": "titleLarge"},
+        {"t": "row", "gap": 12, "c": [
+          {"t": "input", "hint": "Custom name", "w": "fill"},
+          {"t": "button", "kind": "primary", "v": "Add", "w": "hug"}
+        ]}
+      ]
+    }
+  ]
+}

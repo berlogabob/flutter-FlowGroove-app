@@ -1,0 +1,305 @@
+{
+  "name": "Song page",
+  "page": "Songs",
+  "source": "lib/screens/songs/song_page_screen.dart",
+  "route": "/main/songs/{song}",
+  "slot": 3,
+  "top": [
+    {
+      "t": "row",
+      "pad": [
+        12,
+        16,
+        0,
+        16
+      ],
+      "cross": "center",
+      "c": [
+        {
+          "t": "col",
+          "w": "fill",
+          "c": [
+            {
+              "t": "text",
+              "v": "Wonderwall",
+              "style": "titleLarge"
+            },
+            {
+              "t": "text",
+              "v": "Oasis · F#m · 87 BPM",
+              "style": "labelLarge",
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "iconbtn",
+          "v": "fullscreen",
+          "bg": "surfaceRaised",
+          "radius": 24
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "pad": [
+        12,
+        16,
+        8,
+        16
+      ],
+      "c": [
+        {
+          "t": "row",
+          "w": "fill",
+          "border": "borderDefault",
+          "radius": 20,
+          "cross": "center",
+          "c": [
+            {
+              "t": "row",
+              "w": "fill",
+              "pad": [
+                10,
+                8,
+                10,
+                8
+              ],
+              "gap": 8,
+              "main": "center",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "edit_outlined",
+                  "size": 18
+                },
+                {
+                  "t": "text",
+                  "v": "Edit",
+                  "style": "labelMedium",
+                  "w": "hug"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "w": "fill",
+              "pad": [
+                10,
+                8,
+                10,
+                8
+              ],
+              "gap": 8,
+              "bg": "surfaceRaised",
+              "main": "center",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "queue_music",
+                  "size": 18
+                },
+                {
+                  "t": "text",
+                  "v": "Sheet",
+                  "style": "labelMedium",
+                  "w": "hug"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "w": "fill",
+              "pad": [
+                10,
+                8,
+                10,
+                8
+              ],
+              "gap": 8,
+              "main": "center",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "science_outlined",
+                  "size": 18
+                },
+                {
+                  "t": "text",
+                  "v": "Lab",
+                  "style": "labelMedium",
+                  "w": "hug"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "body": [
+    {
+      "t": "col",
+      "pad": 16,
+      "gap": 10,
+      "c": [
+        {
+          "t": "text",
+          "v": "Verse 1",
+          "style": "titleMedium",
+          "color": "accentOrange"
+        },
+        {
+          "t": "text",
+          "v": "F#m              A",
+          "style": "headlineSmall",
+          "color": "accentOrange"
+        },
+        {
+          "t": "text",
+          "v": "Today is gonna be the day",
+          "style": "headlineSmall"
+        },
+        {
+          "t": "text",
+          "v": "E                     B",
+          "style": "headlineSmall",
+          "color": "accentOrange"
+        },
+        {
+          "t": "text",
+          "v": "That they're gonna throw it back to you",
+          "style": "headlineSmall"
+        },
+        {
+          "t": "spacer",
+          "size": 10
+        },
+        {
+          "t": "text",
+          "v": "Chorus",
+          "style": "titleMedium",
+          "color": "accentOrange"
+        },
+        {
+          "t": "text",
+          "v": "D          F#m           A",
+          "style": "headlineSmall",
+          "color": "accentOrange"
+        },
+        {
+          "t": "text",
+          "v": "And all the roads we have to walk",
+          "style": "headlineSmall"
+        },
+        {
+          "t": "text",
+          "v": "E",
+          "style": "headlineSmall",
+          "color": "accentOrange"
+        },
+        {
+          "t": "text",
+          "v": "are winding",
+          "style": "headlineSmall"
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "col",
+      "pad": [
+        8,
+        12,
+        8,
+        12
+      ],
+      "c": [
+        {
+          "t": "row",
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "music_note",
+              "size": 24,
+              "color": "textSecondary"
+            },
+            {
+              "t": "spacer",
+              "size": 8
+            },
+            {
+              "t": "text",
+              "v": "Semitones",
+              "style": "labelLarge",
+              "w": "hug"
+            },
+            {
+              "t": "spacer"
+            },
+            {
+              "t": "iconbtn",
+              "v": "remove"
+            },
+            {
+              "t": "text",
+              "v": "Original",
+              "style": "labelLarge",
+              "w": "hug"
+            },
+            {
+              "t": "iconbtn",
+              "v": "add"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "cross": "center",
+          "c": [
+            {
+              "t": "iconbtn",
+              "v": "play_arrow",
+              "bg": "accentOrange",
+              "color": "black",
+              "radius": 24
+            },
+            {
+              "t": "spacer",
+              "size": 8
+            },
+            {
+              "t": "iconbtn",
+              "v": "remove"
+            },
+            {
+              "t": "text",
+              "v": "35 px/s",
+              "style": "labelLarge",
+              "w": "hug"
+            },
+            {
+              "t": "iconbtn",
+              "v": "add"
+            },
+            {
+              "t": "spacer"
+            },
+            {
+              "t": "chip",
+              "v": "Manual"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "t": "actionbar"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "name": "Song page · Edit tab",
+  "page": "Songs",
+  "source": "lib/screens/songs/song_page_screen.dart",
+  "slot": 9,
+  "top": [
+    {"t": "row", "pad": [12, 16, 0, 16], "cross": "center", "c": [
+      {"t": "col", "w": "fill", "c": [
+        {"t": "text", "v": "Wonderwall", "style": "titleLarge"},
+        {"t": "text", "v": "Oasis · F#m · 87 BPM", "style": "labelLarge", "color": "textSecondary"}
+      ]},
+      {"t": "iconbtn", "v": "fullscreen", "bg": "surfaceRaised", "radius": 24}
+    ]},
+    {"t": "row", "pad": [12, 16, 8, 16], "c": [
+      {"t": "row", "w": "fill", "border": "borderDefault", "radius": 20, "cross": "center", "c": [
+        {"t": "row", "w": "fill", "pad": [10, 8, 10, 8], "gap": 8, "bg": "surfaceRaised", "main": "center", "cross": "center", "c": [
+          {"t": "icon", "v": "edit_outlined", "size": 18}, {"t": "text", "v": "Edit", "style": "labelMedium", "w": "hug"}
+        ]},
+        {"t": "row", "w": "fill", "pad": [10, 8, 10, 8], "gap": 8, "main": "center", "cross": "center", "c": [
+          {"t": "icon", "v": "queue_music", "size": 18}, {"t": "text", "v": "Sheet", "style": "labelMedium", "w": "hug"}
+        ]},
+        {"t": "row", "w": "fill", "pad": [10, 8, 10, 8], "gap": 8, "main": "center", "cross": "center", "c": [
+          {"t": "icon", "v": "science_outlined", "size": 18}, {"t": "text", "v": "Lab", "style": "labelMedium", "w": "hug"}
+        ]}
+      ]}
+    ]}
+  ],
+  "body": [
+    {"t": "col", "pad": 16, "gap": 16, "c": [
+      {"t": "input", "label": "Title *", "v": "Wonderwall"},
+      {"t": "input", "label": "Artist", "v": "Oasis"},
+      {"t": "input", "hint": "Search the web to autofill", "icon": "music_note", "trail": "travel_explore"},
+      {"t": "row", "bg": "surface", "border": "borderDefault", "radius": 12, "pad": [12, 16, 12, 16], "gap": 8, "cross": "center", "c": [
+        {"t": "icon", "v": "music_note", "size": 20, "color": "textSecondary"},
+        {"t": "text", "v": "Key & BPM", "style": "titleMedium"},
+        {"t": "text", "v": "F#m  ·  87 BPM", "style": "bodySmall", "color": "accentOrange", "align": "right", "w": "fill"},
+        {"t": "icon", "v": "keyboard_arrow_right", "size": 20, "color": "textSecondary"}
+      ]},
+      {"t": "row", "bg": "surface", "border": "borderDefault", "radius": 12, "pad": [12, 16, 12, 16], "gap": 8, "cross": "center", "c": [
+        {"t": "icon", "v": "link", "size": 20, "color": "textSecondary"},
+        {"t": "text", "v": "Links", "style": "titleMedium"},
+        {"t": "text", "v": "No links", "style": "bodySmall", "color": "textSecondary", "align": "right", "w": "fill"},
+        {"t": "icon", "v": "keyboard_arrow_right", "size": 20, "color": "textSecondary"}
+      ]},
+      {"t": "row", "bg": "surface", "border": "borderDefault", "radius": 12, "pad": [12, 16, 12, 16], "gap": 8, "cross": "center", "c": [
+        {"t": "icon", "v": "queue_music", "size": 20, "color": "textSecondary"},
+        {"t": "text", "v": "Song Structure", "style": "titleMedium"},
+        {"t": "text", "v": "Verse · Chorus", "style": "bodySmall", "color": "textSecondary", "align": "right", "w": "fill"},
+        {"t": "icon", "v": "keyboard_arrow_right", "size": 20, "color": "textSecondary"}
+      ]},
+      {"t": "row", "bg": "surface", "border": "borderDefault", "radius": 12, "pad": [12, 16, 12, 16], "gap": 8, "cross": "center", "c": [
+        {"t": "icon", "v": "notes", "size": 20, "color": "textSecondary"},
+        {"t": "text", "v": "Notes", "style": "titleMedium"},
+        {"t": "text", "v": "Play quiet on the final chorus", "style": "bodySmall", "color": "textSecondary", "align": "right", "w": "fill"},
+        {"t": "icon", "v": "keyboard_arrow_right", "size": 20, "color": "textSecondary"}
+      ]},
+      {"t": "row", "bg": "surface", "border": "borderDefault", "radius": 12, "pad": [12, 16, 12, 16], "gap": 8, "cross": "center", "c": [
+        {"t": "icon", "v": "label_outline", "size": 20, "color": "textSecondary"},
+        {"t": "text", "v": "Tags", "style": "titleMedium"},
+        {"t": "row", "w": "fill", "gap": 4, "main": "end", "c": [
+          {"t": "chip", "v": "Cover"},
+          {"t": "chip", "v": "A-capella"}
+        ]},
+        {"t": "icon", "v": "keyboard_arrow_right", "size": 20, "color": "textSecondary"}
+      ]},
+      {"t": "row", "bg": "surface", "border": "borderDefault", "radius": 12, "pad": [12, 16, 12, 16], "gap": 8, "cross": "center", "c": [
+        {"t": "icon", "v": "music_note", "size": 20, "color": "textSecondary"},
+        {"t": "text", "v": "Metronome Settings", "style": "titleMedium", "w": "fill"},
+        {"t": "icon", "v": "keyboard_arrow_right", "size": 20, "color": "textSecondary"}
+      ]}
+    ]}
+  ],
+  "bottom": [
+    {"t": "col", "bg": "surface", "pad": 16, "c": [
+      {"t": "button", "v": "Save Changes", "kind": "primary", "w": "fill"}
+    ]},
+    {"t": "actionbar"}
+  ]
+}

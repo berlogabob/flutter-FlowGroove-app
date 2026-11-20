@@ -1,0 +1,20 @@
+{
+  "name": "Song card actions sheet L209",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/unified_item/song_card_actions.dart:209",
+  "slot": 34,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 4, "c": [
+      {"t": "text", "v": "Add to band…", "style": "headlineMedium", "name": "Heading"},
+      {"t": "text", "v": "Choose the band to save \"Wonderwall\" to", "style": "bodyMedium", "color": "textSecondary", "name": "Sub"},
+      {"t": "divider"},
+      {"t": "col", "gap": 2, "c": [
+        {"t": "tile", "lead": "groups", "title": "FlowGroove", "sub": "Rehearsal Fri 7pm", "trail": "check"},
+        {"t": "tile", "lead": "groups", "title": "The Weekend Set", "sub": "4 members · You're editor"},
+        {"t": "tile", "lead": "groups", "title": "Sunday Jam", "sub": "2 members"},
+        {"t": "tile", "lead": "groups", "title": "Cover Crew", "sub": "1 member"}
+      ]}
+    ]}
+  ]
+}

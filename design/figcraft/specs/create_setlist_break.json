@@ -1,0 +1,46 @@
+{
+  "name": "Create setlist: Break",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/create_setlist_screen.dart:233",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 16,
+      "c": [
+        {
+          "t": "text",
+          "v": "Break",
+          "style": "titleLarge"
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "wrap": true,
+          "c": [
+            {"t": "chip", "v": "Break", "icon": "pause_circle_outline", "sel": true},
+            {"t": "chip", "v": "Set change", "icon": "playlist_play"},
+            {"t": "chip", "v": "Guest set", "icon": "person_outline"},
+            {"t": "chip", "v": "Encore", "icon": "star_outline"},
+            {"t": "chip", "v": "Backup songs", "icon": "bookmark_outline"},
+            {"t": "chip", "v": "Section", "icon": "horizontal_rule"}
+          ]
+        },
+        {
+          "t": "input",
+          "label": "Custom label (optional)",
+          "hint": "e.g. EUSTACE",
+          "v": "EUSTACE"
+        },
+        {
+          "t": "row",
+          "main": "max",
+          "c": [
+            {"t": "button", "kind": "primary", "v": "Save"}
+          ]
+        }
+      ]
+    }
+  ]
+}

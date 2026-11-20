@@ -1,0 +1,25 @@
+{
+  "name": "Create band: Discard Changes?",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/bands/create_band_screen.dart:162",
+  "slot": 6,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Discard Changes?",
+      "c": [
+        {
+          "t": "text",
+          "v": "You have unsaved changes. Are you sure you want to discard them?",
+          "style": "bodyMedium",
+          "color": "textSecondary"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "danger", "v": "Discard"}
+      ]
+    }
+  ]
+}

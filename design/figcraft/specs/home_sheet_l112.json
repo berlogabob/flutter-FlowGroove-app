@@ -1,0 +1,17 @@
+{
+  "name": "Home sheet L112",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/home_screen.dart:112",
+  "slot": 12,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 4, "c": [
+      {"t": "tile", "lead": "event", "title": "Rehearsals — choose a band", "sub": "Rehearsals are per band — choose one to see its schedule.", "pad": [16, 16, 8, 16]},
+      {"t": "divider"},
+      {"t": "tile", "lead": "event", "title": "The Groove Collective", "trail": "arrow_forward", "pad": [0, 16, 0, 4]},
+      {"t": "tile", "lead": "event", "title": "Neon Drifters", "trail": "arrow_forward", "pad": [0, 16, 0, 4]},
+      {"t": "tile", "lead": "event", "title": "Basement Static", "trail": "arrow_forward", "pad": [0, 16, 0, 4]},
+      {"t": "tile", "lead": "event", "title": "Cedar & Rue", "trail": "arrow_forward", "pad": [0, 16, 0, 4]}
+    ]}
+  ]
+}

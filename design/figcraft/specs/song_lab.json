@@ -1,0 +1,199 @@
+{
+  "name": "Song lab",
+  "page": "Songs",
+  "source": "lib/screens/songs/song_lab_screen.dart",
+  "route": "/main/songs/{song}/lab",
+  "slot": 4,
+  "body": [
+    {
+      "t": "col",
+      "pad": [
+        16,
+        16,
+        0,
+        16
+      ],
+      "gap": 0,
+      "c": [
+        {
+          "t": "text",
+          "v": "City Lights – Live at the Harbour",
+          "style": "headlineLarge"
+        },
+        {
+          "t": "text",
+          "v": "The Glass Birds",
+          "style": "bodyLarge",
+          "color": "textSecondary"
+        },
+        {
+          "t": "spacer",
+          "size": 12
+        },
+        {
+          "t": "segmented",
+          "items": [
+            "Edit",
+            "Sheet",
+            "Lab"
+          ],
+          "sel": 2
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "pad": [
+        24,
+        16,
+        0,
+        16
+      ],
+      "gap": 8,
+      "cross": "center",
+      "c": [
+        {
+          "t": "segmented",
+          "items": [
+            "Entries",
+            "Tasks"
+          ],
+          "sel": 0
+        },
+        {
+          "t": "iconbtn",
+          "v": "bookmark_add_outlined"
+        },
+        {
+          "t": "iconbtn",
+          "v": "description_outlined"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "pad": [
+        12,
+        16,
+        0,
+        16
+      ],
+      "gap": 8,
+      "cross": "center",
+      "c": [
+        {
+          "t": "button",
+          "v": "Add",
+          "kind": "text",
+          "icon": "add"
+        },
+        {
+          "t": "button",
+          "v": "Import MIDI",
+          "kind": "text",
+          "icon": "file_upload_outlined"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "pad": [
+        8,
+        16,
+        8,
+        16
+      ],
+      "gap": 8,
+      "c": [
+        {
+          "t": "chip",
+          "v": "All",
+          "sel": true
+        },
+        {
+          "t": "chip",
+          "v": "Note"
+        },
+        {
+          "t": "chip",
+          "v": "Decision"
+        },
+        {
+          "t": "chip",
+          "v": "Experiment"
+        },
+        {
+          "t": "chip",
+          "v": "Problem"
+        }
+      ]
+    },
+    {
+      "t": "col",
+      "pad": [
+        4,
+        16,
+        4,
+        16
+      ],
+      "c": [
+        {
+          "t": "card",
+          "dir": "h",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 16,
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "sticky_note_2_outlined",
+              "color": "accentOrange"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "gap": 2,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Imported notes",
+                  "style": "bodyLarge"
+                },
+                {
+                  "t": "text",
+                  "v": "The live version is the reference recording. Build into the final chorus.",
+                  "style": "bodyMedium",
+                  "color": "textSecondary",
+                  "maxLines": 4
+                },
+                {
+                  "t": "text",
+                  "v": "Note · 18/11/2026",
+                  "style": "bodySmall",
+                  "color": "textSecondary"
+                }
+              ]
+            },
+            {
+              "t": "icon",
+              "v": "more_vert",
+              "color": "textSecondary"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "actionbar",
+      "menu": true,
+      "title": "City Lights – Live at..."
+    }
+  ]
+}

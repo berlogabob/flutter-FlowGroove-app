@@ -1,0 +1,38 @@
+{
+  "name": "Event kit editor sheet L154",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/event_kit_editor_screen.dart:154",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 12, "c": [
+      {"t": "text", "v": "Add to zone", "style": "titleLarge"},
+      {"t": "input", "hint": "Search gear or type your own…", "icon": "search"},
+      {"t": "text", "v": "Selected", "style": "labelSmall", "color": "textSecondary"},
+      {"t": "row", "gap": 6, "c": [
+        {"t": "chip", "v": "🎸 Guitar", "sel": true, "icon": "check"},
+        {"t": "chip", "v": "🥁 Drums", "sel": true, "icon": "check"}
+      ]},
+      {"t": "text", "v": "Likely needed", "style": "labelSmall", "color": "textSecondary"},
+      {"t": "row", "gap": 6, "wrap": true, "c": [
+        {"t": "chip", "v": "🎸 Guitar"},
+        {"t": "chip", "v": "🎤 Mic"},
+        {"t": "chip", "v": "🥁 Drums"}
+      ]},
+      {"t": "text", "v": "Band members", "style": "labelSmall", "color": "textSecondary"},
+      {"t": "tile", "lead": "person", "title": "Alex Rivera", "sub": "Guitar", "trail": "check"},
+      {"t": "tile", "lead": "person", "title": "Sam Chen", "sub": "Drums · Keys"},
+      {"t": "tile", "lead": "person", "title": "Jordan Lee", "sub": "Bass"},
+      {"t": "text", "v": "Gear", "style": "labelSmall", "color": "textSecondary"},
+      {"t": "row", "gap": 6, "wrap": true, "c": [
+        {"t": "chip", "v": "🔊 Amp"},
+        {"t": "chip", "v": "🎛️ Mixer"},
+        {"t": "chip", "v": "🎧 Monitor"}
+      ]},
+      {"t": "row", "main": "end", "gap": 8, "c": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Done"}
+      ]}
+    ]}
+  ]
+}

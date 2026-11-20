@@ -1,0 +1,59 @@
+{
+  "name": "Midi Song Panel",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/song_lab_screen.dart:795",
+  "slot": 2,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 16, "c": [
+      {"t": "text", "v": "MIDI song", "style": "titleLarge"},
+      {"t": "text", "v": "120 BPM", "style": "bodySmall", "color": "textSecondary"},
+      {"t": "divider"},
+      {"t": "card", "dir": "v", "pad": [12, 12, 12, 16], "gap": 8, "c": [
+        {"t": "text", "v": "Drums", "style": "titleMedium"},
+        {"t": "text", "v": "Drums", "style": "bodySmall", "color": "textSecondary"},
+        {"t": "switchrow", "title": "Mute", "on": false},
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+          {"t": "text", "v": "Volume", "style": "labelMedium", "w": "hug"},
+          {"t": "spacer"},
+          {"t": "slider", "value": 0.8},
+          {"t": "chip", "v": "Solo"}
+        ]}
+      ]},
+      {"t": "card", "dir": "v", "pad": [12, 12, 12, 16], "gap": 8, "c": [
+        {"t": "text", "v": "Bass", "style": "titleMedium"},
+        {"t": "text", "v": "Bass", "style": "bodySmall", "color": "textSecondary"},
+        {"t": "switchrow", "title": "Mute", "on": true},
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+          {"t": "text", "v": "Volume", "style": "labelMedium", "w": "hug"},
+          {"t": "spacer"},
+          {"t": "slider", "value": 0.6},
+          {"t": "chip", "v": "Solo", "sel": true}
+        ]}
+      ]},
+      {"t": "card", "dir": "v", "pad": [12, 12, 12, 16], "gap": 8, "c": [
+        {"t": "text", "v": "Piano", "style": "titleMedium"},
+        {"t": "text", "v": "Keys", "style": "bodySmall", "color": "textSecondary"},
+        {"t": "switchrow", "title": "Mute", "on": false},
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+          {"t": "text", "v": "Volume", "style": "labelMedium", "w": "hug"},
+          {"t": "spacer"},
+          {"t": "slider", "value": 0.45},
+          {"t": "chip", "v": "Solo"}
+        ]}
+      ]},
+      {"t": "card", "dir": "v", "pad": [12, 12, 12, 16], "gap": 8, "c": [
+        {"t": "text", "v": "Lead Guitar", "style": "titleMedium"},
+        {"t": "text", "v": "Guitar", "style": "bodySmall", "color": "textSecondary"},
+        {"t": "switchrow", "title": "Mute", "on": false},
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+          {"t": "text", "v": "Volume", "style": "labelMedium", "w": "hug"},
+          {"t": "spacer"},
+          {"t": "slider", "value": 0.7},
+          {"t": "chip", "v": "Solo"}
+        ]}
+      ]},
+      {"t": "button", "kind": "primary", "v": "Play", "icon": "play_arrow", "w": "fill"}
+    ]}
+  ]
+}

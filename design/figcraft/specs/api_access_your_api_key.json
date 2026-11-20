@@ -1,0 +1,17 @@
+{
+  "name": "Api access: Your API key",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/settings/api_access_screen.dart:35",
+  "slot": 2,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 16, "c": [
+      {"t": "text", "v": "New API key", "style": "titleLarge"},
+      {"t": "input", "label": "Label (e.g. \"Claude Desktop\")", "v": "Claude Desktop", "icon": "edit"},
+      {"t": "segmented", "items": ["Read only", "Read + write"], "sel": 0},
+      {"t": "row", "main": "end", "pad": [0, 0, 4, 0], "c": [
+        {"t": "button", "kind": "primary", "v": "Create", "small": true}
+      ]}
+    ]}
+  ]
+}

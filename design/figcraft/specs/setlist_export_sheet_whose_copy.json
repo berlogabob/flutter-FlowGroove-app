@@ -1,0 +1,18 @@
+{
+  "name": "Setlist export sheet: Whose copy?",
+  "page": "Sheets & Dialogs",
+  "source": "lib/services/export/setlist_export_sheet.dart:49",
+  "slot": 2,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 4, "c": [
+      {"t": "tile", "lead": "person", "title": "Whose copy?"},
+      {"t": "divider"},
+      {"t": "tile", "lead": "person", "title": "Marcus Reed", "sub": "#1, #3, #5, #7"},
+      {"t": "tile", "lead": "person", "title": "Dana Kowalski", "sub": "#2, #6"},
+      {"t": "tile", "lead": "person", "title": "Devon Diaz", "sub": "#4, #8, #10"},
+      {"t": "tile", "lead": "person", "title": "Priya Nair", "sub": "#9"},
+      {"t": "tile", "lead": "person", "title": "Sam Okafor", "sub": "#1, #2, #4, #6, #8, #10"}
+    ]}
+  ]
+}

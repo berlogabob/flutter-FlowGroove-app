@@ -4,5 +4,16 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <application android:usesCleartextTraffic="true"/>
+    <application android:usesCleartextTraffic="true">
+        <!-- Debug builds only: flowgroove-debug://app/<go_router path> opens any
+             route, so design/figcraft/capture.py can screenshot each screen for
+             the FigCraft parity page. Merged into the main MainActivity. -->
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="flowgroove-debug" android:host="app" />
+            </intent-filter>
+        </activity>
+    </application>
 </manifest>

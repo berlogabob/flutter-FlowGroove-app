@@ -1,0 +1,17 @@
+{
+  "name": "Practice regions: Replace N regions?",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/practice_regions_screen.dart:843",
+  "slot": 20,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Replace 9 regions?",
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Replace"}
+      ]
+    }
+  ]
+}

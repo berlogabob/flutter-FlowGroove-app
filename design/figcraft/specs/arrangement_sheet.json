@@ -1,0 +1,99 @@
+{
+  "name": "Arrangement Sheet",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/practice/launchpad_view.dart:517",
+  "slot": 28,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 8,
+      "c": [
+        {
+          "t": "col",
+          "gap": 2,
+          "c": [
+            {"t": "text", "v": "MIDI arrangement", "style": "titleLarge"},
+            {"t": "text", "v": "128 bars · 4 instruments · 2 lead-in bars", "style": "bodySmall", "color": "textTertiary"}
+          ]
+        },
+        {
+          "t": "switchrow",
+          "title": "Use 120 BPM?",
+          "sub": "Otherwise keep song BPM (106)",
+          "on": true
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {"t": "text", "v": "File starts at bar 4", "style": "bodyMedium", "w": "fill"},
+            {"t": "text", "v": "−", "style": "bodyMedium", "w": "hug"},
+            {"t": "text", "v": "4", "style": "bodyMedium", "w": "hug"},
+            {"t": "iconbtn", "v": "add", "size": 20}
+          ]
+        },
+        {"t": "divider"},
+        {
+          "t": "row",
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {"t": "text", "v": "Intro bars", "style": "bodyMedium", "w": "fill"},
+            {"t": "text", "v": "−", "style": "bodyMedium", "w": "hug"},
+            {"t": "text", "v": "16", "style": "bodyMedium", "w": "hug"},
+            {"t": "iconbtn", "v": "add", "size": 20}
+          ]
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {"t": "text", "v": "Verse bars", "style": "bodyMedium", "w": "fill"},
+            {"t": "text", "v": "−", "style": "bodyMedium", "w": "hug"},
+            {"t": "text", "v": "32", "style": "bodyMedium", "w": "hug"},
+            {"t": "iconbtn", "v": "add", "size": 20}
+          ]
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {"t": "text", "v": "Chorus bars", "style": "bodyMedium", "w": "fill"},
+            {"t": "text", "v": "−", "style": "bodyMedium", "w": "hug"},
+            {"t": "text", "v": "32", "style": "bodyMedium", "w": "hug"},
+            {"t": "iconbtn", "v": "add", "size": 20}
+          ]
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {"t": "text", "v": "Bridge bars", "style": "bodyMedium", "w": "fill"},
+            {"t": "text", "v": "−", "style": "bodyMedium", "w": "hug"},
+            {"t": "text", "v": "24", "style": "bodyMedium", "w": "hug"},
+            {"t": "iconbtn", "v": "add", "size": 20}
+          ]
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {"t": "text", "v": "Outro bars", "style": "bodyMedium", "w": "fill"},
+            {"t": "text", "v": "−", "style": "bodyMedium", "w": "hug"},
+            {"t": "text", "v": "24", "style": "bodyMedium", "w": "hug"},
+            {"t": "iconbtn", "v": "add", "size": 20}
+          ]
+        },
+        {"t": "divider"},
+        {"t": "input", "label": "At end of file", "hint": "Loop", "trail": "arrow_drop_down", "v": "Loop"},
+        {"t": "button", "kind": "primary", "v": "Save", "w": "fill"}
+      ]
+    }
+  ]
+}

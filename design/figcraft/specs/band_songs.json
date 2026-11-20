@@ -1,0 +1,378 @@
+{
+  "name": "Band songs",
+  "page": "Bands",
+  "source": "lib/screens/bands/band_songs_screen.dart",
+  "route": "/main/bands/{band}/songs",
+  "slot": 8,
+  "body": [
+    {
+      "t": "col",
+      "pad": 16,
+      "c": [
+        {
+          "t": "input",
+          "hint": "Search songs...",
+          "icon": "search"
+        }
+      ]
+    },
+    {
+      "t": "col",
+      "pad": [
+        0,
+        16,
+        0,
+        16
+      ],
+      "c": [
+        {
+          "t": "col",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 2,
+          "c": [
+            {
+              "t": "text",
+              "v": "Silver Lines",
+              "style": "titleMedium",
+              "maxLines": 1
+            },
+            {
+              "t": "text",
+              "v": "The Night Owls",
+              "style": "bodySmall",
+              "color": "textSecondary"
+            },
+            {
+              "t": "row",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 12,
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "badge",
+                      "v": "—",
+                      "bg": "surfaceRaised",
+                      "color": "textSecondary"
+                    },
+                    {
+                      "t": "text",
+                      "v": "-- BPM",
+                      "style": "bodySmall",
+                      "color": "textSecondary",
+                      "w": "hug"
+                    }
+                  ]
+                },
+                {
+                  "t": "iconbtn",
+                  "v": "av_timer",
+                  "size": 20,
+                  "color": "accentOrange"
+                },
+                {
+                  "t": "iconbtn",
+                  "v": "more_vert",
+                  "size": 20
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider",
+          "color": "borderSubtle"
+        },
+        {
+          "t": "col",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 2,
+          "c": [
+            {
+              "t": "text",
+              "v": "Quiet Harbour",
+              "style": "titleMedium",
+              "maxLines": 1
+            },
+            {
+              "t": "text",
+              "v": "The Night Owls",
+              "style": "bodySmall",
+              "color": "textSecondary"
+            },
+            {
+              "t": "row",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 12,
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "badge",
+                      "v": "—",
+                      "bg": "surfaceRaised",
+                      "color": "textSecondary"
+                    },
+                    {
+                      "t": "text",
+                      "v": "-- BPM",
+                      "style": "bodySmall",
+                      "color": "textSecondary",
+                      "w": "hug"
+                    }
+                  ]
+                },
+                {
+                  "t": "iconbtn",
+                  "v": "av_timer",
+                  "size": 20,
+                  "color": "accentOrange"
+                },
+                {
+                  "t": "iconbtn",
+                  "v": "more_vert",
+                  "size": 20
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider",
+          "color": "borderSubtle"
+        },
+        {
+          "t": "col",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 2,
+          "c": [
+            {
+              "t": "text",
+              "v": "Through the Rain",
+              "style": "titleMedium",
+              "maxLines": 1
+            },
+            {
+              "t": "text",
+              "v": "The Night Owls",
+              "style": "bodySmall",
+              "color": "textSecondary"
+            },
+            {
+              "t": "row",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 12,
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "badge",
+                      "v": "—",
+                      "bg": "surfaceRaised",
+                      "color": "textSecondary"
+                    },
+                    {
+                      "t": "text",
+                      "v": "-- BPM",
+                      "style": "bodySmall",
+                      "color": "textSecondary",
+                      "w": "hug"
+                    }
+                  ]
+                },
+                {
+                  "t": "iconbtn",
+                  "v": "av_timer",
+                  "size": 20,
+                  "color": "accentOrange"
+                },
+                {
+                  "t": "iconbtn",
+                  "v": "more_vert",
+                  "size": 20
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider",
+          "color": "borderSubtle"
+        },
+        {
+          "t": "col",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 2,
+          "c": [
+            {
+              "t": "text",
+              "v": "Open Skies",
+              "style": "titleMedium",
+              "maxLines": 1
+            },
+            {
+              "t": "text",
+              "v": "Paper Lanterns",
+              "style": "bodySmall",
+              "color": "textSecondary"
+            },
+            {
+              "t": "row",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 12,
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "badge",
+                      "v": "—",
+                      "bg": "surfaceRaised",
+                      "color": "textSecondary"
+                    },
+                    {
+                      "t": "text",
+                      "v": "-- BPM",
+                      "style": "bodySmall",
+                      "color": "textSecondary",
+                      "w": "hug"
+                    }
+                  ]
+                },
+                {
+                  "t": "iconbtn",
+                  "v": "av_timer",
+                  "size": 20,
+                  "color": "accentOrange"
+                },
+                {
+                  "t": "iconbtn",
+                  "v": "more_vert",
+                  "size": 20
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider",
+          "color": "borderSubtle"
+        },
+        {
+          "t": "col",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 2,
+          "c": [
+            {
+              "t": "text",
+              "v": "Afterglow",
+              "style": "titleMedium",
+              "maxLines": 1
+            },
+            {
+              "t": "text",
+              "v": "Paper Lanterns",
+              "style": "bodySmall",
+              "color": "textSecondary"
+            },
+            {
+              "t": "row",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 12,
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "badge",
+                      "v": "—",
+                      "bg": "surfaceRaised",
+                      "color": "textSecondary"
+                    },
+                    {
+                      "t": "text",
+                      "v": "-- BPM",
+                      "style": "bodySmall",
+                      "color": "textSecondary",
+                      "w": "hug"
+                    }
+                  ]
+                },
+                {
+                  "t": "iconbtn",
+                  "v": "av_timer",
+                  "size": 20,
+                  "color": "accentOrange"
+                },
+                {
+                  "t": "iconbtn",
+                  "v": "more_vert",
+                  "size": 20
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider",
+          "color": "borderSubtle"
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "actionbar",
+      "menu": false,
+      "title": "The Night Owls Songs"
+    }
+  ],
+  "overlay": [
+    {
+      "x": 340,
+      "y": 760,
+      "node": {
+        "t": "fab",
+        "icon": "add"
+      }
+    }
+  ]
+}

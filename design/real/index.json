@@ -1,0 +1,170 @@
+{
+ "add_song": {
+  "route": "/main/songs/add",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:16:17"
+ },
+ "app_settings": {
+  "route": "/main/settings",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:16:31"
+ },
+ "canonical_browse": {
+  "route": "/main/songs/catalog",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-19T10:04:27"
+ },
+ "create_band": {
+  "route": "/main/bands/create",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:18:06"
+ },
+ "create_setlist": {
+  "route": "/main/setlists/create",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:18:20"
+ },
+ "home": {
+  "route": "/main/home",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-19T11:12:24"
+ },
+ "join_band": {
+  "route": "/main/join-band",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:18:47"
+ },
+ "metronome": {
+  "route": "/main/metronome",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-19T11:12:37"
+ },
+ "my_bands": {
+  "route": "/main/bands",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:19:15"
+ },
+ "practice": {
+  "route": "/main/practice",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-19T10:04:41"
+ },
+ "profile": {
+  "route": "/main/profile",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:19:42"
+ },
+ "recorder": {
+  "route": "/main/recorder",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:19:56"
+ },
+ "setlists_list": {
+  "route": "/main/setlists",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:20:51"
+ },
+ "song_duplicates": {
+  "route": "/main/songs/duplicates",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-19T10:04:55"
+ },
+ "songs_list": {
+  "route": "/main/songs",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-19T11:13:05"
+ },
+ "tuner": {
+  "route": "/main/tuner",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:22:27"
+ },
+ "band_about": {
+  "route": "/main/bands/379cb988-fed6-49df-81ce-528eff7805d0/about",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:16:45"
+ },
+ "band_invite": {
+  "route": "/main/bands/379cb988-fed6-49df-81ce-528eff7805d0/invite",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-19T10:04:14"
+ },
+ "band_members": {
+  "route": "/main/bands/379cb988-fed6-49df-81ce-528eff7805d0/members",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:17:12"
+ },
+ "band_setlists": {
+  "route": "/main/bands/379cb988-fed6-49df-81ce-528eff7805d0/setlists",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:17:25"
+ },
+ "band_songs": {
+  "route": "/main/bands/379cb988-fed6-49df-81ce-528eff7805d0/songs",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:17:39"
+ },
+ "rehearsal_edit": {
+  "route": "/main/bands/379cb988-fed6-49df-81ce-528eff7805d0/rehearsals/create",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:20:10"
+ },
+ "rehearsals_list": {
+  "route": "/main/bands/379cb988-fed6-49df-81ce-528eff7805d0/rehearsals",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:20:24"
+ },
+ "setlist_view": {
+  "route": "/main/setlists/2950eed3-d69d-4b54-ad5f-91d8a8a0224a",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:20:37"
+ },
+ "song_editor": {
+  "route": "/main/songs/1314998b-bcae-4712-95c9-d91dd2ef6ebc/edit",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:21:18"
+ },
+ "song_lab": {
+  "route": "/main/songs/1314998b-bcae-4712-95c9-d91dd2ef6ebc/lab",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:21:32"
+ },
+ "song_page": {
+  "route": "/main/songs/1314998b-bcae-4712-95c9-d91dd2ef6ebc",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-19T11:12:51"
+ },
+ "the_band": {
+  "route": "/main/bands/379cb988-fed6-49df-81ce-528eff7805d0",
+  "device": "ELE-L29",
+  "night": "Night mode: no",
+  "captured": "2026-11-18T19:22:13"
+ }
+}

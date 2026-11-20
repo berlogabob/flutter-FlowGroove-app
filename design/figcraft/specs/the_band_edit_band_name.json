@@ -1,0 +1,15 @@
+{
+  "name": "The band: Edit Band Name",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/bands/the_band_screen.dart:314",
+  "slot": 10,
+  "modal": "dialog",
+  "body": [
+    {"t": "dialog", "title": "Edit Band Name", "c": [
+      {"t": "input", "label": "Band Name", "v": "FlowGroove"}
+    ], "actions": [
+      {"t": "button", "kind": "text", "v": "Cancel"},
+      {"t": "button", "kind": "primary", "v": "Save"}
+    ]}
+  ]
+}

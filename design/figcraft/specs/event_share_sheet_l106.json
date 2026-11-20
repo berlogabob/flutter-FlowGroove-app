@@ -1,0 +1,19 @@
+{
+  "name": "Event share sheet L106",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/event_share_screen.dart:106",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 16, "c": [
+      {"t": "text", "v": "Suggest a change", "style": "titleLarge"},
+      {"t": "text", "v": "Choose a change to suggest. The band decides — nothing changes automatically.", "style": "bodySmall", "color": "textSecondary"},
+      {"t": "input", "v": "Note", "hint": "Change type", "trail": "arrow_drop_down", "w": "fill"},
+      {"t": "input", "hint": "Type your note", "lines": 4, "w": "fill"},
+      {"t": "row", "main": "spaceBetween", "c": [
+        {"t": "button", "kind": "text", "v": "Cancel", "w": "hug"},
+        {"t": "button", "kind": "primary", "v": "Send", "w": "hug"}
+      ]}
+    ]}
+  ]
+}

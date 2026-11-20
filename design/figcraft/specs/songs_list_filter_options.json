@@ -1,0 +1,17 @@
+{
+  "name": "Songs · Filter options sheet",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/songs_list_screen.dart:441",
+  "slot": 1,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 12, "c": [
+      {"t": "text", "v": "Filter Options", "style": "headlineMedium"},
+      {"t": "text", "v": "Key", "style": "labelMedium", "color": "textSecondary"},
+      {"t": "row", "gap": 8, "c": [{"t": "chip", "v": "Major"}, {"t": "chip", "v": "Minor"}, {"t": "chip", "v": "All", "sel": true}]},
+      {"t": "text", "v": "BPM", "style": "labelMedium", "color": "textSecondary"},
+      {"t": "input", "hint": "Any BPM", "trail": "arrow_drop_down"},
+      {"t": "button", "kind": "secondary", "v": "Clear All Filters", "w": "fill"}
+    ]}
+  ]
+}

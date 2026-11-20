@@ -1,0 +1,26 @@
+{
+  "name": "Region name sheet: Region name",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/practice_regions/region_name_sheet.dart:14",
+  "slot": 2,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 16, "c": [
+      {"t": "text", "v": "Region name", "style": "titleLarge"},
+      {"t": "text", "v": "Templates", "style": "labelMedium", "color": "textSecondary"},
+      {"t": "row", "gap": 8, "wrap": true, "c": [
+        {"t": "chip", "v": "Intro"},
+        {"t": "chip", "v": "Verse", "sel": true},
+        {"t": "chip", "v": "Chorus", "sel": true},
+        {"t": "chip", "v": "Bridge"},
+        {"t": "chip", "v": "Pre-Chorus"},
+        {"t": "chip", "v": "Outro"},
+        {"t": "chip", "v": "Instrumental"},
+        {"t": "chip", "v": "Solo"},
+        {"t": "chip", "v": "Pause"}
+      ]},
+      {"t": "input", "label": "Name", "v": "Verse 1"},
+      {"t": "button", "kind": "primary", "v": "Save", "w": "fill"}
+    ]}
+  ]
+}

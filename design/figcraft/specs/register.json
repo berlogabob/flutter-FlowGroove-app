@@ -1,0 +1,131 @@
+{
+  "name": "Register",
+  "page": "Auth",
+  "source": "lib/screens/auth/register_screen.dart",
+  "route": "/register",
+  "slot": 1,
+  "top": [
+    {
+      "t": "appbar",
+      "v": "Create Account"
+    }
+  ],
+  "body": [
+    {
+      "t": "col",
+      "pad": 24,
+      "c": [
+        {
+          "t": "spacer",
+          "size": 32
+        },
+        {
+          "t": "text",
+          "v": "Join FlowGroove",
+          "style": "headlineMedium",
+          "color": "textHighEmphasis",
+          "align": "center"
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "text",
+          "v": "Create an account to manage your band repertoire",
+          "style": "bodyMedium",
+          "color": "textSecondary",
+          "align": "center"
+        },
+        {
+          "t": "spacer",
+          "size": 48
+        },
+        {
+          "t": "input",
+          "hint": "Email",
+          "icon": "email_outlined"
+        },
+        {
+          "t": "spacer",
+          "size": 16
+        },
+        {
+          "t": "input",
+          "hint": "Password",
+          "icon": "lock_outlined"
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "row",
+          "pad": [
+            0,
+            0,
+            4,
+            0
+          ],
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "circle_outlined",
+              "size": 16,
+              "color": "textTertiary"
+            },
+            {
+              "t": "text",
+              "v": "At least 6 characters",
+              "style": "bodySmall",
+              "color": "textSecondary",
+              "w": "hug"
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 16
+        },
+        {
+          "t": "input",
+          "hint": "Confirm Password",
+          "icon": "lock_outlined"
+        },
+        {
+          "t": "spacer",
+          "size": 32
+        },
+        {
+          "t": "button",
+          "v": "Create Account",
+          "w": "fill"
+        },
+        {
+          "t": "spacer",
+          "size": 16
+        },
+        {
+          "t": "row",
+          "main": "center",
+          "cross": "center",
+          "c": [
+            {
+              "t": "text",
+              "v": "Already have an account?",
+              "style": "bodyMedium",
+              "w": "hug"
+            },
+            {
+              "t": "button",
+              "v": "Sign In",
+              "kind": "text"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

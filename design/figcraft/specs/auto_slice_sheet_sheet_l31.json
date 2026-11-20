@@ -1,0 +1,22 @@
+{
+  "name": "Auto slice sheet sheet L31",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/practice_regions/auto_slice_sheet.dart:31",
+  "slot": 17,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 16, "c": [
+      {"t": "text", "v": "Auto slice", "style": "titleLarge"},
+      {"t": "row", "gap": 8, "c": [
+        {"t": "chip", "v": "Suggest tempo grid", "sel": true},
+        {"t": "chip", "v": "Slice every N bars"},
+        {"t": "chip", "v": "Chop by transients"},
+        {"t": "chip", "v": "Find sections"}
+      ]},
+      {"t": "text", "v": "92.3 BPM · downbeat 0:00.000.", "style": "bodyMedium", "color": "textSecondary"},
+      {"t": "row", "main": "end", "c": [
+        {"t": "button", "kind": "primary", "v": "Apply"}
+      ]}
+    ]}
+  ]
+}

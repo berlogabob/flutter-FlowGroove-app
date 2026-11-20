@@ -1,0 +1,106 @@
+{
+  "name": "Import Lyrics Dialog",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/performance_sheet_screen.dart:122",
+  "slot": 15,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 12,
+      "c": [
+        {
+          "t": "text",
+          "v": "Import lyrics & chords",
+          "style": "titleLarge"
+        },
+        {
+          "t": "text",
+          "v": "Paste ChordPro. A full chart with {title}, {key}, {tempo} and {start_of_verse: …} blocks fills the whole song; plain lyrics with [Verse 1] or \"Chorus:\" just split into sections.",
+          "style": "bodySmall",
+          "color": "textSecondary"
+        },
+        {
+          "t": "input",
+          "hint": "{title: Back to Black}\n{artist: Amy Winehouse}\n{key: Dm}\n{tempo: 123}\n\n{start_of_verse: Verse 1}\n[Dm]He left no time to [Gm]regret\n{end_of_verse}",
+          "lines": 5,
+          "v": "{title: Back to Black}\n{artist: Amy Winehouse}\n{key: Dm}\n{tempo: 123}\n\n{start_of_verse: Verse 1}\n[Dm]He left no time to [Gm]regret\n{end_of_verse}"
+        },
+        {
+          "t": "text",
+          "v": "Song details detected:",
+          "style": "headlineSmall"
+        },
+        {
+          "t": "text",
+          "v": "“Back to Black”   ·   Amy Winehouse   ·   Dm · minor   ·   123 BPM   ·   4/4",
+          "style": "bodyMedium",
+          "color": "accentOrange"
+        },
+        {
+          "t": "text",
+          "v": "Preview — 3 section(s):",
+          "style": "headlineSmall"
+        },
+        {
+          "t": "text",
+          "v": "Verse 1 · Chorus · Verse 2",
+          "style": "bodySmall",
+          "color": "textSecondary"
+        },
+        {
+          "t": "text",
+          "v": "Verse 1",
+          "style": "titleMedium",
+          "color": "accentOrange"
+        },
+        {
+          "t": "text",
+          "v": "[Dm]He left no time to [Gm]regret\n[Dm]No [Am]room for an[n]y other",
+          "style": "bodySmall",
+          "color": "textSecondary"
+        },
+        {
+          "t": "text",
+          "v": "Chorus",
+          "style": "titleMedium",
+          "color": "accentOrange"
+        },
+        {
+          "t": "text",
+          "v": "[C]For love is [G]the thing that [Am]keeps me breathing",
+          "style": "bodySmall",
+          "color": "textSecondary"
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "c": [
+            {
+              "t": "button",
+              "kind": "text",
+              "v": "Copy AI prompt",
+              "icon": "auto_awesome",
+              "w": "hug"
+            },
+            {
+              "t": "spacer"
+            },
+            {
+              "t": "button",
+              "kind": "text",
+              "v": "Cancel",
+              "w": "hug"
+            },
+            {
+              "t": "button",
+              "kind": "primary",
+              "v": "Import 3",
+              "w": "hug"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

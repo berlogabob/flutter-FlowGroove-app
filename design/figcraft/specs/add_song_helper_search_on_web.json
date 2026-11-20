@@ -1,0 +1,35 @@
+{
+  "name": "Add song helper: Search on Web",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/utils/add_song_screen_helper.dart:60",
+  "slot": 2,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Search on Web",
+      "c": [
+        {
+          "t": "text",
+          "v": "Open Spotify search in browser?",
+          "style": "bodyMedium",
+          "color": "textSecondary"
+        },
+        {
+          "t": "spacer",
+          "size": 16
+        },
+        {
+          "t": "text",
+          "v": "Wonderwall Oasis",
+          "style": "bodyMedium",
+          "color": "textSecondary"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Open Spotify"}
+      ]
+    }
+  ]
+}

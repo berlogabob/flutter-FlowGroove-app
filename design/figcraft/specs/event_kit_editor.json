@@ -1,0 +1,429 @@
+{
+ "name": "Event kit editor",
+ "page": "Setlists",
+ "source": "lib/screens/setlists/event_kit_editor_screen.dart",
+ "slot": 3,
+ "bg": "black",
+ "body": [
+  {
+   "t": "col",
+   "pad": 16,
+   "c": [
+    {
+     "t": "text",
+     "v": "Open to suggest",
+     "style": "titleMedium"
+    },
+    {
+     "t": "text",
+     "v": "2 of 50 open to suggest",
+     "style": "bodyMedium"
+    },
+    {
+     "t": "switchrow",
+     "title": "Wonderwall",
+     "sub": "Oasis",
+     "on": true
+    },
+    {
+     "t": "switchrow",
+     "title": "Valerie",
+     "sub": "Amy Winehouse",
+     "on": true
+    },
+    {
+     "t": "switchrow",
+     "title": "Seven Nation Army",
+     "sub": "The White Stripes",
+     "on": false
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Stage plot",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "text",
+     "v": "Tap a zone to place people and gear. Long-press a chip to remove it. Top row is the back of the stage.",
+     "style": "bodySmall",
+     "color": "textSecondary"
+    },
+    {
+     "t": "spacer",
+     "size": 12
+    },
+    {
+     "t": "col",
+     "gap": 2,
+     "c": [
+      {
+       "t": "row",
+       "gap": 2,
+       "c": [
+        {
+         "t": "col",
+         "w": "fill",
+         "h": 84,
+         "pad": 4,
+         "bg": "surface",
+         "border": "borderDefault",
+         "radius": 4,
+         "c": [
+          {
+           "t": "icon",
+           "v": "add",
+           "size": 14,
+           "color": "textTertiary"
+          }
+         ]
+        },
+        {
+         "t": "col",
+         "w": "fill",
+         "h": 84,
+         "pad": 4,
+         "bg": "surface",
+         "border": "borderDefault",
+         "radius": 4,
+         "c": [
+          {
+           "t": "chip",
+           "v": "🥁 Drums"
+          }
+         ]
+        },
+        {
+         "t": "col",
+         "w": "fill",
+         "h": 84,
+         "pad": 4,
+         "bg": "surface",
+         "border": "borderDefault",
+         "radius": 4,
+         "c": [
+          {
+           "t": "icon",
+           "v": "add",
+           "size": 14,
+           "color": "textTertiary"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "t": "row",
+       "gap": 2,
+       "c": [
+        {
+         "t": "col",
+         "w": "fill",
+         "h": 84,
+         "pad": 4,
+         "bg": "surface",
+         "border": "borderDefault",
+         "radius": 4,
+         "c": [
+          {
+           "t": "chip",
+           "v": "🎸 Alex"
+          }
+         ]
+        },
+        {
+         "t": "col",
+         "w": "fill",
+         "h": 84,
+         "pad": 4,
+         "bg": "surface",
+         "border": "borderDefault",
+         "radius": 4,
+         "c": [
+          {
+           "t": "icon",
+           "v": "add",
+           "size": 14,
+           "color": "textTertiary"
+          }
+         ]
+        },
+        {
+         "t": "col",
+         "w": "fill",
+         "h": 84,
+         "pad": 4,
+         "bg": "surface",
+         "border": "borderDefault",
+         "radius": 4,
+         "c": [
+          {
+           "t": "chip",
+           "v": "🎸 Sam"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "t": "row",
+       "gap": 2,
+       "c": [
+        {
+         "t": "col",
+         "w": "fill",
+         "h": 84,
+         "pad": 4,
+         "bg": "surface",
+         "border": "borderDefault",
+         "radius": 4,
+         "c": [
+          {
+           "t": "icon",
+           "v": "add",
+           "size": 14,
+           "color": "textTertiary"
+          }
+         ]
+        },
+        {
+         "t": "col",
+         "w": "fill",
+         "h": 84,
+         "pad": 4,
+         "bg": "surface",
+         "border": "borderDefault",
+         "radius": 4,
+         "c": [
+          {
+           "t": "chip",
+           "v": "🎤 Maya"
+          }
+         ]
+        },
+        {
+         "t": "col",
+         "w": "fill",
+         "h": 84,
+         "pad": 4,
+         "bg": "surface",
+         "border": "borderDefault",
+         "radius": 4,
+         "c": [
+          {
+           "t": "icon",
+           "v": "add",
+           "size": 14,
+           "color": "textTertiary"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 4
+    },
+    {
+     "t": "text",
+     "v": "▼ audience ▼",
+     "style": "bodySmall",
+     "color": "textSecondary",
+     "align": "center"
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Crew & guests",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "chip",
+     "v": "Share links inventory",
+     "icon": "link"
+    },
+    {
+     "t": "tile",
+     "lead": "badge_outlined",
+     "title": "Jordan Lee",
+     "sub": "Sound engineer",
+     "trail": [
+      {
+       "t": "iconbtn",
+       "v": "link",
+       "size": 18
+      },
+      {
+       "t": "iconbtn",
+       "v": "close",
+       "size": 18
+      }
+     ]
+    },
+    {
+     "t": "tile",
+     "lead": "badge_outlined",
+     "title": "Taylor Reed",
+     "sub": "Photographer",
+     "trail": [
+      {
+       "t": "iconbtn",
+       "v": "link",
+       "size": 18
+      },
+      {
+       "t": "iconbtn",
+       "v": "close",
+       "size": 18
+      }
+     ]
+    },
+    {
+     "t": "chip",
+     "v": "Add person",
+     "icon": "person_add_alt"
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Rider / equipment",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "tile",
+     "lead": {
+      "t": "checkbox",
+      "on": true
+     },
+     "title": "Vocal microphones ×3",
+     "trail": "close"
+    },
+    {
+     "t": "tile",
+     "lead": {
+      "t": "checkbox",
+      "on": false
+     },
+     "title": "XLR cables ×4",
+     "trail": "close"
+    },
+    {
+     "t": "chip",
+     "v": "Add rider item",
+     "icon": "add"
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Role cards",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "text",
+     "v": "Everyone involved in this event — band, crew and guests. These print in the event-guide PDF.",
+     "style": "bodySmall",
+     "color": "textSecondary"
+    },
+    {
+     "t": "spacer",
+     "size": 12
+    },
+    {
+     "t": "row",
+     "gap": 12,
+     "c": [
+      {
+       "t": "card",
+       "w": 150,
+       "pad": 12,
+       "gap": 8,
+       "cross": "center",
+       "c": [
+        {
+         "t": "avatar",
+         "v": "ML",
+         "size": 44
+        },
+        {
+         "t": "text",
+         "v": "Maya Lee",
+         "align": "center"
+        },
+        {
+         "t": "text",
+         "v": "Vocals",
+         "style": "bodySmall",
+         "color": "accentOrange",
+         "align": "center"
+        }
+       ]
+      },
+      {
+       "t": "card",
+       "w": 150,
+       "pad": 12,
+       "gap": 8,
+       "cross": "center",
+       "c": [
+        {
+         "t": "avatar",
+         "v": "JL",
+         "size": 44
+        },
+        {
+         "t": "text",
+         "v": "Jordan Lee",
+         "align": "center"
+        },
+        {
+         "t": "text",
+         "v": "Sound engineer",
+         "style": "bodySmall",
+         "color": "accentOrange",
+         "align": "center"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "bottom": [
+  {
+   "t": "actionbar",
+   "menu": false,
+   "title": "Event kit"
+  }
+ ]
+}

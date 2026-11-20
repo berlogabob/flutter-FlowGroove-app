@@ -1,0 +1,80 @@
+song_form_provider_similar_song_exists	Sheets & Dialogs	lib/providers/song_form_provider.dart:677	Song form provider: Similar Song Exists	dialog
+band_about_sheet_l519	Sheets & Dialogs	lib/screens/bands/band_about_screen.dart:519	Band about sheet L519	sheet
+band_about_remove_member	Sheets & Dialogs	lib/screens/bands/band_about_screen.dart:656	Band about: Remove member	dialog
+create_band_discard_changes	Sheets & Dialogs	lib/screens/bands/create_band_screen.dart:162	Create band: Discard Changes?	dialog
+create_band_band_created	Sheets & Dialogs	lib/screens/bands/create_band_screen.dart:186	Create band: Band Created!	dialog
+create_band_done	Sheets & Dialogs	lib/screens/bands/create_band_screen.dart:219	Create band: Done	dialog
+rehearsal_detail_suggest_a_different_time	Sheets & Dialogs	lib/screens/bands/rehearsals/rehearsal_detail_screen.dart:132	Rehearsal detail: Suggest a different time	dialog
+the_band_edit_band_name	Sheets & Dialogs	lib/screens/bands/the_band_screen.dart:314	The band: Edit Band Name	dialog
+the_band_edit_description	Sheets & Dialogs	lib/screens/bands/the_band_screen.dart:384	The band: Edit Description	dialog
+home_sheet_l112	Sheets & Dialogs	lib/screens/home_screen.dart:112	Home sheet L112	sheet
+home_rehearsals	Sheets & Dialogs	lib/screens/home_screen.dart:162	Home: Rehearsals	sheet
+backing_sheet	Sheets & Dialogs	lib/screens/metronome_screen.dart:584	Backing Sheet	sheet
+import_lyrics_dialog	Sheets & Dialogs	lib/screens/performance_sheet_screen.dart:122	Import Lyrics Dialog	sheet
+performance_sheet_you_already_have_a_song_map	Sheets & Dialogs	lib/screens/performance_sheet_screen.dart:131	Performance sheet: You already have a song map	dialog
+auto_slice_sheet_sheet_l31	Sheets & Dialogs	lib/screens/practice_regions/auto_slice_sheet.dart:31	Auto slice sheet sheet L31	sheet
+confirmation_dialog	Sheets & Dialogs	lib/screens/practice_regions/file_actions.dart:89	Confirmation Dialog	dialog
+grid_editor_dialog_tempo_grid	Sheets & Dialogs	lib/screens/practice_regions/grid_editor_dialog.dart:20	Grid editor dialog: Tempo grid	dialog
+notes_panel_note_at_n	Sheets & Dialogs	lib/screens/practice_regions/notes_panel.dart:26	Notes panel: Note at N	dialog
+region_name_sheet_region_name	Sheets & Dialogs	lib/screens/practice_regions/region_name_sheet.dart:14	Region name sheet: Region name	sheet
+slice_edit_sheet_start	Sheets & Dialogs	lib/screens/practice_regions/slice_edit_sheet.dart:15	Slice edit sheet: Start	sheet
+practice_regions_replace_n_regions	Sheets & Dialogs	lib/screens/practice_regions_screen.dart:843	Practice regions: Replace N regions?	dialog
+practice_regions_sheet_l981	Sheets & Dialogs	lib/screens/practice_regions_screen.dart:981	Practice regions sheet L981	sheet
+practice_regions_replace_n_sections	Sheets & Dialogs	lib/screens/practice_regions_screen.dart:1468	Practice regions: Replace N sections?	dialog
+practice_regions_speed_n	Sheets & Dialogs	lib/screens/practice_regions_screen.dart:2012	Practice regions: Speed N%	sheet
+practice_setup_wizard_sheet_l27	Sheets & Dialogs	lib/screens/practice_setup_wizard.dart:27	Practice setup wizard sheet L27	sheet
+profile_currently_using	Sheets & Dialogs	lib/screens/profile_screen.dart:167	Profile: ✓ Currently using	sheet
+profile_link_telegram	Sheets & Dialogs	lib/screens/profile_screen.dart:320	Profile: Link Telegram	dialog
+profile_delete_account	Sheets & Dialogs	lib/screens/profile_screen.dart:692	Profile: Delete account	dialog
+profile_dialog_l719	Sheets & Dialogs	lib/screens/profile_screen.dart:719	Profile dialog L719	dialog
+recorder_link_recording_to_song	Sheets & Dialogs	lib/screens/recorder_screen.dart:187	Recorder: Link recording to song	sheet
+create_setlist_break	Sheets & Dialogs	lib/screens/setlists/create_setlist_screen.dart:233	Create setlist: Break	sheet
+create_setlist_sheet_l350	Sheets & Dialogs	lib/screens/setlists/create_setlist_screen.dart:350	Create setlist sheet L350	sheet
+event_kit_editor_dialog_l103	Sheets & Dialogs	lib/screens/setlists/event_kit_editor_screen.dart:103	Event kit editor dialog L103	dialog
+event_kit_editor_sheet_l154	Sheets & Dialogs	lib/screens/setlists/event_kit_editor_screen.dart:154	Event kit editor sheet L154	sheet
+event_kit_editor_sheet_l181	Sheets & Dialogs	lib/screens/setlists/event_kit_editor_screen.dart:181	Event kit editor sheet L181	sheet
+event_kit_editor_sheet_l191	Sheets & Dialogs	lib/screens/setlists/event_kit_editor_screen.dart:191	Event kit editor sheet L191	sheet
+event_kit_editor_sheet_l256	Sheets & Dialogs	lib/screens/setlists/event_kit_editor_screen.dart:256	Event kit editor sheet L256	sheet
+event_kit_editor_brand_optional	Sheets & Dialogs	lib/screens/setlists/event_kit_editor_screen.dart:714	Event kit editor: Brand (optional)	dialog
+event_kit_editor_revoke_share_link	Sheets & Dialogs	lib/screens/setlists/event_kit_editor_screen.dart:1384	Event kit editor: Revoke share link?	dialog
+event_share_sheet_l106	Sheets & Dialogs	lib/screens/setlists/event_share_screen.dart:106	Event share sheet L106	sheet
+performer_sheet_sheet_l32	Sheets & Dialogs	lib/screens/setlists/performer_sheet.dart:32	Performer sheet sheet L32	sheet
+performer_sheet_link_to_band_member	Sheets & Dialogs	lib/screens/setlists/performer_sheet.dart:103	Performer sheet: Link to band member	sheet
+performer_sheet_sheet_l139	Sheets & Dialogs	lib/screens/setlists/performer_sheet.dart:139	Performer sheet sheet L139	sheet
+api_access_your_api_key	Sheets & Dialogs	lib/screens/settings/api_access_screen.dart:35	Api access: Your API key	sheet
+api_access_revoke_key	Sheets & Dialogs	lib/screens/settings/api_access_screen.dart:89	Api access: Revoke key	dialog
+suggestion_selection_dialog	Sheets & Dialogs	lib/screens/songs/add_song_screen.dart:239	Suggestion Selection Dialog	dialog
+links_editor_add_link	Sheets & Dialogs	lib/screens/songs/components/links_editor.dart:102	Links editor: Add Link	dialog
+section_picker	Sheets & Dialogs	lib/screens/songs/components/song_constructor/song_constructor.dart:79	Section Picker	dialog
+edit_section_dialog	Sheets & Dialogs	lib/screens/songs/components/song_constructor/song_constructor.dart:103	Edit Section Dialog	sheet
+color_picker_dialog	Sheets & Dialogs	lib/screens/songs/components/song_constructor/widgets/section_picker.dart:259	Color Picker Dialog	dialog
+song_lab_sheet_l144	Sheets & Dialogs	lib/screens/songs/song_lab_screen.dart:144	Song lab sheet L144	sheet
+song_lab_sheet_l332	Sheets & Dialogs	lib/screens/songs/song_lab_screen.dart:332	Song lab sheet L332	sheet
+song_lab_sheet_l664	Sheets & Dialogs	lib/screens/songs/song_lab_screen.dart:664	Song lab sheet L664	sheet
+midi_song_panel	Sheets & Dialogs	lib/screens/songs/song_lab_screen.dart:795	Midi Song Panel	sheet
+song_import_dialog	Sheets & Dialogs	lib/screens/songs/songs_list_screen.dart:149	Song Import Dialog	dialog
+songs_list_importing_songs	Sheets & Dialogs	lib/screens/songs/songs_list_screen.dart:162	Songs list: Importing songs	dialog
+song_export_dialog	Sheets & Dialogs	lib/screens/songs/songs_list_screen.dart:305	Song Export Dialog	dialog
+add_song_helper_search_on_web	Sheets & Dialogs	lib/screens/songs/utils/add_song_screen_helper.dart:60	Add song helper: Search on Web	dialog
+instrument_picker	Sheets & Dialogs	lib/screens/tuner_screen.dart:162	Instrument Picker	sheet
+custom_tuning_editor	Sheets & Dialogs	lib/screens/tuner_screen.dart:172	Custom Tuning Editor	sheet
+tuner_settings_sheet	Sheets & Dialogs	lib/screens/tuner_screen.dart:184	Tuner Settings Sheet	sheet
+setlist_export_sheet_whose_copy	Sheets & Dialogs	lib/services/export/setlist_export_sheet.dart:49	Setlist export sheet: Whose copy?	sheet
+setlist_export_sheet_as_is	Sheets & Dialogs	lib/services/export/setlist_export_sheet.dart:91	Setlist export sheet: As is	sheet
+lab_recording_sheet	Sheets & Dialogs	lib/services/idea_recorder.dart:86	Lab Recording Sheet	sheet
+app_menu_sheet_sheet_l53	Sheets & Dialogs	lib/widgets/app_menu_sheet.dart:53	App menu sheet sheet L53	sheet
+drum_practice_panel	Sheets & Dialogs	lib/widgets/metronome/backing_sheet.dart:33	Drum Practice Panel	sheet
+bpm_input_overlay_sheet_l15	Sheets & Dialogs	lib/widgets/metronome/bpm_input_overlay.dart:15	Bpm input overlay sheet L15	sheet
+drum_grid_editor	Sheets & Dialogs	lib/widgets/metronome/drum_practice_panel.dart:150	Drum Grid Editor	dialog
+metronome_sheets_sheet_l14	Sheets & Dialogs	lib/widgets/metronome/metronome_sheets.dart:14	Metronome sheets sheet L14	sheet
+reliability_sheet_keep_timing_reliable	Sheets & Dialogs	lib/widgets/metronome/reliability_sheet.dart:15	Reliability sheet: Keep timing reliable	sheet
+song_library_block_sheet_l85	Sheets & Dialogs	lib/widgets/metronome/song_library_block.dart:85	Song library block sheet L85	sheet
+midi_import_flow_import_midi	Sheets & Dialogs	lib/widgets/midi/midi_import_flow.dart:37	Midi import flow: Import MIDI	dialog
+note_editor_sheet	Sheets & Dialogs	lib/widgets/practice/launchpad_view.dart:315	Note Editor Sheet	sheet
+arrangement_sheet	Sheets & Dialogs	lib/widgets/practice/launchpad_view.dart:517	Arrangement Sheet	sheet
+role_picker_dialog	Sheets & Dialogs	lib/widgets/role_picker_widget.dart:24	Role Picker Dialog	dialog
+share_sheet_copy_to_clipboard	Sheets & Dialogs	lib/widgets/share_sheet.dart:14	Share sheet: Copy to clipboard	sheet
+support_sheet_telegram	Sheets & Dialogs	lib/widgets/support_sheet.dart:13	Support sheet: Telegram	sheet
+tag_input_dialog	Sheets & Dialogs	lib/widgets/tag_input_dialog.dart:24	Tag Input Dialog	sheet
+setlist_card_actions_quick_action	Sheets & Dialogs	lib/widgets/unified_item/setlist_card_actions.dart:65	Setlist card actions: Quick action	sheet
+song_card_actions_sheet_l209	Sheets & Dialogs	lib/widgets/unified_item/song_card_actions.dart:209	Song card actions sheet L209	sheet

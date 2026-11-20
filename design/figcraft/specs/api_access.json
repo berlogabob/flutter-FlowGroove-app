@@ -1,0 +1,112 @@
+{
+ "name": "API access",
+ "page": "Settings",
+ "source": "lib/screens/settings/api_access_screen.dart",
+ "slot": 2,
+ "body": [
+  {
+   "t": "col",
+   "pad": 16,
+   "gap": 16,
+   "c": [
+    {
+     "t": "text",
+     "v": "Connect your own AI to FlowGroove. Create a key, run the FlowGroove MCP server locally, and your assistant (Claude, ChatGPT, Gemini) can read and add songs. FlowGroove never uses your AI tokens.",
+     "style": "bodyMedium",
+     "color": "textSecondary"
+    },
+    {
+     "t": "col",
+     "pad": 12,
+     "border": "borderSubtle",
+     "radius": 8,
+     "c": [
+      {
+       "t": "text",
+       "v": "How to connect",
+       "style": "titleMedium"
+      },
+      {
+       "t": "spacer",
+       "size": 8
+      },
+      {
+       "t": "text",
+       "v": "Gateway URL:"
+      },
+      {
+       "t": "text",
+       "v": "https://us-central1-repsync-app-8685c.cloudfunctions.net/mcpGateway",
+       "style": "mono"
+      },
+      {
+       "t": "spacer",
+       "size": 8
+      },
+      {
+       "t": "text",
+       "v": "Run the MCP server (see mcp/README.md) with FLOWGROOVE_API_KEY set to your key and FLOWGROOVE_GATEWAY_URL set to the URL above, then add it to your AI client."
+      }
+     ]
+    },
+    {
+     "t": "col",
+     "gap": 8,
+     "c": [
+      {
+       "t": "text",
+       "v": "Your keys",
+       "style": "titleMedium"
+      },
+      {
+       "t": "tile",
+       "lead": {
+        "t": "icon",
+        "v": "visibility",
+        "color": "accentOrange"
+       },
+       "title": "fg_a1b2c3…  ·  read",
+       "sub": "Claude Desktop",
+       "trail": {
+        "t": "iconbtn",
+        "v": "delete_outline"
+       }
+      },
+      {
+       "t": "tile",
+       "lead": {
+        "t": "icon",
+        "v": "edit",
+        "color": "accentOrange"
+       },
+       "title": "fg_d4e5f6…  ·  write",
+       "sub": "ChatGPT",
+       "trail": {
+        "t": "iconbtn",
+        "v": "delete_outline"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "bottom": [
+  {
+   "t": "actionbar",
+   "menu": false,
+   "title": "AI access (MCP)"
+  }
+ ],
+ "overlay": [
+  {
+   "x": 276,
+   "y": 765,
+   "node": {
+    "t": "fab",
+    "icon": "add",
+    "v": "New key"
+   }
+  }
+ ]
+}

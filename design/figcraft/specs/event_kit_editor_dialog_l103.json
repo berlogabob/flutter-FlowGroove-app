@@ -1,0 +1,17 @@
+{
+  "name": "Event kit editor dialog L103",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/event_kit_editor_screen.dart:103",
+  "slot": 2,
+  "modal": "dialog",
+  "body": [
+    {"t": "dialog", "title": "Share links inventory", "c": [
+      {"t": "tile", "lead": "badge_outlined", "title": "Jordan Rivera", "sub": "venue · stage: view, rider: view · active · 2024-05-12", "trail": "link_off"},
+      {"t": "tile", "lead": "badge_outlined", "title": "Sam Chen", "sub": "sound_engineer · stage: edit · active · 2024-05-11", "trail": "link_off"},
+      {"t": "tile", "lead": "badge_outlined", "title": "Riley Park", "sub": "client · setlist: view · active · 2024-05-10", "trail": "link_off"},
+      {"t": "text", "v": "Load more", "style": "labelMedium", "color": "accentOrange", "align": "center", "w": "hug"}
+    ], "actions": [
+      {"t": "button", "kind": "text", "v": "Close"}
+    ]}
+  ]
+}

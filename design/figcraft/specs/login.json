@@ -1,0 +1,170 @@
+{
+  "name": "Login",
+  "page": "Auth",
+  "source": "lib/screens/login_screen.dart",
+  "route": "/login",
+  "slot": 0,
+  "body": [
+    {
+      "t": "col",
+      "pad": 24,
+      "c": [
+        {
+          "t": "spacer",
+          "size": 48
+        },
+        {
+          "t": "text",
+          "v": "FlowGroove",
+          "style": "headlineMedium",
+          "align": "center"
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "text",
+          "v": "Sign in to manage your band",
+          "style": "bodyMedium",
+          "color": "textSecondary",
+          "align": "center"
+        },
+        {
+          "t": "spacer",
+          "size": 32
+        },
+        {
+          "t": "input",
+          "label": "Email",
+          "icon": "email_outlined"
+        },
+        {
+          "t": "spacer",
+          "size": 16
+        },
+        {
+          "t": "input",
+          "label": "Password",
+          "icon": "lock_outlined"
+        },
+        {
+          "t": "row",
+          "main": "max",
+          "c": [
+            {
+              "t": "button",
+              "v": "Forgot Password?",
+              "kind": "text"
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 16
+        },
+        {
+          "t": "button",
+          "v": "Sign In",
+          "w": "fill"
+        },
+        {
+          "t": "spacer",
+          "size": 12
+        },
+        {
+          "t": "button",
+          "v": "Continue with Google",
+          "kind": "secondary",
+          "w": "fill"
+        },
+        {
+          "t": "spacer",
+          "size": 16
+        },
+        {
+          "t": "row",
+          "main": "center",
+          "cross": "center",
+          "c": [
+            {
+              "t": "text",
+              "v": "Don't have an account?",
+              "style": "bodyMedium",
+              "w": "hug"
+            },
+            {
+              "t": "button",
+              "v": "Sign Up",
+              "kind": "text"
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 24
+        },
+        {
+          "t": "divider"
+        },
+        {
+          "t": "spacer",
+          "size": 16
+        },
+        {
+          "t": "text",
+          "v": "Just looking around?",
+          "style": "bodySmall",
+          "color": "textSecondary",
+          "align": "center"
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "row",
+          "w": "fill",
+          "pad": [
+            14,
+            20,
+            14,
+            20
+          ],
+          "gap": 8,
+          "main": "center",
+          "cross": "center",
+          "border": "accentOrange",
+          "radius": 5,
+          "name": "Try Demo Account",
+          "c": [
+            {
+              "t": "icon",
+              "v": "visibility_outlined",
+              "size": 20,
+              "color": "accentOrange"
+            },
+            {
+              "t": "text",
+              "v": "Try Demo Account",
+              "style": "labelLarge",
+              "color": "accentOrange",
+              "w": "hug"
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "text",
+          "v": "Read-only access to explore all features",
+          "style": "bodySmall",
+          "color": "textTertiary",
+          "align": "center"
+        }
+      ]
+    }
+  ]
+}

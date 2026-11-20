@@ -1,0 +1,20 @@
+{
+  "name": "The band: Edit Description",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/bands/the_band_screen.dart:384",
+  "slot": 11,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Edit Description",
+      "c": [
+        {"t": "input", "label": "Description", "hint": "Enter band description...", "v": "Rock band from Portland.", "lines": 4}
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Save"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,519 @@
+{
+  "name": "Home",
+  "page": "Home & Tools",
+  "source": "lib/screens/home_screen.dart",
+  "route": "/main/home",
+  "slot": 0,
+  "body": [
+    {
+      "t": "col",
+      "pad": 16,
+      "c": [
+        {
+          "t": "card",
+          "dir": "h",
+          "pad": 16,
+          "gap": 16,
+          "cross": "center",
+          "radius": 12,
+          "c": [
+            {
+              "t": "col",
+              "w": "fill",
+              "gap": 2,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "This week",
+                  "style": "bodySmall",
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "text",
+                  "v": "1h 24m",
+                  "style": "headlineLarge",
+                  "color": "textPrimary"
+                },
+                {
+                  "t": "text",
+                  "v": "5 sessions · 3-day streak 🔥",
+                  "style": "bodySmall",
+                  "color": "textSecondary"
+                }
+              ]
+            },
+            {
+              "t": "col",
+              "w": "hug",
+              "gap": 2,
+              "c": [
+                {
+                  "t": "row",
+                  "h": 44,
+                  "gap": 2,
+                  "cross": "max",
+                  "c": [
+                    {
+                      "t": "box",
+                      "w": 10,
+                      "h": 18,
+                      "bg": "stone",
+                      "radius": [
+                        4,
+                        4,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": 10,
+                      "h": 30,
+                      "bg": "stone",
+                      "radius": [
+                        4,
+                        4,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": 10,
+                      "h": 2,
+                      "bg": "borderDefault",
+                      "radius": [
+                        4,
+                        4,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": 10,
+                      "h": 44,
+                      "bg": "stone",
+                      "radius": [
+                        4,
+                        4,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": 10,
+                      "h": 24,
+                      "bg": "stone",
+                      "radius": [
+                        4,
+                        4,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": 10,
+                      "h": 2,
+                      "bg": "borderDefault",
+                      "radius": [
+                        4,
+                        4,
+                        0,
+                        0
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": 10,
+                      "h": 35,
+                      "bg": "accentOrange",
+                      "radius": [
+                        4,
+                        4,
+                        0,
+                        0
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "t": "row",
+                  "gap": 2,
+                  "c": [
+                    {
+                      "t": "text",
+                      "v": "W",
+                      "style": "labelSmall",
+                      "color": "textSecondary",
+                      "w": 10,
+                      "align": "center"
+                    },
+                    {
+                      "t": "text",
+                      "v": "T",
+                      "style": "labelSmall",
+                      "color": "textSecondary",
+                      "w": 10,
+                      "align": "center"
+                    },
+                    {
+                      "t": "text",
+                      "v": "F",
+                      "style": "labelSmall",
+                      "color": "textSecondary",
+                      "w": 10,
+                      "align": "center"
+                    },
+                    {
+                      "t": "text",
+                      "v": "S",
+                      "style": "labelSmall",
+                      "color": "textSecondary",
+                      "w": 10,
+                      "align": "center"
+                    },
+                    {
+                      "t": "text",
+                      "v": "S",
+                      "style": "labelSmall",
+                      "color": "textSecondary",
+                      "w": 10,
+                      "align": "center"
+                    },
+                    {
+                      "t": "text",
+                      "v": "M",
+                      "style": "labelSmall",
+                      "color": "textSecondary",
+                      "w": 10,
+                      "align": "center"
+                    },
+                    {
+                      "t": "text",
+                      "v": "T",
+                      "style": "labelSmall",
+                      "color": "accentOrange",
+                      "w": 10,
+                      "align": "center"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "card",
+          "pad": 0,
+          "radius": 12,
+          "c": [
+            {
+              "t": "tile",
+              "title": "Continue",
+              "sub": "Wonderwall · 87 BPM",
+              "trail": "chevron_right"
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 32
+        },
+        {
+          "t": "text",
+          "v": "Quick Actions",
+          "style": "titleMedium",
+          "color": "textPrimary"
+        },
+        {
+          "t": "spacer",
+          "size": 12
+        },
+        {
+          "t": "row",
+          "gap": 12,
+          "c": [
+            {
+              "t": "row",
+              "w": "fill",
+              "h": 56,
+              "pad": 12,
+              "gap": 8,
+              "cross": "center",
+              "bg": "surfaceRaised",
+              "border": "borderDefault",
+              "radius": 6,
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "add",
+                  "size": 24,
+                  "color": "accentOrange"
+                },
+                {
+                  "t": "text",
+                  "v": "Add song",
+                  "style": "labelLarge",
+                  "color": "textPrimary"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "w": "fill",
+              "h": 56,
+              "pad": 12,
+              "gap": 8,
+              "cross": "center",
+              "bg": "surfaceRaised",
+              "border": "borderDefault",
+              "radius": 6,
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "group_add",
+                  "size": 24,
+                  "color": "accentOrange"
+                },
+                {
+                  "t": "text",
+                  "v": "Add band",
+                  "style": "labelLarge",
+                  "color": "textPrimary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 12
+        },
+        {
+          "t": "row",
+          "gap": 12,
+          "c": [
+            {
+              "t": "row",
+              "w": "fill",
+              "h": 56,
+              "pad": 12,
+              "gap": 8,
+              "cross": "center",
+              "bg": "surfaceRaised",
+              "border": "borderDefault",
+              "radius": 6,
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "playlist_add",
+                  "size": 24,
+                  "color": "accentOrange"
+                },
+                {
+                  "t": "text",
+                  "v": "Add setlist",
+                  "style": "labelLarge",
+                  "color": "textPrimary"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "w": "fill",
+              "h": 56,
+              "pad": 12,
+              "gap": 8,
+              "cross": "center",
+              "bg": "surfaceRaised",
+              "border": "borderDefault",
+              "radius": 6,
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "mic",
+                  "size": 24,
+                  "color": "accentOrange"
+                },
+                {
+                  "t": "text",
+                  "v": "Audio note",
+                  "style": "labelLarge",
+                  "color": "textPrimary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 32
+        },
+        {
+          "t": "text",
+          "v": "Tools",
+          "style": "titleMedium",
+          "color": "textPrimary"
+        },
+        {
+          "t": "spacer",
+          "size": 12
+        },
+        {
+          "t": "row",
+          "gap": 12,
+          "c": [
+            {
+              "t": "row",
+              "w": "fill",
+              "h": 56,
+              "pad": 12,
+              "gap": 8,
+              "cross": "center",
+              "bg": "surfaceRaised",
+              "border": "borderDefault",
+              "radius": 6,
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "tune",
+                  "size": 24,
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "text",
+                  "v": "Tuner",
+                  "style": "labelLarge",
+                  "color": "textPrimary"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "w": "fill",
+              "h": 56,
+              "pad": 12,
+              "gap": 8,
+              "cross": "center",
+              "bg": "surfaceRaised",
+              "border": "borderDefault",
+              "radius": 6,
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "av_timer",
+                  "size": 24,
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "text",
+                  "v": "Metronome",
+                  "style": "labelLarge",
+                  "color": "textPrimary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 12
+        },
+        {
+          "t": "row",
+          "gap": 12,
+          "c": [
+            {
+              "t": "row",
+              "w": "fill",
+              "h": 56,
+              "pad": 12,
+              "gap": 8,
+              "cross": "center",
+              "bg": "surfaceRaised",
+              "border": "borderDefault",
+              "radius": 6,
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "event",
+                  "size": 24,
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "text",
+                  "v": "Rehearsals",
+                  "style": "labelLarge",
+                  "color": "textPrimary"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "w": "fill",
+              "h": 56,
+              "pad": 12,
+              "gap": 8,
+              "cross": "center",
+              "bg": "surfaceRaised",
+              "border": "borderDefault",
+              "radius": 6,
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "graphic_eq",
+                  "size": 24,
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "text",
+                  "v": "Recorder",
+                  "style": "labelLarge",
+                  "color": "textPrimary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 12
+        },
+        {
+          "t": "row",
+          "w": "fill",
+          "h": 56,
+          "pad": 12,
+          "gap": 8,
+          "cross": "center",
+          "bg": "surfaceRaised",
+          "border": "borderDefault",
+          "radius": 6,
+          "c": [
+            {
+              "t": "icon",
+              "v": "menu_book",
+              "size": 24,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Practice",
+              "style": "labelLarge",
+              "color": "textPrimary"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "bottomnav",
+      "sel": "Home"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+login	Auth	lib/screens/login_screen.dart	Login
+register	Auth	lib/screens/auth/register_screen.dart	Register
+forgot_password	Auth	lib/screens/auth/forgot_password_screen.dart	Forgot password
+join_welcome	Auth	lib/screens/bands/join_welcome_screen.dart	Join welcome
+home	Home & Tools	lib/screens/home_screen.dart	Home
+metronome	Home & Tools	lib/screens/metronome_screen.dart	Metronome
+tuner	Home & Tools	lib/screens/tuner_screen.dart	Tuner
+recorder	Home & Tools	lib/screens/recorder_screen.dart	Recorder
+practice	Home & Tools	lib/screens/practice_screen.dart	Practice
+practice_regions	Home & Tools	lib/screens/practice_regions_screen.dart	Practice regions
+concert_mode	Home & Tools	lib/screens/concert_mode_screen.dart	Concert mode
+performance_sheet	Home & Tools	lib/screens/performance_sheet_screen.dart	Performance sheet
+add_song	Songs	lib/screens/songs/add_song_screen.dart	Add song
+song_editor	Songs	lib/screens/songs/song_editor_screen.dart	Song editor
+song_page	Songs	lib/screens/songs/song_page_screen.dart	Song page
+song_lab	Songs	lib/screens/songs/song_lab_screen.dart	Song lab
+canonical_browse	Songs	lib/screens/songs/canonical_browse_screen.dart	Browse catalog
+midi_import	Songs	lib/screens/songs/midi_import_screen.dart	MIDI import
+song_duplicates	Songs	lib/screens/songs/song_duplicates_screen.dart	Song duplicates
+song_cluster_merge	Songs	lib/screens/songs/song_cluster_merge_screen.dart	Merge songs
+setlists_list	Setlists	lib/screens/setlists/setlists_list_screen.dart	Setlists
+create_setlist	Setlists	lib/screens/setlists/create_setlist_screen.dart	Create setlist
+setlist_view	Setlists	lib/screens/setlists/setlist_view_screen.dart	Setlist
+event_kit_editor	Setlists	lib/screens/setlists/event_kit_editor_screen.dart	Event kit editor
+event_share	Setlists	lib/screens/setlists/event_share_screen.dart	Event share
+my_bands	Bands	lib/screens/bands/my_bands_screen.dart	My bands
+create_band	Bands	lib/screens/bands/create_band_screen.dart	Create band
+join_band	Bands	lib/screens/bands/join_band_screen.dart	Join band
+the_band	Bands	lib/screens/bands/the_band_screen.dart	The band
+band_about	Bands	lib/screens/bands/band_about_screen.dart	Band about
+band_invite	Bands	lib/screens/bands/band_invite_screen.dart	Band invite
+band_members	Bands	lib/screens/bands/band_members_screen.dart	Band members
+band_setlists	Bands	lib/screens/bands/band_setlists_screen.dart	Band setlists
+band_songs	Bands	lib/screens/bands/band_songs_screen.dart	Band songs
+rehearsals_list	Bands	lib/screens/bands/rehearsals/rehearsals_list_screen.dart	Rehearsals
+rehearsal_detail	Bands	lib/screens/bands/rehearsals/rehearsal_detail_screen.dart	Rehearsal detail
+rehearsal_edit	Bands	lib/screens/bands/rehearsals/rehearsal_edit_screen.dart	Edit rehearsal
+profile	Settings	lib/screens/profile_screen.dart	Profile
+app_settings	Settings	lib/screens/settings/app_settings_screen.dart	Settings
+api_access	Settings	lib/screens/settings/api_access_screen.dart	API access
+design_system	Settings	lib/screens/settings/design_system_screen.dart	Design system

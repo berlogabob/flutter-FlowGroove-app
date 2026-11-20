@@ -1,0 +1,23 @@
+{
+  "name": "Song Export Dialog",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/songs_list_screen.dart:305",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {"t": "dialog", "icon": "file_download", "title": "Export Songs", "c": [
+      {"t": "text", "v": "Export 128 song(s) to CSV file:", "style": "titleMedium", "color": "textHighEmphasis", "align": "center"},
+      {"t": "spacer", "size": 16},
+      {"t": "row", "main": "center", "gap": 12, "c": [
+        {"t": "button", "v": "Save to Device", "icon": "save", "kind": "primary"},
+        {"t": "button", "v": "Share", "icon": "share", "kind": "primary"}
+      ]},
+      {"t": "spacer", "size": 8},
+      {"t": "button", "v": "Copy as JSON", "icon": "data_object", "kind": "secondary"},
+      {"t": "spacer", "size": 16},
+      {"t": "text", "v": "CSV opens in Excel/Google Sheets. JSON is the FlowGroove Song format — paste it into an AI to edit, or back into Import.", "style": "bodyMedium", "color": "textSecondary", "align": "center", "maxLines": 4}
+    ], "actions": [
+      {"t": "button", "kind": "text", "v": "Cancel"}
+    ]}
+  ]
+}

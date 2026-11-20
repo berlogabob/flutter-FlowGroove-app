@@ -1,0 +1,26 @@
+{
+  "name": "Band about: Remove member",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/bands/band_about_screen.dart:656",
+  "slot": 5,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "icon": "person_remove_outlined",
+      "title": "Remove member",
+      "c": [
+        {
+          "t": "text",
+          "v": "Remove Sarah Jenkins from \"The Groove Machine\"?",
+          "style": "bodyMedium",
+          "color": "textSecondary"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "danger", "v": "Remove"}
+      ]
+    }
+  ]
+}

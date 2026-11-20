@@ -1,0 +1,26 @@
+{
+  "name": "Rehearsal detail: Suggest a different time",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/bands/rehearsals/rehearsal_detail_screen.dart:132",
+  "slot": 9,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Suggest a different time",
+      "icon": "event_note",
+      "c": [
+        {
+          "t": "input",
+          "hint": "e.g. Sunday 18:00?",
+          "v": "Sunday 18:00?",
+          "icon": "schedule"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Send"}
+      ]
+    }
+  ]
+}

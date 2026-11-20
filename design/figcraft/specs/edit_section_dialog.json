@@ -1,0 +1,36 @@
+{
+  "name": "Edit Section Dialog",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/components/song_constructor/song_constructor.dart:103",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 16,
+      "c": [
+        {"t": "text", "v": "Edit Section", "style": "titleLarge"},
+        {"t": "text", "v": "Section Type:", "style": "headlineSmall", "color": "textSecondary"},
+        {"t": "input", "v": "Verse", "trail": "arrow_drop_down"},
+        {"t": "text", "v": "Custom Name", "style": "headlineSmall", "color": "textSecondary"},
+        {"t": "input", "v": "Verse"},
+        {"t": "text", "v": "Duration (phrases):", "style": "headlineSmall", "color": "textSecondary"},
+        {"t": "row", "gap": 4, "c": [
+          {"t": "chip", "v": "1"},
+          {"t": "chip", "v": "2"},
+          {"t": "chip", "v": "3", "sel": true},
+          {"t": "chip", "v": "4"},
+          {"t": "input", "v": "", "hint": "Custom", "w": 60}
+        ]},
+        {"t": "input", "label": "Notes (e.g., guitar chords)", "hint": "Am C G", "lines": 3},
+        {"t": "input", "label": "Lyrics & chords (ChordPro)", "hint": "[Am]Twinkle [F]little [C]star", "lines": 5},
+        {"t": "text", "v": "Preview:", "style": "headlineSmall", "color": "textSecondary"},
+        {"t": "box", "h": 64, "bg": "blackSurface", "border": "borderDefault", "radius": 8},
+        {"t": "row", "main": "spaceBetween", "c": [
+          {"t": "button", "kind": "text", "v": "Cancel", "w": "hug"},
+          {"t": "button", "kind": "primary", "v": "Save", "w": "hug"}
+        ]}
+      ]
+    }
+  ]
+}

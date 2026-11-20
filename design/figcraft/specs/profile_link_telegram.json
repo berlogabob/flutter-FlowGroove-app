@@ -1,0 +1,42 @@
+{
+  "name": "Profile: Link Telegram",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/profile_screen.dart:320",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Link Telegram",
+      "icon": "send",
+      "c": [
+        {
+          "t": "text",
+          "v": "Link your Telegram account to automatically import your profile name and photo to FlowGroove.",
+          "style": "bodyMedium",
+          "color": "textSecondary"
+        },
+        { "t": "spacer", "size": 12 },
+        {
+          "t": "col",
+          "pad": 12,
+          "gap": 6,
+          "bg": "surfaceRaised",
+          "radius": 8,
+          "c": [
+            { "t": "text", "v": "How it works:", "style": "labelMedium", "color": "textPrimary" },
+            { "t": "spacer", "size": 6 },
+            { "t": "text", "v": "1. Click \"Open Telegram\" below", "style": "bodySmall", "color": "textSecondary" },
+            { "t": "text", "v": "2. Send /link command to the bot", "style": "bodySmall", "color": "textSecondary" },
+            { "t": "text", "v": "3. Tap \"Yes, link my profile\"", "style": "bodySmall", "color": "textSecondary" },
+            { "t": "text", "v": "4. Your name and photo will be imported", "style": "bodySmall", "color": "textSecondary" }
+          ]
+        }
+      ],
+      "actions": [
+        { "t": "button", "kind": "text", "v": "Cancel" },
+        { "t": "button", "kind": "primary", "icon": "send", "v": "Open Telegram" }
+      ]
+    }
+  ]
+}

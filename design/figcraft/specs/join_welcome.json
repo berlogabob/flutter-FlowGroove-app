@@ -1,0 +1,80 @@
+{
+  "name": "Join welcome",
+  "page": "Auth",
+  "source": "lib/screens/bands/join_welcome_screen.dart",
+  "route": "/join-welcome?code={invite}",
+  "slot": 3,
+  "body": [
+    {
+      "t": "col",
+      "h": "fill",
+      "pad": 24,
+      "main": "center",
+      "gap": 24,
+      "c": [
+        {
+          "t": "col",
+          "pad": 24,
+          "bg": "surfaceRaised",
+          "border": "accentOrange30",
+          "borderW": 2,
+          "radius": 16,
+          "cross": "center",
+          "c": [
+            {
+              "t": "raw",
+              "type": "text",
+              "v": "🎸",
+              "name": "Guitar",
+              "props": {
+                "fontFamily": "Apple Color Emoji",
+                "fontStyle": "Regular",
+                "fontSize": 48,
+                "textAutoResize": "widthAndHeight"
+              }
+            },
+            {
+              "t": "spacer",
+              "size": 16
+            },
+            {
+              "t": "text",
+              "v": "You've been invited to join",
+              "style": "bodyMedium",
+              "color": "textSecondary",
+              "align": "center"
+            },
+            {
+              "t": "spacer",
+              "size": 8
+            },
+            {
+              "t": "text",
+              "v": "The Midnight Grooves",
+              "style": "headlineLarge",
+              "color": "textHighEmphasis",
+              "weight": "Bold",
+              "align": "center"
+            },
+            {
+              "t": "spacer",
+              "size": 8
+            },
+            {
+              "t": "text",
+              "v": "· 5 members · by Alex",
+              "style": "bodyMedium",
+              "color": "textTertiary",
+              "align": "center"
+            }
+          ]
+        },
+        {
+          "t": "button",
+          "v": "Log in & Join",
+          "w": "fill"
+        }
+      ]
+    }
+  ]
+}

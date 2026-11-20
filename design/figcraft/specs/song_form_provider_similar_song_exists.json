@@ -1,0 +1,35 @@
+{
+  "name": "Song form provider: Similar Song Exists",
+  "page": "Sheets & Dialogs",
+  "source": "lib/providers/song_form_provider.dart:677",
+  "slot": 3,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "icon": "warning_amber_rounded",
+      "title": "Similar Song Exists",
+      "c": [
+        {
+          "t": "text",
+          "v": "\"Wonderwall\" by Oasis",
+          "style": "titleMedium",
+          "color": "textPrimary",
+          "w": "fill"
+        },
+        {"t": "spacer", "size": 16},
+        {
+          "t": "text",
+          "v": "A similar song already exists in your library. Do you want to:",
+          "style": "bodyMedium",
+          "color": "textSecondary",
+          "w": "fill"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "text", "v": "Save Anyway"}
+      ]
+    }
+  ]
+}

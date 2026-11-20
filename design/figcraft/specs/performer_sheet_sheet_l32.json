@@ -1,0 +1,30 @@
+{
+  "name": "Performer sheet sheet L32",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/performer_sheet.dart:32",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 12,
+      "c": [
+        {"t": "text", "v": "Who plays #12", "style": "headlineMedium"},
+        {"t": "text", "v": "Wonderwall", "style": "bodyMedium", "color": "textSecondary"},
+        {"t": "spacer", "size": 12},
+        {"t": "switchrow", "lead": "JM", "v": "Jake Morris", "sub": "Guitar · you", "on": true},
+        {"t": "switchrow", "lead": "MV", "v": "Mara Velez", "sub": "Bass", "on": true},
+        {"t": "switchrow", "lead": "SO", "v": "Sam Okafor", "sub": "Keys · guest", "on": false},
+        {"t": "switchrow", "lead": "RD", "v": "Riley Dubois", "sub": "Drums · guest · every song", "on": false},
+        {"t": "divider"},
+        {"t": "row", "gap": 12, "cross": "center", "c": [
+          {"t": "iconbtn", "v": "person_add_alt", "size": 20, "color": "textSecondary"},
+          {"t": "text", "v": "Add person", "style": "labelMedium", "color": "textSecondary", "w": "hug"}
+        ]},
+        {"t": "row", "main": "end", "c": [
+          {"t": "button", "kind": "primary", "v": "Done", "w": 120, "small": true}
+        ]}
+      ]
+    }
+  ]
+}

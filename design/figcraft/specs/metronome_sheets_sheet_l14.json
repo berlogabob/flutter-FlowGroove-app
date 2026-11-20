@@ -1,0 +1,41 @@
+{
+  "name": "Metronome sheets sheet L14",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/metronome/metronome_sheets.dart:14",
+  "slot": 23,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 12, "c": [
+      {"t": "text", "v": "Sound", "style": "headlineSmall"},
+      {"t": "spacer", "size": 4},
+      {"t": "text", "v": "Click sound", "style": "labelMedium", "color": "textSecondary"},
+      {"t": "spacer", "size": 4},
+      {"t": "row", "gap": 8, "c": [
+        {"t": "chip", "v": "Sine"},
+        {"t": "chip", "v": "Square"},
+        {"t": "chip", "v": "Triangle", "sel": true},
+        {"t": "chip", "v": "Sawtooth"}
+      ]},
+      {"t": "spacer", "size": 16},
+      {"t": "text", "v": "Volume", "style": "labelMedium", "color": "textSecondary"},
+      {"t": "slider", "value": 0.75},
+      {"t": "spacer", "size": 12},
+      {"t": "text", "v": "Primary pitch", "style": "labelMedium", "color": "textSecondary"},
+      {"t": "slider", "value": 0.6},
+      {"t": "spacer", "size": 12},
+      {"t": "text", "v": "Subdivision pitch", "style": "labelMedium", "color": "textSecondary"},
+      {"t": "slider", "value": 0.46},
+      {"t": "spacer", "size": 12},
+      {"t": "text", "v": "Subdivision volume", "style": "labelMedium", "color": "textSecondary"},
+      {"t": "slider", "value": 0.33},
+      {"t": "spacer", "size": 12},
+      {"t": "text", "v": "Accent pitch", "style": "labelMedium", "color": "textSecondary"},
+      {"t": "slider", "value": 0.42},
+      {"t": "spacer", "size": 8},
+      {"t": "divider"},
+      {"t": "spacer", "size": 4},
+      {"t": "switchrow", "title": "Visual flash", "lead": "flash_on", "on": true},
+      {"t": "switchrow", "title": "Haptics", "lead": "vibration", "on": true}
+    ]}
+  ]
+}

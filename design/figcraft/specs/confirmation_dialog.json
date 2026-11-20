@@ -1,0 +1,27 @@
+{
+  "name": "Confirmation Dialog",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/practice_regions/file_actions.dart:89",
+  "slot": 18,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "icon": "warning_amber",
+      "title": "Save trim?",
+      "c": [
+        {
+          "t": "text",
+          "v": "This replaces the original recording. The part outside the kept sections is gone for good.",
+          "style": "bodyMedium",
+          "color": "textSecondary",
+          "align": "center"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "danger", "v": "Trim"}
+      ]
+    }
+  ]
+}

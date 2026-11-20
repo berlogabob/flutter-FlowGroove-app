@@ -1,0 +1,71 @@
+{
+  "name": "Drum Practice Panel",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/metronome/backing_sheet.dart:33",
+  "slot": 2,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 16, "c": [
+      {"t": "text", "v": "Drums", "style": "titleLarge"},
+      {"t": "col", "gap": 4, "c": [
+        {"t": "tile", "lead": "radio_button_unchecked", "title": "Warmup Riff", "sub": "8 beats · 120 BPM", "trail": {"t": "iconbtn", "v": "edit_outlined", "size": 20, "color": "textSecondary"}},
+        {"t": "tile", "lead": "radio_button_checked", "title": "Power Ballad", "sub": "16 beats · 90 BPM", "trail": {"t": "iconbtn", "v": "edit_outlined", "size": 20, "color": "textSecondary"}},
+        {"t": "tile", "lead": "radio_button_unchecked", "title": "Walking Groove", "sub": "8 beats · 72 BPM", "trail": {"t": "iconbtn", "v": "edit_outlined", "size": 20, "color": "textSecondary"}},
+        {"t": "tile", "lead": "radio_button_unchecked", "title": "Brush Ballad", "sub": "16 beats · 66 BPM", "trail": {"t": "iconbtn", "v": "edit_outlined", "size": 20, "color": "textSecondary"}}
+      ]},
+      {"t": "switchrow", "title": "Sync with click", "on": true},
+      {"t": "button", "kind": "primary", "v": "Play", "icon": "play_arrow", "w": "fill"},
+      {"t": "text", "v": "Speed", "style": "labelMedium", "color": "textSecondary"},
+      {"t": "row", "gap": 8, "c": [
+        {"t": "chip", "v": "50%"},
+        {"t": "chip", "v": "75%"},
+        {"t": "chip", "v": "100%", "sel": true}
+      ]},
+      {"t": "card", "pad": [12, 12, 12, 12], "gap": 8, "c": [
+        {"t": "row", "gap": 8, "c": [
+          {"t": "text", "v": "Kick", "style": "labelSmall", "color": "textTertiary", "w": 56},
+          {"t": "row", "gap": 4, "wrap": true, "c": [
+            {"t": "box", "w": 24, "h": 24, "bg": "accentOrange", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "accentOrange", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4}
+          ]}
+        ]},
+        {"t": "row", "gap": 8, "c": [
+          {"t": "text", "v": "Snare", "style": "labelSmall", "color": "textTertiary", "w": 56},
+          {"t": "row", "gap": 4, "wrap": true, "c": [
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "accentOrange", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "accentOrange", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4}
+          ]}
+        ]},
+        {"t": "row", "gap": 8, "c": [
+          {"t": "text", "v": "Hi-hat", "style": "labelSmall", "color": "textTertiary", "w": 56},
+          {"t": "row", "gap": 4, "wrap": true, "c": [
+            {"t": "box", "w": 24, "h": 24, "bg": "accentOrange", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "accentOrange", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "accentOrange", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "accentOrange", "radius": 4},
+            {"t": "box", "w": 24, "h": 24, "bg": "surfaceRaised", "radius": 4}
+          ]}
+        ]}
+      ]},
+      {"t": "row", "gap": 12, "c": [
+        {"t": "button", "kind": "secondary", "v": "Import .mid", "icon": "file_upload_outlined", "w": "fill"},
+        {"t": "button", "kind": "secondary", "v": "New pattern", "icon": "add", "w": "fill"}
+      ]}
+    ]}
+  ]
+}

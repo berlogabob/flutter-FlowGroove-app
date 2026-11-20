@@ -1,0 +1,18 @@
+{
+  "name": "Home: Rehearsals",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/home_screen.dart:162",
+  "slot": 13,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 4, "c": [
+      {"t": "tile", "lead": "event", "title": "Rehearsals — choose a band", "sub": "Rehearsals are per band — choose one to see its schedule."},
+      {"t": "divider"},
+      {"t": "tile", "lead": "event", "title": "FlowGroove", "trail": "chevron_right"},
+      {"t": "tile", "lead": "event", "title": "The Neon Skyline", "trail": "chevron_right"},
+      {"t": "tile", "lead": "event", "title": "Midnight Canvas", "trail": "chevron_right"},
+      {"t": "tile", "lead": "event", "title": "Solar Flare", "trail": "chevron_right"},
+      {"t": "tile", "lead": "event", "title": "Paper Planes Quartet", "trail": "chevron_right"}
+    ]}
+  ]
+}

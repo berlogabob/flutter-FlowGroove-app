@@ -1,0 +1,66 @@
+{
+  "name": "Songs list: Importing songs",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/songs_list_screen.dart:162",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Import songs (CSV or JSON)",
+      "icon": "upload_file",
+      "c": [
+        {
+          "t": "col",
+          "gap": 24,
+          "c": [
+            {
+              "t": "col",
+              "gap": 20,
+              "c": [
+                {"t": "icon", "v": "table_view_outlined", "size": 56, "color": "textTertiary", "w": "hug"},
+                {
+                  "t": "text",
+                  "v": "Choose a CSV file, or paste CSV or FlowGroove Song JSON (e.g. from an AI). Everything is compared with your library and previewed before anything is saved.",
+                  "style": "bodyLarge",
+                  "color": "textSecondary",
+                  "align": "center",
+                  "w": "fill",
+                  "maxLines": 6
+                }
+              ]
+            },
+            {
+              "t": "col",
+              "gap": 12,
+              "c": [
+                {"t": "button", "kind": "primary", "icon": "folder_open", "v": "Select CSV file", "w": "fill"},
+                {"t": "button", "kind": "secondary", "icon": "content_paste", "v": "Paste from clipboard", "w": "fill"}
+              ]
+            },
+            {
+              "t": "col",
+              "gap": 8,
+              "align": "center",
+              "c": [
+                {
+                  "t": "text",
+                  "v": "No file? Ask your own AI. Copy a prompt, paste it into ChatGPT/Claude/Gemini, then paste its result back here.",
+                  "style": "bodyMedium",
+                  "color": "textTertiary",
+                  "align": "center",
+                  "w": "fill",
+                  "maxLines": 4
+                },
+                {"t": "text", "v": "Copy AI prompt", "style": "labelMedium", "color": "accentOrange", "w": "hug"}
+              ]
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"}
+      ]
+    }
+  ]
+}

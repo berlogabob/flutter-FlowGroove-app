@@ -1,0 +1,207 @@
+{
+  "name": "Profile",
+  "page": "Settings",
+  "source": "lib/screens/profile_screen.dart",
+  "route": "/main/profile",
+  "slot": 0,
+  "body": [
+    {
+      "t": "col",
+      "pad": 16,
+      "gap": 16,
+      "c": [
+        {
+          "t": "card",
+          "dir": "h",
+          "gap": 16,
+          "cross": "center",
+          "c": [
+            {
+              "t": "avatar",
+              "icon": "person",
+              "size": 64,
+              "bg": "blackSurface",
+              "color": "white",
+              "name": "Profile photo placeholder"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "gap": 2,
+              "c": [
+                {
+                  "t": "row",
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "text",
+                      "v": "Riley Lane",
+                      "style": "headlineSmall",
+                      "w": "fill"
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "edit",
+                      "size": 16,
+                      "color": "textSecondary"
+                    }
+                  ]
+                },
+                {
+                  "t": "text",
+                  "v": "riley@example.com",
+                  "style": "bodyMedium",
+                  "color": "textSecondary",
+                  "maxLines": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "col",
+          "gap": 8,
+          "c": [
+            {
+              "t": "text",
+              "v": "My Roles",
+              "style": "labelLarge",
+              "color": "textSecondary"
+            },
+            {
+              "t": "card",
+              "dir": "h",
+              "gap": 6,
+              "cross": "center",
+              "c": [
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 6,
+                  "wrap": true,
+                  "c": [
+                    {
+                      "t": "chip",
+                      "v": "🎸 Guitarist",
+                      "sel": true
+                    },
+                    {
+                      "t": "chip",
+                      "v": "🎤 Vocalist",
+                      "sel": true
+                    }
+                  ]
+                },
+                {
+                  "t": "button",
+                  "v": "Edit",
+                  "kind": "text",
+                  "icon": "edit",
+                  "small": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "col",
+          "gap": 8,
+          "c": [
+            {
+              "t": "text",
+              "v": "Account",
+              "style": "labelLarge",
+              "color": "textSecondary"
+            },
+            {
+              "t": "card",
+              "pad": 0,
+              "c": [
+                {
+                  "t": "tile",
+                  "lead": {
+                    "t": "icon",
+                    "v": "person_outline",
+                    "color": "accentOrange"
+                  },
+                  "title": "Edit Profile",
+                  "sub": "Change name and photo",
+                  "trail": "chevron_right"
+                },
+                {
+                  "t": "tile",
+                  "lead": {
+                    "t": "icon",
+                    "v": "send",
+                    "color": "accentOrange"
+                  },
+                  "title": "Link Telegram",
+                  "sub": "Get name and photo from Telegram",
+                  "trail": "chevron_right"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "main": "center",
+          "pad": [
+            8,
+            0,
+            0,
+            0
+          ],
+          "c": [
+            {
+              "t": "button",
+              "v": "Sign Out",
+              "kind": "text",
+              "icon": "logout"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 8,
+          "cross": "center",
+          "border": "error",
+          "radius": 10,
+          "c": [
+            {
+              "t": "icon",
+              "v": "warning_amber_rounded",
+              "size": 18,
+              "color": "error"
+            },
+            {
+              "t": "text",
+              "v": "Danger zone",
+              "style": "labelLarge",
+              "color": "error",
+              "w": "fill"
+            },
+            {
+              "t": "icon",
+              "v": "expand_more",
+              "color": "error"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "actionbar",
+      "menu": false,
+      "title": ""
+    }
+  ]
+}

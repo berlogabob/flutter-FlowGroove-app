@@ -1,0 +1,57 @@
+{
+  "name": "Profile: ✓ Currently using",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/profile_screen.dart:167",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 4,
+      "c": [
+        {
+          "t": "tile",
+          "lead": "send",
+          "title": "Use Telegram Photo",
+          "sub": "Import photo from Telegram"
+        },
+        {
+          "t": "tile",
+          "lead": "account_circle",
+          "title": "Use Google Photo"
+        },
+        {
+          "t": "tile",
+          "lead": "camera_alt",
+          "title": "Take Photo",
+          "trail": [
+            {
+              "t": "text",
+              "v": "✓ Currently using",
+              "style": "labelSmall",
+              "color": "successGreen"
+            }
+          ]
+        },
+        {
+          "t": "tile",
+          "lead": "photo_library",
+          "title": "Choose from Gallery",
+          "trail": [
+            {
+              "t": "text",
+              "v": "✓ Currently using",
+              "style": "labelSmall",
+              "color": "successGreen"
+            }
+          ]
+        },
+        {
+          "t": "tile",
+          "lead": "delete",
+          "title": "Remove Photo"
+        }
+      ]
+    }
+  ]
+}

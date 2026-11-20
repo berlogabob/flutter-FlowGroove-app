@@ -1,0 +1,20 @@
+{
+  "name": "App menu sheet sheet L53",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/app_menu_sheet.dart:53",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "c": [
+      {"t": "text", "v": "More", "style": "titleLarge", "color": "textHighEmphasis", "name": "Header"},
+      {"t": "divider"},
+      {"t": "tile", "lead": "av_timer", "title": "Metronome", "trail": "arrow_forward", "name": "Metronome"},
+      {"t": "tile", "lead": "tune", "title": "Tuner", "trail": "arrow_forward", "name": "Tuner"},
+      {"t": "tile", "lead": "mic_outlined", "title": "Recorder", "trail": "arrow_forward", "name": "Recorder"},
+      {"t": "divider"},
+      {"t": "tile", "lead": {"t": "avatar", "v": "AR", "size": 28}, "title": "Alex Rivera", "trail": "arrow_forward", "name": "Profile"},
+      {"t": "tile", "lead": "settings_outlined", "title": "Settings", "trail": "arrow_forward", "name": "Settings"},
+      {"t": "tile", "lead": "help_outline", "title": "Support", "trail": "arrow_forward", "name": "Support"}
+    ]}
+  ]
+}

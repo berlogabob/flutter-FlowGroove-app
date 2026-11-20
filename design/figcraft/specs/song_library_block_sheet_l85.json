@@ -1,0 +1,32 @@
+{
+  "name": "Song library block sheet L85",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/metronome/song_library_block.dart:85",
+  "slot": 25,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 0, "c": [
+      {"t": "box", "w": 40, "h": 4, "bg": "borderDefault", "radius": 8},
+      {"t": "row", "pad": [16, 16, 4, 16], "gap": 8, "main": "spaceBetween", "cross": "center", "c": [
+        {"t": "text", "v": "Songs & Setlists", "style": "headlineSmall", "w": "fill"},
+        {"t": "iconbtn", "v": "close", "color": "textSecondary"}
+      ]},
+      {"t": "row", "pad": [0, 16, 0, 16], "gap": 8, "c": [
+        {"t": "segmented", "items": ["Songs", "Setlists"], "sel": 0}
+      ]},
+      {"t": "input", "label": "Library source", "icon": "folder_outlined", "trail": "arrow_drop_down", "v": "Personal"},
+      {"t": "divider"},
+      {"t": "col", "pad": [8, 16, 16, 16], "gap": 8, "c": [
+        {"t": "tile", "lead": "music_note", "title": "Wonderwall", "sub": "Oasis", "trail": "87 BPM"},
+        {"t": "tile", "lead": "music_note", "title": "Seven Nation Army", "sub": "The White Stripes", "trail": "124 BPM"},
+        {"t": "tile", "lead": "music_note", "title": "Valerie", "sub": "Amy Winehouse", "trail": "106 BPM"},
+        {"t": "tile", "lead": "music_note", "title": "Fix You", "sub": "Coldplay", "trail": "130 BPM"},
+        {"t": "tile", "lead": "music_note", "title": "Clocks", "sub": "Coldplay", "trail": "136 BPM"},
+        {"t": "divider"},
+        {"t": "tile", "lead": "playlist_play", "title": "Summer Set 2024", "sub": "12 songs", "trail": "chevron_right"},
+        {"t": "tile", "lead": "playlist_play", "title": "Rehearsal Picks", "sub": "7 songs", "trail": "chevron_right"},
+        {"t": "tile", "lead": "playlist_play", "title": "Encore Jam", "sub": "4 songs", "trail": "chevron_right"}
+      ]}
+    ]}
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Api access: Revoke key",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/settings/api_access_screen.dart:89",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Revoke key",
+      "icon": "delete_outline",
+      "c": [
+        {
+          "t": "text",
+          "v": "Revoke sk_7f3a…? Any AI using it loses access.",
+          "style": "bodyMedium",
+          "color": "textSecondary"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "danger", "v": "Revoke"}
+      ]
+    }
+  ]
+}

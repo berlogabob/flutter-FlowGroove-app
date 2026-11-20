@@ -1,0 +1,26 @@
+{
+  "name": "Profile dialog L719",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/profile_screen.dart:719",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "icon": "delete_forever",
+      "title": "Delete account",
+      "c": [
+        {
+          "t": "text",
+          "v": "This permanently deletes your account and all your data — your songs, setlists, and band memberships. This cannot be undone.",
+          "style": "bodyMedium",
+          "color": "textSecondary"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "danger", "v": "Delete"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "name": "Suggestion Selection Dialog",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/add_song_screen.dart:239",
+  "slot": 2,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Found on Spotify",
+      "icon": "music_note",
+      "iconColor": "successGreen",
+      "c": [
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+          {"t": "icon", "v": "music_note", "size": 16, "color": "borderDefault"},
+          {"t": "col", "w": "fill", "gap": 2, "c": [
+            {"t": "text", "v": "Song", "style": "labelSmall", "color": "textTertiary"},
+            {"t": "text", "v": "Wonderwall", "style": "bodyMedium"}
+          ]}
+        ]},
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+          {"t": "icon", "v": "person", "size": 16, "color": "borderDefault"},
+          {"t": "col", "w": "fill", "gap": 2, "c": [
+            {"t": "text", "v": "Artist", "style": "labelSmall", "color": "textTertiary"},
+            {"t": "text", "v": "Oasis", "style": "bodyMedium"}
+          ]}
+        ]},
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+          {"t": "icon", "v": "album", "size": 16, "color": "borderDefault"},
+          {"t": "col", "w": "fill", "gap": 2, "c": [
+            {"t": "text", "v": "Album", "style": "labelSmall", "color": "textTertiary"},
+            {"t": "text", "v": "What's the Story Afternoon?", "style": "bodyMedium"}
+          ]}
+        ]},
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+          {"t": "icon", "v": "calendar_today", "size": 16, "color": "borderDefault"},
+          {"t": "col", "w": "fill", "gap": 2, "c": [
+            {"t": "text", "v": "Year", "style": "labelSmall", "color": "textTertiary"},
+            {"t": "text", "v": "1995", "style": "bodyMedium"}
+          ]}
+        ]},
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+          {"t": "icon", "v": "speed", "size": 16, "color": "borderDefault"},
+          {"t": "col", "w": "fill", "gap": 2, "c": [
+            {"t": "text", "v": "BPM", "style": "labelSmall", "color": "textTertiary"},
+            {"t": "text", "v": "87", "style": "bodyMedium"}
+          ]}
+        ]},
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+          {"t": "icon", "v": "music_note", "size": 16, "color": "borderDefault"},
+          {"t": "col", "w": "fill", "gap": 2, "c": [
+            {"t": "text", "v": "Key", "style": "labelSmall", "color": "textTertiary"},
+            {"t": "text", "v": "G", "style": "bodyMedium"}
+          ]}
+        ]},
+        {"t": "divider"},
+        {"t": "row", "gap": 8, "c": [
+          {"t": "icon", "v": "cloud", "size": 16, "color": "borderDefault"},
+          {"t": "text", "v": "From Spotify • adds BPM/key on selection", "style": "bodySmall", "color": "textTertiary", "w": "fill"}
+        ]}
+      ],
+      "actions": [
+        {"t": "button", "kind": "primary", "v": "Use This Song"},
+        {"t": "button", "kind": "text", "v": "Create New"}
+      ]
+    }
+  ]
+}

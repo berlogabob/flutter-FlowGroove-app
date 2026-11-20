@@ -1,0 +1,209 @@
+{
+  "name": "Song editor",
+  "page": "Songs",
+  "source": "lib/screens/songs/song_editor_screen.dart",
+  "route": "/main/songs/{song}/edit",
+  "slot": 2,
+  "body": [
+    {
+      "t": "col",
+      "pad": 16,
+      "gap": 12,
+      "c": [
+        {
+          "t": "text",
+          "v": "City Lights – Live at the Harbour",
+          "style": "headlineLarge"
+        },
+        {
+          "t": "text",
+          "v": "The Glass Birds",
+          "style": "bodyLarge",
+          "color": "textSecondary"
+        },
+        {
+          "t": "spacer",
+          "size": 12
+        },
+        {
+          "t": "segmented",
+          "items": [
+            "Edit",
+            "Sheet",
+            "Lab"
+          ],
+          "sel": 0
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "input",
+          "label": "Title *",
+          "v": "City Lights – Live at the Harbour"
+        },
+        {
+          "t": "input",
+          "label": "Artist",
+          "v": "The Glass Birds"
+        },
+        {
+          "t": "input",
+          "hint": "Search the web to autofill",
+          "icon": "music_note",
+          "trail": "travel_explore"
+        },
+        {
+          "t": "spacer",
+          "size": 4
+        },
+        {
+          "t": "row",
+          "h": 52,
+          "pad": [
+            0,
+            16,
+            0,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "c": [
+            {
+              "t": "icon",
+              "v": "music_note",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Key & BPM",
+              "style": "labelLarge",
+              "w": "fill"
+            },
+            {
+              "t": "text",
+              "v": "Not set",
+              "style": "bodySmall",
+              "color": "accentOrange",
+              "w": "hug"
+            },
+            {
+              "t": "icon",
+              "v": "chevron_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "h": 52,
+          "pad": [
+            0,
+            16,
+            0,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "c": [
+            {
+              "t": "icon",
+              "v": "link",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Links",
+              "style": "labelLarge",
+              "w": "fill"
+            },
+            {
+              "t": "text",
+              "v": "No links",
+              "style": "bodySmall",
+              "color": "textSecondary",
+              "w": "hug"
+            },
+            {
+              "t": "icon",
+              "v": "chevron_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "h": 52,
+          "pad": [
+            0,
+            16,
+            0,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "c": [
+            {
+              "t": "icon",
+              "v": "queue_music",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Song Structure",
+              "style": "labelLarge",
+              "w": "fill"
+            },
+            {
+              "t": "text",
+              "v": "No structure yet",
+              "style": "bodySmall",
+              "color": "textSecondary",
+              "w": "hug"
+            },
+            {
+              "t": "icon",
+              "v": "chevron_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "col",
+      "pad": 16,
+      "c": [
+        {
+          "t": "button",
+          "v": "Save Changes",
+          "kind": "primary",
+          "w": "fill"
+        }
+      ]
+    },
+    {
+      "t": "actionbar",
+      "menu": true,
+      "title": "City Lights – Live at..."
+    }
+  ]
+}

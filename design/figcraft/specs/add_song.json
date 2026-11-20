@@ -1,0 +1,299 @@
+{
+  "name": "Add song",
+  "page": "Songs",
+  "source": "lib/screens/songs/add_song_screen.dart",
+  "route": "/main/songs/add",
+  "slot": 1,
+  "body": [
+    {
+      "t": "col",
+      "pad": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "gap": 16,
+      "c": [
+        {
+          "t": "input",
+          "label": "Title *",
+          "v": "Wonderwall"
+        },
+        {
+          "t": "input",
+          "label": "Artist",
+          "v": "Oasis"
+        },
+        {
+          "t": "input",
+          "hint": "Search the web to autofill",
+          "icon": "music_note",
+          "trail": "travel_explore"
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "row",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "music_note",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Key & BPM",
+              "style": "titleMedium"
+            },
+            {
+              "t": "text",
+              "v": "F#m  ·  87 BPM",
+              "style": "bodySmall",
+              "color": "accentOrange",
+              "align": "right",
+              "w": "fill"
+            },
+            {
+              "t": "icon",
+              "v": "keyboard_arrow_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "link",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Links",
+              "style": "titleMedium"
+            },
+            {
+              "t": "text",
+              "v": "No links",
+              "style": "bodySmall",
+              "color": "textSecondary",
+              "align": "right",
+              "w": "fill"
+            },
+            {
+              "t": "icon",
+              "v": "keyboard_arrow_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "queue_music",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Song Structure",
+              "style": "titleMedium"
+            },
+            {
+              "t": "text",
+              "v": "No structure yet",
+              "style": "bodySmall",
+              "color": "textSecondary",
+              "align": "right",
+              "w": "fill"
+            },
+            {
+              "t": "icon",
+              "v": "keyboard_arrow_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "notes",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Notes",
+              "style": "titleMedium"
+            },
+            {
+              "t": "text",
+              "v": "No notes",
+              "style": "bodySmall",
+              "color": "textSecondary",
+              "align": "right",
+              "w": "fill"
+            },
+            {
+              "t": "icon",
+              "v": "keyboard_arrow_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "label_outline",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Tags",
+              "style": "titleMedium"
+            },
+            {
+              "t": "text",
+              "v": "No tags",
+              "style": "bodySmall",
+              "color": "textSecondary",
+              "align": "right",
+              "w": "fill"
+            },
+            {
+              "t": "icon",
+              "v": "keyboard_arrow_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "music_note",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Metronome Settings",
+              "style": "titleMedium",
+              "w": "fill"
+            },
+            {
+              "t": "icon",
+              "v": "keyboard_arrow_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "col",
+      "bg": "surface",
+      "pad": 16,
+      "c": [
+        {
+          "t": "button",
+          "v": "Save Song",
+          "kind": "primary",
+          "w": "fill"
+        }
+      ]
+    },
+    {
+      "t": "actionbar",
+      "primary": "Add Song"
+    }
+  ]
+}

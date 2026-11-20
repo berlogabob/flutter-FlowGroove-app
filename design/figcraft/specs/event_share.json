@@ -1,0 +1,76 @@
+{
+  "name": "Event share",
+  "page": "Setlists",
+  "source": "lib/screens/setlists/event_share_screen.dart",
+  "slot": 4,
+  "top": [
+    {"t": "appbar", "v": "Summer Garden Party", "actions": ["theater_comedy_outlined"]}
+  ],
+  "body": [
+    {"t": "col", "pad": 16, "c": [
+      {"t": "text", "v": "Shared with Alex Morgan", "style": "bodySmall", "color": "textSecondary"},
+      {"t": "spacer", "size": 12},
+      {"t": "text", "v": "Event", "style": "titleMedium", "color": "accentOrange"},
+      {"t": "spacer", "size": 8},
+      {"t": "row", "pad": [4, 0, 4, 0], "gap": 8, "cross": "min", "c": [
+        {"t": "icon", "v": "event", "size": 18, "color": "textSecondary"},
+        {"t": "text", "v": "12/6/2027 at 19:00", "style": "bodyMedium", "w": "fill"}
+      ]},
+      {"t": "row", "pad": [4, 0, 4, 0], "gap": 8, "cross": "min", "c": [
+        {"t": "icon", "v": "place_outlined", "size": 18, "color": "textSecondary"},
+        {"t": "text", "v": "The Garden House, Lisbon", "style": "bodyMedium", "w": "fill"}
+      ]},
+      {"t": "col", "pad": [8, 0, 8, 0], "c": [
+        {"t": "text", "v": "An evening of live music in the garden.", "style": "bodyMedium"}
+      ]},
+      {"t": "spacer", "size": 12},
+      {"t": "text", "v": "Line-up", "style": "titleMedium", "color": "accentOrange"},
+      {"t": "spacer", "size": 8},
+      {"t": "row", "pad": [4, 0, 4, 0], "gap": 8, "c": [
+        {"t": "icon", "v": "person_outline", "size": 18, "color": "textSecondary"},
+        {"t": "text", "v": "Maya Santos — Vocals", "style": "bodyMedium", "w": "fill"}
+      ]},
+      {"t": "row", "pad": [4, 0, 4, 0], "gap": 8, "c": [
+        {"t": "icon", "v": "person_outline", "size": 18, "color": "textSecondary"},
+        {"t": "text", "v": "Daniel Costa — Guitar", "style": "bodyMedium", "w": "fill"}
+      ]},
+      {"t": "spacer", "size": 16},
+      {"t": "text", "v": "Running order", "style": "titleMedium", "color": "accentOrange"},
+      {"t": "spacer", "size": 8},
+      {"t": "tile", "lead": {"t": "text", "v": "1", "style": "bodySmall"}, "title": "Valerie", "sub": "Amy Winehouse · Eb · 106 BPM", "pad": [8, 0, 8, 0]},
+      {"t": "tile", "lead": {"t": "text", "v": "2", "style": "bodySmall"}, "title": "Wonderwall", "sub": "Oasis · F#m · 87 BPM", "pad": [8, 0, 8, 0]},
+      {"t": "col", "pad": [8, 0, 8, 0], "c": [
+        {"t": "text", "v": "— BREAK —", "style": "labelSmall", "color": "textSecondary"}
+      ]},
+      {"t": "tile", "lead": {"t": "text", "v": "3", "style": "bodySmall"}, "title": "Seven Nation Army", "sub": "The White Stripes · Em · 124 BPM", "pad": [8, 0, 8, 0]},
+      {"t": "spacer", "size": 16},
+      {"t": "text", "v": "Stage plot", "style": "titleMedium", "color": "accentOrange"},
+      {"t": "spacer", "size": 8},
+      {"t": "row", "pad": [4, 0, 4, 0], "gap": 8, "c": [
+        {"t": "icon", "v": "grid_view_outlined", "size": 18, "color": "textSecondary"},
+        {"t": "text", "v": "Front: Vocals, Guitar", "style": "bodyMedium", "w": "fill"}
+      ]},
+      {"t": "spacer", "size": 16},
+      {"t": "text", "v": "Equipment", "style": "titleMedium", "color": "accentOrange"},
+      {"t": "spacer", "size": 8},
+      {"t": "row", "pad": [4, 0, 4, 0], "gap": 8, "c": [
+        {"t": "icon", "v": "check_box_outline_blank", "size": 18, "color": "textSecondary"},
+        {"t": "text", "v": "Vocal microphone ×2", "style": "bodyMedium", "w": "fill"}
+      ]},
+      {"t": "spacer", "size": 16},
+      {"t": "text", "v": "Your requests", "style": "titleMedium", "color": "accentOrange"},
+      {"t": "spacer", "size": 8},
+      {"t": "row", "pad": [4, 0, 4, 0], "gap": 8, "c": [
+        {"t": "icon", "v": "schedule", "size": 18, "color": "textSecondary"},
+        {"t": "col", "w": "fill", "c": [
+          {"t": "text", "v": "Could you play an encore?", "style": "bodyMedium"},
+          {"t": "text", "v": "Waiting for the band", "style": "bodySmall", "color": "textSecondary"}
+        ]}
+      ]},
+      {"t": "spacer", "size": 80}
+    ]}
+  ],
+  "overlay": [
+    {"x": 214, "y": 831, "node": {"t": "fab", "icon": "rate_review_outlined", "v": "Suggest a change"}}
+  ]
+}

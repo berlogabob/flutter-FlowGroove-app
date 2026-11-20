@@ -1,0 +1,29 @@
+{
+  "name": "Links editor: Add Link",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/components/links_editor.dart:102",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Add Link",
+      "icon": "add_link",
+      "c": [
+        {
+          "t": "input",
+          "v": "YouTube Original",
+          "trail": "arrow_drop_down"
+        },
+        {
+          "t": "input",
+          "label": "URL"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Add"}
+      ]
+    }
+  ]
+}

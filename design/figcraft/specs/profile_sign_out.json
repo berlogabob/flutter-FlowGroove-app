@@ -1,0 +1,15 @@
+{
+  "name": "Profile · Sign out dialog",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/profile_screen.dart:654",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {"t": "dialog", "title": "Sign Out", "c": [
+      {"t": "text", "v": "Are you sure you want to sign out?", "style": "bodyMedium", "color": "textSecondary"}
+    ], "actions": [
+      {"t": "button", "kind": "text", "v": "Cancel"},
+      {"t": "button", "kind": "text", "v": "Sign Out"}
+    ]}
+  ]
+}

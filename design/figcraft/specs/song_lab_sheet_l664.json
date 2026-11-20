@@ -1,0 +1,23 @@
+{
+  "name": "Song lab sheet L664",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/song_lab_screen.dart:664",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 16,
+      "c": [
+        {"t": "text", "v": "New task", "style": "titleLarge"},
+        {"t": "input", "label": "What needs to be prepared?", "hint": "Learn the solo", "v": "Transcribe the bridge"},
+        {"t": "input", "label": "Due date (optional)", "hint": "No due date", "trail": "event"},
+        {"t": "input", "label": "Assignee (optional)", "hint": "Anyone", "v": "Jordan", "trail": "arrow_drop_down"},
+        {"t": "row", "gap": 12, "main": "spaceBetween", "c": [
+          {"t": "button", "kind": "text", "v": "Cancel", "w": "hug"},
+          {"t": "button", "kind": "primary", "v": "Add", "w": "hug"}
+        ]}
+      ]
+    }
+  ]
+}

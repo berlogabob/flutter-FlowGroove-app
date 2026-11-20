@@ -1,0 +1,77 @@
+{
+  "name": "Song page · Lab tab",
+  "page": "Songs",
+  "source": "lib/screens/songs/song_page_screen.dart",
+  "slot": 10,
+  "top": [
+    {"t": "row", "pad": [12, 16, 0, 16], "cross": "center", "c": [
+      {"t": "col", "w": "fill", "c": [
+        {"t": "text", "v": "Wonderwall", "style": "titleLarge"},
+        {"t": "text", "v": "Oasis · F#m · 87 BPM", "style": "labelLarge", "color": "textSecondary"}
+      ]},
+      {"t": "iconbtn", "v": "fullscreen", "bg": "surfaceRaised", "radius": 24}
+    ]},
+    {"t": "row", "pad": [12, 16, 8, 16], "c": [
+      {"t": "row", "w": "fill", "border": "borderDefault", "radius": 20, "cross": "center", "c": [
+        {"t": "row", "w": "fill", "pad": [10, 8, 10, 8], "gap": 8, "main": "center", "cross": "center", "c": [
+          {"t": "icon", "v": "edit_outlined", "size": 18}, {"t": "text", "v": "Edit", "style": "labelMedium", "w": "hug"}
+        ]},
+        {"t": "row", "w": "fill", "pad": [10, 8, 10, 8], "gap": 8, "bg": "surfaceRaised", "main": "center", "cross": "center", "c": [
+          {"t": "icon", "v": "queue_music", "size": 18}, {"t": "text", "v": "Sheet", "style": "labelMedium", "w": "hug"}
+        ]},
+        {"t": "row", "w": "fill", "pad": [10, 8, 10, 8], "gap": 8, "bg": "surfaceRaised", "main": "center", "cross": "center", "c": [
+          {"t": "icon", "v": "science_outlined", "size": 18}, {"t": "text", "v": "Lab", "style": "labelMedium", "w": "hug"}
+        ]}
+      ]}
+    ]}
+  ],
+  "body": [
+    {"t": "row", "cross": "center", "pad": [0, 16, 0, 0], "c": [
+      {"t": "segmented", "items": ["Entries", "Tasks"], "sel": 0},
+      {"t": "spacer"},
+      {"t": "iconbtn", "v": "bookmark_add_outlined"},
+      {"t": "iconbtn", "v": "description_outlined"}
+    ]},
+    {"t": "row", "wrap": true, "gap": 8, "pad": [0, 8, 0, 8], "c": [
+      {"t": "button", "v": "Add", "icon": "add", "kind": "tonal", "small": true, "w": "hug"},
+      {"t": "button", "v": "Import MIDI", "icon": "file_upload_outlined", "kind": "text", "small": true, "w": "hug"}
+    ]},
+    {"t": "row", "c": [
+      {"t": "chip", "v": "All", "sel": true},
+      {"t": "chip", "v": "Note"},
+      {"t": "chip", "v": "Decision"},
+      {"t": "chip", "v": "Experiment"},
+      {"t": "chip", "v": "Problem"}
+    ]},
+    {"t": "col", "gap": 8, "pad": [0, 8, 96, 16], "c": [
+      {"t": "tile", "lead": "gavel_outlined", "title": "Switched to the capo on fret 2", "sub": "Decision · active · Wonderwall · 3 notes · 15/2/2025", "trail": "more_vert"},
+      {"t": "tile", "lead": "sticky_note_2_outlined", "title": "Jake found a cleaner transition on the B section", "sub": "Note · 1 note · 10/2/2025", "trail": "more_vert"},
+      {"t": "tile", "lead": "science_outlined", "title": "Try 4/4 time instead of 6/8", "sub": "Experiment · planned · 4/2/2025", "trail": "more_vert"},
+      {"t": "tile", "lead": "report_problem_outlined", "title": "Intro chord keeps ringing during tuning", "sub": "Problem · 2 notes · 29/1/2025", "trail": "more_vert"},
+      {"t": "tile", "lead": "history", "title": "Version: Live v0.3", "sub": "Version · current · 20/1/2025", "trail": "more_vert"}
+    ]}
+  ],
+  "bottom": [
+    {"t": "col", "pad": [8, 12, 8, 12], "c": [
+      {"t": "row", "cross": "center", "c": [
+        {"t": "icon", "v": "music_note", "size": 24, "color": "textSecondary"},
+        {"t": "spacer", "size": 8},
+        {"t": "text", "v": "Semitones", "style": "labelLarge", "w": "hug"},
+        {"t": "spacer"},
+        {"t": "iconbtn", "v": "remove"},
+        {"t": "text", "v": "Original", "style": "labelLarge", "w": "hug"},
+        {"t": "iconbtn", "v": "add"}
+      ]},
+      {"t": "row", "cross": "center", "c": [
+        {"t": "iconbtn", "v": "play_arrow", "bg": "accentOrange", "color": "black", "radius": 24},
+        {"t": "spacer", "size": 8},
+        {"t": "iconbtn", "v": "remove"},
+        {"t": "text", "v": "35 px/s", "style": "labelLarge", "w": "hug"},
+        {"t": "iconbtn", "v": "add"},
+        {"t": "spacer"},
+        {"t": "chip", "v": "Manual"}
+      ]}
+    ]},
+    {"t": "actionbar"}
+  ]
+}

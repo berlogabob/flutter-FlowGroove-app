@@ -1,0 +1,519 @@
+{
+  "name": "Metronome",
+  "page": "Home & Tools",
+  "source": "lib/screens/metronome_screen.dart",
+  "route": "/main/metronome",
+  "slot": 1,
+  "bg": "black",
+  "body": [
+    {
+      "t": "col",
+      "pad": [
+        8,
+        16,
+        12,
+        16
+      ],
+      "gap": 8,
+      "c": [
+        {
+          "t": "col",
+          "pad": [
+            0,
+            12,
+            0,
+            12
+          ],
+          "c": [
+            {
+              "t": "col",
+              "name": "Beat controls",
+              "bg": "blackSurface",
+              "border": "borderSubtle",
+              "radius": 16,
+              "pad": 16,
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Beats (badge = count)",
+                  "style": "bodyMedium",
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "row",
+                  "cross": "center",
+                  "gap": 8,
+                  "c": [
+                    {
+                      "t": "iconbtn",
+                      "v": "remove",
+                      "color": "textSecondary",
+                      "bg": "surfaceRaised",
+                      "radius": 24
+                    },
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "gap": 4,
+                      "c": [
+                        {
+                          "t": "col",
+                          "w": 16,
+                          "h": 16,
+                          "bg": "blackSurface",
+                          "border": "accentOrange",
+                          "radius": 8,
+                          "main": "center",
+                          "cross": "center",
+                          "c": [
+                            {
+                              "t": "box",
+                              "w": 6,
+                              "h": 6,
+                              "circle": true,
+                              "bg": "accentOrange"
+                            }
+                          ],
+                          "borderW": 2
+                        },
+                        {
+                          "t": "col",
+                          "w": 16,
+                          "h": 16,
+                          "bg": "blackSurface",
+                          "border": "accentOrange",
+                          "radius": 8,
+                          "main": "center",
+                          "cross": "center",
+                          "c": [
+                            {
+                              "t": "box",
+                              "w": 6,
+                              "h": 6,
+                              "circle": true,
+                              "bg": "accentOrange"
+                            }
+                          ],
+                          "borderW": 2
+                        },
+                        {
+                          "t": "col",
+                          "w": 16,
+                          "h": 16,
+                          "bg": "blackSurface",
+                          "border": "accentOrange",
+                          "radius": 8,
+                          "main": "center",
+                          "cross": "center",
+                          "c": [
+                            {
+                              "t": "box",
+                              "w": 6,
+                              "h": 6,
+                              "circle": true,
+                              "bg": "accentOrange"
+                            }
+                          ],
+                          "borderW": 2
+                        },
+                        {
+                          "t": "col",
+                          "w": 16,
+                          "h": 16,
+                          "bg": "blackSurface",
+                          "border": "accentOrange",
+                          "radius": 8,
+                          "main": "center",
+                          "cross": "center",
+                          "c": [
+                            {
+                              "t": "box",
+                              "w": 6,
+                              "h": 6,
+                              "circle": true,
+                              "bg": "accentOrange"
+                            }
+                          ],
+                          "borderW": 2
+                        }
+                      ]
+                    },
+                    {
+                      "t": "col",
+                      "w": 48,
+                      "h": 48,
+                      "bg": "surfaceRaised",
+                      "border": "borderDefault",
+                      "radius": 24,
+                      "main": "center",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "row",
+                          "cross": "center",
+                          "gap": 0,
+                          "c": [
+                            {
+                              "t": "icon",
+                              "v": "add",
+                              "size": 20,
+                              "color": "textSecondary"
+                            },
+                            {
+                              "t": "text",
+                              "v": "4",
+                              "style": "labelSmall",
+                              "color": "textSecondary",
+                              "w": "hug"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "t": "spacer",
+                  "size": 8
+                },
+                {
+                  "t": "text",
+                  "v": "Subdivisions (badge = count)",
+                  "style": "bodyMedium",
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "row",
+                  "cross": "center",
+                  "gap": 8,
+                  "c": [
+                    {
+                      "t": "iconbtn",
+                      "v": "remove",
+                      "color": "textSecondary",
+                      "bg": "surfaceRaised",
+                      "radius": 24
+                    },
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "gap": 4,
+                      "c": [
+                        {
+                          "t": "col",
+                          "w": 16,
+                          "h": 16,
+                          "bg": "blackSurface",
+                          "border": "accentOrange",
+                          "radius": 8,
+                          "main": "center",
+                          "cross": "center",
+                          "c": [
+                            {
+                              "t": "box",
+                              "w": 6,
+                              "h": 6,
+                              "circle": true,
+                              "bg": "accentOrange"
+                            }
+                          ],
+                          "borderW": 2
+                        }
+                      ]
+                    },
+                    {
+                      "t": "col",
+                      "w": 48,
+                      "h": 48,
+                      "bg": "surfaceRaised",
+                      "border": "borderDefault",
+                      "radius": 24,
+                      "main": "center",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "row",
+                          "cross": "center",
+                          "gap": 0,
+                          "c": [
+                            {
+                              "t": "icon",
+                              "v": "add",
+                              "size": 20,
+                              "color": "textSecondary"
+                            },
+                            {
+                              "t": "text",
+                              "v": "1",
+                              "style": "labelSmall",
+                              "color": "textSecondary",
+                              "w": "hug"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "t": "text",
+                  "v": "Dot: normal · Star: accent · ⊘: silent. Tap to change; subdivisions can be changed while playing. The glowing circle is playing now.",
+                  "style": "bodySmall",
+                  "color": "textSecondary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "main": "center",
+          "c": [
+            {
+              "t": "col",
+              "name": "Tempo dial",
+              "w": 300,
+              "h": 300,
+              "main": "spaceBetween",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "raw",
+                  "type": "ellipse",
+                  "name": "Dial track",
+                  "w": 236,
+                  "h": 236,
+                  "props": {
+                    "fill": "surfaceOverlay",
+                    "arcStart": 135,
+                    "arcSweep": 270,
+                    "arcInner": 0.881,
+                    "absolute": true,
+                    "x": 32.0,
+                    "y": 32.0
+                  }
+                },
+                {
+                  "t": "raw",
+                  "type": "ellipse",
+                  "name": "Tempo arc",
+                  "w": 236,
+                  "h": 236,
+                  "props": {
+                    "fill": "accentOrange",
+                    "arcStart": 135,
+                    "arcSweep": 90,
+                    "arcInner": 0.881,
+                    "absolute": true,
+                    "x": 32.0,
+                    "y": 32.0
+                  }
+                },
+                {
+                  "t": "raw",
+                  "type": "ellipse",
+                  "name": "Tempo handle",
+                  "w": 22,
+                  "h": 22,
+                  "props": {
+                    "fill": "white",
+                    "stroke": "accentOrange",
+                    "strokeWeight": 3,
+                    "absolute": true,
+                    "x": 60.5,
+                    "y": 60.5
+                  }
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "main": "spaceBetween",
+                  "c": [
+                    {
+                      "t": "col",
+                      "w": 52,
+                      "h": 52,
+                      "bg": "surfaceRaised",
+                      "border": "borderDefault",
+                      "radius": 26.0,
+                      "main": "center",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "−5",
+                          "style": "labelLarge",
+                          "color": "textSecondary",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "col",
+                      "w": 52,
+                      "h": 52,
+                      "bg": "surfaceRaised",
+                      "border": "borderDefault",
+                      "radius": 26.0,
+                      "main": "center",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "+5",
+                          "style": "labelLarge",
+                          "color": "textSecondary",
+                          "w": "hug"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "t": "col",
+                  "name": "Tempo readout",
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "text",
+                      "v": "120",
+                      "style": "displayLarge",
+                      "color": "textPrimary",
+                      "w": "hug"
+                    },
+                    {
+                      "t": "text",
+                      "v": "BPM",
+                      "style": "bodyLarge",
+                      "color": "textSecondary",
+                      "w": "hug"
+                    }
+                  ]
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "main": "spaceBetween",
+                  "c": [
+                    {
+                      "t": "col",
+                      "w": 52,
+                      "h": 52,
+                      "bg": "surfaceRaised",
+                      "border": "borderDefault",
+                      "radius": 26.0,
+                      "main": "center",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "−1",
+                          "style": "labelLarge",
+                          "color": "textSecondary",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "col",
+                      "w": 52,
+                      "h": 52,
+                      "bg": "surfaceRaised",
+                      "border": "borderDefault",
+                      "radius": 26.0,
+                      "main": "center",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "+1",
+                          "style": "labelLarge",
+                          "color": "textSecondary",
+                          "w": "hug"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "h": 80,
+          "main": "center",
+          "cross": "center",
+          "c": [
+            {
+              "t": "col",
+              "w": 67,
+              "h": 67,
+              "bg": "accentOrange",
+              "radius": 34,
+              "main": "center",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "play_arrow",
+                  "size": 34,
+                  "color": "black"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "main": "center",
+          "c": [
+            {
+              "t": "row",
+              "bg": "surface",
+              "border": "borderSubtle",
+              "radius": 20,
+              "pad": [
+                12,
+                20,
+                12,
+                20
+              ],
+              "gap": 12,
+              "cross": "center",
+              "c": [
+                {
+                  "t": "icon",
+                  "v": "library_music_outlined",
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "text",
+                  "v": "Songs & Setlists",
+                  "style": "bodyLarge",
+                  "color": "textHighEmphasis",
+                  "w": "hug"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "button",
+          "v": "Backing tracks",
+          "kind": "secondary",
+          "icon": "album_outlined",
+          "w": "fill"
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "actionbar",
+      "menu": true,
+      "title": "Metronome"
+    }
+  ]
+}

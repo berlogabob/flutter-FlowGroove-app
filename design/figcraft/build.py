@@ -1,0 +1,1947 @@
+"""Build FlowGroove screens in a running FigCraft app from JSON specs.
+
+FigCraft must run with its control channel:
+  /Applications/FigCraft.app/Contents/MacOS/FigCraft --control 47321 \
+    --automation-read-root <repo> --automation-write-root <repo>/design
+
+  python3 design/figcraft/build.py setup            # new doc: variables, text styles, pages, components
+  python3 design/figcraft/build.py screen specs/x.json [--png out.png]
+  python3 design/figcraft/build.py all              # setup + every spec + save
+Spec format: design/figcraft/SPEC.md
+"""
+import glob, json, os, re, socket, subprocess, sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PORT = int(os.environ.get("FIGCRAFT_PORT", "47321"))
+W, H = 412, 915
+COL = "MonoPulse"
+
+# ---------------------------------------------------------------- transport
+_sock = _rf = None
+
+
+def raw(method, params=None, timeout_ms=None):
+    global _sock, _rf
+    if _sock is None:
+        _sock = socket.create_connection(("127.0.0.1", PORT))
+        _rf = _sock.makefile("rb")
+    req = {"id": 1, "method": method, "params": params or {}}
+    if timeout_ms:
+        req["timeoutMs"] = timeout_ms
+    _sock.sendall((json.dumps(req) + "\n").encode())
+    r = json.loads(_rf.readline())
+    if not r.get("ok"):
+        raise RuntimeError(f"{method}: {r.get('error')}")
+    return r.get("result")
+
+
+def ex(command, params=None):
+    return raw("engine.execute", {"command": command, "params": params or {}}, 300000)
+
+
+# ---------------------------------------------------------------- tokens
+TOKENS_JSON = os.path.join(HERE, "..", "tokens", "tokens.json")  # the source of truth, see design/tokens/tokens.py
+TOK = json.load(open(TOKENS_JSON))
+
+
+def _resolve(name):
+    e = TOK["color"][name]
+    return e["value"] if "value" in e else _resolve(e["alias"])
+
+
+PALETTE = {k: (m["dark"], m["light"]) for k, m in TOK["palette"].items()}  # MonoPulsePalette
+BRAND = {k: _resolve(k) for k in TOK["color"] if k not in PALETTE}  # theme-invariant MonoPulseColors
+FAMILY = TOK["font"]  # body / display / control
+
+
+def figcraft_style(family, weight):
+    """FigCraft face for a Flutter weight. Marcellus ships Regular only; Arial has no Medium."""
+    if family == FAMILY["display"]:
+        return "Regular"
+    if family == FAMILY["control"]:
+        return "Bold" if weight >= 500 else "Regular"
+    return {400: "Regular", 500: "Medium", 600: "SemiBold", 700: "Bold"}[weight]
+
+
+TYPE = {}  # name -> (family, FigCraft style, size, height multiplier | None, letter spacing px | None)
+for _k, _t in TOK["type"].items():
+    _fam = FAMILY[_t["family"]]
+    TYPE[_k] = (_fam, figcraft_style(_fam, TOK["fontWeight"][_t["weight"]]), _t["size"], _t.get("height"),
+                _t.get("letterSpacing"))
+DOC_TYPE = {"caption": (FAMILY["body"], "Regular", 12, None, None), "mono": ("Menlo", "Regular", 13, None, None)}
+TYPE.update(DOC_TYPE)  # design-only styles for the Foundations / Docs pages; never pulled into code
+ICONS = {}
+with open(os.path.join(HERE, "icons.txt")) as f:
+    for line in f:
+        n, cp = line.split()
+        ICONS[n] = int(cp, 16)
+
+
+def color(c):
+    if c is None or c == "none":
+        return "none"
+    if isinstance(c, str) and c.startswith("#"):
+        return c
+    if c in PALETTE or c in BRAND:
+        return {"$var": f"{COL}/{c}"}
+    raise ValueError(f"unknown colour token {c!r}")
+
+
+def text_props(style, col, extra=None):
+    fam, sty, size = TYPE[style][:3]
+    p = {"textStyle": f"Type/{style}", "fill": color(col)}
+    p.update(extra or {})
+    return p, (fam, sty, size)
+
+
+# ---------------------------------------------------------------- spec -> commands
+class Emit:
+    def __init__(self):
+        self.cmds, self.n = [], 0
+
+    def ref(self):
+        self.n += 1
+        return f"n{self.n}"
+
+    def create(self, typ, parent, name=None, props=None, text=None, w=None, h=None):
+        r = self.ref()
+        p = {"type": typ, "props": props or {}, "select": False}
+        if parent is not None:
+            p["parent"] = pref(parent)
+        if name:
+            p["name"] = name
+        if text is not None:
+            p["text"] = text
+        if w is not None:
+            p["width"] = w
+        if h is not None:
+            p["height"] = h
+        self.cmds.append({"command": "node.create", "params": p, "as": r})
+        self.cmds += bind_cmds({"$ref": r}, p["props"])
+        return r
+
+
+def size_props(node, pdir, default_main="hug", default_cross=None):
+    """w/h -> sizingH/V. pdir = parent auto layout direction ('h'|'v')."""
+    out = {}
+    for key, axis in (("w", "H"), ("h", "V")):
+        v = node.get(key)
+        if v is None:
+            continue
+        if isinstance(v, (int, float)):
+            out["width" if key == "w" else "height"] = v
+            out["sizing" + axis] = "fixed"
+        else:
+            out["sizing" + axis] = v
+    return out
+
+
+SPACING = TOK["spacing"]  # MonoPulseSpacing
+RADII = TOK["radius"]  # MonoPulseRadius
+NUMBER_COLLS = [("Spacing", "spacing", "MonoPulseSpacing"), ("Radius", "radius", "MonoPulseRadius"),
+                ("Elevation", "elevation", "MonoPulseElevation"), ("Icon", "icon", "MonoPulseIcons"),
+                ("Border", "border", "MonoPulseBorder")]
+SPACE_AT = {v: k for k, v in SPACING.items()}
+RADIUS_AT = {v: k for k, v in RADII.items()}
+VARS = {}  # "Spacing/lg" -> variable id, while online
+TOKENS = os.path.join(HERE, ".tokens.json")
+STATS = {"on": 0, "off": 0, "off_values": {}}
+
+
+def bind_cmds(target, props):
+    """variable.bind steps for gap / padding / corner radius values that sit on the token scales."""
+    if not VARS:
+        return []
+    out = []
+
+    def bind(field, value, coll, table):
+        if not isinstance(value, (int, float)) or value == 0:
+            return
+        name = table.get(value)
+        if name is None:
+            STATS["off"] += 1
+            key = f"{coll}:{value:g}"
+            STATS["off_values"][key] = STATS["off_values"].get(key, 0) + 1
+            return
+        STATS["on"] += 1
+        out.append({"command": "variable.bind", "params": {"ids": [target], "field": field,
+                                                           "variable": VARS[f"{coll}/{name}"]}})
+    if "gap" in props:
+        bind("gap", props["gap"], "Spacing", SPACE_AT)
+    pad = props.get("padding")
+    if pad is not None:
+        sides = [pad] * 4 if isinstance(pad, (int, float)) else pad
+        for field, v in zip(("paddingTop", "paddingRight", "paddingBottom", "paddingLeft"), sides):
+            bind(field, v, "Spacing", SPACE_AT)
+    cr = props.get("cornerRadius")
+    if cr is not None:
+        if isinstance(cr, list):
+            for field, v in zip(("topLeftRadius", "topRightRadius", "bottomRightRadius", "bottomLeftRadius"), cr):
+                bind(field, v, "Radius", RADIUS_AT)
+        else:
+            bind("cornerRadius", cr, "Radius", RADIUS_AT)
+    return out
+
+
+ALIGN = {"start": "min", "end": "max", "min": "min", "center": "center", "max": "max",
+         "spaceBetween": "spaceBetween", "spaceAround": "spaceAround", "spaceEvenly": "spaceEvenly",
+         "baseline": "baseline"}
+RADIUS = RADII
+
+
+def align(v):
+    if v not in ALIGN:
+        raise ValueError(f"unknown alignment {v!r}")
+    return ALIGN[v]
+
+
+def radius(v):
+    v = RADIUS.get(v, v) if isinstance(v, str) else v
+    if not (isinstance(v, (int, float)) or (isinstance(v, list) and len(v) == 4)):
+        raise ValueError(f"radius must be n, [tl,tr,br,bl] or a MonoPulseRadius name, got {v!r}")
+    return v
+
+
+def frame_props(n, layout):
+    p = {"fill": color(n.get("bg", "none")), "layout": layout,
+         "gap": n.get("gap", 0), "padding": n.get("pad", 0),
+         "mainAlign": align(n.get("main", "min")), "crossAlign": align(n.get("cross", "min"))}
+    if "radius" in n:
+        p["cornerRadius"] = radius(n["radius"])
+    if "border" in n:
+        p["stroke"] = color(n["border"])
+        p["strokeWeight"] = n.get("borderW", 1)
+        p["strokeAlign"] = "inside"
+    if n.get("shadow"):
+        p["effects"] = [{"type": "dropShadow", "color": "#00000040", "offset": [0, 2],
+                         "radius": 8, "visible": True}]
+    if n.get("clip"):
+        p["clip"] = True
+    if n.get("wrap"):
+        p["wrap"] = True
+        p["crossGap"] = n.get("gap", 0)
+    if "opacity" in n:
+        p["opacity"] = n["opacity"]
+    return p
+
+
+def emit(e, n, parent, pdir):
+    if isinstance(n, str):
+        n = {"t": "text", "v": n}
+    t = n.get("t", "col")
+    cname = TYPE2COMP.get(t)
+    if cname and t not in getattr(e, "drawing", ()) and (cname in LIB or not ONLINE):
+        try:
+            return use(e, cname, n, parent, pdir)
+        except Unsupported:
+            pass
+    fn = MACROS.get(t)
+    if fn is None:
+        raise ValueError(f"unknown node type {t!r} in {json.dumps(n)[:200]}")
+    return fn(e, n, parent, pdir)
+
+
+def children(e, kids, parent, pdir):
+    for k in kids or []:
+        emit(e, k, parent, pdir)
+
+
+def m_container(layout):
+    def f(e, n, parent, pdir):
+        p = frame_props(n, "horizontal" if layout == "h" else "vertical")
+        p.update(size_props(n, pdir))
+        if "w" not in n:
+            p["sizingH"] = "fill" if pdir == "v" else "hug"
+        if "h" not in n:
+            p["sizingV"] = "hug"
+        r = e.create("frame", parent, n.get("name", "Row" if layout == "h" else "Column"), p)
+        children(e, n.get("c"), r, layout)
+        return r
+    return f
+
+
+def m_text(e, n, parent, pdir):
+    style = n.get("style", "bodyMedium")
+    p, _ = text_props(style, n.get("color", "textPrimary"))
+    if n.get("align"):
+        p["textAlign"] = n["align"]
+    if n.get("weight"):
+        p["fontStyle"] = n["weight"]
+    if n.get("maxLines"):
+        p["maxLines"] = n["maxLines"]
+    w = n.get("w", "fill" if pdir == "v" else "hug")
+    if w == "hug":
+        p["textAutoResize"] = "widthAndHeight"
+    else:
+        p["textAutoResize"] = "height"
+        p.update(size_props({"w": w}, pdir))
+    return e.create("text", parent, n.get("name"), p, text=str(n.get("v", "")))
+
+
+def m_icon(e, n, parent, pdir):
+    name = n.get("v") or n.get("name")
+    cp = ICONS.get(name)
+    if cp is None:
+        raise ValueError(f"unknown Material icon {name!r}")
+    size = n.get("size", 24)
+    p = {"fontFamily": "Material Icons", "fontStyle": "Regular", "fontSize": size,
+         "lineHeight": size, "fill": color(n.get("color", "textPrimary")),
+         "textAutoResize": "widthAndHeight"}
+    return e.create("text", parent, n.get("layer", f"icon/{name}"), p, text=chr(cp))
+
+
+def m_box(e, n, parent, pdir):
+    p = {"fill": color(n.get("bg", "surfaceRaised"))}
+    if "radius" in n:
+        p["cornerRadius"] = radius(n["radius"])
+    if "border" in n:
+        p.update(stroke=color(n["border"]), strokeWeight=1, strokeAlign="inside")
+    p.update(size_props({"w": n.get("w", 40), "h": n.get("h", 40)}, pdir))
+    typ = "ellipse" if n.get("circle") else "rectangle"
+    return e.create(typ, parent, n.get("name", "Box"), p)
+
+
+def m_spacer(e, n, parent, pdir):
+    if isinstance(n.get("size"), (int, float)):  # anything else ("flex") = Spacer()
+        k = "h" if pdir == "v" else "w"
+        return m_box(e, {"bg": "none", k: n["size"], ("w" if k == "h" else "h"): 1,
+                         "name": "Spacer"}, parent, pdir)
+    p = {"fill": "none", "sizingH" if pdir == "h" else "sizingV": "fill"}
+    p["sizingV" if pdir == "h" else "sizingH"] = "fixed"
+    return e.create("frame", parent, "Spacer", p, w=1, h=1)
+
+
+def m_divider(e, n, parent, pdir):
+    p = {"fill": color(n.get("color", "borderSubtle"))}
+    if pdir == "h":
+        p.update(sizingV="fill", width=1, sizingH="fixed")
+    else:
+        p.update(sizingH="fill", height=1, sizingV="fixed")
+    return e.create("rectangle", parent, "Divider", p)
+
+
+def m_card(e, n, parent, pdir):
+    """AppCard: padded surface around a Content frame (the component's slot)."""
+    d = {"bg": "surface", "border": "borderSubtle", "radius": 7, "pad": 16}
+    d.update({k: n[k] for k in ("bg", "border", "borderW", "radius", "pad", "shadow", "opacity", "w", "h",
+                                "clip") if k in n})
+    d["name"] = n.get("name", "Card")
+    lay = "h" if n.get("dir") == "h" else "v"
+    content = {"t": "row" if lay == "h" else "col", "name": "Content", "w": "fill",
+               "gap": n.get("gap", 8), "c": n.get("c", [])}
+    for k in ("main", "cross", "wrap"):
+        if k in n:
+            content[k] = n[k]
+    d["c"] = [content]
+    return m_container("v")(e, d, parent, pdir)
+
+
+BUTTON_LOOK = {  # variant: (bg, fg, border) -- CustomButton / theme button styles
+    "primary": ("accentOrange", "charcoal", "charcoal"),
+    "secondary": ("white", "charcoal", "charcoal"),       # CustomButton secondary: white ElevatedButton
+    "outline": ("none", "textPrimary", "borderDefault"),  # OutlinedButton
+    "text": ("none", "accentOrange", None),
+    "tonal": ("textSecondary", "black", None),  # FilledButton.tonal: secondaryContainer / onSecondaryContainer
+    "danger": ("error", "charcoal", "charcoal"),
+    "fab": ("white", "charcoal", "charcoal"),
+}
+BUTTON_SIZE = {"small": ([8, 12, 8, 12], 16), "medium": ([16, 20, 16, 20], 18), "large": ([16, 32, 16, 32], 20)}
+SPEC_KIND = {"primary": "primary", "secondary": "outline", "outline": "outline", "text": "text",
+             "tonal": "tonal", "danger": "danger", "white": "secondary"}  # spec `kind` -> variant
+
+
+def m_button(e, n, parent, pdir):
+    kind = n.get("kind", "primary")
+    variant = "fab" if kind == "fab" else SPEC_KIND.get(kind)
+    if variant is None:
+        raise ValueError(f"button kind {kind!r}")
+    bg, fg, border = BUTTON_LOOK[variant]
+    size = n.get("size") or ("small" if n.get("small") else "medium")
+    pad, isz = ([16, 16, 16, 16], 24) if variant == "fab" else BUTTON_SIZE[size]
+    d = {"t": "row", "name": f"Button/{variant}", "bg": bg, "radius": {"fab": 6}.get(variant, 5),
+         "pad": pad, "gap": 8, "main": "center", "cross": "center", "w": n.get("w", "hug")}
+    if border:
+        d.update(border=border, borderW=1.2 if variant in ("primary", "secondary", "danger", "fab") else 1)
+    if variant in ("primary", "secondary", "danger", "fab"):
+        d["shadow"] = True
+    kids = []
+    if n.get("icon"):
+        kids.append({"t": "icon", "v": n["icon"], "size": isz, "color": fg, "layer": "Icon"})
+    if n.get("v"):
+        kids.append({"t": "text", "v": n["v"], "style": "labelLarge", "color": fg, "w": "hug",
+                     "name": "Label"})
+    d["c"] = kids
+    return m_container("h")(e, d, parent, pdir)
+
+
+def m_chip(e, n, parent, pdir):
+    sel = n.get("sel")
+    d = {"name": "Chip", "bg": "stone" if sel else "surfaceRaised", "border": "borderDefault",
+         "radius": 10, "pad": [6, 12, 6, 12], "gap": 4, "cross": "center", "w": "hug"}
+    fg = "charcoal" if sel else "textPrimary"
+    kids = [{"t": "icon", "v": n["icon"], "size": 16, "color": fg, "layer": "Icon"}] if n.get("icon") else []
+    kids.append({"t": "text", "v": n.get("v", ""), "style": "labelMedium", "color": fg, "w": "hug",
+                 "name": "Label"})
+    d["c"] = kids
+    return m_container("h")(e, d, parent, pdir)
+
+
+def m_input(e, n, parent, pdir):
+    kids = []
+    if n.get("label"):
+        kids.append({"t": "text", "v": n["label"], "style": "labelMedium", "color": "textSecondary",
+                     "name": "Label"})
+    field = {"name": "Field", "bg": "white", "border": "borderDefault", "radius": 10,
+             "pad": [14, 14, 14, 14], "gap": 10, "cross": "min" if n.get("lines") else "center",
+             "c": []}
+    if n.get("lines"):
+        field["h"] = 24 * n["lines"] + 28
+    if n.get("icon"):
+        field["c"].append({"t": "icon", "v": n["icon"], "size": 20, "color": "#62625A", "layer": "Icon"})
+    val = n.get("v")
+    field["c"].append({"t": "text", "v": val or n.get("hint", ""), "style": "bodyLarge",
+                       "color": "#1E1E1C" if val else "#62625A", "w": "fill", "name": "Value"})
+    if n.get("trail"):
+        field["c"].append({"t": "icon", "v": n["trail"], "size": 20, "color": "#62625A", "layer": "Trail"})
+    kids.append(dict(field, t="row"))
+    return m_container("v")(e, {"name": n.get("name", "Input"), "gap": 6, "c": kids,
+                                "w": n.get("w", "fill" if pdir == "v" else "hug")}, parent, pdir)
+
+
+def m_avatar(e, n, parent, pdir):
+    s = n.get("size", 40)
+    d = {"name": "Avatar", "bg": n.get("bg", "surfaceOverlay"), "radius": s / 2, "w": s, "h": s,
+         "main": "center", "cross": "center",
+         "c": [{"t": "icon", "v": n["icon"], "size": s * 0.55, "color": n.get("color", "textPrimary"),
+                "layer": "Icon"}
+               if n.get("icon") else
+               {"t": "text", "v": n.get("v", "?"), "style": "labelLarge", "w": "hug",
+                "color": n.get("color", "textPrimary"), "name": "Initials"}]}
+    return m_container("h")(e, d, parent, pdir)
+
+
+def lead_node(x):
+    if isinstance(x, dict):
+        return x
+    if x in ICONS:
+        return {"t": "icon", "v": x, "color": "textSecondary"}
+    return {"t": "avatar", "v": x}
+
+
+def m_tile(e, n, parent, pdir):
+    trail = n.get("trail")
+    trail = trail if isinstance(trail, list) else ([trail] if trail else [])
+    kids = []
+    if n.get("lead") or n.get("_slots"):
+        kids.append({"t": "row", "name": "Leading", "cross": "center",
+                     "c": [lead_node(n["lead"])] if n.get("lead") else []})
+    body = {"t": "col", "name": "Text", "gap": 2, "w": "fill",
+            "c": [{"t": "text", "v": n.get("title", ""), "style": n.get("titleStyle", "bodyLarge"),
+                   "maxLines": 1, "name": "Title"}]}
+    if n.get("sub"):
+        body["c"].append({"t": "text", "v": n["sub"], "style": "bodySmall", "color": "textTertiary",
+                          "maxLines": 2, "name": "Subtitle"})
+    kids.append(body)
+    if trail or n.get("_slots"):
+        kids.append({"t": "row", "name": "Trailing", "cross": "center", "gap": 8,
+                     "c": [trail_node(t) for t in trail]})
+    if n.get("_switch") is not None:
+        kids.append({"t": "switch", "on": n["_switch"], "name": "Switch"})
+    d = {"name": n.get("name", "ListTile"), "pad": n.get("pad", [12, 16, 12, 16]), "gap": 16,
+         "cross": "center", "bg": n.get("bg", "none"), "c": kids, "w": n.get("w", "fill" if pdir == "v" else "hug")}
+    for k in ("border", "radius"):
+        if k in n:
+            d[k] = n[k]
+    return m_container("h")(e, d, parent, pdir)
+
+
+def trail_node(tr):
+    if isinstance(tr, dict):
+        return tr
+    if tr in ICONS:
+        return {"t": "icon", "v": tr, "size": 20, "color": "textTertiary"}
+    return {"t": "text", "v": tr, "style": "labelSmall", "color": "textTertiary", "w": "hug"}
+
+
+def m_switch(e, n, parent, pdir):
+    on = n.get("on", True)
+    d = {"name": "Switch", "bg": "successGreen" if on else "fog", "radius": 16, "w": 52, "h": 32,
+         "pad": 4, "main": "max" if on else "min", "cross": "center",
+         "c": [{"t": "box", "circle": True, "bg": "white", "w": 24, "h": 24, "name": "Thumb"}]}
+    return m_container("h")(e, d, parent, pdir)
+
+
+def m_checkbox(e, n, parent, pdir):
+    on = n.get("on", False)
+    return m_container("h")(e, {"name": "Checkbox", "bg": "charcoal" if on else "none",
+                                "border": "borderStrong", "borderW": 2, "radius": 2, "w": 20, "h": 20,
+                                "main": "center", "cross": "center",
+                                "c": [{"t": "icon", "v": "check", "size": 16, "color": "white", "layer": "Check"}] if on else []},
+                            parent, pdir)
+
+
+def m_switchrow(e, n, parent, pdir):
+    t = {"title": n.get("title"), "sub": n.get("sub"), "lead": n.get("lead"), "_switch": n.get("on", True),
+         "pad": n.get("pad", [8, 16, 8, 16]), "name": n.get("name", "SwitchRow"), "w": n.get("w"),
+         "_slots": n.get("_slots")}
+    return m_tile(e, {k: v for k, v in t.items() if v is not None}, parent, pdir)
+
+
+def m_tabs(e, n, parent, pdir):
+    items, sel = n.get("items", []), n.get("sel", 0)
+    kids = [{"t": "tab", "v": it, "sel": i == sel} for i, it in enumerate(items)]
+    return m_container("h")(e, {"name": "Tabs", "c": kids, "border": "borderSubtle"}, parent, pdir)
+
+
+def m_tab(e, n, parent, pdir):
+    on = n.get("sel")
+    return m_container("v")(e, {
+        "name": f"Tab/{n.get('v', '')}", "w": n.get("w", "fill"), "cross": "center", "gap": 8,
+        "pad": [12, 4, 0, 4],
+        "c": [{"t": "text", "v": n.get("v", ""), "style": "labelLarge", "align": "center", "name": "Label",
+               "color": "accentOrange" if on else "textSecondary"},
+              {"t": "box", "bg": "accentOrange" if on else "none", "w": "fill", "h": 3, "name": "Indicator"}]},
+        parent, pdir)
+
+
+def m_segmented(e, n, parent, pdir):
+    items, sel = n.get("items", []), n.get("sel", 0)
+    kids = [{"t": "segment", "v": it, "sel": i == sel} for i, it in enumerate(items)]
+    d = {"name": "Segmented", "bg": "surfaceRaised", "radius": 10, "pad": 3, "gap": 2,
+         "border": "borderSubtle", "c": kids, "w": n.get("w", "fill" if pdir == "v" else "hug")}
+    return m_container("h")(e, d, parent, pdir)
+
+
+def m_segment(e, n, parent, pdir):
+    on = n.get("sel")
+    return m_container("h")(e, {
+        "w": n.get("w", "fill"), "main": "center", "cross": "center", "pad": [10, 8, 10, 8],
+        "radius": 8, "bg": "stone" if on else "none", "name": f"Segment/{n.get('v', '')}",
+        "c": [{"t": "text", "v": n.get("v", ""), "style": "labelMedium", "w": "hug", "name": "Label",
+               "color": "charcoal" if on else "textSecondary"}]}, parent, pdir)
+
+
+def m_slider(e, n, parent, pdir):
+    v = max(0.0, min(1.0, n.get("value", 0.5)))
+    track_w = n.get("trackW", 300)
+    d = {"name": "Slider", "h": 24, "cross": "center", "w": n.get("w", "fill"),
+         "c": [{"t": "box", "bg": "accentOrange", "w": round(track_w * v), "h": 4, "radius": 2, "name": "Active"},
+               {"t": "box", "circle": True, "bg": "accentOrange", "w": 18, "h": 18, "name": "Thumb"},
+               {"t": "box", "bg": "borderDefault", "w": "fill", "h": 4, "radius": 2, "name": "Track"}]}
+    return m_container("h")(e, d, parent, pdir)
+
+
+def m_progress(e, n, parent, pdir):
+    v = max(0.0, min(1.0, n.get("value", 0.5)))
+    d = {"name": "Progress", "bg": "surfaceOverlay", "radius": 3, "h": 6, "w": "fill",
+         "c": [{"t": "box", "bg": n.get("color", "accentOrange"), "w": round(n.get("trackW", 360) * v),
+                "h": 6, "radius": 3, "name": "Fill"}]}
+    return m_container("h")(e, d, parent, pdir)
+
+
+def m_section(e, n, parent, pdir):
+    """SectionHeader (lib/widgets/section_header.dart): title or quiet label + optional action."""
+    label = n.get("kind") == "label"
+    kids = [{"t": "text", "v": n.get("v", ""), "style": n.get("style", "labelMedium" if label else "titleMedium"),
+             "color": n.get("color", "textSecondary" if label else "textPrimary"), "w": "fill", "name": "Title"}]
+    if n.get("action"):
+        kids.append({"t": "text", "v": n["action"], "style": "labelMedium", "color": "accentOrange", "w": "hug",
+                     "name": "Action"})
+    return m_container("h")(e, {"name": "SectionHeader", "pad": n.get("pad", [16, 16, 8, 16]),
+                                "cross": "center", "c": kids}, parent, pdir)
+
+
+def m_iconbtn(e, n, parent, pdir):
+    d = {"name": "IconButton", "w": 48, "h": 48, "main": "center", "cross": "center",
+         "bg": n.get("bg", "none"), "radius": n.get("radius", 24),
+         "c": [{"t": "icon", "v": n.get("v"), "size": n.get("size", 24),
+                "color": n.get("color", "textPrimary"), "layer": "Icon"}]}
+    if n.get("border"):
+        d["border"] = n["border"]
+    return m_container("h")(e, d, parent, pdir)
+
+
+def m_badge(e, n, parent, pdir):
+    """AppBadge (lib/widgets/app_badge.dart): 10% tint pill, 16 px icon, bodySmall label."""
+    tint = n.get("color", "accentOrange")
+    d = {"name": "Badge", "bg": n.get("bg", "accentOrange10"), "radius": 20, "pad": [6, 12, 6, 12],
+         "cross": "center", "gap": 6, "w": "hug",
+         "c": ([{"t": "icon", "v": n["icon"], "size": 16, "color": tint, "layer": "Icon"}] if n.get("icon") else []) +
+              [{"t": "text", "v": n.get("v", ""), "style": "bodySmall",
+                "color": "textPrimary" if n.get("outlined") else tint, "w": "hug", "name": "Label"}]}
+    if n.get("outlined"):
+        d["border"] = tint
+    return m_container("h")(e, d, parent, pdir)
+
+
+def m_appbar(e, n, parent, pdir):
+    kids = []
+    if n.get("back", True) or n.get("leading"):
+        kids.append({"t": "iconbtn", "v": n.get("leading", "arrow_back"), "name": "Leading"})
+    title = {"t": "col", "name": "Heading", "w": "fill", "gap": 0, "pad": [0, 0, 0, 0 if kids else 12],
+             "c": [{"t": "text", "v": n.get("v", ""), "style": n.get("style", "headlineLarge"), "maxLines": 1,
+                    "name": "Title"}]}
+    if n.get("sub") or n.get("_slots"):
+        title["c"].append({"t": "text", "v": n.get("sub", "Subtitle"), "style": "bodySmall",
+                           "color": "textTertiary", "name": "Subtitle"})
+    kids.append(title)
+    acts = [a if isinstance(a, dict) else {"t": "iconbtn", "v": a} for a in n.get("actions", [])]
+    if acts or n.get("_slots"):
+        kids.append({"t": "row", "name": "Actions", "gap": 4, "cross": "center", "c": acts})
+    return m_container("h")(e, {"name": "AppBar", "bg": "black", "h": 64, "pad": [8, 4, 8, 4],
+                                "cross": "center", "gap": 4, "c": kids, "w": "fill"}, parent, pdir)
+
+
+NAV_TABS = [("Home", "home"), ("Songs", "music_note"), ("Bands", "groups"),
+            ("Setlists", "queue_music"), ("More", "more_horiz")]
+
+
+def nav_icon(icon, on):
+    return icon if on or icon + "_outlined" not in ICONS else icon + "_outlined"
+
+
+def m_bottomnav(e, n, parent, pdir):
+    sel = n.get("sel")
+    kids = [{"t": "navitem", "v": label, "icon": nav_icon(icon, label == sel), "sel": label == sel,
+             "name": label} for label, icon in NAV_TABS]
+    return m_container("h")(e, {"name": "BottomNav", "bg": "black", "border": "borderSubtle",
+                                "pad": [8, 8, 8, 8], "c": kids, "w": "fill"}, parent, pdir)
+
+
+def m_navitem(e, n, parent, pdir):
+    on = n.get("sel")
+    c = "accentOrange" if on else "textSecondary"
+    return m_container("v")(e, {
+        "name": f"NavItem/{n.get('v', '')}", "w": n.get("w", "fill"), "cross": "center", "gap": 4,
+        "pad": [4, 0, 4, 0],
+        "c": [{"t": "icon", "v": n.get("icon", "home"), "size": 22, "color": c, "layer": "Icon"},
+              {"t": "row", "name": "Pill", "bg": "accentOrange15" if on else "none", "radius": 20,
+               "pad": [2, 8, 2, 8], "w": "hug",
+               "c": [{"t": "text", "v": n.get("v", ""), "style": "labelSmall", "color": c, "w": "hug",
+                      "name": "Label"}]}]}, parent, pdir)
+
+
+def m_actionbar(e, n, parent, pdir):
+    """AppBottomBar.actions: [Back] [title | primary action] [Menu], flex 1:2:1 (99/198/99 at 412)."""
+    center = []
+    if n.get("title") or n.get("_slots"):
+        center.append({"t": "text", "v": n.get("title", "Title"), "style": "labelLarge", "align": "center",
+                       "maxLines": 1, "w": "fill", "name": "Title"})
+    if n.get("primary") or n.get("_slots"):
+        center.append({"t": "button", "v": n.get("primary", "Save"), "icon": n.get("icon"), "name": "Primary"})
+    kids = [{"t": "navitem", "v": "Back", "icon": "arrow_back", "w": 99, "name": "Back"},
+            {"t": "row", "name": "Center", "w": 198, "main": "center", "cross": "center", "c": center}]
+    if n.get("menu", True) or n.get("_slots"):
+        kids.append({"t": "navitem", "v": "Menu", "icon": "more_horiz", "w": 99, "name": "Menu"})
+    return m_container("h")(e, {"name": "ActionBar", "bg": "black", "border": "borderSubtle",
+                                "pad": [8, 8, 8, 8], "cross": "center", "c": kids, "w": "fill"},
+                            parent, pdir)
+
+
+def m_fab(e, n, parent, pdir):
+    return m_button(e, dict(n, kind="fab"), parent, pdir)
+
+
+def m_sheet(e, n, parent, pdir):
+    """Bottom sheet (docked) or floating panel: optional grabber + Content frame (the slot)."""
+    docked = n.get("bottom", True)
+    kids = []
+    if docked:
+        kids.append({"t": "row", "name": "Handle", "main": "center",
+                     "c": [{"t": "box", "bg": "borderStrong", "w": 36, "h": 4, "radius": 2, "name": "Grabber"}]})
+    kids.append({"t": "col", "name": "Content", "gap": n.get("gap", 8), "c": n.get("c", [])})
+    d = {"name": n.get("name", "Sheet"), "bg": "surfaceRaised", "radius": [16, 16, 0, 0] if docked else 16,
+         "pad": n.get("pad", [12, 16, 24, 16]), "gap": 8, "c": kids, "border": "borderSubtle",
+         "w": n.get("w", "fill" if pdir == "v" else "hug")}
+    return m_container("v")(e, d, parent, pdir)
+
+
+def m_dialog(e, n, parent, pdir):
+    """AlertDialog: icon, title, Content frame, right-aligned Actions frame (both slots)."""
+    kids = []
+    if n.get("icon") or n.get("_slots"):
+        kids.append({"t": "icon", "v": n.get("icon", "info_outline"), "size": 24,
+                     "color": n.get("iconColor", "textSecondary"), "layer": "Icon"})
+    if n.get("title") or n.get("_slots"):
+        kids.append({"t": "text", "v": n.get("title", "Title"), "style": "headlineMedium", "name": "Title"})
+    if n.get("c") or n.get("_slots"):
+        kids.append({"t": "col", "name": "Content", "gap": 16, "c": n.get("c", [])})
+    if n.get("actions") or n.get("_slots"):
+        kids.append({"t": "row", "name": "Actions", "main": "max", "gap": 8, "pad": [8, 0, 0, 0],
+                     "c": n.get("actions", [])})
+    d = {"name": n.get("name", "Dialog"), "bg": "surfaceRaised", "radius": 16, "pad": 24, "gap": 16,
+         "border": "borderSubtle", "shadow": True, "c": kids, "w": n.get("w", "fill")}
+    return m_container("v")(e, d, parent, pdir)
+
+
+def m_statusbar(e, n, parent, pdir):
+    return m_container("h")(e, {
+        "name": "StatusBar", "h": 28, "pad": [4, 20, 4, 20], "cross": "center", "bg": n.get("bg", "black"),
+        "w": "fill",
+        "c": [{"t": "text", "v": "9:41", "style": "labelSmall", "w": "hug", "name": "Time"}, {"t": "spacer"},
+              {"t": "icon", "v": "signal_cellular_alt", "size": 14},
+              {"t": "icon", "v": "wifi", "size": 14}, {"t": "icon", "v": "battery_full", "size": 14}]},
+        parent, pdir)
+
+
+def m_raw(e, n, parent, pdir):
+    p = dict(n.get("props", {}))
+    for k in ("fill", "stroke"):
+        if k in p:
+            p[k] = color(p[k])
+    p.update(size_props(n, pdir))
+    return e.create(n.get("type", "rectangle"), parent, n.get("name"), p, text=n.get("v"),
+                    w=n.get("width"), h=n.get("height"))
+
+
+MACROS = {
+    "col": m_container("v"), "row": m_container("h"), "text": m_text, "icon": m_icon, "box": m_box,
+    "spacer": m_spacer, "divider": m_divider, "card": m_card, "button": m_button, "chip": m_chip,
+    "input": m_input, "avatar": m_avatar, "tile": m_tile, "switch": m_switch, "checkbox": m_checkbox,
+    "switchrow": m_switchrow, "tabs": m_tabs, "segmented": m_segmented, "slider": m_slider,
+    "progress": m_progress, "section": m_section, "iconbtn": m_iconbtn, "badge": m_badge,
+    "appbar": m_appbar, "bottomnav": m_bottomnav, "actionbar": m_actionbar, "fab": m_fab,
+    "sheet": m_sheet, "dialog": m_dialog, "raw": m_raw, "tab": m_tab, "segment": m_segment,
+    "navitem": m_navitem, "statusbar": m_statusbar,
+}
+
+
+# ---------------------------------------------------------------- components
+# Each reusable widget is a main component (a variant set when it has `axes`) on the Components page.
+# Screens place instances of it: duplicate a template instance of the right variant, set its
+# properties, override root/layer props, and put spec children into its slots.
+# `draw(v)` returns the spec node the main is drawn from (the plain macro, with every optional
+# layer present); `inst(n, pdir)` maps a spec node to the instance:
+#   v: variant values, p: properties, root: props on the instance, w/h: default sizing,
+#   over: {layer: props}, nested: {nested instance layer: properties}, slots: {slot: [nodes]}.
+C, TYPE2COMP = {}, {}
+ONLINE = False  # True while talking to FigCraft; offline `check` only validates
+LIB = {}  # cname -> {variant key: {"tpl": template instance id, "layers": {name: id}}}; empty offline
+CREG = os.path.join(HERE, ".components.json")  # cname -> {variant key: main component id}
+COMP_PAGE = "Components"
+
+
+class Unsupported(Exception):
+    """The spec node needs something an instance can't override: draw it as plain layers."""
+
+
+def comp(name, types, draw, inst, axes=None, props=(), slots=(), main_w=360):
+    C[name] = dict(name=name, types=types, draw=draw, inst=inst, axes=axes or {}, props=props,
+                   slots=slots, main_w=main_w)
+    for t in types:
+        TYPE2COMP[t] = name
+
+
+def glyph(name):
+    if name not in ICONS:
+        raise ValueError(f"unknown Material icon {name!r}")
+    return chr(ICONS[name])
+
+
+def vkey(c, v):
+    return ", ".join(f"{a}={v[a]}" for a in c["axes"]) or "Default"
+
+
+def combos(c):
+    out = [{}]
+    for a, vals in c["axes"].items():
+        out = [dict(o, **{a: x}) for o in out for x in vals]
+    return out
+
+
+def icon_prop(p, over, name, layer="Icon", show="Show icon"):
+    """Icon text property (the glyph) + its visibility; the layer is renamed to the icon's name."""
+    if show:
+        p[show] = bool(name)
+    if name:
+        p[layer if layer != "Icon" else "Icon"] = glyph(name)
+        over.setdefault(layer, {})["name"] = f"icon/{name}"
+
+
+def frame_over(n, keys=("bg", "border", "borderW", "radius", "pad", "shadow", "opacity")):
+    """Root overrides an instance may take, from container keys in the spec node."""
+    o = {}
+    if "bg" in n and "bg" in keys:
+        o["fill"] = color(n["bg"])
+    if "border" in n and "border" in keys:
+        o.update(stroke=color(n["border"]), strokeWeight=n.get("borderW", 1), strokeAlign="inside")
+    if "radius" in n and "radius" in keys:
+        o["cornerRadius"] = radius(n["radius"])
+    if "pad" in n and "pad" in keys:
+        o["padding"] = n["pad"]
+    if n.get("shadow") and "shadow" in keys:
+        o["effects"] = [{"type": "dropShadow", "color": "#00000040", "offset": [0, 2], "radius": 8,
+                         "visible": True}]
+    if "opacity" in n and "opacity" in keys:
+        o["opacity"] = n["opacity"]
+    return o
+
+
+def fill_w(pdir):
+    return "fill" if pdir == "v" else "hug"
+
+
+# --- atoms
+def i_button(n, pdir):
+    kind = n.get("kind", "primary")
+    if kind not in SPEC_KIND:
+        raise ValueError(f"button kind {kind!r}")
+    p, over = {"Label": str(n.get("v", "")), "Show label": bool(n.get("v"))}, {}
+    icon_prop(p, over, n.get("icon"))
+    size = n.get("size") or ("small" if n.get("small") else "medium")
+    return dict(v={"Variant": SPEC_KIND[kind].capitalize(), "Size": size.capitalize()}, p=p, over=over, w="hug")
+
+
+INV_KIND = {"Primary": "primary", "Secondary": "white", "Outline": "secondary", "Text": "text", "Tonal": "tonal",
+            "Danger": "danger"}
+comp("Button", ["button"],
+     lambda v: {"t": "button", "kind": INV_KIND[v["Variant"]], "size": v["Size"].lower(), "v": "Button",
+                "icon": "add"},
+     i_button, axes={"Variant": ["Primary", "Secondary", "Outline", "Text", "Tonal", "Danger"],
+                     "Size": ["Medium", "Small", "Large"]},
+     props=[("Label", "text", "Label", None), ("Show label", "boolean", "Label", True),
+            ("Icon", "text", "Icon", None), ("Show icon", "boolean", "Icon", False)])
+
+
+def i_fab(n, pdir):
+    p, over = {"Label": str(n.get("v", "")), "Show label": bool(n.get("v"))}, {}
+    icon_prop(p, over, n.get("icon", "add"), show=None)
+    return dict(p=p, over=over, w="hug")
+
+
+comp("FAB", ["fab"], lambda v: {"t": "fab", "icon": "add", "v": "Label"}, i_fab,
+     props=[("Icon", "text", "Icon", None), ("Label", "text", "Label", None),
+            ("Show label", "boolean", "Label", False)])
+
+
+def i_iconbtn(n, pdir):
+    p, over = {}, {}
+    icon_prop(p, over, n.get("v"), show=None)
+    lo = over.setdefault("Icon", {})
+    if "color" in n:
+        lo["fill"] = color(n["color"])
+    if "size" in n:
+        lo.update(fontSize=n["size"], lineHeight=n["size"])
+    return dict(p=p, over=over, root=frame_over(n, ("bg", "border", "radius")), w=48, h=48)
+
+
+comp("IconButton", ["iconbtn"], lambda v: {"t": "iconbtn", "v": "settings"}, i_iconbtn,
+     props=[("Icon", "text", "Icon", None)])
+
+
+def i_chip(n, pdir):
+    p, over = {"Label": str(n.get("v", ""))}, {}
+    icon_prop(p, over, n.get("icon"))
+    return dict(v={"State": "Selected" if n.get("sel") else "Default"}, p=p, over=over, w="hug")
+
+
+comp("Chip", ["chip"], lambda v: {"t": "chip", "v": "Chip", "icon": "add", "sel": v["State"] == "Selected"},
+     i_chip, axes={"State": ["Default", "Selected"]},
+     props=[("Label", "text", "Label", None), ("Icon", "text", "Icon", None),
+            ("Show icon", "boolean", "Icon", False)])
+
+
+def i_badge(n, pdir):
+    p, over = {"Label": str(n.get("v", ""))}, {}
+    icon_prop(p, over, n.get("icon"))
+    if "color" in n:
+        over.setdefault("Label", {})["fill"] = color(n["color"])
+        over.setdefault("Icon", {})["fill"] = color(n["color"])
+    return dict(p=p, over=over, root=frame_over(n, ("bg",)), w="hug")
+
+
+comp("Badge", ["badge"], lambda v: {"t": "badge", "v": "Badge", "icon": "star"}, i_badge,
+     props=[("Label", "text", "Label", None), ("Icon", "text", "Icon", None),
+            ("Show icon", "boolean", "Icon", False)])
+
+
+def i_avatar(n, pdir):
+    s = n.get("size", 40)
+    p, over = {}, {}
+    if n.get("icon"):
+        icon_prop(p, over, n["icon"], show=None)
+        over["Icon"].update(fontSize=s * 0.55, lineHeight=s * 0.55)
+    else:
+        p["Initials"] = str(n.get("v", "?"))
+    lay = "Icon" if n.get("icon") else "Initials"
+    if "color" in n:
+        over.setdefault(lay, {})["fill"] = color(n["color"])
+    root = frame_over(n, ("bg",))
+    root["cornerRadius"] = s / 2
+    return dict(v={"Type": "Icon" if n.get("icon") else "Initials"}, p=p, over=over, root=root, w=s, h=s)
+
+
+comp("Avatar", ["avatar"], lambda v: {"t": "avatar", "v": "AR"} if v["Type"] == "Initials"
+     else {"t": "avatar", "icon": "person"}, i_avatar, axes={"Type": ["Initials", "Icon"]},
+     props=[("Initials", "text", "Initials", None), ("Icon", "text", "Icon", None)])
+
+comp("Switch", ["switch"], lambda v: {"t": "switch", "on": v["State"] == "On"},
+     lambda n, pdir: dict(v={"State": "On" if n.get("on", True) else "Off"}, w=52, h=32),
+     axes={"State": ["On", "Off"]})
+comp("Checkbox", ["checkbox"], lambda v: {"t": "checkbox", "on": v["State"] == "On"},
+     lambda n, pdir: dict(v={"State": "On" if n.get("on") else "Off"}, w=20, h=20),
+     axes={"State": ["On", "Off"]})
+
+
+def i_input(n, pdir):
+    p, over = {"Label": str(n.get("label", "")), "Show label": bool(n.get("label")),
+               "Value": str(n.get("v") or n.get("hint", ""))}, {}
+    icon_prop(p, over, n.get("icon"))
+    icon_prop(p, over, n.get("trail"), layer="Trail", show="Show trail")
+    if n.get("trail"):
+        p["Trail"] = p.pop("Trail")
+    return dict(v={"State": "Filled" if n.get("v") else "Hint", "Lines": "Multi" if n.get("lines") else "Single"},
+                p=p, over=over, w=fill_w(pdir))
+
+
+comp("Input", ["input"],
+     lambda v: {"t": "input", "label": "Label", "icon": "search", "trail": "close", "hint": "Hint",
+                "v": "Value" if v["State"] == "Filled" else None, "lines": 3 if v["Lines"] == "Multi" else None},
+     i_input, axes={"State": ["Hint", "Filled"], "Lines": ["Single", "Multi"]},
+     props=[("Label", "text", "Label", None), ("Show label", "boolean", "Label", True),
+            ("Value", "text", "Value", None), ("Icon", "text", "Icon", None),
+            ("Show icon", "boolean", "Icon", False), ("Trail", "text", "Trail", None),
+            ("Show trail", "boolean", "Trail", False)])
+
+STEPS = [str(i) for i in range(0, 101, 10)]
+
+
+def step(v):
+    return str(int(round(max(0.0, min(1.0, v)) * 10)) * 10)
+
+
+comp("Slider", ["slider"], lambda v: {"t": "slider", "value": int(v["Value"]) / 100, "w": 300},
+     lambda n, pdir: dict(v={"Value": step(n.get("value", 0.5))}, w=n.get("w", "fill")),
+     axes={"Value": STEPS}, main_w=300)
+
+
+def i_progress(n, pdir):
+    over = {"Fill": {"fill": color(n["color"])}} if "color" in n else {}
+    return dict(v={"Value": step(n.get("value", 0.5))}, over=over, w="fill")
+
+
+comp("Progress", ["progress"], lambda v: {"t": "progress", "value": int(v["Value"]) / 100}, i_progress,
+     axes={"Value": STEPS})
+
+# --- navigation items
+comp("Tab", ["tab"], lambda v: {"t": "tab", "v": "Tab", "sel": v["State"] == "Selected", "w": 120},
+     lambda n, pdir: dict(v={"State": "Selected" if n.get("sel") else "Default"}, p={"Label": str(n.get("v", ""))},
+                          w=n.get("w", "fill")),
+     axes={"State": ["Selected", "Default"]}, props=[("Label", "text", "Label", None)])
+comp("Segment", ["segment"], lambda v: {"t": "segment", "v": "Segment", "sel": v["State"] == "Selected", "w": 120},
+     lambda n, pdir: dict(v={"State": "Selected" if n.get("sel") else "Default"}, p={"Label": str(n.get("v", ""))},
+                          w=n.get("w", "fill")),
+     axes={"State": ["Selected", "Default"]}, props=[("Label", "text", "Label", None)])
+
+
+def i_navitem(n, pdir):
+    p, over = {"Label": str(n.get("v", ""))}, {}
+    icon_prop(p, over, n.get("icon", "home"), show=None)
+    return dict(v={"State": "Selected" if n.get("sel") else "Default"}, p=p, over=over, w="fill")
+
+
+comp("NavItem", ["navitem"], lambda v: {"t": "navitem", "v": "Home", "icon": nav_icon("home", v["State"] == "Selected"),
+                                        "sel": v["State"] == "Selected", "w": 76},
+     i_navitem, axes={"State": ["Selected", "Default"]},
+     props=[("Label", "text", "Label", None), ("Icon", "text", "Icon", None)])
+NAV_SEL = [t for t, _ in NAV_TABS] + ["None"]
+comp("BottomNav", ["bottomnav"], lambda v: {"t": "bottomnav", "sel": v["Tab"]},
+     lambda n, pdir: dict(v={"Tab": n.get("sel") if n.get("sel") in NAV_SEL else "None"}, w="fill"),
+     axes={"Tab": NAV_SEL}, main_w=W)
+comp("StatusBar", ["statusbar"], lambda v: {"t": "statusbar"},
+     lambda n, pdir: dict(root=frame_over(n, ("bg",)), w="fill"), main_w=W)
+
+
+# --- composites with slots
+def i_section(n, pdir):
+    p = {"Title": str(n.get("v", "")), "Action": str(n.get("action", "")), "Show action": bool(n.get("action"))}
+    v = {"Style": "Label" if n.get("kind") == "label" else "Title"}
+    over = {}
+    if "style" in n:
+        over.setdefault("Title", {})["textStyle"] = f"Type/{n['style']}"
+    if "color" in n:
+        over.setdefault("Title", {})["fill"] = color(n["color"])
+    return dict(v=v, p=p, over=over, root=frame_over(n, ("pad",)), w=fill_w(pdir))
+
+
+comp("SectionHeader", ["section"],
+     lambda v: {"t": "section", "v": "Section", "action": "See all", "kind": v["Style"].lower()}, i_section,
+     axes={"Style": ["Title", "Label"]}, props=[("Title", "text", "Title", None), ("Action", "text", "Action", None),
+            ("Show action", "boolean", "Action", False)])
+
+
+def i_tile(n, pdir, switch=None):
+    trail = n.get("trail")
+    trail = trail if isinstance(trail, list) else ([trail] if trail else [])
+    p = {"Title": str(n.get("title") or ""), "Subtitle": str(n.get("sub") or ""), "Show subtitle": bool(n.get("sub")),
+         "Show leading": bool(n.get("lead"))}
+    slots = {"Leading": [lead_node(n["lead"])] if n.get("lead") else []}
+    if switch is None:
+        p["Show trailing"] = bool(trail)
+        slots["Trailing"] = [trail_node(t) for t in trail]
+    over = {"Title": {"textStyle": f"Type/{n['titleStyle']}"}} if n.get("titleStyle") else {}
+    out = dict(p=p, over=over, slots=slots, root=frame_over(n, ("bg", "border", "radius", "pad")), w=fill_w(pdir))
+    if switch is not None:
+        out["v"] = {"State": "On" if switch else "Off"}
+    return out
+
+
+TILE_PROPS = [("Title", "text", "Title", None), ("Subtitle", "text", "Subtitle", None),
+              ("Show subtitle", "boolean", "Subtitle", True), ("Show leading", "boolean", "Leading", False)]
+comp("ListTile", ["tile"], lambda v: {"t": "tile", "title": "Title", "sub": "Subtitle", "_slots": True}, i_tile,
+     props=TILE_PROPS + [("Show trailing", "boolean", "Trailing", False)],
+     slots=[("Leading", "Leading", "h"), ("Trailing", "Trailing", "h")])
+comp("SwitchRow", ["switchrow"],
+     lambda v: {"t": "switchrow", "title": "Title", "sub": "Subtitle", "on": v["State"] == "On", "_slots": True},
+     lambda n, pdir: i_tile(n, pdir, switch=n.get("on", True)) | {
+         "root": frame_over(n, ("pad",))},
+     axes={"State": ["On", "Off"]}, props=TILE_PROPS, slots=[("Leading", "Leading", "h")])
+
+
+def i_appbar(n, pdir):
+    back = bool(n.get("back", True) or n.get("leading"))
+    p = {"Title": str(n.get("v", "")), "Subtitle": str(n.get("sub", "")), "Show subtitle": bool(n.get("sub"))}
+    over = {"Title": {"textStyle": f"Type/{n['style']}"}} if n.get("style") else {}
+    nested = {"Leading": {"Icon": glyph(n.get("leading", "arrow_back"))}} if back else {}
+    acts = [a if isinstance(a, dict) else {"t": "iconbtn", "v": a} for a in n.get("actions", [])]
+    return dict(v={"Leading": "Back" if back else "None"}, p=p, over=over, nested=nested,
+                slots={"Actions": acts}, root=frame_over(n, ("bg",)), w="fill")
+
+
+comp("AppBar", ["appbar"], lambda v: {"t": "appbar", "v": "Title", "back": v["Leading"] == "Back", "_slots": True},
+     i_appbar, axes={"Leading": ["Back", "None"]}, main_w=W,
+     props=[("Title", "text", "Title", None), ("Subtitle", "text", "Subtitle", None),
+            ("Show subtitle", "boolean", "Subtitle", False)],
+     slots=[("Actions", "Actions", "h")])
+
+
+def i_actionbar(n, pdir):
+    nested = {}
+    if n.get("primary"):
+        bp, over = {"Label": str(n["primary"]), "Show label": True}, {}
+        icon_prop(bp, over, n.get("icon"))
+        nested["Primary"] = bp
+    p = {"Title": str(n.get("title", "")), "Show title": bool(n.get("title")) and not n.get("primary"),
+         "Show primary": bool(n.get("primary")), "Show menu": bool(n.get("menu", True))}
+    return dict(p=p, nested=nested, w="fill")
+
+
+comp("ActionBar", ["actionbar"], lambda v: {"t": "actionbar", "title": "Title", "primary": "Save", "_slots": True},
+     i_actionbar, main_w=W,
+     props=[("Title", "text", "Title", None), ("Show title", "boolean", "Title", True),
+            ("Show primary", "boolean", "Primary", False), ("Show menu", "boolean", "Menu", True)])
+
+
+def i_card(n, pdir):
+    if n.get("wrap"):
+        raise Unsupported("wrapping card content")
+    over = {"Content": {k2: (align(n[k]) if k != "gap" else n[k])
+                        for k, k2 in (("gap", "gap"), ("main", "mainAlign"), ("cross", "crossAlign")) if k in n}}
+    return dict(v={"Direction": "Horizontal" if n.get("dir") == "h" else "Vertical"},
+                root=frame_over(n), over=over, slots={"Content": n.get("c", [])}, w=fill_w(pdir))
+
+
+comp("Card", ["card"], lambda v: {"t": "card", "dir": "h" if v["Direction"] == "Horizontal" else "v"}, i_card,
+     axes={"Direction": ["Vertical", "Horizontal"]}, slots=[("Content", "Content", "dir")])
+
+
+def i_sheet(n, pdir):
+    over = {"Content": {"gap": n["gap"]}} if "gap" in n else {}
+    return dict(v={"Docked": "Bottom" if n.get("bottom", True) else "Floating"}, root=frame_over(n, ("pad",)),
+                over=over, slots={"Content": n.get("c", [])}, w=fill_w(pdir))
+
+
+comp("Sheet", ["sheet"], lambda v: {"t": "sheet", "bottom": v["Docked"] == "Bottom"}, i_sheet,
+     axes={"Docked": ["Bottom", "Floating"]}, slots=[("Content", "Content", "v")], main_w=W)
+
+
+def i_dialog(n, pdir):
+    p, over = {"Title": str(n.get("title", "")), "Show title": bool(n.get("title")),
+               "Show content": bool(n.get("c")), "Show actions": bool(n.get("actions"))}, {}
+    icon_prop(p, over, n.get("icon"))
+    if n.get("iconColor"):
+        over.setdefault("Icon", {})["fill"] = color(n["iconColor"])
+    return dict(p=p, over=over, slots={"Content": n.get("c", []), "Actions": n.get("actions", [])},
+                w=n.get("w", "fill"))
+
+
+comp("Dialog", ["dialog"], lambda v: {"t": "dialog", "_slots": True}, i_dialog, main_w=340,
+     props=[("Title", "text", "Title", None), ("Show title", "boolean", "Title", True),
+            ("Icon", "text", "Icon", None), ("Show icon", "boolean", "Icon", False),
+            ("Show content", "boolean", "Content", True), ("Show actions", "boolean", "Actions", True)],
+     slots=[("Content", "Content", "v"), ("Actions", "Actions", "h")])
+
+
+MAT = "package:flutter/material.dart"
+APP = "package:flowgroove/widgets/"
+# Code Connect: component -> (import, code name, flutter template, description). Templates are text:
+# {Prop} is the instance's value; a variant renders as <Component><Prop>.<value> (e.g. ButtonVariant.primary,
+# which is CustomButton's own enum); {Bool ? "a" : "b"} picks a literal.
+CONNECT = {
+    "Button": (APP + "custom_button.dart", "CustomButton",
+               'CustomButton(label: {Label}, variant: {Variant}, size: {Size},{Show icon ? " icon: Icons.add /* icon */," : ""} onPressed: () {})',
+               "CustomButton. Primary = orange CTA, Secondary = white raised, Outline = OutlinedButton, Text = TextButton, "
+               "Tonal = FilledButton.tonal (no border, no shadow), Danger = destructive (error red). Radius 5 (Radius/button). "
+               "Use it instead of raw ElevatedButton / OutlinedButton."),
+    "FAB": (MAT, "FloatingActionButton",
+            'FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add /* icon */))',
+            "FloatingActionButton (theme: white, charcoal 1.2 border, radius 6). Add actions only; orange is reserved for play/primary."),
+    "IconButton": (MAT, "IconButton", 'IconButton(onPressed: () {}, icon: const Icon(Icons.more_vert /* icon */))',
+                   "Material IconButton, 48x48 hit area."),
+    "Chip": (APP + "app_filter_chip.dart", "AppFilterChip",
+             'AppFilterChip(label: {Label}, selected: {State} == ChipState.selected, onSelected: (_) {})',
+             "AppFilterChip: filters and single choices. Selected = stone fill."),
+    "Avatar": (APP + "user_avatar.dart", "UserAvatar", 'UserAvatar(photoURL: null, displayName: {Initials})',
+               "UserAvatar / CircleAvatar: initials or an icon on surfaceOverlay."),
+    "Switch": (MAT, "Switch", 'Switch(value: {State} == SwitchState.on, onChanged: (v) {})', "Material Switch."),
+    "Checkbox": (MAT, "Checkbox", 'Checkbox(value: {State} == CheckboxState.on, onChanged: (v) {})', "Material Checkbox."),
+    "Input": (APP + "custom_text_field.dart", "CustomTextField",
+              'CustomTextField(label: {Show label ? "" : "null /* "}{Label}{Show label ? "" : " */"}, hint: {Value},'
+              '{Show icon ? " prefixIcon: Icons.search /* icon */," : ""} maxLines: {Lines} == InputLines.multi ? 3 : 1)',
+              "CustomTextField / TextField: white fill, borderDefault, radius 10 (MonoPulseRadius.medium)."),
+    "Slider": (MAT, "Slider", 'Slider(value: 0.5 /* {Value} */, onChanged: (v) {})', "Material Slider; Value variants in 10% steps."),
+    "Progress": (MAT, "LinearProgressIndicator", 'LinearProgressIndicator(value: 0.5 /* {Value} */)',
+                 "LinearProgressIndicator; Value variants in 10% steps."),
+    "Tab": (MAT, "Tab", 'Tab(text: {Label})', "TabBar tab: orange label + 3px indicator when selected."),
+    "Segment": (MAT, "ButtonSegment", 'ButtonSegment(value: {Label}, label: Text({Label}))',
+                "SegmentedButton / ToggleButtons segment."),
+    "NavItem": (APP + "bottom_nav_or_action_bar.dart", "NavTab",
+                'NavTab(item: (icon: Icons.home_outlined, selectedIcon: Icons.home, label: {Label}), '
+                'selected: {State} == NavItemState.selected, onTap: () {})',
+                "NavTab: one slot of AppBottomBar (main tabs, Back, Menu)."),
+    "BottomNav": (APP + "bottom_nav_or_action_bar.dart", "AppBottomBar.tabs",
+                  'AppBottomBar.tabs(tabs: tabs, selectedIndex: {Tab}.index, onTabTap: (i) {})',
+                  "AppBottomBar.tabs: Home, Songs, Bands, Setlists + More. Top-level tab screens only."),
+    "ActionBar": (APP + "bottom_nav_or_action_bar.dart", "AppBottomBar.actions",
+                  'AppBottomBar.actions(onBack: () => context.pop(), title: {Show title ? "" : "null /* "}{Title}{Show title ? "" : " */"},'
+                  '{Show primary ? " primaryAction: primaryButton," : ""}{Show menu ? " onMenu: openMenu," : ""})',
+                  "AppBottomBar.actions: [Back] [title | primary action] [Menu], flex 1:2:1. Every pushed screen."),
+    "ListTile": (MAT, "ListTile",
+                 'ListTile(title: Text({Title}), subtitle: {Show subtitle ? "Text(" : "null /* "}{Subtitle}{Show subtitle ? ")" : " */"},'
+                 '{Show leading ? " leading: /* Leading slot */ const Icon(Icons.circle)," : ""}'
+                 '{Show trailing ? " trailing: /* Trailing slot */ const Icon(Icons.chevron_right)," : ""})',
+                 "Material ListTile. Leading and Trailing are slots."),
+    "SwitchRow": (MAT, "SwitchListTile",
+                  'SwitchListTile(title: Text({Title}), subtitle: {Show subtitle ? "Text(" : "null /* "}{Subtitle}{Show subtitle ? ")" : " */"}, '
+                  'value: {State} == SwitchRowState.on, onChanged: (v) {})',
+                  "SwitchListTile."),
+    "AppBar": (MAT, "AppBar",
+               'AppBar(title: Text({Title}), automaticallyImplyLeading: {Leading} == AppBarLeading.back, actions: [/* Actions slot */])',
+               "AppBar: headlineLarge title on black. Actions is a slot of IconButtons."),
+    "Card": (APP + "app_card.dart", "AppCard",
+             'AppCard(variant: AppCardVariant.surface, child: /* {Direction}: Content slot */ const SizedBox())',
+             "AppCard: surface, borderSubtle, radius 7 (Radius/card), padding 16. Content is a slot."),
+    "Sheet": (MAT, "showModalBottomSheet",
+              'showModalBottomSheet(context: context, builder: (context) => /* {Docked}: Content slot */ const SizedBox())',
+              "Bottom sheet surface: surfaceRaised, radius 16 top, grabber. Content is a slot."),
+    "Badge": (APP + "app_badge.dart", "AppBadge",
+              'AppBadge(label: {Label},{Show icon ? " icon: Icons.star /* icon */," : ""})',
+              "AppBadge: pill label (band facts, status, offline). 10% tint of its colour, radius 20, 16 px icon."),
+    "SectionHeader": (APP + "section_header.dart", "SectionHeader",
+                      'SectionHeader({Title}, style: {Style},{Show action ? " actionLabel: " : " /* "}{Action}'
+                      '{Show action ? ", onAction: onSeeAll," : " */"})',
+                      "SectionHeader: Title = titleMedium section inside a screen; Label = quiet labelMedium group label."),
+    "Dialog": (MAT, "AlertDialog",
+               'AlertDialog(title: {Show title ? "Text(" : "null /* "}{Title}{Show title ? ")" : " */"}, '
+               'content: /* Content slot */ null, actions: [/* Actions slot */])',
+               "AlertDialog (ConfirmationDialog for confirms): surfaceRaised, radius 16. Destructive confirm = Danger button."),
+}
+DESC_ONLY = {
+    "StatusBar": "System status bar placeholder (not app code).",
+}
+
+
+def connect_components(reg):
+    """Code Connect links + descriptions on each component set."""
+    for cname, variants in reg.items():
+        any_id = next(iter(variants.values()))
+        if cname in CONNECT:
+            imp, name, tpl, desc = CONNECT[cname]
+            r = ex("codeConnect.set", {"id": any_id, "language": "flutter", "importPath": imp, "name": name,
+                                       "template": tpl})
+            if r.get("unknown"):
+                raise ValueError(f"{cname}: unknown placeholders {r['unknown']}")
+        else:
+            desc = DESC_ONLY[cname]
+        ex("node.set", {"ids": [TOPS.get(cname, any_id)], "props": {"description": desc}})
+
+
+TOPS = {}  # cname -> component or set id (filled by build_components)
+
+
+def pref(x):
+    """A parent/target: an emit ref name, a ready {"$ref"} object, or a plain id."""
+    return {"$ref": x} if isinstance(x, str) else x
+
+
+def use(e, cname, n, parent, pdir):
+    """Place an instance of component `cname` for spec node `n`."""
+    c = C[cname]
+    spec = c["inst"](n, pdir)
+    v = spec.get("v", {})
+    for a, vals in c["axes"].items():
+        if v.get(a) not in vals:
+            raise ValueError(f"{cname}: {a}={v.get(a)!r} not in {vals}")
+    if not ONLINE:  # offline check: the mapping is valid; draw plain layers to validate the rest
+        return MACROS[n["t"]](e, n, parent, pdir)
+    lib = LIB[cname][vkey(c, v)]
+
+    def L(name):
+        if name not in lib["layers"]:
+            raise ValueError(f"{cname}: no layer {name!r} in {vkey(c, v)}")
+        return {"$ref": r, "field": f"map/{lib['layers'][name]}"}
+
+    r = e.ref()
+    e.cmds.append({"command": "edit.duplicate", "params": {"ids": [lib["tpl"]], "map": True}, "as": r})
+    me = {"$ref": r, "field": "ids/0"}
+    e.cmds.append({"command": "node.reparent", "params": {"ids": [me], "parent": pref(parent)}})
+    if spec.get("p"):
+        e.cmds.append({"command": "instance.setProperties", "params": {"ids": [me], "properties": spec["p"]}})
+    root = {"name": n.get("name", cname)}
+    root.update(spec.get("root", {}))
+    root.update(size_props({"w": n.get("w", spec.get("w")), "h": n.get("h", spec.get("h"))}, pdir))
+    e.cmds.append({"command": "node.set", "params": {"ids": [me], "props": root}})
+    e.cmds += bind_cmds(me, root)
+    for name, props in spec.get("over", {}).items():
+        if props:
+            e.cmds.append({"command": "node.set", "params": {"ids": [L(name)], "props": props}})
+            e.cmds += bind_cmds(L(name), props)
+    for name, props in spec.get("nested", {}).items():
+        e.cmds.append({"command": "instance.setProperties", "params": {"ids": [L(name)], "properties": props}})
+    slot_dir = {s: d for s, _, d in c["slots"]}
+    slot_layer = {s: l for s, l, _ in c["slots"]}
+    for sname, nodes in spec.get("slots", {}).items():
+        d = slot_dir[sname]
+        if d == "dir":
+            d = "h" if v.get("Direction") == "Horizontal" else "v"
+        children(e, nodes, L(slot_layer[sname]), d)
+    return me
+
+
+def outline_layers(node_id):
+    """name -> id for the layers of a main or instance (not descending into nested instances)."""
+    out = {}
+
+    def walk(n, top):
+        if not top:
+            out.setdefault(n["name"], n["id"])
+            if n.get("type") == "INSTANCE":
+                return
+            if n.get("childCount") and "children" not in n:  # outline stops two levels down
+                n = ex("node.get", {"id": n["id"], "outline": True})
+        for k in n.get("children", []):
+            walk(k, False)
+    walk(ex("node.get", {"id": node_id, "outline": True}), True)
+    return out
+
+
+def build_components():
+    """Draw every component's variants on the Components page and make them components."""
+    ex("page.select", {"id": page_ids()[COMP_PAGE]})
+    reg, y = {}, 0
+    for cname, c in C.items():
+        e = Emit()
+        e.drawing = set(c["types"])
+        starts, vs = [], combos(c)
+        for i, v in enumerate(vs):
+            starts.append(len(e.cmds))
+            emit(e, c["draw"](v), None, "v")  # drawn as if in a column; fill -> fixed main_w
+            cmd = e.cmds[starts[-1]]["params"]
+            cmd.update(x=(i % 6) * (c["main_w"] + 48), y=y + (i // 6) * 240, name=vkey(c, v) if c["axes"] else cname)
+            if cmd["props"].get("sizingH") == "fill":
+                cmd["props"].update(sizingH="fixed", width=c["main_w"])
+            if cmd["props"].get("sizingV") == "fill":
+                cmd["props"]["sizingV"] = "hug"
+        res = ex("command.batch", {"label": f"Component {cname}", "commands": e.cmds, "onError": "abort"})
+        ids = [res[i]["id"] for i in starts]
+        ex("component.createMultiple", {"ids": ids})
+        top = ids[0]
+        if c["axes"]:
+            top = ex("component.combineVariants", {"ids": ids})["id"]
+        ex("node.set", {"ids": [top], "props": {"name": cname}})
+        TOPS[cname] = top
+        lay = [outline_layers(i) for i in ids]
+        for pname, ptype, layer, default in c["props"]:
+            have = [l[layer] for l in lay if layer in l]
+            if not have:
+                raise ValueError(f"{cname}: property {pname} has no layer {layer!r}")
+            a = {"id": top, "name": pname, "type": ptype, "layer": have[0]}
+            if ptype == "boolean" and default is not None:
+                a["default"] = default
+            ex("component.addProperty", a)
+            for lid in have[1:]:
+                ex("component.bindProperty", {"layer": lid, "property": pname,
+                                              "field": "visible" if ptype == "boolean" else "characters"})
+        for sname, layer, _ in c["slots"]:
+            have = [l[layer] for l in lay if layer in l]
+            ex("component.makeSlot", {"id": have[0], "name": sname})
+            for lid in have[1:]:  # one slot property per set; the other variants bind to it
+                ex("component.bindProperty", {"layer": lid, "property": sname, "field": "slot"})
+        reg[cname] = {vkey(c, v): i for v, i in zip(vs, ids)}
+        add_templates(cname, reg[cname])
+        b = ex("node.get", {"id": top, "fields": ["absoluteBounds"]})["absoluteBounds"]
+        y = b["y"] + b["height"] + 120
+        print(f"component {cname}: {len(ids)} variant(s)")
+    json.dump(reg, open(CREG, "w"), indent=1)
+    connect_components(reg)
+    return reg
+
+
+def add_templates(cname, variants):
+    """Template instance per variant (deleted again by drop_lib) with its layer ids."""
+    LIB[cname] = {}
+    for k, main in variants.items():
+        tpl = ex("instance.create", {"component": main, "x": -3000, "y": 0})["id"]
+        LIB[cname][k] = {"tpl": tpl, "layers": outline_layers(tpl)}
+
+
+def build_foundations():
+    """Foundations page: colours (Dark and Light side by side), type scale, spacing and radius scales."""
+    ex("page.select", {"id": page_ids()["Foundations"]})
+
+    def swatch(name, hexes):
+        return {"t": "row", "gap": 12, "cross": "center", "w": "fill", "c": [
+            {"t": "box", "w": 44, "h": 44, "radius": 8, "bg": name, "border": "borderSubtle", "name": f"swatch/{name}"},
+            {"t": "col", "gap": 2, "w": "fill", "c": [
+                {"t": "text", "v": name, "style": "labelMedium"},
+                {"t": "text", "v": hexes, "style": "caption", "color": "textTertiary"}]}]}
+
+    def panel(title, mode):
+        return {"t": "col", "name": f"Colours · {mode}", "bg": "black", "pad": 32, "gap": 12, "w": 420, "radius": 16,
+                "border": "borderSubtle", "c": [{"t": "text", "v": title, "style": "headlineMedium"}] +
+                [swatch(k, f"{d} / {l}") for k, (d, l) in PALETTE.items()]}
+
+    brand = {"t": "col", "name": "Brand colours", "bg": "black", "pad": 32, "gap": 12, "w": 420, "radius": 16,
+             "border": "borderSubtle", "c": [{"t": "text", "v": "Brand (both modes)", "style": "headlineMedium"},
+                                             {"t": "row", "wrap": True, "gap": 12, "w": "fill", "c": [
+                                                 {"t": "col", "gap": 4, "w": 80, "c": [
+                                                     {"t": "box", "w": 80, "h": 40, "radius": 8, "bg": k, "border": "borderSubtle"},
+                                                     {"t": "text", "v": k, "style": "caption", "color": "textSecondary"}]}
+                                                 for k in BRAND]}]}
+    type_scale = {"t": "col", "name": "Type scale", "bg": "black", "pad": 32, "gap": 14, "w": 520, "radius": 16,
+                  "border": "borderSubtle", "c": [{"t": "text", "v": "Type (MonoPulseTypography)", "style": "headlineMedium"}] +
+                  [{"t": "row", "gap": 16, "cross": "center", "w": "fill", "c": [
+                      {"t": "text", "v": f"{k} · {fam} {size}", "style": "caption", "color": "textTertiary", "w": 170},
+                      {"t": "text", "v": "Rehearse the bridge", "style": k, "w": "fill"}]} for k, (fam, sty, size, *_) in TYPE.items()]}
+    space = {"t": "col", "name": "Spacing", "bg": "black", "pad": 32, "gap": 10, "w": 420, "radius": 16,
+             "border": "borderSubtle", "c": [{"t": "text", "v": "Spacing (MonoPulseSpacing)", "style": "headlineMedium"}] +
+             [{"t": "row", "gap": 12, "cross": "center", "w": "fill", "c": [
+                 {"t": "text", "v": f"{k} · {v}", "style": "labelSmall", "color": "textSecondary", "w": 90},
+                 {"t": "box", "w": v, "h": 16, "bg": "accentOrange", "name": f"space/{k}"}]} for k, v in SPACING.items()]}
+    rad = {"t": "col", "name": "Radius", "bg": "black", "pad": 32, "gap": 16, "w": 420, "radius": 16,
+           "border": "borderSubtle", "c": [{"t": "text", "v": "Radius (MonoPulseRadius + component)", "style": "headlineMedium"},
+                                           {"t": "row", "wrap": True, "gap": 16, "w": "fill", "c": [
+                                               {"t": "col", "gap": 6, "w": 76, "cross": "center", "c": [
+                                                   {"t": "box", "w": 64, "h": 64, "radius": v, "bg": "surfaceRaised",
+                                                    "border": "borderStrong", "name": f"radius/{k}"},
+                                                   {"t": "text", "v": f"{k} {v}", "style": "caption", "color": "textSecondary",
+                                                    "w": "hug"}]} for k, v in RADII.items()]}]}
+    e = Emit()
+    root = e.create("frame", None, "Foundations", {"fill": "none", "layout": "horizontal", "gap": 48, "crossAlign": "min",
+                                                     "sizingH": "hug", "sizingV": "hug"})
+    for n in (panel("Colours · Dark", "Dark"), panel("Colours · Light", "Light"), brand, type_scale, space, rad):
+        emit(e, n, root, "h")
+    # spacing bars take their width from the token too
+    res = ex("command.batch", {"label": "Foundations", "commands": e.cmds, "onError": "abort"})
+    light = ex("node.find", {"name": "Colours · Light", "type": "FRAME", "limit": 1})["ids"]
+    ex("variable.setMode", {"ids": light, "collection": COL, "mode": "Light"})
+    for k in SPACING:
+        ids = ex("node.find", {"name": f"space/{k}", "limit": 1})["ids"]
+        ex("variable.bind", {"ids": ids, "field": "width", "variable": VARS[f"Spacing/{k}"]})
+
+
+def build_docs(reg):
+    """Docs page: one card per component -- description, properties, Flutter snippet, an instance."""
+    ex("page.select", {"id": page_ids()["Docs"]})
+    cards = []
+    for cname, variants in reg.items():
+        any_id = next(iter(variants.values()))
+        props = ex("component.properties", {"id": any_id})["properties"]
+        rows = []
+        for pr in props:
+            if pr["type"] == "variant":
+                val = " | ".join(pr["options"])
+            elif pr["type"] == "slot":
+                val = "slot"
+            elif pr["type"] == "text" and len(str(pr.get("default", ""))) == 1 and ord(str(pr["default"])) > 0xE000:
+                val = "text (Material icon glyph)"
+            else:
+                val = f'{pr["type"]}, default {pr.get("default")!r}'
+            rows.append({"t": "row", "gap": 8, "w": "fill", "c": [
+                {"t": "text", "v": pr["name"], "style": "labelSmall", "w": 120},
+                {"t": "text", "v": val, "style": "caption", "color": "textSecondary", "w": "fill"}]})
+        code = ""
+        if cname in CONNECT:
+            cc = ex("inspect.componentCode", {"id": any_id, "language": "flutter"})
+            code = (cc.get("connected") or {}).get("code", "")
+        desc = CONNECT[cname][3] if cname in CONNECT else DESC_ONLY[cname]
+        cards.append((cname, any_id, {
+            "t": "col", "name": f"Doc/{cname}", "bg": "surface", "border": "borderSubtle", "radius": 16, "pad": 24,
+            "gap": 12, "w": 560, "c": [
+                {"t": "text", "v": cname, "style": "headlineLarge"},
+                {"t": "text", "v": desc, "style": "bodySmall", "color": "textSecondary"},
+                {"t": "col", "name": "Preview", "bg": "black", "radius": 10, "pad": 16, "w": "fill", "cross": "min",
+                 "c": []},
+                {"t": "text", "v": "Properties", "style": "labelMedium", "color": "textTertiary"}] + rows + (
+                [{"t": "text", "v": "Flutter (Code Connect)", "style": "labelMedium", "color": "textTertiary"},
+                 {"t": "col", "bg": "blackSurface", "radius": 8, "pad": 12, "w": "fill",
+                  "c": [{"t": "text", "v": code.strip(), "style": "mono", "color": "textSecondary"}]}] if code else
+                [{"t": "text", "v": "No Code Connect link: no shared widget in lib/ yet.", "style": "caption",
+                  "color": "warning"}])}))
+    e = Emit()
+    root = e.create("frame", None, "Component docs", {"fill": "none", "layout": "horizontal", "wrap": True,
+                                                        "gap": 32, "crossGap": 32, "width": 1840,
+                                                        "sizingH": "fixed", "sizingV": "hug"}, w=1840)
+    previews = []
+    for cname, any_id, card in cards:
+        start = len(e.cmds)
+        emit(e, card, root, "h")
+        # the Preview frame is the 4th create of the card
+        prev = [c["as"] for c in e.cmds[start:] if c["command"] == "node.create" and c["params"].get("name") == "Preview"][0]
+        previews.append((cname, prev))
+    res = ex("command.batch", {"label": "Docs", "commands": e.cmds, "onError": "abort"})
+    ref_id = {c["as"]: r.get("id") for c, r in zip(e.cmds, res) if c.get("as") and isinstance(r, dict)}
+    for cname, prev in previews:  # one live instance of the default variant per card
+        v = next(iter(reg[cname].values()))
+        ex("instance.create", {"component": v, "parent": ref_id[prev]})
+
+
+def export_connect():
+    out = os.path.abspath(os.path.join(HERE, "figcraft.connect.json"))
+    ex("codeConnect.export", {"path": out})
+    return out
+
+
+def load_lib():
+    VARS.update(json.load(open(TOKENS)))
+    ex("page.select", {"id": page_ids()[COMP_PAGE]})
+    for cname, variants in json.load(open(CREG)).items():
+        add_templates(cname, variants)
+
+
+def drop_lib():
+    ids = [v["tpl"] for c in LIB.values() for v in c.values()]
+    if ids:
+        ex("edit.delete", {"ids": ids})
+    LIB.clear()
+
+
+# ---------------------------------------------------------------- document
+PAGES = ["Foundations", "Components", "Docs", "Auth", "Home & Tools", "Songs", "Setlists", "Bands", "Settings",
+         "Sheets & Dialogs", "Parity"]
+
+
+def page_ids():
+    return {p["name"]: p["id"] for p in ex("page.list")}
+
+
+RADIUS_NOTES = {"button": "Button radius (theme + CustomButton)", "fab": "FAB radius",
+                "card": "AppCard radius", "cardMaterial": "Material Card theme radius"}
+
+
+def text_style_value(fam, sty, size, height, spacing):
+    v = {"fontFamily": fam, "fontStyle": sty, "fontSize": size}
+    if height:
+        v["lineHeight"] = {"unit": "percent", "value": round(height * 100, 2)}
+    if spacing:
+        v["letterSpacing"] = {"unit": "pixels", "value": spacing}
+    return v
+
+
+def push_tokens():
+    """tokens.json -> variables + text styles in the open (fresh) document. Fills VARS."""
+    cmds, n = [{"command": "variable.createCollection", "params": {"name": COL, "modes": ["Dark", "Light"]}}], 0
+
+    def var(params, code):
+        nonlocal n
+        n += 1
+        cmds.append({"command": "variable.create", "params": params, "as": f"v{n}"})
+        cmds.append({"command": "variable.update", "params": {
+            "variable": {"$ref": f"v{n}", "field": "id"}, "codeSyntax": {"ANDROID": code}}})
+
+    for k, (d, l) in PALETTE.items():
+        var({"collection": COL, "name": k, "type": "color", "values": {"Dark": d, "Light": l},
+             "description": f"context.mp.{k}"}, f"context.mp.{k}")
+    for k, v in BRAND.items():
+        al = TOK["color"][k].get("alias")
+        # an alias stays an alias in FigCraft, so editing its target moves it too. A palette target
+        # means the fixed *dark* MonoPulseColors constant in Dart, so only the Dark mode aliases.
+        vals = {"Dark": {"alias": al}, "Light": v if al in PALETTE else {"alias": al}} if al else \
+            {"Dark": v, "Light": v}
+        var({"collection": COL, "name": k, "type": "color", "values": vals,
+             "description": f"MonoPulseColors.{k}" + (f" = {al}" if al else "")}, f"MonoPulseColors.{k}")
+    for k, (fam, sty, size, height, spacing) in TYPE.items():
+        cmds.append({"command": "style.create", "params": {
+            "type": "text", "name": f"Type/{k}", "value": text_style_value(fam, sty, size, height, spacing),
+            "description": "design-only (docs pages)" if k in DOC_TYPE else f"MonoPulseTypography.{k}"}})
+    ex("command.batch", {"label": "Design tokens", "commands": cmds})
+    cmds, names, n = [], [], 0
+    for coll, key, cls in NUMBER_COLLS:
+        cmds.append({"command": "variable.createCollection", "params": {"name": coll}})
+        for k, v in TOK[key].items():
+            note = f"{cls}.{k}" + (f" ({RADIUS_NOTES[k]})" if coll == "Radius" and k in RADIUS_NOTES else "")
+            var({"collection": coll, "name": k, "type": "number", "value": v, "description": note}, f"{cls}.{k}")
+            names.append(f"{coll}/{k}")
+    res = ex("command.batch", {"label": "Number tokens", "commands": cmds})
+    ids = [r["id"] for r in res if isinstance(r, dict) and str(r.get("id", "")).startswith("VariableID")
+           and "codeSyntax" not in r]
+    ids = list(dict.fromkeys(ids))  # create + update both echo the id
+    assert len(ids) == len(names), (len(ids), len(names))
+    VARS.clear()
+    VARS.update(zip(names, ids))
+
+
+def setup():
+    for f in (REG, CREG):
+        if os.path.exists(f):
+            os.remove(f)
+    ex("file.new", {"name": "FlowGroove Screens"})
+    first = ex("page.list")[0]["id"]
+    ex("page.rename", {"id": first, "name": "Cover"})
+    for p in PAGES:
+        ex("page.add", {"name": p})
+    ids = page_ids()
+    for pid in ids.values():
+        ex("page.setBackground", {"id": pid, "color": "#141413"})
+    push_tokens()
+    json.dump(VARS, open(TOKENS, "w"), indent=1)
+
+
+SLOTS = {}  # page -> next index
+REG = os.path.join(HERE, ".frames.json")  # spec name -> frame id in the open document
+
+
+def load_reg():
+    try:
+        return json.load(open(REG))
+    except (OSError, ValueError):
+        return {}
+
+
+def place(page, idx):
+    cols = 6  # each slot leaves room on the right for the real-app screenshot (build.py parity)
+    return (idx % cols) * (2 * W + 200), (idx // cols) * (H + 200)
+
+
+def build_screen(spec):
+    ids = page_ids()
+    page = spec.get("page", "Home & Tools")
+    if page not in ids:
+        raise ValueError(f"unknown page {page!r}; one of {PAGES}")
+    ex("page.select", {"id": ids[page]})
+    reg = load_reg()
+    if spec["name"] in reg:  # rebuild: drop the previous frame
+        try:
+            ex("edit.delete", {"ids": [reg[spec["name"]]]})
+        except RuntimeError:
+            pass
+    idx = spec.get("slot", SLOTS.get(page, 0))
+    SLOTS[page] = idx + 1
+    x, y = place(page, idx)
+    e = Emit()
+    root = e.ref()
+    e.cmds.append({"command": "node.create", "as": root, "params": {
+        "type": "frame", "x": x, "y": y, "width": W, "height": H, "name": spec["name"], "select": False,
+        "props": {"fill": color(spec.get("bg", "black")), "layout": "vertical", "clip": True,
+                  "sizingH": "fixed", "sizingV": "fixed"}}})
+    emit(e, {"t": "statusbar", "bg": spec.get("statusBg", spec.get("bg", "black"))}, root, "v")
+    for n in spec.get("top", []):
+        emit(e, n, root, "v")
+    body = {"t": "col", "name": "Body", "h": "fill", "w": "fill", "clip": True,
+            "gap": spec.get("gap", 0), "pad": spec.get("pad", 0), "bg": spec.get("bodyBg", "none"),
+            "c": spec.get("body", [])}
+    modal = spec.get("modal")  # sheet | dialog: scrim, sheet docked at bottom, dialog centred
+    if modal:
+        body.update(bg="#000000B3", main="max" if modal == "sheet" else "center",
+                    pad=0 if modal == "sheet" else [24, 24, 24, 24], name="Scrim")
+    emit(e, body, root, "v")
+    for n in spec.get("bottom", []):
+        emit(e, n, root, "v")
+    res = ex("command.batch", {"label": spec["name"], "commands": e.cmds, "onError": "abort"})
+    root_id = res[0]["id"]
+    for o in spec.get("overlay", []):  # absolutely positioned layers (FAB, sheets, scrims)
+        oe = Emit()
+        r = emit(oe, o["node"], root_id, "v")
+        oe.cmds.append({"command": "node.set", "params": {
+            "ids": [pref(r)], "props": {"absolute": True, "x": o.get("x", 0), "y": o.get("y", 0)}}})
+        ex("command.batch", {"label": spec["name"] + " overlay", "commands": oe.cmds})
+    reg[spec["name"]] = root_id
+    json.dump(reg, open(REG, "w"), indent=1)
+    return root_id, len(e.cmds)
+
+
+def export_png(node_id, path, scale=1):
+    return ex("file.export", {"ids": [node_id], "format": "png", "scale": scale, "path": path})
+
+
+GITHUB = "https://github.com/berlogabob/flutter-FlowGroove-app/blob/second01/"
+WEB_APP = "https://app.flowgroove.app/#"  # hash URL strategy (no usePathUrlStrategy in lib/)
+REAL = os.path.join(HERE, "..", "real")
+# Pixel RMSE is only a sort hint: on the first device run it ranked a structurally wrong Songs design (13) as
+# better than a correct invite screen (29, the real QR code dominates). Readiness comes from verdicts.json.
+VERDICTS = {}
+if os.path.exists(os.path.join(REAL, "verdicts.json")):
+    VERDICTS = {k: v for k, v in json.load(open(os.path.join(REAL, "verdicts.json"))).items() if not k.startswith("_")}
+
+
+def rmse(a, b):
+    """Root-mean-square difference of two screenshots, 0 (same) .. 100, at a coarse 206 px width."""
+    tmp = [os.path.join(HERE, "logs", f".rmse{i}.png") for i in (0, 1)]
+    for src, dst in zip((a, b), tmp):
+        subprocess.run(["magick", src, "-alpha", "off", "-resize", "206x458!", dst], check=True)
+    r = subprocess.run(["magick", "compare", "-metric", "RMSE", *tmp, "null:"], capture_output=True, text=True)
+    m = re.search(r"\(([\d.e-]+)\)", r.stderr)
+    if not m:
+        raise RuntimeError(f"compare: {r.stderr.strip()}")
+    return round(float(m.group(1)) * 100, 1)
+
+
+def parity():
+    """Link every screen frame to its code, and put each captured real screen beside its frame."""
+    reg = load_reg()
+    index = json.load(open(os.path.join(REAL, "index.json"))) if os.path.exists(os.path.join(REAL, "index.json")) else {}
+    os.makedirs(os.path.join(HERE, "logs"), exist_ok=True)
+    pages, rows = page_ids(), []
+    for path in sorted(glob.glob(os.path.join(HERE, "specs", "*.json"))):
+        key, spec = os.path.basename(path)[:-5], json.load(open(path))
+        fid = reg.get(spec["name"])
+        if not fid:
+            continue
+        try:
+            ex("node.get", {"id": fid, "fields": ["x"]})
+        except RuntimeError:  # frame gone (a failed rebuild deleted it): rebuild that screen first
+            print(f"skip {key}: frame {fid} not in the document")
+            continue
+        try:
+            ex("devResource.remove", {"id": fid})
+        except RuntimeError:
+            pass
+        if spec.get("source"):
+            src, _, line = spec["source"].partition(":")
+            ex("devResource.add", {"id": fid, "url": GITHUB + src + (f"#L{line}" if line else ""),
+                                   "name": "Flutter source"})
+        route = spec.get("route")
+        if route and "{" not in route:
+            ex("devResource.add", {"id": fid, "url": WEB_APP + route, "name": "Open in web app"})
+        for old in (reg.pop(f"real:{spec['name']}", None), reg.pop(f"realnote:{spec['name']}", None)):
+            if old:
+                try:
+                    ex("edit.delete", {"ids": [old]})
+                except RuntimeError:
+                    pass
+        png = os.path.join(REAL, f"{key}.png")
+        ex("node.set", {"ids": [fid], "devStatus": None})  # set again below only if it still matches
+        if not os.path.exists(png):
+            rows.append((None, spec, key, route))
+            continue
+        ex("page.select", {"id": pages[spec.get("page", "Home & Tools")]})
+        pos = ex("node.get", {"id": fid, "fields": ["x", "y"]})
+        design = os.path.join(HERE, "logs", f".{key}.design.png")
+        meta = index.get(key, {})
+        mode = "Dark" if meta.get("night", "").endswith("yes") else "Light"  # compare in the device's theme
+        ex("variable.setMode", {"ids": [fid], "collection": COL, "mode": mode})
+        export_png(fid, design)
+        ex("variable.setMode", {"ids": [fid], "collection": COL, "mode": "Dark"})
+        score = rmse(design, png)
+        img = ex("image.place", {"path": os.path.abspath(png), "x": pos["x"] + W + 40, "y": pos["y"],
+                                 "width": W, "name": f"Real · {spec['name']}"})
+        note = ex("node.create", {"type": "text", "x": pos["x"] + W + 40, "y": pos["y"] + img["height"] + 12,
+                                  "width": W, "select": False, "name": f"Parity · {spec['name']}",
+                                  "text": f"{VERDICTS.get(key, 'unreviewed')} · diff {score} · {meta.get('route', route)} · "
+                                          f"{meta.get('device', '?')} · {meta.get('captured', '?')[:10]}",
+                                  "props": {"textStyle": "Type/caption", "fill": "#D8D6CC"}})
+        reg[f"real:{spec['name']}"], reg[f"realnote:{spec['name']}"] = img["id"], note["id"]
+        verdict = VERDICTS.get(key, "unreviewed")
+        if verdict == "match":  # a human/vision review, not the pixel score, decides readiness
+            ex("node.set", {"ids": [fid], "devStatus": "readyForDev"})
+        rows.append((score, spec, key, route))
+    json.dump(reg, open(REG, "w"), indent=1)
+    parity_page(rows, pages)
+    return rows
+
+
+def parity_page(rows, pages):
+    if "Parity" not in pages:
+        ex("page.add", {"name": "Parity"})
+        pages = page_ids()
+    ex("page.select", {"id": pages["Parity"]})
+    old = load_reg().get("parity:table")
+    if old:
+        try:
+            ex("edit.delete", {"ids": [old]})
+        except RuntimeError:
+            pass
+    rows = sorted(rows, key=lambda r: (r[0] is None, VERDICTS.get(r[2]) == "match", -(r[0] or 0)))
+    done = sum(r[0] is not None for r in rows)
+    ok = sum(VERDICTS.get(r[2]) == "match" for r in rows)
+    lines = [f"Parity: {done} of {len(rows)} screens captured, {ok} reviewed as matching (readyForDev) · "
+             "verdicts in design/real/verdicts.json · capture.py then build.py parity", ""]
+    for score, spec, key, route in rows:
+        s = "  —  " if score is None else f"{score:5.1f}"
+        v = VERDICTS.get(key, "" if score is None else "unreviewed")
+        lines.append(f"{s}  {spec['name'][:28]:28}  {(route or 'no route')[:44]:44}  {v[:90]}")
+    t = ex("node.create", {"type": "text", "x": 0, "y": 0, "width": 1400, "select": False, "name": "Parity table",
+                           "text": "\n".join(lines), "props": {"textStyle": "Type/mono", "fill": "#F6F5F0"}})
+    reg = load_reg()
+    reg["parity:table"] = t["id"]
+    json.dump(reg, open(REG, "w"), indent=1)
+
+
+def _hex(c):
+    h = "#" + "".join(f"{round(c[k] * 255):02X}" for k in "rgb")
+    a = round(c.get("a", 1) * 255)
+    return h if a == 255 else h + f"{a:02X}"
+
+
+def doc_tokens():
+    """The open document's variables + text styles, folded back onto tokens.json (a copy).
+
+    Returns (tokens, notes): changed values overwrite, new variables are added, variables missing
+    from the document are reported in notes and kept (deleting one would break the code build).
+    """
+    tok = json.loads(json.dumps(TOK))
+    lst = ex("variable.list", {})
+    colls = {c["id"]: c for c in lst["collections"]}
+    names = {v["id"]: v["name"] for v in lst["variables"]}
+    seen, notes = set(), []
+    groups = {coll: key for coll, key, _ in NUMBER_COLLS}
+    for v in lst["variables"]:
+        c = colls[v["collection"]]
+        if c.get("remote"):
+            continue
+        modes = {m["id"]: m["name"] for m in c["modes"]}
+        raw = {modes[mid]: x for mid, x in v["values"].items()}
+        vals = {m: x["value"] for m, x in raw.items() if x.get("type") != "alias"}
+        name = v["name"]
+        if c["name"] == COL:
+            seen.add(("color", name))
+            if name in tok["palette"]:
+                dark = _hex(vals["Dark"])
+                tok["palette"][name] = {"dark": dark, "light": _hex(vals["Light"])}
+                if "value" in tok["color"].get(name, {}):  # Dart's dark palette reads MonoPulseColors.<name>
+                    tok["color"][name]["value"] = dark
+                continue
+            e = tok["color"].get(name)
+            keep = {"note": e["note"]} if e and e.get("note") else {}
+            if raw["Dark"].get("type") == "alias":
+                tok["color"][name] = {"alias": names[raw["Dark"]["value"]], **keep}
+            else:
+                tok["color"][name] = {"value": _hex(vals["Dark"]), **keep}
+            if e is None:
+                notes.append(f"added colour {name}")
+        elif c["name"] in groups:
+            key = groups[c["name"]]
+            seen.add((key, name))
+            val = next(iter(vals.values()))
+            val = int(val) if float(val).is_integer() else val
+            if name not in tok[key]:
+                notes.append(f"added {c['name']}/{name} = {val}")
+            tok[key][name] = val
+    for name in [k for k in tok["palette"]] + [k for k in tok["color"]]:
+        if ("color", name) not in seen:
+            notes.append(f"colour {name} is not in the document (kept)")
+    for coll, key, _ in NUMBER_COLLS:
+        for name in tok[key]:
+            if (key, name) not in seen:
+                notes.append(f"{coll}/{name} is not in the document (kept)")
+    fam_key = {v: k for k, v in FAMILY.items()}
+    for st in ex("style.list", {"type": "text"}):
+        name = st["name"].removeprefix("Type/")
+        if name not in tok["type"]:
+            continue
+        x, t = st["style"], tok["type"][name]
+        if x["font_family"] in fam_key:
+            t["family"] = fam_key[x["font_family"]]
+        t["size"] = int(x["font_size"]) if float(x["font_size"]).is_integer() else x["font_size"]
+        lh = x.get("line_height") or {}
+        if lh.get("unit") == "percent":
+            t["height"] = round(lh["value"] / 100, 4)
+        ls = x.get("letter_spacing") or {}
+        if ls.get("unit") == "pixels" and ls.get("value"):
+            t["letterSpacing"] = ls["value"]
+        elif "letterSpacing" in t and not ls.get("value"):
+            del t["letterSpacing"]
+    return tok, notes
+
+
+def token_diff(a, b, path=""):
+    if isinstance(a, dict) and isinstance(b, dict):
+        out = []
+        for k in sorted(set(a) | set(b)):
+            out += token_diff(a.get(k), b.get(k), f"{path}/{k}" if path else k)
+        return out
+    if isinstance(a, float) or isinstance(b, float):
+        if a is not None and b is not None and abs(float(a) - float(b)) < 1e-3:
+            return []
+    return [] if a == b else [f"{path}: {a!r} -> {b!r}"]
+
+
+REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
+
+
+def _lower_camel(v):
+    w = re.split(r"[^0-9A-Za-z]+", v)
+    return w[0][:1].lower() + w[0][1:] + "".join(x[:1].upper() + x[1:] for x in w[1:])
+
+
+def template_args(tpl):
+    """Named arguments at the top level of a Code Connect call template (placeholders transparent)."""
+    body = re.sub(r"/\*.*?\*/", "", tpl[tpl.index("(") + 1:])
+    body = body.replace("{", "").replace("}", "")
+    depth, out = 0, []
+    for m in re.finditer(r"[()\[\]]|\b(\w+):", body):
+        t = m.group(0)
+        if t in "([":
+            depth += 1
+        elif t in ")]":
+            depth -= 1
+        elif depth == 0:
+            out.append(m.group(1))
+    return out
+
+
+def dart_ctor_params(src, ctor):
+    """Parameter names of `ctor` (`Name` or `Name.named`) in Dart source, or None if not found."""
+    base = ctor.split(".")[0]
+    cls = re.search(rf"^class {base}\b[^{{]*\{{", src, re.M)
+    if not cls:
+        return None
+    m = re.compile(rf"^\s*(?:const\s+)?{re.escape(ctor)}\s*\(", re.M).search(src, cls.end())
+    if not m:
+        return None
+    i, depth = m.end(), 1
+    while depth:
+        depth += {"(": 1, ")": -1}.get(src[i], 0)
+        i += 1
+    sig = re.sub(r"//.*", "", src[m.end():i - 1])
+    names = set(re.findall(r"(?:this|super)\.(\w+)", sig))
+    names |= set(re.findall(r"[\w<>?,\s]+?\s(\w+)\s*(?:=|,|\}|$)", sig))
+    return names
+
+
+def verify_components():
+    """Code Connect templates and FigCraft variants vs the Dart widgets they link to. Offline."""
+    errors, checked = [], 0
+    for cname, (imp, name, tpl, _desc) in CONNECT.items():
+        if not imp.startswith(APP):
+            continue  # Material widget: the SDK is the contract
+        path = os.path.join(REPO, "lib", "widgets", imp[len(APP):])
+        if not os.path.exists(path):
+            errors.append(f"{cname}: {path} does not exist")
+            continue
+        src = open(path).read()
+        params = dart_ctor_params(src, name)
+        if params is None:
+            errors.append(f"{cname}: constructor {name}( not found in {imp}")
+            continue
+        for arg in template_args(tpl):
+            if arg not in params:
+                errors.append(f"{cname}: template passes `{arg}:` but {name} has no such parameter")
+        for axis, opts in C[cname]["axes"].items():
+            enum = f"{cname if cname != 'Button' else 'Button'}{axis}"
+            em = re.search(rf"enum {enum}\s*\{{([^}}]*)\}}", src)
+            if not em or "{" + axis + "}" not in tpl:
+                continue  # design-only axis (e.g. ChipState), rendered as a comparison
+            members = re.findall(r"^\s*(\w+)\s*[,;]?\s*$", re.sub(r"///.*|//.*", "", em.group(1)), re.M)
+            want = {_lower_camel(o) for o in opts}
+            if set(members) != want:
+                errors.append(f"{cname}.{axis}: FigCraft {sorted(want)} vs Dart enum {enum} {sorted(members)}")
+        checked += 1
+    return checked, errors
+
+
+def main():
+    a = sys.argv[1:]
+    if not a:
+        print(__doc__)
+        return
+    global ONLINE
+    ONLINE = a[0] not in ("check", "verify-components")
+    if a[0] == "setup":
+        setup()
+        build_components()
+        drop_lib()
+    elif a[0] == "screen":
+        spec = json.load(open(a[1]))
+        load_lib()
+        try:
+            rid, n = build_screen(spec)
+        finally:
+            drop_lib()
+        print(f"{spec['name']}: frame {rid}, {n} commands")
+        if "--png" in a:
+            export_png(rid, os.path.abspath(a[a.index("--png") + 1]))
+    elif a[0] == "check":  # offline: expand specs without FigCraft, report errors
+        bad = 0
+        for path in a[1:] or sorted(glob.glob(os.path.join(HERE, "specs", "*.json"))):
+            try:
+                spec = json.load(open(path))
+                assert spec.get("page") in PAGES, f"page must be one of {PAGES}"
+                assert spec.get("modal") in (None, "sheet", "dialog"), "modal must be sheet or dialog"
+                e = Emit()
+                for n in spec.get("top", []) + spec.get("body", []) + spec.get("bottom", []):
+                    emit(e, n, "root", "v")
+                for o in spec.get("overlay", []):
+                    emit(e, o["node"], "root", "v")
+                print(f"ok   {os.path.basename(path)}: {len(e.cmds)} nodes")
+            except Exception as err:
+                bad += 1
+                print(f"FAIL {os.path.basename(path)}: {err}")
+        sys.exit(1 if bad else 0)
+    elif a[0] == "verify-components":
+        checked, errors = verify_components()
+        for e in errors:
+            print("FAIL", e)
+        print(f"verify-components: {checked} linked widgets checked, {len(errors)} problem(s)")
+        sys.exit(1 if errors else 0)
+    elif a[0] == "parity":  # after capture.py: real screens beside frames, scores, code links
+        rows = parity()
+        got = [r for r in rows if r[0] is not None]
+        print(f"parity: {len(got)} captured of {len(rows)} screens;",
+              f"{sum(VERDICTS.get(r[2]) == 'match' for r in got)} reviewed as matching")
+        ex("file.save", {})
+    elif a[0] in ("pull", "drift"):  # FigCraft document -> tokens.json (pull) or just compare (drift)
+        tok, notes = doc_tokens()
+        diff = token_diff(TOK, tok)
+        for line in notes + diff:
+            print(line)
+        if a[0] == "drift":
+            print("drift:", len(diff), "difference(s)")
+            sys.exit(1 if diff else 0)
+        if diff:
+            json.dump(tok, open(TOKENS_JSON, "w"), indent=2)
+            sys.path.insert(0, os.path.dirname(TOKENS_JSON))
+            import tokens as T
+            T.gen()
+        print("pull:", len(diff), "change(s) written" if diff else "nothing to pull")
+    elif a[0] == "all":
+        setup()
+        reg = build_components()
+        build_foundations()
+        build_docs(reg)
+        failed = []
+        for path in sorted(glob.glob(os.path.join(HERE, "specs", "*.json"))):
+            try:
+                spec = json.load(open(path))
+                rid, n = build_screen(spec)
+                print(f"ok   {os.path.basename(path)}: {n} commands")
+            except Exception as err:  # keep going; report at the end
+                failed.append(path)
+                print(f"FAIL {os.path.basename(path)}: {err}")
+        drop_lib()
+        rows = parity()
+        print("parity:", sum(r[0] is not None for r in rows), "captured of", len(rows))
+        print("tokens bound:", STATS["on"], "off-scale values:", STATS["off"],
+              sorted(STATS["off_values"].items(), key=lambda x: -x[1])[:12])
+        print("connect file:", export_connect())
+        ex("library.publish", {"description": "FlowGroove MonoPulse: colour, type, spacing and radius tokens; "
+                                              "24 components linked to Flutter widgets."})
+        out = os.path.join(HERE, "..", "flowgroove-screens.figcraft")
+        ex("file.saveAs", {"path": os.path.abspath(out)})
+        print("saved", os.path.abspath(out), "failed:", len(failed))
+    else:
+        print(__doc__)
+
+
+if __name__ == "__main__":
+    main()

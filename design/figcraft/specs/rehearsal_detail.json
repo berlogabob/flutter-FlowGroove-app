@@ -1,0 +1,224 @@
+{
+  "name": "Rehearsal detail",
+  "page": "Bands",
+  "source": "lib/screens/bands/rehearsals/rehearsal_detail_screen.dart",
+  "route": "/main/bands/{band}/rehearsals/{rehearsal}",
+  "slot": 10,
+  "body": [
+    {
+      "t": "col",
+      "pad": 16,
+      "gap": 4,
+      "c": [
+        {
+          "t": "text",
+          "v": "Weekend rehearsal",
+          "style": "headlineSmall"
+        },
+        {
+          "t": "row",
+          "gap": 4,
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "place",
+              "size": 16
+            },
+            {
+              "t": "text",
+              "v": "The Practice Room",
+              "style": "bodyMedium",
+              "w": "fill"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "gap": 4,
+          "cross": "center",
+          "c": [
+            {
+              "t": "icon",
+              "v": "alarm",
+              "size": 16
+            },
+            {
+              "t": "text",
+              "v": "Respond by Fri, Jul 3 · 18:00",
+              "style": "bodyMedium"
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 4
+        },
+        {
+          "t": "text",
+          "v": "Bring your ideas for the new setlist.",
+          "style": "bodyMedium"
+        },
+        {
+          "t": "spacer",
+          "size": 12
+        },
+        {
+          "t": "card",
+          "pad": 12,
+          "radius": 12,
+          "border": "accentOrange",
+          "borderW": 2,
+          "gap": 8,
+          "c": [
+            {
+              "t": "row",
+              "cross": "center",
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Sat, Jul 4 · 19:00–21:00",
+                  "style": "labelLarge",
+                  "w": "fill"
+                },
+                {
+                  "t": "chip",
+                  "v": "Best"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "gap": 8,
+              "c": [
+                {
+                  "t": "chip",
+                  "v": "Can",
+                  "sel": true
+                },
+                {
+                  "t": "chip",
+                  "v": "Maybe"
+                },
+                {
+                  "t": "chip",
+                  "v": "Can't"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "main": "max",
+              "c": [
+                {
+                  "t": "button",
+                  "v": "Confirm this time",
+                  "kind": "text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "card",
+          "pad": 12,
+          "radius": 12,
+          "gap": 8,
+          "c": [
+            {
+              "t": "text",
+              "v": "Sun, Jul 5 · 18:00–20:00",
+              "style": "labelLarge"
+            },
+            {
+              "t": "text",
+              "v": "Can't make it: Alex",
+              "style": "bodyMedium",
+              "color": "error"
+            },
+            {
+              "t": "row",
+              "gap": 8,
+              "c": [
+                {
+                  "t": "chip",
+                  "v": "Can"
+                },
+                {
+                  "t": "chip",
+                  "v": "Maybe",
+                  "sel": true
+                },
+                {
+                  "t": "chip",
+                  "v": "Can't"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "main": "max",
+              "c": [
+                {
+                  "t": "button",
+                  "v": "Confirm this time",
+                  "kind": "text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "text",
+          "v": "Waiting on: Sam",
+          "style": "bodySmall"
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "text",
+          "v": "Suggestions",
+          "style": "titleMedium"
+        },
+        {
+          "t": "text",
+          "v": "Alex: Could we start an hour later?",
+          "style": "bodyMedium"
+        },
+        {
+          "t": "button",
+          "v": "None of these work — suggest a time",
+          "kind": "text",
+          "icon": "add_comment_outlined"
+        },
+        {
+          "t": "spacer",
+          "size": 24
+        },
+        {
+          "t": "button",
+          "v": "Cancel rehearsal",
+          "kind": "secondary",
+          "icon": "cancel_outlined"
+        },
+        {
+          "t": "button",
+          "v": "Edit details",
+          "kind": "text",
+          "icon": "edit"
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "actionbar"
+    }
+  ]
+}

@@ -1,0 +1,281 @@
+{
+  "name": "My bands",
+  "page": "Bands",
+  "source": "lib/screens/bands/my_bands_screen.dart",
+  "route": "/main/bands",
+  "slot": 0,
+  "body": [
+    {
+      "t": "row",
+      "main": "center",
+      "c": [
+        {
+          "t": "button",
+          "v": "Join band",
+          "kind": "secondary",
+          "icon": "group_add_outlined",
+          "w": "hug"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "pad": 16,
+      "gap": 8,
+      "cross": "center",
+      "c": [
+        {
+          "t": "input",
+          "hint": "Search bands...",
+          "w": "fill"
+        },
+        {
+          "t": "row",
+          "pad": 8,
+          "gap": 8,
+          "cross": "center",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 8,
+          "h": 48,
+          "c": [
+            {
+              "t": "text",
+              "v": "Manual order",
+              "style": "bodyMedium",
+              "w": "hug"
+            },
+            {
+              "t": "icon",
+              "v": "sort",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "t": "col",
+      "pad": [
+        0,
+        16,
+        0,
+        16
+      ],
+      "c": [
+        {
+          "t": "row",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "c": [
+            {
+              "t": "avatar",
+              "v": "M",
+              "size": 40,
+              "bg": "accentOrange",
+              "color": "white"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Midnight Echoes",
+                  "style": "titleMedium"
+                },
+                {
+                  "t": "text",
+                  "v": "Indie rock and late-night grooves",
+                  "style": "bodySmall",
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "spacer",
+                  "size": 4
+                },
+                {
+                  "t": "row",
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "text",
+                      "v": "4 members",
+                      "style": "bodySmall",
+                      "w": "fill"
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "music_note",
+                      "size": 20
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "more_vert"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider"
+        },
+        {
+          "t": "row",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "c": [
+            {
+              "t": "avatar",
+              "v": "T",
+              "size": 40,
+              "bg": "accentOrange",
+              "color": "white"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "c": [
+                {
+                  "t": "text",
+                  "v": "The River Rats",
+                  "style": "titleMedium"
+                },
+                {
+                  "t": "text",
+                  "v": "Blues, soul and good company",
+                  "style": "bodySmall",
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "spacer",
+                  "size": 4
+                },
+                {
+                  "t": "row",
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "text",
+                      "v": "5 members",
+                      "style": "bodySmall",
+                      "w": "fill"
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "music_note",
+                      "size": 20
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "more_vert"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider"
+        },
+        {
+          "t": "row",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "c": [
+            {
+              "t": "avatar",
+              "v": "S",
+              "size": 40,
+              "bg": "accentOrange",
+              "color": "white"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Sunday Sessions",
+                  "style": "titleMedium"
+                },
+                {
+                  "t": "text",
+                  "v": "Acoustic covers and originals",
+                  "style": "bodySmall",
+                  "color": "textSecondary"
+                },
+                {
+                  "t": "spacer",
+                  "size": 4
+                },
+                {
+                  "t": "row",
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "text",
+                      "v": "3 members",
+                      "style": "bodySmall",
+                      "w": "fill"
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "music_note",
+                      "size": 20
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "more_vert"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider"
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "bottomnav",
+      "sel": "Bands"
+    }
+  ],
+  "overlay": [
+    {
+      "x": 340,
+      "y": 760,
+      "node": {
+        "t": "fab",
+        "icon": "add"
+      }
+    }
+  ]
+}

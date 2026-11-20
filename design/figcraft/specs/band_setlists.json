@@ -1,0 +1,264 @@
+{
+  "name": "Band setlists",
+  "page": "Bands",
+  "source": "lib/screens/bands/band_setlists_screen.dart",
+  "route": "/main/bands/{band}/setlists",
+  "slot": 7,
+  "body": [
+    {
+      "t": "row",
+      "pad": 16,
+      "gap": 8,
+      "cross": "center",
+      "c": [
+        {
+          "t": "input",
+          "hint": "Search band setlists...",
+          "w": "fill"
+        },
+        {
+          "t": "row",
+          "bg": "surface",
+          "border": "borderDefault",
+          "borderW": 0.5,
+          "radius": 8,
+          "pad": [
+            12,
+            8,
+            12,
+            8
+          ],
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {
+              "t": "text",
+              "v": "Manual order",
+              "style": "labelMedium",
+              "w": "hug"
+            },
+            {
+              "t": "icon",
+              "v": "sort",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "t": "col",
+      "pad": [
+        0,
+        16,
+        0,
+        16
+      ],
+      "c": [
+        {
+          "t": "row",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "c": [
+            {
+              "t": "avatar",
+              "icon": "playlist_play",
+              "size": 40,
+              "bg": "surfaceRaised"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Friday Night Gig",
+                  "style": "titleLarge",
+                  "maxLines": 1
+                },
+                {
+                  "t": "row",
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "text",
+                      "v": "12 songs · Nov 20, 2026",
+                      "style": "bodySmall",
+                      "w": "fill"
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "av_timer",
+                      "color": "accentOrange"
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "more_vert",
+                      "color": "textSecondary"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider",
+          "color": "borderSubtle"
+        },
+        {
+          "t": "row",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "c": [
+            {
+              "t": "avatar",
+              "icon": "playlist_play",
+              "size": 40,
+              "bg": "surfaceRaised"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Rehearsal Favorites",
+                  "style": "titleLarge",
+                  "maxLines": 1
+                },
+                {
+                  "t": "row",
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "text",
+                      "v": "8 songs",
+                      "style": "bodySmall",
+                      "w": "fill"
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "av_timer",
+                      "color": "accentOrange"
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "more_vert",
+                      "color": "textSecondary"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider",
+          "color": "borderSubtle"
+        },
+        {
+          "t": "row",
+          "pad": [
+            12,
+            16,
+            12,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "c": [
+            {
+              "t": "avatar",
+              "icon": "playlist_play",
+              "size": 40,
+              "bg": "surfaceRaised"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Acoustic Set",
+                  "style": "titleLarge",
+                  "maxLines": 1
+                },
+                {
+                  "t": "row",
+                  "cross": "center",
+                  "c": [
+                    {
+                      "t": "text",
+                      "v": "6 songs",
+                      "style": "bodySmall",
+                      "w": "fill"
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "av_timer",
+                      "color": "accentOrange"
+                    },
+                    {
+                      "t": "iconbtn",
+                      "v": "more_vert",
+                      "color": "textSecondary"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "divider",
+          "color": "borderSubtle"
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "actionbar"
+    }
+  ],
+  "overlay": [
+    {
+      "x": 340,
+      "y": 760,
+      "node": {
+        "t": "fab",
+        "icon": "add"
+      }
+    },
+    {
+      "x": 128,
+      "y": 875,
+      "node": {
+        "t": "text",
+        "v": "The Night Owls Setlists",
+        "style": "labelLarge",
+        "color": "textPrimary",
+        "w": 156,
+        "align": "center",
+        "maxLines": 1
+      }
+    }
+  ]
+}

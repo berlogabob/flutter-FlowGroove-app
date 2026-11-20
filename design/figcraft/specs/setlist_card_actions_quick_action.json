@@ -1,0 +1,21 @@
+{
+  "name": "Setlist card actions: Quick action",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/unified_item/setlist_card_actions.dart:65",
+  "slot": 33,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 4, "c": [
+      {"t": "text", "v": "Quick action", "style": "headlineMedium"},
+      {"t": "text", "v": "Sets what the pinned button on setlist cards does", "style": "bodyMedium", "color": "textSecondary", "pad": [8, 16, 12, 16]},
+      {"t": "col", "gap": 2, "c": [
+        {"t": "tile", "lead": "av_timer", "title": "Open in metronome", "trail": [{"t": "chip", "v": "", "sel": true, "bg": "accentOrange", "color": "black"}]},
+        {"t": "tile", "lead": "mic_external", "title": "Event kit"},
+        {"t": "tile", "lead": "edit", "title": "Edit setlist"},
+        {"t": "tile", "lead": "share", "title": "Share"},
+        {"t": "tile", "lead": "playlist_add", "title": "Copy links"},
+        {"t": "tile", "lead": "folder_outlined", "title": "Export PDF"}
+      ]}
+    ]}
+  ]
+}

@@ -1,0 +1,6 @@
+song_page_edit	Songs	lib/screens/songs/song_page_screen.dart	Song page · Edit tab	the Song page with the Edit segment selected (details + structure)
+song_page_lab	Songs	lib/screens/songs/song_page_screen.dart	Song page · Lab tab	the Song page with the Lab segment selected (the song's working journal)
+song_lab_tasks	Songs	lib/screens/songs/song_lab_screen.dart	Song lab · Tasks	Song lab with the Tasks segment selected instead of Entries
+metronome_launchpad	Home & Tools	lib/screens/metronome_screen.dart	Metronome · Launchpad	the metronome when a song with a MIDI backing is active: LaunchpadView (lib/widgets/practice/launchpad_view.dart, track_console.dart, section_pad.dart) under the tempo header
+tuner_tone	Home & Tools	lib/screens/tuner_screen.dart	Tuner · Tone	the tuner in TunerMode.generate (tone generator) instead of listen
+tuner_stage	Home & Tools	lib/screens/tuner_screen.dart	Tuner · Stage mode	the tuner in stage mode (lib/widgets/tuner/stage_mode_overlay.dart): big, minimal, high-contrast reading

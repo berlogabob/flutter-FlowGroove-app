@@ -1,0 +1,438 @@
+{
+ "name": "Design system",
+ "page": "Settings",
+ "source": "lib/screens/settings/design_system_screen.dart",
+ "slot": 3,
+ "bg": "black",
+ "body": [
+  {
+   "t": "col",
+   "pad": 16,
+   "c": [
+    {
+     "t": "text",
+     "v": "FlowGroove / field guide",
+     "style": "labelMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "text",
+     "v": "Made for the room.",
+     "style": "displayMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "text",
+     "v": "A shared music notebook should feel like an instrument: clear at a glance, reassuring in the hand, and ready when the band is.",
+     "style": "bodyLarge",
+     "color": "textSecondary"
+    },
+    {
+     "t": "spacer",
+     "size": 24
+    },
+    {
+     "t": "text",
+     "v": "01 / Palette",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "row",
+     "wrap": true,
+     "gap": 8,
+     "c": [
+      {
+       "t": "col",
+       "w": 104,
+       "c": [
+        {
+         "t": "box",
+         "w": 104,
+         "h": 42,
+         "bg": "paper",
+         "border": "borderDefault",
+         "radius": 5
+        },
+        {
+         "t": "spacer",
+         "size": 4
+        },
+        {
+         "t": "text",
+         "v": "Paper",
+         "style": "labelMedium"
+        },
+        {
+         "t": "text",
+         "v": "#F6F5F0",
+         "style": "bodySmall"
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 104,
+       "c": [
+        {
+         "t": "box",
+         "w": 104,
+         "h": 42,
+         "bg": "stone",
+         "border": "borderDefault",
+         "radius": 5
+        },
+        {
+         "t": "spacer",
+         "size": 4
+        },
+        {
+         "t": "text",
+         "v": "Stone",
+         "style": "labelMedium"
+        },
+        {
+         "t": "text",
+         "v": "#D8D6CC",
+         "style": "bodySmall"
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 104,
+       "c": [
+        {
+         "t": "box",
+         "w": 104,
+         "h": 42,
+         "bg": "fog",
+         "border": "borderDefault",
+         "radius": 5
+        },
+        {
+         "t": "spacer",
+         "size": 4
+        },
+        {
+         "t": "text",
+         "v": "Fog",
+         "style": "labelMedium"
+        },
+        {
+         "t": "text",
+         "v": "#B5B2A8",
+         "style": "bodySmall"
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 104,
+       "c": [
+        {
+         "t": "box",
+         "w": 104,
+         "h": 42,
+         "bg": "sage",
+         "border": "borderDefault",
+         "radius": 5
+        },
+        {
+         "t": "spacer",
+         "size": 4
+        },
+        {
+         "t": "text",
+         "v": "Sage",
+         "style": "labelMedium"
+        },
+        {
+         "t": "text",
+         "v": "#8A907F",
+         "style": "bodySmall"
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 104,
+       "c": [
+        {
+         "t": "box",
+         "w": 104,
+         "h": 42,
+         "bg": "petrol",
+         "border": "borderDefault",
+         "radius": 5
+        },
+        {
+         "t": "spacer",
+         "size": 4
+        },
+        {
+         "t": "text",
+         "v": "Petrol",
+         "style": "labelMedium"
+        },
+        {
+         "t": "text",
+         "v": "#285E6E",
+         "style": "bodySmall"
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 104,
+       "c": [
+        {
+         "t": "box",
+         "w": 104,
+         "h": 42,
+         "bg": "charcoal",
+         "border": "borderDefault",
+         "radius": 5
+        },
+        {
+         "t": "spacer",
+         "size": 4
+        },
+        {
+         "t": "text",
+         "v": "Charcoal",
+         "style": "labelMedium"
+        },
+        {
+         "t": "text",
+         "v": "#1E1E1C",
+         "style": "bodySmall"
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 104,
+       "c": [
+        {
+         "t": "box",
+         "w": 104,
+         "h": 42,
+         "bg": "accentOrange",
+         "border": "borderDefault",
+         "radius": 5
+        },
+        {
+         "t": "spacer",
+         "size": 4
+        },
+        {
+         "t": "text",
+         "v": "Signal orange",
+         "style": "labelMedium"
+        },
+        {
+         "t": "text",
+         "v": "#FF5A36",
+         "style": "bodySmall"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 24
+    },
+    {
+     "t": "text",
+     "v": "02 / Type",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "card",
+     "bg": "surfaceRaised",
+     "border": "borderDefault",
+     "shadow": true,
+     "pad": 16,
+     "gap": 8,
+     "c": [
+      {
+       "t": "text",
+       "v": "Set the room in motion",
+       "style": "headlineLarge"
+      },
+      {
+       "t": "text",
+       "v": "Source Serif 4 keeps song details and supporting copy warm and easy to read.",
+       "style": "bodyLarge"
+      },
+      {
+       "t": "text",
+       "v": "Control labels / Arial",
+       "style": "labelMedium"
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 24
+    },
+    {
+     "t": "text",
+     "v": "03 / Controls",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "card",
+     "bg": "surfaceRaised",
+     "border": "borderDefault",
+     "shadow": true,
+     "pad": 16,
+     "c": [
+      {
+       "t": "row",
+       "wrap": true,
+       "gap": 12,
+       "cross": "center",
+       "c": [
+        {
+         "t": "button",
+         "v": "Play set",
+         "icon": "play_arrow"
+        },
+        {
+         "t": "button",
+         "v": "Edit notes",
+         "kind": "secondary"
+        },
+        {
+         "t": "button",
+         "v": "Disabled",
+         "opacity": 0.4
+        },
+        {
+         "t": "col",
+         "w": 64,
+         "cross": "center",
+         "gap": 8,
+         "c": [
+          {
+           "t": "row",
+           "w": 64,
+           "h": 56,
+           "bg": "surfaceRaised",
+           "border": "charcoal",
+           "radius": 5,
+           "main": "center",
+           "cross": "center",
+           "c": [
+            {
+             "t": "icon",
+             "v": "skip_previous",
+             "color": "charcoal"
+            }
+           ]
+          },
+          {
+           "t": "text",
+           "v": "Back",
+           "style": "labelSmall",
+           "w": "hug"
+          }
+         ]
+        },
+        {
+         "t": "col",
+         "w": 64,
+         "cross": "center",
+         "gap": 8,
+         "c": [
+          {
+           "t": "row",
+           "w": 64,
+           "h": 56,
+           "bg": "accentOrange",
+           "border": "charcoal",
+           "radius": 5,
+           "main": "center",
+           "cross": "center",
+           "c": [
+            {
+             "t": "icon",
+             "v": "stop",
+             "color": "charcoal"
+            }
+           ]
+          },
+          {
+           "t": "text",
+           "v": "Stop",
+           "style": "labelSmall",
+           "w": "hug"
+          }
+         ]
+        },
+        {
+         "t": "col",
+         "w": 64,
+         "cross": "center",
+         "gap": 8,
+         "c": [
+          {
+           "t": "row",
+           "w": 64,
+           "h": 56,
+           "bg": "surfaceRaised",
+           "border": "charcoal",
+           "radius": 5,
+           "main": "center",
+           "cross": "center",
+           "c": [
+            {
+             "t": "icon",
+             "v": "skip_next",
+             "color": "charcoal"
+            }
+           ]
+          },
+          {
+           "t": "text",
+           "v": "Next",
+           "style": "labelSmall",
+           "w": "hug"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "bottom": [
+  {
+   "t": "actionbar",
+   "menu": false,
+   "title": "Design system"
+  }
+ ]
+}

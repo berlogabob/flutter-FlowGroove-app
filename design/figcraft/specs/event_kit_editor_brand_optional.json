@@ -1,0 +1,50 @@
+{
+  "name": "Event kit editor: Brand (optional)",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/event_kit_editor_screen.dart:714",
+  "slot": 2,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Brand (optional)",
+      "c": [
+        {
+          "t": "text",
+          "v": "Brand",
+          "style": "labelMedium",
+          "color": "textSecondary"
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "wrap": true,
+          "c": [
+            {"t": "chip", "v": "Marshall"},
+            {"t": "chip", "v": "Orange"},
+            {"t": "chip", "v": "Vox AC30", "sel": true},
+            {"t": "chip", "v": "Mesa Boogie"},
+            {"t": "chip", "v": "Fender Twin"},
+            {"t": "chip", "v": "Ampeg SVT"},
+            {"t": "chip", "v": "Roland JC-120"},
+            {"t": "chip", "v": "Hartke"},
+            {"t": "chip", "v": "Blackstar"},
+            {"t": "chip", "v": "Laney"},
+            {"t": "chip", "v": "Peavey"}
+          ]
+        },
+        {
+          "t": "input",
+          "label": "Custom brand",
+          "hint": "Type a brand",
+          "icon": "edit"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "text", "v": "Clear"},
+        {"t": "button", "kind": "primary", "v": "Done"}
+      ]
+    }
+  ]
+}

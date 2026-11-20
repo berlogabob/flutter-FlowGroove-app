@@ -1,0 +1,12 @@
+{
+  "name": "Event kit editor sheet L256",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/event_kit_editor_screen.dart:256",
+  "slot": 1,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 16, "c": [
+      {"t": "input", "label": "Rider item (e.g. XLR cables ×4)", "v": "XLR cables ×4"}
+    ]}
+  ]
+}

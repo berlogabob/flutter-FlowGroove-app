@@ -1,0 +1,25 @@
+{
+  "name": "Band about sheet L519",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/bands/band_about_screen.dart:519",
+  "slot": 4,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 4, "c": [
+      {"t": "text", "v": "Marcus Reed", "style": "headlineSmall", "color": "textPrimary", "name": "Member"},
+      {"t": "divider", "color": "borderSubtle"},
+      {"t": "text", "v": "Role", "style": "labelMedium", "color": "textSecondary", "name": "RoleLabel"},
+      {"t": "col", "gap": 2, "c": [
+        {"t": "tile", "lead": "radio_button_checked", "title": "Admin role", "trail": "check", "bg": "stone"},
+        {"t": "tile", "lead": "radio_button_unchecked", "title": "Editor role"},
+        {"t": "tile", "lead": "radio_button_unchecked", "title": "Viewer role"}
+      ]},
+      {"t": "divider", "color": "borderSubtle"},
+      {"t": "text", "v": "Music roles", "style": "labelMedium", "color": "textSecondary", "name": "MusicRolesLabel"},
+      {"t": "col", "gap": 2, "c": [
+        {"t": "tile", "lead": "music_note_outlined", "title": "Edit music roles"},
+        {"t": "tile", "lead": "person_remove_outlined", "title": "Remove from band"}
+      ]}
+    ]}
+  ]
+}

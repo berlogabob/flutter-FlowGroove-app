@@ -1,0 +1,30 @@
+{
+  "name": "Reliability sheet: Keep timing reliable",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/metronome/reliability_sheet.dart:15",
+  "slot": 24,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 16, "c": [
+      {"t": "text", "v": "Keep timing reliable", "style": "headlineSmall"},
+      {"t": "text", "v": "Some phones stop audio apps when the screen turns off. Concerts need exact timing.", "style": "bodyMedium", "color": "textSecondary"},
+      {"t": "col", "gap": 12, "c": [
+        {"t": "row", "gap": 12, "cross": "min", "c": [
+          {"t": "icon", "v": "lock_open", "size": 20, "color": "accentOrange"},
+          {"t": "text", "v": "Disable battery optimization for this app", "style": "bodyMedium", "color": "textSecondary"}
+        ]},
+        {"t": "row", "gap": 12, "cross": "min", "c": [
+          {"t": "icon", "v": "screen_rotation", "size": 20, "color": "accentOrange"},
+          {"t": "text", "v": "Keep the screen on during rehearsals and concerts", "style": "bodyMedium", "color": "textSecondary"}
+        ]},
+        {"t": "row", "gap": 12, "cross": "min", "c": [
+          {"t": "icon", "v": "battery_std", "size": 20, "color": "accentOrange"},
+          {"t": "text", "v": "Plug in or keep charging if the set is long", "style": "bodyMedium", "color": "textSecondary"}
+        ]}
+      ]},
+      {"t": "button", "kind": "primary", "v": "Allow unrestricted battery", "w": "fill"},
+      {"t": "button", "kind": "secondary", "v": "Open phone battery settings", "w": "fill"},
+      {"t": "button", "kind": "text", "v": "Done", "w": "fill"}
+    ]}
+  ]
+}

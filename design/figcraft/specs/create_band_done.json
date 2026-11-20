@@ -1,0 +1,21 @@
+{
+  "name": "Create band: Done",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/bands/create_band_screen.dart:219",
+  "slot": 8,
+  "modal": "dialog",
+  "body": [
+    {"t": "dialog", "title": "Band Created!", "icon": "check_circle", "c": [
+      {"t": "text", "v": "Share this invite code with your bandmates:", "style": "bodyMedium", "color": "textSecondary"},
+      {"t": "spacer", "size": 16},
+      {"t": "row", "gap": 8, "c": [
+        {"t": "box", "bg": "surfaceRaised", "radius": 12, "w": "fill", "h": 64, "c": [
+          {"t": "text", "v": "KQ7X2M", "style": "mono", "align": "center", "color": "textPrimary"}
+        ]},
+        {"t": "iconbtn", "v": "copy", "border": "borderDefault", "radius": 12}
+      ]}
+    ], "actions": [
+      {"t": "button", "kind": "text", "v": "Done"}
+    ]}
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "name": "Tuner Settings Sheet",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/tuner_screen.dart:184",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "c": [
+        {
+          "t": "row",
+          "pad": [16, 20, 12, 0],
+          "cross": "center",
+          "c": [
+            {"t": "text", "v": "Tuner Settings", "style": "titleMedium", "color": "textHighEmphasis", "w": "fill"},
+            {"t": "iconbtn", "v": "close", "color": "textSecondary"}
+          ]
+        },
+        {
+          "t": "col",
+          "gap": 10,
+          "c": [
+            {"t": "section", "v": "Current Preset", "kind": "label"},
+            {"t": "spacer", "size": 4},
+            {"t": "card", "dir": "h", "pad": [12, 12, 12, 12], "gap": 8, "cross": "center", "c": [
+              {"t": "text", "v": "Guitar · Standard", "style": "bodyMedium", "color": "textHighEmphasis", "w": "fill"}
+            ]},
+            {"t": "spacer", "size": 16},
+            {"t": "col", "gap": 6, "c": [
+              {"t": "row", "cross": "center", "c": [
+                {"t": "text", "v": "A4 Reference", "style": "labelMedium", "color": "textSecondary", "w": "fill"},
+                {"t": "text", "v": "440 Hz", "style": "bodyMedium", "color": "textHighEmphasis", "w": "hug"}
+              ]},
+              {"t": "slider", "value": 0.49}
+            ]},
+            {"t": "col", "gap": 6, "c": [
+              {"t": "row", "cross": "center", "c": [
+                {"t": "text", "v": "In-Tune Tolerance", "style": "labelMedium", "color": "textSecondary", "w": "fill"},
+                {"t": "text", "v": "±5 cents", "style": "bodyMedium", "color": "textHighEmphasis", "w": "hug"}
+              ]},
+              {"t": "slider", "value": 0.21}
+            ]},
+            {"t": "col", "gap": 6, "c": [
+              {"t": "row", "cross": "center", "c": [
+                {"t": "text", "v": "Input Sensitivity", "style": "labelMedium", "color": "textSecondary", "w": "fill"},
+                {"t": "text", "v": "75%", "style": "bodyMedium", "color": "textHighEmphasis", "w": "hug"}
+              ]},
+              {"t": "slider", "value": 0.75}
+            ]},
+            {"t": "section", "v": "Transposition", "kind": "label"},
+            {"t": "spacer", "size": 4},
+            {"t": "row", "gap": 8, "c": [
+              {"t": "chip", "v": "C", "sel": true},
+              {"t": "chip", "v": "Bb"},
+              {"t": "chip", "v": "F"},
+              {"t": "chip", "v": "Eb"}
+            ]},
+            {"t": "text", "v": "Show detected notes as written pitch for transposing instruments.", "style": "bodySmall", "color": "textTertiary"},
+            {"t": "spacer", "size": 16},
+            {"t": "switchrow", "title": "Haptic Feedback", "sub": "Confirm when the note becomes stable and in tune", "on": true},
+            {"t": "switchrow", "title": "Stage Mode", "sub": "Show a simplified full-screen tuning display", "on": false},
+            {"t": "spacer", "size": 16},
+            {"t": "divider"},
+            {"t": "spacer", "size": 8},
+            {"t": "text", "v": "Microphone privacy", "style": "labelMedium", "color": "textSecondary"},
+            {"t": "spacer", "size": 4},
+            {"t": "text", "v": "Pitch detection runs locally. Raw microphone audio is never stored or sent to FlowGroove servers.", "style": "bodySmall", "color": "textTertiary"}
+          ]
+        }
+      ]
+    }
+  ]
+}

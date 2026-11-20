@@ -1,0 +1,25 @@
+{
+  "name": "Event kit editor: Revoke share link?",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/event_kit_editor_screen.dart:1384",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Revoke share link?",
+      "c": [
+        {
+          "t": "text",
+          "v": "Revoke access for Dave the Sound Engineer?",
+          "style": "bodyMedium",
+          "color": "textSecondary"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "danger", "v": "Revoke"}
+      ]
+    }
+  ]
+}

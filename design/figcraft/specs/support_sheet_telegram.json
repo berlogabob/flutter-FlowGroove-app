@@ -1,0 +1,16 @@
+{
+  "name": "Support sheet: Telegram",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/support_sheet.dart:13",
+  "slot": 31,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 8, "c": [
+      {"t": "text", "v": "Need help?", "style": "headlineMedium", "name": "Heading"},
+      {"t": "text", "v": "Reach our support team — we usually reply within a day.", "style": "bodyMedium", "color": "textSecondary", "name": "Subheading"},
+      {"t": "divider"},
+      {"t": "tile", "lead": "telegram", "title": "Telegram", "sub": "Chat with our support bot", "trail": "open_in_new"},
+      {"t": "tile", "lead": "chat_bubble_outline", "title": "WhatsApp", "sub": "Message us on WhatsApp", "trail": "open_in_new"}
+    ]}
+  ]
+}

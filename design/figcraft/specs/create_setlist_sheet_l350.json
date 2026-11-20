@@ -1,0 +1,27 @@
+{
+  "name": "Create setlist sheet L350",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/create_setlist_screen.dart:350",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 12, "c": [
+      {"t": "row", "main": "spaceBetween", "cross": "center", "c": [
+        {"t": "text", "v": "Select Songs (2)", "style": "titleLarge", "w": "hug"},
+        {"t": "button", "kind": "primary", "v": "Done"}
+      ]},
+      {"t": "input", "hint": "Search...", "icon": "search", "w": "fill"},
+      {"t": "col", "gap": 0, "c": [
+        {"t": "tile", "lead": "W", "title": "Wonderwall", "sub": "Oasis", "trail": "checkbox", "pad": [4, 0]},
+        {"t": "divider"},
+        {"t": "tile", "lead": "S", "title": "Seven Nation Army", "sub": "The White Stripes", "trail": "checkbox", "pad": [4, 0]},
+        {"t": "divider"},
+        {"t": "tile", "lead": "V", "title": "Valerie", "sub": "Amy Winehouse", "trail": "checkbox", "pad": [4, 0]},
+        {"t": "divider"},
+        {"t": "tile", "lead": "R", "title": "Radioactive", "sub": "Imagine Dragons", "trail": "checkbox", "pad": [4, 0]},
+        {"t": "divider"},
+        {"t": "tile", "lead": "C", "title": "Calabria", "sub": "7th Heaven", "trail": "checkbox", "pad": [4, 0]}
+      ]}
+    ]}
+  ]
+}

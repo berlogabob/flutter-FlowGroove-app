@@ -1,0 +1,40 @@
+{
+  "name": "Song Import Dialog",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/songs_list_screen.dart:149",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "icon": "upload_file",
+      "title": "Import songs (CSV or JSON)",
+      "c": [
+        {
+          "t": "text",
+          "v": "Choose a CSV file, or paste CSV or FlowGroove Song JSON (e.g. from an AI). Everything is compared with your library and previewed before anything is saved.",
+          "style": "bodyMedium",
+          "color": "textSecondary",
+          "align": "center"
+        },
+        {"t": "spacer", "size": 20},
+        {"t": "button", "v": "Select CSV file", "kind": "primary", "icon": "folder_open", "w": "fill"},
+        {"t": "spacer", "size": 12},
+        {"t": "button", "v": "Paste from clipboard", "kind": "secondary", "icon": "content_paste", "w": "fill"},
+        {"t": "spacer", "size": 24},
+        {
+          "t": "text",
+          "v": "No file? Ask your own AI. Copy a prompt, paste it into ChatGPT/Claude/Gemini, then paste its result back here.",
+          "style": "bodyMedium",
+          "color": "textSecondary",
+          "align": "center"
+        },
+        {"t": "spacer", "size": 8},
+        {"t": "button", "v": "Copy AI prompt", "kind": "text", "icon": "auto_awesome", "w": "fill"}
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"}
+      ]
+    }
+  ]
+}

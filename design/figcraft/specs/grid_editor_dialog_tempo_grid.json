@@ -1,0 +1,49 @@
+{
+  "name": "Grid editor dialog: Tempo grid",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/practice_regions/grid_editor_dialog.dart:20",
+  "slot": 19,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Tempo grid",
+      "c": [
+        {
+          "t": "input",
+          "label": "BPM",
+          "v": "120",
+          "icon": "timer"
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "wrap": true,
+          "c": [
+            {"t": "button", "kind": "text", "v": "Downbeat here", "small": true},
+            {"t": "button", "kind": "text", "v": "-10 ms", "small": true},
+            {"t": "button", "kind": "text", "v": "+10 ms", "small": true}
+          ]
+        },
+        {
+          "t": "text",
+          "v": "Downbeat 00:00.000",
+          "style": "bodySmall",
+          "color": "textSecondary",
+          "w": "hug"
+        },
+        {
+          "t": "input",
+          "label": "Beats per bar",
+          "v": "4 beats per bar",
+          "trail": "arrow_drop_down"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Remove grid"},
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Save"}
+      ]
+    }
+  ]
+}

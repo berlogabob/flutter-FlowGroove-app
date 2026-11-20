@@ -1,0 +1,14 @@
+figcraft/__pycache__/
+figcraft/.components.json
+figcraft/.frames.json
+figcraft/.tokens.json
+figcraft/logs/
+png/
+real/.*.raw.png
+# Device captures show the real account (name, email, photo, bands): keep them local.
+real/*.png
+real/ids.json
+contact.png
+# Embeds the real-device screenshots (Parity page); public repo. Rebuild with build.py all.
+*.figcraft
+figcraft/specs/.tmp.json

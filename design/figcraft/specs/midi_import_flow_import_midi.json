@@ -1,0 +1,20 @@
+{
+  "name": "Midi import flow: Import MIDI",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/midi/midi_import_flow.dart:37",
+  "slot": 26,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Import MIDI",
+      "icon": "file_open",
+      "c": [
+        {"t": "text", "v": "Not a valid MIDI file", "style": "bodyMedium", "color": "textSecondary"}
+      ],
+      "actions": [
+        {"t": "button", "kind": "primary", "v": "OK"}
+      ]
+    }
+  ]
+}

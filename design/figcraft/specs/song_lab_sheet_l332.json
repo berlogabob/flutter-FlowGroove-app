@@ -1,0 +1,23 @@
+{
+  "name": "Song lab sheet L332",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/song_lab_screen.dart:332",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 16, "c": [
+      {"t": "text", "v": "Save version", "style": "headlineMedium"},
+      {"t": "text", "v": "A named snapshot of the song as it is right now — key, BPM, structure and the full chord chart.", "style": "bodySmall", "color": "textSecondary"},
+      {"t": "input", "label": "Name (e.g. v0.3, Live, Acoustic)", "hint": "Name (e.g. v0.3, Live, Acoustic)", "icon": "bookmark_add_outlined"},
+      {"t": "input", "label": "What changed? (optional)", "hint": "What changed? (optional)", "lines": 2},
+      {"t": "divider"},
+      {"t": "switchrow", "title": "Mark as current version", "on": true},
+      {"t": "row", "wrap": true, "main": "spaceBetween", "pad": [0, 16, 0, 16], "c": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "row", "gap": 8, "c": [
+          {"t": "button", "kind": "primary", "v": "Save"}
+        ]}
+      ]}
+    ]}
+  ]
+}

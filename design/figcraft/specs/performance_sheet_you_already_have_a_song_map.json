@@ -1,0 +1,16 @@
+{
+  "name": "Performance sheet: You already have a song map",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/performance_sheet_screen.dart:131",
+  "slot": 16,
+  "modal": "dialog",
+  "body": [
+    {"t": "dialog", "title": "You already have a song map", "c": [
+      {"t": "text", "v": "Replace it with the imported one, or append the imported sections?", "style": "bodyMedium", "color": "textSecondary"}
+    ], "actions": [
+      {"t": "button", "kind": "text", "v": "Cancel"},
+      {"t": "button", "kind": "text", "v": "Append"},
+      {"t": "button", "kind": "primary", "v": "Replace"}
+    ]}
+  ]
+}

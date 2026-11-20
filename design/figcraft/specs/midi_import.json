@@ -1,0 +1,58 @@
+{
+  "name": "MIDI import",
+  "page": "Songs",
+  "source": "lib/screens/songs/midi_import_screen.dart",
+  "slot": 6,
+  "bg": "black",
+  "top": [
+    {"t": "appbar", "v": "Wonderwall.mid"}
+  ],
+  "body": [
+    {"t": "col", "pad": 12, "gap": 16, "c": [
+      {"t": "col", "c": [
+        {"t": "text", "v": "Drums", "style": "titleMedium", "color": "textPrimary"},
+        {"t": "spacer", "size": 4},
+        {"t": "text", "v": "384 notes · Pitch 36-51", "style": "bodySmall", "color": "textSecondary"},
+        {"t": "row", "h": 48, "cross": "center", "c": [
+          {"t": "text", "v": "Drums", "style": "bodyMedium", "w": "fill"},
+          {"t": "icon", "v": "arrow_drop_down", "color": "textSecondary"}
+        ]},
+        {"t": "divider", "color": "borderDefault"},
+        {"t": "switchrow", "title": "On", "on": true},
+        {"t": "text", "v": "Volume"},
+        {"t": "slider", "value": 1.0}
+      ]},
+      {"t": "col", "c": [
+        {"t": "text", "v": "Bass", "style": "titleMedium", "color": "textPrimary"},
+        {"t": "spacer", "size": 4},
+        {"t": "text", "v": "156 notes · Pitch 28-52", "style": "bodySmall", "color": "textSecondary"},
+        {"t": "row", "h": 48, "cross": "center", "c": [
+          {"t": "text", "v": "Bass", "style": "bodyMedium", "w": "fill"},
+          {"t": "icon", "v": "arrow_drop_down", "color": "textSecondary"}
+        ]},
+        {"t": "divider", "color": "borderDefault"},
+        {"t": "switchrow", "title": "On", "on": true},
+        {"t": "text", "v": "Volume"},
+        {"t": "slider", "value": 1.0}
+      ]},
+      {"t": "col", "c": [
+        {"t": "text", "v": "Acoustic Guitar", "style": "titleMedium", "color": "textPrimary"},
+        {"t": "spacer", "size": 4},
+        {"t": "text", "v": "428 notes · Pitch 40-76", "style": "bodySmall", "color": "textSecondary"},
+        {"t": "row", "h": 48, "cross": "center", "c": [
+          {"t": "text", "v": "Guitar", "style": "bodyMedium", "w": "fill"},
+          {"t": "icon", "v": "arrow_drop_down", "color": "textSecondary"}
+        ]},
+        {"t": "divider", "color": "borderDefault"},
+        {"t": "switchrow", "title": "On", "on": true},
+        {"t": "text", "v": "Volume"},
+        {"t": "slider", "value": 1.0}
+      ]}
+    ]}
+  ],
+  "bottom": [
+    {"t": "col", "pad": 12, "c": [
+      {"t": "button", "v": "Save", "kind": "primary", "w": "fill"}
+    ]}
+  ]
+}

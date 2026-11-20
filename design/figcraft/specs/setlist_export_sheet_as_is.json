@@ -1,0 +1,17 @@
+{
+  "name": "Setlist export sheet: As is",
+  "page": "Sheets & Dialogs",
+  "source": "lib/services/export/setlist_export_sheet.dart:91",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 12, "c": [
+      {"t": "tile", "lead": "picture_as_pdf", "title": "As is", "sub": "One card per song, full detail"},
+      {"t": "tile", "lead": "format_list_bulleted", "title": "Compact", "sub": "One line per song, fits on one list"},
+      {"t": "tile", "lead": "library_music", "title": "SetlistPack", "sub": "Compact setlist + one-page sheet per song"},
+      {"t": "tile", "lead": "grid_on", "title": "Cheat sheet", "sub": "All songs on one page: key, BPM, chord progressions"},
+      {"t": "tile", "lead": "theater_comedy", "title": "Event guide", "sub": "Cover + setlist + stage plot + role cards + rider"},
+      {"t": "tile", "lead": "person", "title": "One musician", "sub": "Full running order, only their songs highlighted"}
+    ]}
+  ]
+}

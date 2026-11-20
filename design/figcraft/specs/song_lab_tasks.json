@@ -1,0 +1,187 @@
+{
+ "name": "Song lab · Tasks",
+ "page": "Songs",
+ "source": "lib/screens/songs/song_lab_screen.dart",
+ "slot": 11,
+ "body": [
+  {
+   "t": "col",
+   "pad": [
+    12,
+    16,
+    0,
+    16
+   ],
+   "c": [
+    {
+     "t": "segmented",
+     "items": [
+      "Entries",
+      "Tasks"
+     ],
+     "sel": 1
+    }
+   ]
+  },
+  {
+   "t": "row",
+   "pad": [
+    12,
+    16,
+    0,
+    16
+   ],
+   "gap": 8,
+   "c": [
+    {
+     "t": "chip",
+     "v": "Add task",
+     "icon": "add"
+    }
+   ]
+  },
+  {
+   "t": "col",
+   "pad": [
+    4,
+    16,
+    4,
+    16
+   ],
+   "gap": 8,
+   "c": [
+    {
+     "t": "card",
+     "dir": "h",
+     "pad": [
+      12,
+      16,
+      12,
+      16
+     ],
+     "gap": 16,
+     "cross": "center",
+     "c": [
+      {
+       "t": "icon",
+       "v": "check_circle_outline",
+       "color": "accentOrange"
+      },
+      {
+       "t": "col",
+       "w": "fill",
+       "gap": 2,
+       "c": [
+        {
+         "t": "text",
+         "v": "Learn the solo",
+         "style": "bodyLarge"
+        },
+        {
+         "t": "text",
+         "v": "Marcus · due 18/11",
+         "style": "bodySmall",
+         "color": "textSecondary"
+        }
+       ]
+      },
+      {
+       "t": "chip",
+       "v": "Doing"
+      }
+     ]
+    },
+    {
+     "t": "card",
+     "dir": "h",
+     "pad": [
+      12,
+      16,
+      12,
+      16
+     ],
+     "gap": 16,
+     "cross": "center",
+     "c": [
+      {
+       "t": "icon",
+       "v": "check_circle_outline",
+       "color": "accentOrange"
+      },
+      {
+       "t": "col",
+       "w": "fill",
+       "gap": 2,
+       "c": [
+        {
+         "t": "text",
+         "v": "Transcribe the bridge",
+         "style": "bodyLarge"
+        },
+        {
+         "t": "text",
+         "v": "Due 22/11",
+         "style": "bodySmall",
+         "color": "textSecondary"
+        }
+       ]
+      },
+      {
+       "t": "chip",
+       "v": "To do"
+      }
+     ]
+    },
+    {
+     "t": "card",
+     "dir": "h",
+     "pad": [
+      12,
+      16,
+      12,
+      16
+     ],
+     "gap": 16,
+     "cross": "center",
+     "c": [
+      {
+       "t": "icon",
+       "v": "check_circle_outline",
+       "color": "textSecondary"
+      },
+      {
+       "t": "col",
+       "w": "fill",
+       "gap": 2,
+       "c": [
+        {
+         "t": "text",
+         "v": "Rehearse the key change",
+         "style": "bodyLarge",
+         "color": "textSecondary"
+        },
+        {
+         "t": "text",
+         "v": "Priya · due 1/11",
+         "style": "bodySmall",
+         "color": "textSecondary"
+        }
+       ]
+      },
+      {
+       "t": "chip",
+       "v": "Done"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "bottom": [
+  {
+   "t": "actionbar",
+   "menu": true,
+   "title": "Lab — Wonderwall"
+  }
+ ]
+}

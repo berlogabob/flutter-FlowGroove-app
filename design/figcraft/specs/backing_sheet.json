@@ -1,0 +1,21 @@
+{
+  "name": "Backing Sheet",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/metronome_screen.dart:584",
+  "slot": 14,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 4,
+      "c": [
+        {"t": "text", "v": "Backing tracks", "style": "headlineMedium", "name": "Header"},
+        {"t": "divider"},
+        {"t": "tile", "lead": "album_outlined", "title": "Drum pattern", "sub": "Grid, import, sync with click"},
+        {"t": "tile", "lead": "piano_outlined", "title": "Piano & Bass", "sub": "2 instruments", "trail": "edit_outlined"},
+        {"t": "tile", "lead": "piano_outlined", "title": "Full Band", "sub": "3 instruments", "trail": "edit_outlined"},
+        {"t": "tile", "lead": "upload_file_outlined", "title": "Add MIDI file", "sub": ".mid, .midi or .rmi from this device"}
+      ]
+    }
+  ]
+}

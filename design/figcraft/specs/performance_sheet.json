@@ -1,0 +1,248 @@
+{
+ "name": "Performance sheet",
+ "page": "Home & Tools",
+ "source": "lib/screens/performance_sheet_screen.dart",
+ "slot": 7,
+ "top": [
+  {
+   "t": "row",
+   "h": 56,
+   "pad": [
+    4,
+    8,
+    4,
+    8
+   ],
+   "main": "max",
+   "cross": "center",
+   "c": [
+    {
+     "t": "button",
+     "v": "Exit stage mode",
+     "kind": "text",
+     "icon": "fullscreen_exit"
+    }
+   ]
+  }
+ ],
+ "body": [
+  {
+   "t": "col",
+   "pad": [
+    16,
+    16,
+    16,
+    16
+   ],
+   "gap": 10,
+   "c": [
+    {
+     "t": "text",
+     "v": "Verse 1",
+     "style": "titleMedium",
+     "color": "accentOrange"
+    },
+    {
+     "t": "col",
+     "gap": 0,
+     "c": [
+      {
+       "t": "text",
+       "v": "C                         G",
+       "style": "headlineSmall",
+       "color": "accentOrange"
+      },
+      {
+       "t": "text",
+       "v": "Morning light across the room",
+       "style": "headlineSmall"
+      }
+     ]
+    },
+    {
+     "t": "col",
+     "gap": 0,
+     "c": [
+      {
+       "t": "text",
+       "v": "Am                       F",
+       "style": "headlineSmall",
+       "color": "accentOrange"
+      },
+      {
+       "t": "text",
+       "v": "We have miles to go before the rain",
+       "style": "headlineSmall"
+      }
+     ]
+    },
+    {
+     "t": "col",
+     "gap": 0,
+     "c": [
+      {
+       "t": "text",
+       "v": "C                         G",
+       "style": "headlineSmall",
+       "color": "accentOrange"
+      },
+      {
+       "t": "text",
+       "v": "Every road can lead us home",
+       "style": "headlineSmall"
+      }
+     ]
+    },
+    {
+     "t": "col",
+     "gap": 0,
+     "c": [
+      {
+       "t": "text",
+       "v": "F                          G",
+       "style": "headlineSmall",
+       "color": "accentOrange"
+      },
+      {
+       "t": "text",
+       "v": "When we sing together once again",
+       "style": "headlineSmall"
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 10
+    },
+    {
+     "t": "text",
+     "v": "Chorus",
+     "style": "titleMedium",
+     "color": "accentOrange"
+    },
+    {
+     "t": "col",
+     "gap": 0,
+     "c": [
+      {
+       "t": "text",
+       "v": "F                          C",
+       "style": "headlineSmall",
+       "color": "accentOrange"
+      },
+      {
+       "t": "text",
+       "v": "We are finding our way",
+       "style": "headlineSmall"
+      }
+     ]
+    },
+    {
+     "t": "col",
+     "gap": 0,
+     "c": [
+      {
+       "t": "text",
+       "v": "G                         Am",
+       "style": "headlineSmall",
+       "color": "accentOrange"
+      },
+      {
+       "t": "text",
+       "v": "Through the sound of a new day",
+       "style": "headlineSmall"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "bottom": [
+  {
+   "t": "col",
+   "pad": [
+    8,
+    12,
+    8,
+    12
+   ],
+   "c": [
+    {
+     "t": "row",
+     "cross": "center",
+     "gap": 8,
+     "c": [
+      {
+       "t": "icon",
+       "v": "music_note",
+       "color": "textSecondary"
+      },
+      {
+       "t": "text",
+       "v": "Semitones",
+       "style": "labelLarge",
+       "w": "hug"
+      },
+      {
+       "t": "spacer"
+      },
+      {
+       "t": "iconbtn",
+       "v": "remove"
+      },
+      {
+       "t": "text",
+       "v": "Original",
+       "style": "labelLarge",
+       "w": "hug"
+      },
+      {
+       "t": "iconbtn",
+       "v": "add"
+      }
+     ]
+    },
+    {
+     "t": "row",
+     "cross": "center",
+     "gap": 8,
+     "c": [
+      {
+       "t": "iconbtn",
+       "v": "play_arrow",
+       "bg": "accentOrange",
+       "color": "black",
+       "radius": 24
+      },
+      {
+       "t": "iconbtn",
+       "v": "remove"
+      },
+      {
+       "t": "text",
+       "v": "35 px/s",
+       "style": "labelLarge",
+       "w": "hug"
+      },
+      {
+       "t": "iconbtn",
+       "v": "add"
+      },
+      {
+       "t": "spacer"
+      },
+      {
+       "t": "chip",
+       "v": "Manual"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "t": "actionbar",
+   "menu": true,
+   "title": "Finding Our Way"
+  }
+ ]
+}

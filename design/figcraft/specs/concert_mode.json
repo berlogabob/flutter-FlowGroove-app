@@ -1,0 +1,55 @@
+{
+  "name": "Concert mode",
+  "page": "Home & Tools",
+  "source": "lib/screens/concert_mode_screen.dart",
+  "slot": 6,
+  "bg": "black",
+  "body": [
+    {"t": "col", "h": "fill", "pad": 24, "cross": "center", "c": [
+      {"t": "spacer"},
+      {"t": "col", "cross": "center", "c": [
+        {"t": "text", "v": "Wonderwall", "style": "titleMedium", "color": "textSecondary", "align": "center", "maxLines": 1},
+        {"t": "spacer", "size": 16},
+        {"t": "row", "w": 36, "h": 36, "main": "center", "cross": "center", "c": [
+          {"t": "box", "w": 22, "h": 22, "circle": true, "bg": "accentOrange", "name": "Downbeat pulse"}
+        ]},
+        {"t": "spacer", "size": 20},
+        {"t": "raw", "type": "text", "v": "87", "name": "Tempo", "props": {"fontFamily": "Marcellus", "fontStyle": "Regular", "fontSize": 148, "lineHeight": 133, "letterSpacing": -4, "fill": "textPrimary", "textAutoResize": "widthAndHeight"}},
+        {"t": "text", "v": "BPM", "style": "labelMedium", "color": "textTertiary", "w": "hug"}
+      ]},
+      {"t": "spacer"},
+      {"t": "col", "cross": "center", "c": [
+        {"t": "row", "gap": 8, "main": "center", "c": [
+          {"t": "box", "w": 16, "h": 16, "circle": true, "bg": "accentOrange", "border": "accentOrange"},
+          {"t": "box", "w": 16, "h": 16, "circle": true, "bg": "accentOrange15", "border": "borderDefault"},
+          {"t": "box", "w": 16, "h": 16, "circle": true, "bg": "accentOrange15", "border": "borderDefault"},
+          {"t": "box", "w": 16, "h": 16, "circle": true, "bg": "accentOrange15", "border": "borderDefault"}
+        ]},
+        {"t": "spacer", "size": 40},
+        {"t": "row", "gap": 20, "cross": "center", "main": "center", "c": [
+          {"t": "row", "w": 64, "h": 64, "radius": 32, "bg": "surfaceRaised", "border": "borderDefault", "main": "center", "cross": "center", "c": [
+            {"t": "icon", "v": "skip_previous", "size": 32, "color": "textSecondary"}
+          ]},
+          {"t": "row", "w": 120, "h": 120, "radius": 60, "bg": "accentOrange", "main": "center", "cross": "center", "c": [
+            {"t": "icon", "v": "pause", "size": 56, "color": "black"}
+          ]},
+          {"t": "row", "w": 64, "h": 64, "radius": 32, "bg": "surfaceRaised", "border": "borderDefault", "main": "center", "cross": "center", "c": [
+            {"t": "icon", "v": "skip_next", "size": 32, "color": "textSecondary"}
+          ]}
+        ]},
+        {"t": "spacer", "size": 40},
+        {"t": "row", "gap": 16, "main": "center", "c": [
+          {"t": "row", "w": 56, "h": 56, "radius": 28, "bg": "surfaceRaised", "border": "borderDefault", "main": "center", "cross": "center", "c": [{"t": "text", "v": "−5", "style": "titleMedium", "color": "textSecondary", "w": "hug"}]},
+          {"t": "row", "w": 56, "h": 56, "radius": 28, "bg": "surfaceRaised", "border": "borderDefault", "main": "center", "cross": "center", "c": [{"t": "text", "v": "−1", "style": "titleMedium", "color": "textSecondary", "w": "hug"}]},
+          {"t": "row", "w": 56, "h": 56, "radius": 28, "bg": "accentOrange15", "border": "accentOrange30", "main": "center", "cross": "center", "c": [{"t": "text", "v": "+1", "style": "titleMedium", "color": "accentOrangeLight", "w": "hug"}]},
+          {"t": "row", "w": 56, "h": 56, "radius": 28, "bg": "accentOrange15", "border": "accentOrange30", "main": "center", "cross": "center", "c": [{"t": "text", "v": "+5", "style": "titleMedium", "color": "accentOrangeLight", "w": "hug"}]}
+        ]}
+      ]},
+      {"t": "spacer"}
+    ]}
+  ],
+  "overlay": [
+    {"x": 8, "y": 36, "node": {"t": "iconbtn", "v": "lyrics_outlined", "size": 28, "color": "textSecondary"}},
+    {"x": 356, "y": 36, "node": {"t": "iconbtn", "v": "close", "size": 28, "color": "textSecondary"}}
+  ]
+}

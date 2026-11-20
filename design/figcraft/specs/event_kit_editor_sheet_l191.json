@@ -1,0 +1,60 @@
+{
+  "name": "Event kit editor sheet L191",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/event_kit_editor_screen.dart:191",
+  "slot": 0,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 16, "c": [
+      {"t": "text", "v": "Add crew / guest", "style": "titleLarge"},
+      {"t": "input", "label": "Name", "v": "Sam Rivera"},
+      {"t": "input", "label": "Role (Photographer, Manager, +1…)"},
+      {"t": "text", "v": "Suggested", "style": "labelMedium", "color": "textSecondary", "align": "left"},
+      {"t": "row", "gap": 8, "wrap": true, "c": [
+        {"t": "chip", "v": "🎤 Client", "icon": "mic"},
+        {"t": "chip", "v": "🏞️ Venue", "icon": "location_on"},
+        {"t": "chip", "v": "🎹 Performing guest", "icon": "piano"},
+        {"t": "chip", "v": "🎚️ Sound engineer", "icon": "graphic_eq"},
+        {"t": "chip", "v": "🎥 Videographer", "icon": "videocam"},
+        {"t": "chip", "v": "📷 Photographer", "icon": "photo_camera"},
+        {"t": "chip", "v": "🗂️ Manager", "icon": "badge"}
+      ]},
+      {"t": "text", "v": "Access for this event", "style": "labelMedium", "color": "textSecondary", "align": "left"},
+      {"t": "col", "gap": 10, "c": [
+        {"t": "row", "main": "spaceBetween", "cross": "center", "c": [
+          {"t": "text", "v": "Event info (date, venue, call time)", "style": "bodySmall", "align": "left"},
+          {"t": "segmented", "items": ["Hidden", "View", "Edit"], "sel": 1}
+        ]},
+        {"t": "row", "main": "spaceBetween", "cross": "center", "c": [
+          {"t": "text", "v": "Running order (song titles)", "style": "bodySmall", "align": "left"},
+          {"t": "segmented", "items": ["Hidden", "View", "Edit"], "sel": 2}
+        ]},
+        {"t": "row", "main": "spaceBetween", "cross": "center", "c": [
+          {"t": "text", "v": "Lyrics, chords, key & BPM", "style": "bodySmall", "align": "left"},
+          {"t": "segmented", "items": ["Hidden", "View", "Edit"], "sel": 0}
+        ]},
+        {"t": "row", "main": "spaceBetween", "cross": "center", "c": [
+          {"t": "text", "v": "Stage plot", "style": "bodySmall", "align": "left"},
+          {"t": "segmented", "items": ["Hidden", "View", "Edit"], "sel": 0}
+        ]},
+        {"t": "row", "main": "spaceBetween", "cross": "center", "c": [
+          {"t": "text", "v": "Equipment / rider", "style": "bodySmall", "align": "left"},
+          {"t": "segmented", "items": ["Hidden", "View", "Edit"], "sel": 0}
+        ]}
+      ]},
+      {"t": "text", "v": "Role changes reset custom access to the role defaults.", "style": "bodySmall", "color": "textSecondary", "align": "left"},
+      {"t": "box", "bg": "surface", "radius": 8, "border": "borderDefault", "pad": [12, 12, 12, 12], "gap": 4, "c": [
+        {"t": "text", "v": "They will see", "style": "labelSmall", "color": "textSecondary", "align": "left"},
+        {"t": "text", "v": "+ Event info (date, venue, call time)", "style": "bodySmall", "align": "left"},
+        {"t": "text", "v": "+ Running order (song titles)  — can edit", "style": "bodySmall", "align": "left"},
+        {"t": "text", "v": "− Lyrics, chords, key & BPM", "style": "bodySmall", "color": "textTertiary", "align": "left"},
+        {"t": "text", "v": "Can suggest changes (the band decides).", "style": "bodySmall", "color": "accentOrange", "align": "left"}
+      ]},
+      {"t": "input", "label": "Notes (optional)"},
+      {"t": "row", "gap": 8, "main": "end", "c": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Add"}
+      ]}
+    ]}
+  ]
+}

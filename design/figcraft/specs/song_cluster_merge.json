@@ -1,0 +1,592 @@
+{
+ "name": "Merge songs",
+ "page": "Songs",
+ "source": "lib/screens/songs/song_cluster_merge_screen.dart",
+ "slot": 8,
+ "bg": "black",
+ "body": [
+  {
+   "t": "col",
+   "pad": 16,
+   "c": [
+    {
+     "t": "text",
+     "v": "Pick which version each field comes from. Tags and links are combined from all 2 songs; the others are deleted after the merge (setlists are re-pointed).",
+     "style": "bodySmall",
+     "color": "textSecondary"
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Title",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "row",
+     "gap": 8,
+     "cross": "min",
+     "c": [
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "stone",
+       "border": "borderStrong",
+       "borderW": 2,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 1 · keeper",
+         "style": "bodySmall",
+         "color": "charcoal"
+        },
+        {
+         "t": "text",
+         "v": "Wonderwall",
+         "style": "bodyMedium",
+         "color": "charcoal",
+         "maxLines": 3
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "surface",
+       "border": "borderDefault",
+       "borderW": 1,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 2",
+         "style": "bodySmall",
+         "color": "textTertiary"
+        },
+        {
+         "t": "text",
+         "v": "Wonderwall",
+         "style": "bodyMedium",
+         "color": "textPrimary",
+         "maxLines": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Artist",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "row",
+     "gap": 8,
+     "cross": "min",
+     "c": [
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "stone",
+       "border": "borderStrong",
+       "borderW": 2,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 1 · keeper",
+         "style": "bodySmall",
+         "color": "charcoal"
+        },
+        {
+         "t": "text",
+         "v": "Oasis",
+         "style": "bodyMedium",
+         "color": "charcoal",
+         "maxLines": 3
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "surface",
+       "border": "borderDefault",
+       "borderW": 1,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 2",
+         "style": "bodySmall",
+         "color": "textTertiary"
+        },
+        {
+         "t": "text",
+         "v": "Oasis",
+         "style": "bodyMedium",
+         "color": "textPrimary",
+         "maxLines": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Original key",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "row",
+     "gap": 8,
+     "cross": "min",
+     "c": [
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "stone",
+       "border": "borderStrong",
+       "borderW": 2,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 1 · keeper",
+         "style": "bodySmall",
+         "color": "charcoal"
+        },
+        {
+         "t": "text",
+         "v": "F#m",
+         "style": "bodyMedium",
+         "color": "charcoal",
+         "maxLines": 3
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "surface",
+       "border": "borderDefault",
+       "borderW": 1,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 2",
+         "style": "bodySmall",
+         "color": "textTertiary"
+        },
+        {
+         "t": "text",
+         "v": "Em",
+         "style": "bodyMedium",
+         "color": "textPrimary",
+         "maxLines": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Original BPM",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "row",
+     "gap": 8,
+     "cross": "min",
+     "c": [
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "stone",
+       "border": "borderStrong",
+       "borderW": 2,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 1 · keeper",
+         "style": "bodySmall",
+         "color": "charcoal"
+        },
+        {
+         "t": "text",
+         "v": "87",
+         "style": "bodyMedium",
+         "color": "charcoal",
+         "maxLines": 3
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "surface",
+       "border": "borderDefault",
+       "borderW": 1,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 2",
+         "style": "bodySmall",
+         "color": "textTertiary"
+        },
+        {
+         "t": "text",
+         "v": "87",
+         "style": "bodyMedium",
+         "color": "textPrimary",
+         "maxLines": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Our key",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "row",
+     "gap": 8,
+     "cross": "min",
+     "c": [
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "stone",
+       "border": "borderStrong",
+       "borderW": 2,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 1 · keeper",
+         "style": "bodySmall",
+         "color": "charcoal"
+        },
+        {
+         "t": "text",
+         "v": "F#m",
+         "style": "bodyMedium",
+         "color": "charcoal",
+         "maxLines": 3
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "surface",
+       "border": "borderDefault",
+       "borderW": 1,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 2",
+         "style": "bodySmall",
+         "color": "textTertiary"
+        },
+        {
+         "t": "text",
+         "v": "Gm",
+         "style": "bodyMedium",
+         "color": "textPrimary",
+         "maxLines": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Our BPM",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "row",
+     "gap": 8,
+     "cross": "min",
+     "c": [
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "stone",
+       "border": "borderStrong",
+       "borderW": 2,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 1 · keeper",
+         "style": "bodySmall",
+         "color": "charcoal"
+        },
+        {
+         "t": "text",
+         "v": "87",
+         "style": "bodyMedium",
+         "color": "charcoal",
+         "maxLines": 3
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "surface",
+       "border": "borderDefault",
+       "borderW": 1,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 2",
+         "style": "bodySmall",
+         "color": "textTertiary"
+        },
+        {
+         "t": "text",
+         "v": "90",
+         "style": "bodyMedium",
+         "color": "textPrimary",
+         "maxLines": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Notes",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "row",
+     "gap": 8,
+     "cross": "min",
+     "c": [
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "stone",
+       "border": "borderStrong",
+       "borderW": 2,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 1 · keeper",
+         "style": "bodySmall",
+         "color": "charcoal"
+        },
+        {
+         "t": "text",
+         "v": "Acoustic intro",
+         "style": "bodyMedium",
+         "color": "charcoal",
+         "maxLines": 3
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "surface",
+       "border": "borderDefault",
+       "borderW": 1,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 2",
+         "style": "bodySmall",
+         "color": "textTertiary"
+        },
+        {
+         "t": "text",
+         "v": "Start with guitar",
+         "style": "bodyMedium",
+         "color": "textPrimary",
+         "maxLines": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    },
+    {
+     "t": "text",
+     "v": "Arrangement",
+     "style": "titleMedium"
+    },
+    {
+     "t": "spacer",
+     "size": 8
+    },
+    {
+     "t": "row",
+     "gap": 8,
+     "cross": "min",
+     "c": [
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "stone",
+       "border": "borderStrong",
+       "borderW": 2,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 1 · keeper",
+         "style": "bodySmall",
+         "color": "charcoal"
+        },
+        {
+         "t": "text",
+         "v": "4 sections · 4/4",
+         "style": "bodyMedium",
+         "color": "charcoal",
+         "maxLines": 3
+        }
+       ]
+      },
+      {
+       "t": "col",
+       "w": 180,
+       "pad": 12,
+       "gap": 2,
+       "bg": "surface",
+       "border": "borderDefault",
+       "borderW": 1,
+       "radius": 8,
+       "c": [
+        {
+         "t": "text",
+         "v": "Version 2",
+         "style": "bodySmall",
+         "color": "textTertiary"
+        },
+        {
+         "t": "text",
+         "v": "No structure",
+         "style": "bodyMedium",
+         "color": "textPrimary",
+         "maxLines": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "t": "spacer",
+     "size": 16
+    }
+   ]
+  }
+ ],
+ "bottom": [
+  {
+   "t": "actionbar",
+   "menu": false,
+   "primary": "Merge"
+  }
+ ]
+}

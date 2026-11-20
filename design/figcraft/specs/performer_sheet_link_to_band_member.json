@@ -1,0 +1,17 @@
+{
+  "name": "Performer sheet: Link to band member",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/performer_sheet.dart:103",
+  "slot": 2,
+  "modal": "sheet",
+  "body": [
+    {"t": "sheet", "gap": 4, "c": [
+      {"t": "tile", "title": "Link to band member"},
+      {"t": "tile", "lead": "person", "title": "Max Rivera"},
+      {"t": "tile", "lead": "person", "title": "Jordan Lee"},
+      {"t": "tile", "lead": "person", "title": "Sam Okafor"},
+      {"t": "tile", "lead": "person", "title": "Priya Nair"},
+      {"t": "tile", "lead": "person", "title": "Diego Ferrer"}
+    ]}
+  ]
+}

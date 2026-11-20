@@ -1,0 +1,166 @@
+{
+  "links": [
+    {
+      "component": "ActionBar",
+      "importPath": "package:flowgroove/widgets/bottom_nav_or_action_bar.dart",
+      "language": "flutter",
+      "name": "AppBottomBar.actions",
+      "template": "AppBottomBar.actions(onBack: () => context.pop(), title: {Show title ? \"\" : \"null /* \"}{Title}{Show title ? \"\" : \" */\"},{Show primary ? \" primaryAction: primaryButton,\" : \"\"}{Show menu ? \" onMenu: openMenu,\" : \"\"})"
+    },
+    {
+      "component": "AppBar",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "AppBar",
+      "template": "AppBar(title: Text({Title}), automaticallyImplyLeading: {Leading} == AppBarLeading.back, actions: [/* Actions slot */])"
+    },
+    {
+      "component": "Avatar",
+      "importPath": "package:flowgroove/widgets/user_avatar.dart",
+      "language": "flutter",
+      "name": "UserAvatar",
+      "template": "UserAvatar(photoURL: null, displayName: {Initials})"
+    },
+    {
+      "component": "Badge",
+      "importPath": "package:flowgroove/widgets/app_badge.dart",
+      "language": "flutter",
+      "name": "AppBadge",
+      "template": "AppBadge(label: {Label},{Show icon ? \" icon: Icons.star /* icon */,\" : \"\"})"
+    },
+    {
+      "component": "BottomNav",
+      "importPath": "package:flowgroove/widgets/bottom_nav_or_action_bar.dart",
+      "language": "flutter",
+      "name": "AppBottomBar.tabs",
+      "template": "AppBottomBar.tabs(tabs: tabs, selectedIndex: {Tab}.index, onTabTap: (i) {})"
+    },
+    {
+      "component": "Button",
+      "importPath": "package:flowgroove/widgets/custom_button.dart",
+      "language": "flutter",
+      "name": "CustomButton",
+      "template": "CustomButton(label: {Label}, variant: {Variant}, size: {Size},{Show icon ? \" icon: Icons.add /* icon */,\" : \"\"} onPressed: () {})"
+    },
+    {
+      "component": "Card",
+      "importPath": "package:flowgroove/widgets/app_card.dart",
+      "language": "flutter",
+      "name": "AppCard",
+      "template": "AppCard(variant: AppCardVariant.surface, child: /* {Direction}: Content slot */ const SizedBox())"
+    },
+    {
+      "component": "Checkbox",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "Checkbox",
+      "template": "Checkbox(value: {State} == CheckboxState.on, onChanged: (v) {})"
+    },
+    {
+      "component": "Chip",
+      "importPath": "package:flowgroove/widgets/app_filter_chip.dart",
+      "language": "flutter",
+      "name": "AppFilterChip",
+      "template": "AppFilterChip(label: {Label}, selected: {State} == ChipState.selected, onSelected: (_) {})"
+    },
+    {
+      "component": "Dialog",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "AlertDialog",
+      "template": "AlertDialog(title: {Show title ? \"Text(\" : \"null /* \"}{Title}{Show title ? \")\" : \" */\"}, content: /* Content slot */ null, actions: [/* Actions slot */])"
+    },
+    {
+      "component": "FAB",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "FloatingActionButton",
+      "template": "FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add /* icon */))"
+    },
+    {
+      "component": "IconButton",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "IconButton",
+      "template": "IconButton(onPressed: () {}, icon: const Icon(Icons.more_vert /* icon */))"
+    },
+    {
+      "component": "Input",
+      "importPath": "package:flowgroove/widgets/custom_text_field.dart",
+      "language": "flutter",
+      "name": "CustomTextField",
+      "template": "CustomTextField(label: {Show label ? \"\" : \"null /* \"}{Label}{Show label ? \"\" : \" */\"}, hint: {Value},{Show icon ? \" prefixIcon: Icons.search /* icon */,\" : \"\"} maxLines: {Lines} == InputLines.multi ? 3 : 1)"
+    },
+    {
+      "component": "ListTile",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "ListTile",
+      "template": "ListTile(title: Text({Title}), subtitle: {Show subtitle ? \"Text(\" : \"null /* \"}{Subtitle}{Show subtitle ? \")\" : \" */\"},{Show leading ? \" leading: /* Leading slot */ const Icon(Icons.circle),\" : \"\"}{Show trailing ? \" trailing: /* Trailing slot */ const Icon(Icons.chevron_right),\" : \"\"})"
+    },
+    {
+      "component": "NavItem",
+      "importPath": "package:flowgroove/widgets/bottom_nav_or_action_bar.dart",
+      "language": "flutter",
+      "name": "NavTab",
+      "template": "NavTab(item: (icon: Icons.home_outlined, selectedIcon: Icons.home, label: {Label}), selected: {State} == NavItemState.selected, onTap: () {})"
+    },
+    {
+      "component": "Progress",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "LinearProgressIndicator",
+      "template": "LinearProgressIndicator(value: 0.5 /* {Value} */)"
+    },
+    {
+      "component": "SectionHeader",
+      "importPath": "package:flowgroove/widgets/section_header.dart",
+      "language": "flutter",
+      "name": "SectionHeader",
+      "template": "SectionHeader({Title}, style: {Style},{Show action ? \" actionLabel: \" : \" /* \"}{Action}{Show action ? \", onAction: onSeeAll,\" : \" */\"})"
+    },
+    {
+      "component": "Segment",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "ButtonSegment",
+      "template": "ButtonSegment(value: {Label}, label: Text({Label}))"
+    },
+    {
+      "component": "Sheet",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "showModalBottomSheet",
+      "template": "showModalBottomSheet(context: context, builder: (context) => /* {Docked}: Content slot */ const SizedBox())"
+    },
+    {
+      "component": "Slider",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "Slider",
+      "template": "Slider(value: 0.5 /* {Value} */, onChanged: (v) {})"
+    },
+    {
+      "component": "Switch",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "Switch",
+      "template": "Switch(value: {State} == SwitchState.on, onChanged: (v) {})"
+    },
+    {
+      "component": "SwitchRow",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "SwitchListTile",
+      "template": "SwitchListTile(title: Text({Title}), subtitle: {Show subtitle ? \"Text(\" : \"null /* \"}{Subtitle}{Show subtitle ? \")\" : \" */\"}, value: {State} == SwitchRowState.on, onChanged: (v) {})"
+    },
+    {
+      "component": "Tab",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "Tab",
+      "template": "Tab(text: {Label})"
+    }
+  ],
+  "version": 1
+}

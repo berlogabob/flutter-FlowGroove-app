@@ -1,0 +1,20 @@
+{
+  "name": "Tuner · Stage mode",
+  "page": "Home & Tools",
+  "source": "lib/screens/tuner_screen.dart",
+  "slot": 10,
+  "bg": "black",
+  "body": [
+    {"t": "col", "main": "center", "cross": "center", "c": [
+      {"t": "text", "v": "C", "style": "displayLarge", "color": "textHighEmphasis", "w": "hug"},
+      {"t": "spacer", "size": 12},
+      {"t": "text", "v": "C4 · 262 Hz", "style": "headlineMedium", "color": "textTertiary", "w": "hug"},
+      {"t": "spacer", "size": 20},
+      {"t": "text", "v": "+4 cents", "style": "titleLarge", "color": "textSecondary", "w": "hug"},
+      {"t": "spacer", "size": 48},
+      {"t": "text", "v": "Guitar  ·  Standard", "style": "bodyLarge", "color": "textTertiary", "w": "hug"},
+      {"t": "spacer", "size": 32},
+      {"t": "text", "v": "Tap to exit Stage Mode", "style": "labelSmall", "color": "textDisabled", "w": "hug"}
+    ]}
+  ]
+}

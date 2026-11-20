@@ -1,0 +1,24 @@
+{
+  "name": "Notes panel: Note at N",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/practice_regions/notes_panel.dart:26",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Note at 1:23",
+      "c": [
+        {
+          "t": "input",
+          "hint": "e.g. good chorus entry",
+          "lines": 1
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Add"}
+      ]
+    }
+  ]
+}

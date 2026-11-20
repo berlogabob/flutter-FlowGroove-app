@@ -1,0 +1,67 @@
+{
+  "name": "Color Picker Dialog",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/components/song_constructor/widgets/section_picker.dart:259",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Pick Color for \"Verse\"",
+      "icon": "palette",
+      "c": [
+        {
+          "t": "row",
+          "gap": 8,
+          "cross": "center",
+          "main": "spaceBetween",
+          "c": [
+            {
+              "t": "row",
+              "gap": 8,
+              "cross": "center",
+              "c": [
+                {"t": "box", "w": 40, "h": 40, "circle": true, "bg": "accentOrange", "border": "borderDefault", "borderW": 2},
+                {"t": "iconbtn", "v": "close", "size": 22, "color": "textSecondary", "border": "borderDefault", "radius": 24}
+              ]
+            }
+          ]
+        },
+        {"t": "spacer", "size": 16},
+        {"t": "tabs", "items": ["Theme", "Wheel", "Hex"], "sel": 0},
+        {"t": "spacer", "size": 16},
+        {"t": "col", "gap": 18, "c": [
+          {"t": "row", "wrap": true, "gap": 8, "c": [
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section1"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section2"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section3"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section4"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section5"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section6"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section7"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section8"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section9"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section10"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section11"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section12"},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section13", "border": "borderDefault", "borderW": 3},
+            {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "section14"}
+          ]},
+          {"t": "col", "w": "fill", "gap": 8, "c": [
+            {"t": "text", "v": "Suggested for Verse:", "style": "bodyMedium", "align": "left"},
+            {"t": "row", "wrap": true, "gap": 8, "c": [
+              {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "accentOrange"},
+              {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "sage"},
+              {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "petrol"},
+              {"t": "box", "w": 48, "h": 48, "circle": true, "bg": "stone"}
+            ]}
+          ]}
+        ]}
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Apply"}
+      ]
+    }
+  ]
+}

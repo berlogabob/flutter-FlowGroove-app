@@ -1,0 +1,25 @@
+{
+  "name": "Practice regions: Replace N sections?",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/practice_regions_screen.dart:1468",
+  "slot": 0,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Replace 8 sections?",
+      "c": [
+        {
+          "t": "text",
+          "v": "Your current sections will be replaced when you finish setup.",
+          "style": "bodyMedium",
+          "color": "textSecondary"
+        }
+      ],
+      "actions": [
+        {"t": "button", "kind": "text", "v": "Cancel"},
+        {"t": "button", "kind": "primary", "v": "Replace"}
+      ]
+    }
+  ]
+}
