@@ -41,6 +41,7 @@ import '../widgets/audio/waveform_painter.dart';
 import '../widgets/confirmation_dialog.dart';
 import 'practice_regions/auto_slice_sheet.dart';
 import 'practice_regions/grid_editor_dialog.dart';
+import 'practice_regions/pad_banks.dart';
 import 'practice_regions/region_name_sheet.dart';
 import 'practice_regions/slice_edit_sheet.dart';
 import 'practice_setup_wizard.dart';
@@ -102,15 +103,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   bool _loaded = false;
   bool _editing = false;
   bool _setupOpen = false;
-  int? _heldPad;
-  final _padPointers = <int>{};
 
   /// Shift: the slice last tapped; the waveform zooms to it.
   int? _focus;
   (int, int)? _dragView;
 
-  /// A hold + tap just made a run: swallow the taps those fingers end in.
-  bool _runMade = false;
   late bool _snap;
   double _speed = 1;
   int _preRoll = 0;
@@ -838,7 +835,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (!mounted || !_canEdit || result == null) return;
     if (result is AudioGrid) {
       await _setGrid(result);
-    } else if (result is List<int>) {
+    } else if (result is List<int> || result is List<AudioRegion>) {
       if (_entry.regions.isNotEmpty) {
         final replace = await showDialog<bool>(
           context: context,
@@ -859,13 +856,24 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         if (replace != true || !mounted || !_canEdit) return;
       }
       await _changeRegions(
-        regionsFromCuts(
-          result,
-          durationMs: _durationMs,
-          newId: () =>
-              '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}',
-          keepNamesFrom: _entry.regions,
-        ),
+        result is List<AudioRegion>
+            ? [
+                for (final region in result)
+                  AudioRegion(
+                    id: '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}',
+                    name: region.name,
+                    section: region.section,
+                    startMs: region.startMs,
+                    endMs: region.endMs,
+                  ),
+              ]
+            : regionsFromCuts(
+                result as List<int>,
+                durationMs: _durationMs,
+                newId: () =>
+                    '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}',
+                keepNamesFrom: _entry.regions,
+              ),
       );
     }
   }
@@ -1245,6 +1253,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     ]);
   }
 
+  Future<void> _renameSection(String base) async {
+    if (!_canEdit) return;
+    final name = await showRegionNameSheet(context, initialName: base);
+    if (!mounted || !_canEdit || name == null || name.trim().isEmpty) return;
+    await _changeRegions(renameSection(_entry.regions, base, name.trim()));
+  }
+
   Future<void> _setGrid(AudioGrid? grid) async {
     if (!_canEdit) return;
     // The loaded stem was aligned to the old grid.
@@ -1296,15 +1311,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
-  void _releasePad(int pointer, int pad) {
-    _padPointers.remove(pointer);
-    if (_heldPad == pad) _heldPad = null;
-    // Taps resolve after this pointer-up, in the same event; clear after.
-    if (_padPointers.isEmpty && _runMade) {
-      scheduleMicrotask(() => _runMade = false);
-    }
-  }
-
   Widget _pads() {
     final sections = <String, Section>{};
     if (_entry.regions.any((region) => region.sectionId != null) &&
@@ -1322,141 +1328,29 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         sections[section.id] = section;
       }
     }
-    final grid = _entry.grid;
-    final editing = _canEdit && _editing;
-    // Skipped slices only show in Shift, so they can be brought back.
-    final visible = [
-      for (final (i, region) in _entry.regions.indexed)
-        if (editing || !region.skip) i,
-    ];
-    return GridView.builder(
-      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 120,
-        mainAxisExtent: 56,
-        crossAxisSpacing: MonoPulseSpacing.sm,
-        mainAxisSpacing: MonoPulseSpacing.sm,
-      ),
-      itemCount: visible.length,
-      itemBuilder: (context, slot) {
-        final i = visible[slot];
-        final region = _entry.regions[i];
-        final selection = _selection;
-        final selected =
-            selection != null && i >= selection.$1 && i <= selection.$2;
-        final color = selected
-            ? MonoPulseColors.accentOrange
-            : region.skip
-            ? context.mp.black
-            : sections[region.sectionId]?.color ??
-                  colorForName(region.name) ??
-                  context.mp.blackSurface;
-        final foreground =
-            ThemeData.estimateBrightnessForColor(color) == Brightness.dark
-            ? MonoPulseColors.white
-            : MonoPulseColors.black;
-        final playingHere =
-            _playing &&
-            !_sync &&
-            _positionMs >= region.startMs &&
-            _positionMs < region.endMs;
-        return Semantics(
-          button: true,
-          selected: selected,
-          // Runs, MPC style: hold one pad and tap another. Tracked on raw
-          // pointers (no long-press delay, no gesture arena) so the scrolling
-          // grid can't steal the hold.
-          child: Listener(
-            onPointerDown: (event) {
-              _padPointers.add(event.pointer);
-              final held = _heldPad;
-              if (editing || held == null || held == i) {
-                _heldPad ??= i;
-                return;
-              }
-              _runMade = true;
-              unawaited(HapticFeedback.selectionClick());
-              _selectRegions((math.min(held, i), math.max(held, i)));
-            },
-            onPointerUp: (event) => _releasePad(event.pointer, i),
-            onPointerCancel: (event) => _releasePad(event.pointer, i),
-            child: GestureDetector(
-              key: ValueKey('region-pad-${region.id}'),
-              // One-handed: long-press a pad to stretch the loop to it.
-              onLongPress: editing || _selection == null
-                  ? null
-                  : () {
-                      final (a, b) = _selection!;
-                      unawaited(HapticFeedback.selectionClick());
-                      _selectRegions((math.min(a, i), math.max(b, i)));
-                    },
-              onTap: () {
-                if (_runMade) return;
-                unawaited(HapticFeedback.selectionClick());
-                if (editing) {
-                  setState(() => _focus = i);
-                  unawaited(
-                    _ensurePcm().then((_) {
-                      if (mounted) setState(() {});
-                    }),
-                  );
-                  unawaited(_editSlice(i));
-                  return;
-                }
-                _selectRegions(_selection == (i, i) ? null : (i, i));
-              },
-              child: Material(
-                color: color,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-                  side: BorderSide(
-                    color: playingHere
-                        ? MonoPulseColors.white
-                        : selected
-                        ? MonoPulseColors.accentOrange
-                        : color,
-                    width: MonoPulseBorder.bold,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(MonoPulseSpacing.sm),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _name(region),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: MonoPulseTypography.bodyLarge.copyWith(
-                            color: foreground,
-                          ),
-                        ),
-                        Text(
-                          _isShort(region)
-                              ? '⚠ ${(region.lengthMs / 1000).toStringAsFixed(1)} s'
-                              : grid == null
-                              ? '${_time(region.startMs)}–${_time(region.endMs)}'
-                              // Inclusive last bar: 8 bars from bar 1 is 1–8.
-                              : 'Bars ${grid.barAt(region.startMs).round() + 1}–${math.max(grid.barAt(region.startMs).round() + 1, grid.barAt(region.endMs).round())}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: MonoPulseTypography.bodySmall.copyWith(
-                            color: foreground,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
+    return PadBanks(
+      regions: _entry.regions,
+      grid: _entry.grid,
+      sectionColors: {
+        for (final section in sections.values) section.id: section.color,
       },
+      colorForName: colorForName,
+      editing: _canEdit && _editing,
+      playing: _playing,
+      sync: _sync,
+      positionMs: _positionMs,
+      selection: _selection,
+      onSelect: _selectRegions,
+      onEdit: (i) {
+        setState(() => _focus = i);
+        unawaited(
+          _ensurePcm().then((_) {
+            if (mounted) setState(() {});
+          }),
+        );
+        unawaited(_editSlice(i));
+      },
+      onRenameSection: (base) => unawaited(_renameSection(base)),
     );
   }
 
@@ -1521,6 +1415,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               ? const []
               : sectionCuts(pcm, 22050, grid: grid);
         },
+        findStructure: (grid) async {
+          final pcm = await _ensurePcm();
+          return pcm == null || pcm.isEmpty
+              ? null
+              : compute(analyseStructureRequest, (pcm, grid));
+        },
         songSectionNames: [
           for (final section in song?.sections ?? <Section>[]) section.name,
         ],
@@ -1541,7 +1441,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         if (mounted) {
           setState(() {
             _editing = true;
-            _heldPad = null;
           });
         }
       }
@@ -1838,7 +1737,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                               active: editing,
                               onPressed: () => setState(() {
                                 _editing = !_editing;
-                                _heldPad = null;
                                 _focus = null;
                               }),
                             )

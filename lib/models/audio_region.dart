@@ -10,6 +10,7 @@ library;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import '../services/audio/song_structure.dart' show SongStructure;
 import 'section.dart';
 import 'section_span.dart';
 
@@ -115,6 +116,7 @@ class AudioRegion {
     required this.startMs,
     required this.endMs,
     this.sectionId,
+    this.section,
     this.skip = false,
   });
 
@@ -124,6 +126,7 @@ class AudioRegion {
     startMs: (json['startMs'] as num?)?.toInt() ?? 0,
     endMs: (json['endMs'] as num?)?.toInt() ?? 0,
     sectionId: json['sectionId'] as String?,
+    section: json['section'] is String ? json['section'] as String : null,
     skip: json['skip'] as bool? ?? false,
   );
 
@@ -135,6 +138,9 @@ class AudioRegion {
   /// Link into the song map ([Section.id]); each occurrence (Chorus 1,
   /// Chorus 2) is its own section, as in the song's structure list.
   final String? sectionId;
+
+  /// Display name of the section occurrence containing this part.
+  final String? section;
 
   /// Junk (count-in noise, pauses, bad takes): kept in the map so markers
   /// stay linked, but hidden from pads and jumped over in playback.
@@ -148,6 +154,7 @@ class AudioRegion {
     'startMs': startMs,
     'endMs': endMs,
     if (sectionId != null) 'sectionId': sectionId,
+    if (section != null) 'section': section,
     if (skip) 'skip': true,
   };
 
@@ -156,6 +163,7 @@ class AudioRegion {
     int? startMs,
     int? endMs,
     String? sectionId,
+    String? section,
     bool? skip,
   }) => AudioRegion(
     id: id,
@@ -163,9 +171,56 @@ class AudioRegion {
     startMs: startMs ?? this.startMs,
     endMs: endMs ?? this.endMs,
     sectionId: sectionId ?? this.sectionId,
+    section: section ?? this.section,
     skip: skip ?? this.skip,
   );
 }
+
+/// One practice region per part, in file order, including any lead-in.
+List<AudioRegion> regionsFromStructure(
+  SongStructure s, {
+  required String Function() newId,
+}) {
+  final parts = [...s.parts]..sort((a, b) => a.startMs.compareTo(b.startMs));
+  final regions = <AudioRegion>[];
+  for (final part in parts) {
+    final section = s.sections[part.sectionIndex].name;
+    regions.add(
+      AudioRegion(
+        id: newId(),
+        name: '$section ${part.letter}',
+        section: section,
+        startMs: regions.isEmpty ? 0 : regions.last.endMs,
+        endMs: part.endMs,
+      ),
+    );
+  }
+  return regions;
+}
+
+String _sectionBase(String name) =>
+    name.trim().replaceFirst(RegExp(r' \d+$'), '');
+
+/// Renames every occurrence of a section, retaining its number and part name.
+List<AudioRegion> renameSection(
+  List<AudioRegion> regions,
+  String fromBase,
+  String toBase,
+) => regions.map((r) {
+  final oldSection = r.section;
+  if (oldSection == null ||
+      _sectionBase(oldSection).toLowerCase() != fromBase.trim().toLowerCase()) {
+    return r;
+  }
+  final newSection =
+      '$toBase${oldSection.substring(_sectionBase(oldSection).length)}';
+  return r.copyWith(
+    section: newSection,
+    name: r.name.startsWith(oldSection)
+        ? '$newSection${r.name.substring(oldSection.length)}'
+        : r.name,
+  );
+}).toList();
 
 /// Where playback at [ms] should jump to when it is inside skipped regions:
 /// the end of that skipped run. Null when [ms] is not skipped.
@@ -398,6 +453,7 @@ List<AudioRegion> mergeRegion(List<AudioRegion> regions, int index) {
 /// already has a structure is never rewritten: the n-th "Chorus" region links
 /// to the n-th "Chorus" section (names compared case-insensitively), and
 /// regions with no counterpart are counted in `unmatched`.
+/// Consecutive parts with the same [AudioRegion.section] share one occurrence.
 ({List<AudioRegion> regions, List<Section>? created, int unmatched})
 linkToSongMap(
   List<AudioRegion> regions,
@@ -410,25 +466,37 @@ linkToSongMap(
   final seen = <String, int>{};
   var unmatched = 0;
   final linked = <AudioRegion>[];
-  for (final r in regions) {
-    if (r.name.trim().isEmpty) {
-      linked.add(r);
+  for (var i = 0; i < regions.length;) {
+    final r = regions[i];
+    var end = i + 1;
+    if (r.section != null) {
+      while (end < regions.length && regions[end].section == r.section) {
+        end++;
+      }
+    }
+    final run = regions.sublist(i, end);
+    i = end;
+    final name = r.section == null ? r.name.trim() : _sectionBase(r.section!);
+    if (name.isEmpty) {
+      linked.addAll(run);
     } else if (build) {
-      final section = Section(id: newId(), name: r.name.trim());
+      final section = Section(id: newId(), name: name);
       created.add(section);
-      linked.add(r.copyWith(sectionId: section.id));
+      linked.addAll(run.map((part) => part.copyWith(sectionId: section.id)));
     } else {
-      final k = key(r.name);
+      final k = key(name);
       final n = seen[k] = (seen[k] ?? 0) + 1;
       final matches = [
         for (final s in sections)
           if (key(s.name) == k) s,
       ];
       if (matches.length < n) {
-        unmatched++;
-        linked.add(r);
+        unmatched += run.length;
+        linked.addAll(run);
       } else {
-        linked.add(r.copyWith(sectionId: matches[n - 1].id));
+        linked.addAll(
+          run.map((part) => part.copyWith(sectionId: matches[n - 1].id)),
+        );
       }
     }
   }

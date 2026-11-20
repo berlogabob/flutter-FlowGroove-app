@@ -1,6 +1,8 @@
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/screens/practice_setup_wizard.dart';
 import 'package:flowgroove/services/audio/audio_markers.dart';
+import 'package:flowgroove/services/audio/song_structure.dart'
+    show SongStructure;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -12,6 +14,7 @@ void main() {
 
   Future<void> open(
     WidgetTester tester, {
+    SongStructure? structure,
     List<FileMarker> markers = const [],
     List<String> songSectionNames = const [],
     List<({int ms, double strength})> found = const [],
@@ -35,6 +38,7 @@ void main() {
                     previews.add(grid);
                   },
                   findSections: (_) async => found,
+                  findStructure: (_) async => structure,
                   songSectionNames: songSectionNames,
                   newId: () => 'region-${id++}',
                 );
@@ -122,6 +126,57 @@ void main() {
       expect(result!.grid!.bpm, 120);
     },
   );
+
+  testWidgets('detected parts are named by section base', (tester) async {
+    await open(
+      tester,
+      structure: const SongStructure(
+        sections: [
+          (startMs: 0, endMs: 20000, label: 'A', name: 'Intro'),
+          (startMs: 20000, endMs: 50000, label: 'B', name: 'Part B 1'),
+        ],
+        parts: [
+          (startMs: 0, endMs: 10000, sectionIndex: 0, letter: 'a'),
+          (startMs: 10000, endMs: 20000, sectionIndex: 0, letter: 'b'),
+          (startMs: 20000, endMs: 35000, sectionIndex: 1, letter: 'a'),
+          (startMs: 35000, endMs: 50000, sectionIndex: 1, letter: 'b'),
+        ],
+        levels: [],
+      ),
+    );
+    await next(tester);
+    expect(
+      tester
+          .widget<ListTile>(
+            find.widgetWithText(ListTile, 'Where the music changes'),
+          )
+          .selected,
+      isTrue,
+    );
+    await next(tester);
+    expect(find.byType(TextField), findsNWidgets(2));
+    expect(
+      tester
+          .widgetList<TextField>(find.byType(TextField))
+          .map((field) => field.controller!.text),
+      ['Intro', 'Part B'],
+    );
+    await tester.enterText(find.byType(TextField).at(1), 'Verse');
+    await finish(tester);
+    expect(result!.regions!.map((r) => r.name), [
+      'Intro a',
+      'Intro b',
+      'Verse 1 a',
+      'Verse 1 b',
+    ]);
+    expect(result!.regions!.map((r) => r.section), [
+      'Intro',
+      'Intro',
+      'Verse 1',
+      'Verse 1',
+    ]);
+    expect(result!.regions!.map((r) => r.id).toSet(), hasLength(4));
+  });
 
   testWidgets('Skip returns null', (tester) async {
     await open(tester);

@@ -4,6 +4,7 @@ import '../models/audio_region.dart';
 import '../models/section.dart';
 import '../services/audio/audio_analysis.dart';
 import '../services/audio/audio_markers.dart';
+import '../services/audio/song_structure.dart' show SongStructure;
 import '../theme/mono_pulse_theme.dart';
 
 class PracticeSetupResult {
@@ -23,6 +24,7 @@ Future<PracticeSetupResult?> showPracticeSetupWizard(
   required String Function() newId,
   Future<List<({int ms, double strength})>> Function(AudioGrid? grid)?
   findSections,
+  Future<SongStructure?> Function(AudioGrid grid)? findStructure,
   List<String> songSectionNames = const [],
 }) => showModalBottomSheet<PracticeSetupResult>(
   context: context,
@@ -35,6 +37,7 @@ Future<PracticeSetupResult?> showPracticeSetupWizard(
     fileMarkers: fileMarkers,
     previewGrid: previewGrid,
     findSections: findSections,
+    findStructure: findStructure,
     songSectionNames: songSectionNames,
     newId: newId,
   ),
@@ -47,6 +50,7 @@ class _SetupWizard extends StatefulWidget {
     required this.fileMarkers,
     required this.previewGrid,
     required this.findSections,
+    required this.findStructure,
     required this.songSectionNames,
     required this.newId,
   });
@@ -57,6 +61,7 @@ class _SetupWizard extends StatefulWidget {
   final Future<void> Function(AudioGrid grid) previewGrid;
   final Future<List<({int ms, double strength})>> Function(AudioGrid? grid)?
   findSections;
+  final Future<SongStructure?> Function(AudioGrid grid)? findStructure;
   final List<String> songSectionNames;
   final String Function() newId;
 
@@ -78,6 +83,8 @@ class _SetupWizardState extends State<_SetupWizard> {
   int _foundCuts = 0;
   bool _finding = false;
   List<AudioRegion> _regions = [];
+  SongStructure? _structure;
+  List<String> _bases = [];
   final _names = <TextEditingController>[];
 
   @override
@@ -134,6 +141,12 @@ class _SetupWizardState extends State<_SetupWizard> {
 
   List<AudioRegion> _buildRegions({bool assignIds = false}) {
     if (_source == 'ear' || widget.durationMs <= 0) return [];
+    if (_source == 'detected' && _structure != null) {
+      return regionsFromStructure(
+        _structure!,
+        newId: assignIds ? widget.newId : () => '',
+      );
+    }
     final cuts = _source == 'markers'
         ? _markers.map((m) => m.ms)
         : _source == 'detected'
@@ -168,9 +181,19 @@ class _SetupWizardState extends State<_SetupWizard> {
           name.dispose();
         }
         _regions = _buildRegions(assignIds: true);
+        _bases = _source == 'detected' && _structure != null
+            ? _structure!.sections
+                  .map((s) => s.name.replaceFirst(RegExp(r' \d+$'), ''))
+                  .toSet()
+                  .toList()
+            : [];
         _names
           ..clear()
-          ..addAll(_regions.map((r) => TextEditingController(text: r.name)));
+          ..addAll(
+            (_bases.isNotEmpty ? _bases : _regions.map((r) => r.name)).map(
+              (name) => TextEditingController(text: name),
+            ),
+          );
       }
       _step++;
     });
@@ -178,22 +201,29 @@ class _SetupWizardState extends State<_SetupWizard> {
 
   Future<void> _findSections() async {
     final find = widget.findSections;
-    if (find == null) return;
+    if (find == null && widget.findStructure == null) return;
     final grid = _grid;
     _finding = true;
     var found = <({int ms, double strength})>[];
+    SongStructure? structure;
     try {
-      found = await find(grid);
+      if (grid != null && widget.findStructure != null) {
+        structure = await widget.findStructure!(grid);
+      }
+      if (structure == null && find != null) found = await find(grid);
     } catch (_) {}
     if (!mounted || grid != _grid) return;
     setState(() {
       _finding = false;
+      _structure = structure;
       _found = found;
       _foundCuts = suggestedSectionCuts(
         found,
         songSections: widget.songSectionNames.length,
       );
-      if (_step == 1 && _markers.isEmpty && _foundCuts > 0) {
+      if (_step == 1 &&
+          _markers.isEmpty &&
+          (structure != null || _foundCuts > 0)) {
         _source = 'detected';
       }
     });
@@ -325,19 +355,20 @@ class _SetupWizardState extends State<_SetupWizard> {
             ),
             title: Text('Listening for section changes…'),
           )
-        else if (_found.isNotEmpty) ...[
+        else if (_structure != null || _found.isNotEmpty) ...[
           _sourceCard('detected', 'Where the music changes'),
-          _stepper(
-            '${_foundCuts + 1} sections',
-            () => setState(() {
-              _foundCuts = (_foundCuts - 1).clamp(0, _found.length);
-              _source = 'detected';
-            }),
-            () => setState(() {
-              _foundCuts = (_foundCuts + 1).clamp(0, _found.length);
-              _source = 'detected';
-            }),
-          ),
+          if (_structure == null)
+            _stepper(
+              '${_foundCuts + 1} sections',
+              () => setState(() {
+                _foundCuts = (_foundCuts - 1).clamp(0, _found.length);
+                _source = 'detected';
+              }),
+              () => setState(() {
+                _foundCuts = (_foundCuts + 1).clamp(0, _found.length);
+                _source = 'detected';
+              }),
+            ),
         ],
         if (_grid != null) ...[
           _sourceCard('bars', 'Every $_bars bars'),
@@ -407,8 +438,12 @@ class _SetupWizardState extends State<_SetupWizard> {
           },
           child: const Text('Suggest names'),
         ),
-      for (var i = 0; i < _regions.length; i++) ...[
-        Text('${_time(_regions[i].startMs)} – ${_time(_regions[i].endMs)}'),
+      for (var i = 0; i < _names.length; i++) ...[
+        Text(
+          _bases.isNotEmpty
+              ? _bases[i]
+              : '${_time(_regions[i].startMs)} – ${_time(_regions[i].endMs)}',
+        ),
         TextField(
           controller: _names[i],
           decoration: InputDecoration(labelText: 'Section ${i + 1} name'),
@@ -427,6 +462,18 @@ class _SetupWizardState extends State<_SetupWizard> {
       ],
     ],
   );
+
+  AudioRegion _renameRegion(AudioRegion region) {
+    for (var i = 0; i < _bases.length; i++) {
+      if (region.section!.replaceFirst(RegExp(r' \d+$'), '') == _bases[i]) {
+        final name = _names[i].text.trim();
+        return name == _bases[i]
+            ? region
+            : renameSection([region], _bases[i], name).single;
+      }
+    }
+    return region;
+  }
 
   @override
   Widget build(BuildContext context) => SizedBox(
@@ -515,9 +562,12 @@ class _SetupWizardState extends State<_SetupWizard> {
                                 ? null
                                 : [
                                     for (var i = 0; i < _regions.length; i++)
-                                      _regions[i].copyWith(
-                                        name: _names[i].text.trim(),
-                                      ),
+                                      if (_bases.isEmpty)
+                                        _regions[i].copyWith(
+                                          name: _names[i].text.trim(),
+                                        )
+                                      else
+                                        _renameRegion(_regions[i]),
                                   ],
                             markByEar: _source == 'ear',
                           ),

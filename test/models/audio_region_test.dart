@@ -4,12 +4,141 @@ import 'dart:typed_data';
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/song_lab.dart';
+import 'package:flowgroove/services/audio/song_structure.dart'
+    show SongStructure;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   var n = 0;
   String id() => 'r${n++}';
   setUp(() => n = 0);
+
+  const structure = SongStructure(
+    sections: [
+      (startMs: 0, endMs: 2000, label: 'A', name: 'Chorus 1'),
+      (startMs: 2000, endMs: 3000, label: 'B', name: 'Part B 2'),
+      (startMs: 3000, endMs: 5000, label: 'A', name: 'Chorus 2'),
+    ],
+    parts: [
+      (startMs: 0, endMs: 1000, sectionIndex: 0, letter: 'a'),
+      (startMs: 1000, endMs: 2000, sectionIndex: 0, letter: 'b'),
+      (startMs: 2000, endMs: 3000, sectionIndex: 1, letter: 'a'),
+      (startMs: 3000, endMs: 4000, sectionIndex: 2, letter: 'a'),
+      (startMs: 4000, endMs: 5000, sectionIndex: 2, letter: 'b'),
+    ],
+    levels: [],
+  );
+
+  group('AudioRegion section JSON', () {
+    test('round-trips with and without section and copies section', () {
+      for (final section in [null, 'Chorus 1']) {
+        final region = AudioRegion(
+          id: 'r',
+          name: 'Chorus 1 a',
+          startMs: 0,
+          endMs: 1000,
+          sectionId: 's',
+          section: section,
+        );
+        final json = region.toJson();
+        expect(json.containsKey('section'), section != null);
+        final back = AudioRegion.fromJson(json);
+        expect(back.section, section);
+        expect(back.toJson(), json);
+        expect(region.copyWith(name: 'new').section, section);
+        expect(region.copyWith(section: 'Verse 2').section, 'Verse 2');
+      }
+    });
+
+    test('old JSON loads unchanged and non-string section is tolerated', () {
+      final json = <String, dynamic>{
+        'id': 'old',
+        'name': 'Intro',
+        'startMs': 0,
+        'endMs': 1000,
+      };
+      final region = AudioRegion.fromJson(json);
+      expect(region.section, isNull);
+      expect(region.toJson(), json);
+      expect(AudioRegion.fromJson({...json, 'section': 42}).section, isNull);
+    });
+  });
+
+  group('regionsFromStructure', () {
+    test('tiles the file and names each part by its section occurrence', () {
+      final regions = regionsFromStructure(structure, newId: id);
+      expect(regions.map((r) => r.name), [
+        'Chorus 1 a',
+        'Chorus 1 b',
+        'Part B 2 a',
+        'Chorus 2 a',
+        'Chorus 2 b',
+      ]);
+      expect(regions.map((r) => r.section), [
+        'Chorus 1',
+        'Chorus 1',
+        'Part B 2',
+        'Chorus 2',
+        'Chorus 2',
+      ]);
+      expect(
+        [for (final r in regions) (r.startMs, r.endMs)],
+        [(0, 1000), (1000, 2000), (2000, 3000), (3000, 4000), (4000, 5000)],
+      );
+      expect(regions.map((r) => r.id).toSet(), hasLength(5));
+      expect(regions.every((r) => r.sectionId == null), isTrue);
+    });
+
+    test('sorts parts and fills lead-in and boundary gaps', () {
+      final regions = regionsFromStructure(
+        SongStructure(
+          sections: structure.sections,
+          parts: [
+            (startMs: 1200, endMs: 2000, sectionIndex: 0, letter: 'b'),
+            (startMs: 100, endMs: 1000, sectionIndex: 0, letter: 'a'),
+          ],
+          levels: const [],
+        ),
+        newId: id,
+      );
+      expect(
+        [for (final r in regions) (r.name, r.startMs, r.endMs)],
+        [('Chorus 1 a', 0, 1000), ('Chorus 1 b', 1000, 2000)],
+      );
+      expect(
+        regionsFromStructure(
+          const SongStructure(sections: [], parts: [], levels: []),
+          newId: id,
+        ),
+        isEmpty,
+      );
+    });
+  });
+
+  test(
+    'renameSection keeps occurrence numbers, part letters and other regions',
+    () {
+      final regions = regionsFromStructure(structure, newId: id);
+      final before = regions[2].copyWith(sectionId: 'linked', skip: true);
+      final input = [...regions]..[2] = before;
+      final renamed = renameSection(input, 'part b', 'Verse');
+      expect((renamed[2].section, renamed[2].name), ('Verse 2', 'Verse 2 a'));
+      expect(renamed[2].toJson(), {
+        ...before.toJson(),
+        'section': 'Verse 2',
+        'name': 'Verse 2 a',
+      });
+      expect(renamed[0], same(input[0]));
+      expect(before.section, 'Part B 2');
+      const legacy = AudioRegion(
+        id: 'old',
+        name: 'Part B 2 a',
+        startMs: 0,
+        endMs: 1000,
+      );
+      expect(renameSection([legacy], 'Part B', 'Verse').single, same(legacy));
+    },
+  );
 
   group('jogDeltaMs', () {
     const detent = math.pi / 12;
@@ -371,6 +500,50 @@ void main() {
   });
 
   group('linkToSongMap', () {
+    test('builds one section per consecutive run of parts', () {
+      final parts = regionsFromStructure(structure, newId: id);
+      final result = linkToSongMap(parts, const [], newId: id);
+      expect(result.created!.map((s) => s.name), [
+        'Chorus',
+        'Part B',
+        'Chorus',
+      ]);
+      final ids = result.created!.map((s) => s.id).toList();
+      expect(result.regions.map((r) => r.sectionId), [
+        ids[0],
+        ids[0],
+        ids[1],
+        ids[2],
+        ids[2],
+      ]);
+      expect(result.unmatched, 0);
+      // A later run with the same display name is a separate occurrence.
+      final repeated = linkToSongMap(
+        [...parts, parts.first],
+        const [],
+        newId: id,
+      );
+      expect(repeated.created, hasLength(4));
+    });
+
+    test('links each run to the n-th base name, ignoring case', () {
+      final parts = regionsFromStructure(structure, newId: id);
+      final result = linkToSongMap(parts, [
+        Section(id: 'first', name: 'chorus'),
+        Section(id: 'verse', name: 'Verse'),
+        Section(id: 'second', name: 'CHORUS'),
+      ], newId: id);
+      expect(result.regions.map((r) => r.sectionId), [
+        'first',
+        'first',
+        null,
+        'second',
+        'second',
+      ]);
+      expect(result.created, isNull);
+      expect(result.unmatched, 1);
+    });
+
     const regions = [
       AudioRegion(id: 'a', name: 'Intro', startMs: 0, endMs: 1000),
       AudioRegion(id: 'b', name: 'Chorus', startMs: 1000, endMs: 2000),

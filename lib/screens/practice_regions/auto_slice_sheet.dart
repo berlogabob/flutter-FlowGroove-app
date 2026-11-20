@@ -1,10 +1,16 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../models/audio_region.dart';
 import '../../services/audio/audio_analysis.dart';
+import '../../services/audio/song_structure.dart'
+    show SongStructure, analyseStructure;
 import '../../theme/mono_pulse_theme.dart';
+
+SongStructure? analyseStructureRequest((Int16List, AudioGrid) request) =>
+    analyseStructure(request.$1, 22050, request.$2);
 
 Future<Object?> showAutoSliceSheet(
   BuildContext context, {
@@ -21,6 +27,9 @@ Future<Object?> showAutoSliceSheet(
   var sensitivity = 1.5;
   List<({int ms, double strength})>? found;
   var foundCuts = 0;
+  var parts = true;
+  SongStructure? structure;
+  Future<Int16List?>? structureFuture;
   ({double bpm, int firstDownbeatMs})? suggestion;
   final pcmFuture = ensurePcm().then((pcm) {
     if (pcm != null && pcm.isNotEmpty) {
@@ -34,12 +43,36 @@ Future<Object?> showAutoSliceSheet(
     backgroundColor: context.mp.surface,
     builder: (sheetContext) => StatefulBuilder(
       builder: (context, sheetSetState) => FutureBuilder<Int16List?>(
-        future: pcmFuture,
+        future: mode == 3 && grid != null
+            ? structureFuture ??= pcmFuture.then((pcm) async {
+                if (pcm != null && pcm.isNotEmpty) {
+                  structure = await compute(analyseStructureRequest, (
+                    pcm,
+                    grid,
+                  ));
+                }
+                return pcm;
+              })
+            : pcmFuture,
         builder: (context, snapshot) {
           final loading = snapshot.connectionState != ConnectionState.done;
           final pcm = snapshot.data;
           final hasPcm = pcm != null && pcm.isNotEmpty;
-          if (mode == 3 && hasPcm && found == null) {
+          final structureRegions = structure == null
+              ? <AudioRegion>[]
+              : parts
+              ? regionsFromStructure(structure!, newId: () => '')
+              : [
+                  for (final section in structure!.sections)
+                    AudioRegion(
+                      id: '',
+                      name: section.name,
+                      section: section.name,
+                      startMs: section.startMs,
+                      endMs: section.endMs,
+                    ),
+                ];
+          if (mode == 3 && grid == null && hasPcm && found == null) {
             found = sectionCuts(pcm, 22050, grid: grid);
             foundCuts = suggestedSectionCuts(
               found!,
@@ -64,15 +97,19 @@ Future<Object?> showAutoSliceSheet(
                     )
                     .toList()
               : <int>[];
-          final count = regionsFromCuts(
-            cuts,
-            durationMs: durationMs(),
-            newId: () => '',
-          ).length;
+          final count = mode == 3 && grid != null
+              ? structureRegions.length
+              : regionsFromCuts(
+                  cuts,
+                  durationMs: durationMs(),
+                  newId: () => '',
+                ).length;
           final canApply = mode == 0
               ? !loading && suggestion != null
               : mode == 1
               ? grid != null
+              : mode == 3 && grid != null
+              ? !loading && structure != null
               : !loading && hasPcm;
           return Padding(
             padding: const EdgeInsets.all(MonoPulseSpacing.lg),
@@ -143,7 +180,29 @@ Future<Object?> showAutoSliceSheet(
                             : null,
                       ),
                     ],
-                    if (mode == 3 && found != null)
+                    if (mode == 3 && grid != null)
+                      Wrap(
+                        spacing: MonoPulseSpacing.sm,
+                        children: [
+                          for (final (value, label) in [
+                            (false, 'Sections'),
+                            (true, 'Parts'),
+                          ])
+                            ChoiceChip(
+                              label: Text(label),
+                              selected: parts == value,
+                              onSelected: (_) =>
+                                  sheetSetState(() => parts = value),
+                            ),
+                        ],
+                      ),
+                    if (mode == 3 &&
+                        grid != null &&
+                        !loading &&
+                        hasPcm &&
+                        structure == null)
+                      const Text('Not enough audio to find sections.'),
+                    if (mode == 3 && grid == null && found != null)
                       Row(
                         children: [
                           IconButton(
@@ -176,6 +235,8 @@ Future<Object?> showAutoSliceSheet(
                                         bpm: suggestion!.bpm,
                                         offsetMs: suggestion!.firstDownbeatMs,
                                       )
+                                    : mode == 3 && grid != null
+                                    ? structureRegions
                                     : cuts,
                               ),
                         child: const Text('Apply'),
