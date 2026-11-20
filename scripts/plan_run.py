@@ -34,7 +34,8 @@ def run_exec(ex, task):
         env = {"PI_VERIFY": "", "PI_MAX_ITERS": "1", "PI_CHECKPOINT": "0", "PI_TIMEOUT": str(task.get("timeout", 900))}
         cmd = f'"{PI}" {shlex.quote(task["prompt"])} {files}'
         return sh(cmd, env=env, timeout=task.get("timeout", 900) + 60)
-    cmd = f'codex exec {os.environ.get("CODEX_ARGS", "")} -C "{WT}" {shlex.quote(task["prompt"] + " Allowed files: " + (files or "any under lib/"))} </dev/null'
+    model = f'-m {task["model"]} ' if task.get("model") else ""  # gpt-6-luna mechanical, gpt-6.2-sol logic
+    cmd = f'codex exec {model}{os.environ.get("CODEX_ARGS", "")} -C "{WT}" {shlex.quote(task["prompt"] + " Allowed files: " + (files or "any under lib/"))} </dev/null'
     return sh(cmd, timeout=1500)
 
 def guard(task):
@@ -73,7 +74,7 @@ def main():
         if t["id"] in done: print(t["id"], "already passed"); continue
         if any(a not in done for a in t["after"]):
             print(t["id"], "skipped: dependency not passed", t["after"]); continue
-        if dry: print(t["id"], t["executor"], t["title"]); continue
+        if dry: print(t["id"], t["executor"], t.get("model", "default"), t["title"]); continue
         order = [t["executor"]] + (["codex"] if t["executor"] == "pi" and not os.environ.get("NO_CODEX") else [])
         if (PLAN / ".force_codex").exists(): order = ["codex"]  # touch to bypass pi while Studio is offline
         for n, ex in enumerate(order, 1):
