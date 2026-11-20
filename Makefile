@@ -27,6 +27,15 @@ release-check:
 
 .PHONY: help deploy-functions test-fast test-firebase-emulator deploy-rules deploy-stable deploy-hugo deploy-app-hosting ftp-upload-hugo ftp-upload-app-redirect backup-production-hugo deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
+.PHONY: design design-check
+design:
+	python3 design/figcraft/build.py all
+
+design-check:
+	python3 design/figcraft/build.py check
+	python3 design/figcraft/build.py verify-components
+	python3 design/figcraft/contrast.py
+
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
 BACKUP_INFO_FILE := /tmp/flowgroove-latest-backup.txt

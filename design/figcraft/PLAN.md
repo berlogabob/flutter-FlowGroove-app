@@ -61,7 +61,7 @@ Full plan: ~/.claude/plans/clever-baking-axolotl.md. Order: 1 → 3.1–3.3 → 
 - [x] Prototype links: collect spec `links`, connect them after `all` builds every frame, and check destination frame names offline. Main tab navigation links are generated for the five shell destinations.
 
 ## Phase 4
-- [ ] `make design`; offline checks in the test gate; commit `design/`; library version bump.
+- [x] `make design` and `make design-check` targets; offline checks in the test gate; commit `design/`; library version bump.
 
 ## Done before (2026-11-17)
 130 screens as editable frames; 24 components; 21 Code Connect links; Foundations and Docs pages; library version 1.

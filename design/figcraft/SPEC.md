@@ -1,5 +1,10 @@
 # Screen spec format
 
+## Make targets
+
+- `make design-check` runs the offline spec check, Code Connect component verification, and contrast matrix. It fails if any command fails and does not require FigCraft.
+- `make design` runs `python3 design/figcraft/build.py all` to rebuild the FigCraft library. FigCraft must already be running with its control channel; this target does not start it.
+
 One JSON file per screen in `design/figcraft/specs/<screen>.json`. `build.py` turns it into an
 editable 412x915 auto-layout frame in FigCraft (Android phone, dark theme). Check a spec offline
 with `python3 design/figcraft/build.py check design/figcraft/specs/<screen>.json`.
