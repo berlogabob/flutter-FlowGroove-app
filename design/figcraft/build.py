@@ -233,6 +233,12 @@ def emit(e, n, parent, pdir):
     if isinstance(n, str):
         n = {"t": "text", "v": n}
     t = n.get("t", "col")
+    if t == "pattern":
+        cname = {"song_card": "SongCard", "setlist_card": "SetlistCard",
+                 "member_card": "MemberCard"}.get(n.get("name"))
+        if cname is None:
+            raise ValueError(f"unknown pattern {n.get('name')!r}")
+        return use(e, cname, n, parent, pdir) if ONLINE and cname in LIB else m_pattern(e, n, parent, pdir)
     cname = TYPE2COMP.get(t)
     if cname and t not in getattr(e, "drawing", ()) and (cname in LIB or not ONLINE):
         try:
@@ -248,6 +254,24 @@ def emit(e, n, parent, pdir):
 def children(e, kids, parent, pdir):
     for k in kids or []:
         emit(e, k, parent, pdir)
+
+
+def m_pattern(e, n, parent, pdir):
+    name = n["name"]
+    subtitle_color = "textSecondary" if name == "song_card" else "textTertiary"
+    return m_container("v")(e, {"name": n.get("component", name), "pad": 12, "gap": 2,
+        "w": n.get("w", "fill" if pdir == "v" else "hug"),
+        "c": [{"t": "text", "v": n.get("title", ""), "style": "titleMedium", "maxLines": 1,
+               "name": "Title"},
+              {"t": "text", "v": n.get("subtitle", ""), "style": "bodySmall", "color": subtitle_color,
+               "name": "Subtitle"},
+              {"t": "text", "v": n.get("meta", ""), "style": "bodySmall", "color": subtitle_color,
+               "name": "Meta"}]}, parent, pdir)
+
+
+def i_pattern(n, pdir):
+    return dict(p={"Title": str(n.get("title", "")), "Subtitle": str(n.get("subtitle", "")),
+                   "Meta": str(n.get("meta", ""))}, w=fill_w(pdir))
 
 
 def m_container(layout):
@@ -942,6 +966,14 @@ def comp(name, types, draw, inst, axes=None, props=(), slots=(), main_w=360):
         TYPE2COMP[t] = name
 
 
+for _pattern, _component in (("song_card", "SongCard"), ("setlist_card", "SetlistCard"),
+                              ("member_card", "MemberCard")):
+    comp(_component, [], lambda v, pattern=_pattern: {"t": "pattern", "name": pattern,
+         "title": "Title", "subtitle": "Subtitle", "meta": "Meta"}, i_pattern,
+         props=[("Title", "text", "Title", None), ("Subtitle", "text", "Subtitle", None),
+                ("Meta", "text", "Meta", None)])
+
+
 def glyph(name):
     if name not in ICONS:
         raise ValueError(f"unknown Material icon {name!r}")
@@ -1448,6 +1480,9 @@ CONNECT = {
                "AlertDialog (ConfirmationDialog for confirms): surfaceRaised, radius 16. Destructive confirm = Danger button."),
 }
 DESC_ONLY = {
+    "SongCard": "Song list item with title, artist and key/tempo metadata.",
+    "SetlistCard": "Setlist item with title, song count and optional date metadata.",
+    "MemberCard": "Band member item with name, role and optional music-role metadata.",
     "StatusBar": "System status bar placeholder (not app code).",
     "Pad": "Section or part launcher. The playing pad shows loop progress and a queued pad is marked next.",
     "SectionBlock": "Song timeline section. Repeats reuse a letter and colour. Dashed borders mark candidates.",
