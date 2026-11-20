@@ -1,0 +1,12 @@
+#sections-only
+#grid 170.0 1.0588235294117632
+0.000000	Intro 1
+12.352941	Part B 1
+23.647059	Chorus 1
+40.588235	Part D 1
+63.176471	Part E 1
+74.470588	Chorus 2
+91.411765	Part D 2
+114.000000	Bridge 1
+130.941176	Bridge 2
+136.588235	Part D 3
