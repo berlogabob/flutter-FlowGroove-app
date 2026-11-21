@@ -1,4 +1,65 @@
 import '../../../models/audio_region.dart';
+import 'song_map_letters.dart';
+import 'song_map_view.dart';
+
+/// Renames a group or moves a single occurrence into another group.
+List<AudioRegion> editSectionName(
+  SongMapView view, {
+  required String occurrenceId,
+  required String name,
+  required bool move,
+}) {
+  final selected = view.sections.indexWhere((s) => s.id == occurrenceId);
+  if (selected < 0 || name.isEmpty) return view.regions;
+
+  final source = songMapGroupName(view.sections[selected].name);
+  final sourceKey = source.toLowerCase();
+  final targetKey = name.toLowerCase();
+  if (move && sourceKey == targetKey) return view.regions;
+  final groups = [
+    for (final section in view.sections) songMapGroupName(section.name),
+  ];
+  final joinsGroup =
+      sourceKey != targetKey &&
+      groups.any((group) => group.toLowerCase() == targetKey);
+  if (move && !joinsGroup) return view.regions;
+  final counts = <String, int>{};
+  List<AudioRegion>? updated;
+  for (final (index, group) in groups.indexed) {
+    final key = group.toLowerCase();
+    final inSource = index == selected || (key.isNotEmpty && key == sourceKey);
+    final inTarget = key == targetKey && joinsGroup;
+    if (!inSource && !inTarget) continue;
+
+    final oldName = view.sections[index].name;
+    final staysInSource = move && inSource && index != selected;
+    final base = staysInSource ? source : name;
+    final suffix = joinsGroup
+        ? ' ${counts.update(base.toLowerCase(), (n) => n + 1, ifAbsent: () => 1)}'
+        : oldName.trim().substring(group.length);
+    final newName = '$base$suffix';
+    if (oldName == newName) continue;
+    updated ??= [...view.regions];
+    final (start, end) = view.sectionRange(index);
+    for (var i = start; i <= end; i++) {
+      final part = updated[i];
+      final oldSection = part.section?.isNotEmpty == true
+          ? part.section!
+          : oldName;
+      updated[i] = part.copyWith(
+        section: part.sectionId != null || part.section?.isNotEmpty == true
+            ? newName
+            : null,
+        name:
+            part.name == oldSection ||
+                (oldSection.isNotEmpty && part.name.startsWith(oldSection))
+            ? '$newName${part.name.substring(oldSection.length)}'
+            : part.name,
+      );
+    }
+  }
+  return updated ?? view.regions;
+}
 
 /// Moves the boundary after regions[index] to a caller-snapped time.
 /// Both sides retain at least one bar. Within a section, the cut must

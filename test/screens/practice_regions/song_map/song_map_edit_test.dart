@@ -1,5 +1,6 @@
 import 'package:flowgroove/models/audio_region.dart' hide moveBoundary;
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_edit.dart';
+import 'package:flowgroove/screens/practice_regions/song_map/song_map_view.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _grid = AudioGrid(bpm: 120);
@@ -37,6 +38,43 @@ void main() {
     chorusB,
     outro,
   ]);
+
+  test('moving a section renumbers both groups and keeps its linked parts', () {
+    final verseRepeat = _region('e', 'Verse 2', 23, 25, sectionId: 'verse-2');
+    final customPart = verseB.copyWith(name: 'Pickup');
+    final input = [intro, verseA, customPart, chorusA, chorusB, verseRepeat];
+    final view = SongMapView(regions: input, durationMs: verseRepeat.endMs);
+    addTearDown(view.dispose);
+
+    final edited = editSectionName(
+      view,
+      occurrenceId: verseA.id,
+      name: 'Chorus',
+      move: true,
+    );
+
+    expect(edited.map((r) => r.section), [
+      null,
+      'Chorus 1',
+      'Chorus 1',
+      'Chorus 2',
+      'Chorus 2',
+      'Verse 1',
+    ]);
+    expect(edited.map((r) => r.sectionId), input.map((r) => r.sectionId));
+    expect(
+      edited.map((r) => (r.id, r.startMs, r.endMs)),
+      input.map((r) => (r.id, r.startMs, r.endMs)),
+    );
+    expect(edited.map((r) => r.name), [
+      'intro',
+      'Chorus 1 a',
+      'Pickup',
+      'Chorus 2 c',
+      'Chorus 2 d',
+      'Verse 1 e',
+    ]);
+  });
 
   test('moveBoundary rebuilds both sections and leaves an undo snapshot', () {
     final edited = moveBoundary(regions, 2, 34000, grid: _grid);

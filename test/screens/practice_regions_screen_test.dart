@@ -373,7 +373,7 @@ void main() {
       tester.getCenter(find.byKey(const ValueKey('region-pad-verse'))),
       pointer: 1,
     );
-    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 50));
     await tester.tap(
       find.byKey(const ValueKey('region-pad-chorus')),
       pointer: 2,
@@ -529,11 +529,15 @@ void main() {
     expect(find.text('Looping Verse 2 → Chorus'), findsOneWidget);
   });
 
-  testWidgets('long-pressing a pad stretches the loop to it', (tester) async {
+  testWidgets('Range stretches the loop across two pads', (tester) async {
     await pump(tester, _entry());
     await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
     await settleAudio(tester);
-    await tester.longPress(find.byKey(const ValueKey('region-pad-chorus')));
+    await tester.tap(find.byKey(const ValueKey('song-map-key-Range')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
     await settleAudio(tester);
     expect(find.text('Looping Verse 2 → Chorus'), findsOneWidget);
   });

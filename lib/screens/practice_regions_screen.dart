@@ -44,6 +44,7 @@ import 'practice_regions/grid_editor_dialog.dart';
 import 'practice_regions/region_name_sheet.dart';
 import 'practice_regions/slice_edit_sheet.dart';
 import 'practice_regions/song_map/song_map_edit.dart' as song_map_edit;
+import 'practice_regions/song_map/song_map_letters.dart';
 import 'practice_regions/song_map/song_map_pads.dart';
 import 'practice_regions/song_map/song_map_tempo_banner.dart';
 import 'practice_regions/song_map/song_map_timeline.dart';
@@ -1357,12 +1358,40 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     ]);
   }
 
-  Future<void> _renameSection(String section) async {
+  Future<void> _renameSection(String occurrenceId) async {
     if (!_canEdit) return;
-    final base = section.trim().replaceFirst(RegExp(r' \d+$'), '');
-    final name = await showRegionNameSheet(context, initialName: base);
-    if (!mounted || !_canEdit || name == null || name.trim().isEmpty) return;
-    await _changeRegions(renameSection(_entry.regions, base, name.trim()));
+    final view = _songMap!;
+    final index = view.sections.indexWhere((s) => s.id == occurrenceId);
+    if (index < 0) return;
+    final firstPartId = view.regions[view.sectionRange(index).$1].id;
+    final groups = <String, SongMapLetter>{};
+    final seen = <String>{};
+    for (final (index, section) in view.sections.indexed) {
+      final name = songMapGroupName(section.name);
+      if (name.isNotEmpty && seen.add(name.toLowerCase())) {
+        groups[name] = view.sectionLetter(index);
+      }
+    }
+    final result = await showSectionNameSheet(
+      context,
+      initialName: songMapGroupName(view.sections[index].name),
+      groups: groups,
+    );
+    if (!mounted || !_canEdit || result == null) return;
+
+    final allSections = SongMapView(
+      regions: _entry.regions,
+      durationMs: _durationMs,
+      includeSkipped: true,
+    );
+    final updated = song_map_edit.editSectionName(
+      allSections,
+      occurrenceId: firstPartId,
+      name: result.name,
+      move: result.move,
+    );
+    allSections.dispose();
+    if (!identical(updated, _entry.regions)) await _changeRegions(updated);
   }
 
   Future<void> _setGrid(AudioGrid? grid) async {
@@ -1687,12 +1716,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               ? null
               : (i) {
                   final (start, end) = view.regionRange(i);
-                  final section = regions[start].section;
-                  if (editing) {
-                    if (atSong && section != null) {
-                      unawaited(_renameSection(section));
+                  if (_canEdit) {
+                    if (atSong) {
+                      unawaited(_renameSection(children[i].id));
+                    } else {
+                      unawaited(_rename(children[i].id));
                     }
-                  } else if (selection != null) {
+                  } else if (!editing && selection != null) {
                     _selectRegions((
                       math.min(start, selection.$1),
                       math.max(end, selection.$2),

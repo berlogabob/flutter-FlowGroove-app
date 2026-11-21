@@ -380,7 +380,6 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
 
     final palette = context.mp;
     final typography = Theme.of(context).textTheme;
-    final section = region.section;
     final positionMs = widget.positionMs;
     final playing =
         widget.playing &&
@@ -414,8 +413,8 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                 isPart && _view.level == SongMapZoom.section
             ? () => _view.zoomIn(index)
             : null,
-        onLongPress: !isPart && section != null && widget.onSectionHold != null
-            ? () => widget.onSectionHold!(section)
+        onLongPress: !isPart && widget.onSectionHold != null
+            ? () => widget.onSectionHold!(region.id)
             : null,
         child: Container(
           key: ValueKey('song-map-${isPart ? 'part' : 'section'}-${region.id}'),

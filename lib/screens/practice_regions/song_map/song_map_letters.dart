@@ -36,7 +36,9 @@ class SongMapLetters {
         _letters.add(_letters.last);
       } else {
         final name = region.section;
-        final group = _group(name == null || name.isEmpty ? region.name : name);
+        final group = songMapGroupName(
+          name == null || name.isEmpty ? region.name : name,
+        ).toLowerCase();
         _letters.add(
           group.isEmpty ? makeLetter() : _groups.putIfAbsent(group, makeLetter),
         );
@@ -55,17 +57,19 @@ class SongMapLetters {
     MonoPulseColors.section4,
     MonoPulseColors.section10,
   ];
-  static final _occurrenceSuffix = RegExp(r'\s+\d+$');
   final _groups = <String, SongMapLetter>{};
   final _letters = <SongMapLetter>[];
 
   SongMapLetter operator [](int index) => _letters[index];
 
-  SongMapLetter? forSectionName(String name) => _groups[_group(name)];
-
-  static String _group(String name) =>
-      name.trim().toLowerCase().replaceFirst(_occurrenceSuffix, '');
+  SongMapLetter? forSectionName(String name) =>
+      _groups[songMapGroupName(name).toLowerCase()];
 }
+
+final _occurrenceSuffix = RegExp(r'\s+\d+$');
+
+String songMapGroupName(String name) =>
+    name.trim().replaceFirst(_occurrenceSuffix, '');
 
 // The ID and name namespaces are distinct in linked and legacy maps.
 (String?, String?)? songMapSectionKey(AudioRegion region) {
