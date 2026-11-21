@@ -1,5 +1,5 @@
 {
-  "name": "Song Map \u00b7 Chop",
+  "name": "Song Map · Chop",
   "page": "Song Map",
   "mode": "dark",
   "source": "lib/screens/practice_regions_screen.dart",
@@ -18,7 +18,7 @@
       "actions": [
         {
           "t": "chip",
-          "v": "170 BPM \u2713"
+          "v": "170 BPM ✓"
         },
         {
           "t": "iconbtn",
@@ -39,55 +39,55 @@
         },
         {
           "letter": "B",
-          "color": "section2",
-          "bars": 8,
-          "state": "confirmed"
-        },
-        {
-          "letter": "C",
-          "color": "section3",
-          "bars": 12,
-          "state": "confirmed"
-        },
-        {
-          "letter": "D",
-          "color": "section4",
-          "bars": 16,
-          "state": "playing"
-        },
-        {
-          "letter": "E",
           "color": "section5",
           "bars": 8,
           "state": "confirmed"
         },
         {
           "letter": "C",
-          "color": "section3",
+          "color": "section8",
           "bars": 12,
           "state": "confirmed"
         },
         {
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
+          "bars": 16,
+          "state": "playing"
+        },
+        {
+          "letter": "E",
+          "color": "section11",
+          "bars": 8,
+          "state": "confirmed"
+        },
+        {
+          "letter": "C",
+          "color": "section8",
+          "bars": 12,
+          "state": "confirmed"
+        },
+        {
+          "letter": "D",
+          "color": "section3",
           "bars": 16,
           "state": "confirmed"
         },
         {
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "bars": 12,
           "state": "confirmed"
         },
         {
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "bars": 4,
           "state": "confirmed"
         },
         {
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "bars": 21,
           "state": "confirmed"
         }
@@ -98,16 +98,18 @@
     },
     {
       "t": "zoomwave",
-      "title": "D \u00b7 Part D 1",
-      "color": "section4",
+      "title": "D · Part D 1",
+      "color": "section3",
       "parts": [
         {
           "letter": "a",
-          "bars": 8
+          "bars": 8,
+          "color": "section3"
         },
         {
           "letter": "b",
-          "bars": 8
+          "bars": 8,
+          "color": "section3"
         }
       ],
       "startBar": 30,
@@ -167,7 +169,7 @@
           "label": "Part B 1",
           "sub": "8 bars",
           "letter": "B",
-          "color": "section2",
+          "color": "section5",
           "state": "idle",
           "progress": 0,
           "w": 186
@@ -183,7 +185,7 @@
           "label": "Chorus 1",
           "sub": "12 bars",
           "letter": "C",
-          "color": "section3",
+          "color": "section8",
           "state": "idle",
           "progress": 0,
           "w": 186
@@ -193,7 +195,7 @@
           "label": "Part D 1",
           "sub": "16 bars",
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "state": "playing",
           "progress": 0.45,
           "w": 186
@@ -209,7 +211,7 @@
           "label": "Part E 1",
           "sub": "8 bars",
           "letter": "E",
-          "color": "section5",
+          "color": "section11",
           "state": "idle",
           "progress": 0,
           "w": 186
@@ -219,7 +221,7 @@
           "label": "Chorus 2",
           "sub": "12 bars",
           "letter": "C",
-          "color": "section3",
+          "color": "section8",
           "state": "idle",
           "progress": 0,
           "w": 186
@@ -235,7 +237,7 @@
           "label": "Part D 2",
           "sub": "16 bars",
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "state": "idle",
           "progress": 0,
           "w": 186
@@ -245,7 +247,7 @@
           "label": "Bridge 1",
           "sub": "12 bars",
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "state": "idle",
           "progress": 0,
           "w": 186
@@ -261,7 +263,7 @@
           "label": "Bridge 2",
           "sub": "4 bars",
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "state": "idle",
           "progress": 0,
           "w": 186
@@ -271,7 +273,7 @@
           "label": "Part D 3",
           "sub": "21 bars",
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "state": "idle",
           "progress": 0,
           "w": 186
@@ -293,7 +295,7 @@
   "overlay": [
     {
       "x": 16,
-      "y": 748,
+      "y": 775,
       "node": {
         "t": "card",
         "dir": "h",
@@ -309,11 +311,12 @@
         "c": [
           {
             "t": "text",
-            "v": "Cut at bar 37 \u00b7 Undo",
+            "v": "Cut at bar 37 · Undo",
             "style": "bodyMedium",
             "w": "fill"
           }
-        ]
+        ],
+        "w": 380
       }
     }
   ]

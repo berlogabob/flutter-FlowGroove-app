@@ -1047,7 +1047,7 @@ def breadcrumb_items(n):
 def transport_controls(n):
     playing = n.get("playing", False)
     speed = n.get("speed", 100)
-    controls = [("stop" if playing else "play_arrow", "Stop" if playing else "Play", True),
+    controls = [("pause" if playing else "play_arrow", "Pause" if playing else "Play", True),
                 ("loop", "Loop", n.get("loop", False)),
                 ("speed", f"{speed}%" if isinstance(speed, (int, float)) else speed, False),
                 ("timer", "Count-in", n.get("countIn", False)),
@@ -1143,29 +1143,35 @@ def m_timeline(e, n, parent, pdir):
 
     band(0, 1, "surfaceRaised")
     if zoom:
-        band(0, 1, n.get("color", "section1"), .2)
+        band(0, 1, n.get("color", "section1"), .25)
     else:
         for block, left, right in zip(blocks, edges, edges[1:]):
-            band(left, right, block["color"], .2)
+            band(left, right, block["color"], .25)
     place(m_wave, {"h": wave_h, "bg": "none", "radius": 0}, 0, 1, 0)
 
     for block, left, right in zip(blocks, edges, edges[1:]):
         state = block.get("state", "confirmed")
         if state not in ("confirmed", "selected", "playing", "candidate"):
             raise ValueError(f"{name}: unknown block state {state!r}")
-        labels = [{"t": "text", "v": block["letter"], "style": "labelSmall", "align": "center", "maxLines": 1}]
+        section_color = block.get("color", n.get("color", "section1"))
+        labels = [{"t": "text", "v": block["letter"], "style": "labelSmall", "color": "textPrimary",
+                   "align": "center", "maxLines": 1}]
         if zoom:
             labels.append({"t": "text", "v": block_label({"t": "partblock", **block}),
                            "style": "caption", "align": "center", "maxLines": 1})
         border = {"selected": "textPrimary", "playing": "accentOrange"}.get(state, "borderStrong")
+        place(m_box, {"name": "Lane tint", "w": "fill", "h": "fill", "bg": section_color},
+              left, right, 1, opacity=.35)
         place(m_container("v"), {"name": f"Block {block['letter']}", "w": "fill", "h": lane_h,
                                  "main": "center", "clip": True, "border": border,
-                                 "borderW": 3 if state in ("selected", "playing") else 1, "c": labels},
+                                 "borderW": 3 if state in ("selected", "playing") else 1,
+                                 "bg": "none", "c": labels},
               left, right, 1, **({"dashes": [4, 3]} if state == "candidate" else {}))
 
     if zoom:
         for label, left, right in zip(ruler_labels({"labels": range(start_bar, start_bar + total)}),
                                       bar_edges, bar_edges[1:]):
+            label["c"][1]["style"] = "labelSmall"
             place(m_container("v"), label, left, right, 2)
 
     for i, x in enumerate(markers):

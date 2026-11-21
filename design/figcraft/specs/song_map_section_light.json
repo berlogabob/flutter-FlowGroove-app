@@ -38,48 +38,48 @@
         },
         {
           "letter": "B",
-          "color": "section2",
-          "bars": 8
-        },
-        {
-          "letter": "C",
-          "color": "section3",
-          "bars": 12,
-          "state": "selected"
-        },
-        {
-          "letter": "D",
-          "color": "section4",
-          "bars": 16
-        },
-        {
-          "letter": "E",
           "color": "section5",
           "bars": 8
         },
         {
           "letter": "C",
+          "color": "section8",
+          "bars": 12,
+          "state": "selected"
+        },
+        {
+          "letter": "D",
           "color": "section3",
+          "bars": 16
+        },
+        {
+          "letter": "E",
+          "color": "section11",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section8",
           "bars": 12
         },
         {
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "bars": 16
         },
         {
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "bars": 12
         },
         {
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "bars": 4
         },
         {
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "bars": 21
         }
       ]
@@ -87,21 +87,24 @@
     {
       "t": "zoomwave",
       "title": "Chorus 1",
-      "color": "section3",
+      "color": "section8",
       "startBar": 18,
       "parts": [
         {
           "letter": "a",
-          "bars": 4
+          "bars": 4,
+          "color": "section8"
         },
         {
           "letter": "b",
           "bars": 4,
-          "state": "selected"
+          "state": "selected",
+          "color": "section8"
         },
         {
           "letter": "c",
-          "bars": 4
+          "bars": 4,
+          "color": "section8"
         }
       ]
     },
@@ -150,7 +153,7 @@
           "sub": "4 bars",
           "letter": "a",
           "color": "section3",
-          "w": 128
+          "w": 186
         },
         {
           "t": "pad",
@@ -159,15 +162,21 @@
           "letter": "b",
           "color": "section3",
           "state": "selected",
-          "w": 128
-        },
+          "w": 186
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
         {
           "t": "pad",
           "label": "Bars 26-29",
           "sub": "4 bars",
           "letter": "c",
           "color": "section3",
-          "w": 128
+          "w": 186
         }
       ]
     }

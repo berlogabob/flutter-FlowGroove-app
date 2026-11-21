@@ -1,73 +1,335 @@
 {
-  "name": "Song Map demo",
+  "name": "Song Map demo Light",
   "page": "Song Map",
   "mode": "light",
   "source": "lib/screens/practice_regions_screen.dart",
   "slot": 0,
-  "pad": [12, 8, 12, 8],
+  "pad": [
+    12,
+    8,
+    12,
+    8
+  ],
   "gap": 8,
   "top": [
-    {"t": "appbar", "v": "Inocente", "actions": [{"t": "chip", "v": "170 BPM ✓"}, {"t": "iconbtn", "v": "more_vert"}]}
+    {
+      "t": "appbar",
+      "v": "Inocente",
+      "actions": [
+        {
+          "t": "chip",
+          "v": "170 BPM ✓"
+        },
+        {
+          "t": "iconbtn",
+          "v": "more_vert"
+        }
+      ]
+    }
   ],
   "body": [
-    {"t": "overview", "sections": [
-      {"letter": "A", "color": "section1", "bars": 9},
-      {"letter": "B", "color": "section2", "bars": 8},
-      {"letter": "C", "color": "section3", "bars": 12, "state": "selected"},
-      {"letter": "D", "color": "section4", "bars": 16, "state": "playing"},
-      {"letter": "E", "color": "section5", "bars": 8},
-      {"letter": "C", "color": "section3", "bars": 12},
-      {"letter": "D", "color": "section4", "bars": 16},
-      {"letter": "F", "color": "section6", "bars": 12},
-      {"letter": "F", "color": "section6", "bars": 4, "state": "candidate"},
-      {"letter": "D", "color": "section4", "bars": 21}
-    ], "playhead": 0.31, "cuts": [0.788135593220339]},
-    {"t": "zoomwave", "title": "C · Chorus 1", "color": "section3", "startBar": 18,
+    {
+      "t": "overview",
+      "sections": [
+        {
+          "letter": "A",
+          "color": "section1",
+          "bars": 9
+        },
+        {
+          "letter": "B",
+          "color": "section5",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section8",
+          "bars": 12,
+          "state": "selected"
+        },
+        {
+          "letter": "D",
+          "color": "section3",
+          "bars": 16,
+          "state": "playing"
+        },
+        {
+          "letter": "E",
+          "color": "section11",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section8",
+          "bars": 12
+        },
+        {
+          "letter": "D",
+          "color": "section3",
+          "bars": 16
+        },
+        {
+          "letter": "F",
+          "color": "section7",
+          "bars": 12
+        },
+        {
+          "letter": "F",
+          "color": "section7",
+          "bars": 4,
+          "state": "candidate"
+        },
+        {
+          "letter": "D",
+          "color": "section3",
+          "bars": 21
+        }
+      ],
+      "playhead": 0.31,
+      "cuts": [
+        0.788135593220339
+      ]
+    },
+    {
+      "t": "zoomwave",
+      "title": "C · Chorus 1",
+      "color": "section8",
+      "startBar": 18,
       "parts": [
-        {"letter": "a", "bars": 4},
-        {"letter": "b", "bars": 4, "state": "selected"},
-        {"letter": "c", "bars": 4, "state": "candidate"}
-      ], "playhead": 0.41, "cut": 0.6666666666666666, "cutLabel": "bar 26"},
-    {"t": "row", "gap": 8, "cross": "center", "c": [
-      {"t": "text", "v": "Sections", "style": "titleMedium", "w": "fill"},
-      {"t": "key", "v": "Shift", "lit": true},
-      {"t": "key", "v": "Chop", "icon": "content_cut"}
-    ]},
-    {"t": "row", "gap": 8, "c": [
-      {"t": "pad", "label": "Intro", "sub": "9 bars", "color": "section1", "letter": "A", "w": 194},
-      {"t": "pad", "label": "Chorus 1", "sub": "12 bars", "color": "section3", "letter": "C", "state": "selected", "w": 194}
-    ]},
-    {"t": "row", "gap": 8, "c": [
-      {"t": "pad", "label": "Part D 1", "sub": "16 bars", "color": "section4", "state": "playing", "progress": 0.4, "w": 126},
-      {"t": "pad", "label": "Part E 1", "sub": "8 bars", "color": "section5", "state": "queued", "w": 126},
-      {"t": "pad", "label": "Chorus 2", "sub": "12 bars", "color": "section3", "state": "disabled", "w": 126}
-    ]},
-    {"t": "row", "gap": 8, "cross": "center", "c": [
-      {"t": "breadcrumb", "items": ["Song", "Chorus 1", "b"], "w": 152},
-      {"t": "minimap", "sections": [
-        {"color": "section1", "w": 42},
-        {"color": "section2", "w": 68},
-        {"color": "section3", "w": 126}
-      ], "viewport": [64, 100]}
-    ]},
-    {"t": "row", "gap": 4, "c": [
-      {"t": "secblock", "name": "Intro", "letter": "A", "color": "section1", "w": 92, "state": "confirmed"},
-      {"t": "secblock", "name": "Chorus 1", "letter": "C", "color": "section3", "w": 172, "state": "playing"},
-      {"t": "secblock", "name": "Bridge", "letter": "F", "color": "section6", "w": 108, "state": "candidate"}
-    ]},
-    {"t": "row", "gap": 4, "c": [
-      {"t": "partblock", "letter": "a", "bars": 4, "color": "section3", "w": 128},
-      {"t": "partblock", "letter": "b", "bars": 4, "color": "section3", "w": 128, "state": "selected"},
-      {"t": "partblock", "letter": "c", "bars": 4, "color": "section3", "w": 128, "state": "candidate"}
-    ]},
-    {"t": "row", "gap": 8, "c": [
-      {"t": "ruler", "labels": [17, 21, 25, 29], "w": 104},
-      {"t": "beatgrid", "beats": 4, "bars": 4, "w": 212},
-      {"t": "playhead", "h": 40},
-      {"t": "boundary", "state": "candidate", "h": 40}
-    ]}
+        {
+          "letter": "a",
+          "bars": 4,
+          "color": "section8"
+        },
+        {
+          "letter": "b",
+          "bars": 4,
+          "state": "selected",
+          "color": "section8"
+        },
+        {
+          "letter": "c",
+          "bars": 4,
+          "state": "candidate",
+          "color": "section8"
+        }
+      ],
+      "playhead": 0.41,
+      "cut": 0.6666666666666666,
+      "cutLabel": "bar 26"
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "cross": "center",
+      "c": [
+        {
+          "t": "text",
+          "v": "Sections",
+          "style": "titleMedium",
+          "w": "fill"
+        },
+        {
+          "t": "key",
+          "v": "Shift",
+          "lit": true
+        },
+        {
+          "t": "key",
+          "v": "Chop",
+          "icon": "content_cut"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Intro",
+          "sub": "9 bars",
+          "color": "section1",
+          "letter": "A",
+          "w": 194
+        },
+        {
+          "t": "pad",
+          "label": "Chorus 1",
+          "sub": "12 bars",
+          "color": "section8",
+          "letter": "C",
+          "state": "selected",
+          "w": 194
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part D 1",
+          "sub": "16 bars",
+          "color": "section4",
+          "state": "playing",
+          "progress": 0.4,
+          "w": 126
+        },
+        {
+          "t": "pad",
+          "label": "Part E 1",
+          "sub": "8 bars",
+          "color": "section5",
+          "state": "queued",
+          "w": 126
+        },
+        {
+          "t": "pad",
+          "label": "Chorus 2",
+          "sub": "12 bars",
+          "color": "section3",
+          "state": "disabled",
+          "w": 126
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "cross": "center",
+      "c": [
+        {
+          "t": "breadcrumb",
+          "items": [
+            "Song",
+            "Chorus 1",
+            "b"
+          ],
+          "w": 152
+        },
+        {
+          "t": "minimap",
+          "sections": [
+            {
+              "color": "section1",
+              "w": 42
+            },
+            {
+              "color": "section2",
+              "w": 68
+            },
+            {
+              "color": "section3",
+              "w": 126
+            }
+          ],
+          "viewport": [
+            64,
+            100
+          ]
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 4,
+      "c": [
+        {
+          "t": "secblock",
+          "name": "Intro",
+          "letter": "A",
+          "color": "section1",
+          "w": 92,
+          "state": "confirmed"
+        },
+        {
+          "t": "secblock",
+          "name": "Chorus 1",
+          "letter": "C",
+          "color": "section8",
+          "w": 172,
+          "state": "playing"
+        },
+        {
+          "t": "secblock",
+          "name": "Bridge",
+          "letter": "F",
+          "color": "section7",
+          "w": 108,
+          "state": "candidate"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 4,
+      "c": [
+        {
+          "t": "partblock",
+          "letter": "a",
+          "bars": 4,
+          "color": "section3",
+          "w": 128
+        },
+        {
+          "t": "partblock",
+          "letter": "b",
+          "bars": 4,
+          "color": "section3",
+          "w": 128,
+          "state": "selected"
+        },
+        {
+          "t": "partblock",
+          "letter": "c",
+          "bars": 4,
+          "color": "section3",
+          "w": 128,
+          "state": "candidate"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "ruler",
+          "labels": [
+            17,
+            21,
+            25,
+            29
+          ],
+          "w": 104
+        },
+        {
+          "t": "beatgrid",
+          "beats": 4,
+          "bars": 4,
+          "w": 212
+        },
+        {
+          "t": "playhead",
+          "h": 40
+        },
+        {
+          "t": "boundary",
+          "state": "candidate",
+          "h": 40
+        }
+      ]
+    }
   ],
   "bottom": [
-    {"t": "transport", "speed": 75, "loop": true, "click": true, "playing": true}
+    {
+      "t": "transport",
+      "speed": 75,
+      "loop": true,
+      "click": true,
+      "playing": true
+    }
   ]
 }

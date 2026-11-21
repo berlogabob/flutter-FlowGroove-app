@@ -1,5 +1,5 @@
 {
-  "name": "Song Map \u00b7 Rename Light",
+  "name": "Song Map · Rename Light",
   "page": "Song Map",
   "mode": "light",
   "source": "lib/screens/practice_regions_screen.dart",
@@ -18,7 +18,7 @@
       "actions": [
         {
           "t": "chip",
-          "v": "170 BPM \u2713"
+          "v": "170 BPM ✓"
         },
         {
           "t": "iconbtn",
@@ -38,48 +38,48 @@
         },
         {
           "letter": "B",
-          "color": "section2",
-          "bars": 8
-        },
-        {
-          "letter": "C",
-          "color": "section3",
-          "bars": 12,
-          "state": "selected"
-        },
-        {
-          "letter": "D",
-          "color": "section4",
-          "bars": 16
-        },
-        {
-          "letter": "E",
           "color": "section5",
           "bars": 8
         },
         {
           "letter": "C",
+          "color": "section8",
+          "bars": 12,
+          "state": "selected"
+        },
+        {
+          "letter": "D",
           "color": "section3",
+          "bars": 16
+        },
+        {
+          "letter": "E",
+          "color": "section11",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section8",
           "bars": 12
         },
         {
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "bars": 16
         },
         {
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "bars": 12
         },
         {
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "bars": 4
         },
         {
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "bars": 21,
           "state": "playing"
         }
@@ -88,21 +88,24 @@
     },
     {
       "t": "zoomwave",
-      "title": "C \u00b7 Chorus 1",
-      "color": "section3",
+      "title": "C · Chorus 1",
+      "color": "section8",
       "startBar": 18,
       "parts": [
         {
           "letter": "a",
-          "bars": 4
+          "bars": 4,
+          "color": "section8"
         },
         {
           "letter": "b",
-          "bars": 4
+          "bars": 4,
+          "color": "section8"
         },
         {
           "letter": "c",
-          "bars": 4
+          "bars": 4,
+          "color": "section8"
         }
       ]
     },
@@ -148,7 +151,7 @@
           "label": "Part B",
           "sub": "8 bars",
           "letter": "B",
-          "color": "section2",
+          "color": "section5",
           "w": 194
         }
       ]
@@ -162,7 +165,7 @@
           "label": "Chorus",
           "sub": "12 bars",
           "letter": "C",
-          "color": "section3",
+          "color": "section8",
           "w": 194
         },
         {
@@ -170,7 +173,7 @@
           "label": "Part D",
           "sub": "16 bars",
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "w": 194
         }
       ]
@@ -184,7 +187,7 @@
           "label": "Part E",
           "sub": "8 bars",
           "letter": "E",
-          "color": "section5",
+          "color": "section11",
           "w": 194
         },
         {
@@ -192,7 +195,7 @@
           "label": "Bridge",
           "sub": "12 bars",
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "w": 194
         }
       ]

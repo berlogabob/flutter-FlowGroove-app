@@ -4,63 +4,386 @@
   "mode": "dark",
   "source": "lib/screens/practice_regions_screen.dart",
   "slot": 4,
-  "pad": [8, 8, 12, 8],
+  "pad": [
+    8,
+    8,
+    12,
+    8
+  ],
   "gap": 8,
   "top": [
-    {"t": "appbar", "v": "Inocente", "actions": [{"t": "chip", "v": "170 BPM ✓"}, {"t": "iconbtn", "v": "more_vert"}]}
+    {
+      "t": "appbar",
+      "v": "Inocente",
+      "actions": [
+        {
+          "t": "chip",
+          "v": "170 BPM ✓"
+        },
+        {
+          "t": "iconbtn",
+          "v": "more_vert"
+        }
+      ]
+    }
   ],
   "body": [
-    {"t": "overview", "sections": [
-      {"letter": "A", "color": "section1", "bars": 9},
-      {"letter": "B", "color": "section2", "bars": 8},
-      {"letter": "C", "color": "section3", "bars": 12, "state": "selected"},
-      {"letter": "D", "color": "section4", "bars": 16},
-      {"letter": "E", "color": "section5", "bars": 8},
-      {"letter": "C", "color": "section3", "bars": 12},
-      {"letter": "D", "color": "section4", "bars": 16},
-      {"letter": "F", "color": "section6", "bars": 12},
-      {"letter": "F", "color": "section6", "bars": 4},
-      {"letter": "D", "color": "section4", "bars": 21, "state": "playing"}
-    ], "playhead": 0.31},
-    {"t": "zoomwave", "title": "C · Chorus 1", "color": "section3", "startBar": 18,
-      "parts": [{"letter": "a", "bars": 4}, {"letter": "b", "bars": 4}, {"letter": "c", "bars": 4}]},
-    {"t": "row", "gap": 8, "cross": "center", "c": [
-      {"t": "text", "v": "Sections", "style": "titleMedium", "w": "fill"},
-      {"t": "key", "v": "Shift"}, {"t": "key", "v": "Chop"}, {"t": "key", "v": "Range"}
-    ]},
-    {"t": "row", "gap": 8, "c": [
-      {"t": "pad", "label": "Intro", "sub": "9 bars", "letter": "A", "color": "section1", "w": 194},
-      {"t": "pad", "label": "Part B", "sub": "8 bars", "letter": "B", "color": "section2", "w": 194}
-    ]},
-    {"t": "row", "gap": 8, "c": [
-      {"t": "pad", "label": "Chorus", "sub": "12 bars", "letter": "C", "color": "section3", "w": 194},
-      {"t": "pad", "label": "Part D", "sub": "16 bars", "letter": "D", "color": "section4", "w": 194}
-    ]},
-    {"t": "row", "gap": 8, "c": [
-      {"t": "pad", "label": "Part E", "sub": "8 bars", "letter": "E", "color": "section5", "w": 194},
-      {"t": "pad", "label": "Bridge", "sub": "12 bars", "letter": "F", "color": "section6", "w": 194}
-    ]}
+    {
+      "t": "overview",
+      "sections": [
+        {
+          "letter": "A",
+          "color": "section1",
+          "bars": 9
+        },
+        {
+          "letter": "B",
+          "color": "section5",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section8",
+          "bars": 12,
+          "state": "selected"
+        },
+        {
+          "letter": "D",
+          "color": "section3",
+          "bars": 16
+        },
+        {
+          "letter": "E",
+          "color": "section11",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section8",
+          "bars": 12
+        },
+        {
+          "letter": "D",
+          "color": "section3",
+          "bars": 16
+        },
+        {
+          "letter": "F",
+          "color": "section7",
+          "bars": 12
+        },
+        {
+          "letter": "F",
+          "color": "section7",
+          "bars": 4
+        },
+        {
+          "letter": "D",
+          "color": "section3",
+          "bars": 21,
+          "state": "playing"
+        }
+      ],
+      "playhead": 0.31
+    },
+    {
+      "t": "zoomwave",
+      "title": "C · Chorus 1",
+      "color": "section8",
+      "startBar": 18,
+      "parts": [
+        {
+          "letter": "a",
+          "bars": 4,
+          "color": "section8"
+        },
+        {
+          "letter": "b",
+          "bars": 4,
+          "color": "section8"
+        },
+        {
+          "letter": "c",
+          "bars": 4,
+          "color": "section8"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "cross": "center",
+      "c": [
+        {
+          "t": "text",
+          "v": "Sections",
+          "style": "titleMedium",
+          "w": "fill"
+        },
+        {
+          "t": "key",
+          "v": "Shift"
+        },
+        {
+          "t": "key",
+          "v": "Chop"
+        },
+        {
+          "t": "key",
+          "v": "Range"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Intro",
+          "sub": "9 bars",
+          "letter": "A",
+          "color": "section1",
+          "w": 194
+        },
+        {
+          "t": "pad",
+          "label": "Part B",
+          "sub": "8 bars",
+          "letter": "B",
+          "color": "section5",
+          "w": 194
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Chorus",
+          "sub": "12 bars",
+          "letter": "C",
+          "color": "section8",
+          "w": 194
+        },
+        {
+          "t": "pad",
+          "label": "Part D",
+          "sub": "16 bars",
+          "letter": "D",
+          "color": "section3",
+          "w": 194
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part E",
+          "sub": "8 bars",
+          "letter": "E",
+          "color": "section11",
+          "w": 194
+        },
+        {
+          "t": "pad",
+          "label": "Bridge",
+          "sub": "12 bars",
+          "letter": "F",
+          "color": "section7",
+          "w": 194
+        }
+      ]
+    }
   ],
-  "bottom": [{"t": "transport", "speed": 100}],
+  "bottom": [
+    {
+      "t": "transport",
+      "speed": 100
+    }
+  ],
   "overlay": [
-    {"x": 0, "y": 28, "node": {"t": "box", "w": 412, "h": 887, "bg": "#00000099"}},
-    {"x": 0, "y": 500, "node": {"t": "sheet", "name": "Rename section sheet", "gap": 12, "pad": [12, 16, 24, 16], "c": [
-      {"t": "text", "v": "Rename section", "style": "titleLarge"},
-      {"t": "input", "label": "Name", "v": "Bridge"},
-      {"t": "text", "v": "Same as", "style": "labelMedium"},
-      {"t": "row", "wrap": true, "gap": 8, "c": [
-        {"t": "row", "cross": "center", "gap": 4, "c": [{"t": "badge", "v": "A", "bg": "section1", "color": "white"}, {"t": "chip", "v": "Intro"}]},
-        {"t": "row", "cross": "center", "gap": 4, "c": [{"t": "badge", "v": "B", "bg": "section2", "color": "white"}, {"t": "chip", "v": "Part B"}]},
-        {"t": "row", "cross": "center", "gap": 4, "c": [{"t": "badge", "v": "C", "bg": "section3", "color": "white"}, {"t": "chip", "v": "Chorus"}]},
-        {"t": "row", "cross": "center", "gap": 4, "c": [{"t": "badge", "v": "D", "bg": "section4", "color": "white"}, {"t": "chip", "v": "Part D"}]},
-        {"t": "row", "cross": "center", "gap": 4, "c": [{"t": "badge", "v": "E", "bg": "section5", "color": "charcoal"}, {"t": "chip", "v": "Part E"}]},
-        {"t": "row", "cross": "center", "gap": 4, "c": [{"t": "badge", "v": "F", "bg": "section6", "color": "charcoal"}, {"t": "chip", "v": "Bridge", "sel": true}]}
-      ]},
-      {"t": "text", "v": "Repeats share letter and colour everywhere.", "style": "bodySmall", "color": "textSecondary"},
-      {"t": "row", "gap": 8, "main": "max", "c": [
-        {"t": "button", "v": "Cancel", "kind": "secondary", "w": 120},
-        {"t": "button", "v": "Save", "kind": "primary", "w": 120}
-      ]}
-    ]}}
+    {
+      "x": 0,
+      "y": 28,
+      "node": {
+        "t": "box",
+        "w": 412,
+        "h": 887,
+        "bg": "#00000099"
+      }
+    },
+    {
+      "x": 0,
+      "y": 500,
+      "node": {
+        "t": "sheet",
+        "name": "Rename section sheet",
+        "gap": 12,
+        "pad": [
+          12,
+          16,
+          24,
+          16
+        ],
+        "c": [
+          {
+            "t": "text",
+            "v": "Rename section",
+            "style": "titleLarge"
+          },
+          {
+            "t": "input",
+            "label": "Name",
+            "v": "Bridge"
+          },
+          {
+            "t": "text",
+            "v": "Same as",
+            "style": "labelMedium"
+          },
+          {
+            "t": "row",
+            "wrap": true,
+            "gap": 8,
+            "c": [
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "A",
+                    "bg": "section1",
+                    "color": "white"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Intro"
+                  }
+                ]
+              },
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "B",
+                    "bg": "section2",
+                    "color": "white"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Part B"
+                  }
+                ]
+              },
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "C",
+                    "bg": "section3",
+                    "color": "white"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Chorus"
+                  }
+                ]
+              },
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "D",
+                    "bg": "section4",
+                    "color": "white"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Part D"
+                  }
+                ]
+              },
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "E",
+                    "bg": "section5",
+                    "color": "charcoal"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Part E"
+                  }
+                ]
+              },
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "F",
+                    "bg": "section6",
+                    "color": "charcoal"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Bridge",
+                    "sel": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "t": "text",
+            "v": "Repeats share letter and colour everywhere.",
+            "style": "bodySmall",
+            "color": "textSecondary"
+          },
+          {
+            "t": "row",
+            "gap": 8,
+            "main": "max",
+            "c": [
+              {
+                "t": "button",
+                "v": "Cancel",
+                "kind": "secondary",
+                "w": 120
+              },
+              {
+                "t": "button",
+                "v": "Save",
+                "kind": "primary",
+                "w": 120
+              }
+            ]
+          }
+        ]
+      }
+    }
   ]
 }

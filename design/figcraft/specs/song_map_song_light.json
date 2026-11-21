@@ -1,5 +1,5 @@
 {
-  "name": "Song Map · Sections",
+  "name": "Song Map · Sections Light",
   "page": "Song Map",
   "mode": "light",
   "source": "lib/screens/practice_regions_screen.dart",
@@ -38,48 +38,48 @@
         },
         {
           "letter": "B",
-          "color": "section2",
-          "bars": 8
-        },
-        {
-          "letter": "C",
-          "color": "section3",
-          "bars": 12,
-          "state": "playing"
-        },
-        {
-          "letter": "D",
-          "color": "section4",
-          "bars": 16
-        },
-        {
-          "letter": "E",
           "color": "section5",
           "bars": 8
         },
         {
           "letter": "C",
+          "color": "section8",
+          "bars": 12,
+          "state": "playing"
+        },
+        {
+          "letter": "D",
           "color": "section3",
+          "bars": 16
+        },
+        {
+          "letter": "E",
+          "color": "section11",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section8",
           "bars": 12
         },
         {
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "bars": 16
         },
         {
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "bars": 12
         },
         {
           "letter": "F",
-          "color": "section6",
+          "color": "section7",
           "bars": 4
         },
         {
           "letter": "D",
-          "color": "section4",
+          "color": "section3",
           "bars": 21
         }
       ],
@@ -88,19 +88,22 @@
     {
       "t": "zoomwave",
       "title": "C · Chorus 1",
-      "color": "section3",
+      "color": "section8",
       "parts": [
         {
           "letter": "a",
-          "bars": 4
+          "bars": 4,
+          "color": "section8"
         },
         {
           "letter": "b",
-          "bars": 4
+          "bars": 4,
+          "color": "section8"
         },
         {
           "letter": "c",
-          "bars": 4
+          "bars": 4,
+          "color": "section8"
         }
       ],
       "startBar": 18,
@@ -148,7 +151,7 @@
           "letter": "B",
           "label": "Part B 1",
           "sub": "8 bars",
-          "color": "section2",
+          "color": "section5",
           "w": 194
         }
       ]
@@ -162,7 +165,7 @@
           "letter": "C",
           "label": "Chorus 1",
           "sub": "12 bars",
-          "color": "section3",
+          "color": "section8",
           "w": 194,
           "state": "playing",
           "progress": 0.4
@@ -172,7 +175,7 @@
           "letter": "D",
           "label": "Part D 1",
           "sub": "16 bars",
-          "color": "section4",
+          "color": "section3",
           "w": 194
         }
       ]
@@ -186,7 +189,7 @@
           "letter": "E",
           "label": "Part E 1",
           "sub": "8 bars",
-          "color": "section5",
+          "color": "section11",
           "w": 194
         },
         {
@@ -194,7 +197,7 @@
           "letter": "C",
           "label": "Chorus 2",
           "sub": "12 bars",
-          "color": "section3",
+          "color": "section8",
           "w": 194
         }
       ]
@@ -208,7 +211,7 @@
           "letter": "D",
           "label": "Part D 2",
           "sub": "16 bars",
-          "color": "section4",
+          "color": "section3",
           "w": 194
         },
         {
@@ -216,7 +219,7 @@
           "letter": "F",
           "label": "Bridge 1",
           "sub": "12 bars",
-          "color": "section6",
+          "color": "section7",
           "w": 194
         }
       ]
@@ -230,7 +233,7 @@
           "letter": "F",
           "label": "Bridge 2",
           "sub": "4 bars",
-          "color": "section6",
+          "color": "section7",
           "w": 194
         },
         {
@@ -238,7 +241,7 @@
           "letter": "D",
           "label": "Part D 3",
           "sub": "21 bars",
-          "color": "section4",
+          "color": "section3",
           "w": 194
         }
       ]
