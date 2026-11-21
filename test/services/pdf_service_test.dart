@@ -272,7 +272,7 @@ void main() {
           'originalBPM': 120,
           'ourKey': 'D',
           'ourBPM': 130,
-          'links': [],
+          'links': <dynamic>[],
           'notes': 'Test Notes',
           'tags': <String>['rock', 'classic'],
           'createdAt': '2024-01-01T00:00:00.000',

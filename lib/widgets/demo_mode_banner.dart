@@ -7,9 +7,10 @@ library;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/auth/auth_provider.dart';
-import '../../providers/permissions_provider.dart';
-import '../../theme/mono_pulse_theme.dart';
+
+import '../providers/auth/auth_provider.dart';
+import '../providers/permissions_provider.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// Banner that shows demo mode status at the top of screens.
 ///

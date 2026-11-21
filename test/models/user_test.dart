@@ -98,7 +98,7 @@ void main() {
       test('handles empty bandIds list', () {
         final json = <String, dynamic> {
           'uid': 'user-id-4',
-          'bandIds': [],
+          'bandIds': <String>[],
           'createdAt': testDate.toIso8601String(),
         };
 

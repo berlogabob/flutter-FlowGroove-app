@@ -7,7 +7,6 @@ import 'package:web/web.dart' as web;
 
 import 'backing_engine.dart';
 import 'backing_engine_factory.dart';
-import 'backing_engine_stub.dart' show StubBackingEngine;
 
 BackingEngine createBackingEngine({BackingWebHooks? hooks}) {
   final context = hooks?.context;

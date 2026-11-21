@@ -221,25 +221,8 @@ backup-production-hugo:
 	@mkdir -p $(BACKUP_DIR)
 	@echo "📦 Downloading current production files (excluding app/**)..."
 	@source ./scripts/load-deploy-env.sh && \
-		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; lcd $(BACKUP_DIR); mirror --exclude-glob app/** . .; bye"
+		lftp -c "set net:timeout 30; set net:max-retries 3; set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; lcd $(BACKUP_DIR); mirror --exclude-glob app/** . .; bye"
 	@echo "✅ Backup created at $(BACKUP_DIR)/ (app/ not included — Hugo deploy never touches it)"
-	@echo ""
-	@# Save latest backup path for auto-rollback
-	@echo "$(BACKUP_DIR)" > $(BACKUP_INFO_FILE)
-	@echo "💾 Latest backup: $(BACKUP_DIR)/"
-	@echo ""
-
-backup-production:
-	@echo ""
-	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║         Creating Production Backup                        ║"
-	@echo "╚═══════════════════════════════════════════════════════════╝"
-	@echo ""
-	@mkdir -p $(BACKUP_DIR)
-	@echo "📦 Downloading current production files..."
-	@source ./scripts/load-deploy-env.sh && \
-		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; lcd $(BACKUP_DIR); mirror . .; bye"
-	@echo "✅ Backup created at $(BACKUP_DIR)/"
 	@echo ""
 	@# Save latest backup path for auto-rollback
 	@echo "$(BACKUP_DIR)" > $(BACKUP_INFO_FILE)
@@ -255,11 +238,11 @@ ftp-upload-hugo:
 	@echo ""
 	@echo "📤 Uploading Hugo (site/public/) → / (root)... (app/** preserved)"
 	@source ./scripts/load-deploy-env.sh && \
-		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse --delete --exclude-glob .well-known/** --exclude-glob app/** site/public/ .; bye"
+		lftp -c "set net:timeout 30; set net:max-retries 3; set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse --delete --exclude-glob .well-known/** --exclude-glob app/** site/public/ .; bye"
 	@echo "📤 Uploading .well-known/ (Android App Links assetlinks.json) → /.well-known/ (merge, no delete)..."
 	@source ./scripts/load-deploy-env.sh && \
 		if [ -d site/public/.well-known ]; then \
-			lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p .well-known; mirror --reverse site/public/.well-known/ .well-known/; bye"; \
+			lftp -c "set net:timeout 30; set net:max-retries 3; set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p .well-known; mirror --reverse site/public/.well-known/ .well-known/; bye"; \
 		fi
 	@echo "✅ Hugo upload complete (Flutter /app/ left as-is)"
 	@echo ""
@@ -267,35 +250,8 @@ ftp-upload-hugo:
 ftp-upload-app-redirect:
 	@echo "📤 Uploading app redirect (deploy/app-redirect/) → FTP /app/ (merge, no delete)..."
 	@source ./scripts/load-deploy-env.sh && \
-		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p app; mirror --reverse deploy/app-redirect/ app/; bye"
+		lftp -c "set net:timeout 30; set net:max-retries 3; set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p app; mirror --reverse deploy/app-redirect/ app/; bye"
 	@echo "✅ App redirect upload complete"
-	@echo ""
-
-ftp-upload:
-	@echo ""
-	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║         Uploading to FTP (flowgroove.app)                 ║"
-	@echo "╚═══════════════════════════════════════════════════════════╝"
-	@echo ""
-	@echo "📤 Uploading Hugo (site/public/) → / (root)..."
-	@source ./scripts/load-deploy-env.sh && \
-		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse --delete --exclude-glob .well-known/** --exclude-glob app/** site/public/ .; bye"
-	@echo "📤 Uploading .well-known/ (Android App Links assetlinks.json) → /.well-known/ (merge, no delete)..."
-	@source ./scripts/load-deploy-env.sh && \
-		if [ -d site/public/.well-known ]; then \
-			lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p .well-known; mirror --reverse site/public/.well-known/ .well-known/; bye"; \
-		fi
-	@echo "📤 Uploading Flutter (build/web/) → /app/... (atomic: entrypoints last)"
-	@# Two passes so clients/service-worker never fetch a mismatched shell:
-	@#  1. everything EXCEPT the two activation files (uploads big main.dart.js +
-	@#     canvaskit while the OLD, coherent index.html/SW keep serving the old app);
-	@#  2. flutter_service_worker.js (its manifest now references files already present),
-	@#     then index.html last (flips the page to the new build). Window shrinks from the
-	@#     whole build to two small text files. No --delete: an old cached client may still
-	@#     need an old asset; stale hashed files are harmless cruft.
-	@source ./scripts/load-deploy-env.sh && \
-		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p app; cd app; mirror --reverse --exclude-glob flutter_service_worker.js --exclude-glob index.html build/web/ .; put build/web/flutter_service_worker.js; put build/web/index.html; bye"
-	@echo "✅ Upload complete"
 	@echo ""
 
 # Health check after deployment (with auto-rollback on failure)
@@ -314,7 +270,7 @@ auto-rollback:
 		if [ -d "$$BACKUP_DIR" ]; then \
 			echo "📦 Restoring from: $$BACKUP_DIR"; \
 			source ./scripts/load-deploy-env.sh && \
-			lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; lcd $$BACKUP_DIR; mirror --reverse --delete . .; bye"; \
+			lftp -c "set net:timeout 30; set net:max-retries 3; set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; lcd $$BACKUP_DIR; mirror --reverse --delete --exclude-glob app/** . .; bye"; \
 			echo "✅ Auto-rollback complete!"; \
 			echo "🌐 Production restored to previous version"; \
 		else \
@@ -692,7 +648,7 @@ rollback-production:
 			if [ -d "$$BACKUP_DIR" ]; then \
 				echo "📤 Restoring from $$BACKUP_DIR..."; \
 				source ./scripts/load-deploy-env.sh && \
-				lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse $$BACKUP_DIR/ .; bye"; \
+				lftp -c "set net:timeout 30; set net:max-retries 3; set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse $$BACKUP_DIR/ .; bye"; \
 				echo "✅ Rollback complete!"; \
 				echo "🌐 Production restored to previous version"; \
 			else \
@@ -707,7 +663,7 @@ rollback-production:
 			if [ -d "$$BACKUP_DIR" ]; then \
 				echo "📤 Restoring from $$BACKUP_DIR..."; \
 				source ./scripts/load-deploy-env.sh && \
-				lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse $$BACKUP_DIR/ .; bye"; \
+				lftp -c "set net:timeout 30; set net:max-retries 3; set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse $$BACKUP_DIR/ .; bye"; \
 				echo "✅ Rollback complete!"; \
 			else \
 				echo "❌ ERROR: Backup directory not found: $$BACKUP_DIR"; \
@@ -722,7 +678,7 @@ rollback-production:
 		if [ -d "$$BACKUP_DIR" ]; then \
 			echo "📤 Restoring from $$BACKUP_DIR..."; \
 			source ./scripts/load-deploy-env.sh && \
-			lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse $$BACKUP_DIR/ .; bye"; \
+			lftp -c "set net:timeout 30; set net:max-retries 3; set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse $$BACKUP_DIR/ .; bye"; \
 			echo "✅ Rollback complete!"; \
 		else \
 			echo "❌ ERROR: Backup directory not found: $$BACKUP_DIR"; \

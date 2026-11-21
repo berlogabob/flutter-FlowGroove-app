@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../theme/mono_pulse_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 import '../services/connectivity_service.dart';
 import 'app_badge.dart';
 

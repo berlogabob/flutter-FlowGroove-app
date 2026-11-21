@@ -132,7 +132,7 @@ class ActivityChecks(unittest.TestCase):
             registry.write_text(json.dumps(self.data))
             for makefile, goals in [('Makefile', ['release', 'release-all', 'bump-version', 'deploy-pages',
                                                  'deploy-stable', 'deploy-app-hosting', 'deploy-functions',
-                                                 'deploy-rules', 'ftp-upload']),
+                                                 'deploy-rules', 'ftp-upload-hugo']),
                                     ('Makefile.hugo', ['deploy-all'])]:
                 for goal in goals:
                     with self.subTest(makefile=makefile, goal=goal):

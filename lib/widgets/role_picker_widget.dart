@@ -12,8 +12,8 @@ import 'dart:math';
 
 import 'package:material_ui/material_ui.dart';
 
-import '../../theme/mono_pulse_theme.dart';
-import '../../utils/music_role_icon.dart';
+import '../theme/mono_pulse_theme.dart';
+import '../utils/music_role_icon.dart';
 import 'custom_button.dart';
 
 /// Modal dialog for picking music roles.

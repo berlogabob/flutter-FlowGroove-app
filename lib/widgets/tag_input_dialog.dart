@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
-import '../../theme/mono_pulse_theme.dart';
+
+import '../theme/mono_pulse_theme.dart';
 import 'custom_button.dart';
 
 class TagInputDialog extends StatefulWidget {

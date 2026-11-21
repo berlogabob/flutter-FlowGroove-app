@@ -2,19 +2,19 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../models/band.dart';
-import '../../../models/song.dart';
-import '../../../providers/data/data_providers.dart';
-import '../../../providers/permissions_provider.dart';
-import '../../../theme/mono_pulse_theme.dart';
-import '../../../widgets/app_menu_sheet.dart';
-import '../../../widgets/confirmation_dialog.dart';
-import '../../../widgets/custom_text_field.dart';
-import '../../../widgets/empty_state.dart';
-import '../../../widgets/menu_items_scope.dart';
-import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
-import '../../../widgets/unified_item/song_card_actions.dart';
-import '../../../widgets/unified_item/unified_item_list.dart';
+import '../../models/band.dart';
+import '../../models/song.dart';
+import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
+import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/app_menu_sheet.dart';
+import '../../widgets/confirmation_dialog.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/menu_items_scope.dart';
+import '../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../widgets/unified_item/song_card_actions.dart';
+import '../../widgets/unified_item/unified_item_list.dart';
 
 /// Screen for displaying a band's shared songs.
 ///

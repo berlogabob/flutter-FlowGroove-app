@@ -8,7 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../theme/mono_pulse_theme.dart';
+import '../../theme/mono_pulse_theme.dart';
 import '../../models/metronome_tempo_range.dart';
 import '../../providers/data/metronome_provider.dart';
 import 'bpm_input_overlay.dart';

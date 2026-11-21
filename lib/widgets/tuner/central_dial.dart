@@ -1,7 +1,9 @@
 import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/music_mode.dart';
 import '../../providers/tuner_provider.dart';
 import '../../services/audio/pitch_analysis.dart';
@@ -19,8 +21,8 @@ import 'tick_marks.dart';
 abstract final class TunerDialGeometry {
   static const degreesPerNote = 30.0;
 
-  /// Absolute placement angle (radians) of chromatic index 0-11.
-  /// MUST match note_scale_ruler.dart: -90° + (index * 30°).
+  /// Absolute placement angle (radians) of chromatic index 0-11:
+  /// -90° + (index * 30°).
   static double angleForNoteIndex(int noteIndex) {
     return (-math.pi / 2) + (noteIndex * degreesPerNote) * (math.pi / 180);
   }

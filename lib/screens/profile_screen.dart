@@ -13,17 +13,17 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import '../../providers/auth/auth_provider.dart';
-import '../../providers/permissions_provider.dart';
-import '../../services/account_function_service.dart';
-import '../../services/avatar_function_service.dart';
-import '../../services/storage_service.dart';
-import '../../services/telegram_service.dart';
-import '../../theme/mono_pulse_theme.dart';
-import '../../utils/music_role_icon.dart';
-import '../../utils/responsive_breakpoints.dart';
-import '../../widgets/role_picker_widget.dart';
-import '../../widgets/standard_screen_scaffold.dart';
+import '../providers/auth/auth_provider.dart';
+import '../providers/permissions_provider.dart';
+import '../services/account_function_service.dart';
+import '../services/avatar_function_service.dart';
+import '../services/storage_service.dart';
+import '../services/telegram_service.dart';
+import '../theme/mono_pulse_theme.dart';
+import '../utils/music_role_icon.dart';
+import '../utils/responsive_breakpoints.dart';
+import '../widgets/role_picker_widget.dart';
+import '../widgets/standard_screen_scaffold.dart';
 import '../utils/snackbar.dart';
 import '../widgets/custom_button.dart';
 

@@ -234,7 +234,7 @@ async function fromDeezer(title, artist, opts) {
 
 // ------------------------------------------------------------- lyrics.ovh
 
-/** Mirror of lib/utils/lyrics_sections.dart lyricsToSections(). */
+/** Lyric stanzas -> Verse N / Chorus sections. scripts/append_canonical_lyrics.js mirrors it. */
 function lyricsToSections(lyrics) {
   const stanzas = String(lyrics || "")
     .replace(/\r\n/g, "\n")

@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../../models/section.dart';
-import '../../../../../theme/mono_pulse_theme.dart';
-import '../../../../../utils/snackbar.dart';
+import '../../../../models/section.dart';
+import '../../../../theme/mono_pulse_theme.dart';
+import '../../../../utils/snackbar.dart';
 import '../../../../widgets/custom_button.dart';
 import 'widgets/edit_section_dialog.dart';
 import 'widgets/pill_view.dart';
@@ -399,9 +399,8 @@ class _SongConstructorState extends State<SongConstructor> {
             padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
             child: Text(
               'No sections yet',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: context.mp.textSecondary,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: context.mp.textSecondary),
             ),
           ),
         ],

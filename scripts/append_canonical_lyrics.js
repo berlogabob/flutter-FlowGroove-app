@@ -7,7 +7,7 @@
  * APPEND-ONLY: existing chord sections (Грув/Припев...) and song `notes` are read
  * and written back byte-for-byte; lyric stanzas are appended AFTER them as new
  * `Verse N` / `Chorus` sections. Stanza→label logic mirrors
- * lib/utils/lyrics_sections.dart. Idempotent: a song that already has an English
+ * functions/src/metadata/resolver.js. Idempotent: a song that already has an English
  * lyric section (Verse/Chorus/Bridge/Lyrics) is skipped.
  *
  * Usage (creds via gcloud ADC or GOOGLE_APPLICATION_CREDENTIALS):
@@ -38,7 +38,7 @@ const db = admin.firestore();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Mirror of lib/utils/lyrics_sections.dart lyricsToSections().
+// Mirror of lyricsToSections() in functions/src/metadata/resolver.js.
 function lyricsToSections(lyrics) {
   const stanzas = lyrics
     .split(/\n[ \t]*\n/)
