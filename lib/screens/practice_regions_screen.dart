@@ -48,6 +48,7 @@ import 'practice_regions/song_map/song_map_edit.dart' as song_map_edit;
 import 'practice_regions/song_map/song_map_minimap.dart';
 import 'practice_regions/song_map/song_map_pads.dart';
 import 'practice_regions/song_map/song_map_timeline.dart';
+import 'practice_regions/song_map/song_map_transport.dart';
 import 'practice_regions/song_map/song_map_view.dart';
 import 'practice_setup_wizard.dart';
 
@@ -140,6 +141,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   late bool _snap;
   double _speed = 1;
   int _preRoll = 0;
+  bool? _loopEnabled;
   (int, int)? _selection;
   int _clipStart = 0;
   int? _clipEnd;
@@ -186,6 +188,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   // Click & drums mode: the song plays as a backing stem inside the click
   // engine (sample-locked, 100% speed) instead of through just_audio.
   bool _sync = false;
+  bool _withDrums = true;
   bool _preparingSync = false;
   late final MetronomeNotifier _metronome;
 
@@ -540,7 +543,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     while (_player.sequence.length > 1) {
       await _player.removeAudioSourceAt(_player.sequence.length - 1);
     }
-    await _player.setLoopMode(LoopMode.one);
+    await _player.setLoopMode(_audioLoopMode);
     if (mounted) setState(() => _pendingLoop = null);
   }
 
@@ -557,7 +560,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       _position = Duration.zero;
     });
     _loopUpdate = _loopUpdate.then((_) async {
-      await _player.setLoopMode(LoopMode.one);
+      await _player.setLoopMode(_audioLoopMode);
       await _player.removeAudioSourceAt(0);
     });
   }
@@ -590,7 +593,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       if (selection == null) {
         await _wholeSongSource();
         if (!mounted) return;
-        await _player.setLoopMode(LoopMode.off);
+        await _player.setLoopMode(_audioLoopMode);
         if (!mounted) return;
         setState(() {
           _clipStart = 0;
@@ -607,7 +610,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         });
         await _loopSource(start, end);
         if (!mounted) return;
-        await _player.setLoopMode(LoopMode.one);
+        await _player.setLoopMode(_audioLoopMode);
         if (!mounted) return;
       }
       await _player.seek(selection == null ? resume : Duration.zero);
@@ -645,6 +648,29 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     _flushSession();
     setState(() => _selection = selection);
     if (_sync) _syncLaunch(startIfStopped: false);
+    unawaited(_applyLoop());
+  }
+
+  LoopMode get _audioLoopMode =>
+      (_loopEnabled ?? (_selection != null)) ? LoopMode.one : LoopMode.off;
+
+  PlayMode get _syncLoopMode =>
+      _loopEnabled == false ? PlayMode.once : PlayMode.loop;
+
+  void _setLoopEnabled(bool enabled) {
+    setState(() => _loopEnabled = enabled);
+    if (_sync) {
+      ref.read(backingTransportProvider.notifier).setMode(_syncLoopMode);
+    }
+    _loopUpdate = _loopUpdate.then((_) async {
+      if (mounted && _pendingLoop == null) {
+        await _player.setLoopMode(_audioLoopMode);
+      }
+    });
+  }
+
+  void _setPreRoll(int value) {
+    setState(() => _preRoll = value);
     unawaited(_applyLoop());
   }
 
@@ -694,13 +720,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   void _syncLaunch({bool startIfStopped = true}) {
     final transport = ref.read(backingTransportProvider.notifier)
       ..setSpans(_syncSpans())
-      ..setMode(PlayMode.loop);
+      ..setMode(_syncLoopMode);
     if (ref.read(metronomeProvider).isPlaying || startIfStopped) {
       unawaited(transport.launch(_syncTarget));
     }
   }
 
-  Future<void> _setSync(bool on) async {
+  Future<void> _setSync(bool on, {bool withDrums = true}) async {
     final grid = _entry.grid;
     if (!on || grid == null) {
       _flushSession();
@@ -708,6 +734,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       setState(() => _sync = false);
       return;
     }
+    if (_preparingSync) return;
     setState(() => _preparingSync = true);
     try {
       await _player.pause();
@@ -735,15 +762,17 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         );
         return;
       }
-      final drums = await _songDrums();
+      final drums = withDrums ? await _songDrums() : null;
+      if (!mounted || _entry.grid != grid) return;
       await transport.attachAudio(
         audio: alignToDownbeat(pcm, _syncGrid.offsetMs, rate),
         spans: _syncSpans(),
         drums: drums,
       );
-      if (!mounted) return;
+      if (!mounted || _entry.grid != grid) return;
       setState(() {
         _sync = true;
+        _withDrums = withDrums;
       });
     } catch (e) {
       if (mounted) {
@@ -804,6 +833,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (_playing) {
       await _player.pause();
     } else {
+      if (_loopEnabled != null && _player.loopMode != _audioLoopMode) {
+        await _loopUpdate;
+        if (!mounted) return;
+        if (_pendingLoop == null) await _player.setLoopMode(_audioLoopMode);
+        if (!mounted) return;
+      }
       if (_player.processingState == ProcessingState.completed) {
         await _player.seek(Duration.zero);
       }
@@ -1841,8 +1876,72 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         : _positionMs;
     final editing = canEdit && _editing;
     final analyzeBanner = canEdit ? _analyzeBanner() : null;
+    final canPlay = _loaded && _durationMs > 0 && !_busy && !_preparingSync;
+    final canClick = canSyncToClick(grid) && canPlay;
+    final speedPercent = (_speed * 100).round();
     return Scaffold(
       backgroundColor: context.mp.black,
+      bottomNavigationBar: SongMapTransport(
+        playing: playing,
+        playLabel: playing
+            ? 'Pause'
+            : _speed == 1
+            ? 'Play'
+            : 'Play $speedPercent%',
+        speedPercent: speedPercent,
+        loop: _loopEnabled ?? (_sync || selection != null),
+        countIn: _sync
+            ? ref.watch(metronomeProvider.select((m) => m.countInBars)) > 0
+            : _preRoll > 0,
+        click: _sync && !_withDrums,
+        clickAndDrums: _sync && _withDrums,
+        onPlay: canPlay ? _togglePlay : null,
+        onStop: canPlay ? _togglePlay : null,
+        onPlayLongPress: _playbackOptions,
+        onSpeedTap: _busy ? null : _playbackOptions,
+        onLoopChanged: canPlay ? _setLoopEnabled : null,
+        onCountInChanged: _busy
+            ? null
+            : (value) {
+                if (_sync) {
+                  _metronome.setCountInBars(value ? 1 : 0);
+                } else {
+                  _setPreRoll(value ? 1 : 0);
+                }
+              },
+        onClickChanged: canClick
+            ? (value) => _setSync(value, withDrums: false)
+            : null,
+        onClickAndDrumsChanged: canClick ? _setSync : null,
+        clickUnavailableReason: _clickUnavailableReason(grid),
+        leading: canEdit
+            ? _barButton(
+                key: const ValueKey('shift'),
+                icon: Icons.keyboard_capslock,
+                label: 'Shift',
+                active: editing,
+                onPressed: () => setState(() {
+                  _editing = !_editing;
+                  _focus = null;
+                }),
+              )
+            : null,
+        trailing: editing
+            ? _barButton(
+                key: const ValueKey('add-marker'),
+                icon: Icons.add_location_alt_outlined,
+                label: 'Add marker',
+                onPressed: !_busy && _loaded && _durationMs >= 2 * minRegionMs
+                    ? _addMarker
+                    : null,
+              )
+            : _barButton(
+                key: const ValueKey('add-note'),
+                icon: Icons.add_comment_outlined,
+                label: 'Note',
+                onPressed: _loaded && canEdit ? _addMarkerAtPlayhead : null,
+              ),
+      ),
       appBar: AppBar(
         title: canEdit
             ? TextField(
@@ -2090,67 +2189,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   ],
                 ),
               ),
-              // MPC-style bar: Shift | Play | spare, Play dead centre.
-              Padding(
-                padding: const EdgeInsets.all(MonoPulseSpacing.sm),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: canEdit
-                          ? _barButton(
-                              key: const ValueKey('shift'),
-                              icon: Icons.keyboard_capslock,
-                              label: 'Shift',
-                              active: editing,
-                              onPressed: () => setState(() {
-                                _editing = !_editing;
-                                _focus = null;
-                              }),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                    const SizedBox(width: MonoPulseSpacing.sm),
-                    Expanded(
-                      child: _barButton(
-                        onLongPress: _playbackOptions,
-                        key: const ValueKey('play'),
-                        icon: playing ? Icons.pause : Icons.play_arrow,
-                        label: playing
-                            ? 'Pause'
-                            : _speed == 1
-                            ? 'Play'
-                            : 'Play ${(_speed * 100).round()}%',
-                        active: true,
-                        tooltip: 'Hold for speed, pre-roll, drums',
-                        onPressed: _loaded && _durationMs > 0 && !_busy
-                            ? _togglePlay
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: MonoPulseSpacing.sm),
-                    Expanded(
-                      child: editing
-                          ? _barButton(
-                              key: const ValueKey('add-marker'),
-                              icon: Icons.add_location_alt_outlined,
-                              label: 'Add marker',
-                              onPressed:
-                                  _loaded && _durationMs >= 2 * minRegionMs
-                                  ? _addMarker
-                                  : null,
-                            )
-                          : _barButton(
-                              key: const ValueKey('add-note'),
-                              icon: Icons.add_comment_outlined,
-                              label: 'Note',
-                              onPressed: _loaded && canEdit
-                                  ? _addMarkerAtPlayhead
-                                  : null,
-                            ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
@@ -2229,17 +2267,14 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     required IconData icon,
     required String label,
     required VoidCallback? onPressed,
-    VoidCallback? onLongPress,
     bool active = false,
-    String? tooltip,
   }) {
-    final button = SizedBox(
+    return SizedBox(
       height: 64,
       child: active
           ? FilledButton(
               key: key,
               onPressed: onPressed,
-              onLongPress: onLongPress,
               style: FilledButton.styleFrom(
                 padding: EdgeInsets.zero,
                 backgroundColor: MonoPulseColors.accentOrange,
@@ -2250,12 +2285,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           : OutlinedButton(
               key: key,
               onPressed: onPressed,
-              onLongPress: onLongPress,
               style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
               child: _slot(icon, label),
             ),
     );
-    return tooltip == null ? button : Tooltip(message: tooltip, child: button);
   }
 
   Widget _slot(IconData icon, String label) => Column(
@@ -2271,8 +2304,17 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     ],
   );
 
-  /// Hold Play (or ⋮): speed, pre-roll and click & drums in one sheet.
+  String? _clickUnavailableReason(AudioGrid? grid) => !canSyncToClick(grid)
+      ? 'Needs a whole-number BPM grid'
+      : !_loaded
+      ? 'Loading the take…'
+      : _preparingSync
+      ? 'Preparing click & drums…'
+      : null;
+
+  /// Speed, pre-roll and click & drums in one sheet.
   Future<void> _playbackOptions() async {
+    if (_busy) return;
     final grid = _entry.grid;
     await showModalBottomSheet<void>(
       context: context,
@@ -2316,9 +2358,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                         label: Text(grid == null ? '$value s' : '$value bars'),
                         selected: _preRoll == value,
                         onSelected: (_) {
-                          setState(() => _preRoll = value);
+                          _setPreRoll(value);
                           sheetSetState(() {});
-                          unawaited(_applyLoop());
                         },
                       ),
                   ],
@@ -2326,14 +2367,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Click & drums'),
-                  subtitle: !canSyncToClick(grid)
-                      ? const Text('Needs a whole-number BPM grid')
-                      : !_loaded
-                      ? const Text('Loading the take…')
-                      : _preparingSync
-                      ? const Text('Preparing click & drums…')
-                      : null,
-                  value: _sync,
+                  subtitle: switch (_clickUnavailableReason(grid)) {
+                    final reason? => Text(reason),
+                    null => null,
+                  },
+                  value: _sync && _withDrums,
                   onChanged: canSyncToClick(grid) && _loaded && !_preparingSync
                       ? (value) async {
                           // _setSync flags _preparingSync before its first
@@ -2341,7 +2379,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                           final pending = _setSync(value);
                           sheetSetState(() {});
                           await pending;
-                          sheetSetState(() {});
+                          if (sheetContext.mounted) sheetSetState(() {});
                         }
                       : null,
                 ),
