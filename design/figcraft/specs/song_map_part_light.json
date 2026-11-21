@@ -1,14 +1,14 @@
 {
-  "name": "Song Map Part Light",
+  "name": "Song Map \u00b7 Rename Light",
   "page": "Song Map",
   "mode": "light",
   "source": "lib/screens/practice_regions_screen.dart",
-  "slot": 5,
+  "slot": 4,
   "pad": [
+    8,
+    8,
     12,
-    16,
-    12,
-    16
+    8
   ],
   "gap": 8,
   "top": [
@@ -18,43 +18,92 @@
       "actions": [
         {
           "t": "chip",
-          "v": "170 BPM ✓"
+          "v": "170 BPM \u2713"
         },
         {
           "t": "iconbtn",
-          "v": "edit"
+          "v": "more_vert"
         }
       ]
     }
   ],
   "body": [
     {
-      "t": "breadcrumb",
-      "items": [
-        "Song",
-        "Chorus 1",
-        "b"
-      ]
-    },
-    {
-      "t": "minimap",
+      "t": "overview",
       "sections": [
         {
+          "letter": "A",
           "color": "section1",
-          "w": 58
+          "bars": 9
         },
         {
+          "letter": "B",
+          "color": "section2",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section3",
+          "bars": 12,
+          "state": "selected"
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 16
+        },
+        {
+          "letter": "E",
           "color": "section5",
-          "w": 180
+          "bars": 8
         },
         {
-          "color": "section7",
-          "w": 130
+          "letter": "C",
+          "color": "section3",
+          "bars": 12
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 16
+        },
+        {
+          "letter": "F",
+          "color": "section6",
+          "bars": 12
+        },
+        {
+          "letter": "F",
+          "color": "section6",
+          "bars": 4
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 21,
+          "state": "playing"
         }
       ],
-      "viewport": [
-        142,
-        60
+      "playhead": 0.31
+    },
+    {
+      "t": "zoomwave",
+      "title": "C \u00b7 Chorus 1",
+      "color": "section3",
+      "startBar": 18,
+      "parts": [
+        {
+          "letter": "a",
+          "bars": 4
+        },
+        {
+          "letter": "b",
+          "bars": 4
+        },
+        {
+          "letter": "c",
+          "bars": 4
+        }
       ]
     },
     {
@@ -64,89 +113,21 @@
       "c": [
         {
           "t": "text",
-          "v": "PART b",
-          "style": "labelSmall",
-          "color": "textSecondary"
+          "v": "Sections",
+          "style": "titleMedium",
+          "w": "fill"
         },
         {
-          "t": "text",
-          "v": "Bars 22–25 · 4 bars",
-          "style": "labelMedium",
-          "color": "textPrimary"
-        }
-      ]
-    },
-    {
-      "t": "beatgrid",
-      "beats": 4,
-      "bars": 4
-    },
-    {
-      "t": "row",
-      "gap": 8,
-      "cross": "center",
-      "main": "spaceBetween",
-      "c": [
-        {
-          "t": "text",
-          "v": "Boundary nudge",
-          "style": "labelMedium",
-          "color": "textPrimary"
+          "t": "key",
+          "v": "Shift"
         },
         {
-          "t": "row",
-          "gap": 4,
-          "cross": "center",
-          "c": [
-            {
-              "t": "iconbtn",
-              "v": "arrow_left",
-              "size": 32
-            },
-            {
-              "t": "text",
-              "v": "beat",
-              "style": "labelSmall",
-              "color": "textSecondary"
-            },
-            {
-              "t": "iconbtn",
-              "v": "arrow_right",
-              "size": 32
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "t": "button",
-      "v": "Listen across",
-      "kind": "secondary",
-      "icon": "headphones"
-    },
-    {
-      "t": "section",
-      "v": "Parts",
-      "action": "Range"
-    },
-    {
-      "t": "row",
-      "gap": 8,
-      "c": [
-        {
-          "t": "pad",
-          "label": "Part a",
-          "sub": "4 bars · Bars 18–21",
-          "color": "section5",
-          "w": 186
+          "t": "key",
+          "v": "Chop"
         },
         {
-          "t": "pad",
-          "label": "Part b",
-          "sub": "4 bars · Bars 22–25",
-          "color": "section5",
-          "state": "selected",
-          "w": 186
+          "t": "key",
+          "v": "Range"
         }
       ]
     },
@@ -156,10 +137,63 @@
       "c": [
         {
           "t": "pad",
-          "label": "Part a2",
-          "sub": "4 bars · Bars 26–29",
+          "label": "Intro",
+          "sub": "9 bars",
+          "letter": "A",
+          "color": "section1",
+          "w": 194
+        },
+        {
+          "t": "pad",
+          "label": "Part B",
+          "sub": "8 bars",
+          "letter": "B",
+          "color": "section2",
+          "w": 194
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Chorus",
+          "sub": "12 bars",
+          "letter": "C",
+          "color": "section3",
+          "w": 194
+        },
+        {
+          "t": "pad",
+          "label": "Part D",
+          "sub": "16 bars",
+          "letter": "D",
+          "color": "section4",
+          "w": 194
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part E",
+          "sub": "8 bars",
+          "letter": "E",
           "color": "section5",
-          "w": 186
+          "w": 194
+        },
+        {
+          "t": "pad",
+          "label": "Bridge",
+          "sub": "12 bars",
+          "letter": "F",
+          "color": "section6",
+          "w": 194
         }
       ]
     }
@@ -167,9 +201,186 @@
   "bottom": [
     {
       "t": "transport",
-      "speed": 100,
-      "loop": true,
-      "click": true
+      "speed": 100
+    }
+  ],
+  "overlay": [
+    {
+      "x": 0,
+      "y": 28,
+      "node": {
+        "t": "box",
+        "w": 412,
+        "h": 887,
+        "bg": "#00000099"
+      }
+    },
+    {
+      "x": 0,
+      "y": 500,
+      "node": {
+        "t": "sheet",
+        "name": "Rename section sheet",
+        "gap": 12,
+        "pad": [
+          12,
+          16,
+          24,
+          16
+        ],
+        "c": [
+          {
+            "t": "text",
+            "v": "Rename section",
+            "style": "titleLarge"
+          },
+          {
+            "t": "input",
+            "label": "Name",
+            "v": "Bridge"
+          },
+          {
+            "t": "text",
+            "v": "Same as",
+            "style": "labelMedium"
+          },
+          {
+            "t": "row",
+            "wrap": true,
+            "gap": 8,
+            "c": [
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "A",
+                    "bg": "section1",
+                    "color": "white"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Intro"
+                  }
+                ]
+              },
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "B",
+                    "bg": "section2",
+                    "color": "white"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Part B"
+                  }
+                ]
+              },
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "C",
+                    "bg": "section3",
+                    "color": "white"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Chorus"
+                  }
+                ]
+              },
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "D",
+                    "bg": "section4",
+                    "color": "white"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Part D"
+                  }
+                ]
+              },
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "E",
+                    "bg": "section5",
+                    "color": "charcoal"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Part E"
+                  }
+                ]
+              },
+              {
+                "t": "row",
+                "cross": "center",
+                "gap": 4,
+                "c": [
+                  {
+                    "t": "badge",
+                    "v": "F",
+                    "bg": "section6",
+                    "color": "charcoal"
+                  },
+                  {
+                    "t": "chip",
+                    "v": "Bridge",
+                    "sel": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "t": "text",
+            "v": "Repeats share letter and colour everywhere.",
+            "style": "bodySmall",
+            "color": "textSecondary"
+          },
+          {
+            "t": "row",
+            "gap": 8,
+            "main": "max",
+            "c": [
+              {
+                "t": "button",
+                "v": "Cancel",
+                "kind": "secondary",
+                "w": 120
+              },
+              {
+                "t": "button",
+                "v": "Save",
+                "kind": "primary",
+                "w": 120
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }
