@@ -33,6 +33,7 @@ import 'router/app_router.dart';
 import 'services/analytics_service.dart';
 import 'services/metronome_preferences.dart';
 import 'theme/mono_pulse_theme.dart';
+import 'utils/adaptive_text_scale.dart';
 import 'utils/responsive_breakpoints.dart';
 import 'utils/snackbar.dart';
 import 'widgets/config_error_widget.dart';
@@ -344,10 +345,10 @@ class FlowGrooveApp extends ConsumerWidget {
       builder: (context, child) {
         // Handle loading state
         // Note: child can be null during initial route resolution
-        return userAsync.when(
+        final app = userAsync.when(
           data: (user) {
             debugPrint('🟢 Auth state: DATA - user=${user?.email ?? "NULL"}');
-            return _withDesktopWiki(context, child ?? const SizedBox.shrink());
+            return _withDesktopWiki(child ?? const SizedBox.shrink());
           },
           loading: () {
             debugPrint('🟡 Auth state: LOADING');
@@ -356,9 +357,10 @@ class FlowGrooveApp extends ConsumerWidget {
           error: (error, stack) {
             debugPrint('🔴 Auth state: ERROR - $error');
             debugPrint('Stack: $stack');
-            return _withDesktopWiki(context, child ?? const SizedBox.shrink());
+            return _withDesktopWiki(child ?? const SizedBox.shrink());
           },
         );
+        return AdaptiveTextScale(child: app);
       },
     );
   }
@@ -367,7 +369,7 @@ class FlowGrooveApp extends ConsumerWidget {
 /// On desktop, render the app in a fixed 480px phone-width column with the
 /// wiki panel on the right. `app` is the root navigator (the builder's
 /// `child`), so all its dialogs/menus/overlays stay inside the left column.
-Widget _withDesktopWiki(BuildContext context, Widget app) {
+Widget _withDesktopWiki(Widget app) {
   return LayoutBuilder(
     builder: (context, constraints) {
       if (getBreakpoint(constraints.maxWidth) != ScreenBreakpoint.desktop) {

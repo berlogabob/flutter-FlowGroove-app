@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../theme/mono_pulse_theme.dart';
 import '../utils/responsive_breakpoints.dart';
 
@@ -69,7 +70,7 @@ class QuickActionButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.md,
-            vertical: MonoPulseSpacing.md,
+            vertical: MonoPulseSpacing.xs,
           ),
           decoration: BoxDecoration(
             color: context.mp.surfaceRaised,
@@ -97,7 +98,7 @@ class QuickActionButton extends StatelessWidget {
                     fontSize: fontSize,
                     height: 1.2,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

@@ -845,23 +845,30 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
           ),
           child: Row(
             children: [
-              const Text(
-                'Filters:',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(width: 8),
-              OutlinedButton.icon(
-                onPressed: _showFilterOptions,
-                icon: const Icon(Icons.filter_list, size: 18),
-                label: const Text('Key / BPM'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: MonoPulseSpacing.md,
-                    vertical: MonoPulseSpacing.sm,
-                  ),
+              Expanded(
+                child: Wrap(
+                  spacing: MonoPulseSpacing.sm,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    const Text(
+                      'Filters:',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: _showFilterOptions,
+                      icon: const Icon(Icons.filter_list, size: 18),
+                      label: const Text('Key / BPM'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: MonoPulseSpacing.md,
+                          vertical: MonoPulseSpacing.sm,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: MonoPulseSpacing.sm),
               Text(
                 '${filteredSongs.length} ${filteredSongs.length == 1 ? 'song' : 'songs'}',
                 style: MonoPulseTypography.bodySmall.copyWith(

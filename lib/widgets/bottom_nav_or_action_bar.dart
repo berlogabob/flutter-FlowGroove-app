@@ -276,7 +276,7 @@ class NavTab extends StatelessWidget {
                     horizontal: MonoPulseSpacing.sm,
                     vertical: MonoPulseSpacing.xxs,
                   ),
-                  child: label,
+                  child: FittedBox(fit: BoxFit.scaleDown, child: label),
                 ),
               ),
             ],
