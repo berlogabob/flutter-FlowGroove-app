@@ -14,6 +14,7 @@ import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/repositories/metronome_session_repository.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart';
+import 'package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
@@ -214,9 +215,9 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
       const Stream.empty();
 }
 
-Int16List _clickTrack() {
+Int16List _clickTrack({int seconds = 20}) {
   const sampleRate = 22050;
-  final pcm = Int16List(sampleRate * 20);
+  final pcm = Int16List(sampleRate * seconds);
   var beat = 0;
   for (
     var t = sampleRate * 300 ~/ 1000;
@@ -321,6 +322,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text(label));
     await settleAudio(tester);
+  }
+
+  Future<void> runAnalysis(WidgetTester tester) async {
+    await tester.tap(find.text('Analyze'));
+    for (var i = 0; i < 20; i++) {
+      await settleAudio(tester);
+      if (find.text('Analyzing song…').evaluate().isEmpty) return;
+    }
   }
 
   Future<void> selectRun(WidgetTester tester) async {
@@ -571,92 +580,144 @@ void main() {
     expect(find.byKey(const ValueKey('shift')).hitTestable(), findsOneWidget);
   });
 
-  testWidgets('empty practice offers section setup to editors', (tester) async {
+  testWidgets('empty practice offers Analyze song to editors', (tester) async {
     final previousDecode = PracticeRegionsScreen.decodePcm;
     PracticeRegionsScreen.decodePcm = (
       bytes, {
       required sampleRate,
       required durationMs,
-    }) async => null;
+    }) async => _clickTrack();
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry(regions: const []));
     expect(find.text('No sections yet'), findsOneWidget);
-    await tester.tap(find.text('Set up sections'));
+    await tester.tap(find.text('Analyze song'));
     await tester.pumpAndSettle();
-    expect(find.text('Set up for practice'), findsOneWidget);
+    expect(find.widgetWithText(MaterialBanner, 'Analyze song'), findsOneWidget);
+    await runAnalysis(tester);
+    expect(
+      find.textContaining('sections found · check, then Done'),
+      findsOneWidget,
+    );
+    expect(find.byType(SongMapTimeline), findsOneWidget);
+    expect(repo.saved, isEmpty);
+    await tester.tap(find.text('Done'));
+    await settleAudio(tester);
+    expect(repo.saved.single.regions, isNotEmpty);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await settleAudio(tester);
+    await pump(tester, _entry(regions: const []), demo: true);
+    expect(find.text('Analyze song'), findsNothing);
   });
 
-  testWidgets(
-    'setup auto-opens once per entry and can still be opened manually',
-    (tester) async {
-      PracticeRegionsScreen.autoOpenSetup = true;
-      _FakeAudioPlayer.sourceDuration = const Duration(seconds: 60);
-      final previousDecode = PracticeRegionsScreen.decodePcm;
-      PracticeRegionsScreen.decodePcm = (
-        bytes, {
-        required sampleRate,
-        required durationMs,
-      }) async => null;
-      addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
-      await pump(tester, _entry(regions: const []));
-      expect(find.text('Set up for practice'), findsOneWidget);
-      await tester.tap(find.text('Skip'));
-      await settleAudio(tester);
-      expect(find.text('Set up for practice'), findsNothing);
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getBool('practice_setup_seen_e1'), isTrue);
-      expect(repo.saved, isEmpty);
+  testWidgets('Analyze song prompts once per entry and waits for Analyze', (
+    tester,
+  ) async {
+    PracticeRegionsScreen.autoOpenSetup = true;
+    final previousDecode = PracticeRegionsScreen.decodePcm;
+    var decodes = 0;
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async {
+          decodes++;
+          return null;
+        };
+    addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
+    SongLabEntry entry(String id) => _entry(
+      id: id,
+      regions: const [],
+    ).copyWith(peaks: List.filled(100, 32), peaksRms: true);
+    final prompt = find.widgetWithText(MaterialBanner, 'Analyze song');
+    await pump(tester, entry('e1'));
+    expect(prompt, findsOneWidget);
+    expect(find.text('Analyze'), findsOneWidget);
+    expect(fetched, isEmpty);
+    expect(decodes, 0);
+    await tester.tap(find.text('Dismiss'));
+    await tester.pumpAndSettle();
+    expect(prompt, findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getBool('practice_setup_seen_e1'), isTrue);
+    expect(repo.saved, isEmpty);
 
-      await tester.pumpWidget(const SizedBox.shrink());
-      await settleAudio(tester);
-      await pump(tester, _entry(regions: const []));
-      expect(find.text('Set up for practice'), findsNothing);
-      await tester.tap(find.text('Set up sections'));
-      await tester.pumpAndSettle();
-      expect(find.text('Set up for practice'), findsOneWidget);
-      await tester.tap(find.text('Skip'));
-      await settleAudio(tester);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await settleAudio(tester);
+    await pump(tester, entry('e1'));
+    expect(prompt, findsNothing);
+    await tester.tap(find.text('Analyze song'));
+    await tester.pumpAndSettle();
+    expect(prompt, findsOneWidget);
+    expect(fetched, isEmpty);
+    expect(decodes, 0);
+    await tester.tap(find.text('Analyze'));
+    await settleAudio(tester);
+    expect(fetched, ['https://example.com/take.wav']);
+    expect(decodes, 1);
+    expect(repo.saved, isEmpty);
 
-      await tester.pumpWidget(const SizedBox.shrink());
-      await settleAudio(tester);
-      await pump(tester, _entry(id: 'e2', regions: const []));
-      expect(find.text('Set up for practice'), findsOneWidget);
-      await tester.tap(find.text('Skip'));
-      await settleAudio(tester);
-      expect(prefs.getBool('practice_setup_seen_e2'), isTrue);
-    },
-  );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await settleAudio(tester);
+    await pump(tester, entry('e2'));
+    expect(prompt, findsOneWidget);
+    await tester.tap(find.text('Dismiss'));
+    await tester.pumpAndSettle();
+    expect(prefs.getBool('practice_setup_seen_e2'), isTrue);
+    expect(fetched, hasLength(1));
+    expect(decodes, 1);
+  });
 
   testWidgets('autoOpenSetup hook suppresses setup without marking it seen', (
     tester,
   ) async {
     _FakeAudioPlayer.sourceDuration = const Duration(seconds: 60);
     await pump(tester, _entry(regions: const []));
-    expect(find.text('Set up for practice'), findsNothing);
+    expect(find.widgetWithText(MaterialBanner, 'Analyze song'), findsNothing);
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.containsKey('practice_setup_seen_e1'), isFalse);
   });
 
-  testWidgets('Re-run setup confirms replacement and opens the wizard', (
-    tester,
-  ) async {
+  testWidgets('re-analysis keeps the old map until Use new', (tester) async {
+    const second = 22050;
+    final pcm = _clickTrack(seconds: 48);
+    for (var i = 0; i < pcm.length; i++) {
+      if (pcm[i] != 0) continue;
+      final frequency = (i ~/ (second * 16)).isEven ? 110 : 1760;
+      pcm[i] = (4000 * math.sin(2 * math.pi * frequency * i / second)).round();
+    }
+    _FakeAudioPlayer.sourceDuration = const Duration(seconds: 48);
     final previousDecode = PracticeRegionsScreen.decodePcm;
     PracticeRegionsScreen.decodePcm = (
       bytes, {
       required sampleRate,
       required durationMs,
-    }) async => null;
+    }) async => pcm;
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry());
-    await openMore(tester, 'Re-run setup');
-    expect(find.text('Replace 2 sections?'), findsOneWidget);
+
+    SongMapTimeline map() => tester.widget(find.byType(SongMapTimeline));
+    Future<void> analyze() async {
+      await openMore(tester, 'Analyze song');
+      await runAnalysis(tester);
+      expect(find.text('New map'), findsOneWidget);
+      expect(map().view.regions, _regions);
+      expect(map().candidateBoundariesMs, isNotEmpty);
+      expect(repo.saved, isEmpty);
+    }
+
+    await analyze();
+    await tester.tap(find.text('Keep old'));
+    await tester.pumpAndSettle();
+    expect(find.text('New map'), findsNothing);
+    expect(map().view.regions, _regions);
+    expect(map().candidateBoundariesMs, isEmpty);
     expect(repo.saved, isEmpty);
-    await tester.tap(find.widgetWithText(FilledButton, 'Replace'));
+
+    await analyze();
+    await tester.tap(find.text('Use new'));
     await settleAudio(tester);
-    expect(find.text('Set up for practice'), findsOneWidget);
-    await tester.tap(find.text('Skip'));
-    await settleAudio(tester);
-    expect(repo.saved, isEmpty);
+    expect(find.text('New map'), findsNothing);
+    expect(repo.saved.single.regions, isNot(equals(_regions)));
+    expect(map().view.regions, repo.saved.single.regions);
+    expect(map().candidateBoundariesMs, isEmpty);
   });
 
   testWidgets(

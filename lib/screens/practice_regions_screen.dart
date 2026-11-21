@@ -34,6 +34,7 @@ import '../services/audio/audio_note_edit.dart';
 import '../services/audio/m4a_muxer.dart';
 import '../services/audio/mp3_encoder.dart';
 import '../services/audio/song_peaks.dart';
+import '../services/audio/song_structure.dart' show SongStructure;
 import '../theme/mono_pulse_theme.dart';
 import '../utils/play_mode.dart';
 import '../utils/snackbar.dart';
@@ -52,6 +53,26 @@ import 'practice_setup_wizard.dart';
 
 part 'practice_regions/notes_panel.dart';
 part 'practice_regions/file_actions.dart';
+
+({AudioGrid? grid, SongStructure? structure, List<int> cuts})
+_analyseSongRequest((Int16List, int, double?, AudioGrid?, int) request) {
+  final (pcm, durationMs, hintBpm, existingGrid, songSections) = request;
+  final detected = estimateGrid(pcm, 22050, hintBpm: hintBpm);
+  final grid = detected == null
+      ? existingGrid
+      : AudioGrid(
+          bpm: detected.bpm,
+          offsetMs: detected.firstDownbeatMs.clamp(0, durationMs),
+        );
+  final structure = grid == null ? null : analyseStructureRequest((pcm, grid));
+  if (structure != null) return (grid: grid, structure: structure, cuts: []);
+  final changes = sectionCuts(pcm, 22050, grid: grid);
+  final cuts = topSectionCuts(
+    changes,
+    suggestedSectionCuts(changes, songSections: songSections),
+  );
+  return (grid: grid, structure: null, cuts: cuts);
+}
 
 /// Named regions keep practice loops attached to the original recording.
 class PracticeRegionsScreen extends ConsumerStatefulWidget {
@@ -107,6 +128,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   bool _loaded = false;
   bool _editing = false;
   bool _setupOpen = false;
+  bool _showAnalyzePrompt = false;
+  bool _analyzing = false;
+  ({AudioGrid? grid, List<AudioRegion> regions, Set<int> boundaries})?
+  _mapCandidate;
 
   /// Shift: the slice last tapped; the waveform zooms to it.
   int? _focus;
@@ -293,17 +318,20 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       await _applyLoop();
       if (mounted &&
           PracticeRegionsScreen.autoOpenSetup &&
-          _durationMs >= 60000 &&
+          _durationMs > 0 &&
           _entry.regions.isEmpty &&
           _canEdit) {
         final prefs = await SharedPreferences.getInstance();
         if (!mounted ||
+            !_canEdit ||
+            _entry.regions.isNotEmpty ||
             prefs.getBool('practice_setup_seen_${_entry.id}') == true) {
           return;
         }
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) unawaited(_rerunSetup());
-        });
+        if (!_analyzing && _mapCandidate == null) {
+          setState(() => _showAnalyzePrompt = true);
+        }
+        await prefs.setBool('practice_setup_seen_${_entry.id}', true);
       }
     } catch (e) {
       if (mounted) {
@@ -411,6 +439,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           .saveEntry(updated, bandId: widget.bandId);
       if (requireSuccess && mounted) {
         setState(() {
+          if (_url != updated.attachmentIds.firstOrNull) _mapCandidate = null;
           _entry = updated;
           _selection = null;
           _focus = null;
@@ -1260,8 +1289,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     ]);
   }
 
-  Future<void> _renameSection(String base) async {
+  Future<void> _renameSection(String section) async {
     if (!_canEdit) return;
+    final base = section.trim().replaceFirst(RegExp(r' \d+$'), '');
     final name = await showRegionNameSheet(context, initialName: base);
     if (!mounted || !_canEdit || name == null || name.trim().isEmpty) return;
     await _changeRegions(renameSection(_entry.regions, base, name.trim()));
@@ -1322,19 +1352,24 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     required bool editing,
     required int position,
     required bool playing,
+    required Widget? banner,
   }) {
     final regions = _entry.regions;
+    final candidate = _canEdit ? _mapCandidate : null;
+    final preview = candidate != null && regions.isEmpty;
+    final mapRegions = preview ? candidate.regions : regions;
     final grid = _entry.grid;
-    final duration = _durationMs > 0 ? _durationMs : regions.last.endMs;
+    final mapGrid = preview ? candidate.grid : grid;
+    final duration = _durationMs > 0 ? _durationMs : mapRegions.last.endMs;
     final previous = _songMap;
     if (previous == null ||
-        previous.regions != regions ||
-        previous.grid != grid ||
+        previous.regions != mapRegions ||
+        previous.grid != mapGrid ||
         previous.durationMs != duration ||
         previous.includeSkipped != editing) {
       final view = SongMapView(
-        regions: regions,
-        grid: grid,
+        regions: mapRegions,
+        grid: mapGrid,
         durationMs: duration,
         includeSkipped: editing,
       );
@@ -1349,7 +1384,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         ? ref.watch(backingTransportProvider.select((t) => t.queuedId))
         : null;
     final selection = _selection;
-    final canEditMap = editing && grid != null && _durationMs > 0;
+    final canEditMap =
+        candidate == null && editing && grid != null && _durationMs > 0;
     final boundaries = {
       if (canEditMap)
         for (var i = 0; i + 1 < regions.length; i++)
@@ -1416,11 +1452,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             final section = regions[start].section;
             if (editing) {
               if (atSong && section != null) {
-                unawaited(
-                  _renameSection(
-                    section.trim().replaceFirst(RegExp(r' \d+$'), ''),
-                  ),
-                );
+                unawaited(_renameSection(section));
               }
             } else if (selection != null) {
               _selectRegions((
@@ -1459,6 +1491,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               peaks: _entry.peaks,
               positionMs: position,
               playing: playing,
+              candidateBoundariesMs: candidate?.boundaries ?? const {},
+              onSectionHold: _canEdit && !preview ? _renameSection : null,
               selectedIndices: selected,
               boundariesMs: editing ? boundaries.keys.toSet() : null,
               selectedBoundaryMs: boundary,
@@ -1514,9 +1548,19 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             // The existing waveform remains visible above this scroll area.
             final compact = constraints.maxHeight < 300;
             return SingleChildScrollView(
-              key: ValueKey((view.sectionIndex, view.partIndex)),
+              key: ValueKey((
+                view.sectionIndex,
+                view.partIndex,
+                banner != null,
+                candidate != null,
+              )),
               child: Column(
-                children: compact ? [pads, timeline] : [timeline, pads],
+                children: [
+                  ?banner,
+                  if (compact && !preview && candidate == null) pads,
+                  timeline,
+                  if (!preview && (!compact || candidate != null)) pads,
+                ],
               ),
             );
           },
@@ -1525,7 +1569,151 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     );
   }
 
-  Future<void> _rerunSetup() async {
+  bool get _canAnalyze => _loaded && _durationMs > 0 && !_analyzing;
+
+  Future<void> _analyze() async {
+    if (!_canEdit || !_canAnalyze || _busy) return;
+    final url = _url;
+    final duration = _durationMs;
+    setState(() {
+      _showAnalyzePrompt = false;
+      _analyzing = true;
+    });
+    try {
+      final pcm = await _ensurePcm();
+      if (!mounted || !_canEdit || _url != url) return;
+      if (pcm == null || pcm.isEmpty) throw StateError('Missing audio');
+      final result = await compute(_analyseSongRequest, (
+        pcm,
+        duration,
+        _songBpm(),
+        _entry.grid,
+        _song()?.sections.length ?? 0,
+      ));
+      if (!mounted || !_canEdit || _url != url) return;
+      final (:grid, :structure, :cuts) = result;
+      if (grid == null && cuts.isEmpty) throw StateError('Missing structure');
+      String newId() =>
+          '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}';
+      final regions = structure == null
+          ? regionsFromCuts(cuts, durationMs: duration, newId: newId)
+          : regionsFromStructure(structure, newId: newId);
+      final boundaries = structure == null
+          ? regions.skip(1).map((region) => region.startMs).toSet()
+          : structure.sections
+                .skip(1)
+                .map((section) => section.startMs)
+                .toSet();
+      while (_songMap != null && _songMap!.level != SongMapZoom.song) {
+        _songMap!.zoomOut();
+      }
+      setState(
+        () => _mapCandidate = (
+          grid: grid,
+          regions: regions,
+          boundaries: boundaries,
+        ),
+      );
+    } catch (_) {
+      if (mounted && _url == url && _canEdit) {
+        showAppSnackBar(
+          context,
+          'Could not analyze this song.',
+          actionLabel: 'Manual setup',
+          onAction: _manualSetup,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _analyzing = false);
+    }
+  }
+
+  Future<void> _useCandidate() async {
+    final candidate = _mapCandidate;
+    if (candidate == null || !_canEdit || _busy) return;
+    final oldGrid = _entry.grid;
+    final oldRegions = _entry.regions;
+    setState(() => _busy = true);
+    try {
+      await _save(
+        _entry.copyWith(grid: candidate.grid, regions: candidate.regions),
+        requireSuccess: true,
+      );
+      if (!mounted) return;
+      if (_sync) await _setSync(false);
+      if (!mounted) return;
+      setState(() {
+        _mapCandidate = null;
+        _songMapBoundaryMs = null;
+        _undoRegions = oldRegions;
+        if (oldGrid == null && candidate.grid != null) {
+          _preRoll = 0;
+          _snap = true;
+        }
+      });
+      await _applyLoop();
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, "Couldn't use new map: $e", error: true);
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Widget? _analyzeBanner() {
+    final candidate = _mapCandidate;
+    if (!_showAnalyzePrompt && !_analyzing && candidate == null) return null;
+    final replacing = _entry.regions.isNotEmpty;
+    return MaterialBanner(
+      content: Text(
+        _analyzing
+            ? 'Analyzing song…'
+            : candidate == null
+            ? 'Analyze song'
+            : replacing
+            ? 'New map'
+            : '${candidate.boundaries.length + 1} sections found · check, then Done',
+      ),
+      actions: [
+        if (!_analyzing && candidate == null && !replacing)
+          TextButton(
+            onPressed: () => setState(() {
+              _showAnalyzePrompt = false;
+              _editing = true;
+            }),
+            child: const Text('Set up sections'),
+          ),
+        if (!_analyzing)
+          TextButton(
+            onPressed: () => setState(() {
+              _showAnalyzePrompt = false;
+              _mapCandidate = null;
+            }),
+            child: Text(
+              candidate != null && replacing ? 'Keep old' : 'Dismiss',
+            ),
+          ),
+        FilledButton(
+          onPressed: _analyzing
+              ? null
+              : candidate == null
+              ? _analyze
+              : _useCandidate,
+          child: Text(
+            candidate == null
+                ? 'Analyze'
+                : replacing
+                ? 'Use new'
+                : 'Done',
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Recover embedded markers or mark by ear if analysis couldn't make a map.
+  Future<void> _manualSetup() async {
     if (!_canEdit || !_loaded || _durationMs <= 0 || _setupOpen) return;
     _setupOpen = true;
     try {
@@ -1597,8 +1785,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         ],
         newId: () => '${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}',
       );
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('practice_setup_seen_${_entry.id}', true);
       _auditionTimer?.cancel();
       if (!mounted || !_canEdit) return;
       await _player.pause();
@@ -1654,6 +1840,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         ? _syncGrid.msOfBar(syncBar)
         : _positionMs;
     final editing = canEdit && _editing;
+    final analyzeBanner = canEdit ? _analyzeBanner() : null;
     return Scaffold(
       backgroundColor: context.mp.black,
       appBar: AppBar(
@@ -1721,11 +1908,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   unawaited(_editGrid());
                 case 'slice':
                   unawaited(_autoSlice());
-                case 'setup':
-                  unawaited(_rerunSetup());
+                case 'analyze':
+                  setState(() => _showAnalyzePrompt = true);
               }
             },
-            enabled: !_busy,
+            enabled: !_busy && !_analyzing,
             itemBuilder: (_) => [
               PopupMenuItem(
                 value: 'share',
@@ -1775,9 +1962,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   child: const Text('Auto slice'),
                 ),
                 PopupMenuItem(
-                  value: 'setup',
-                  enabled: _loaded && _durationMs > 0,
-                  child: const Text('Re-run setup'),
+                  value: 'analyze',
+                  enabled: _canAnalyze && _mapCandidate == null,
+                  child: const Text('Analyze song'),
                 ),
               ],
             ],
@@ -1820,19 +2007,23 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   ))
                 _nameChips(),
               Expanded(
-                child: regions.isEmpty
+                child: regions.isEmpty && (!_canEdit || _mapCandidate == null)
                     ? Center(
                         child: SingleChildScrollView(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Text('No sections yet'),
-                              if (canEdit)
+                              if (analyzeBanner != null)
+                                analyzeBanner
+                              else if (canEdit)
                                 FilledButton(
-                                  onPressed: _loaded && _durationMs > 0
-                                      ? _rerunSetup
+                                  onPressed: _canAnalyze
+                                      ? () => setState(
+                                          () => _showAnalyzePrompt = true,
+                                        )
                                       : null,
-                                  child: const Text('Set up sections'),
+                                  child: const Text('Analyze song'),
                                 ),
                             ],
                           ),
@@ -1842,6 +2033,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                         editing: editing,
                         position: positionMs,
                         playing: playing,
+                        banner: analyzeBanner,
                       ),
               ),
               // Sized to its notes (capped), so the pads get the rest; a flex

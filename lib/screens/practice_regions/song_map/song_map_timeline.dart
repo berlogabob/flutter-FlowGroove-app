@@ -19,6 +19,7 @@ class SongMapTimeline extends StatefulWidget {
     this.boundariesMs,
     this.selectedBoundaryMs,
     this.selectedIndices = const {},
+    this.onSectionHold,
     this.onBoundaryTap,
     this.onBoundaryDrag,
     super.key,
@@ -36,6 +37,7 @@ class SongMapTimeline extends StatefulWidget {
   final Set<int>? boundariesMs;
   final int? selectedBoundaryMs;
   final Set<int> selectedIndices;
+  final ValueChanged<String>? onSectionHold;
   final ValueChanged<int>? onBoundaryTap;
   final ValueChanged<(int, int)>? onBoundaryDrag;
 
@@ -309,6 +311,9 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
       bottom: 0,
       child: GestureDetector(
         onDoubleTap: onZoom,
+        onLongPress: !isPart && section != null && widget.onSectionHold != null
+            ? () => widget.onSectionHold!(section)
+            : null,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxs),
           alignment: Alignment.center,
