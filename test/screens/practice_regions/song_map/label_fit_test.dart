@@ -5,6 +5,9 @@ import 'package:flowgroove/screens/practice_regions/song_map/song_map_view.dart'
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../practice_regions_screen_test.dart'
+    show PracticeRegionsScreenFixture;
+
 void main() {
   testWidgets('long section name uses its letter when it does not fit', (
     tester,
@@ -25,7 +28,20 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Center(
-          child: SizedBox(width: 120, child: SongMapTimeline(view: view)),
+          child: SizedBox(
+            width: 120,
+            child: SongMapOverview(
+              view: view,
+              entry: PracticeRegionsScreenFixture.entry().copyWith(
+                peaks: const [20],
+              ),
+              positionMs: 0,
+              playing: false,
+              selectedIndices: const {},
+              candidateBoundariesMs: const {},
+              noteTicks: const SizedBox.shrink(),
+            ),
+          ),
         ),
       ),
     );

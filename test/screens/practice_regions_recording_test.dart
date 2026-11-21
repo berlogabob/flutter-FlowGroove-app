@@ -593,10 +593,8 @@ void main() {
         if (viewer) {
           expect(repo.saved, isEmpty);
           final dynamic painter = tester
-              .widgetList<CustomPaint>(find.byType(CustomPaint))
-              .firstWhere(
-                (paint) =>
-                    paint.painter.runtimeType.toString() == '_RegionsPainter',
+              .widget<CustomPaint>(
+                find.byKey(const ValueKey('song-map-overview-waveform')),
               )
               .painter;
           // ignore: avoid_dynamic_calls

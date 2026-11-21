@@ -6,6 +6,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../practice_regions_screen_test.dart'
+    show PracticeRegionsScreenFixture;
+
 void main() {
   late SongMapView view;
   final parts = find.byKey(const ValueKey('song-map-parts'));
@@ -43,7 +46,7 @@ void main() {
     addTearDown(view.dispose);
   });
 
-  Future<void> pumpTimeline(WidgetTester tester, SongMapTimeline timeline) =>
+  Future<void> pumpTimeline(WidgetTester tester, Widget timeline) =>
       tester.pumpWidget(
         MaterialApp(
           home: Center(child: SizedBox(width: 384, child: timeline)),
@@ -57,79 +60,99 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets(
-    'song level hides parts and double-tapping a section shows them',
-    (tester) async {
-      await pumpTimeline(
-        tester,
-        SongMapTimeline(
-          view: view,
-          peaks: const [30, 60, 90],
-          positionMs: 9000,
-        ),
-      );
-      expect(parts, findsNothing);
-      expect(beats, findsNothing);
-      expect(
-        find.byWidgetPredicate(
+  SongMapOverview overview(SongMapView map) => SongMapOverview(
+    view: map,
+    entry: PracticeRegionsScreenFixture.entry().copyWith(
+      peaks: const [30, 60, 90],
+    ),
+    positionMs: 9000,
+    playing: false,
+    selectedIndices: const {},
+    candidateBoundariesMs: const {},
+    noteTicks: const SizedBox.shrink(),
+  );
+
+  testWidgets('overview keeps the whole song while the zoom navigates parts', (
+    tester,
+  ) async {
+    final wholeSong = overview(view);
+    await pumpTimeline(
+      tester,
+      Column(
+        children: [
+          wholeSong,
+          SongMapTimeline(view: view, peaks: const [30, 60, 90]),
+        ],
+      ),
+    );
+    expect(parts, findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(SongMapOverview), matching: parts),
+      findsNothing,
+    );
+    expect(beats, findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(SongMapOverview),
+        matching: find.byWidgetPredicate(
           (w) => w is CustomPaint && w.painter is WaveformPainter,
         ),
-        findsOneWidget,
-      );
+      ),
+      findsOneWidget,
+    );
 
-      final chorus1 = find.byKey(const ValueKey('song-map-section-chorus-a'));
-      final chorus2 = find.byKey(const ValueKey('song-map-section-repeat'));
+    final chorus1 = find.byKey(const ValueKey('song-map-section-chorus-a'));
+    final chorus2 = find.byKey(const ValueKey('song-map-section-repeat'));
 
-      Color? blockColor(Finder finder) {
-        final block = tester.widget<Container>(finder);
-        return (block.decoration! as BoxDecoration).color;
-      }
+    Color? blockColor(Finder finder) {
+      final block = tester.widget<Container>(finder);
+      return (block.decoration! as BoxDecoration).color;
+    }
 
-      expect(blockColor(chorus1), blockColor(chorus2));
-      for (final block in [chorus1, chorus2]) {
-        expect(
-          find.descendant(of: block, matching: find.text('B')),
-          findsOneWidget,
-        );
-      }
-
-      await doubleTap(tester, chorus1);
-      expect(view.level, SongMapZoom.section);
-      expect(view.sectionIndex, 1);
-      expect(parts, findsOneWidget);
+    expect(blockColor(chorus1), blockColor(chorus2));
+    for (final block in [chorus1, chorus2]) {
       expect(
-        find.descendant(of: parts, matching: find.text('a')),
+        find.descendant(of: block, matching: find.text('B')),
         findsOneWidget,
       );
-      expect(beats, findsNothing);
+    }
 
-      await doubleTap(
-        tester,
-        find.descendant(of: parts, matching: find.text('b')),
-      );
-      expect(view.level, SongMapZoom.part);
-      expect(view.partIndex, 1);
-      expect(beats, findsOneWidget);
+    await doubleTap(tester, chorus1);
+    expect(view.level, SongMapZoom.section);
+    expect(view.sectionIndex, 1);
+    expect(parts, findsOneWidget);
+    expect(
+      find.descendant(of: parts, matching: find.text('a')),
+      findsOneWidget,
+    );
+    expect(beats, findsNothing);
 
-      final center = tester.getCenter(parts);
-      final first = await tester.startGesture(
-        center.translate(-20, 0),
-        pointer: 1,
-      );
-      final second = await tester.startGesture(
-        center.translate(20, 0),
-        pointer: 2,
-      );
-      await first.moveBy(const Offset(-30, 0));
-      await second.moveBy(const Offset(30, 0));
-      await tester.pump();
-      await first.up();
-      await second.up();
-      await tester.pumpAndSettle();
-      expect(view.level, SongMapZoom.section);
-      expect(beats, findsNothing);
-    },
-  );
+    await doubleTap(
+      tester,
+      find.descendant(of: parts, matching: find.text('b')),
+    );
+    expect(view.level, SongMapZoom.part);
+    expect(view.partIndex, 1);
+    expect(beats, findsOneWidget);
+
+    final center = tester.getCenter(parts);
+    final first = await tester.startGesture(
+      center.translate(-20, 0),
+      pointer: 1,
+    );
+    final second = await tester.startGesture(
+      center.translate(20, 0),
+      pointer: 2,
+    );
+    await first.moveBy(const Offset(-30, 0));
+    await second.moveBy(const Offset(30, 0));
+    await tester.pump();
+    await first.up();
+    await second.up();
+    await tester.pumpAndSettle();
+    expect(view.level, SongMapZoom.section);
+    expect(beats, findsNothing);
+  });
 
   testWidgets('narrow and wide section blocks both show only their letter', (
     tester,
@@ -157,9 +180,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: Center(
-          child: SizedBox(width: 160, child: SongMapTimeline(view: labelView)),
-        ),
+        home: Center(child: SizedBox(width: 160, child: overview(labelView))),
       ),
     );
 
@@ -170,7 +191,7 @@ void main() {
   });
 
   testWidgets(
-    'boundary taps report the file-relative seam at both zoom levels',
+    'boundary taps in the zoom report file-relative seams before and after opening a section',
     (tester) async {
       final tapped = <int>[];
       final semantics = tester.ensureSemantics();

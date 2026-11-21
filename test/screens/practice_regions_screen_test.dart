@@ -379,11 +379,7 @@ void main() {
     await settleAudio(tester);
   }
 
-  Finder timeline() => find.byWidgetPredicate(
-    (widget) =>
-        widget is CustomPaint &&
-        widget.painter.runtimeType.toString() == '_RegionsPainter',
-  );
+  Finder timeline() => find.byKey(const ValueKey('song-map-overview-waveform'));
 
   testWidgets('practice shows pads and discloses marker editing until Done', (
     tester,
@@ -576,25 +572,40 @@ void main() {
     expect([for (final r in repo.saved.last.regions) r.skip], [true, false]);
   });
 
-  testWidgets('Shift + pad zooms the waveform to that slice', (tester) async {
+  testWidgets('Shift + pad focuses the zoom on the exact slice', (
+    tester,
+  ) async {
     await pump(tester, _entry());
-    (int, int) view() {
-      final painter =
-          tester.widget<CustomPaint>(timeline()).painter! as dynamic;
-      return (painter.viewStart as int, painter.viewEnd as int);
-    }
-
-    expect(view(), (0, 20000));
+    final overview = find.byKey(const ValueKey('song-map-overview'));
+    final zoom = find.byKey(const ValueKey('song-map-zoom'));
+    expect(tester.widget<SongMapOverview>(overview).viewport, (
+      startMs: 0,
+      endMs: 20000,
+    ));
+    expect(tester.widget<SongMapTimeline>(zoom).viewport, (
+      startMs: 0,
+      endMs: 10000,
+    ));
     await tester.tap(find.byKey(const ValueKey('shift')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
     await tester.pumpAndSettle();
     await tester.tapAt(const Offset(5, 5));
     await tester.pumpAndSettle();
-    expect(view(), (8334, 20000));
-    await tester.tap(find.byTooltip('Whole song'));
+    expect(tester.widget<SongMapOverview>(overview).viewport, (
+      startMs: 0,
+      endMs: 20000,
+    ));
+    expect(tester.widget<SongMapTimeline>(zoom).viewport, (
+      startMs: 10000,
+      endMs: 20000,
+    ));
+    await tester.tap(find.byKey(const ValueKey('shift')));
     await tester.pumpAndSettle();
-    expect(view(), (0, 20000));
+    expect(tester.widget<SongMapTimeline>(zoom).viewport, (
+      startMs: 0,
+      endMs: 10000,
+    ));
   });
 
   testWidgets('a long song fits a small phone without scrolling the page', (
@@ -1126,8 +1137,11 @@ void main() {
       expect(player.loadCalls, loads);
       expect(player.pauseCalls, pauses);
 
-      final rect = tester.getRect(timeline());
-      await tester.tapAt(Offset(rect.left + rect.width * .75, rect.center.dy));
+      await tester.tap(
+        find.byKey(ValueKey('region-pad-${repo.saved.single.regions[1].id}')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.edit_outlined));
       await settleAudio(tester);
       expect(find.text('Region name'), findsOneWidget);
       await tester.tap(find.widgetWithText(ChoiceChip, 'Chorus'));

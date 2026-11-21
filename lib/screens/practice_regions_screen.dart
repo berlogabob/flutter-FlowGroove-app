@@ -38,15 +38,12 @@ import '../services/audio/song_structure.dart' show SongStructure;
 import '../theme/mono_pulse_theme.dart';
 import '../utils/play_mode.dart';
 import '../utils/snackbar.dart';
-import '../widgets/audio/waveform_painter.dart';
 import '../widgets/confirmation_dialog.dart';
 import 'practice_regions/auto_slice_sheet.dart';
 import 'practice_regions/grid_editor_dialog.dart';
 import 'practice_regions/region_name_sheet.dart';
 import 'practice_regions/slice_edit_sheet.dart';
 import 'practice_regions/song_map/song_map_edit.dart' as song_map_edit;
-import 'practice_regions/song_map/song_map_letters.dart';
-import 'practice_regions/song_map/song_map_minimap.dart';
 import 'practice_regions/song_map/song_map_pads.dart';
 import 'practice_regions/song_map/song_map_tempo_banner.dart';
 import 'practice_regions/song_map/song_map_timeline.dart';
@@ -136,9 +133,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   ({AudioGrid? grid, List<AudioRegion> regions, Set<int> boundaries})?
   _mapCandidate;
 
-  /// Shift: the slice last tapped; the waveform zooms to it.
+  /// The slice opened for editing in Shift mode.
   int? _focus;
-  (int, int)? _dragView;
 
   late bool _snap;
   double _speed = 1;
@@ -157,8 +153,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   (int, int)? _pendingLoop;
   Future<void> _loopUpdate = Future<void>.value();
   int _idCounter = 0;
-  double _dragMs = 0;
-  List<AudioRegion>? _beforeDrag;
   Int16List? _analysisPcm;
   Future<Int16List?>? _analysisPcmLoad;
   Future<Uint8List>? _uncachedBytes;
@@ -234,23 +228,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         );
       }
     }
-  }
-
-  /// Visible waveform range: the whole song, or in Shift the focused slice
-  /// plus a little of each neighbour. Frozen while a marker is dragged.
-  (int, int) get _view {
-    final drag = _dragView;
-    if (drag != null) return drag;
-    final focus = _focus;
-    if (!_editing || focus == null || focus >= _entry.regions.length) {
-      return (0, _durationMs);
-    }
-    final region = _entry.regions[focus];
-    final pad = math.max(1000, region.lengthMs ~/ 6);
-    return (
-      math.max(0, region.startMs - pad),
-      math.min(_durationMs, region.endMs + pad),
-    );
   }
 
   /// Under a bar (or 2 s without a grid): usually a stray tap or count-in.
@@ -692,7 +669,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   void _selectRegions((int, int)? selection) {
     _flushSession();
-    setState(() => _selection = selection);
+    setState(() {
+      _songMap?.overviewSelection = null;
+      _selection = selection;
+    });
     if (_sync) _syncLaunch(startIfStopped: false);
     unawaited(_applyLoop());
   }
@@ -1452,6 +1432,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     required Widget? banner,
     required SongMapTempoBanner? tempoBanner,
     required List<Widget> padActions,
+    Widget? emptyContent,
   }) {
     final regions = _entry.regions;
     final candidate = _canEdit ? _mapCandidate : null;
@@ -1459,7 +1440,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final mapRegions = preview ? candidate.regions : regions;
     final grid = _entry.grid;
     final mapGrid = preview ? candidate.grid : grid;
-    final duration = _durationMs > 0 ? _durationMs : mapRegions.last.endMs;
+    final duration = _durationMs > 0
+        ? _durationMs
+        : mapRegions.lastOrNull?.endMs ?? 0;
     final previous = _songMap;
     if (previous == null ||
         previous.regions != mapRegions ||
@@ -1486,7 +1469,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final canEditMap =
         candidate == null && editing && grid != null && _durationMs > 0;
     final boundaries = {
-      if (canEditMap)
+      if (editing && candidate == null)
         for (var i = 0; i + 1 < regions.length; i++)
           if (regions[i].endMs == regions[i + 1].startMs) regions[i].endMs: i,
     };
@@ -1509,6 +1492,63 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       builder: (context, _) {
         final children = view.children();
         final atSong = view.level == SongMapZoom.song;
+        final overviewSelection = view.overviewSelection;
+        final selectedSections = {?overviewSelection};
+        int? editedSection;
+        for (var i = 0; i < view.sections.length; i++) {
+          final (start, end) = view.sectionRange(i);
+          if (overviewSelection == null &&
+              selection != null &&
+              start <= selection.$2 &&
+              end >= selection.$1) {
+            selectedSections.add(i);
+          }
+          final focus = _focus;
+          if (editing && focus != null && start <= focus && focus <= end) {
+            editedSection = i;
+          }
+        }
+        final playingSection = playing
+            ? view.sections.indexWhere(
+                (r) => r.startMs <= position && position < r.endMs,
+              )
+            : -1;
+        final focusSection =
+            editedSection ??
+            selectedSections.firstOrNull ??
+            (playingSection < 0 ? null : playingSection);
+        final overview = Padding(
+          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
+          child: SongMapOverview(
+            entry: _entry,
+            view: view,
+            positionMs: position,
+            playing: playing,
+            selectedIndices: selectedSections,
+            candidateBoundariesMs: candidate?.boundaries ?? const {},
+            onSectionHold: _canEdit && !preview ? _renameSection : null,
+            onSectionTap: (i) => setState(() => view.overviewSelection = i),
+            onSeek: _loaded && _durationMs > 0
+                ? (ms) => unawaited(_seekTimeline(ms))
+                : null,
+            noteTicks: CustomPaint(
+              key: const ValueKey('note-ticks'),
+              painter: _NoteTicksPainter(
+                markers: entryNotes(_entry),
+                viewStart: 0,
+                viewEnd: duration,
+              ),
+            ),
+          ),
+        );
+        if (emptyContent != null) {
+          return Column(
+            children: [
+              overview,
+              Expanded(child: emptyContent),
+            ],
+          );
+        }
         final selected = <int>{};
         if (selection != null) {
           for (var i = 0; i < children.length; i++) {
@@ -1546,30 +1586,32 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               ? 0
               : (position - children[active].startMs) /
                     children[active].lengthMs,
-          onRange: editing ? null : selectRange,
-          onHold: (i) {
-            final (start, end) = view.regionRange(i);
-            final section = regions[start].section;
-            if (editing) {
-              if (atSong && section != null) {
-                unawaited(_renameSection(section));
-              }
-            } else if (selection != null) {
-              _selectRegions((
-                math.min(start, selection.$1),
-                math.max(end, selection.$2),
-              ));
-            }
-          },
+          onRange: editing || preview ? null : selectRange,
+          onHold: preview
+              ? null
+              : (i) {
+                  final (start, end) = view.regionRange(i);
+                  final section = regions[start].section;
+                  if (editing) {
+                    if (atSong && section != null) {
+                      unawaited(_renameSection(section));
+                    }
+                  } else if (selection != null) {
+                    _selectRegions((
+                      math.min(start, selection.$1),
+                      math.max(end, selection.$2),
+                    ));
+                  }
+                },
           onSelect: (i) {
+            if (preview) {
+              setState(() => view.overviewSelection = view.sectionIndex ?? i);
+              unawaited(_seekTimeline(children[i].startMs));
+              return;
+            }
             final range = view.regionRange(i);
             if (editing && (!atSong || regions[range.$1].section == null)) {
               setState(() => _focus = range.$1);
-              unawaited(
-                _ensurePcm().then((_) {
-                  if (mounted) setState(() {});
-                }),
-              );
               unawaited(_editSlice(range.$1));
             } else {
               _selectRegions(selection == range ? null : range);
@@ -1578,43 +1620,45 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         );
         final timeline = Column(
           children: [
-            if (!atSong)
-              SongMapMinimap(
-                durationMs: duration,
-                regions: mapRegions,
-                letters: view.letters,
-                viewportStartMs: view.startMs,
-                viewportEndMs: view.endMs,
-                onSeek: (ms) => unawaited(_seekTimeline(ms)),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.sm,
               ),
-            SongMapTimeline(
-              view: view,
-              peaks: _entry.peaks,
-              positionMs: position,
-              playing: playing,
-              candidateBoundariesMs: candidate?.boundaries ?? const {},
-              onSectionHold: _canEdit && !preview ? _renameSection : null,
-              selectedIndices: selected,
-              boundariesMs: editing ? boundaries.keys.toSet() : null,
-              selectedBoundaryMs: boundary,
-              onBoundaryTap: canEditMap
-                  ? (ms) => setState(() => _songMapBoundaryMs = ms)
-                  : null,
-              onBoundaryDrag: canEditMap
-                  ? (drag) {
-                      final (from, to) = drag;
-                      final cut = snap(to);
-                      saveEdit(
-                        song_map_edit.moveBoundary(
-                          regions,
-                          boundaries[from]!,
-                          cut,
-                          grid: grid,
-                        ),
-                        selectedBoundary: cut,
-                      );
-                    }
-                  : null,
+              child: SongMapTimeline(
+                key: const ValueKey('song-map-zoom'),
+                view: view,
+                focusSection: focusSection,
+                peaks: _entry.peaks,
+                positionMs: position,
+                playing: playing,
+                candidateBoundariesMs: candidate?.boundaries ?? const {},
+                selectedIndices: atSong ? const {} : selected,
+                boundariesMs: editing ? boundaries.keys.toSet() : null,
+                selectedBoundaryMs: boundary,
+                editableBoundaries: boundaries,
+                onFineTune: _fineTune,
+                onBoundaryTap: canEditMap
+                    ? (ms) => setState(() => _songMapBoundaryMs = ms)
+                    : null,
+                onBoundaryDrag: !editing || candidate != null
+                    ? null
+                    : (drag) {
+                        final (from, to) = drag;
+                        final index = boundaries[from];
+                        if (index == null) return;
+                        final cut = grid == null ? _snapped(to) : snap(to);
+                        final updated =
+                            grid == null || view.level == SongMapZoom.part
+                            ? moveBoundary(regions, index, cut)
+                            : song_map_edit.moveBoundary(
+                                regions,
+                                index,
+                                cut,
+                                grid: grid,
+                              );
+                        saveEdit(updated, selectedBoundary: cut);
+                      },
+              ),
             ),
             if (canEditMap)
               Wrap(
@@ -1647,12 +1691,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         return LayoutBuilder(
           builder: (context, constraints) {
             final columns = SongMapPads.columnsForWidth(constraints.maxWidth);
-            final timelineHeight = switch (view.level) {
-              SongMapZoom.song => 172,
-              SongMapZoom.section => 240,
-              SongMapZoom.part => 272,
-            };
-            // The waveform above the scroll area remains visible in compact mode.
+            final timelineHeight =
+                SongMapOverview.height +
+                180 +
+                (_entry.peaks.isEmpty ? 64 : 0) +
+                (view.level == SongMapZoom.part ? MonoPulseSpacing.xxxl : 0);
             final compact =
                 constraints.maxHeight <
                 math.max(
@@ -1674,14 +1717,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 children: [
                   ?banner,
                   ?tempoBanner,
-                  if (preview)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: padActions,
-                    ),
-                  if (compact && !preview && candidate == null) pads,
+                  overview,
+                  if (compact && candidate == null) pads,
                   timeline,
-                  if (!preview && (!compact || candidate != null)) pads,
+                  if (!compact || candidate != null) pads,
                 ],
               ),
             );
@@ -2025,39 +2064,40 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           onPressed: _loaded && canEdit ? _addMarkerAtPlayhead : null,
         ),
     ];
-    final mapContent = showPads
-        ? _pads(
-            editing: editing,
-            position: positionMs,
-            playing: playing,
-            padActions: padActions,
-            banner: analyzeBanner,
-            tempoBanner: tempoBanner,
-          )
-        : Center(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: padActions,
-                  ),
-                  const Text('No sections yet'),
-                  if (analyzeBanner != null)
-                    analyzeBanner
-                  else if (canEdit)
-                    FilledButton(
-                      onPressed: _canAnalyze
-                          ? () => setState(() => _showAnalyzePrompt = true)
-                          : null,
-                      child: const Text('Analyze song'),
+    final mapContent = _pads(
+      editing: editing,
+      position: positionMs,
+      playing: playing,
+      padActions: padActions,
+      banner: analyzeBanner,
+      tempoBanner: tempoBanner,
+      emptyContent: showPads
+          ? null
+          : Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: padActions,
                     ),
-                  ?tempoBanner,
-                ],
+                    const Text('No sections yet'),
+                    if (analyzeBanner != null)
+                      analyzeBanner
+                    else if (canEdit)
+                      FilledButton(
+                        onPressed: _canAnalyze
+                            ? () => setState(() => _showAnalyzePrompt = true)
+                            : null,
+                        child: const Text('Analyze song'),
+                      ),
+                    ?tempoBanner,
+                  ],
+                ),
               ),
             ),
-          );
+    );
     return Scaffold(
       backgroundColor: context.mp.black,
       bottomNavigationBar: SongMapTransport(
@@ -2133,12 +2173,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   ? MonoPulseColors.warning5
                   : context.mp.surfaceRaised,
               visualDensity: VisualDensity.compact,
-            ),
-          if (editing && _focus != null)
-            IconButton(
-              tooltip: 'Whole song',
-              icon: const Icon(Icons.zoom_out_map),
-              onPressed: () => setState(() => _focus = null),
             ),
           if (editing)
             IconButton(
@@ -2238,31 +2272,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           absorbing: _busy,
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  MonoPulseSpacing.lg,
-                  MonoPulseSpacing.sm,
-                  MonoPulseSpacing.lg,
-                  0,
-                ),
-                child: _timeline(editing),
-              ),
-              if (_entry.peaks.isEmpty) ...[
-                Slider(
-                  value: _durationMs == 0
-                      ? 0
-                      : (positionMs / _durationMs).clamp(0.0, 1.0),
-                  onChanged: _loaded && _durationMs > 0
-                      ? (v) => _seekTimeline((v * _durationMs).round())
-                      : null,
-                ),
-                Text(
-                  'No waveform for this take — tap or drag to seek.',
-                  style: MonoPulseTypography.bodySmall.copyWith(
-                    color: context.mp.textSecondary,
-                  ),
-                ),
-              ],
               if (editing &&
                   regions.any(
                     (region) => region.name.isEmpty || _isShort(region),
@@ -2272,6 +2281,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final mapMinHeight =
+                        SongMapOverview.height +
                         SongMapPads.heightForRows(2) +
                         (tempoBanner == null ? 0 : SongMapTempoBanner.height);
                     // Leave room for the pad controls and two rows before Notes.
@@ -2592,145 +2602,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       setState(() => _undoRegions = before);
     }
   }
-
-  Widget _timeline(bool editing) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 24),
-    child: LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final (viewStart, viewEnd) = _view;
-        final span = math.max(1, viewEnd - viewStart);
-        return SizedBox(
-          height: 108,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                top: 12,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTapUp: _loaded && _durationMs > 0
-                      ? (details) {
-                          final ms =
-                              (viewStart +
-                                      details.localPosition.dx / width * span)
-                                  .round();
-                          final index = _entry.regions.indexWhere(
-                            (region) =>
-                                ms >= region.startMs && ms < region.endMs,
-                          );
-                          if (editing && index >= 0) {
-                            unawaited(_rename(_entry.regions[index].id));
-                          } else if (!editing) {
-                            unawaited(_seekTimeline(ms));
-                          }
-                        }
-                      : null,
-                  child: CustomPaint(
-                    painter: _RegionsPainter(
-                      entry: _entry,
-                      letters:
-                          _songMap?.letters ?? SongMapLetters(_entry.regions),
-                      durationMs: _durationMs,
-                      viewStart: viewStart,
-                      viewEnd: viewEnd,
-                      pcm: _focus != null && editing ? _analysisPcm : null,
-                      positionMs: _sync && _entry.grid != null
-                          ? _syncGrid.msOfBar(
-                              ref.read(backingTransportProvider).songBar,
-                            )
-                          : _positionMs,
-                      selection: _selection,
-                      dim: context.mp.textSecondary,
-                      textColor: context.mp.textPrimary,
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                height: 10,
-                child: IgnorePointer(
-                  child: CustomPaint(
-                    key: const ValueKey('note-ticks'),
-                    painter: _NoteTicksPainter(
-                      markers: entryNotes(_entry),
-                      viewStart: viewStart,
-                      viewEnd: viewEnd,
-                    ),
-                  ),
-                ),
-              ),
-              if (editing && _durationMs > 0)
-                for (var i = 0; i < _entry.regions.length - 1; i++)
-                  if (_entry.regions[i].endMs >= viewStart &&
-                      _entry.regions[i].endMs <= viewEnd)
-                    _boundaryHandle(i, width, viewStart, span),
-            ],
-          ),
-        );
-      },
-    ),
-  );
-
-  Widget _boundaryHandle(int index, double width, int viewStart, int span) {
-    final centre = (_entry.regions[index].endMs - viewStart) / span * width;
-    final left = (centre - 24).clamp(
-      0.0,
-      (width - 48).clamp(0.0, double.infinity),
-    );
-    return Positioned(
-      left: left,
-      top: 0,
-      bottom: 0,
-      width: 48,
-      child: GestureDetector(
-        key: ValueKey('marker-handle-$index'),
-        behavior: HitTestBehavior.opaque,
-        onTap: () => _fineTune(index),
-        onHorizontalDragStart: (_) {
-          _beforeDrag = _entry.regions;
-          _dragView = _view;
-          _dragMs = _entry.regions[index].endMs.toDouble();
-        },
-        onHorizontalDragUpdate: (details) {
-          if (!_canEdit) return;
-          // Accumulate unsnapped motion, otherwise small drags stick to a bar.
-          _dragMs += details.delta.dx / width * span;
-          setState(
-            () => _entry = _entry.copyWith(
-              regions: moveBoundary(
-                _entry.regions,
-                index,
-                _snapped(_dragMs.round()),
-              ),
-            ),
-          );
-        },
-        onHorizontalDragEnd: (_) {
-          unawaited(_changeRegions(_entry.regions, undoTo: _beforeDrag));
-          _beforeDrag = null;
-          _dragView = null;
-        },
-        onHorizontalDragCancel: () {
-          final before = _beforeDrag;
-          if (before != null) {
-            setState(() => _entry = _entry.copyWith(regions: before));
-          }
-          _beforeDrag = null;
-          _dragView = null;
-        },
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Transform.translate(
-            offset: Offset(centre - left - 1.5, 0),
-            child: Container(width: 3, color: MonoPulseColors.accentOrange),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// Paint in file coordinates even while just_audio plays a relative clip.
@@ -2774,135 +2645,6 @@ class _JogWheelPainter extends CustomPainter {
       angle != oldDelegate.angle ||
       surface != oldDelegate.surface ||
       outline != oldDelegate.outline;
-}
-
-class _RegionsPainter extends CustomPainter {
-  _RegionsPainter({
-    required this.entry,
-    required this.letters,
-    required this.durationMs,
-    required this.viewStart,
-    required this.viewEnd,
-    required this.pcm,
-    required this.positionMs,
-    required this.selection,
-    required this.dim,
-    required this.textColor,
-  });
-
-  final SongLabEntry entry;
-  final SongMapLetters letters;
-  final int durationMs;
-  final int viewStart;
-  final int viewEnd;
-
-  /// Mono 22.05 kHz PCM for a sharp zoomed waveform; peaks otherwise.
-  final Int16List? pcm;
-  final int positionMs;
-  final (int, int)? selection;
-  final Color dim;
-  final Color textColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final span = viewEnd - viewStart;
-    if (durationMs <= 0 || span <= 0 || size.width <= 0) return;
-    double x(int ms) => ((ms - viewStart) / span).clamp(0.0, 1.0) * size.width;
-    final samples = pcm;
-    if (samples != null && samples.isNotEmpty && span < durationMs) {
-      _paintEnvelope(canvas, size, samples);
-    } else if (entry.peaks.isNotEmpty) {
-      // Paint the whole song stretched, shifted so the view fills the box.
-      final full = size.width * durationMs / span;
-      canvas
-        ..save()
-        ..clipRect(Offset.zero & size)
-        ..translate(-viewStart / durationMs * full, 0);
-      WaveformPainter(
-        peaks: entry.peaks,
-        trimStart: 0,
-        trimEnd: 1,
-        playhead: positionMs / durationMs,
-        markerFractions: const [],
-        dim: dim,
-      ).paint(canvas, Size(full, size.height));
-      canvas.restore();
-    }
-    for (var i = 0; i < entry.regions.length; i++) {
-      final region = entry.regions[i];
-      final selected =
-          selection != null && i >= selection!.$1 && i <= selection!.$2;
-      final color = region.skip ? dim : letters[i].color;
-      final rect = Rect.fromLTRB(
-        x(region.startMs),
-        0,
-        x(region.endMs),
-        size.height,
-      );
-      canvas.drawRect(
-        rect,
-        Paint()..color = color.withValues(alpha: selected ? 0.45 : 0.2),
-      );
-      if (selected) {
-        canvas.drawRect(
-          rect.deflate(1),
-          Paint()
-            ..color = color
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2,
-        );
-      }
-    }
-    final grid = entry.grid;
-    if (grid != null) {
-      final line = Paint()..color = dim.withValues(alpha: 0.5);
-      final first = grid.barAt(viewStart).ceil();
-      final last = grid.barAt(viewEnd).floor();
-      // At very high tempos, skip lines closer than a pixel to keep paint bounded.
-      final stride = (span / grid.barMs / size.width).ceil().clamp(1, 1 << 30);
-      for (var bar = first; bar <= last; bar += stride) {
-        final dx = x(grid.msOfBar(bar));
-        canvas.drawLine(Offset(dx, 0), Offset(dx, size.height), line);
-      }
-    }
-    canvas.drawLine(
-      Offset(x(positionMs), 0),
-      Offset(x(positionMs), size.height),
-      Paint()
-        ..color = textColor
-        ..strokeWidth = 1.5,
-    );
-  }
-
-  void _paintEnvelope(Canvas canvas, Size size, Int16List samples) {
-    final wave = Paint()
-      ..color = MonoPulseColors.accentOrange.withValues(alpha: 0.7);
-    final mid = size.height / 2;
-    final perPixel = (viewEnd - viewStart) * 22.05 / size.width;
-    final start = viewStart * 22.05;
-    for (var px = 0; px < size.width.ceil(); px++) {
-      final from = (start + px * perPixel).floor().clamp(0, samples.length);
-      final to = (start + (px + 1) * perPixel).ceil().clamp(0, samples.length);
-      if (from >= to) continue;
-      var low = 0;
-      var high = 0;
-      // ponytail: strided scan, plenty for a phone-width column.
-      final stride = math.max(1, (to - from) ~/ 256);
-      for (var i = from; i < to; i += stride) {
-        final v = samples[i];
-        if (v < low) low = v;
-        if (v > high) high = v;
-      }
-      canvas.drawLine(
-        Offset(px.toDouble(), mid - high / 32768 * mid),
-        Offset(px.toDouble(), mid - low / 32768 * mid),
-        wave,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_RegionsPainter oldDelegate) => true;
 }
 
 /// Two seconds of PCM, reduced to a min/max envelope per pixel column.

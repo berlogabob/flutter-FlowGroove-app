@@ -4,10 +4,33 @@ import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../models/audio_region.dart';
+import '../../../models/song_lab.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/audio/waveform_painter.dart';
 import 'song_map_letters.dart';
 import 'song_map_view.dart';
+
+class SongMapOverview extends SongMapTimeline {
+  SongMapOverview({
+    required SongLabEntry entry,
+    required super.view,
+    required super.positionMs,
+    required super.playing,
+    required super.candidateBoundariesMs,
+    required super.selectedIndices,
+    super.onSectionHold,
+    super.onSectionTap,
+    super.onSeek,
+    required Widget noteTicks,
+  }) : super(
+         entry: entry,
+         peaks: entry.peaks,
+         noteTicks: noteTicks,
+         key: const ValueKey('song-map-overview'),
+       );
+
+  static const height = 96.0;
+}
 
 class SongMapTimeline extends StatefulWidget {
   const SongMapTimeline({
@@ -20,6 +43,13 @@ class SongMapTimeline extends StatefulWidget {
     this.selectedBoundaryMs,
     this.selectedIndices = const {},
     this.onSectionHold,
+    this.onSectionTap,
+    this.onSeek,
+    this.entry,
+    this.noteTicks,
+    this.focusSection,
+    this.editableBoundaries = const {},
+    this.onFineTune,
     this.onBoundaryTap,
     this.onBoundaryDrag,
     super.key,
@@ -38,15 +68,38 @@ class SongMapTimeline extends StatefulWidget {
   final int? selectedBoundaryMs;
   final Set<int> selectedIndices;
   final ValueChanged<String>? onSectionHold;
+  final ValueChanged<int>? onSectionTap;
+  final ValueChanged<int>? onSeek;
+  final SongLabEntry? entry;
+  final Widget? noteTicks;
+  final int? focusSection;
+  final Map<int, int> editableBoundaries;
+  final ValueChanged<int>? onFineTune;
   final ValueChanged<int>? onBoundaryTap;
   final ValueChanged<(int, int)>? onBoundaryDrag;
+
+  bool get _overview => this is SongMapOverview;
+
+  int? get _section => _overview
+      ? null
+      : view.sectionIndex ?? focusSection ?? (view.sections.isEmpty ? null : 0);
+
+  ({int startMs, int endMs}) get viewport {
+    final section = _section;
+    if (section == null) return (startMs: 0, endMs: view.durationMs);
+    final region = view.sections[section];
+    return (
+      startMs: region.startMs.clamp(0, view.durationMs),
+      endMs: region.endMs.clamp(0, view.durationMs),
+    );
+  }
 
   @override
   State<SongMapTimeline> createState() => _SongMapTimelineState();
 }
 
 class _SongMapTimelineState extends State<SongMapTimeline> {
-  static const _laneHeight = MonoPulseSpacing.massive;
+  static const _partLaneHeight = MonoPulseSpacing.huge;
   static const _tipSize = MonoPulseSpacing.lg;
   static const _handleWidth = MonoPulseSpacing.xxl;
 
@@ -65,25 +118,22 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     ),
   );
 
+  int get _startMs => widget.viewport.startMs;
+  int get _endMs => widget.viewport.endMs;
+
+  double _x(int ms, double width) =>
+      (ms - _startMs) / math.max(1, _endMs - _startMs) * width;
+
+  int _ms(double x, double width) =>
+      _startMs + (x / width * (_endMs - _startMs)).round();
+
   Widget _timeline(BuildContext context, double width) {
-    final palette = context.mp;
-    final level = _view.level;
-    final atSong = level == SongMapZoom.song;
-    final atPart = level == SongMapZoom.part;
-    final children = _view.children();
-    final parts = atSong ? const <AudioRegion>[] : children;
-    // At deeper levels the view exposes the focused section’s parts.
-    final sections = atSong
-        ? children
-        : [
-            if (parts.isNotEmpty)
-              parts.first.copyWith(
-                name: parts.first.section?.isNotEmpty ?? false
-                    ? parts.first.section
-                    : parts.first.name,
-                endMs: parts.last.endMs,
-              ),
-          ];
+    final overview = widget._overview;
+    final section = widget._section;
+    if (!overview && section == null) return const SizedBox.shrink();
+    final parts = section == null
+        ? const <AudioRegion>[]
+        : _view.sectionParts(section);
     final grid = _view.grid;
     final barMs = grid?.barMs ?? 0;
     final hasGrid =
@@ -91,192 +141,197 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         grid.beatsPerBar > 0 &&
         barMs.isFinite &&
         barMs >= grid.beatsPerBar;
-    final waveformHeight = atSong ? 92.0 : 72.0;
-    const waveformTop = _laneHeight + MonoPulseSpacing.sm;
+    final beats = !overview && _view.level == SongMapZoom.part;
+    final waveformHeight = overview ? 64.0 : 96.0;
     final positionMs = widget.positionMs;
     final selectedBoundary = widget.selectedBoundaryMs;
     final boundaries = {
       ...?widget.boundariesMs,
-      if (widget.boundariesMs == null && !atSong)
-        for (final part in parts) ...[part.startMs, part.endMs],
+      if (widget.boundariesMs == null)
+        for (final part in parts.skip(1)) part.startMs,
       ...widget.candidateBoundariesMs,
     };
-    double x(int ms) => _view.msToX(ms, width);
-    bool visible(int ms) => ms >= _view.startMs && ms <= _view.endMs;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      dragStartBehavior: DragStartBehavior.down,
-      onScaleStart: (_) => _zoomedOut = false,
-      onScaleUpdate: (details) {
-        if (!_zoomedOut && details.pointerCount >= 2 && details.scale > 1.15) {
-          _zoomedOut = true;
-          _view.zoomOut();
-        }
-      },
-      child: SizedBox(
-        width: width,
-        child: Stack(
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _lane(
-                  context,
-                  sections,
-                  width,
-                  sectionIndex: _view.sectionIndex,
-                  onZoom: atSong ? _view.zoomIn : null,
-                  selectedIndices: atSong ? widget.selectedIndices : const {0},
-                ),
-                const SizedBox(height: MonoPulseSpacing.sm),
-                _waveform(palette, width, waveformHeight),
-                if (hasGrid) _ticks(context, grid, width),
-                if (!atSong)
-                  _lane(
-                    context,
-                    parts,
-                    width,
-                    isParts: true,
-                    sectionIndex: _view.sectionIndex,
-                    barMs: hasGrid ? barMs : null,
-                    onZoom: atPart ? null : _view.zoomIn,
-                    selectedIndices: widget.selectedIndices,
-                  ),
-                if (atPart && hasGrid)
-                  _ticks(context, grid, width, beats: true),
-              ],
-            ),
-            if (positionMs != null && visible(positionMs))
-              Positioned(
-                left: x(positionMs) - _handleWidth / 2,
-                top: waveformTop - _tipSize / 2,
-                height: waveformHeight + _tipSize,
-                child: const IgnorePointer(
-                  child: _TimelineMarker(
-                    icon: Icons.arrow_drop_down,
-                    color: MonoPulseColors.accentOrange,
-                  ),
-                ),
-              ),
-            for (final ms in boundaries)
-              if (ms != selectedBoundary &&
-                  ms > 0 &&
-                  ms < _view.durationMs &&
-                  visible(ms))
-                _boundary(
-                  context,
-                  ms,
-                  x(ms),
-                  width,
-                  waveformTop,
-                  waveformHeight,
-                ),
-            if (selectedBoundary != null && visible(selectedBoundary))
-              _boundary(
-                context,
-                selectedBoundary,
-                x(selectedBoundary),
-                width,
-                waveformTop,
-                waveformHeight,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _waveform(MonoPulsePalette palette, double width, double height) {
-    final span = _view.endMs - _view.startMs;
-    final fullWidth = span > 0 ? width * _view.durationMs / span : 0.0;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-      child: ColoredBox(
-        color: palette.surfaceRaised,
-        child: SizedBox(
-          width: width,
-          height: height,
+    bool visible(int ms) => ms >= _startMs && ms <= _endMs;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (section != null)
+          Text(
+            _view.sectionIndex == null
+                ? '${_view.sectionLetter(section).label} · ${songMapRegionName(_view.sections[section], section)}'
+                : songMapRegionName(_view.sections[section], section),
+            style: MonoPulseTypography.bodySmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        GestureDetector(
+          onScaleStart: overview ? null : (_) => _zoomedOut = false,
+          onScaleUpdate: overview
+              ? null
+              : (details) {
+                  if (!_zoomedOut &&
+                      details.pointerCount >= 2 &&
+                      details.scale > 1.15) {
+                    _zoomedOut = true;
+                    _view.zoomOut();
+                  }
+                },
           child: Stack(
             children: [
-              for (final (index, section) in _view.sections.indexed)
-                if (section.endMs > _view.startMs &&
-                    section.startMs < _view.endMs)
-                  Positioned(
-                    left: _view.msToX(section.startMs, width).clamp(0.0, width),
-                    right:
-                        width -
-                        _view.msToX(section.endMs, width).clamp(0.0, width),
-                    top: 0,
-                    bottom: 0,
-                    child: ColoredBox(
-                      color: _view
-                          .sectionLetter(index)
-                          .color
-                          .withValues(alpha: 0.25),
-                    ),
+              Column(
+                children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapUp: widget.onSeek == null
+                        ? null
+                        : (details) => widget.onSeek!(
+                            _ms(details.localPosition.dx, width),
+                          ),
+                    child: _waveform(context.mp, width, waveformHeight),
                   ),
-              if (fullWidth > 0 && widget.peaks.isNotEmpty)
+                  _lane(context, width, section, parts, hasGrid ? barMs : null),
+                ],
+              ),
+              if (widget.noteTicks case final ticks?)
                 Positioned(
-                  left: _view.msToX(0, width),
-                  width: fullWidth,
+                  left: 0,
+                  right: 0,
                   top: 0,
-                  bottom: 0,
-                  child: ColorFiltered(
-                    colorFilter: ColorFilter.mode(
-                      palette.textSecondary,
-                      BlendMode.srcIn,
-                    ),
-                    child: CustomPaint(
-                      painter: WaveformPainter(
-                        peaks: widget.peaks,
-                        trimStart: 0,
-                        trimEnd: 1,
-                        playhead: -1,
-                        markerFractions: const [],
-                        dim: palette.textSecondary,
-                      ),
-                    ),
-                  ),
+                  height: 10,
+                  child: IgnorePointer(child: ticks),
                 ),
+              if (overview)
+                for (final ms in widget.candidateBoundariesMs)
+                  if (visible(ms))
+                    _line(context, _x(ms, width), width, dashed: true),
+              if (positionMs != null && visible(positionMs))
+                _line(context, _x(positionMs, width), width),
+              if (!overview)
+                for (final ms in {
+                  ...boundaries.where((ms) => ms != selectedBoundary),
+                  ?selectedBoundary,
+                })
+                  if (ms > 0 && ms < _view.durationMs && visible(ms))
+                    _boundary(
+                      context,
+                      ms,
+                      _x(ms, width),
+                      width,
+                      waveformHeight,
+                    ),
             ],
           ),
         ),
+        if (!overview && hasGrid) _ticks(context, grid, width),
+        if (beats && hasGrid) _ticks(context, grid, width, beats: true),
+        if (overview && widget.peaks.isEmpty) ...[
+          Slider(
+            value: _endMs == 0
+                ? 0
+                : ((positionMs ?? 0) / _endMs).clamp(0.0, 1.0),
+            onChanged: widget.onSeek == null
+                ? null
+                : (value) => widget.onSeek!((value * _endMs).round()),
+          ),
+          Text(
+            'No waveform for this take — tap or drag to seek.',
+            textAlign: TextAlign.center,
+            style: MonoPulseTypography.bodySmall.copyWith(
+              color: context.mp.textSecondary,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _line(
+    BuildContext context,
+    double x,
+    double width, {
+    bool dashed = false,
+  }) => Positioned(
+    left: (x - 2).clamp(0.0, math.max(0, width - 4)),
+    width: 4,
+    top: 0,
+    bottom: 0,
+    child: IgnorePointer(
+      child: CustomPaint(
+        painter: _MarkerStem(
+          context.mp.textPrimary,
+          thick: false,
+          dashed: dashed,
+        ),
+      ),
+    ),
+  );
+
+  Widget _waveform(MonoPulsePalette palette, double width, double height) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(color: palette.surfaceRaised),
+          for (final (index, section) in _view.sections.indexed)
+            if (section.endMs > _startMs && section.startMs < _endMs)
+              Positioned(
+                key: ValueKey('song-map-band-${section.id}'),
+                left: _x(section.startMs, width).clamp(0.0, width),
+                right: width - _x(section.endMs, width).clamp(0.0, width),
+                top: 0,
+                bottom: 0,
+                child: ColoredBox(
+                  color: _view
+                      .sectionLetter(index)
+                      .color
+                      .withValues(alpha: 0.25),
+                ),
+              ),
+          if (_endMs > _startMs)
+            ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                palette.textSecondary,
+                BlendMode.srcIn,
+              ),
+              child: CustomPaint(
+                key: ValueKey(
+                  widget._overview
+                      ? 'song-map-overview-waveform'
+                      : 'song-map-zoom-waveform',
+                ),
+                painter: _SongMapWaveformPainter(
+                  entry: widget.entry,
+                  peaks: widget.peaks,
+                  viewport: widget.viewport,
+                  durationMs: _view.durationMs,
+                  dim: palette.textSecondary,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 
   Widget _lane(
     BuildContext context,
-    List<AudioRegion> regions,
-    double width, {
-    bool isParts = false,
-    int? sectionIndex,
+    double width,
+    int? section,
+    List<AudioRegion> parts,
     double? barMs,
-    ValueChanged<int>? onZoom,
-    Set<int> selectedIndices = const {},
-  }) {
+  ) {
+    final regions = section == null ? _view.sections : parts;
     return SizedBox(
-      key: ValueKey(isParts ? 'song-map-parts' : 'song-map-sections'),
+      key: ValueKey(section == null ? 'song-map-sections' : 'song-map-parts'),
       width: width,
-      height: _laneHeight,
+      height: section == null ? MonoPulseSpacing.xxxl : _partLaneHeight,
       child: Stack(
         children: [
           for (final (index, region) in regions.indexed)
-            if (region.endMs > _view.startMs && region.startMs < _view.endMs)
-              _block(
-                context,
-                region,
-                width,
-                index,
-                letter: _view.sectionLetter(sectionIndex ?? index),
-                isPart: isParts,
-                selected:
-                    selectedIndices.contains(index) ||
-                    (isParts && _view.partIndex == index),
-                barMs: barMs,
-                onZoom: onZoom == null ? null : () => onZoom(index),
-              ),
+            if (region.endMs > _startMs && region.startMs < _endMs)
+              _block(context, region, width, index, section, barMs),
         ],
       ),
     );
@@ -286,15 +341,17 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     BuildContext context,
     AudioRegion region,
     double width,
-    int index, {
-    required SongMapLetter letter,
-    required bool isPart,
-    required bool selected,
-    required double? barMs,
-    required VoidCallback? onZoom,
-  }) {
-    final left = _view.msToX(region.startMs, width).clamp(0.0, width);
-    final right = _view.msToX(region.endMs, width).clamp(0.0, width);
+    int index,
+    int? sectionIndex,
+    double? barMs,
+  ) {
+    final letter = _view.sectionLetter(sectionIndex ?? index);
+    final isPart = sectionIndex != null;
+    final selected =
+        widget.selectedIndices.contains(index) ||
+        (isPart && _view.partIndex == index);
+    final left = _x(region.startMs, width).clamp(0.0, width);
+    final right = _x(region.endMs, width).clamp(0.0, width);
     if (right <= left) return const SizedBox.shrink();
 
     final palette = context.mp;
@@ -308,8 +365,12 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         positionMs < region.endMs;
     final label = isPart ? songMapPartLetter(region, index) : letter.label;
     final name = isPart ? label : songMapRegionName(region, index);
-    final nameStyle = typography.bodySmall?.copyWith(color: letter.textColor);
-    final bars = barMs == null ? 0 : (region.lengthMs / barMs).round();
+    final nameStyle = typography.bodySmall?.copyWith(
+      color: palette.textPrimary,
+    );
+    final bars = !isPart || barMs == null
+        ? 0
+        : (region.lengthMs / barMs).round();
     final border = playing
         ? MonoPulseColors.accentOrange
         : selected
@@ -321,7 +382,14 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
       top: 0,
       bottom: 0,
       child: GestureDetector(
-        onDoubleTap: onZoom,
+        onTap: !isPart && widget.onSectionTap != null
+            ? () => widget.onSectionTap!(index)
+            : null,
+        onDoubleTap:
+            !isPart && _view.sectionIndex == null ||
+                isPart && _view.level == SongMapZoom.section
+            ? () => _view.zoomIn(index)
+            : null,
         onLongPress: !isPart && section != null && widget.onSectionHold != null
             ? () => widget.onSectionHold!(section)
             : null,
@@ -330,8 +398,10 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
           padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxs),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: letter.color,
-            borderRadius: BorderRadius.circular(MonoPulseRadius.button),
+            color: Color.alphaBlend(
+              letter.color.withValues(alpha: 0.35),
+              palette.surfaceRaised,
+            ),
             border: Border.all(
               color: border,
               width: selected || playing ? 3 : 1,
@@ -347,7 +417,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                   Text(
                     bars == 1 ? '1 bar' : '$bars bars',
                     style: typography.labelSmall?.copyWith(
-                      color: letter.textColor,
+                      color: palette.textPrimary,
                     ),
                   ),
               ],
@@ -365,19 +435,14 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     bool beats = false,
   }) {
     final stepMs = beats ? grid.barMs / grid.beatsPerBar : grid.barMs;
-    final span = _view.endMs - _view.startMs;
+    final span = _endMs - _startMs;
     final spacing = span > 0 ? width * stepMs / span : 0.0;
     final palette = context.mp;
     final style = Theme.of(context).textTheme.bodySmall;
-    final overview = _view.level == SongMapZoom.song;
-    final minLabelSpacing = beats
-        ? MonoPulseSpacing.lg
-        : overview
-        ? MonoPulseSpacing.xxxl
-        : MonoPulseSpacing.xl;
+    const minLabelSpacing = MonoPulseSpacing.lg;
     var tickStride = 1;
     var labelStride = 1;
-    if (spacing > 0) {
+    if (beats && spacing > 0) {
       while (spacing * tickStride < MonoPulseSpacing.xxs) {
         tickStride *= 2;
       }
@@ -386,17 +451,18 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         labelStride *= 2;
       }
     }
-    if (overview) tickStride = labelStride;
     final first = math.max(
       0,
-      ((_view.startMs - grid.offsetMs) / stepMs).ceil(),
+      ((_startMs - grid.offsetMs - 0.5) / stepMs).ceil(),
     );
-    final last = ((_view.endMs - grid.offsetMs) / stepMs).floor();
+    final last = ((_endMs - grid.offsetMs - 0.5) / stepMs).ceil() - 1;
+    double x(int tick) =>
+        _x(grid.msOfBar(beats ? tick / grid.beatsPerBar : tick), width);
 
     return SizedBox(
       key: ValueKey(beats ? 'song-map-beats' : 'song-map-ruler'),
       width: width,
-      height: beats ? MonoPulseSpacing.xxxl : MonoPulseSpacing.xxl,
+      height: beats ? MonoPulseSpacing.xxxl : 26,
       child: Stack(
         children: [
           if (spacing > 0)
@@ -406,13 +472,10 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
               tick += tickStride
             )
               Positioned(
-                left: _view.msToX(
-                  grid.msOfBar(beats ? tick / grid.beatsPerBar : tick),
-                  width,
-                ),
+                left: x(tick),
+                width: (width - x(tick)).clamp(0.0, spacing),
                 top: 0,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ColoredBox(
                       color: palette.borderStrong,
@@ -420,13 +483,17 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                         width: 1,
                         height: beats && tick % grid.beatsPerBar == 0
                             ? MonoPulseSpacing.md
-                            : MonoPulseSpacing.xs,
+                            : 6,
                       ),
                     ),
+                    const SizedBox(height: MonoPulseSpacing.xxs),
                     if (tick % labelStride == 0)
-                      Text(
-                        '${(beats ? tick % grid.beatsPerBar : tick) + 1}',
-                        style: style?.copyWith(color: palette.textSecondary),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '${(beats ? tick % grid.beatsPerBar : tick) + 1}',
+                          style: style?.copyWith(color: palette.textSecondary),
+                        ),
                       ),
                   ],
                 ),
@@ -441,24 +508,26 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     int ms,
     double x,
     double width,
-    double waveformTop,
     double waveformHeight,
   ) {
     final selected = ms == widget.selectedBoundaryMs;
     final candidate = widget.candidateBoundariesMs.contains(ms);
     final onTap = widget.onBoundaryTap;
     final onDrag = widget.onBoundaryDrag;
-    final parts = _view.children();
+    final parts = _view.sectionParts(widget._section!);
     final part = _view.level == SongMapZoom.section
         ? parts.indexWhere((part) => part.startMs <= ms && ms < part.endMs)
         : -1;
+    final index = widget.editableBoundaries[ms];
+    final center = (_dragBoundary == ms ? x + _dragDx : x).clamp(0.0, width);
+    final left = (center - _handleWidth / 2)
+        .clamp(0.0, math.max(0.0, width - _handleWidth))
+        .toDouble();
     return Positioned(
       key: ValueKey(ms),
-      left:
-          (_dragBoundary == ms ? x + _dragDx : x).clamp(0.0, width) -
-          _handleWidth / 2,
-      top: waveformTop - _tipSize / 2,
-      height: waveformHeight + _tipSize,
+      left: left,
+      top: 0,
+      height: waveformHeight,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         dragStartBehavior: DragStartBehavior.down,
@@ -477,7 +546,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
             ? null
             : (_) {
                 setState(() => _dragBoundary = null);
-                onDrag((ms, _view.xToMs(x + _dragDx, width)));
+                onDrag((ms, _ms(x + _dragDx, width)));
               },
         onHorizontalDragCancel: onDrag == null
             ? null
@@ -485,11 +554,41 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         child: Semantics(
           label: 'Boundary at $ms ms',
           selected: selected,
-          child: _TimelineMarker(
-            icon: Icons.drag_indicator,
-            color: selected ? context.mp.textPrimary : context.mp.borderStrong,
-            thick: selected,
-            dashed: candidate,
+          child: SizedBox(
+            width: _handleWidth,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: center - left - MonoPulseSpacing.xxs,
+                  width: MonoPulseSpacing.xs,
+                  top: 0,
+                  bottom: 0,
+                  child: CustomPaint(
+                    painter: _MarkerStem(
+                      selected
+                          ? context.mp.textPrimary
+                          : context.mp.borderStrong,
+                      thick: selected,
+                      dashed: candidate,
+                    ),
+                  ),
+                ),
+                if (index != null && widget.onFineTune != null)
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: GestureDetector(
+                      key: ValueKey('marker-handle-$index'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => widget.onFineTune!(index),
+                      child: Icon(
+                        Icons.drag_indicator,
+                        size: _tipSize,
+                        color: context.mp.textPrimary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -497,34 +596,35 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
   }
 }
 
-class _TimelineMarker extends StatelessWidget {
-  const _TimelineMarker({
-    required this.icon,
-    required this.color,
-    this.thick = false,
-    this.dashed = false,
-  });
+class _SongMapWaveformPainter extends WaveformPainter {
+  _SongMapWaveformPainter({
+    required this.entry,
+    required this.viewport,
+    required this.durationMs,
+    required super.peaks,
+    required super.dim,
+  }) : super(trimStart: 0, trimEnd: 1, playhead: -1, markerFractions: const []);
 
-  final IconData icon;
-  final Color color;
-  final bool thick;
-  final bool dashed;
+  final SongLabEntry? entry;
+  final ({int startMs, int endMs}) viewport;
+  final int durationMs;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: _SongMapTimelineState._handleWidth,
-    child: Column(
-      children: [
-        Icon(icon, size: _SongMapTimelineState._tipSize, color: color),
-        Expanded(
-          child: CustomPaint(
-            size: const Size.fromWidth(MonoPulseSpacing.xs),
-            painter: _MarkerStem(color, thick: thick, dashed: dashed),
-          ),
-        ),
-      ],
-    ),
-  );
+  void paint(Canvas canvas, Size size) {
+    final msToPixels = size.width / (viewport.endMs - viewport.startMs);
+    canvas
+      ..save()
+      ..clipRect(Offset.zero & size)
+      ..translate(-viewport.startMs * msToPixels, 0);
+    super.paint(canvas, Size(durationMs * msToPixels, size.height));
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _SongMapWaveformPainter old) =>
+      super.shouldRepaint(old) ||
+      viewport != old.viewport ||
+      durationMs != old.durationMs;
 }
 
 class _MarkerStem extends CustomPainter {

@@ -1,6 +1,5 @@
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_letters.dart';
-import 'package:flowgroove/screens/practice_regions/song_map/song_map_minimap.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
@@ -155,9 +154,19 @@ void main() {
         expect(textIn(chorus1Lane), ['C']);
         expect(textIn(chorus2Lane), ['C']);
         expect(textIn(chorus2Badge), ['C']);
-        expect(blockColor(chorus2Lane), MonoPulseColors.section8);
+        Color laneTint(Color color, Finder target) => Color.alphaBlend(
+          color.withValues(alpha: 0.35),
+          tester.element(target).mp.surfaceRaised,
+        );
+        expect(
+          blockColor(chorus2Lane),
+          laneTint(MonoPulseColors.section8, chorus2Lane),
+        );
         expect(blockColor(chorus2Lane), blockColor(chorus1Lane));
-        expect(blockColor(chorus2Lane), badgeColor(chorus2Badge));
+        expect(
+          blockColor(chorus2Lane),
+          laneTint(badgeColor(chorus2Badge)!, chorus2Lane),
+        );
         expect(
           find.descendant(
             of: chorus2Pad,
@@ -171,7 +180,7 @@ void main() {
         );
         expect(
           find.descendant(
-            of: find.byType(SongMapTimeline),
+            of: find.byType(SongMapOverview),
             matching: find.byWidgetPredicate(
               (widget) =>
                   widget is ColoredBox &&
@@ -213,14 +222,21 @@ void main() {
         expect(textIn(partBadge), ['b']);
         expect(textIn(partLane), ['b', '4 bars']);
         expect(badgeColor(partBadge), MonoPulseColors.section8);
-        expect(blockColor(partLane), badgeColor(partBadge));
+        expect(
+          blockColor(partLane),
+          laneTint(badgeColor(partBadge)!, partLane),
+        );
+        final chorusTint = laneTint(MonoPulseColors.section8, chorus2Lane);
+        final chorusBand = MonoPulseColors.section8.withValues(alpha: 0.25);
         expect(
           find.descendant(
-            of: find.byType(SongMapMinimap),
+            of: find.byType(SongMapOverview),
             matching: find.byWidgetPredicate(
               (widget) =>
-                  widget is ColoredBox &&
-                  widget.color == MonoPulseColors.section8,
+                  widget is ColoredBox && widget.color == chorusBand ||
+                  widget is Container &&
+                      widget.decoration is BoxDecoration &&
+                      (widget.decoration! as BoxDecoration).color == chorusTint,
             ),
           ),
           findsNWidgets(4),

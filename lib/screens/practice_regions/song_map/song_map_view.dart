@@ -63,6 +63,7 @@ class SongMapView extends ChangeNotifier {
   final _parts = <List<AudioRegion>>[];
   final _sectionRanges = <(int, int)>[];
 
+  int? overviewSelection;
   int? _sectionIndex;
   int? _partIndex;
 
@@ -126,6 +127,10 @@ class SongMapView extends ChangeNotifier {
 
   SongMapLetter sectionLetter(int index) => letters[_sectionRanges[index].$1];
 
+  List<AudioRegion> sectionParts(int index) => _parts[index];
+
+  (int, int) sectionRange(int index) => _sectionRanges[index];
+
   (int, int) regionRange(int index) {
     if (_sectionIndex == null) return _sectionRanges[index];
     final region = regions.indexOf(_parts[_sectionIndex!][index]);
@@ -134,6 +139,12 @@ class SongMapView extends ChangeNotifier {
 
   /// Keep the zoom anchored to the surviving region IDs after an edit.
   void restoreZoom(SongMapView previous) {
+    final selected = previous.overviewSelection;
+    if (selected != null) {
+      final id = previous.sections[selected].id;
+      final index = sections.indexWhere((section) => section.id == id);
+      if (index >= 0) overviewSelection = index;
+    }
     final oldSection = previous.sectionIndex;
     if (oldSection == null) return;
     final partIds = previous._parts[oldSection].map((part) => part.id).toSet();
