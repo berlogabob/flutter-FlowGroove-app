@@ -250,24 +250,32 @@ class _SongMapPadsState extends State<SongMapPads> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Scale the name down rather than cut it: four pads
+                      // per row turned every "Region X" into "Region…".
+                      // The play icon and "next" sit on the second line so
+                      // they do not shrink the name.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          songMapRegionName(region, index),
+                          maxLines: 1,
+                          style: MonoPulseTypography.bodyMedium.copyWith(
+                            color: fg,
+                          ),
+                        ),
+                      ),
                       Row(
                         children: [
-                          if (playing) ...[
-                            Icon(Icons.play_arrow, color: fg, size: 20),
-                            const SizedBox(width: MonoPulseSpacing.xs),
-                          ],
-                          // Scale the name down rather than cut it: four pads
-                          // per row turned every "Region X" into "Region…".
+                          if (playing)
+                            Icon(Icons.play_arrow, color: fg, size: 16),
                           Expanded(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                songMapRegionName(region, index),
-                                maxLines: 1,
-                                style: MonoPulseTypography.bodyMedium.copyWith(
-                                  color: fg,
-                                ),
+                            child: Text(
+                              subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: MonoPulseTypography.bodySmall.copyWith(
+                                color: fg,
                               ),
                             ),
                           ),
@@ -279,14 +287,6 @@ class _SongMapPadsState extends State<SongMapPads> {
                               ),
                             ),
                         ],
-                      ),
-                      Text(
-                        subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: MonoPulseTypography.bodySmall.copyWith(
-                          color: fg,
-                        ),
                       ),
                     ],
                   ),
