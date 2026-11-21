@@ -389,16 +389,8 @@ class SetlistViewScreen extends ConsumerWidget {
             ),
           ),
         ),
-        if (song.ourBPM != null) ...[
-          const SizedBox(width: 8),
-          Text(
-            '${song.ourBPM}',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: context.mp.textPrimary,
-            ),
-          ),
-        ],
+        const SizedBox(width: 8),
+        SetlistBpmSlot(song.ourBPM, color: context.mp.textPrimary),
       ],
     );
   }

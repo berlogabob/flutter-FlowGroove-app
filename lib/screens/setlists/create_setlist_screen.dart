@@ -928,13 +928,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                           ),
                                         ),
                                         const SizedBox(width: 8),
-                                        if (song.ourBPM != null)
-                                          Text(
-                                            '${song.ourBPM}',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
+                                        SetlistBpmSlot(song.ourBPM),
                                         if (song.spotifyUrl != null) ...[
                                           const SizedBox(width: 4),
                                           InkWell(
@@ -957,7 +951,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                               size: 24,
                                             ),
                                           ),
-                                        ],
+                                        ] else
+                                          const SizedBox(width: 28),
                                       ],
                                     ),
                             ),

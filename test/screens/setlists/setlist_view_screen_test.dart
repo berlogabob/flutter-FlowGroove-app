@@ -231,6 +231,44 @@ void main() {
       expect(find.text('90'), findsOneWidget);
     });
 
+    testWidgets('Play and key line up whatever the BPM width (A24 report)', (
+      tester,
+    ) async {
+      songs = [
+        for (final (i, bpm) in [170, 92, 8, null, 100].indexed)
+          MockDataHelper.createMockSong(
+            id: 'b$i',
+            title: 'Song $i',
+            artist: 'Band',
+            ourKey: i == 3 ? null : 'Eb',
+            ourBPM: bpm,
+          ),
+      ];
+      setlist = MockDataHelper.createMockSetlist(
+        id: 'setlist-1',
+        name: 'Gig Setlist',
+        songIds: [for (final s in songs) s.id],
+      );
+      await pumpView(tester);
+
+      final play = [
+        for (final s in songs)
+          tester.getRect(find.bySemanticsLabel('Play ${s.title}')),
+      ];
+      expect(play.map((r) => r.left).toSet(), hasLength(1));
+      expect(play.map((r) => r.right).toSet(), hasLength(1));
+      final eb = find.text('Eb');
+      expect(eb, findsNWidgets(4));
+      final keyX = {for (var i = 0; i < 4; i++) tester.getCenter(eb.at(i)).dx};
+      expect(keyX, hasLength(1));
+      expect(tester.getCenter(find.text('-')).dx, keyX.single);
+      final bpmRight = {
+        for (final t in ['170', '92', '8', '100'])
+          tester.getRect(find.text(t)).right,
+      };
+      expect(bpmRight, hasLength(1));
+    });
+
     testWidgets('explains unresolved songs and how editors can review them', (
       tester,
     ) async {

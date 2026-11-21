@@ -153,3 +153,37 @@ class SetlistSongRow extends StatelessWidget {
     );
   }
 }
+
+/// BPM column of a setlist row: fixed width for three digits, right-aligned,
+/// kept when [bpm] is null, so Play and key line up in every row.
+class SetlistBpmSlot extends StatelessWidget {
+  const SetlistBpmSlot(this.bpm, {this.color, super.key});
+
+  final int? bpm;
+  final Color? color;
+
+  static const width = 40.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      child: bpm == null
+          ? null
+          : Align(
+              alignment: Alignment.centerRight,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '$bpm',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+}
