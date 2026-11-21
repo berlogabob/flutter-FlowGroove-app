@@ -264,10 +264,20 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
       color.withValues(alpha: 0.2),
       palette.surface,
     );
-    final label =
-        isPart && section != null && region.name.startsWith('$section ')
-        ? region.name.substring(section.length + 1)
-        : region.name;
+    final sectionName = section?.isNotEmpty == true ? section! : region.name;
+    final sectionBaseName = sectionName.trim().replaceFirst(
+      _occurrenceSuffix,
+      '',
+    );
+    final label = isPart
+        ? section != null && region.name.startsWith('$section ')
+              ? region.name.substring(section.length + 1)
+              : region.name
+        : right - left >= 64
+        ? sectionName
+        : sectionBaseName.isEmpty
+        ? ''
+        : sectionBaseName.substring(0, 1).toUpperCase();
     final bars = barMs == null ? 0 : (region.lengthMs / barMs).round();
     final border = playing
         ? MonoPulseColors.accentOrange

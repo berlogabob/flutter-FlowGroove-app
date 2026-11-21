@@ -126,6 +126,43 @@ void main() {
     },
   );
 
+  testWidgets('section labels use a letter below 64 px and the name above', (
+    tester,
+  ) async {
+    final labelView = SongMapView(
+      durationMs: 16000,
+      regions: const [
+        AudioRegion(
+          id: 'intro',
+          name: 'Intro 1',
+          section: 'Intro 1',
+          startMs: 0,
+          endMs: 4000,
+        ),
+        AudioRegion(
+          id: 'chorus',
+          name: 'Chorus 1',
+          section: 'Chorus 1',
+          startMs: 4000,
+          endMs: 16000,
+        ),
+      ],
+    );
+    addTearDown(labelView.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: SizedBox(width: 160, child: SongMapTimeline(view: labelView)),
+        ),
+      ),
+    );
+
+    expect(find.text('I'), findsOneWidget);
+    expect(find.text('Intro 1'), findsNothing);
+    expect(find.text('Chorus 1'), findsOneWidget);
+  });
+
   testWidgets(
     'boundary taps report the file-relative seam at both zoom levels',
     (tester) async {
