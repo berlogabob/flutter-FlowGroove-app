@@ -1240,6 +1240,13 @@
       "template": "const Icon(Icons.remove)"
     },
     {
+      "component": "Icon/repeat",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "Icon",
+      "template": "const Icon(Icons.repeat)"
+    },
+    {
       "component": "Icon/report_problem_outlined",
       "importPath": "package:flutter/material.dart",
       "language": "flutter",
@@ -1443,6 +1450,13 @@
       "template": "const Icon(Icons.theaters_outlined)"
     },
     {
+      "component": "Icon/timer",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "Icon",
+      "template": "const Icon(Icons.timer)"
+    },
+    {
       "component": "Icon/timer_outlined",
       "importPath": "package:flutter/material.dart",
       "language": "flutter",
@@ -1644,6 +1658,13 @@
       "language": "flutter",
       "name": "Icon",
       "template": "const Icon(Icons.wifi_off)"
+    },
+    {
+      "component": "Icon/zoom_out",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "Icon",
+      "template": "const Icon(Icons.zoom_out)"
     },
     {
       "component": "Icon/zoom_out_map",
