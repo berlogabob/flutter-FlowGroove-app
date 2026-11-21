@@ -14,7 +14,9 @@ import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/repositories/metronome_session_repository.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart';
+import 'package:flowgroove/screens/practice_regions/song_map/song_map_tempo_banner.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart';
+import 'package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
@@ -44,6 +46,7 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   int playCalls = 0;
   int pauseCalls = 0;
   int loadCalls = 0;
+  double speed = 1;
   String? loadedUri;
   final calls = <String>[];
 
@@ -109,8 +112,10 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
       SetVolumeResponse();
 
   @override
-  Future<SetSpeedResponse> setSpeed(SetSpeedRequest request) async =>
-      SetSpeedResponse();
+  Future<SetSpeedResponse> setSpeed(SetSpeedRequest request) async {
+    speed = request.speed;
+    return SetSpeedResponse();
+  }
 
   @override
   Future<SetPitchResponse> setPitch(SetPitchRequest request) async =>
@@ -239,11 +244,12 @@ const _regions = [
 
 SongLabEntry _entry({
   String id = 'e1',
+  String songId = '_inbox',
   List<AudioRegion> regions = _regions,
   AudioGrid? grid,
 }) => SongLabEntry(
   id: id,
-  songId: '_inbox',
+  songId: songId,
   type: LabEntryType.recording,
   authorId: 'u1',
   createdAt: DateTime(2026, 7, 28),
@@ -1380,6 +1386,85 @@ void main() {
     final regions = repo.saved.single.regions;
     expect(regions.first.endMs, greaterThan(10000));
     expect(regions.first.endMs, regions.last.startMs);
+  });
+
+  testWidgets('Stretch follows the song and combines with playback speed', (
+    tester,
+  ) async {
+    const grid = AudioGrid(bpm: 80.49);
+    const factor = 80 / 80.49;
+    PracticeRegionsScreen.decodePcm = (
+      _, {
+      required sampleRate,
+      required durationMs,
+    }) async => null;
+    addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
+    await pump(tester, _entry(songId: 'song-a', grid: grid));
+
+    await tester.tap(find.text('Stretch to 80'));
+    await settleAudio(tester);
+    final player = audio.players.values.single;
+    expect(find.text('80 BPM'), findsOneWidget);
+    expect(find.byType(SongMapTempoBanner), findsNothing);
+    expect(
+      tester.widget<SongMapTransport>(find.byType(SongMapTransport)).stretched,
+      isTrue,
+    );
+    expect(
+      tester
+          .widget<FilterChip>(find.byKey(const ValueKey('click-and-drums')))
+          .onSelected,
+      isNull,
+    );
+    expect(player.speed, closeTo(factor, 1e-12));
+
+    await tester.tap(find.byKey(const ValueKey('speed')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ChoiceChip, '75%'));
+    await settleAudio(tester);
+    expect(player.speed, closeTo(factor * 0.75, 1e-12));
+    Navigator.of(tester.element(find.byType(BottomSheet))).pop();
+    await settleAudio(tester);
+
+    await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
+    await settleAudio(tester);
+    expect(player.clip?.start, const Duration(seconds: 10));
+    expect(player.clip?.end, const Duration(seconds: 20));
+    expect(player.speed, closeTo(factor * 0.75, 1e-12));
+
+    await tester.tap(find.byKey(const ValueKey('shift')));
+    await settleAudio(tester);
+    await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
+    await settleAudio(tester);
+    await tester.ensureVisible(find.text('Audition'));
+    await tester.tap(find.text('Audition'));
+    await settleAudio(tester);
+    expect(player.speed, closeTo(factor, 1e-12));
+    expect(player.position, const Duration(seconds: 9));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await settleAudio(tester);
+
+    await pump(tester, _entry(id: 'e2', songId: 'song-a', grid: grid));
+    expect(find.text('80 BPM'), findsOneWidget);
+    expect(find.byType(SongMapTempoBanner), findsNothing);
+    expect(audio.players.values.single.speed, closeTo(factor, 1e-12));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await settleAudio(tester);
+    await pump(tester, _entry(songId: 'song-b', grid: grid));
+    expect(find.byType(SongMapTempoBanner), findsOneWidget);
+    expect(audio.players.values.single.speed, 1);
+    await tester.tap(find.text('Keep'));
+    await settleAudio(tester);
+    expect(find.text('80.49 BPM'), findsOneWidget);
+    expect(find.byType(SongMapTempoBanner), findsNothing);
+    expect(audio.players.values.single.speed, 1);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await settleAudio(tester);
+    await pump(tester, _entry(id: 'e2', songId: 'song-b', grid: grid));
+    expect(find.text('80.49 BPM'), findsOneWidget);
+    expect(find.byType(SongMapTempoBanner), findsNothing);
   });
 
   testWidgets('Tempo grid menu keeps downbeat editing in the dialog', (

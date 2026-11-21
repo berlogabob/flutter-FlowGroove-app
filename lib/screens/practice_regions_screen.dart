@@ -47,6 +47,7 @@ import 'practice_regions/slice_edit_sheet.dart';
 import 'practice_regions/song_map/song_map_edit.dart' as song_map_edit;
 import 'practice_regions/song_map/song_map_minimap.dart';
 import 'practice_regions/song_map/song_map_pads.dart';
+import 'practice_regions/song_map/song_map_tempo_banner.dart';
 import 'practice_regions/song_map/song_map_timeline.dart';
 import 'practice_regions/song_map/song_map_transport.dart';
 import 'practice_regions/song_map/song_map_view.dart';
@@ -140,6 +141,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   late bool _snap;
   double _speed = 1;
+  late SharedPreferences _tempoPrefs;
+  bool? _stretchTempo;
   int _preRoll = 0;
   bool? _loopEnabled;
   (int, int)? _selection;
@@ -193,6 +196,44 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   late final MetronomeNotifier _metronome;
 
   int get _durationMs => _duration.inMilliseconds;
+
+  String get _tempoPreferenceKey {
+    final songId = _entry.songId;
+    return songId.isEmpty || songId == '_inbox'
+        ? 'practice_tempo_stretch_entry_${_entry.id}'
+        : 'practice_tempo_stretch_song_${widget.bandId ?? ''}_$songId';
+  }
+
+  double? get _measuredBpm => (_mapCandidate?.grid ?? _entry.grid)?.bpm;
+  double get _stretchFactor =>
+      _stretchTempo == true ? songMapStretchFactor(_measuredBpm) : 1;
+  bool get _stretched => _stretchFactor != 1;
+
+  Future<void> _applyTempoSpeed() async {
+    if (_sync && _stretched) await _setSync(false);
+    if (!mounted) return;
+    final speed = _stretchFactor * _speed;
+    if (_player.speed != speed) await _player.setSpeed(speed);
+  }
+
+  Future<void> _chooseTempo(bool stretch) async {
+    if (_stretchTempo != null) return;
+    setState(() => _stretchTempo = stretch);
+    try {
+      await Future.wait([
+        _applyTempoSpeed(),
+        _tempoPrefs.setBool(_tempoPreferenceKey, stretch),
+      ]);
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(
+          context,
+          "Couldn't apply tempo choice: $e",
+          error: true,
+        );
+      }
+    }
+  }
 
   /// Visible waveform range: the whole song, or in Shift the focused slice
   /// plus a little of each neighbour. Frozen while a marker is dragged.
@@ -281,6 +322,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       final duration = path == null
           ? await _player.setUrl(url)
           : await _player.setFilePath(path);
+      _tempoPrefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
+      _stretchTempo = _tempoPrefs.getBool(_tempoPreferenceKey);
+      await _applyTempoSpeed();
       if (!mounted) return;
       setState(() {
         _duration = duration ?? Duration.zero;
@@ -324,7 +369,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           _durationMs > 0 &&
           _entry.regions.isEmpty &&
           _canEdit) {
-        final prefs = await SharedPreferences.getInstance();
+        final prefs = _tempoPrefs;
         if (!mounted ||
             !_canEdit ||
             _entry.regions.isNotEmpty ||
@@ -734,7 +779,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       setState(() => _sync = false);
       return;
     }
-    if (_preparingSync) return;
+    if (_preparingSync || _stretched) return;
     setState(() => _preparingSync = true);
     try {
       await _player.pause();
@@ -763,13 +808,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         return;
       }
       final drums = withDrums ? await _songDrums() : null;
-      if (!mounted || _entry.grid != grid) return;
+      if (!mounted || _entry.grid != grid || _stretched) return;
       await transport.attachAudio(
         audio: alignToDownbeat(pcm, _syncGrid.offsetMs, rate),
         spans: _syncSpans(),
         drums: drums,
       );
-      if (!mounted || _entry.grid != grid) return;
+      if (!mounted || _entry.grid != grid || _stretched) return;
       setState(() {
         _sync = true;
         _withDrums = withDrums;
@@ -961,15 +1006,18 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     setState(() => _selection = null);
     await _applyLoop();
     if (!mounted) return;
-    await _player.setSpeed(1);
-    if (!mounted) return;
     setState(() => _speed = 1);
+    await _applyTempoSpeed();
+    if (!mounted) return;
     await _seekTo(ms - preRollMs);
     if (!mounted) return;
     unawaited(_player.play());
-    _auditionTimer = Timer(Duration(milliseconds: windowMs), () {
-      if (mounted) unawaited(_player.pause());
-    });
+    _auditionTimer = Timer(
+      Duration(milliseconds: (windowMs / _stretchFactor).round()),
+      () {
+        if (mounted) unawaited(_player.pause());
+      },
+    );
   }
 
   Future<void> _undo() async {
@@ -1347,6 +1395,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           ? _entry.copyWith(clearGrid: true)
           : _entry.copyWith(grid: grid),
     );
+    await _applyTempoSpeed();
     await _applyLoop();
   }
 
@@ -1649,6 +1698,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           boundaries: boundaries,
         ),
       );
+      await _applyTempoSpeed();
     } catch (_) {
       if (mounted && _url == url && _canEdit) {
         showAppSnackBar(
@@ -1686,6 +1736,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           _snap = true;
         }
       });
+      await _applyTempoSpeed();
       await _applyLoop();
     } catch (e) {
       if (mounted) {
@@ -1721,10 +1772,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           ),
         if (!_analyzing)
           TextButton(
-            onPressed: () => setState(() {
-              _showAnalyzePrompt = false;
-              _mapCandidate = null;
-            }),
+            onPressed: () {
+              setState(() {
+                _showAnalyzePrompt = false;
+                _mapCandidate = null;
+              });
+              unawaited(_applyTempoSpeed());
+            },
             child: Text(
               candidate != null && replacing ? 'Keep old' : 'Dismiss',
             ),
@@ -1876,8 +1930,19 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         : _positionMs;
     final editing = canEdit && _editing;
     final analyzeBanner = canEdit ? _analyzeBanner() : null;
+    final measuredBpm = _measuredBpm;
+    final stretchTarget = songMapStretchTarget(measuredBpm);
+    final tempoBanner =
+        _loaded && _stretchTempo == null && stretchTarget != null
+        ? SongMapTempoBanner(
+            measuredBpm: measuredBpm!,
+            onStretch: () => _chooseTempo(true),
+            onKeep: () => _chooseTempo(false),
+          )
+        : null;
+    final displayedBpm = _stretched ? stretchTarget : measuredBpm;
     final canPlay = _loaded && _durationMs > 0 && !_busy && !_preparingSync;
-    final canClick = canSyncToClick(grid) && canPlay;
+    final canClick = !_stretched && canSyncToClick(grid) && canPlay;
     final speedPercent = (_speed * 100).round();
     return Scaffold(
       backgroundColor: context.mp.black,
@@ -1895,6 +1960,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             : _preRoll > 0,
         click: _sync && !_withDrums,
         clickAndDrums: _sync && _withDrums,
+        stretched: _stretched,
         onPlay: canPlay ? _togglePlay : null,
         onStop: canPlay ? _togglePlay : null,
         onPlayLongPress: _playbackOptions,
@@ -1971,6 +2037,16 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               )
             : null,
         actions: [
+          if (displayedBpm != null && displayedBpm.isFinite && displayedBpm > 0)
+            Chip(
+              label: Text(
+                '${displayedBpm % 1 == 0 ? displayedBpm.toInt().toString() : displayedBpm} BPM',
+              ),
+              backgroundColor: stretchTarget != null && !_stretched
+                  ? MonoPulseColors.warning5
+                  : context.mp.surfaceRaised,
+              visualDensity: VisualDensity.compact,
+            ),
           if (editing && _focus != null)
             IconButton(
               tooltip: 'Whole song',
@@ -2124,6 +2200,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                                       : null,
                                   child: const Text('Analyze song'),
                                 ),
+                              ?tempoBanner,
                             ],
                           ),
                         ),
@@ -2132,7 +2209,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                         editing: editing,
                         position: positionMs,
                         playing: playing,
-                        banner: analyzeBanner,
+                        banner: tempoBanner == null
+                            ? analyzeBanner
+                            : Column(children: [?analyzeBanner, tempoBanner]),
                       ),
               ),
               // Sized to its notes (capped), so the pads get the rest; a flex
@@ -2304,7 +2383,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     ],
   );
 
-  String? _clickUnavailableReason(AudioGrid? grid) => !canSyncToClick(grid)
+  String? _clickUnavailableReason(AudioGrid? grid) => _stretched
+      ? 'Click & drums is unavailable while audio is stretched'
+      : !canSyncToClick(grid)
       ? 'Needs a whole-number BPM grid'
       : !_loaded
       ? 'Loading the take…'
@@ -2343,7 +2424,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                             : (_) {
                                 setState(() => _speed = percent / 100);
                                 sheetSetState(() {});
-                                unawaited(_player.setSpeed(percent / 100));
+                                unawaited(_applyTempoSpeed());
                               },
                       ),
                   ],
@@ -2372,7 +2453,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     null => null,
                   },
                   value: _sync && _withDrums,
-                  onChanged: canSyncToClick(grid) && _loaded && !_preparingSync
+                  onChanged:
+                      !_stretched &&
+                          canSyncToClick(grid) &&
+                          _loaded &&
+                          !_preparingSync
                       ? (value) async {
                           // _setSync flags _preparingSync before its first
                           // await; repaint now so the wait is visible.
