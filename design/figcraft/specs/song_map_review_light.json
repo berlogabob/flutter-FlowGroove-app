@@ -1,163 +1,45 @@
 {
-  "name": "Song Map Review",
+  "name": "Song Map · Review",
   "page": "Song Map",
   "mode": "light",
   "source": "lib/screens/practice_regions_screen.dart",
   "slot": 7,
   "pad": [
-    12,
-    16,
-    12,
-    16
+    8,
+    8,
+    8,
+    8
   ],
-  "gap": 12,
+  "gap": 8,
   "top": [
     {
       "t": "appbar",
       "v": "Inocente",
-      "sub": "Review sections",
       "actions": [
-        "more_vert"
+        {
+          "t": "chip",
+          "v": "170 BPM ✓"
+        },
+        {
+          "t": "iconbtn",
+          "v": "more_vert"
+        }
       ]
     }
   ],
   "body": [
     {
       "t": "card",
-      "name": "Review banner",
+      "name": "Tempo review",
       "bg": "surfaceRaised",
       "border": "borderSubtle",
       "radius": 12,
-      "pad": 12,
+      "pad": 8,
       "gap": 4,
       "c": [
         {
           "t": "text",
-          "v": "10 sections found · check, then Done",
-          "style": "titleMedium",
-          "color": "textPrimary"
-        },
-        {
-          "t": "text",
-          "v": "Review the suggested boundaries before saving your map.",
-          "style": "bodySmall",
-          "color": "textSecondary"
-        }
-      ]
-    },
-    {
-      "t": "section",
-      "v": "Suggested map",
-      "action": "Edit"
-    },
-    {
-      "t": "row",
-      "wrap": true,
-      "gap": 8,
-      "c": [
-        {
-          "t": "secblock",
-          "name": "Intro",
-          "letter": "A",
-          "color": "section1",
-          "w": 112,
-          "state": "candidate"
-        },
-        {
-          "t": "secblock",
-          "name": "Verse 1",
-          "letter": "B",
-          "color": "section2",
-          "w": 112,
-          "state": "candidate"
-        },
-        {
-          "t": "secblock",
-          "name": "Chorus 1",
-          "letter": "C",
-          "color": "section5",
-          "w": 112,
-          "state": "candidate"
-        },
-        {
-          "t": "secblock",
-          "name": "Verse 2",
-          "letter": "D",
-          "color": "section2",
-          "w": 112,
-          "state": "candidate"
-        },
-        {
-          "t": "secblock",
-          "name": "Chorus 2",
-          "letter": "E",
-          "color": "section5",
-          "w": 112,
-          "state": "candidate"
-        },
-        {
-          "t": "secblock",
-          "name": "Bridge",
-          "letter": "F",
-          "color": "section7",
-          "w": 112,
-          "state": "candidate"
-        },
-        {
-          "t": "secblock",
-          "name": "Chorus 3",
-          "letter": "G",
-          "color": "section5",
-          "w": 112,
-          "state": "candidate"
-        },
-        {
-          "t": "secblock",
-          "name": "Break",
-          "letter": "H",
-          "color": "section8",
-          "w": 112,
-          "state": "candidate"
-        },
-        {
-          "t": "secblock",
-          "name": "Chorus 4",
-          "letter": "I",
-          "color": "section5",
-          "w": 112,
-          "state": "candidate"
-        },
-        {
-          "t": "secblock",
-          "name": "Outro",
-          "letter": "J",
-          "color": "section1",
-          "w": 112,
-          "state": "candidate"
-        }
-      ]
-    },
-    {
-      "t": "text",
-      "v": "Tap a section to rename it or adjust its boundary.",
-      "style": "bodySmall",
-      "color": "textSecondary"
-    },
-    {
-      "t": "divider"
-    },
-    {
-      "t": "card",
-      "name": "New map banner",
-      "bg": "surfaceRaised",
-      "border": "borderSubtle",
-      "radius": 12,
-      "pad": 12,
-      "gap": 8,
-      "c": [
-        {
-          "t": "text",
-          "v": "New map: Keep old / Use new",
+          "v": "Audio runs at 169.6 BPM · Stretch to 170 / Keep",
           "style": "bodyMedium",
           "color": "textPrimary"
         },
@@ -168,43 +50,7 @@
           "c": [
             {
               "t": "button",
-              "v": "Keep old",
-              "kind": "secondary",
-              "size": "small"
-            },
-            {
-              "t": "button",
-              "v": "Use new",
-              "kind": "primary",
-              "size": "small"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "t": "card",
-      "name": "Tempo banner",
-      "bg": "surfaceRaised",
-      "border": "borderSubtle",
-      "radius": 12,
-      "pad": 12,
-      "gap": 8,
-      "c": [
-        {
-          "t": "text",
-          "v": "Audio runs at 80.49 BPM · Stretch to 80 / Keep",
-          "style": "bodyMedium",
-          "color": "textPrimary"
-        },
-        {
-          "t": "row",
-          "gap": 8,
-          "main": "max",
-          "c": [
-            {
-              "t": "button",
-              "v": "Stretch to 80",
+              "v": "Stretch to 170",
               "kind": "secondary",
               "size": "small"
             },
@@ -217,12 +63,239 @@
           ]
         }
       ]
+    },
+    {
+      "t": "card",
+      "name": "Sections review",
+      "bg": "surfaceRaised",
+      "border": "borderSubtle",
+      "radius": 12,
+      "pad": 8,
+      "c": [
+        {
+          "t": "text",
+          "v": "10 sections found · check, then Done",
+          "style": "titleMedium",
+          "color": "textPrimary"
+        }
+      ]
+    },
+    {
+      "t": "overview",
+      "sections": [
+        {
+          "letter": "A",
+          "color": "section1",
+          "bars": 9,
+          "state": "candidate"
+        },
+        {
+          "letter": "B",
+          "color": "section2",
+          "bars": 8,
+          "state": "candidate"
+        },
+        {
+          "letter": "C",
+          "color": "section3",
+          "bars": 12,
+          "state": "candidate"
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 16,
+          "state": "candidate"
+        },
+        {
+          "letter": "E",
+          "color": "section5",
+          "bars": 8,
+          "state": "candidate"
+        },
+        {
+          "letter": "C",
+          "color": "section3",
+          "bars": 12,
+          "state": "candidate"
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 16,
+          "state": "candidate"
+        },
+        {
+          "letter": "F",
+          "color": "section6",
+          "bars": 12,
+          "state": "candidate"
+        },
+        {
+          "letter": "F",
+          "color": "section6",
+          "bars": 4,
+          "state": "candidate"
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 21,
+          "state": "candidate"
+        }
+      ]
+    },
+    {
+      "t": "zoomwave",
+      "title": "A · Intro",
+      "color": "section1",
+      "startBar": 1,
+      "parts": [
+        {
+          "letter": "a",
+          "bars": 4,
+          "state": "candidate"
+        },
+        {
+          "letter": "b",
+          "bars": 5,
+          "state": "candidate"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 4,
+      "cross": "center",
+      "c": [
+        {
+          "t": "text",
+          "v": "Sections",
+          "style": "titleMedium",
+          "w": "fill"
+        },
+        {
+          "t": "key",
+          "v": "Shift"
+        },
+        {
+          "t": "key",
+          "v": "Chop"
+        },
+        {
+          "t": "key",
+          "v": "Range"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Intro",
+          "sub": "9 bars",
+          "letter": "A",
+          "color": "section1",
+          "w": 124
+        },
+        {
+          "t": "pad",
+          "label": "Part B 1",
+          "sub": "8 bars",
+          "letter": "B",
+          "color": "section2",
+          "w": 124
+        },
+        {
+          "t": "pad",
+          "label": "Chorus 1",
+          "sub": "12 bars",
+          "letter": "C",
+          "color": "section3",
+          "w": 124
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part D 1",
+          "sub": "16 bars",
+          "letter": "D",
+          "color": "section4",
+          "w": 124
+        },
+        {
+          "t": "pad",
+          "label": "Part E 1",
+          "sub": "8 bars",
+          "letter": "E",
+          "color": "section5",
+          "w": 124
+        },
+        {
+          "t": "pad",
+          "label": "Chorus 2",
+          "sub": "12 bars",
+          "letter": "C",
+          "color": "section3",
+          "w": 124
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part D 2",
+          "sub": "16 bars",
+          "letter": "D",
+          "color": "section4",
+          "w": 124
+        },
+        {
+          "t": "pad",
+          "label": "Bridge 1",
+          "sub": "12 bars",
+          "letter": "F",
+          "color": "section6",
+          "w": 124
+        },
+        {
+          "t": "pad",
+          "label": "Bridge 2",
+          "sub": "4 bars",
+          "letter": "F",
+          "color": "section6",
+          "w": 124
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part D 3",
+          "sub": "21 bars",
+          "letter": "D",
+          "color": "section4",
+          "w": 124
+        }
+      ]
     }
   ],
   "bottom": [
     {
-      "t": "actionbar",
-      "primary": "Done"
+      "t": "transport"
     }
   ]
 }
