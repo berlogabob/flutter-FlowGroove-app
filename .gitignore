@@ -229,3 +229,6 @@ reddit-bot/
 
 # App-audit skill output (screenshots/JSON) — local scratch, not source
 audit/
+
+# Real-app screenshots from capture.py (personal account data, never commit)
+design/real/*.png

@@ -1123,7 +1123,7 @@ def m_timeline(e, n, parent, pdir):
     wave_h, lane_h = (96, 40) if zoom else (64, 32)
     rows = [wave_h, lane_h] + ([26] if zoom else [])
     # Every layer uses these tracks, including markers that fall between bar boundaries.
-    grid = e.create("frame", r, "Timeline grid", {"layout": "grid", "sizingH": "fill",
+    grid = e.create("frame", r, "Timeline grid", {"fill": "none", "layout": "grid", "sizingH": "fill",
                     "height": sum(rows), "sizingV": "fixed", "clip": True,
                     "gridColumns": len(stops) - 1, "gridRows": len(rows),
                     "columnTracks": [{"sizing": "fill", "value": (b - a) * total}
@@ -1171,8 +1171,8 @@ def m_timeline(e, n, parent, pdir):
     if zoom:
         for label, left, right in zip(ruler_labels({"labels": range(start_bar, start_bar + total)}),
                                       bar_edges, bar_edges[1:]):
-            label["c"][1]["style"] = "labelSmall"
-            place(m_container("v"), label, left, right, 2)
+            label["c"][1].update(style="labelSmall", v=str(label["c"][1]["v"]))
+            place(m_container("v"), {**label, "bg": "none"}, left, right, 2)
 
     for i, x in enumerate(markers):
         cut = i < len(cuts)

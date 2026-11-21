@@ -152,7 +152,7 @@
           "label": "Bars 18-21",
           "sub": "4 bars",
           "letter": "a",
-          "color": "section3",
+          "color": "section8",
           "w": 186
         },
         {
@@ -160,7 +160,7 @@
           "label": "Bars 22-25",
           "sub": "4 bars",
           "letter": "b",
-          "color": "section3",
+          "color": "section8",
           "state": "selected",
           "w": 186
         }
@@ -175,7 +175,7 @@
           "label": "Bars 26-29",
           "sub": "4 bars",
           "letter": "c",
-          "color": "section3",
+          "color": "section8",
           "w": 186
         }
       ]

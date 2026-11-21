@@ -277,8 +277,8 @@
                   {
                     "t": "badge",
                     "v": "B",
-                    "bg": "section2",
-                    "color": "white"
+                    "bg": "section5",
+                    "color": "charcoal"
                   },
                   {
                     "t": "chip",
@@ -294,8 +294,8 @@
                   {
                     "t": "badge",
                     "v": "C",
-                    "bg": "section3",
-                    "color": "white"
+                    "bg": "section8",
+                    "color": "charcoal"
                   },
                   {
                     "t": "chip",
@@ -311,7 +311,7 @@
                   {
                     "t": "badge",
                     "v": "D",
-                    "bg": "section4",
+                    "bg": "section3",
                     "color": "white"
                   },
                   {
@@ -328,7 +328,7 @@
                   {
                     "t": "badge",
                     "v": "E",
-                    "bg": "section5",
+                    "bg": "section11",
                     "color": "charcoal"
                   },
                   {
@@ -345,7 +345,7 @@
                   {
                     "t": "badge",
                     "v": "F",
-                    "bg": "section6",
+                    "bg": "section7",
                     "color": "charcoal"
                   },
                   {
