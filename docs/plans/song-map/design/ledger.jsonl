@@ -1,0 +1,16 @@
+{"id": "DS1", "finding": "DS1", "executor": "codex", "attempt": 1, "secs": 100, "exec_rc": 0, "verdict": "fail", "diff": "3 files changed, 41 insertions(+), 18 deletions(-)", "verify_tail": ""}
+{"id": "DS2", "finding": "DS2", "executor": "codex", "attempt": 1, "secs": 91, "exec_rc": 0, "verdict": "pass", "diff": "2 files changed, 17 insertions(+), 2 deletions(-)", "verify_tail": ""}
+{"id": "DS3", "finding": "DS3", "executor": "codex", "attempt": 1, "secs": 106, "exec_rc": 0, "verdict": "fail", "diff": "3 files changed, 47 insertions(+), 3 deletions(-)", "verify_tail": "verify-components: 10 linked widgets checked, 0 problem(s)\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nFileNotFoundError: [Errno 2] No such file or directory: 'design/figcraft/figcraft.connect.json'\n"}
+{"id": "DS5", "finding": "DS5", "executor": "codex", "attempt": 1, "secs": 95, "exec_rc": 0, "verdict": "pass", "diff": "3 files changed, 49 insertions(+), 6 deletions(-)", "verify_tail": ""}
+{"id": "DS6", "finding": "DS6", "executor": "codex", "attempt": 1, "secs": 24, "exec_rc": 0, "verdict": "pass", "diff": "3 files changed, 15 insertions(+), 1 deletion(-)", "verify_tail": ""}
+{"id": "SD1", "finding": "SD1", "executor": "codex", "attempt": 1, "secs": 372, "exec_rc": 0, "verdict": "pass", "diff": "4 files changed, 375 insertions(+), 23 deletions(-)", "verify_tail": ""}
+{"id": "SD2", "finding": "SD2", "executor": "codex", "attempt": 1, "secs": 52, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 1 insertion(+)", "verify_tail": ""}
+{"id": "SD3", "finding": "SD3", "executor": "codex", "attempt": 1, "secs": 57, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 1 insertion(+)", "verify_tail": ""}
+{"id": "SD4", "finding": "SD4", "executor": "codex", "attempt": 1, "secs": 56, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 1 insertion(+)", "verify_tail": ""}
+{"id": "SD5", "finding": "SD5", "executor": "codex", "attempt": 1, "secs": 61, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 1 insertion(+)", "verify_tail": ""}
+{"id": "SD6", "finding": "SD6", "executor": "codex", "attempt": 1, "secs": 58, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 1 insertion(+)", "verify_tail": ""}
+{"id": "DS1", "finding": "DS1", "executor": "codex", "attempt": 1, "secs": 117, "exec_rc": 0, "verdict": "pass", "diff": "3 files changed, 51 insertions(+), 23 deletions(-)", "verify_tail": ""}
+{"id": "DS3", "finding": "DS3", "executor": "codex", "attempt": 1, "secs": 112, "exec_rc": 0, "verdict": "pass", "diff": "3 files changed, 61810 insertions(+), 4 deletions(-)", "verify_tail": ""}
+{"id": "DS4", "finding": "DS4", "executor": "codex", "attempt": 1, "secs": 84, "exec_rc": 0, "verdict": "pass", "diff": "2 files changed, 36 insertions(+), 1 deletion(-)", "verify_tail": ""}
+{"id": "N7", "finding": "N6", "executor": "codex", "attempt": 1, "secs": 285, "exec_rc": 0, "verdict": "pass", "diff": "4 files changed, 207 insertions(+), 26 deletions(-)", "verify_tail": ""}
+{"id": "SD8", "finding": "SD7", "executor": "codex", "attempt": 1, "secs": 210, "exec_rc": 0, "verdict": "pass", "diff": "10 files changed, 737 insertions(+), 285 deletions(-)", "verify_tail": ""}

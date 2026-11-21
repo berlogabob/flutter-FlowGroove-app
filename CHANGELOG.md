@@ -4,6 +4,19 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## 0.35.0+379 — 2026-11-21
+
+Song Map replaces the pad banks in Song Lab, the brand fonts and theme now render correctly, and the design system is complete in FigCraft. Trace: `docs/plans/song-map/` (UX brief, task ledgers).
+
+- Song Map: one screen with three zoom levels (whole song, section, part). The section lane sits over the waveform, with a minimap and breadcrumb, whole-bar boundary editing (drag, delete, split, one-level undo) and a beat grid at Part level. Pads show the children of the current level.
+- Pads: the playing pad is solid orange with a play icon and a progress bar (it was a white outline on a bright colour, hard to see). The queued pad has an orange border and "next". A Range button replaces the two-pad hold. All pads stay visible, and labels show the full name when it fits, else the letter.
+- Analyze song replaces the setup wizard. It runs only when tapped; new boundaries are shown for review, and on re-analysis the old map stays until you choose Use new.
+- Tempo banner for off-whole tempos: Stretch to the nearest whole BPM (pitch kept) or Keep. Click & drums is disabled while stretched.
+- Transport: one row on the theme surface (Play/Pause, Loop, speed, Count-in, Click, Drums).
+- Detector: song sections plus 2/4/8-bar parts, a 4/3 meter check, kick downbeat and whole-BPM snap.
+- Theme: token pipeline, one orange CTA style, bundled Marcellus and Source Serif 4 (the Roboto fallback is fixed). CustomButton tonal and danger variants, AppBadge and SectionHeader.
+- Design system (FigCraft): component states, contrast script and docs page, icons page (the 225 glyphs the app uses), pattern components, prototype links, Song Map components and specs, and `make design-check` (check, verify-components, contrast, offline dry run).
+
 ## 0.34.1+378 — 2026-11-14
 
 Audit 2026-11-13 remediation + Flutter 3.50 / Dart 3.14 migration. Trace: `docs/plans/audit-2026-11-13/` (PLAN.md, PROBLEMS.md, TRACE.md).

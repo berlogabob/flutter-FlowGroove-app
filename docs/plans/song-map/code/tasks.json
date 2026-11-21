@@ -1,0 +1,332 @@
+{
+ "tasks": [
+  {
+   "id": "C1",
+   "finding": "C1",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "SongMapView state",
+   "files": [
+    "lib/screens/practice_regions/song_map/song_map_view.dart",
+    "test/screens/practice_regions/song_map/song_map_view_test.dart"
+   ],
+   "prompt": "Create SongMapView (pure Dart, ChangeNotifier ok): zoom level enum {song, section, part}; focused section/part index; viewport [startMs,endMs] (song = whole duration; section = section +- 1 bar; part = part +- 1 bar); msToX/xToMs for a width; snapMs(ms) to the nearest bar at section level and nearest beat at part level using AudioGrid (barMs, beatsPerBar, offsetMs); zoomIn(index), zoomOut(), next()/previous() neighbour at the current level; children() = the regions shown as pads at the current level (song: one entry per section; section/part: the parts of the focused section). Context: read ../_plans/song-map/ux.md (the UX) and the Song Map section of design/figcraft/SPEC.md plus design/figcraft/specs/song_map_*.json (the approved design; use the same tokens: MonoPulseColors, MonoPulseSpacing, MonoPulseRadius from lib/theme). Models: AudioGrid and AudioRegion (with optional `section`) in lib/models/audio_region.dart; detector in lib/services/audio/song_structure.dart; existing waveform painter lib/widgets/audio/waveform_painter.dart. Smallest working change, no refactors outside the task, no new dependencies. Add focused tests. Print DONE.",
+   "verify": "flutter test test/screens/practice_regions/song_map/song_map_view_test.dart && dart analyze lib/screens/practice_regions/song_map/",
+   "after": [],
+   "status": "pending",
+   "suite": true,
+   "timeout": 1800
+  },
+  {
+   "id": "C2",
+   "finding": "C2",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "timeline widget",
+   "files": [
+    "lib/screens/practice_regions/song_map/song_map_timeline.dart",
+    "test/screens/practice_regions/song_map/song_map_timeline_test.dart"
+   ],
+   "prompt": "Create SongMapTimeline widget driven by SongMapView: waveform (reuse WaveformPainter) for the viewport; section lane above (blocks coloured by section base name, repeats share colour; name label); parts lane below at section/part level; bar ruler; beat grid at part level; playhead; boundary handles (candidate = dashed, selected = thick). Gestures: double-tap a block -> zoomIn, pinch out -> zoomOut. Callbacks for boundary tap. Widget test: double-tap a section zooms to section level; part lane hidden at song level. Context: read ../_plans/song-map/ux.md (the UX) and the Song Map section of design/figcraft/SPEC.md plus design/figcraft/specs/song_map_*.json (the approved design; use the same tokens: MonoPulseColors, MonoPulseSpacing, MonoPulseRadius from lib/theme). Models: AudioGrid and AudioRegion (with optional `section`) in lib/models/audio_region.dart; detector in lib/services/audio/song_structure.dart; existing waveform painter lib/widgets/audio/waveform_painter.dart. Smallest working change, no refactors outside the task, no new dependencies. Add focused tests. Print DONE.",
+   "verify": "flutter test test/screens/practice_regions/song_map/song_map_timeline_test.dart && dart analyze lib/screens/practice_regions/song_map/",
+   "after": [
+    "C1"
+   ],
+   "status": "pending",
+   "suite": true,
+   "timeout": 1800
+  },
+  {
+   "id": "C3",
+   "finding": "C3",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "minimap",
+   "files": [
+    "lib/screens/practice_regions/song_map/song_map_minimap.dart",
+    "test/screens/practice_regions/song_map/song_map_minimap_test.dart"
+   ],
+   "prompt": "Create SongMapMinimap: 40 dp strip of the whole song with section colours and a viewport window (outlined with textPrimary 2 dp); tap -> callback with ms. Hidden at song level (the caller decides). Widget test: tap at 50% width reports half the duration. Context: read ../_plans/song-map/ux.md (the UX) and the Song Map section of design/figcraft/SPEC.md plus design/figcraft/specs/song_map_*.json (the approved design; use the same tokens: MonoPulseColors, MonoPulseSpacing, MonoPulseRadius from lib/theme). Models: AudioGrid and AudioRegion (with optional `section`) in lib/models/audio_region.dart; detector in lib/services/audio/song_structure.dart; existing waveform painter lib/widgets/audio/waveform_painter.dart. Smallest working change, no refactors outside the task, no new dependencies. Add focused tests. Print DONE.",
+   "verify": "flutter test test/screens/practice_regions/song_map/song_map_minimap_test.dart && dart analyze lib/screens/practice_regions/song_map/",
+   "after": [
+    "C1"
+   ],
+   "status": "pending",
+   "suite": true,
+   "timeout": 1800
+  },
+  {
+   "id": "C4",
+   "finding": "C4",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "boundary edit",
+   "files": [
+    "lib/screens/practice_regions/song_map/song_map_edit.dart",
+    "test/screens/practice_regions/song_map/song_map_edit_test.dart"
+   ],
+   "prompt": "Create pure functions over List<AudioRegion> with sections: moveBoundary(regions, index, newMs) snapped by the caller, never past neighbours (min 1 bar); deleteBoundary (merge neighbours, section name of the left one); splitAt(ms) (new section 'Part X n' with next free letter); after each edit rebuild the parts of the touched sections in 2/4/8-bar pieces with an odd remainder only on the last part (same rule as song_structure.dart). One-level undo = caller keeps the previous list. Tests for each function incl. the 2/4/8 rule. Context: read ../_plans/song-map/ux.md (the UX) and the Song Map section of design/figcraft/SPEC.md plus design/figcraft/specs/song_map_*.json (the approved design; use the same tokens: MonoPulseColors, MonoPulseSpacing, MonoPulseRadius from lib/theme). Models: AudioGrid and AudioRegion (with optional `section`) in lib/models/audio_region.dart; detector in lib/services/audio/song_structure.dart; existing waveform painter lib/widgets/audio/waveform_painter.dart. Smallest working change, no refactors outside the task, no new dependencies. Add focused tests. Print DONE.",
+   "verify": "flutter test test/screens/practice_regions/song_map/song_map_edit_test.dart && dart analyze lib/screens/practice_regions/song_map/",
+   "after": [
+    "C1"
+   ],
+   "status": "pending",
+   "suite": true,
+   "timeout": 1800
+  },
+  {
+   "id": "C5",
+   "finding": "C5",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "pads with clear states",
+   "files": [
+    "lib/screens/practice_regions/song_map/song_map_pads.dart",
+    "test/screens/practice_regions/song_map/song_map_pads_test.dart",
+    "lib/screens/practice_regions/pad_banks.dart",
+    "test/screens/practice_regions/pad_banks_test.dart"
+   ],
+   "prompt": "Create SongMapPads: grid of pads for SongMapView.children(); pad states exactly as ux.md (idle stripe, selected border, playing = solid accentOrange fill + charcoal text + play icon + 4 dp progress bar, queued = accentOrange border + 'next', disabled 38%); never a white outline as the only state signal. Header with a Range toggle: when on, first tap = range start, second tap = range end -> onRange(start,end). Delete pad_banks.dart and its test if nothing else imports them after the screen task; if the screen still imports PadBanks, keep them for now. Widget tests: playing pad has accentOrange fill; range emits (start,end). Context: read ../_plans/song-map/ux.md (the UX) and the Song Map section of design/figcraft/SPEC.md plus design/figcraft/specs/song_map_*.json (the approved design; use the same tokens: MonoPulseColors, MonoPulseSpacing, MonoPulseRadius from lib/theme). Models: AudioGrid and AudioRegion (with optional `section`) in lib/models/audio_region.dart; detector in lib/services/audio/song_structure.dart; existing waveform painter lib/widgets/audio/waveform_painter.dart. Smallest working change, no refactors outside the task, no new dependencies. Add focused tests. Print DONE.",
+   "verify": "flutter test test/screens/practice_regions/song_map/song_map_pads_test.dart && dart analyze lib/screens/practice_regions/song_map/",
+   "after": [
+    "C1"
+   ],
+   "status": "pending",
+   "suite": true,
+   "timeout": 1800
+  },
+  {
+   "id": "C6",
+   "finding": "C6",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "transport bar",
+   "files": [
+    "lib/screens/practice_regions/song_map/song_map_transport.dart",
+    "test/screens/practice_regions/song_map/song_map_transport_test.dart"
+   ],
+   "prompt": "Create SongMapTransport: always-visible bottom bar with Play/Stop, Loop toggle, speed chip (percent), count-in toggle, click toggle and 'click & drums' toggle (disabled with a tooltip when the caller passes stretched=true). Pure presentational: values + callbacks. Widget test for callbacks and the disabled state. Context: read ../_plans/song-map/ux.md (the UX) and the Song Map section of design/figcraft/SPEC.md plus design/figcraft/specs/song_map_*.json (the approved design; use the same tokens: MonoPulseColors, MonoPulseSpacing, MonoPulseRadius from lib/theme). Models: AudioGrid and AudioRegion (with optional `section`) in lib/models/audio_region.dart; detector in lib/services/audio/song_structure.dart; existing waveform painter lib/widgets/audio/waveform_painter.dart. Smallest working change, no refactors outside the task, no new dependencies. Add focused tests. Print DONE.",
+   "verify": "flutter test test/screens/practice_regions/song_map/song_map_transport_test.dart && dart analyze lib/screens/practice_regions/song_map/",
+   "after": [],
+   "status": "pending",
+   "suite": true,
+   "timeout": 1800
+  },
+  {
+   "id": "C9",
+   "finding": "C9",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "tempo octave like Lua",
+   "files": [
+    "lib/services/audio/audio_analysis.dart",
+    "test/services/audio/audio_analysis_test.dart"
+   ],
+   "prompt": "estimateGrid without a hint picks half tempo for fast songs (Inocente 85 instead of 170, Negacion 81.5 instead of 163, Saavedra 75 instead of 150) while ReapeZoom's ~/Documents/GitHub/ReapeZoom/Scripts/lib/tempo.lua returns the fast tempo. Port tempo.lua's octave/range choice so the no-hint result matches Lua; keep the 4:3 meter rule and the hint behaviour. Test with synthetic onset trains at 170 and 163 BPM (expect 170/163) and a slow 75 BPM ballad pattern (expect 75). Context: read ../_plans/song-map/ux.md (the UX) and the Song Map section of design/figcraft/SPEC.md plus design/figcraft/specs/song_map_*.json (the approved design; use the same tokens: MonoPulseColors, MonoPulseSpacing, MonoPulseRadius from lib/theme). Models: AudioGrid and AudioRegion (with optional `section`) in lib/models/audio_region.dart; detector in lib/services/audio/song_structure.dart; existing waveform painter lib/widgets/audio/waveform_painter.dart. Smallest working change, no refactors outside the task, no new dependencies. Add focused tests. Print DONE.",
+   "verify": "flutter test test/services/audio/audio_analysis_test.dart && dart analyze lib/services/audio",
+   "after": [],
+   "status": "pending",
+   "suite": true,
+   "timeout": 1800
+  },
+  {
+   "id": "C2b",
+   "finding": "SD7",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "timeline label rule",
+   "files": [
+    "lib/screens/practice_regions/song_map/song_map_timeline.dart",
+    "test/screens/practice_regions/song_map/song_map_timeline_test.dart"
+   ],
+   "prompt": "In lib/screens/practice_regions/song_map/song_map_timeline.dart the section lane labels must follow the review rule in ../_plans/song-map/ux.md ('Review fixes'): full section name when the block is at least 64 logical px wide, otherwise only the section letter (A, B, C... repeats share the letter of their base name); never an ellipsis-truncated name. Add a widget test with a 40 px block (shows the letter) and a 120 px block (shows the name). Smallest change. Print DONE.",
+   "verify": "flutter test test/screens/practice_regions/song_map/song_map_timeline_test.dart && dart analyze lib/screens/practice_regions/song_map/",
+   "after": [
+    "C2"
+   ],
+   "status": "pending",
+   "suite": true,
+   "timeout": 1800
+  },
+  {
+   "id": "C7a",
+   "finding": "C7a",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "Song Map replaces pad banks",
+   "files": [
+    "lib/screens/practice_regions_screen.dart",
+    "lib/screens/practice_regions/song_map/",
+    "test/screens/practice_regions/song_map/",
+    "test/screens/practice_regions/",
+    "test/screens/practice_regions_screen_test.dart"
+   ],
+   "prompt": "Previous attempt failed exactly one existing test: test/screens/practice_regions_screen_test.dart 'Skip N short marks slices under a bar as skipped' (auto-slice / skip-short behaviour must still render and mark skipped slices). Read that test first and keep its behaviour. In lib/screens/practice_regions_screen.dart replace only what _pads() (~line 1314) renders: PadBanks -> SongMapTimeline (+ SongMapMinimap at section/part level) + SongMapPads driven by one SongMapView built from the current regions and grid. Tapping a pad selects/loops exactly what tapping a pad bank part did before (reuse the same selection/loop callbacks); Range emits the same multi-region selection as the old hold gesture; playing/queued state from the existing player position. Boundary drag/delete/split use song_map_edit.dart through the existing regions update path with one-level undo. Leave the wizard, transport and everything else unchanged. Add a widget test: regions with sections show section pads; tapping one selects it. HARD RULES: existing tests under test/screens/ describe required behaviour (recording, note seek, click & drums, play enabled only with a duration, speed, loop): do not delete, skip or weaken them; if a test finds a widget you replaced by type or text, change only that finder. Do not remove recording, notes, click & drums, Fine Tune or the region list. Keep the diff small (aim < 400 changed lines). Run the full `flutter test` before finishing. Context: ../_plans/song-map/ux.md; Song Map widgets already exist in lib/screens/practice_regions/song_map/ (SongMapView, SongMapTimeline, SongMapMinimap, SongMapPads, SongMapTransport, song_map_edit.dart). Print DONE.",
+   "verify": "flutter test test/screens/ && dart analyze lib/screens",
+   "after": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6"
+   ],
+   "status": "pending",
+   "suite": true,
+   "timeout": 2400
+  },
+  {
+   "id": "C7b",
+   "finding": "C7b",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "Analyze flow with review",
+   "files": [
+    "lib/screens/practice_regions_screen.dart",
+    "lib/screens/practice_setup_wizard.dart",
+    "test/screens/practice_setup_wizard_test.dart",
+    "lib/screens/practice_regions/song_map/",
+    "test/screens/practice_regions/song_map/",
+    "test/screens/practice_regions/",
+    "test/screens/practice_regions_screen_test.dart"
+   ],
+   "prompt": "EXCEPTION to the test rule below: these three tests in test/screens/practice_regions_screen_test.dart describe the old wizard and must be rewritten to the new Analyze flow with equivalent strength (do not delete them): 'empty practice offers section setup to editors' -> empty practice offers 'Analyze song' to editors; 'setup auto-opens once per entry and can still be opened manually' -> the 'Analyze song' prompt (banner with an Analyze button) appears automatically once per entry when there are no regions, and can still be opened manually; analysis itself (byte fetch + decode) starts ONLY when the user taps Analyze, never on entry: test/screens/practice_regions_recording_test.dart 'a fresh take needs no byte fetch to draw' and 'does not backfill a take that already has RMS peaks' must keep passing; 'Re-run setup confirms replacement and opens the wizard' -> re-analysis with existing regions keeps the old map visible until 'Use new' (and 'Keep old' leaves regions unchanged). All other tests stay untouched. Replace the practice setup wizard entry (~showPracticeSetupWizard call) with an 'Analyze song' action: run estimateGrid + analyseStructure in compute() (as the wizard does today), show the result as candidate boundaries (dashed) with a banner '<n> sections found · check, then Done'; if regions already exist keep them visible and show 'New map: Keep old / Use new'. Keep the rename-by-base sheet reachable (long-press a section block or pad). Keep practice_setup_wizard.dart only if still used; update its tests accordingly (no weakening of other tests). Widget test for Keep old / Use new. HARD RULES: existing tests under test/screens/ describe required behaviour (recording, note seek, click & drums, play enabled only with a duration, speed, loop): do not delete, skip or weaken them; if a test finds a widget you replaced by type or text, change only that finder. Do not remove recording, notes, click & drums, Fine Tune or the region list. Keep the diff small (aim < 400 changed lines). Run the full `flutter test` before finishing. Context: ../_plans/song-map/ux.md; Song Map widgets already exist in lib/screens/practice_regions/song_map/ (SongMapView, SongMapTimeline, SongMapMinimap, SongMapPads, SongMapTransport, song_map_edit.dart). Print DONE.",
+   "verify": "flutter test test/screens/ && dart analyze lib/screens",
+   "after": [
+    "C7a"
+   ],
+   "status": "pending",
+   "suite": true,
+   "timeout": 2400
+  },
+  {
+   "id": "C7c",
+   "finding": "C7c",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "transport bar keeps old keys",
+   "files": [
+    "lib/screens/practice_regions_screen.dart",
+    "lib/screens/practice_regions/song_map/",
+    "test/screens/practice_regions/song_map/",
+    "test/screens/practice_regions_screen_test.dart",
+    "test/screens/practice_regions_recording_test.dart"
+   ],
+   "prompt": "Previous attempt replaced the old play/loop/speed/count-in/click controls and broke ~25 tests (e.g. practice_regions_recording_test 'split uses absolute playhead and crops each half with its own notes', practice_regions_screen_test 'Add marker saves an unnamed boundary without interrupting play', '... opening with no setup or autoplay'). Do it without removing behaviour: show SongMapTransport as the bottom bar and move the existing handlers onto it, giving each new button the SAME Key, tooltip and semantics label the old control had, so existing finders keep working; keep every other control (Add marker, split, notes, recording, Fine Tune) exactly where tests expect it. Do NOT delete pad_banks.dart in this task. Run the full `flutter test` and iterate until it is green. HARD RULES: existing tests under test/screens/ describe required behaviour (recording, note seek, click & drums, play enabled only with a duration, speed, loop): do not delete, skip or weaken them; if a test finds a widget you replaced by type or text, change only that finder. Do not remove recording, notes, click & drums, Fine Tune or the region list. Keep the diff small (aim < 400 changed lines). Run the full `flutter test` before finishing. Context: ../_plans/song-map/ux.md; Song Map widgets already exist in lib/screens/practice_regions/song_map/ (SongMapView, SongMapTimeline, SongMapMinimap, SongMapPads, SongMapTransport, song_map_edit.dart). Print DONE.",
+   "verify": "flutter test test/screens/ && dart analyze lib/screens",
+   "after": [
+    "C7b"
+   ],
+   "status": "pending",
+   "suite": true,
+   "timeout": 2400
+  },
+  {
+   "id": "C8",
+   "finding": "C8",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "tempo banner stretch/keep",
+   "files": [
+    "lib/screens/practice_regions_screen.dart",
+    "lib/screens/practice_regions/song_map/",
+    "test/screens/practice_regions/song_map/",
+    "lib/services/audio/audio_analysis.dart",
+    "test/services/audio/audio_analysis_test.dart",
+    "test/screens/practice_regions_screen_test.dart"
+   ],
+   "prompt": "When the measured tempo is off-whole (snapBpm keeps a fraction), show a banner 'Audio runs at <x> BPM · Stretch to <W> / Keep'. Stretch: store the choice per song, play with _player.setSpeed(W / measured * userSpeed) everywhere speed is set (audition resets speed to 1 today ~line 893: keep the stretch factor), show <W> BPM, regions stay in source time; click & drums is disabled while stretched (pass stretched=true to the transport). Keep: show the measured BPM. Tests for the banner choice logic. Context: read ../_plans/song-map/ux.md (the UX) and the Song Map section of design/figcraft/SPEC.md plus design/figcraft/specs/song_map_*.json (the approved design; use the same tokens: MonoPulseColors, MonoPulseSpacing, MonoPulseRadius from lib/theme). Models: AudioGrid and AudioRegion (with optional `section`) in lib/models/audio_region.dart; detector in lib/services/audio/song_structure.dart; existing waveform painter lib/widgets/audio/waveform_painter.dart. Smallest working change, no refactors outside the task, no new dependencies. Add focused tests. Print DONE. HARD RULES: existing tests under test/screens/ describe required behaviour (recording, note seek, click & drums, play enabled only with a duration, speed, loop): do not delete, skip or weaken them; if a test finds a widget you replaced by type or text, change only that finder. Do not remove recording, notes, click & drums, Fine Tune or the region list. Keep the diff small (aim < 400 changed lines). Run the full `flutter test` before finishing. Context: ../_plans/song-map/ux.md; Song Map widgets already exist in lib/screens/practice_regions/song_map/ (SongMapView, SongMapTimeline, SongMapMinimap, SongMapPads, SongMapTransport, song_map_edit.dart). Print DONE.",
+   "verify": "flutter test test/screens/practice_regions/ test/services/audio/audio_analysis_test.dart && dart analyze lib/screens lib/services/audio",
+   "after": [
+    "C7c"
+   ],
+   "status": "pending",
+   "suite": true,
+   "timeout": 1800
+  },
+  {
+   "id": "C8b",
+   "finding": "C8",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "tempo banner stretch/keep",
+   "files": [
+    "lib/screens/practice_regions_screen.dart",
+    "lib/screens/practice_regions/song_map/",
+    "test/screens/practice_regions/song_map/",
+    "lib/services/audio/audio_analysis.dart",
+    "test/services/audio/audio_analysis_test.dart",
+    "test/screens/practice_regions_screen_test.dart",
+    "test/screens/practice_regions/song_map/tempo_banner_test.dart",
+    "lib/screens/practice_regions/song_map/song_map_tempo_banner.dart"
+   ],
+   "prompt": "This feature does NOT exist yet (a previous run changed nothing): implement it. When the measured tempo is off-whole (snapBpm keeps a fraction), show a banner 'Audio runs at <x> BPM · Stretch to <W> / Keep'. Stretch: store the choice per song, play with _player.setSpeed(W / measured * userSpeed) everywhere speed is set (audition resets speed to 1 today ~line 893: keep the stretch factor), show <W> BPM, regions stay in source time; click & drums is disabled while stretched (pass stretched=true to the transport). Keep: show the measured BPM. Put the banner in its own widget lib/screens/practice_regions/song_map/song_map_tempo_banner.dart and test it in test/screens/practice_regions/song_map/tempo_banner_test.dart (texts, both buttons, stretched speed factor W/measured). Context: read ../_plans/song-map/ux.md (the UX) and the Song Map section of design/figcraft/SPEC.md plus design/figcraft/specs/song_map_*.json (the approved design; use the same tokens: MonoPulseColors, MonoPulseSpacing, MonoPulseRadius from lib/theme). Models: AudioGrid and AudioRegion (with optional `section`) in lib/models/audio_region.dart; detector in lib/services/audio/song_structure.dart; existing waveform painter lib/widgets/audio/waveform_painter.dart. Smallest working change, no refactors outside the task, no new dependencies. Add focused tests. Print DONE. HARD RULES: existing tests under test/screens/ describe required behaviour (recording, note seek, click & drums, play enabled only with a duration, speed, loop): do not delete, skip or weaken them; if a test finds a widget you replaced by type or text, change only that finder. Do not remove recording, notes, click & drums, Fine Tune or the region list. Keep the diff small (aim < 400 changed lines). Run the full `flutter test` before finishing. Context: ../_plans/song-map/ux.md; Song Map widgets already exist in lib/screens/practice_regions/song_map/ (SongMapView, SongMapTimeline, SongMapMinimap, SongMapPads, SongMapTransport, song_map_edit.dart). Print DONE.",
+   "verify": "rg -q 'Stretch to' lib/screens/practice_regions/song_map/song_map_tempo_banner.dart && rg -q 'SongMapTempoBanner|song_map_tempo_banner' lib/screens/practice_regions_screen.dart && flutter test test/screens/practice_regions/song_map/tempo_banner_test.dart test/screens/ && dart analyze lib/screens",
+   "after": [],
+   "status": "pending",
+   "suite": true,
+   "timeout": 1800,
+   "must_contain": [
+    "Stretch to"
+   ]
+  },
+  {
+   "id": "C13",
+   "finding": "C11",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "labels fit or letter",
+   "files": [
+    "lib/screens/practice_regions/song_map/",
+    "test/screens/practice_regions/song_map/"
+   ],
+   "prompt": "Device check: legacy regions without a section show as 'Unnamed' and the timeline label is ellipsized ('Unn...'). Fix in song_map_timeline.dart (and pads if needed): label = full name only if it fits the block width (measure with TextPainter), otherwise the letter; regions without a section/name get letters by order of first appearance (A, B, C...) and pads show 'Region <letter>' instead of 'Unnamed'. New test file test/screens/practice_regions/song_map/label_fit_test.dart: long name in a narrow block shows the letter; unnamed regions show 'Region A'/'Region B'. Existing tests must keep passing without weakening (only finders of restyled widgets may change). Context: ../_plans/song-map/ux.md and design/figcraft/specs/song_map_song.json. Run the full flutter test before finishing. Print DONE.",
+   "verify": "test -f test/screens/practice_regions/song_map/label_fit_test.dart && flutter test test/screens/practice_regions/song_map/label_fit_test.dart && dart analyze lib/screens/practice_regions/song_map/",
+   "after": [],
+   "status": "pending",
+   "suite": true,
+   "timeout": 2400
+  },
+  {
+   "id": "C14",
+   "finding": "C11",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "all pads visible",
+   "files": [
+    "lib/screens/practice_regions_screen.dart",
+    "lib/screens/practice_regions/song_map/",
+    "test/screens/practice_regions/song_map/"
+   ],
+   "prompt": "Device check: with 8 regions only 4 pads are visible; the pad grid is clipped above the Notes section. Make the pad grid show every pad (grow to its content inside the page scroll, or scroll itself), with no clipping. New test test/screens/practice_regions/song_map/pads_all_visible_test.dart: 8 regions -> 8 pads findable after scrolling (tester.scrollUntilVisible) on the practice regions screen or on SongMapPads in a constrained box. Existing tests must keep passing without weakening (only finders of restyled widgets may change). Context: ../_plans/song-map/ux.md and design/figcraft/specs/song_map_song.json. Run the full flutter test before finishing. Print DONE.",
+   "verify": "test -f test/screens/practice_regions/song_map/pads_all_visible_test.dart && flutter test test/screens/practice_regions/song_map/pads_all_visible_test.dart",
+   "after": [],
+   "status": "pending",
+   "suite": true,
+   "timeout": 2400
+  },
+  {
+   "id": "C12",
+   "finding": "C11",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "transport like the design",
+   "files": [
+    "lib/screens/practice_regions_screen.dart",
+    "lib/screens/practice_regions/song_map/",
+    "test/screens/practice_regions/song_map/",
+    "test/screens/practice_regions_screen_test.dart",
+    "test/screens/practice_regions_recording_test.dart"
+   ],
+   "prompt": "Device check: the bottom transport is still the old dark 3-row panel (big Shift and Note boxes, Play/Loop/speed, Count-in/Click, Click & drums). Restyle it to the SongMapTransport design: one row on the theme surface (not a dark panel in light theme) with Play/Stop, Loop, speed chip, Count-in, Click, Drums (click & drums); Shift and Note move to the pads header as small icon buttons. Keep every existing Key, tooltip and semantics label. New test test/screens/practice_regions/song_map/transport_layout_test.dart: on the practice regions screen the transport controls share one row (same dy within 4 px) and the panel colour equals the theme surface. Existing tests must keep passing without weakening (only finders of restyled widgets may change). Context: ../_plans/song-map/ux.md and design/figcraft/specs/song_map_song.json. Run the full flutter test before finishing. Print DONE.",
+   "verify": "test -f test/screens/practice_regions/song_map/transport_layout_test.dart && flutter test test/screens/practice_regions/song_map/transport_layout_test.dart test/screens/ && dart analyze lib/screens",
+   "after": [
+    "C13",
+    "C14"
+   ],
+   "status": "pending",
+   "suite": true,
+   "timeout": 2400
+  }
+ ]
+}

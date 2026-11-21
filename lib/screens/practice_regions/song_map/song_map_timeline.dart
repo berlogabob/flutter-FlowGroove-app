@@ -291,10 +291,6 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         : region.name.isNotEmpty
         ? region.name
         : 'Region ${_letter(_view.children().indexOf(region))}';
-    final sectionBaseName = sectionName.trim().replaceFirst(
-      _occurrenceSuffix,
-      '',
-    );
     final nameStyle = typography.bodySmall?.copyWith(
       color: palette.textPrimary,
     );

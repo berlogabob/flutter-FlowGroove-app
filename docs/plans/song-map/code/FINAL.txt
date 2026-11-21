@@ -1,0 +1,16 @@
+flutter test exit=0
+❌ Analytics Error in band_opened: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+01:38 +3380 ~4: ../flutter_repsync_structure/test/screens/practice_regions_screen_test.dart: click & drums mode loops a region on the bar grid
+01:38 +3380 ~4: ../flutter_repsync_structure/test/router/history_restored_extra_test.dart: setlist-view renders when extra is history-restored JSON
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+[Wakelock] Controller disposed
+01:38 +3381 ~4: ../flutter_repsync_structure/test/screens/practice_regions_screen_test.dart: click & drums mode loops a region on the bar grid
+01:38 +3382 ~4: ../flutter_repsync_structure/test/screens/practice_regions_screen_test.dart: click & drums mode loops a region on the bar grid
+01:38 +3383 ~4: ../flutter_repsync_structure/test/screens/practice_regions_screen_test.dart: click & drums mode loops a region on the bar grid
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+01:40 +3384 ~4: ../flutter_repsync_structure/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-songs pushed from the-band returns to the-band on back
+01:40 +3385 ~4: ../flutter_repsync_structure/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-songs pushed from the-band returns to the-band on back
+01:40 +3386 ~4: ../flutter_repsync_structure/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-songs pushed from the-band returns to the-band on back
+01:40 +3387 ~4: ../flutter_repsync_structure/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-setlists pushed from the-band returns to the-band on back
+01:40 +3388 ~4: All tests passed!

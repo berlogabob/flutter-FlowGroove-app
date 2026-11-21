@@ -1,0 +1,279 @@
+{
+ "tasks": [
+  {
+   "id": "DS1",
+   "finding": "DS1",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "component states",
+   "files": [
+    "design/figcraft/build.py",
+    "design/figcraft/SPEC.md",
+    "design/figcraft/PLAN.md"
+   ],
+   "prompt": "Add component states to the FigCraft component library in build.py: Button gets a State variant (Default, Disabled, Loading: spinner glyph instead of label); Input State gains Focus (accentOrange border 2), Error (error colour border + helper text) and Disabled; Chip gains Disabled; ListTile gains a Selected variant (accentOrange10 background). Disabled = 38% opacity as in Flutter. Document the new variants in SPEC.md Components. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Before finishing run `cd design/figcraft && python3 build.py check` and `python3 build.py verify-components`: every existing spec must still pass. Print DONE.",
+   "verify": "cd design/figcraft/ && python3 build.py check | grep -v '^ok' ; test ${PIPESTATUS[0]} -eq 0 && python3 build.py verify-components | tail -3",
+   "after": [],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "DS2",
+   "finding": "DS2",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "contrast script + docs page",
+   "files": [
+    "design/figcraft/contrast.py",
+    "design/figcraft/build.py",
+    "design/figcraft/SPEC.md",
+    "design/figcraft/PLAN.md"
+   ],
+   "prompt": "Create design/figcraft/contrast.py (python3 stdlib only): load design/tokens/tokens.json, compute WCAG contrast for every text colour on every background/surface colour in Light and Dark, and for UI-state pairs listed in a PAIRS table at the top of the script (start with: accentOrange vs surface, borderSubtle vs surface, textPrimary vs accentOrange). Rules: text pairs >= 4.5, UI pairs >= 3.0. Print a table; exit 1 if any REQUIRED pair fails (mark decorative pairs as not required so the current palette passes; list failures). Add a function in build.py build_docs that writes the matrix as a 'Contrast' section on the Docs page plus a touch-target note (48x48 dp minimum). Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Print DONE.",
+   "verify": "python3 design/figcraft/contrast.py >/dev/null && cd design/figcraft/ && python3 build.py check >/dev/null",
+   "after": [],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "DS3",
+   "finding": "DS3",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "icons page",
+   "files": [
+    "design/figcraft/build.py",
+    "design/figcraft/SPEC.md",
+    "design/figcraft/PLAN.md",
+    "design/figcraft/figcraft.connect.json"
+   ],
+   "prompt": "Add an Icons page builder to build.py: one Icon component per name in design/figcraft/icons.txt (Material glyph, 24 px, textPrimary), arranged in a grid with the name under each; a component property so instances can swap the glyph; add CONNECT entries mapping to Flutter `Icons.<name>` and regenerate figcraft.connect.json through the existing export_connect function (offline). Call the builder from the 'all' command. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Before finishing run `cd design/figcraft && python3 build.py check` and `python3 build.py verify-components`: every existing spec must still pass. Print DONE.",
+   "verify": "cd design/figcraft/ && python3 build.py check | grep -v '^ok' ; test ${PIPESTATUS[0]} -eq 0 && python3 build.py verify-components | tail -3 && python3 -c \"import json;d=json.load(open('figcraft.connect.json'));assert len(d['links'])>25, len(d['links'])\"",
+   "after": [],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "DS4",
+   "finding": "DS4",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "pattern components",
+   "files": [
+    "design/figcraft/build.py",
+    "design/figcraft/SPEC.md",
+    "design/figcraft/PLAN.md"
+   ],
+   "prompt": "Add pattern components to build.py for the song card, setlist card and member card: find their repeated subtrees in design/figcraft/specs/*.json (songs_list.json, setlists*.json, band*.json), turn each into one component with text properties (title, subtitle, meta) and use it via a new spec node type `pattern` with key `name`. Do not rewrite existing specs. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Before finishing run `cd design/figcraft && python3 build.py check` and `python3 build.py verify-components`: every existing spec must still pass. Print DONE.",
+   "verify": "cd design/figcraft/ && python3 build.py check | grep -v '^ok' ; test ${PIPESTATUS[0]} -eq 0 && python3 build.py verify-components | tail -3",
+   "after": [
+    "DS1"
+   ],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "DS5",
+   "finding": "DS5",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "prototype links",
+   "files": [
+    "design/figcraft/build.py",
+    "design/figcraft/SPEC.md",
+    "design/figcraft/PLAN.md"
+   ],
+   "prompt": "Add prototype links: specs may carry `links: [{\"from\": <node name>, \"to\": <frame name>}]`; build_screen records them and the 'all' command applies them after all frames exist (bottom nav tabs to their frames, AppBar Back to the parent frame, list tiles to detail frames, sheet triggers to sheet frames). Add links to at least the bottom nav of the 5 main tab screens. 'check' must validate that every link target frame name exists. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Print DONE.",
+   "verify": "cd design/figcraft/ && python3 build.py check >/dev/null && python3 build.py verify-components",
+   "after": [],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "DS6",
+   "finding": "DS6",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "make design + offline checks",
+   "files": [
+    "Makefile",
+    "design/figcraft/PLAN.md",
+    "design/figcraft/SPEC.md"
+   ],
+   "prompt": "Add Makefile targets (create Makefile at the repo root if missing, keep any existing content): `design-check` runs offline checks (python3 design/figcraft/build.py check, python3 design/figcraft/build.py verify-components, python3 design/figcraft/contrast.py) and fails on any failure; `design` runs `python3 design/figcraft/build.py all` (needs FigCraft running). Document both in SPEC.md. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Print DONE.",
+   "verify": "make design-check >/dev/null",
+   "after": [
+    "DS2"
+   ],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "SD1",
+   "finding": "SD1",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "Song Map components",
+   "files": [
+    "design/figcraft/build.py",
+    "design/figcraft/SPEC.md",
+    "design/figcraft/PLAN.md",
+    "design/figcraft/contrast.py",
+    "design/figcraft/examples/song_map_demo.json"
+   ],
+   "prompt": "Read ../_plans/song-map/ux.md. Add Song Map components and spec node types to build.py: `pad` (keys label, sub, color, state: idle|selected|playing|queued|disabled, progress 0..1), `secblock` (name, letter, color, w, state: candidate|confirmed|selected|playing; candidate = dashed border), `partblock` (letter, bars, w, state), `boundary` (state: confirmed|candidate|selected), `playhead`, `minimap` (sections list of {color,w}, viewport [x,w]), `ruler` (labels list), `beatgrid` (beats per bar, bars), `breadcrumb` (items), `transport` (speed, loop, click flags). Components get Light and Dark variants via the existing variable modes; add a screen-level `mode` key (light|dark) if the spec format lacks it. Add page 'Song Map' to PAGES. Extend contrast.py PAIRS with the pad states (playing text on accentOrange >= 4.5, selected border vs surface >= 3, queued border vs surface >= 3, playing fill vs idle surface >= 3) as REQUIRED. Write examples/song_map_demo.json using every new node. Document all in SPEC.md. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Print DONE.",
+   "verify": "python3 design/figcraft/contrast.py >/dev/null && cd design/figcraft/ && python3 build.py check >/dev/null && python3 build.py check examples/song_map_demo.json >/dev/null && python3 build.py verify-components",
+   "after": [
+    "DS2"
+   ],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "SD2",
+   "finding": "SD2",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "spec song_map_song",
+   "files": [
+    "design/figcraft/specs/song_map_song.json",
+    "design/figcraft/specs/song_map_song_light.json",
+    "design/figcraft/PLAN.md"
+   ],
+   "prompt": "Read ../_plans/song-map/ux.md and design/figcraft/examples/song_map_demo.json. Write design/figcraft/specs/song_map_song.json (dark) and song_map_song_light.json (mode light) on page 'Song Map', slots 0 and 1, source lib/screens/practice_regions_screen.dart: SONG level: Inocente (170 BPM ✓), sections Intro 1, Part B 1, Chorus 1, Part D 1, Part E 1, Chorus 2, Part D 2, Bridge 1, Bridge 2, Part D 3 (repeats share colour), waveform box, ruler, playhead at Chorus 1, pads = the 10 sections (Chorus 1 playing with progress 0.4), transport bar. Use only node types documented in SPEC.md; 412x915 frame. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Print DONE.",
+   "verify": "cd design/figcraft/ && python3 build.py check specs/song_map_song.json specs/song_map_song_light.json",
+   "after": [
+    "SD1"
+   ],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "SD3",
+   "finding": "SD3",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "spec song_map_section",
+   "files": [
+    "design/figcraft/specs/song_map_section.json",
+    "design/figcraft/specs/song_map_section_light.json",
+    "design/figcraft/PLAN.md"
+   ],
+   "prompt": "Read ../_plans/song-map/ux.md and design/figcraft/examples/song_map_demo.json. Write design/figcraft/specs/song_map_section.json (dark) and song_map_section_light.json (mode light) on page 'Song Map', slots 2 and 3, source lib/screens/practice_regions_screen.dart: SECTION level for Chorus 1 (bars 18-30): minimap with viewport, breadcrumb, parts a b a (4 bars each), bar ruler each bar, boundary at bar 26 selected with the context bar (Bar 26 · 0:47.1, ◀ ▶, Listen across, Delete, Split), pads = parts a, b, a2 + Whole section (part b queued). Use only node types documented in SPEC.md; 412x915 frame. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Print DONE.",
+   "verify": "cd design/figcraft/ && python3 build.py check specs/song_map_section.json specs/song_map_section_light.json",
+   "after": [
+    "SD1"
+   ],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "SD4",
+   "finding": "SD4",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "spec song_map_part",
+   "files": [
+    "design/figcraft/specs/song_map_part.json",
+    "design/figcraft/specs/song_map_part_light.json",
+    "design/figcraft/PLAN.md"
+   ],
+   "prompt": "Read ../_plans/song-map/ux.md and design/figcraft/examples/song_map_demo.json. Write design/figcraft/specs/song_map_part.json (dark) and song_map_part_light.json (mode light) on page 'Song Map', slots 4 and 5, source lib/screens/practice_regions_screen.dart: PART level for Chorus 1 part b: minimap, breadcrumb Song › Chorus 1 › b, beat grid 4 bars x 4 beats, boundary nudge ◀ beat ▶, Listen across button, pads = parts. Use only node types documented in SPEC.md; 412x915 frame. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Print DONE.",
+   "verify": "cd design/figcraft/ && python3 build.py check specs/song_map_part.json specs/song_map_part_light.json",
+   "after": [
+    "SD1"
+   ],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "SD5",
+   "finding": "SD5",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "spec song_map_review",
+   "files": [
+    "design/figcraft/specs/song_map_review.json",
+    "design/figcraft/specs/song_map_review_light.json",
+    "design/figcraft/PLAN.md"
+   ],
+   "prompt": "Read ../_plans/song-map/ux.md and design/figcraft/examples/song_map_demo.json. Write design/figcraft/specs/song_map_review.json (dark) and song_map_review_light.json (mode light) on page 'Song Map', slots 6 and 7, source lib/screens/practice_regions_screen.dart: REVIEW state after Analyze: dashed candidate section blocks, banner '10 sections found · check, then Done'; second frame variant via a sheet-less banner 'New map: Keep old / Use new'; tempo banner 'Audio runs at 80.49 BPM · Stretch to 80 / Keep'. Use only node types documented in SPEC.md; 412x915 frame. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Print DONE.",
+   "verify": "cd design/figcraft/ && python3 build.py check specs/song_map_review.json specs/song_map_review_light.json",
+   "after": [
+    "SD1"
+   ],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "SD6",
+   "finding": "SD6",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "spec song_map_playing",
+   "files": [
+    "design/figcraft/specs/song_map_playing.json",
+    "design/figcraft/specs/song_map_playing_light.json",
+    "design/figcraft/PLAN.md"
+   ],
+   "prompt": "Read ../_plans/song-map/ux.md and design/figcraft/examples/song_map_demo.json. Write design/figcraft/specs/song_map_playing.json (dark) and song_map_playing_light.json (mode light) on page 'Song Map', slots 8 and 9, source lib/screens/practice_regions_screen.dart: PLAYING + RANGE: Range mode on (pad header shows 'Range: tap first and last'), pads Part B 1 .. Chorus 1 in range, Chorus 1 playing, Part D 1 queued; timeline block Chorus 1 playing. Use only node types documented in SPEC.md; 412x915 frame. Read design/figcraft/SPEC.md and design/figcraft/PLAN.md first. Follow the existing patterns in design/figcraft/build.py (m_* emit functions, i_* instances, build_components, build_docs, CONNECT). Smallest change that works, no refactors. Offline only: never start or call FigCraft. Tick the matching item in design/figcraft/PLAN.md. Print DONE.",
+   "verify": "cd design/figcraft/ && python3 build.py check specs/song_map_playing.json specs/song_map_playing_light.json",
+   "after": [
+    "SD1"
+   ],
+   "status": "pending",
+   "suite": false,
+   "timeout": 1500
+  },
+  {
+   "id": "N7",
+   "finding": "N6",
+   "executor": "codex",
+   "model": "gpt-6.2-sol",
+   "title": "offline dry run of all + online fixes",
+   "files": [
+    "design/figcraft/build.py",
+    "design/figcraft/SPEC.md",
+    "design/figcraft/PLAN.md",
+    "Makefile",
+    "design/figcraft/specs/"
+   ],
+   "prompt": "`python3 design/figcraft/build.py all` fails online in FigCraft, but the offline `check` cannot see it. FigCraft's real command list with parameter docs is in ../_plans/song-map/fc_commands.json (list of {id, params (text), ...}). 1) Add `build.py dryrun`: run the same pipeline as `all` (setup, components, foundations, docs, icons page, all specs, prototype links) with a fake transport instead of the socket: it records every engine.execute command, returns plausible fake results (ids, lists sized like the request), and validates each command id exists in fc_commands.json and each top-level param key appears in that command's params text (best-effort parse; nested command.batch commands checked too). Exit 1 listing problems. Add it to the Makefile `design-check` target. 2) Fix what it finds, at least: prototype links use the non-existent `prototype.connect` -> use `proto.interaction.add` (trigger onClick, action navigate to the target frame id); the Song Map specs fail online with `node.set ... A layer's position comes from the main component in an instance` -> never set x/y (or other node.set) on layers inside an instance; position via the main component, auto layout, or a wrapper frame. Keep `check` and `verify-components` passing. Smallest change, no refactors. Tick N6/N7 notes in design/figcraft/PLAN.md. Print DONE.",
+   "verify": "make design-check | tail -5",
+   "after": [],
+   "status": "pending",
+   "suite": false,
+   "timeout": 2400
+  },
+  {
+   "id": "SD8",
+   "finding": "SD7",
+   "executor": "codex",
+   "model": "gpt-6-luna",
+   "title": "Song Map review fixes",
+   "files": [
+    "design/figcraft/specs/",
+    "design/figcraft/build.py",
+    "design/figcraft/SPEC.md",
+    "design/figcraft/PLAN.md"
+   ],
+   "prompt": "Apply the 'Review fixes (SD7)' section of ../_plans/song-map/ux.md to all design/figcraft/specs/song_map_*.json (dark and light): secblock widths proportional to bars (Inocente bars: Intro 8, Part B 1 8, Chorus 1 12, Part D 1 16, Part E 1 8, Chorus 2 12, Part D 2 16, Bridge 1 12, Bridge 2 4, Part D 3 21; lane width 380); secblock label = full name if its width >= 64 else the letter only (implement this rule in build.py's secblock emitter so specs only pass name+letter+w); pad `sub` = bar count text; replace the empty waveform box with a simple waveform shape (add a `wave` node to build.py: a row of thin vertical bars of pseudo-random heights from a fixed seed, colour textSecondary, height given); song_map_playing*.json must be SONG level (title 'SONG', pads = sections, Range across Part B 1 .. Chorus 1). Document `wave` in SPEC.md. Run `make design-check` before finishing. Print DONE.",
+   "verify": "make design-check | tail -3",
+   "after": [],
+   "status": "pending",
+   "suite": false,
+   "timeout": 2400
+  }
+ ]
+}
