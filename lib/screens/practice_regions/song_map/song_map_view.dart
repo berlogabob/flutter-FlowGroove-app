@@ -7,9 +7,10 @@ enum SongMapZoom { song, section, part }
 /// Timeline and pad navigation over a snapshot of regions in file order.
 class SongMapView extends ChangeNotifier {
   SongMapView({
-    required List<AudioRegion> regions,
+    required this.regions,
     required this.durationMs,
     this.grid,
+    this.includeSkipped = false,
   }) : assert(durationMs >= 0, 'Song duration must be nonnegative.') {
     final sections = <AudioRegion>[];
     for (var start = 0; start < regions.length;) {
@@ -22,10 +23,13 @@ class SongMapView extends ChangeNotifier {
         end++;
       }
       final parts = List<AudioRegion>.unmodifiable(
-        regions.getRange(start, end).where((region) => !region.skip),
+        regions
+            .getRange(start, end)
+            .where((region) => includeSkipped || !region.skip),
       );
       if (parts.isNotEmpty) {
         _parts.add(parts);
+        _sectionRanges.add((start, end - 1));
         final sectionName = first.section;
         sections.add(
           parts.first.copyWith(
@@ -34,6 +38,7 @@ class SongMapView extends ChangeNotifier {
                 : sectionName,
             startMs: first.startMs,
             endMs: regions[end - 1].endMs,
+            skip: parts.every((region) => region.skip),
           ),
         );
       }
@@ -42,10 +47,13 @@ class SongMapView extends ChangeNotifier {
     _sections = List.unmodifiable(sections);
   }
 
+  final List<AudioRegion> regions;
   final int durationMs;
   final AudioGrid? grid;
+  final bool includeSkipped;
   late final List<AudioRegion> _sections;
   final _parts = <List<AudioRegion>>[];
+  final _sectionRanges = <(int, int)>[];
 
   int? _sectionIndex;
   int? _partIndex;
@@ -114,6 +122,29 @@ class SongMapView extends ChangeNotifier {
   List<AudioRegion> children() {
     final section = _sectionIndex;
     return section == null ? _sections : _parts[section];
+  }
+
+  (int, int) regionRange(int index) {
+    if (_sectionIndex == null) return _sectionRanges[index];
+    final region = regions.indexOf(_parts[_sectionIndex!][index]);
+    return (region, region);
+  }
+
+  /// Keep the zoom anchored to the surviving region IDs after an edit.
+  void restoreZoom(SongMapView previous) {
+    final oldSection = previous.sectionIndex;
+    if (oldSection == null) return;
+    final partIds = previous._parts[oldSection].map((part) => part.id).toSet();
+    final section = _parts.indexWhere(
+      (parts) => parts.any((r) => partIds.contains(r.id)),
+    );
+    if (section < 0) return;
+    _sectionIndex = section;
+    final oldPart = previous.partIndex;
+    if (oldPart == null) return;
+    final partId = previous._parts[oldSection][oldPart].id;
+    final part = _parts[section].indexWhere((region) => region.id == partId);
+    if (part >= 0) _partIndex = part;
   }
 
   /// [index] indexes the pads returned by [children].

@@ -41,9 +41,13 @@ import '../widgets/audio/waveform_painter.dart';
 import '../widgets/confirmation_dialog.dart';
 import 'practice_regions/auto_slice_sheet.dart';
 import 'practice_regions/grid_editor_dialog.dart';
-import 'practice_regions/pad_banks.dart';
 import 'practice_regions/region_name_sheet.dart';
 import 'practice_regions/slice_edit_sheet.dart';
+import 'practice_regions/song_map/song_map_edit.dart' as song_map_edit;
+import 'practice_regions/song_map/song_map_minimap.dart';
+import 'practice_regions/song_map/song_map_pads.dart';
+import 'practice_regions/song_map/song_map_timeline.dart';
+import 'practice_regions/song_map/song_map_view.dart';
 import 'practice_setup_wizard.dart';
 
 part 'practice_regions/notes_panel.dart';
@@ -136,6 +140,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   /// One level of undo for Shift edits (they save immediately).
   List<AudioRegion>? _undoRegions;
+  SongMapView? _songMap;
+  int? _songMapBoundaryMs;
 
   // Practice log: one session per loop selection, written when it changes or
   // the screen closes. Captured in initState because ref is gone by dispose.
@@ -368,6 +374,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   @override
   void dispose() {
+    _songMap?.dispose();
     _auditionTimer?.cancel();
     _flushSession();
     if (_sync) _metronome.stop();
@@ -1311,46 +1318,210 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
-  Widget _pads() {
-    final sections = <String, Section>{};
-    if (_entry.regions.any((region) => region.sectionId != null) &&
-        _entry.songId.isNotEmpty &&
-        _entry.songId != '_inbox') {
-      final songs = ref
-          .watch(
-            widget.bandId == null
-                ? songsProvider
-                : bandSongsProvider(widget.bandId!),
-          )
-          .value;
-      final song = songs?.where((song) => song.id == _entry.songId).firstOrNull;
-      for (final section in song?.sections ?? <Section>[]) {
-        sections[section.id] = section;
+  Widget _pads({
+    required bool editing,
+    required int position,
+    required bool playing,
+  }) {
+    final regions = _entry.regions;
+    final grid = _entry.grid;
+    final duration = _durationMs > 0 ? _durationMs : regions.last.endMs;
+    final previous = _songMap;
+    if (previous == null ||
+        previous.regions != regions ||
+        previous.grid != grid ||
+        previous.durationMs != duration ||
+        previous.includeSkipped != editing) {
+      final view = SongMapView(
+        regions: regions,
+        grid: grid,
+        durationMs: duration,
+        includeSkipped: editing,
+      );
+      if (previous != null) {
+        view.restoreZoom(previous);
+        previous.dispose();
       }
+      _songMap = view;
     }
-    return PadBanks(
-      regions: _entry.regions,
-      grid: _entry.grid,
-      sectionColors: {
-        for (final section in sections.values) section.id: section.color,
-      },
-      colorForName: colorForName,
-      editing: _canEdit && _editing,
-      playing: _playing,
-      sync: _sync,
-      positionMs: _positionMs,
-      selection: _selection,
-      onSelect: _selectRegions,
-      onEdit: (i) {
-        setState(() => _focus = i);
-        unawaited(
-          _ensurePcm().then((_) {
-            if (mounted) setState(() {});
-          }),
+    final view = _songMap!;
+    final queuedId = _sync
+        ? ref.watch(backingTransportProvider.select((t) => t.queuedId))
+        : null;
+    final selection = _selection;
+    final canEditMap = editing && grid != null && _durationMs > 0;
+    final boundaries = {
+      if (canEditMap)
+        for (var i = 0; i + 1 < regions.length; i++)
+          if (regions[i].endMs == regions[i + 1].startMs) regions[i].endMs: i,
+    };
+    final boundary = boundaries.containsKey(_songMapBoundaryMs)
+        ? _songMapBoundaryMs
+        : null;
+
+    int snap(int ms) => view.level == SongMapZoom.part
+        ? view.snapMs(ms)
+        : grid!.snap(ms, durationMs: duration);
+
+    void saveEdit(List<AudioRegion> updated, {int? selectedBoundary}) {
+      if (identical(updated, regions)) return;
+      _songMapBoundaryMs = selectedBoundary;
+      unawaited(_changeRegions(updated));
+    }
+
+    return ListenableBuilder(
+      listenable: view,
+      builder: (context, _) {
+        final children = view.children();
+        final atSong = view.level == SongMapZoom.song;
+        final selected = <int>{};
+        if (selection != null) {
+          for (var i = 0; i < children.length; i++) {
+            final (start, end) = view.regionRange(i);
+            if (start <= selection.$2 && end >= selection.$1) selected.add(i);
+          }
+        }
+        final active = playing
+            ? children.indexWhere(
+                (r) => r.startMs <= position && position < r.endMs,
+              )
+            : -1;
+        final queued =
+            selection != null &&
+            (_sync
+                ? queuedId == _syncTarget
+                : _pendingLoop ==
+                      loopSpan(regions, selection, preRollMs: _preRollMs));
+
+        void selectRange((int, int) range) {
+          _selectRegions((
+            view.regionRange(range.$1).$1,
+            view.regionRange(range.$2).$2,
+          ));
+        }
+
+        final pads = SongMapPads(
+          key: ValueKey((view, view.sectionIndex, view.partIndex)),
+          view: view,
+          selectedIndices: selected,
+          playingIndex: active < 0 ? null : active,
+          queuedIndex: queued ? selected.firstOrNull : null,
+          progress: active < 0
+              ? 0
+              : (position - children[active].startMs) /
+                    children[active].lengthMs,
+          onRange: editing ? null : selectRange,
+          onHold: (i) {
+            final (start, end) = view.regionRange(i);
+            final section = regions[start].section;
+            if (editing) {
+              if (atSong && section != null) {
+                unawaited(
+                  _renameSection(
+                    section.trim().replaceFirst(RegExp(r' \d+$'), ''),
+                  ),
+                );
+              }
+            } else if (selection != null) {
+              _selectRegions((
+                math.min(start, selection.$1),
+                math.max(end, selection.$2),
+              ));
+            }
+          },
+          onSelect: (i) {
+            final range = view.regionRange(i);
+            if (editing && (!atSong || regions[range.$1].section == null)) {
+              setState(() => _focus = range.$1);
+              unawaited(
+                _ensurePcm().then((_) {
+                  if (mounted) setState(() {});
+                }),
+              );
+              unawaited(_editSlice(range.$1));
+            } else {
+              _selectRegions(selection == range ? null : range);
+            }
+          },
         );
-        unawaited(_editSlice(i));
+        final timeline = Column(
+          children: [
+            if (!atSong)
+              SongMapMinimap(
+                durationMs: duration,
+                regions: regions,
+                viewportStartMs: view.startMs,
+                viewportEndMs: view.endMs,
+                onSeek: (ms) => unawaited(_seekTimeline(ms)),
+              ),
+            SongMapTimeline(
+              view: view,
+              peaks: _entry.peaks,
+              positionMs: position,
+              playing: playing,
+              selectedIndices: selected,
+              boundariesMs: editing ? boundaries.keys.toSet() : null,
+              selectedBoundaryMs: boundary,
+              onBoundaryTap: canEditMap
+                  ? (ms) => setState(() => _songMapBoundaryMs = ms)
+                  : null,
+              onBoundaryDrag: canEditMap
+                  ? (drag) {
+                      final (from, to) = drag;
+                      final cut = snap(to);
+                      saveEdit(
+                        song_map_edit.moveBoundary(
+                          regions,
+                          boundaries[from]!,
+                          cut,
+                          grid: grid,
+                        ),
+                        selectedBoundary: cut,
+                      );
+                    }
+                  : null,
+            ),
+            if (canEditMap)
+              Wrap(
+                children: [
+                  if (boundary != null)
+                    TextButton(
+                      onPressed: () => saveEdit(
+                        song_map_edit.deleteBoundary(
+                          regions,
+                          boundaries[boundary]!,
+                          grid: grid,
+                        ),
+                      ),
+                      child: const Text('Delete boundary'),
+                    ),
+                  TextButton(
+                    onPressed: () => saveEdit(
+                      song_map_edit.splitAt(
+                        regions,
+                        snap(position),
+                        grid: grid,
+                      ),
+                    ),
+                    child: const Text('Split section at playhead'),
+                  ),
+                ],
+              ),
+          ],
+        );
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // The existing waveform remains visible above this scroll area.
+            final compact = constraints.maxHeight < 300;
+            return SingleChildScrollView(
+              key: ValueKey((view.sectionIndex, view.partIndex)),
+              child: Column(
+                children: compact ? [pads, timeline] : [timeline, pads],
+              ),
+            );
+          },
+        );
       },
-      onRenameSection: (base) => unawaited(_renameSection(base)),
     );
   }
 
@@ -1667,7 +1838,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                           ),
                         ),
                       )
-                    : _pads(),
+                    : _pads(
+                        editing: editing,
+                        position: positionMs,
+                        playing: playing,
+                      ),
               ),
               // Sized to its notes (capped), so the pads get the rest; a flex
               // split left half the screen to an empty notes list.

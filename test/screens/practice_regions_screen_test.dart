@@ -13,6 +13,7 @@ import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/repositories/metronome_session_repository.dart';
+import 'package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/services/audio/audio_file_cache.dart';
 import 'package:flowgroove/services/audio/audio_note_recorder.dart';
@@ -346,7 +347,7 @@ void main() {
     tester,
   ) async {
     await pump(tester, _entry());
-    expect(find.byType(GridView), findsOneWidget);
+    expect(find.byType(SongMapPads), findsOneWidget);
     expect(find.text('Add marker'), findsNothing);
     expect(find.text('Snap to bar'), findsNothing);
     expect(find.byKey(const ValueKey('marker-handle-0')), findsNothing);
@@ -354,12 +355,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Tap a pad to edit'), findsOneWidget);
     expect(find.text('Add marker'), findsOneWidget);
-    expect(find.byType(GridView), findsOneWidget);
+    expect(find.byType(SongMapPads), findsOneWidget);
     expect(find.byKey(const ValueKey('marker-handle-0')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('shift')));
     await tester.pumpAndSettle();
     expect(find.text('Add marker'), findsNothing);
-    expect(find.byType(GridView), findsOneWidget);
+    expect(find.byType(SongMapPads), findsOneWidget);
   });
 
   testWidgets('Shift + pad edits the slice end or deletes it', (tester) async {
@@ -662,9 +663,9 @@ void main() {
     'tapping a pad loops only Chorus and tapping again keeps playing',
     (tester) async {
       await pump(tester, _entry());
-      await tester.tap(find.text('Verse 2'));
+      await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
       await settleAudio(tester);
-      await tester.tap(find.text('Chorus'));
+      await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
       await settleAudio(tester);
       expect(find.text('Looping Chorus'), findsOneWidget);
       final player = audio.players.values.single;
@@ -673,7 +674,7 @@ void main() {
       expect(player.loopMode, LoopModeMessage.one);
       await tester.tap(find.text('Play'));
       await settleAudio(tester);
-      await tester.tap(find.text('Chorus'));
+      await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
       await settleAudio(tester);
       expect(find.textContaining('Looping'), findsNothing);
       expect(player.clip, isNull);
@@ -688,11 +689,14 @@ void main() {
     (tester) async {
       await pump(tester, _entry(), demo: true);
       final hold = await tester.startGesture(
-        tester.getCenter(find.text('Verse 2')),
+        tester.getCenter(find.byKey(const ValueKey('region-pad-verse'))),
         pointer: 1,
       );
       await tester.pump(const Duration(milliseconds: 600));
-      await tester.tap(find.text('Chorus'), pointer: 2);
+      await tester.tap(
+        find.byKey(const ValueKey('region-pad-chorus')),
+        pointer: 2,
+      );
       await settleAudio(tester);
       expect(find.text('Looping Verse 2 → Chorus'), findsOneWidget);
       final player = audio.players.values.single;
@@ -701,7 +705,7 @@ void main() {
       expect(player.loopMode, LoopModeMessage.one);
       await hold.up();
       await tester.pump();
-      await tester.tap(find.text('Chorus'));
+      await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
       await settleAudio(tester);
       expect(find.text('Looping Chorus'), findsOneWidget);
       expect(repo.saved, isEmpty);
@@ -930,11 +934,56 @@ void main() {
     expect(find.text('Pause'), findsOneWidget);
   });
 
+  testWidgets('section pads select and loop the whole section', (tester) async {
+    await pump(
+      tester,
+      _entry(
+        regions: const [
+          AudioRegion(
+            id: 'a',
+            name: 'Verse a',
+            section: 'Verse',
+            startMs: 0,
+            endMs: 4000,
+          ),
+          AudioRegion(
+            id: 'b',
+            name: 'Verse b',
+            section: 'Verse',
+            startMs: 4000,
+            endMs: 8000,
+          ),
+          AudioRegion(
+            id: 'c',
+            name: 'Chorus a',
+            section: 'Chorus',
+            startMs: 8000,
+            endMs: 20000,
+          ),
+        ],
+      ),
+    );
+    expect(find.widgetWithText(SongMapPads, 'Verse'), findsOneWidget);
+    expect(find.widgetWithText(SongMapPads, 'Chorus'), findsOneWidget);
+    expect(find.byKey(const ValueKey('song-map-pad-b')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('song-map-pad-a')));
+    await settleAudio(tester);
+
+    expect(
+      tester.widget<SongMapPads>(find.byType(SongMapPads)).selectedIndices,
+      {0},
+    );
+    final clip = audio.players.values.single.clip;
+    expect(clip?.start, Duration.zero);
+    expect(clip?.end, const Duration(seconds: 8));
+  });
+
   testWidgets('renders two named regions without autoplay', (tester) async {
     await pump(tester, _entry());
     expect(find.text('Practice regions'), findsOneWidget);
-    expect(find.text('Verse 2'), findsOneWidget);
-    expect(find.text('Chorus'), findsOneWidget);
+    expect(find.widgetWithText(SongMapPads, 'Verse 2'), findsOneWidget);
+    expect(find.widgetWithText(SongMapPads, 'Chorus'), findsOneWidget);
     expect(audio.players.values.single.playCalls, 0);
   });
 

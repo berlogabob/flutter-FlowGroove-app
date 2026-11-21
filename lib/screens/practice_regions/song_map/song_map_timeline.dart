@@ -16,8 +16,11 @@ class SongMapTimeline extends StatefulWidget {
     this.positionMs,
     this.playing = false,
     this.candidateBoundariesMs = const {},
+    this.boundariesMs,
     this.selectedBoundaryMs,
+    this.selectedIndices = const {},
     this.onBoundaryTap,
+    this.onBoundaryDrag,
     super.key,
   });
 
@@ -30,8 +33,11 @@ class SongMapTimeline extends StatefulWidget {
 
   /// Boundary positions and callback values are file-relative milliseconds.
   final Set<int> candidateBoundariesMs;
+  final Set<int>? boundariesMs;
   final int? selectedBoundaryMs;
+  final Set<int> selectedIndices;
   final ValueChanged<int>? onBoundaryTap;
+  final ValueChanged<(int, int)>? onBoundaryDrag;
 
   @override
   State<SongMapTimeline> createState() => _SongMapTimelineState();
@@ -44,6 +50,8 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
   static final _occurrenceSuffix = RegExp(r'\s+\d+$');
 
   bool _zoomedOut = false;
+  double _dragDx = 0;
+  int? _dragBoundary;
 
   SongMapView get _view => widget.view;
 
@@ -87,7 +95,8 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     final positionMs = widget.positionMs;
     final selectedBoundary = widget.selectedBoundaryMs;
     final boundaries = {
-      if (!atSong)
+      ...?widget.boundariesMs,
+      if (widget.boundariesMs == null && !atSong)
         for (final part in parts) ...[part.startMs, part.endMs],
       ...widget.candidateBoundariesMs,
     };
@@ -116,7 +125,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                   sections,
                   width,
                   onZoom: atSong ? _view.zoomIn : null,
-                  selectedIndex: atSong ? null : 0,
+                  selectedIndices: atSong ? widget.selectedIndices : const {0},
                 ),
                 const SizedBox(height: MonoPulseSpacing.sm),
                 _waveform(palette, width, waveformHeight),
@@ -129,7 +138,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                     isParts: true,
                     barMs: hasGrid ? barMs : null,
                     onZoom: atPart ? null : _view.zoomIn,
-                    selectedIndex: _view.partIndex,
+                    selectedIndices: widget.selectedIndices,
                   ),
                 if (atPart && hasGrid)
                   _ticks(context, grid, width, beats: true),
@@ -152,12 +161,20 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                   ms > 0 &&
                   ms < _view.durationMs &&
                   visible(ms))
-                _boundary(context, ms, x(ms), waveformTop, waveformHeight),
+                _boundary(
+                  context,
+                  ms,
+                  x(ms),
+                  width,
+                  waveformTop,
+                  waveformHeight,
+                ),
             if (selectedBoundary != null && visible(selectedBoundary))
               _boundary(
                 context,
                 selectedBoundary,
                 x(selectedBoundary),
+                width,
                 waveformTop,
                 waveformHeight,
               ),
@@ -210,7 +227,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     bool isParts = false,
     double? barMs,
     ValueChanged<int>? onZoom,
-    int? selectedIndex,
+    Set<int> selectedIndices = const {},
   }) {
     return SizedBox(
       key: ValueKey(isParts ? 'song-map-parts' : 'song-map-sections'),
@@ -225,7 +242,8 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                 region,
                 width,
                 isPart: isParts,
-                selected: index == selectedIndex,
+                selected: selectedIndices.contains(index) ||
+                    (isParts && _view.partIndex == index),
                 barMs: barMs,
                 onZoom: onZoom == null ? null : () => onZoom(index),
               ),
@@ -415,24 +433,48 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     BuildContext context,
     int ms,
     double x,
+    double width,
     double waveformTop,
     double waveformHeight,
   ) {
     final selected = ms == widget.selectedBoundaryMs;
     final candidate = widget.candidateBoundariesMs.contains(ms);
     final onTap = widget.onBoundaryTap;
+    final onDrag = widget.onBoundaryDrag;
     final parts = _view.children();
     final part = _view.level == SongMapZoom.section
         ? parts.indexWhere((part) => part.startMs <= ms && ms < part.endMs)
         : -1;
     return Positioned(
-      left: x - _handleWidth / 2,
+      key: ValueKey(ms),
+      left:
+          (_dragBoundary == ms ? x + _dragDx : x).clamp(0.0, width) -
+          _handleWidth / 2,
       top: waveformTop - _tipSize / 2,
       height: waveformHeight + _tipSize,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
+        dragStartBehavior: DragStartBehavior.down,
         onTap: onTap == null ? null : () => onTap(ms),
         onDoubleTap: part < 0 ? null : () => _view.zoomIn(part),
+        onHorizontalDragStart: onDrag == null
+            ? null
+            : (_) => setState(() {
+                _dragBoundary = ms;
+                _dragDx = 0;
+              }),
+        onHorizontalDragUpdate: onDrag == null
+            ? null
+            : (details) => setState(() => _dragDx += details.delta.dx),
+        onHorizontalDragEnd: onDrag == null
+            ? null
+            : (_) {
+                setState(() => _dragBoundary = null);
+                onDrag((ms, _view.xToMs(x + _dragDx, width)));
+              },
+        onHorizontalDragCancel: onDrag == null
+            ? null
+            : () => setState(() => _dragBoundary = null),
         child: Semantics(
           label: 'Boundary at $ms ms',
           selected: selected,

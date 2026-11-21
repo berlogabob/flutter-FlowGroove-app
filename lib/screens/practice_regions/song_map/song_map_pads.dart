@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../models/audio_region.dart';
@@ -9,20 +13,26 @@ class SongMapPads extends StatefulWidget {
   const SongMapPads({
     required this.view,
     this.selectedIndex,
+    this.selectedIndices = const {},
     this.playingIndex,
     this.queuedIndex,
     this.disabledIndices = const {},
     this.progress = 0,
+    this.onSelect,
+    this.onHold,
     this.onRange,
     super.key,
   });
 
   final SongMapView view;
   final int? selectedIndex;
+  final Set<int> selectedIndices;
   final int? playingIndex;
   final int? queuedIndex;
   final Set<int> disabledIndices;
   final double progress;
+  final ValueChanged<int>? onSelect;
+  final ValueChanged<int>? onHold;
   final ValueChanged<(int, int)>? onRange;
 
   @override
@@ -32,6 +42,15 @@ class SongMapPads extends StatefulWidget {
 class _SongMapPadsState extends State<SongMapPads> {
   bool _rangeMode = false;
   int? _rangeStart;
+  final _held = <int, int>{};
+  bool _runMade = false;
+
+  void _release(int pointer) {
+    _held.remove(pointer);
+    if (_held.isEmpty && _runMade) {
+      scheduleMicrotask(() => _runMade = false);
+    }
+  }
 
   int _bars(AudioRegion region) {
     final grid = widget.view.grid;
@@ -73,6 +92,12 @@ class _SongMapPadsState extends State<SongMapPads> {
                     }),
                     child: Text(_rangeMode ? 'Range: on' : 'Range'),
                   ),
+                if (widget.view.level != SongMapZoom.song)
+                  IconButton(
+                    tooltip: 'Zoom out',
+                    onPressed: widget.view.zoomOut,
+                    icon: const Icon(Icons.zoom_out),
+                  ),
               ],
             ),
           ),
@@ -96,14 +121,23 @@ class _SongMapPadsState extends State<SongMapPads> {
     final disabled = widget.disabledIndices.contains(index);
     final playing = widget.playingIndex == index;
     final queued = widget.queuedIndex == index;
-    final selected = widget.selectedIndex == index || _rangeStart == index;
+    final selected =
+        widget.selectedIndex == index ||
+        widget.selectedIndices.contains(index) ||
+        _rangeStart == index;
     final accent = _sectionColor(index);
     final bars = _bars(region);
-    final subtitle = bars > 0 ? '$bars bars' : '${(region.lengthMs / 1000).round()} s';
+    final subtitle = region.skip
+        ? 'Skipped'
+        : region.lengthMs < (widget.view.grid?.barMs ?? 2000)
+        ? '⚠ ${(region.lengthMs / 1000).toStringAsFixed(1)} s'
+        : bars > 0
+        ? '$bars bars'
+        : '${(region.lengthMs / 1000).round()} s';
     final bg = playing ? MonoPulseColors.accentOrange : context.mp.surface;
     final fg = playing ? MonoPulseColors.charcoal : context.mp.textPrimary;
-    return Opacity(
-      opacity: disabled ? .38 : 1,
+    final pad = Opacity(
+      opacity: disabled || region.skip ? .38 : 1,
       child: SizedBox(
         width: (MediaQuery.sizeOf(context).width - MonoPulseSpacing.massive - MonoPulseSpacing.sm) / 2,
         height: 88,
@@ -119,20 +153,38 @@ class _SongMapPadsState extends State<SongMapPads> {
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             key: ValueKey('song-map-pad-${region.id}'),
-            onTap: disabled ? null : () {
-              if (_rangeMode && widget.onRange != null) {
-                if (_rangeStart == null) {
-                  setState(() => _rangeStart = index);
-                } else {
-                  final start = _rangeStart! < index ? _rangeStart! : index;
-                  final end = _rangeStart! > index ? _rangeStart! : index;
-                  widget.onRange!((start, end));
-                  setState(() { _rangeMode = false; _rangeStart = null; });
-                }
-              } else {
-                widget.view.zoomIn(index);
-              }
-            },
+            onLongPress: disabled || _rangeMode || widget.onHold == null
+                ? null
+                : () {
+                    if (_runMade) return;
+                    unawaited(HapticFeedback.selectionClick());
+                    widget.onHold!(index);
+                  },
+            onTap: disabled
+                ? null
+                : () {
+                    if (_runMade) return;
+                    unawaited(HapticFeedback.selectionClick());
+                    if (_rangeMode && widget.onRange != null) {
+                      if (_rangeStart == null) {
+                        setState(() => _rangeStart = index);
+                      } else {
+                        final start = _rangeStart! < index
+                            ? _rangeStart!
+                            : index;
+                        final end = _rangeStart! > index ? _rangeStart! : index;
+                        widget.onRange!((start, end));
+                        setState(() {
+                          _rangeMode = false;
+                          _rangeStart = null;
+                        });
+                      }
+                    } else if (widget.onSelect == null) {
+                      widget.view.zoomIn(index);
+                    } else {
+                      widget.onSelect!(index);
+                    }
+                  },
             child: Stack(
               children: [
                 if (!playing) Positioned(left: 0, top: 0, bottom: 0, width: 6, child: ColoredBox(color: accent)),
@@ -159,6 +211,25 @@ class _SongMapPadsState extends State<SongMapPads> {
             ),
           ),
         ),
+      ),
+    );
+    return Listener(
+      onPointerDown: (event) {
+        if (disabled || _rangeMode || widget.onRange == null) return;
+        final first = _held.values.firstOrNull;
+        _held[event.pointer] = index;
+        if (first == null || first == index) return;
+        _runMade = true;
+        unawaited(HapticFeedback.selectionClick());
+        widget.onRange!((math.min(first, index), math.max(first, index)));
+      },
+      onPointerUp: (event) => _release(event.pointer),
+      onPointerCancel: (event) => _release(event.pointer),
+      child: Semantics(
+        key: ValueKey('region-pad-${region.id}'),
+        button: true,
+        selected: selected,
+        child: pad,
       ),
     );
   }
