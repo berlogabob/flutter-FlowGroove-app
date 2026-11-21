@@ -661,10 +661,10 @@ void main() {
     tester,
   ) async {
     await pump(tester, _entry(peaks: _peaks));
-    await tester.enterText(
-      find.byKey(const ValueKey('recording-title')),
-      'Kept',
-    );
+    final title = find.byKey(const ValueKey('recording-title'));
+    await tester.tap(title);
+    await tester.pumpAndSettle();
+    await tester.enterText(title, 'Kept');
     await tester.pumpWidget(const SizedBox());
     await tester.pump();
     expect(repo.saved.last.title, 'Kept');
@@ -675,14 +675,20 @@ void main() {
   ) async {
     await pump(tester, _entry(peaks: _peaks));
     final title = find.byKey(const ValueKey('recording-title'));
+    await tester.tap(title);
+    await tester.pumpAndSettle();
     await tester.enterText(title, '  New title  ');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     expect(repo.saved.last.title, 'New title');
+    await tester.tap(title);
+    await tester.pumpAndSettle();
     await tester.enterText(title, 'Outside');
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
     expect(repo.saved.last.title, 'Outside');
+    await tester.tap(title);
+    await tester.pumpAndSettle();
     await tester.enterText(title, '');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
@@ -783,7 +789,11 @@ void main() {
         notes: const [(ms: 4425, text: 'independent')],
       ),
     );
-    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    final edit = find.byKey(const ValueKey('shift'));
+    expect(edit.hitTestable(), findsOneWidget);
+    await tester.tap(edit);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('region-pad-a')));
     await tester.pumpAndSettle();

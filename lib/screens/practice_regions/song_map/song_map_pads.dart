@@ -29,8 +29,18 @@ class SongMapPads extends StatefulWidget {
   });
 
   static const padHeight = 64.0;
-  static double heightForRows(int rows) =>
-      48 + rows * padHeight + (rows + 1) * MonoPulseSpacing.sm;
+  static double heightForRows(
+    int rows,
+    double width, {
+    required bool inSection,
+  }) =>
+      MonoPulseSpacing.massive +
+      (inSection || width < 316 ? MonoPulseSpacing.xxxl : 0) +
+      (inSection && width < 300 || width < 232
+          ? MonoPulseSpacing.massive + MonoPulseSpacing.xs
+          : 0) +
+      rows * padHeight +
+      (rows + 1) * MonoPulseSpacing.sm;
 
   static int columnsForWidth(double width) => width >= 360 ? 4 : 3;
 
@@ -190,7 +200,7 @@ class _SongMapPadsState extends State<SongMapPads> {
                       selected: _rangeMode,
                     ),
                   ];
-                  if (constraints.maxWidth < 300) {
+                  if (section != null || constraints.maxWidth < 300) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

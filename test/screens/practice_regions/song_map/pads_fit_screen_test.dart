@@ -135,6 +135,16 @@ void main() {
       );
     }
     expect(tester.getSize(notes).height, greaterThanOrEqualTo(48));
+    expect(find.text('Notes · 10').hitTestable(), findsOneWidget);
+    await tester.tap(find.text('Notes · 10'));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(notes).height, greaterThanOrEqualTo(48));
+    for (final pad in pads) {
+      expect(
+        tester.getRect(pad).bottom,
+        lessThanOrEqualTo(tester.getRect(notes).top),
+      );
+    }
     final scrollable = find.descendant(
       of: notes,
       matching: find.byType(Scrollable),

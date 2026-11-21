@@ -91,12 +91,23 @@ void main() {
           previousDx = rect.center.dx;
         }
 
+        final appBar = find.byType(AppBar);
         for (final key in ['shift', 'add-note']) {
-          final button = find.descendant(
-            of: find.byType(AppBar),
-            matching: find.byKey(ValueKey(key)),
+          expect(
+            find.descendant(of: appBar, matching: find.byKey(ValueKey(key))),
+            findsNothing,
           );
-          expect(tester.widget(button), isA<IconButton>());
+        }
+        await tester.tap(find.byTooltip('More'));
+        await tester.pumpAndSettle();
+        for (final (key, tooltip) in [
+          ('shift', 'Edit'),
+          ('add-note', 'Note'),
+        ]) {
+          final button = find.byKey(ValueKey(key));
+          expect(tester.widget(button), isA<PopupMenuItem<String>>());
+          expect(button.hitTestable(), findsOneWidget);
+          expect(find.byTooltip(tooltip), findsOneWidget);
           final rect = tester.getRect(button);
           expect(rect.left, greaterThanOrEqualTo(bounds.left));
           expect(rect.right, lessThanOrEqualTo(bounds.right));

@@ -353,6 +353,19 @@ void main() {
     engine = fixture._engine;
   });
 
+  Future<void> showMore(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> tapEdit(WidgetTester tester) async {
+    await showMore(tester);
+    final edit = find.byKey(const ValueKey('shift'));
+    expect(edit.hitTestable(), findsOneWidget);
+    await tester.tap(edit);
+    await tester.pumpAndSettle();
+  }
+
   Future<void> openMore(WidgetTester tester, String label) async {
     await tester.tap(find.byTooltip('More'));
     await tester.pumpAndSettle();
@@ -389,25 +402,39 @@ void main() {
   ) async {
     await pump(tester, _entry());
     expect(find.byType(SongMapPads), findsOneWidget);
-    expect(find.byKey(const ValueKey('add-marker')), findsNothing);
+    final addMarker = find.byKey(const ValueKey('add-marker'));
+    expect(addMarker, findsNothing);
     expect(find.text('Snap to bar'), findsNothing);
-    expect(find.byKey(const ValueKey('marker-handle-0')), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('shift')));
+    await showMore(tester);
+    expect(addMarker, findsNothing);
+    await tester.tapAt(const Offset(5, 5));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('marker-handle-0')), findsNothing);
+    await tapEdit(tester);
     expect(find.text('Tap a pad to edit'), findsOneWidget);
-    expect(find.byKey(const ValueKey('add-marker')), findsOneWidget);
+    expect(addMarker, findsNothing);
     expect(find.byType(SongMapPads), findsOneWidget);
     expect(find.byKey(const ValueKey('marker-handle-0')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('shift')));
+    await showMore(tester);
+    expect(addMarker.hitTestable(), findsOneWidget);
+    expect(find.byTooltip('Add marker'), findsOneWidget);
+    final edit = find.byKey(const ValueKey('shift'));
+    expect(
+      find.descendant(of: edit, matching: find.byIcon(Icons.done)),
+      findsOneWidget,
+    );
+    await tester.tap(edit);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('add-marker')), findsNothing);
+    await showMore(tester);
+    expect(addMarker, findsNothing);
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
     expect(find.byType(SongMapPads), findsOneWidget);
   });
 
   testWidgets('Shift + pad edits the slice end or deletes it', (tester) async {
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
     await tester.pumpAndSettle();
     expect(find.text('Also start of Chorus'), findsOneWidget);
@@ -420,8 +447,7 @@ void main() {
 
   testWidgets('Undo restores a deleted slice once', (tester) async {
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete slice'));
@@ -452,8 +478,7 @@ void main() {
         ],
       ),
     );
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     await tester.tap(find.byKey(const ValueKey('name-chip-Verse')));
     await settleAudio(tester);
     await tester.tap(find.byKey(const ValueKey('name-chip-Chorus')));
@@ -484,8 +509,7 @@ void main() {
   testWidgets('Loop seam plays the slice clip from its tail, then hands the '
       'loop back', (tester) async {
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('slice-end')));
@@ -544,16 +568,14 @@ void main() {
 
   testWidgets('Skip hides the pad outside Shift and is saved', (tester) async {
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('slice-skip')));
     await settleAudio(tester);
     expect(repo.saved.last.regions.first.skip, isTrue);
     expect(find.byKey(const ValueKey('region-pad-verse')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     expect(find.byKey(const ValueKey('region-pad-verse')), findsNothing);
     expect(find.text('1 skipped'), findsOneWidget);
   });
@@ -572,8 +594,7 @@ void main() {
       ),
     );
     expect(find.text('⚠ 0.8 s'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     await tester.tap(find.byKey(const ValueKey('skip-short')));
     await settleAudio(tester);
     expect([for (final r in repo.saved.last.regions) r.skip], [true, false]);
@@ -593,8 +614,7 @@ void main() {
       startMs: 0,
       endMs: 10000,
     ));
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
     await tester.pumpAndSettle();
     await tester.tapAt(const Offset(5, 5));
@@ -607,8 +627,7 @@ void main() {
       startMs: 10000,
       endMs: 20000,
     ));
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     expect(tester.widget<SongMapTimeline>(zoom).viewport, (
       startMs: 0,
       endMs: 10000,
@@ -638,6 +657,8 @@ void main() {
     );
     expect(tester.takeException(), isNull);
     expect(find.text('Play').hitTestable(), findsOneWidget);
+    expect(find.byTooltip('More').hitTestable(), findsOneWidget);
+    await showMore(tester);
     expect(find.byKey(const ValueKey('shift')).hitTestable(), findsOneWidget);
   });
 
@@ -856,7 +877,7 @@ void main() {
       'file:///tmp/practice_e1.wav',
     );
     audioFileCache = (_, _) async => null;
-    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tapEdit(tester);
     await settleAudio(tester);
     await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
@@ -1123,11 +1144,13 @@ void main() {
         ..emit();
       await settleAudio(tester);
 
-      await tester.tap(find.byKey(const ValueKey('shift')));
-      await tester.pumpAndSettle();
+      await tapEdit(tester);
       final loads = player.loadCalls;
       final pauses = player.pauseCalls;
-      await tester.tap(find.byKey(const ValueKey('add-marker')));
+      await showMore(tester);
+      final addMarker = find.byKey(const ValueKey('add-marker'));
+      expect(addMarker.hitTestable(), findsOneWidget);
+      await tester.tap(addMarker);
       await settleAudio(tester);
       expect(repo.saved, hasLength(1));
       expect(repo.saved.single.regions, hasLength(2));
@@ -1176,7 +1199,7 @@ void main() {
         };
     addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tapEdit(tester);
     await settleAudio(tester);
     await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
@@ -1238,7 +1261,7 @@ void main() {
     }) async => null;
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tapEdit(tester);
     await settleAudio(tester);
     await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
@@ -1276,7 +1299,7 @@ void main() {
     }) async => null;
     addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tapEdit(tester);
     await settleAudio(tester);
     await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
@@ -1310,7 +1333,7 @@ void main() {
       await pump(tester, _entry());
       await tester.tap(find.byKey(const ValueKey('region-pad-chorus')));
       await settleAudio(tester);
-      await tester.tap(find.byKey(const ValueKey('shift')));
+      await tapEdit(tester);
       await settleAudio(tester);
       await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
       await settleAudio(tester);
@@ -1421,6 +1444,8 @@ void main() {
     await tester.tap(find.byTooltip('More'));
     await tester.pumpAndSettle();
     expect(find.text('Tempo grid'), findsNothing);
+    expect(find.byKey(const ValueKey('shift')), findsNothing);
+    expect(find.byKey(const ValueKey('add-marker')), findsNothing);
     await tester.tapAt(const Offset(5, 5));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('add-marker')), findsNothing);
@@ -1433,8 +1458,7 @@ void main() {
 
   testWidgets('Edit handles still drag and save boundaries', (tester) async {
     await pump(tester, _entry());
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     await tester.drag(
       find.byKey(const ValueKey('marker-handle-0')),
       const Offset(60, 0),
@@ -1490,7 +1514,7 @@ void main() {
     expect(player.clip?.end, const Duration(seconds: 20));
     expect(player.speed, closeTo(factor * 0.75, 1e-12));
 
-    await tester.tap(find.byKey(const ValueKey('shift')));
+    await tapEdit(tester);
     await settleAudio(tester);
     await tester.tap(find.byKey(const ValueKey('marker-handle-0')));
     await settleAudio(tester);
@@ -1564,8 +1588,7 @@ void main() {
     await settleAudio(tester);
     expect(repo.saved.single.grid, isNull);
     expect(repo.saved.single.regions, hasLength(2));
-    await tester.tap(find.byKey(const ValueKey('shift')));
-    await tester.pumpAndSettle();
+    await tapEdit(tester);
     expect(find.text('Snap to bar'), findsNothing);
   });
 

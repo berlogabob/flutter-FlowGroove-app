@@ -4,11 +4,11 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -128,6 +128,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   bool _playing = false;
   bool _loaded = false;
   bool _editing = false;
+  bool? _notesExpanded;
+  bool _editingTitle = false;
   bool _setupOpen = false;
   bool _showAnalyzePrompt = false;
   bool _analyzing = false;
@@ -250,7 +252,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     _entry = widget.entry;
     _title = TextEditingController(text: _entry.title ?? '');
     _titleFocus.addListener(() {
-      if (!_titleFocus.hasFocus) unawaited(_saveTitle());
+      if (!_titleFocus.hasFocus && mounted) {
+        setState(() => _editingTitle = false);
+        unawaited(_saveTitle());
+      }
     });
     _snap = _entry.grid != null;
     _player = widget.player ?? AudioPlayer();
@@ -915,7 +920,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           sampleRate: 22050,
           durationMs: _durationMs,
         );
-        return _analysisPcm = await cachedPcm22k(await _cachedFile(), decode);
+        final pcm = await cachedPcm22k(await _cachedFile(), decode);
+        if (mounted && pcm != null && pcm.isNotEmpty) {
+          setState(() => _analysisPcm = pcm);
+        }
+        return pcm;
       } catch (_) {
         return null;
       }
@@ -1570,6 +1579,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         view.restoreZoom(previous);
         previous.dispose();
       }
+      view.addListener(() {
+        if (view.sectionIndex != null && _loaded) unawaited(_ensurePcm());
+      });
       _songMap = view;
     }
     final view = _songMap!;
@@ -1646,9 +1658,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             positionMs: position,
             playing: playing,
             selectedIndices: selectedSections,
+            focusSection: focusSection,
             candidateBoundariesMs: candidateCuts,
             onSectionHold: _canEdit && !preview ? _renameSection : null,
-            onSectionTap: (i) => setState(() => view.overviewSelection = i),
+            onSectionTap: (i) {
+              setState(() => view.overviewSelection = i);
+              if (_loaded) unawaited(_ensurePcm());
+            },
             onSeek: _loaded && _durationMs > 0
                 ? (ms) => unawaited(_seekTimeline(ms))
                 : null,
@@ -1755,6 +1771,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 view: view,
                 focusSection: focusSection,
                 peaks: _entry.peaks,
+                pcm: _analysisPcm,
                 positionMs: position,
                 playing: playing,
                 candidateBoundariesMs: candidateCuts,
@@ -1796,22 +1813,22 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         );
         return LayoutBuilder(
           builder: (context, constraints) {
-            final columns = SongMapPads.columnsForWidth(constraints.maxWidth);
-            final timelineHeight =
-                SongMapOverview.height +
-                180 +
-                (_entry.peaks.isEmpty ? 64 : 0) +
-                (view.level == SongMapZoom.part ? MonoPulseSpacing.xxxl : 0);
+            final width = constraints.maxWidth;
+            final rows = children.length > SongMapPads.columnsForWidth(width)
+                ? 2
+                : 1;
             final compact =
                 constraints.maxHeight <
-                math.max(
-                  300,
-                  timelineHeight +
-                      SongMapPads.heightForRows(
-                        children.length > columns ? 2 : 1,
-                      ) +
-                      (tempoBanner == null ? 0 : SongMapTempoBanner.height),
-                );
+                _mapHeightForPads(
+                      width,
+                      rows,
+                      banner: banner != null,
+                      tempoBanner: tempoBanner != null,
+                    ) +
+                    SongMapTimeline.zoomHeight +
+                    (view.level == SongMapZoom.part
+                        ? MonoPulseSpacing.xxxl
+                        : 0);
             return SingleChildScrollView(
               key: ValueKey((
                 view.sectionIndex,
@@ -1824,9 +1841,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   ?banner,
                   ?tempoBanner,
                   overview,
-                  if (compact && candidate == null) pads,
+                  if (compact) pads,
                   timeline,
-                  if (!compact || candidate != null) pads,
+                  if (!compact) pads,
                 ],
               ),
             );
@@ -2129,47 +2146,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final canPlay = _loaded && _durationMs > 0 && !_busy && !_preparingSync;
     final canClick = !_stretched && canSyncToClick(grid) && canPlay;
     final speedPercent = (_speed * 100).round();
-    final editActions = <Widget>[
-      if (canEdit)
-        IconButton(
-          key: const ValueKey('shift'),
-          icon: const Icon(Icons.tune, semanticLabel: 'Edit'),
-          iconSize: 20,
-          tooltip: 'Edit',
-          isSelected: editing,
-          style: editing
-              ? IconButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                )
-              : null,
-          onPressed: () => setState(() {
-            _editing = !_editing;
-            _focus = null;
-          }),
-        ),
-      if (editing)
-        IconButton(
-          key: const ValueKey('add-marker'),
-          icon: const Icon(
-            Icons.add_location_alt_outlined,
-            semanticLabel: 'Add marker',
-          ),
-          iconSize: 20,
-          tooltip: 'Add marker',
-          onPressed: !_busy && _loaded && _durationMs >= 2 * minRegionMs
-              ? _addMarker
-              : null,
-        )
-      else
-        IconButton(
-          key: const ValueKey('add-note'),
-          icon: const Icon(Icons.add_comment_outlined, semanticLabel: 'Note'),
-          iconSize: 20,
-          tooltip: 'Note',
-          onPressed: _loaded && canEdit ? _addMarkerAtPlayhead : null,
-        ),
-    ];
     final mapContent = _pads(
       editing: editing,
       position: positionMs,
@@ -2238,19 +2214,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       ),
       appBar: AppBar(
         title: canEdit
-            ? TextField(
-                key: const ValueKey('recording-title'),
-                controller: _title,
-                focusNode: _titleFocus,
-                style: MonoPulseTypography.titleLarge,
-                decoration: const InputDecoration(
-                  hintText: 'Practice regions',
-                  border: InputBorder.none,
-                ),
-                onSubmitted: (_) => _saveTitle(),
-                onTapOutside: (_) => _titleFocus.unfocus(),
-              )
-            : Text(_entry.title ?? 'Practice regions'),
+            ? _editableTitle()
+            : Text(
+                _entry.title ?? 'Practice regions',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
         // Below the bar, not as the title field's helper: that made the field
         // taller than the toolbar and clipped the title.
         bottom: editing
@@ -2281,11 +2250,17 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               icon: const Icon(Icons.undo),
               onPressed: _undoRegions == null ? null : _undo,
             ),
-          ...editActions,
           PopupMenuButton<String>(
             tooltip: 'More',
             onSelected: (value) {
               switch (value) {
+                case 'edit':
+                  setState(() {
+                    _editing = !_editing;
+                    _focus = null;
+                  });
+                case 'marker':
+                  unawaited(_addMarker());
                 case 'note':
                   unawaited(_addMarkerAtPlayhead());
                 case 'shrink':
@@ -2312,6 +2287,34 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             },
             enabled: !_busy && !_analyzing,
             itemBuilder: (_) => [
+              if (canEdit)
+                PopupMenuItem(
+                  key: const ValueKey('shift'),
+                  value: 'edit',
+                  child: Tooltip(
+                    message: 'Edit',
+                    child: Semantics(
+                      selected: editing,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Edit'),
+                          if (editing) const Icon(Icons.done),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              if (editing)
+                PopupMenuItem(
+                  key: const ValueKey('add-marker'),
+                  value: 'marker',
+                  enabled: _loaded && _durationMs >= 2 * minRegionMs,
+                  child: const Tooltip(
+                    message: 'Add marker',
+                    child: Text('Add marker'),
+                  ),
+                ),
               PopupMenuItem(
                 value: 'share',
                 enabled: _url != null,
@@ -2329,8 +2332,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               ),
               if (canEdit) ...[
                 const PopupMenuItem(
+                  key: ValueKey('add-note'),
                   value: 'note',
-                  child: Text('Add note at playhead'),
+                  child: Tooltip(
+                    message: 'Note',
+                    child: Text('Add note at playhead', semanticsLabel: 'Note'),
+                  ),
                 ),
                 PopupMenuItem(
                   value: 'shrink',
@@ -2382,34 +2389,73 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final mapMinHeight =
-                        SongMapOverview.height +
-                        SongMapPads.heightForRows(2) +
-                        (tempoBanner == null ? 0 : SongMapTempoBanner.height);
-                    // Leave room for the pad controls and two rows before Notes.
+                    final width = constraints.maxWidth;
+                    final rows =
+                        (_mapCandidate?.regions.length ?? regions.length) >
+                            SongMapPads.columnsForWidth(width)
+                        ? 2
+                        : 1;
+                    final padBudget = showPads
+                        ? _mapHeightForPads(
+                            width,
+                            rows,
+                            banner: analyzeBanner != null,
+                            tempoBanner: tempoBanner != null,
+                          )
+                        : 0.0;
+                    final available = constraints.maxHeight;
+                    final zoomBudget = showPads ? _zoomBudget : 0.0;
+                    final notesRoom = available - padBudget - zoomBudget;
                     final notesHeight = math.min(
                       MediaQuery.sizeOf(context).height * 0.3,
                       math.max(
-                        0.0,
-                        constraints.maxHeight - (showPads ? mapMinHeight : 0),
+                        notesRoom,
+                        math.min<double>(96, available - padBudget),
                       ),
                     );
+                    final notesFit =
+                        (notes.length + 1) * MonoPulseSpacing.massive <=
+                        (rows == 1
+                            ? notesHeight
+                            : math.min(notesRoom, notesHeight));
+                    final expanded = _notesExpanded ?? notesFit;
                     return Column(
                       children: [
                         Expanded(child: mapContent),
                         if (notes.isEmpty && notesHeight >= 48)
                           _emptyNotes(positionMs, canEdit: canEdit)
-                        else if (notes.isNotEmpty && notesHeight >= 48)
-                          ConstrainedBox(
-                            constraints: BoxConstraints(maxHeight: notesHeight),
-                            child: _NotesPanel(
-                              markers: notes,
-                              positionMs: positionMs,
-                              onSeek: _seekNote,
-                              onAdd: canEdit ? _addMarkerAtPlayhead : null,
-                              onDelete: canEdit ? _deleteMarker : null,
+                        else if (notes.isNotEmpty && available >= 48)
+                          if (!expanded || notesHeight < 48)
+                            _collapsedNotes(notes.length)
+                          else
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxHeight: notesHeight,
+                                    ),
+                                    child: _NotesPanel(
+                                      markers: notes,
+                                      positionMs: positionMs,
+                                      onSeek: _seekNote,
+                                      onAdd: canEdit
+                                          ? _addMarkerAtPlayhead
+                                          : null,
+                                      onDelete: canEdit ? _deleteMarker : null,
+                                    ),
+                                  ),
+                                ),
+                                if (_notesExpanded == true)
+                                  IconButton(
+                                    tooltip: 'Collapse notes',
+                                    onPressed: () =>
+                                        setState(() => _notesExpanded = false),
+                                    icon: const Icon(Icons.expand_less),
+                                  ),
+                              ],
                             ),
-                          ),
                       ],
                     );
                   },
@@ -2461,6 +2507,66 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       ),
     );
   }
+
+  double get _zoomBudget => SongMapTimeline.zoomHeight + MonoPulseSpacing.xxxl;
+
+  double _mapHeightForPads(
+    double width,
+    int rows, {
+    required bool banner,
+    required bool tempoBanner,
+  }) =>
+      SongMapOverview.height +
+      (_entry.peaks.isEmpty ? 84 : 0) +
+      (banner ? 120 : 0) +
+      (tempoBanner ? SongMapTempoBanner.height : 0) +
+      SongMapPads.heightForRows(
+        rows,
+        width,
+        inSection: _songMap?.sectionIndex != null,
+      );
+
+  Widget _editableTitle() {
+    const key = ValueKey('recording-title');
+    if (!_editingTitle) {
+      return InkWell(
+        key: key,
+        onTap: () => setState(() => _editingTitle = true),
+        child: SizedBox(
+          width: double.infinity,
+          child: Text(
+            _title.text.isEmpty ? 'Practice regions' : _title.text,
+            style: MonoPulseTypography.titleLarge,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      );
+    }
+    return TextField(
+      key: key,
+      autofocus: true,
+      controller: _title,
+      focusNode: _titleFocus,
+      style: MonoPulseTypography.titleLarge,
+      decoration: const InputDecoration(
+        hintText: 'Practice regions',
+        border: InputBorder.none,
+        filled: false,
+        contentPadding: EdgeInsets.zero,
+      ),
+      onSubmitted: (_) => _saveTitle(),
+      onTapOutside: (_) => _titleFocus.unfocus(),
+    );
+  }
+
+  Widget _collapsedNotes(int count) => ListTile(
+    key: const ValueKey('recording-notes'),
+    minTileHeight: MonoPulseSpacing.massive,
+    title: Text('Notes · $count', style: MonoPulseTypography.titleMedium),
+    trailing: const Icon(Icons.expand_more),
+    onTap: () => setState(() => _notesExpanded = true),
+  );
 
   Widget _emptyNotes(int positionMs, {required bool canEdit}) => Padding(
     key: const ValueKey('recording-notes'),

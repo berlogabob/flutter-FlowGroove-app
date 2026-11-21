@@ -78,9 +78,21 @@ void main() {
       ));
       expect(
         find.byWidgetPredicate(
-          (w) => w is CustomPaint && w.painter is WaveformPainter,
+          (w) =>
+              w is CustomPaint &&
+              w.painter != null &&
+              (w.painter is WaveformPainter ||
+                  w.key == const ValueKey('song-map-zoom-waveform')),
         ),
         findsNWidgets(2),
+      );
+      expect(
+        tester.widget<CustomPaint>(wholeWave).painter,
+        isA<WaveformPainter>(),
+      );
+      expect(
+        tester.widget<CustomPaint>(zoomWave).painter,
+        isNot(isA<WaveformPainter>()),
       );
       double x(int ms) => waveform.left + waveform.width * ms / 24000;
       for (final (id, start, end) in [

@@ -1,10 +1,12 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../models/audio_region.dart';
 import '../../../models/song_lab.dart';
+import '../../../services/audio/audio_note_edit.dart' show waveformLevels;
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/audio/waveform_painter.dart';
 import 'song_map_letters.dart';
@@ -22,6 +24,7 @@ class SongMapOverview extends SongMapTimeline {
     super.onSectionTap,
     super.onSeek,
     required Widget noteTicks,
+    super.focusSection,
   }) : super(
          entry: entry,
          peaks: entry.peaks,
@@ -36,6 +39,7 @@ class SongMapTimeline extends StatefulWidget {
   const SongMapTimeline({
     required this.view,
     this.peaks = const [],
+    this.pcm,
     this.positionMs,
     this.playing = false,
     this.candidateBoundariesMs = const {},
@@ -56,10 +60,16 @@ class SongMapTimeline extends StatefulWidget {
     super.key,
   });
 
+  static const waveformHeight = 64.0;
+  static const zoomHeight = waveformHeight + MonoPulseSpacing.huge + 26 + 20;
+
   final SongMapView view;
 
   /// Uniformly spaced peaks for the whole recording.
   final List<int> peaks;
+
+  /// Mono samples at the analysis rate of 22,050 Hz.
+  final Int16List? pcm;
   final int? positionMs;
   final bool playing;
 
@@ -82,9 +92,13 @@ class SongMapTimeline extends StatefulWidget {
 
   bool get _overview => this is SongMapOverview;
 
-  int? get _section => _overview
-      ? null
-      : view.sectionIndex ?? focusSection ?? (view.sections.isEmpty ? null : 0);
+  int? get _section => _overview ? null : _zoomSection;
+
+  int? get _zoomSection =>
+      view.sectionIndex ??
+      focusSection ??
+      view.overviewSelection ??
+      (view.sections.isEmpty ? null : 0);
 
   ({int startMs, int endMs}) get viewport {
     final section = _section;
@@ -144,7 +158,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         barMs.isFinite &&
         barMs >= grid.beatsPerBar;
     final beats = !overview && _view.level == SongMapZoom.part;
-    final waveformHeight = overview ? 64.0 : 96.0;
+    const waveformHeight = SongMapTimeline.waveformHeight;
     final positionMs = widget.positionMs;
     final selectedBoundary = widget.selectedBoundaryMs;
     final boundaries = {
@@ -189,7 +203,9 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                         : (details) => widget.onSeek!(
                             _ms(details.localPosition.dx, width),
                           ),
-                    child: _waveform(context.mp, width, waveformHeight),
+                    child: RepaintBoundary(
+                      child: _waveform(context.mp, width, waveformHeight),
+                    ),
                   ),
                   _lane(context, width, section, parts, hasGrid ? barMs : null),
                 ],
@@ -325,13 +341,20 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                       ? 'song-map-overview-waveform'
                       : 'song-map-zoom-waveform',
                 ),
-                painter: _SongMapWaveformPainter(
-                  entry: widget.entry,
-                  peaks: widget.peaks,
-                  viewport: widget.viewport,
-                  durationMs: _view.durationMs,
-                  dim: palette.textSecondary,
-                ),
+                painter: widget._overview
+                    ? _SongMapWaveformPainter(
+                        entry: widget.entry,
+                        peaks: widget.peaks,
+                        viewport: widget.viewport,
+                        durationMs: _view.durationMs,
+                        dim: palette.textSecondary,
+                      )
+                    : _ZoomWaveformPainter(
+                        peaks: widget.peaks,
+                        pcm: widget.pcm,
+                        viewport: widget.viewport,
+                        durationMs: _view.durationMs,
+                      ),
               ),
             ),
         ],
@@ -373,7 +396,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     final isPart = sectionIndex != null;
     final selected =
         widget.selectedIndices.contains(index) ||
-        (isPart && _view.partIndex == index);
+        (isPart ? _view.partIndex : widget._zoomSection) == index;
     final left = _x(region.startMs, width).clamp(0.0, width);
     final right = _x(region.endMs, width).clamp(0.0, width);
     if (right <= left) return const SizedBox.shrink();
@@ -646,6 +669,78 @@ class _SongMapWaveformPainter extends WaveformPainter {
   @override
   bool shouldRepaint(covariant _SongMapWaveformPainter old) =>
       super.shouldRepaint(old) ||
+      viewport != old.viewport ||
+      durationMs != old.durationMs;
+}
+
+class _ZoomWaveformPainter extends CustomPainter {
+  const _ZoomWaveformPainter({
+    required this.peaks,
+    required this.pcm,
+    required this.viewport,
+    required this.durationMs,
+  });
+
+  final List<int> peaks;
+  final Int16List? pcm;
+  final ({int startMs, int endMs}) viewport;
+  final int durationMs;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final span = viewport.endMs - viewport.startMs;
+    if (size.isEmpty || span <= 0) return;
+    final samples = pcm;
+    final usePcm = samples != null && samples.isNotEmpty;
+    final peaksInView = usePcm
+        ? _envelope(samples, (size.width / 3).ceil())
+        : peaks;
+    final domain = usePcm ? span : durationMs;
+    if (peaksInView.isEmpty || domain <= 0) return;
+
+    final levels = waveformLevels(peaksInView);
+    final scale = size.width / span;
+    final step = domain * scale / levels.length;
+    final offset = usePcm ? 0 : -viewport.startMs * scale;
+    final paint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = (step * 0.6).clamp(1.0, 3.0);
+    final mid = size.height / 2;
+    canvas
+      ..save()
+      ..clipRect(Offset.zero & size);
+    for (var i = 0; i < levels.length; i++) {
+      final x = offset + (i + 0.5) * step;
+      if (x < 0 || x >= size.width) continue;
+      final extent = levels[i].clamp(0.03, 1.0) * (mid - paint.strokeWidth / 2);
+      canvas.drawLine(Offset(x, mid - extent), Offset(x, mid + extent), paint);
+    }
+    canvas.restore();
+  }
+
+  List<int> _envelope(Int16List samples, int buckets) {
+    const samplesPerMs = 22050 / 1000;
+    final stepMs = (viewport.endMs - viewport.startMs) / buckets;
+    int sampleAt(int bucket) =>
+        ((viewport.startMs + bucket * stepMs) * samplesPerMs).floor().clamp(
+          0,
+          samples.length,
+        );
+    final levels = List<int>.filled(buckets, 0);
+    var start = sampleAt(0);
+    for (var i = 0; i < buckets; i++) {
+      final end = sampleAt(i + 1);
+      for (; start < end; start++) {
+        levels[i] = math.max(levels[i], samples[start].abs());
+      }
+    }
+    return levels;
+  }
+
+  @override
+  bool shouldRepaint(_ZoomWaveformPainter old) =>
+      peaks != old.peaks ||
+      pcm != old.pcm ||
       viewport != old.viewport ||
       durationMs != old.durationMs;
 }
