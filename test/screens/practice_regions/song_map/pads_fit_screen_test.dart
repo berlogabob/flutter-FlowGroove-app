@@ -2,6 +2,7 @@ import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_tempo_banner.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -83,6 +84,15 @@ void main() {
         expect(
           find.descendant(of: pad, matching: find.textContaining(' bars')),
           findsOneWidget,
+        );
+        // P30: every pad read "Region…"; the whole name must show.
+        final name = find.descendant(
+          of: pad,
+          matching: find.text('Region ${String.fromCharCode(65 + index)}'),
+        );
+        expect(
+          tester.renderObject<RenderParagraph>(name).didExceedMaxLines,
+          isFalse,
         );
       }
       expect(rows.take(4), everyElement(rows.first));

@@ -256,13 +256,18 @@ class _SongMapPadsState extends State<SongMapPads> {
                             Icon(Icons.play_arrow, color: fg, size: 20),
                             const SizedBox(width: MonoPulseSpacing.xs),
                           ],
+                          // Scale the name down rather than cut it: four pads
+                          // per row turned every "Region X" into "Region…".
                           Expanded(
-                            child: Text(
-                              songMapRegionName(region, index),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: MonoPulseTypography.bodyMedium.copyWith(
-                                color: fg,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                songMapRegionName(region, index),
+                                maxLines: 1,
+                                style: MonoPulseTypography.bodyMedium.copyWith(
+                                  color: fg,
+                                ),
                               ),
                             ),
                           ),
