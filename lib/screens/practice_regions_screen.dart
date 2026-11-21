@@ -1651,39 +1651,43 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             editedSection ??
             selectedSections.firstOrNull ??
             (playingSection < 0 ? null : playingSection);
-        final overview = Padding(
-          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
-          child: SongMapOverview(
-            entry: _entry,
-            view: view,
-            positionMs: position,
-            playing: playing,
-            selectedIndices: selectedSections,
-            focusSection: focusSection,
-            candidateBoundariesMs: candidateCuts,
-            preview: preview,
-            onSectionHold: _canEdit && !preview ? _renameSection : null,
-            onSectionTap: (i) {
-              setState(() => view.overviewSelection = i);
-              if (_loaded) unawaited(_ensurePcm());
-            },
-            onSeek: _loaded && _durationMs > 0
-                ? (ms) => unawaited(_seekTimeline(ms))
-                : null,
-            noteTicks: CustomPaint(
-              key: const ValueKey('note-ticks'),
-              painter: _NoteTicksPainter(
-                markers: entryNotes(_entry),
-                viewStart: 0,
-                viewEnd: duration,
+        Widget overview([double waveHeight = SongMapTimeline.waveformHeight]) =>
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.sm,
               ),
-            ),
-          ),
-        );
+              child: SongMapOverview(
+                waveHeight: waveHeight,
+                entry: _entry,
+                view: view,
+                positionMs: position,
+                playing: playing,
+                selectedIndices: selectedSections,
+                focusSection: focusSection,
+                candidateBoundariesMs: candidateCuts,
+                preview: preview,
+                onSectionHold: _canEdit && !preview ? _renameSection : null,
+                onSectionTap: (i) {
+                  setState(() => view.overviewSelection = i);
+                  if (_loaded) unawaited(_ensurePcm());
+                },
+                onSeek: _loaded && _durationMs > 0
+                    ? (ms) => unawaited(_seekTimeline(ms))
+                    : null,
+                noteTicks: CustomPaint(
+                  key: const ValueKey('note-ticks'),
+                  painter: _NoteTicksPainter(
+                    markers: entryNotes(_entry),
+                    viewStart: 0,
+                    viewEnd: duration,
+                  ),
+                ),
+              ),
+            );
         if (emptyContent != null) {
           return Column(
             children: [
-              overview,
+              overview(),
               Expanded(child: emptyContent),
             ],
           );
@@ -1762,102 +1766,104 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             }
           },
         );
-        final timeline = Column(
+        Widget timeline(double waveformHeight) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
+          child: SongMapTimeline(
+            key: const ValueKey('song-map-zoom'),
+            waveHeight: waveformHeight,
+            view: view,
+            focusSection: focusSection,
+            peaks: _entry.peaks,
+            pcm: _analysisPcm,
+            positionMs: position,
+            playing: playing,
+            candidateBoundariesMs: candidateCuts,
+            preview: preview,
+            cutLabel: _songMapCutMs == null || grid == null
+                ? null
+                : (_songMapCutMs!, 'bar ${_barNumber(grid, _songMapCutMs!)}'),
+            selectedIndices: atSong ? const {} : selected,
+            boundariesMs: editing ? boundaries.keys.toSet() : null,
+            selectedBoundaryMs: boundary,
+            editableBoundaries: boundaries,
+            onFineTune: _fineTune,
+            onBoundaryTap: canEditMap
+                ? (ms) => setState(() => _songMapBoundaryMs = ms)
+                : null,
+            onBoundaryDrag: !editing || candidate != null
+                ? null
+                : (drag) {
+                    final (from, to) = drag;
+                    final index = boundaries[from];
+                    if (index == null) return;
+                    final cut = grid == null ? _snapped(to) : snap(to);
+                    final updated =
+                        grid == null || view.level == SongMapZoom.part
+                        ? moveBoundary(regions, index, cut)
+                        : song_map_edit.moveBoundary(
+                            regions,
+                            index,
+                            cut,
+                            grid: grid,
+                          );
+                    saveEdit(updated, selectedBoundary: cut);
+                  },
+          ),
+        );
+        return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: MonoPulseSpacing.sm,
-              ),
-              child: SongMapTimeline(
-                key: const ValueKey('song-map-zoom'),
-                view: view,
-                focusSection: focusSection,
-                peaks: _entry.peaks,
-                pcm: _analysisPcm,
-                positionMs: position,
-                playing: playing,
-                candidateBoundariesMs: candidateCuts,
-                preview: preview,
-                cutLabel: _songMapCutMs == null || grid == null
-                    ? null
-                    : (
-                        _songMapCutMs!,
-                        'bar ${_barNumber(grid, _songMapCutMs!)}',
-                      ),
-                selectedIndices: atSong ? const {} : selected,
-                boundariesMs: editing ? boundaries.keys.toSet() : null,
-                selectedBoundaryMs: boundary,
-                editableBoundaries: boundaries,
-                onFineTune: _fineTune,
-                onBoundaryTap: canEditMap
-                    ? (ms) => setState(() => _songMapBoundaryMs = ms)
-                    : null,
-                onBoundaryDrag: !editing || candidate != null
-                    ? null
-                    : (drag) {
-                        final (from, to) = drag;
-                        final index = boundaries[from];
-                        if (index == null) return;
-                        final cut = grid == null ? _snapped(to) : snap(to);
-                        final updated =
-                            grid == null || view.level == SongMapZoom.part
-                            ? moveBoundary(regions, index, cut)
-                            : song_map_edit.moveBoundary(
-                                regions,
-                                index,
-                                cut,
-                                grid: grid,
-                              );
-                        saveEdit(updated, selectedBoundary: cut);
-                      },
+            if (candidate == null) ...[
+              ?banner,
+              ?tempoBanner,
+            ] else ...[
+              ?tempoBanner,
+              ?banner,
+            ],
+            Expanded(
+              child: LayoutBuilder(
+                key: ValueKey((
+                  view.sectionIndex,
+                  view.partIndex,
+                  banner != null || tempoBanner != null,
+                  candidate != null,
+                )),
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final rows =
+                      children.length > SongMapPads.columnsForWidth(width)
+                      ? 2
+                      : 1;
+                  final fullHeight =
+                      _mapHeightForPads(width, rows) +
+                      SongMapTimeline.zoomHeight +
+                      (view.level == SongMapZoom.part
+                          ? MonoPulseSpacing.xxxl
+                          : 0);
+                  const normalWaveHeight = SongMapTimeline.waveformHeight;
+                  final deficit = math.max<double>(
+                    0,
+                    fullHeight - constraints.maxHeight,
+                  );
+                  // Compress the overview first to keep the editable waveform tall.
+                  final overviewReduction = math.min(
+                    deficit,
+                    normalWaveHeight - _minMapWaveformHeight,
+                  );
+                  final zoomHeight = math.max(
+                    _minMapWaveformHeight,
+                    normalWaveHeight - (deficit - overviewReduction),
+                  );
+                  return Column(
+                    children: [
+                      overview(normalWaveHeight - overviewReduction),
+                      timeline(zoomHeight),
+                      Flexible(child: pads),
+                    ],
+                  );
+                },
               ),
             ),
           ],
-        );
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final rows = children.length > SongMapPads.columnsForWidth(width)
-                ? 2
-                : 1;
-            final compact =
-                constraints.maxHeight <
-                _mapHeightForPads(
-                      width,
-                      rows,
-                      banner: banner != null,
-                      tempoBanner: tempoBanner != null,
-                    ) +
-                    SongMapTimeline.zoomHeight +
-                    (view.level == SongMapZoom.part
-                        ? MonoPulseSpacing.xxxl
-                        : 0);
-            final scroll = SingleChildScrollView(
-              key: ValueKey((
-                view.sectionIndex,
-                view.partIndex,
-                banner != null || tempoBanner != null,
-                candidate != null,
-              )),
-              child: Column(
-                children: [
-                  if (candidate == null) ...[?banner, ?tempoBanner],
-                  overview,
-                  if (compact) pads,
-                  timeline,
-                  if (!compact) pads,
-                ],
-              ),
-            );
-            if (candidate == null) return scroll;
-            return Column(
-              children: [
-                ?tempoBanner,
-                ?banner,
-                Expanded(child: scroll),
-              ],
-            );
-          },
         );
       },
     );
@@ -2254,6 +2260,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         clickUnavailableReason: _clickUnavailableReason(grid),
       ),
       appBar: AppBar(
+        titleTextStyle:
+            (AppBarTheme.of(context).titleTextStyle ??
+                    MonoPulseTypography.headlineLarge)
+                .copyWith(color: context.mp.textPrimary),
         title: canEdit
             ? _editableTitle()
             : Text(
@@ -2437,21 +2447,32 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                         ? 2
                         : 1;
                     final padBudget = showPads
-                        ? _mapHeightForPads(
-                            width,
-                            rows,
-                            banner: analyzeBanner != null,
-                            tempoBanner: tempoBanner != null,
-                          )
+                        ? _mapHeightForPads(width, rows) +
+                              (analyzeBanner == null ? 0 : 120) +
+                              (tempoBanner == null
+                                  ? 0
+                                  : SongMapTempoBanner.height)
                         : 0.0;
                     final available = constraints.maxHeight;
                     final zoomBudget = showPads ? _zoomBudget : 0.0;
                     final notesRoom = available - padBudget - zoomBudget;
+                    final compactNotesRoom =
+                        notesRoom +
+                        (showPads
+                            ? 2 *
+                                  (SongMapTimeline.waveformHeight -
+                                      _minMapWaveformHeight)
+                            : 0);
                     final notesHeight = math.min(
                       MediaQuery.sizeOf(context).height * 0.3,
                       math.max(
                         notesRoom,
-                        math.min<double>(96, available - padBudget),
+                        math.min(
+                          available - padBudget,
+                          compactNotesRoom
+                              .clamp(MonoPulseSpacing.massive, 96)
+                              .toDouble(),
+                        ),
                       ),
                     );
                     final notesFit =
@@ -2556,18 +2577,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     );
   }
 
+  static const _minMapWaveformHeight = MonoPulseSpacing.sm;
+
   double get _zoomBudget => SongMapTimeline.zoomHeight + MonoPulseSpacing.xxxl;
 
-  double _mapHeightForPads(
-    double width,
-    int rows, {
-    required bool banner,
-    required bool tempoBanner,
-  }) =>
+  double _mapHeightForPads(double width, int rows) =>
       SongMapOverview.height +
       (_entry.peaks.isEmpty ? 84 : 0) +
-      (banner ? 120 : 0) +
-      (tempoBanner ? SongMapTempoBanner.height : 0) +
       SongMapPads.heightForRows(
         rows,
         width,
@@ -2576,6 +2592,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   Widget _editableTitle() {
     const key = ValueKey('recording-title');
+    final style = MonoPulseTypography.titleLarge.copyWith(
+      color: context.mp.textPrimary,
+    );
     if (!_editingTitle) {
       return InkWell(
         key: key,
@@ -2584,7 +2603,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           width: double.infinity,
           child: Text(
             _title.text.isEmpty ? 'Practice regions' : _title.text,
-            style: MonoPulseTypography.titleLarge,
+            style: style,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -2596,7 +2615,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       autofocus: true,
       controller: _title,
       focusNode: _titleFocus,
-      style: MonoPulseTypography.titleLarge,
+      style: style,
       decoration: const InputDecoration(
         hintText: 'Practice regions',
         border: InputBorder.none,

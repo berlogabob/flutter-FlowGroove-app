@@ -140,8 +140,9 @@ class _SongMapPadsState extends State<SongMapPads> {
     builder: (context, _) {
       final children = widget.view.children();
       final section = widget.view.sectionIndex;
-      return SingleChildScrollView(
-        child: Column(
+      return LayoutBuilder(
+        builder: (context, constraints) => Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
@@ -223,37 +224,35 @@ class _SongMapPadsState extends State<SongMapPads> {
                 },
               ),
             ),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final columns = SongMapPads.columnsForWidth(
-                  constraints.maxWidth,
-                );
-                const gap = MonoPulseSpacing.sm;
-                const inset = MonoPulseSpacing.lg;
-                final padWidth =
-                    (constraints.maxWidth - 2 * inset - (columns - 1) * gap) /
-                    columns;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: inset,
-                    vertical: gap,
-                  ),
-                  child: Wrap(
-                    spacing: gap,
-                    runSpacing: gap,
-                    children: [
-                      for (final (index, region) in children.indexed)
-                        _pad(context, region, index, padWidth),
-                    ],
-                  ),
-                );
-              },
+            Flexible(
+              child: SingleChildScrollView(
+                primary: false,
+                child: _grid(context, children, constraints.maxWidth),
+              ),
             ),
           ],
         ),
       );
     },
   );
+
+  Widget _grid(BuildContext context, List<AudioRegion> children, double width) {
+    final columns = SongMapPads.columnsForWidth(width);
+    const gap = MonoPulseSpacing.sm;
+    const inset = MonoPulseSpacing.lg;
+    final padWidth = (width - 2 * inset - (columns - 1) * gap) / columns;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: inset, vertical: gap),
+      child: Wrap(
+        spacing: gap,
+        runSpacing: gap,
+        children: [
+          for (final (index, region) in children.indexed)
+            _pad(context, region, index, padWidth),
+        ],
+      ),
+    );
+  }
 
   Widget _pad(
     BuildContext context,
@@ -406,12 +405,15 @@ class _SongMapPadsState extends State<SongMapPads> {
                                 if (playing)
                                   Icon(Icons.play_arrow, color: fg, size: 16),
                                 Expanded(
-                                  child: Text(
-                                    subtitle,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: MonoPulseTypography.bodySmall
-                                        .copyWith(color: fg),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      subtitle,
+                                      maxLines: 1,
+                                      style: MonoPulseTypography.bodySmall
+                                          .copyWith(color: fg),
+                                    ),
                                   ),
                                 ),
                                 if (queued)

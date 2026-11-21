@@ -21,6 +21,7 @@ class SongMapOverview extends SongMapTimeline {
     required super.candidateBoundariesMs,
     required super.selectedIndices,
     required Widget noteTicks,
+    super.waveHeight,
     super.preview,
     super.onSectionHold,
     super.onSectionTap,
@@ -40,6 +41,7 @@ class SongMapTimeline extends StatefulWidget {
   const SongMapTimeline({
     required this.view,
     this.peaks = const [],
+    this.waveHeight = waveformHeight,
     this.pcm,
     this.positionMs,
     this.playing = false,
@@ -66,6 +68,7 @@ class SongMapTimeline extends StatefulWidget {
   static const zoomHeight = waveformHeight + MonoPulseSpacing.huge + 26 + 20;
 
   final SongMapView view;
+  final double waveHeight;
 
   /// Uniformly spaced peaks for the whole recording.
   final List<int> peaks;
@@ -161,7 +164,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         barMs.isFinite &&
         barMs >= grid.beatsPerBar;
     final beats = !overview && _view.level == SongMapZoom.part;
-    const waveformHeight = SongMapTimeline.waveformHeight;
+    final waveformHeight = widget.waveHeight;
     final positionMs = widget.positionMs;
     final selectedBoundary = widget.selectedBoundaryMs;
     final boundaries = {
