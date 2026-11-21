@@ -1,4 +1,5 @@
 import 'package:flowgroove/models/audio_region.dart';
+import 'package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_tempo_banner.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
@@ -60,7 +61,7 @@ void main() {
           Offset.zero &
           (tester.view.physicalSize / tester.view.devicePixelRatio);
       final transport = tester.getRect(find.byType(SongMapTransport));
-      final rows = <double>[];
+      final rects = <Rect>[];
       for (final (index, region) in regions.indexed) {
         final pad = find.byKey(ValueKey('region-pad-${region.id}'));
         final rect = tester.getRect(pad);
@@ -69,7 +70,7 @@ void main() {
         expect(rect.top, greaterThanOrEqualTo(screen.top));
         expect(rect.bottom, lessThanOrEqualTo(transport.top));
         expect(rect.height, 64);
-        rows.add(rect.top);
+        rects.add(rect);
         expect(
           find
               .descendant(
@@ -95,9 +96,15 @@ void main() {
           isFalse,
         );
       }
-      expect(rows.take(4), everyElement(rows.first));
-      expect(rows.skip(4), everyElement(rows.last));
-      expect(rows.last, greaterThan(rows.first));
+      for (var i = 0; i < rects.length; i += 2) {
+        expect(rects[i].top, rects[i + 1].top);
+        expect(rects[i + 1].left, greaterThanOrEqualTo(rects[i].right));
+        expect(rects[i].left, rects.first.left);
+        expect(rects[i + 1].left, rects[1].left);
+        if (i > 0) {
+          expect(rects[i].top, greaterThanOrEqualTo(rects[i - 2].bottom));
+        }
+      }
       expect(find.text('Unnamed'), findsNothing);
       expect(find.textContaining('No notes yet'), findsNothing);
       expect(find.text('at 0:00').hitTestable(), findsOneWidget);
@@ -123,28 +130,45 @@ void main() {
     final pads = [
       for (var i = 0; i < 6; i++) find.byKey(ValueKey('region-pad-legacy-$i')),
     ];
+    final padScroll = find.descendant(
+      of: find.byType(SongMapPads),
+      matching: find.byType(Scrollable),
+    );
+    final position = tester.state<ScrollableState>(padScroll).position;
+    expect(position.maxScrollExtent, greaterThan(0));
     final rects = pads.map(tester.getRect).toList();
-    expect(rects.take(3).map((r) => r.top), everyElement(rects.first.top));
-    expect(rects.skip(3).map((r) => r.top), everyElement(rects.last.top));
-    expect(rects.last.top, greaterThan(rects.first.top));
-    for (final pad in pads) {
-      expect(pad.hitTestable(), findsOneWidget);
-      expect(
-        tester.getRect(pad).bottom,
-        lessThanOrEqualTo(tester.getRect(notes).top),
-      );
+    for (var i = 0; i < rects.length; i += 2) {
+      expect(rects[i].top, rects[i + 1].top);
+      expect(rects[i + 1].left, greaterThanOrEqualTo(rects[i].right));
+      if (i > 0) {
+        expect(rects[i].top, greaterThanOrEqualTo(rects[i - 2].bottom));
+      }
     }
+
+    Future<void> expectPadRows() async {
+      for (final (index, pad) in pads.indexed) {
+        if (index >= 4) {
+          await tester.ensureVisible(pad);
+          await tester.pumpAndSettle();
+        }
+        expect(pad.hitTestable(), findsOneWidget);
+        final rect = tester.getRect(pad);
+        final viewport = tester.getRect(padScroll);
+        expect(rect.top, greaterThanOrEqualTo(viewport.top));
+        expect(rect.bottom, lessThanOrEqualTo(viewport.bottom));
+        expect(rect.bottom, lessThanOrEqualTo(tester.getRect(notes).top));
+      }
+      position.jumpTo(0);
+      await tester.pumpAndSettle();
+    }
+
+    await expectPadRows();
     expect(tester.getSize(notes).height, greaterThanOrEqualTo(48));
     expect(find.text('Notes · 10').hitTestable(), findsOneWidget);
     await tester.tap(find.text('Notes · 10'));
     await tester.pumpAndSettle();
     expect(tester.getSize(notes).height, greaterThanOrEqualTo(48));
-    for (final pad in pads) {
-      expect(
-        tester.getRect(pad).bottom,
-        lessThanOrEqualTo(tester.getRect(notes).top),
-      );
-    }
+    await expectPadRows();
     final scrollable = find.descendant(
       of: notes,
       matching: find.byType(Scrollable),

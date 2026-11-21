@@ -42,7 +42,7 @@ class SongMapPads extends StatefulWidget {
       rows * padHeight +
       (rows + 1) * MonoPulseSpacing.sm;
 
-  static int columnsForWidth(double width) => width >= 360 ? 4 : 3;
+  static int columnsForWidth(double width) => width < 600 ? 2 : 4;
 
   final SongMapView view;
   final bool showChop;
@@ -278,6 +278,13 @@ class _SongMapPadsState extends State<SongMapPads> {
         : '${(region.lengthMs / 1000).round()} s';
     final bg = playing ? MonoPulseColors.accentOrange : context.mp.surface;
     final fg = playing ? MonoPulseColors.charcoal : context.mp.textPrimary;
+    final shortName = name.characters.length <= 10;
+    final nameText = Text(
+      name,
+      maxLines: shortName ? 2 : 1,
+      overflow: TextOverflow.ellipsis,
+      style: MonoPulseTypography.labelLarge.copyWith(color: fg),
+    );
     final pad = Opacity(
       opacity: disabled || region.skip ? .38 : 1,
       child: SizedBox(
@@ -379,17 +386,14 @@ class _SongMapPadsState extends State<SongMapPads> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                name,
-                                maxLines: 1,
-                                style: MonoPulseTypography.bodyMedium.copyWith(
-                                  color: fg,
-                                ),
+                            if (shortName)
+                              nameText
+                            else
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: nameText,
                               ),
-                            ),
                             Row(
                               children: [
                                 if (playing)

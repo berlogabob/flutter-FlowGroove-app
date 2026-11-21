@@ -71,13 +71,13 @@ void main() {
     expect(tester.widget<Text>(titleText).overflow, TextOverflow.ellipsis);
 
     final pads = tester.widget<SongMapPads>(bank);
-    final columns = SongMapPads.columnsForWidth(tester.getSize(bank).width);
+    const columns = 2;
     final children = pads.view.children();
     expect(children.length, greaterThanOrEqualTo(columns * 2));
     final gridRect = tester.getRect(gridScroll);
     final notesTop = tester.getTopLeft(notes).dy;
     final transportTop = tester.getTopLeft(find.byType(SongMapTransport)).dy;
-    final rows = <double>[];
+    final rects = <Rect>[];
     for (final region in children.take(columns * 2)) {
       final pad = find.byKey(ValueKey('region-pad-${region.id}'));
       final rect = tester.getRect(pad);
@@ -87,11 +87,15 @@ void main() {
       expect(rect.bottom, lessThanOrEqualTo(gridRect.bottom));
       expect(rect.bottom, lessThanOrEqualTo(notesTop));
       expect(rect.bottom, lessThanOrEqualTo(transportTop));
-      rows.add(rect.top);
+      rects.add(rect);
     }
+    final rows = rects.map((rect) => rect.top).toList();
     expect(rows.take(columns), everyElement(rows.first));
     expect(rows.skip(columns), everyElement(rows.last));
     expect(rows.last, greaterThan(rows.first));
+    expect(rects[0].left, rects[2].left);
+    expect(rects[1].left, rects[3].left);
+    expect(rects[1].left, greaterThanOrEqualTo(rects[0].right));
   }
 
   void expectThinBars(WidgetTester tester, {required bool pcm}) {
@@ -162,7 +166,7 @@ void main() {
         matching: find.text('10 bars'),
       );
       expect(subtitle.hitTestable(), findsOneWidget);
-      expect(SongMapPads.columnsForWidth(tester.getSize(bank).width), 4);
+      expect(SongMapPads.columnsForWidth(tester.getSize(bank).width), 2);
       expect(
         tester.renderObject<RenderParagraph>(subtitle).didExceedMaxLines,
         isFalse,
