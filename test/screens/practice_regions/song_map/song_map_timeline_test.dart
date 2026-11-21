@@ -77,18 +77,23 @@ void main() {
         findsOneWidget,
       );
 
-      Color? blockColor(String name) {
-        final block = tester.widget<Container>(
-          find
-              .ancestor(of: find.text(name), matching: find.byType(Container))
-              .first,
-        );
+      final chorus1 = find.byKey(const ValueKey('song-map-section-chorus-a'));
+      final chorus2 = find.byKey(const ValueKey('song-map-section-repeat'));
+
+      Color? blockColor(Finder finder) {
+        final block = tester.widget<Container>(finder);
         return (block.decoration! as BoxDecoration).color;
       }
 
-      expect(blockColor('Chorus 1'), blockColor('Chorus 2'));
+      expect(blockColor(chorus1), blockColor(chorus2));
+      for (final block in [chorus1, chorus2]) {
+        expect(
+          find.descendant(of: block, matching: find.text('B')),
+          findsOneWidget,
+        );
+      }
 
-      await doubleTap(tester, find.text('Chorus 1'));
+      await doubleTap(tester, chorus1);
       expect(view.level, SongMapZoom.section);
       expect(view.sectionIndex, 1);
       expect(parts, findsOneWidget);
@@ -126,7 +131,7 @@ void main() {
     },
   );
 
-  testWidgets('section labels use a letter below 64 px and the name above', (
+  testWidgets('narrow and wide section blocks both show only their letter', (
     tester,
   ) async {
     final labelView = SongMapView(
@@ -160,7 +165,8 @@ void main() {
 
     expect(find.text('A'), findsOneWidget);
     expect(find.text('Intro 1'), findsNothing);
-    expect(find.text('Chorus 1'), findsOneWidget);
+    expect(find.text('B'), findsOneWidget);
+    expect(find.text('Chorus 1'), findsNothing);
   });
 
   testWidgets(

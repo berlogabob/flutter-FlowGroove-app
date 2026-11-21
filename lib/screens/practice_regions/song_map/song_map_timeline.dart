@@ -4,9 +4,9 @@ import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../models/audio_region.dart';
-import '../../../models/section.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/audio/waveform_painter.dart';
+import 'song_map_letters.dart';
 import 'song_map_view.dart';
 
 class SongMapTimeline extends StatefulWidget {
@@ -49,7 +49,6 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
   static const _laneHeight = MonoPulseSpacing.massive;
   static const _tipSize = MonoPulseSpacing.lg;
   static const _handleWidth = MonoPulseSpacing.xxl;
-  static final _occurrenceSuffix = RegExp(r'\s+\d+$');
 
   bool _zoomedOut = false;
   double _dragDx = 0;
@@ -126,6 +125,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                   context,
                   sections,
                   width,
+                  sectionIndex: _view.sectionIndex,
                   onZoom: atSong ? _view.zoomIn : null,
                   selectedIndices: atSong ? widget.selectedIndices : const {0},
                 ),
@@ -138,6 +138,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                     parts,
                     width,
                     isParts: true,
+                    sectionIndex: _view.sectionIndex,
                     barMs: hasGrid ? barMs : null,
                     onZoom: atPart ? null : _view.zoomIn,
                     selectedIndices: widget.selectedIndices,
@@ -198,20 +199,43 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
           height: height,
           child: Stack(
             children: [
+              for (final (index, section) in _view.sections.indexed)
+                if (section.endMs > _view.startMs &&
+                    section.startMs < _view.endMs)
+                  Positioned(
+                    left: _view.msToX(section.startMs, width).clamp(0.0, width),
+                    right:
+                        width -
+                        _view.msToX(section.endMs, width).clamp(0.0, width),
+                    top: 0,
+                    bottom: 0,
+                    child: ColoredBox(
+                      color: _view
+                          .sectionLetter(index)
+                          .color
+                          .withValues(alpha: 0.25),
+                    ),
+                  ),
               if (fullWidth > 0 && widget.peaks.isNotEmpty)
                 Positioned(
                   left: _view.msToX(0, width),
                   width: fullWidth,
                   top: 0,
                   bottom: 0,
-                  child: CustomPaint(
-                    painter: WaveformPainter(
-                      peaks: widget.peaks,
-                      trimStart: 0,
-                      trimEnd: 1,
-                      playhead: -1,
-                      markerFractions: const [],
-                      dim: palette.textSecondary,
+                  child: ColorFiltered(
+                    colorFilter: ColorFilter.mode(
+                      palette.textSecondary,
+                      BlendMode.srcIn,
+                    ),
+                    child: CustomPaint(
+                      painter: WaveformPainter(
+                        peaks: widget.peaks,
+                        trimStart: 0,
+                        trimEnd: 1,
+                        playhead: -1,
+                        markerFractions: const [],
+                        dim: palette.textSecondary,
+                      ),
                     ),
                   ),
                 ),
@@ -227,6 +251,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     List<AudioRegion> regions,
     double width, {
     bool isParts = false,
+    int? sectionIndex,
     double? barMs,
     ValueChanged<int>? onZoom,
     Set<int> selectedIndices = const {},
@@ -243,6 +268,8 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                 context,
                 region,
                 width,
+                index,
+                letter: _view.sectionLetter(sectionIndex ?? index),
                 isPart: isParts,
                 selected:
                     selectedIndices.contains(index) ||
@@ -258,7 +285,9 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
   Widget _block(
     BuildContext context,
     AudioRegion region,
-    double width, {
+    double width,
+    int index, {
+    required SongMapLetter letter,
     required bool isPart,
     required bool selected,
     required double? barMs,
@@ -277,30 +306,9 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         positionMs != null &&
         positionMs >= region.startMs &&
         positionMs < region.endMs;
-    final base = _baseName(
-      isPart && section != null && section.isNotEmpty ? section : region.name,
-    );
-    final color = _sectionColor(base);
-    final tint = Color.alphaBlend(
-      color.withValues(alpha: 0.2),
-      palette.surface,
-    );
-    final sectionName = section?.isNotEmpty == true
-        ? section!
-        : songMapRegionName(region, _view.children().indexOf(region));
-    final nameStyle = typography.bodySmall?.copyWith(
-      color: palette.textPrimary,
-    );
-    final fullNameFits =
-        nameStyle != null &&
-        _fits(sectionName, nameStyle, right - left - MonoPulseSpacing.xxs * 2);
-    final label = isPart
-        ? section != null && region.name.startsWith('$section ')
-              ? region.name.substring(section.length + 1)
-              : region.name
-        : fullNameFits
-        ? sectionName
-        : songMapRegionLetter(_view.children().indexOf(region));
+    final label = isPart ? songMapPartLetter(region, index) : letter.label;
+    final name = isPart ? label : songMapRegionName(region, index);
+    final nameStyle = typography.bodySmall?.copyWith(color: letter.textColor);
     final bars = barMs == null ? 0 : (region.lengthMs / barMs).round();
     final border = playing
         ? MonoPulseColors.accentOrange
@@ -318,15 +326,11 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
             ? () => widget.onSectionHold!(section)
             : null,
         child: Container(
+          key: ValueKey('song-map-${isPart ? 'part' : 'section'}-${region.id}'),
           padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxs),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: playing
-                ? Color.alphaBlend(
-                    MonoPulseColors.charcoal.withValues(alpha: 0.12),
-                    tint,
-                  )
-                : tint,
+            color: letter.color,
             borderRadius: BorderRadius.circular(MonoPulseRadius.button),
             border: Border.all(
               color: border,
@@ -338,12 +342,12 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(label, style: nameStyle),
+                Text(label, style: nameStyle, semanticsLabel: name),
                 if (bars > 0)
                   Text(
                     bars == 1 ? '1 bar' : '$bars bars',
                     style: typography.labelSmall?.copyWith(
-                      color: palette.textSecondary,
+                      color: letter.textColor,
                     ),
                   ),
               ],
@@ -352,15 +356,6 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         ),
       ),
     );
-  }
-
-  static bool _fits(String text, TextStyle style, double width) {
-    final painter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      maxLines: 1,
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: double.infinity);
-    return painter.width <= width;
   }
 
   Widget _ticks(
@@ -499,22 +494,6 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         ),
       ),
     );
-  }
-
-  static String _baseName(String name) =>
-      name.trim().toLowerCase().replaceFirst(_occurrenceSuffix, '');
-
-  static Color _sectionColor(String base) {
-    const colors = MonoPulseColors.sectionColors;
-    final template = Section.templates.indexWhere(
-      (name) => name.toLowerCase() == base,
-    );
-    if (template >= 0) return colors[template];
-    final hash = base.codeUnits.fold(
-      0,
-      (hash, unit) => (hash * 31 + unit) & 0x7fffffff,
-    );
-    return colors[hash % colors.length];
   }
 }
 

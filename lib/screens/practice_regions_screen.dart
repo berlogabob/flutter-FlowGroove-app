@@ -45,6 +45,7 @@ import 'practice_regions/grid_editor_dialog.dart';
 import 'practice_regions/region_name_sheet.dart';
 import 'practice_regions/slice_edit_sheet.dart';
 import 'practice_regions/song_map/song_map_edit.dart' as song_map_edit;
+import 'practice_regions/song_map/song_map_letters.dart';
 import 'practice_regions/song_map/song_map_minimap.dart';
 import 'practice_regions/song_map/song_map_pads.dart';
 import 'practice_regions/song_map/song_map_tempo_banner.dart';
@@ -1580,7 +1581,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             if (!atSong)
               SongMapMinimap(
                 durationMs: duration,
-                regions: regions,
+                regions: mapRegions,
+                letters: view.letters,
                 viewportStartMs: view.startMs,
                 viewportEndMs: view.endMs,
                 onSeek: (ms) => unawaited(_seekTimeline(ms)),
@@ -2416,7 +2418,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 child: ActionChip(
                   key: ValueKey('name-chip-$name'),
                   label: Text(name),
-                  backgroundColor: colorForName(name),
+                  backgroundColor: _songMap?.letters
+                      .forSectionName(name)
+                      ?.color,
                   onPressed: () {
                     final i = _entry.regions.indexWhere((r) => r.name.isEmpty);
                     if (i < 0) return;
@@ -2624,6 +2628,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   child: CustomPaint(
                     painter: _RegionsPainter(
                       entry: _entry,
+                      letters:
+                          _songMap?.letters ?? SongMapLetters(_entry.regions),
                       durationMs: _durationMs,
                       viewStart: viewStart,
                       viewEnd: viewEnd,
@@ -2773,6 +2779,7 @@ class _JogWheelPainter extends CustomPainter {
 class _RegionsPainter extends CustomPainter {
   _RegionsPainter({
     required this.entry,
+    required this.letters,
     required this.durationMs,
     required this.viewStart,
     required this.viewEnd,
@@ -2784,6 +2791,7 @@ class _RegionsPainter extends CustomPainter {
   });
 
   final SongLabEntry entry;
+  final SongMapLetters letters;
   final int durationMs;
   final int viewStart;
   final int viewEnd;
@@ -2824,9 +2832,7 @@ class _RegionsPainter extends CustomPainter {
       final region = entry.regions[i];
       final selected =
           selection != null && i >= selection!.$1 && i <= selection!.$2;
-      final color = region.skip
-          ? dim
-          : colorForName(region.name) ?? MonoPulseColors.sectionColors[i % 6];
+      final color = region.skip ? dim : letters[i].color;
       final rect = Rect.fromLTRB(
         x(region.startMs),
         0,
@@ -2944,16 +2950,4 @@ class _BoundaryWaveformPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _BoundaryWaveformPainter oldDelegate) =>
       pcm != oldDelegate.pcm || boundaryMs != oldDelegate.boundaryMs;
-}
-
-/// Same name, same colour: "Chorus" and "Chorus 2" match, in pads and on the
-/// waveform. Null for unnamed regions.
-Color? colorForName(String name) {
-  final base = name.trim().toLowerCase().replaceAll(RegExp(r'[\s\d]+$'), '');
-  if (base.isEmpty) return null;
-  const colors = MonoPulseColors.sectionColors;
-  final template = Section.templates.indexWhere((t) => t.toLowerCase() == base);
-  if (template >= 0) return colors[template % colors.length];
-  final hash = base.codeUnits.fold(0, (h, c) => (h * 31 + c) & 0x7fffffff);
-  return colors[hash % colors.length];
 }

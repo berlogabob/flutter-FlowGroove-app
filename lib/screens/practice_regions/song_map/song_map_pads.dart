@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../models/audio_region.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import 'song_map_letters.dart';
 import 'song_map_view.dart';
 
 /// Practice pads for the current level of a [SongMapView].
@@ -68,16 +69,6 @@ class _SongMapPadsState extends State<SongMapPads> {
         .abs()
         .clamp(1, 9999);
   }
-
-  Color _sectionColor(int index) => switch (index % 7) {
-    0 => MonoPulseColors.section1,
-    1 => MonoPulseColors.section3,
-    2 => MonoPulseColors.section5,
-    3 => MonoPulseColors.section7,
-    4 => MonoPulseColors.section9,
-    5 => MonoPulseColors.section11,
-    _ => MonoPulseColors.section13,
-  };
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -167,7 +158,11 @@ class _SongMapPadsState extends State<SongMapPads> {
         widget.selectedIndex == index ||
         widget.selectedIndices.contains(index) ||
         _rangeStart == index;
-    final accent = _sectionColor(index);
+    final section = widget.view.sectionIndex;
+    final letter = widget.view.sectionLetter(section ?? index);
+    final label = section == null
+        ? letter.label
+        : songMapPartLetter(region, index);
     final bars = _bars(region);
     final subtitle = region.skip
         ? 'Skipped'
@@ -239,54 +234,79 @@ class _SongMapPadsState extends State<SongMapPads> {
                     top: 0,
                     bottom: 0,
                     width: 6,
-                    child: ColoredBox(color: accent),
+                    child: ColoredBox(color: letter.color),
                   ),
                 Padding(
                   padding: const EdgeInsets.only(
                     left: MonoPulseSpacing.sm,
                     right: MonoPulseSpacing.xs,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Row(
                     children: [
-                      // Scale the name down rather than cut it: four pads
-                      // per row turned every "Region X" into "Region…".
-                      // The play icon and "next" sit on the second line so
-                      // they do not shrink the name.
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          songMapRegionName(region, index),
-                          maxLines: 1,
-                          style: MonoPulseTypography.bodyMedium.copyWith(
-                            color: fg,
+                      ExcludeSemantics(
+                        child: DecoratedBox(
+                          key: ValueKey('song-map-pad-badge-${region.id}'),
+                          decoration: BoxDecoration(
+                            color: letter.color,
+                            borderRadius: BorderRadius.circular(
+                              MonoPulseRadius.small,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: MonoPulseSpacing.xs,
+                            ),
+                            child: Text(
+                              label,
+                              style: MonoPulseTypography.labelSmall.copyWith(
+                                color: letter.textColor,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                      Row(
-                        children: [
-                          if (playing)
-                            Icon(Icons.play_arrow, color: fg, size: 16),
-                          Expanded(
-                            child: Text(
-                              subtitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: MonoPulseTypography.bodySmall.copyWith(
-                                color: fg,
+                      const SizedBox(width: MonoPulseSpacing.xs),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                songMapRegionName(region, index),
+                                maxLines: 1,
+                                style: MonoPulseTypography.bodyMedium.copyWith(
+                                  color: fg,
+                                ),
                               ),
                             ),
-                          ),
-                          if (queued)
-                            Text(
-                              'next',
-                              style: MonoPulseTypography.labelSmall.copyWith(
-                                color: MonoPulseColors.accentOrange,
-                              ),
+                            Row(
+                              children: [
+                                if (playing)
+                                  Icon(Icons.play_arrow, color: fg, size: 16),
+                                Expanded(
+                                  child: Text(
+                                    subtitle,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: MonoPulseTypography.bodySmall
+                                        .copyWith(color: fg),
+                                  ),
+                                ),
+                                if (queued)
+                                  Text(
+                                    'next',
+                                    style: MonoPulseTypography.labelSmall
+                                        .copyWith(
+                                          color: MonoPulseColors.accentOrange,
+                                        ),
+                                  ),
+                              ],
                             ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),

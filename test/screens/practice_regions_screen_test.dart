@@ -13,6 +13,7 @@ import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/repositories/metronome_session_repository.dart';
+import 'package:flowgroove/screens/practice_regions/song_map/song_map_letters.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_tempo_banner.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart';
@@ -307,6 +308,7 @@ class PracticeRegionsScreenFixture {
     SongLabEntry entry, {
     bool demo = false,
     Uint8List? bytes,
+    ThemeData? theme,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -321,7 +323,10 @@ class PracticeRegionsScreenFixture {
             return bytes ?? Uint8List(0);
           }),
         ],
-        child: MaterialApp(home: PracticeRegionsScreen(entry: entry)),
+        child: MaterialApp(
+          theme: theme,
+          home: PracticeRegionsScreen(entry: entry),
+        ),
       ),
     );
     await settleAudio(tester);
@@ -461,11 +466,21 @@ void main() {
     expect(find.byKey(const ValueKey('name-chip-Verse')), findsNothing);
   });
 
-  test('colorForName matches numbered repeats and skips unnamed', () {
-    expect(colorForName('Chorus 2'), colorForName('chorus'));
-    expect(colorForName('Verse'), isNot(colorForName('Chorus')));
-    expect(colorForName(''), isNull);
-  });
+  test(
+    'named section lookup matches numbered repeats and excludes unnamed',
+    () {
+      final letters = SongMapLetters(const [
+        AudioRegion(id: 'chorus', name: 'Chorus 1', startMs: 0, endMs: 1000),
+        AudioRegion(id: 'verse', name: 'Verse', startMs: 1000, endMs: 2000),
+        AudioRegion(id: 'unnamed', name: '', startMs: 2000, endMs: 3000),
+      ]);
+      Color? colorForName(String name) => letters.forSectionName(name)?.color;
+      expect(colorForName('Chorus 2'), letters[0].color);
+      expect(colorForName('Chorus 2'), colorForName('chorus'));
+      expect(colorForName('Verse'), isNot(colorForName('Chorus')));
+      expect(colorForName(''), isNull);
+    },
+  );
 
   testWidgets('Loop seam plays the slice clip from its tail, then hands the '
       'loop back', (tester) async {

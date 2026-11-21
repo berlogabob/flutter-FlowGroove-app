@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../models/audio_region.dart';
+import 'song_map_letters.dart';
 
 enum SongMapZoom { song, section, part }
 
@@ -17,14 +18,15 @@ class SongMapView extends ChangeNotifier {
     this.grid,
     this.includeSkipped = false,
   }) : assert(durationMs >= 0, 'Song duration must be nonnegative.') {
-    final sections = <AudioRegion>[];
+    letters = SongMapLetters(regions);
+    final spans = <AudioRegion>[];
     for (var start = 0; start < regions.length;) {
       final first = regions[start];
-      final key = _sectionKey(first);
+      final key = songMapSectionKey(first);
       var end = start + 1;
       while (key != null &&
           end < regions.length &&
-          _sectionKey(regions[end]) == key) {
+          songMapSectionKey(regions[end]) == key) {
         end++;
       }
       final parts = List<AudioRegion>.unmodifiable(
@@ -36,7 +38,7 @@ class SongMapView extends ChangeNotifier {
         _parts.add(parts);
         _sectionRanges.add((start, end - 1));
         final sectionName = first.section;
-        sections.add(
+        spans.add(
           parts.first.copyWith(
             name: sectionName == null || sectionName.isEmpty
                 ? first.name
@@ -49,14 +51,15 @@ class SongMapView extends ChangeNotifier {
       }
       start = end;
     }
-    _sections = List.unmodifiable(sections);
+    sections = List.unmodifiable(spans);
   }
 
   final List<AudioRegion> regions;
   final int durationMs;
   final AudioGrid? grid;
   final bool includeSkipped;
-  late final List<AudioRegion> _sections;
+  late final SongMapLetters letters;
+  late final List<AudioRegion> sections;
   final _parts = <List<AudioRegion>>[];
   final _sectionRanges = <(int, int)>[];
 
@@ -76,7 +79,7 @@ class SongMapView extends ChangeNotifier {
     final section = _sectionIndex;
     if (section == null) return (startMs: 0, endMs: durationMs);
     final part = _partIndex;
-    final region = part == null ? _sections[section] : _parts[section][part];
+    final region = part == null ? sections[section] : _parts[section][part];
     final padding = _barMs.round();
     return (
       startMs: (region.startMs - padding).clamp(0, durationMs),
@@ -90,14 +93,6 @@ class SongMapView extends ChangeNotifier {
   double get _barMs {
     final bar = grid?.barMs ?? 0;
     return bar.isFinite && bar > 0 ? bar : 0;
-  }
-
-  // Keep the ID and name namespaces distinct when reading linked and legacy maps.
-  static (String?, String?)? _sectionKey(AudioRegion region) {
-    final id = region.sectionId;
-    final name = region.section;
-    if (id != null) return (id, null);
-    return name == null || name.isEmpty ? null : (null, name);
   }
 
   /// Uses viewport-relative coordinates, including positions past its edges.
@@ -126,8 +121,10 @@ class SongMapView extends ChangeNotifier {
   /// At song level these are section spans. At deeper levels they are parts.
   List<AudioRegion> children() {
     final section = _sectionIndex;
-    return section == null ? _sections : _parts[section];
+    return section == null ? sections : _parts[section];
   }
+
+  SongMapLetter sectionLetter(int index) => letters[_sectionRanges[index].$1];
 
   (int, int) regionRange(int index) {
     if (_sectionIndex == null) return _sectionRanges[index];
@@ -183,7 +180,7 @@ class SongMapView extends ChangeNotifier {
     final part = _partIndex;
     if (part == null) {
       final target = section + step;
-      if (target < 0 || target >= _sections.length) return;
+      if (target < 0 || target >= sections.length) return;
       _sectionIndex = target;
     } else {
       final target = part + step;
