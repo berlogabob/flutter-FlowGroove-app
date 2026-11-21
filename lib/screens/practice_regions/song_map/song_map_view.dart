@@ -181,6 +181,12 @@ class SongMapView extends ChangeNotifier {
     notifyListeners();
   }
 
+  void zoomToSong() {
+    _sectionIndex = null;
+    _partIndex = null;
+    notifyListeners();
+  }
+
   void next() => _move(1);
 
   void previous() => _move(-1);

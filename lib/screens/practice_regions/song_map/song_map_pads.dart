@@ -13,7 +13,9 @@ import 'song_map_view.dart';
 class SongMapPads extends StatefulWidget {
   const SongMapPads({
     required this.view,
-    this.actions = const [],
+    this.showChop = false,
+    this.chopLit = false,
+    this.onChop,
     this.selectedIndex,
     this.selectedIndices = const {},
     this.playingIndex,
@@ -33,7 +35,9 @@ class SongMapPads extends StatefulWidget {
   static int columnsForWidth(double width) => width >= 360 ? 4 : 3;
 
   final SongMapView view;
-  final List<Widget> actions;
+  final bool showChop;
+  final bool chopLit;
+  final ValueChanged<bool>? onChop;
   final int? selectedIndex;
   final Set<int> selectedIndices;
   final int? playingIndex;
@@ -49,6 +53,7 @@ class SongMapPads extends StatefulWidget {
 }
 
 class _SongMapPadsState extends State<SongMapPads> {
+  bool _shift = false;
   bool _rangeMode = false;
   int? _rangeStart;
   final _held = <int, int>{};
@@ -63,11 +68,60 @@ class _SongMapPadsState extends State<SongMapPads> {
 
   int _bars(AudioRegion region) {
     final grid = widget.view.grid;
-    if (grid == null || grid.barMs <= 0) return 0;
+    if (grid == null || !grid.barMs.isFinite || grid.barMs <= 0) return 0;
     return (grid.barAt(region.endMs).round() -
             grid.barAt(region.startMs).round())
         .abs()
         .clamp(1, 9999);
+  }
+
+  Widget _key(
+    BuildContext context,
+    String label,
+    VoidCallback? onPressed, {
+    bool? selected,
+    IconData? icon,
+  }) {
+    final palette = context.mp;
+    final lit = selected == true;
+    final width = switch (label) {
+      'Shift' => 56.0,
+      'Chop' => icon == null ? 60.0 : 80.0,
+      _ => 68.0,
+    };
+    return Semantics(
+      selected: selected,
+      child: OutlinedButton(
+        key: ValueKey('song-map-key-$label'),
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          fixedSize: Size(width, 48),
+          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xs),
+          visualDensity: VisualDensity.standard,
+          backgroundColor: lit
+              ? MonoPulseColors.accentOrange
+              : palette.surfaceRaised,
+          disabledBackgroundColor: palette.surfaceRaised,
+          foregroundColor: lit ? MonoPulseColors.charcoal : palette.textPrimary,
+          side: BorderSide(
+            color: lit ? MonoPulseColors.accentOrange : palette.borderStrong,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+          ),
+          textStyle: MonoPulseTypography.labelMedium,
+        ),
+        onPressed: onPressed,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: MonoPulseSpacing.xs,
+            children: [if (icon != null) Icon(icon, size: 16), Text(label)],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -75,42 +129,88 @@ class _SongMapPadsState extends State<SongMapPads> {
     listenable: widget.view,
     builder: (context, _) {
       final children = widget.view.children();
+      final section = widget.view.sectionIndex;
       return SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: MonoPulseSpacing.lg,
+                horizontal: MonoPulseSpacing.sm,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.view.level == SongMapZoom.song
-                          ? 'Sections'
-                          : 'Practice pads',
-                      style: MonoPulseTypography.titleMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final name = Text(
+                    section == null
+                        ? 'Sections'
+                        : '${widget.view.sectionLetter(section).label} · ${songMapRegionName(widget.view.sections[section], section)}',
+                    style: MonoPulseTypography.titleMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                  final keys = [
+                    if (section != null)
+                      Tooltip(
+                        message: 'Zoom out',
+                        child: _key(context, '‹ Song', widget.view.zoomToSong),
+                      ),
+                    Tooltip(
+                      message: 'Shift',
+                      excludeFromSemantics: true,
+                      child: _key(
+                        context,
+                        'Shift',
+                        () => setState(() => _shift = !_shift),
+                        selected: _shift,
+                      ),
                     ),
-                  ),
-                  if (widget.onRange != null)
-                    TextButton(
-                      onPressed: () => setState(() {
-                        _rangeMode = !_rangeMode;
-                        _rangeStart = null;
-                      }),
-                      child: Text(_rangeMode ? 'Range: on' : 'Range'),
+                    if (widget.showChop)
+                      _key(
+                        context,
+                        'Chop',
+                        widget.onChop == null
+                            ? null
+                            : () {
+                                final remove = _shift;
+                                if (remove) setState(() => _shift = false);
+                                widget.onChop!(remove);
+                              },
+                        selected: widget.chopLit,
+                        icon: widget.chopLit ? Icons.content_cut : null,
+                      ),
+                    _key(
+                      context,
+                      'Range',
+                      widget.onRange == null
+                          ? null
+                          : () => setState(() {
+                              _rangeMode = !_rangeMode;
+                              _rangeStart = null;
+                            }),
+                      selected: _rangeMode,
                     ),
-                  if (widget.view.level != SongMapZoom.song)
-                    IconButton(
-                      tooltip: 'Zoom out',
-                      onPressed: widget.view.zoomOut,
-                      icon: const Icon(Icons.zoom_out),
-                    ),
-                  ...widget.actions,
-                ],
+                  ];
+                  if (constraints.maxWidth < 300) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        name,
+                        Wrap(
+                          spacing: MonoPulseSpacing.xs,
+                          runSpacing: MonoPulseSpacing.xs,
+                          children: keys,
+                        ),
+                      ],
+                    );
+                  }
+                  return Row(
+                    spacing: MonoPulseSpacing.xs,
+                    children: [
+                      Expanded(child: name),
+                      ...keys,
+                    ],
+                  );
+                },
               ),
             ),
             LayoutBuilder(
@@ -160,10 +260,16 @@ class _SongMapPadsState extends State<SongMapPads> {
         _rangeStart == index;
     final section = widget.view.sectionIndex;
     final letter = widget.view.sectionLetter(section ?? index);
-    final label = section == null
-        ? letter.label
-        : songMapPartLetter(region, index);
+    final label = section == null ? letter.label : songMapPartLetter(index);
     final bars = _bars(region);
+    final grid = widget.view.grid;
+    var name = songMapRegionName(region, index);
+    if (section != null && grid != null && bars > 0) {
+      final halfMs = 0.5 / grid.barMs;
+      final first = (grid.barAt(region.startMs) + halfMs).floor() + 1;
+      final last = (grid.barAt(region.endMs) - halfMs).ceil();
+      name = 'Bars $first-${math.max(first, last)}';
+    }
     final subtitle = region.skip
         ? 'Skipped'
         : region.lengthMs < (widget.view.grid?.barMs ?? 2000)
@@ -206,7 +312,10 @@ class _SongMapPadsState extends State<SongMapPads> {
                 : () {
                     if (_runMade) return;
                     unawaited(HapticFeedback.selectionClick());
-                    if (_rangeMode && widget.onRange != null) {
+                    if (_shift && section == null) {
+                      setState(() => _shift = false);
+                      widget.view.zoomIn(index);
+                    } else if (_rangeMode && widget.onRange != null) {
                       if (_rangeStart == null) {
                         setState(() => _rangeStart = index);
                       } else {
@@ -275,7 +384,7 @@ class _SongMapPadsState extends State<SongMapPads> {
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                songMapRegionName(region, index),
+                                name,
                                 maxLines: 1,
                                 style: MonoPulseTypography.bodyMedium.copyWith(
                                   color: fg,
@@ -335,7 +444,7 @@ class _SongMapPadsState extends State<SongMapPads> {
     );
     return Listener(
       onPointerDown: (event) {
-        if (disabled || _rangeMode || widget.onRange == null) return;
+        if (disabled || _shift || _rangeMode || widget.onRange == null) return;
         final first = _held.values.firstOrNull;
         _held[event.pointer] = index;
         if (first == null || first == index) return;

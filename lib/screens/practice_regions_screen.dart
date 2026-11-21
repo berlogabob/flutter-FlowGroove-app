@@ -163,10 +163,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   (int, int)? _seam;
   static const _seamMs = 1500;
 
-  /// One level of undo for Shift edits (they save immediately).
+  /// One level of undo for region edits (they save immediately).
   List<AudioRegion>? _undoRegions;
   SongMapView? _songMap;
   int? _songMapBoundaryMs;
+  int? _songMapCutMs;
 
   // Practice log: one session per loop selection, written when it changes or
   // the screen closes. Captured in initState because ref is gone by dispose.
@@ -470,6 +471,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           _selection = null;
           _focus = null;
           _undoRegions = null;
+          _songMapCutMs = null;
         });
       }
     } catch (e) {
@@ -498,9 +500,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Future<void> _changeRegions(
     List<AudioRegion> regions, {
     List<AudioRegion>? undoTo,
+    int? cutMs,
   }) async {
     if (!_canEdit) return;
     setState(() {
+      _songMapCutMs = cutMs;
       _undoRegions = undoTo ?? _entry.regions;
       _selection = remapSelection(_entry.regions, regions, _selection);
       _entry = _entry.copyWith(regions: regions);
@@ -1425,13 +1429,91 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
+  int _barNumber(AudioGrid grid, int ms) =>
+      (grid.barAt(ms) + 0.5 / grid.barMs).floor() + 1;
+
+  void _chop(SongMapView view, AudioGrid grid, int position, bool remove) {
+    if (!_canEdit) return;
+    final regions = _entry.regions;
+    final section = view.sectionIndex;
+    var cut = view.level == SongMapZoom.part
+        ? view.snapMs(position)
+        : grid.snap(position, durationMs: view.durationMs);
+    List<AudioRegion> updated;
+    if (remove) {
+      int? nearest;
+      final count = view.children().length;
+      for (var i = 0; i + 1 < count; i++) {
+        final (_, end) = view.regionRange(i);
+        final ms = regions[end].endMs;
+        if (ms != regions[end + 1].startMs) continue;
+        if (nearest == null || (ms - position).abs() < (cut - position).abs()) {
+          nearest = end;
+          cut = ms;
+        }
+      }
+      if (nearest == null) return;
+      updated = song_map_edit.deleteBoundary(
+        regions,
+        nearest,
+        grid: grid,
+        withinSection: section != null,
+      );
+    } else {
+      if (section != null) {
+        final span = view.sections[section];
+        if (cut <= span.startMs || cut >= span.endMs) return;
+      }
+      updated = song_map_edit.splitAt(
+        regions,
+        cut,
+        grid: grid,
+        withinSection: section != null,
+      );
+    }
+    if (identical(updated, regions)) return;
+    if (!remove && section == null) {
+      view.overviewSelection = view.sections.indexWhere(
+        (span) => span.startMs < cut && cut < span.endMs,
+      );
+      if (view.overviewSelection == -1) view.overviewSelection = null;
+    }
+    _songMapBoundaryMs = null;
+    final bar = _barNumber(grid, cut);
+    final messenger = ScaffoldMessenger.of(context)..removeCurrentSnackBar();
+    final notice = messenger.showSnackBar(
+      SnackBar(
+        content: Text('${remove ? 'Removed cut' : 'Cut'} at bar $bar'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            if (mounted && identical(_entry.regions, updated)) {
+              unawaited(_undo());
+            }
+          },
+        ),
+      ),
+    );
+    unawaited(_changeRegions(updated, cutMs: remove ? null : cut));
+    if (!remove) {
+      unawaited(
+        notice.closed.then((_) {
+          if (mounted && identical(_entry.regions, updated)) {
+            setState(() => _songMapCutMs = null);
+          }
+        }),
+      );
+    }
+  }
+
   Widget _pads({
     required bool editing,
     required int position,
     required bool playing,
     required Widget? banner,
     required SongMapTempoBanner? tempoBanner,
-    required List<Widget> padActions,
     Widget? emptyContent,
   }) {
     final regions = _entry.regions;
@@ -1468,6 +1550,16 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final selection = _selection;
     final canEditMap =
         candidate == null && editing && grid != null && _durationMs > 0;
+    final canChop =
+        _canEdit &&
+        candidate == null &&
+        _loaded &&
+        _durationMs > 0 &&
+        grid != null &&
+        grid.barMs.isFinite &&
+        grid.barMs >= 1 &&
+        grid.beatsPerBar > 0;
+    final candidateCuts = {...?candidate?.boundaries, ?_songMapCutMs};
     final boundaries = {
       if (editing && candidate == null)
         for (var i = 0; i + 1 < regions.length; i++)
@@ -1525,7 +1617,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             positionMs: position,
             playing: playing,
             selectedIndices: selectedSections,
-            candidateBoundariesMs: candidate?.boundaries ?? const {},
+            candidateBoundariesMs: candidateCuts,
             onSectionHold: _canEdit && !preview ? _renameSection : null,
             onSectionTap: (i) => setState(() => view.overviewSelection = i),
             onSeek: _loaded && _durationMs > 0
@@ -1578,7 +1670,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         final pads = SongMapPads(
           key: ValueKey((view, view.sectionIndex, view.partIndex)),
           view: view,
-          actions: padActions,
+          showChop: _canEdit,
+          chopLit: _songMapCutMs != null,
+          onChop: canChop
+              ? (remove) => _chop(view, grid, position, remove)
+              : null,
           selectedIndices: selected,
           playingIndex: active < 0 ? null : active,
           queuedIndex: queued ? selected.firstOrNull : null,
@@ -1631,7 +1727,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 peaks: _entry.peaks,
                 positionMs: position,
                 playing: playing,
-                candidateBoundariesMs: candidate?.boundaries ?? const {},
+                candidateBoundariesMs: candidateCuts,
+                cutLabel: _songMapCutMs == null || grid == null
+                    ? null
+                    : (
+                        _songMapCutMs!,
+                        'bar ${_barNumber(grid, _songMapCutMs!)}',
+                      ),
                 selectedIndices: atSong ? const {} : selected,
                 boundariesMs: editing ? boundaries.keys.toSet() : null,
                 selectedBoundaryMs: boundary,
@@ -1660,32 +1762,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                       },
               ),
             ),
-            if (canEditMap)
-              Wrap(
-                children: [
-                  if (boundary != null)
-                    TextButton(
-                      onPressed: () => saveEdit(
-                        song_map_edit.deleteBoundary(
-                          regions,
-                          boundaries[boundary]!,
-                          grid: grid,
-                        ),
-                      ),
-                      child: const Text('Delete boundary'),
-                    ),
-                  TextButton(
-                    onPressed: () => saveEdit(
-                      song_map_edit.splitAt(
-                        regions,
-                        snap(position),
-                        grid: grid,
-                      ),
-                    ),
-                    child: const Text('Split section at playhead'),
-                  ),
-                ],
-              ),
           ],
         );
         return LayoutBuilder(
@@ -2023,13 +2099,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final canPlay = _loaded && _durationMs > 0 && !_busy && !_preparingSync;
     final canClick = !_stretched && canSyncToClick(grid) && canPlay;
     final speedPercent = (_speed * 100).round();
-    final padActions = <Widget>[
+    final editActions = <Widget>[
       if (canEdit)
         IconButton(
           key: const ValueKey('shift'),
-          icon: const Icon(Icons.keyboard_capslock, semanticLabel: 'Shift'),
+          icon: const Icon(Icons.tune, semanticLabel: 'Edit'),
           iconSize: 20,
-          tooltip: 'Shift',
+          tooltip: 'Edit',
           isSelected: editing,
           style: editing
               ? IconButton.styleFrom(
@@ -2068,7 +2144,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       editing: editing,
       position: positionMs,
       playing: playing,
-      padActions: padActions,
       banner: analyzeBanner,
       tempoBanner: tempoBanner,
       emptyContent: showPads
@@ -2078,10 +2153,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: padActions,
-                    ),
                     const Text('No sections yet'),
                     if (analyzeBanner != null)
                       analyzeBanner
@@ -2180,6 +2251,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               icon: const Icon(Icons.undo),
               onPressed: _undoRegions == null ? null : _undo,
             ),
+          ...editActions,
           PopupMenuButton<String>(
             tooltip: 'More',
             onSelected: (value) {

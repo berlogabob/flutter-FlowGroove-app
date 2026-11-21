@@ -75,16 +75,7 @@ class SongMapLetters {
   return name == null || name.isEmpty ? null : (null, name);
 }
 
-final _partLetters = RegExp(r'^[a-z]+$');
-
-String songMapPartLetter(AudioRegion region, int index) {
-  final section = region.section;
-  if (section != null && region.name.startsWith('$section ')) {
-    final label = region.name.substring(section.length + 1);
-    if (_partLetters.hasMatch(label)) return label;
-  }
-  return _letterAt(index, 97);
-}
+String songMapPartLetter(int index) => _letterAt(index, 97);
 
 String _letterAt(int index, int first) {
   final letter = String.fromCharCode(first + index % 26);

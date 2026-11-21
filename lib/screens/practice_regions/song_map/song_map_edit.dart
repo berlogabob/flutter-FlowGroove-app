@@ -60,8 +60,19 @@ List<AudioRegion> deleteBoundary(
   List<AudioRegion> regions,
   int index, {
   required AudioGrid grid,
+  bool withinSection = false,
 }) {
   if (!_canEdit(grid) || !_isBoundary(regions, index)) return regions;
+  if (withinSection) {
+    final left = regions[index];
+    final right = regions[index + 1];
+    if (!_sameSection(left, right)) return regions;
+    return [
+      ...regions.take(index),
+      left.copyWith(endMs: right.endMs),
+      ...regions.skip(index + 2),
+    ];
+  }
   final left = _sectionAt(regions, index);
   final right = _sectionAt(regions, index + 1);
   return [
@@ -78,16 +89,38 @@ List<AudioRegion> deleteBoundary(
   ];
 }
 
-/// Starts a new section at [ms], with at least one bar on either side.
-/// A split at an existing part boundary is allowed.
+/// Starts a new section or splits a part at the caller-snapped [ms].
+/// A section split requires a bar on either side and may reuse a part seam.
 List<AudioRegion> splitAt(
   List<AudioRegion> regions,
   int ms, {
   required AudioGrid grid,
+  bool withinSection = false,
 }) {
   if (!_canEdit(grid)) return regions;
   final i = regions.indexWhere((r) => r.startMs <= ms && ms < r.endMs);
   if (i < 0) return regions;
+  if (withinSection) {
+    final part = regions[i];
+    if (ms == part.startMs) return regions;
+    final legacy = part.sectionId == null && (part.section?.isEmpty ?? true);
+    final sectionId = legacy ? part.id : part.sectionId;
+    final section = legacy ? part.name : part.section;
+    return [
+      ...regions.take(i),
+      part.copyWith(endMs: ms, sectionId: sectionId, section: section),
+      AudioRegion(
+        id: _partIds(regions)(part.id, ms),
+        name: section ?? part.name,
+        section: section,
+        sectionId: sectionId,
+        startMs: ms,
+        endMs: part.endMs,
+        skip: part.skip,
+      ),
+      ...regions.skip(i + 1),
+    ];
+  }
   final section = _sectionAt(regions, i);
   if (ms < _barTime(grid, section.first.startMs, 1) ||
       ms > _barTime(grid, section.last.endMs, -1)) {

@@ -275,6 +275,9 @@ class PracticeRegionsScreenFixture {
   late _SessionLog _sessions;
   late FakeBackingEngine _engine;
 
+  // ignore: unreachable_from_main, used by song_map_keys_test.dart.
+  List<SongLabEntry> get savedEntries => _repo.saved;
+
   static SongLabEntry entry({
     String id = 'e1',
     String songId = '_inbox',

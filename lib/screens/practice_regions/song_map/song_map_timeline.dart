@@ -39,6 +39,7 @@ class SongMapTimeline extends StatefulWidget {
     this.positionMs,
     this.playing = false,
     this.candidateBoundariesMs = const {},
+    this.cutLabel,
     this.boundariesMs,
     this.selectedBoundaryMs,
     this.selectedIndices = const {},
@@ -64,6 +65,7 @@ class SongMapTimeline extends StatefulWidget {
 
   /// Boundary positions and callback values are file-relative milliseconds.
   final Set<int> candidateBoundariesMs;
+  final (int, String)? cutLabel;
   final Set<int>? boundariesMs;
   final int? selectedBoundaryMs;
   final Set<int> selectedIndices;
@@ -204,7 +206,9 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                 for (final ms in widget.candidateBoundariesMs)
                   if (visible(ms))
                     _line(context, _x(ms, width), width, dashed: true),
-              if (positionMs != null && visible(positionMs))
+              if (positionMs != null &&
+                  visible(positionMs) &&
+                  !widget.candidateBoundariesMs.contains(positionMs))
                 _line(context, _x(positionMs, width), width),
               if (!overview)
                 for (final ms in {
@@ -219,6 +223,26 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                       width,
                       waveformHeight,
                     ),
+              if (widget.cutLabel case (final ms, final label) when visible(ms))
+                Positioned(
+                  left: _x(ms, width).clamp(0.0, math.max(0, width - 64)),
+                  top: 0,
+                  child: IgnorePointer(
+                    child: Material(
+                      color: context.mp.surfaceRaised,
+                      borderRadius: BorderRadius.circular(
+                        MonoPulseRadius.small,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(MonoPulseSpacing.xs),
+                        child: Text(
+                          label,
+                          style: MonoPulseTypography.labelSmall,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -363,7 +387,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         positionMs != null &&
         positionMs >= region.startMs &&
         positionMs < region.endMs;
-    final label = isPart ? songMapPartLetter(region, index) : letter.label;
+    final label = isPart ? songMapPartLetter(index) : letter.label;
     final name = isPart ? label : songMapRegionName(region, index);
     final nameStyle = typography.bodySmall?.copyWith(
       color: palette.textPrimary,

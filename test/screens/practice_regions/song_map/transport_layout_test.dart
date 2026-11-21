@@ -4,7 +4,6 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
-import 'package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
@@ -94,10 +93,13 @@ void main() {
 
         for (final key in ['shift', 'add-note']) {
           final button = find.descendant(
-            of: find.byType(SongMapPads),
+            of: find.byType(AppBar),
             matching: find.byKey(ValueKey(key)),
           );
           expect(tester.widget(button), isA<IconButton>());
+          final rect = tester.getRect(button);
+          expect(rect.left, greaterThanOrEqualTo(bounds.left));
+          expect(rect.right, lessThanOrEqualTo(bounds.right));
         }
       },
     );
