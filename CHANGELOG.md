@@ -4,6 +4,18 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## 0.36.0+380 — 2026-11-21
+
+Song Map reworked MPC-style after testing 0.35.0 on a phone: one overview, one colour per section, and pads that cut, open and rename sections. Designed in FigCraft first (Song Map page, approved before code).
+
+- One whole-song overview, full width, with the letter lane on the same scale directly under the waveform (the old header waveform and the minimap/breadcrumb are gone). The zoom view below shows only the open section, drawn from the decoded audio, with its parts and bar numbers.
+- One letter and one colour per section group on every level (overview, lane, zoom, pads): repeats share them (Chorus 1 and Chorus 2 are both C). Distinct hues; orange is kept for the playing pad.
+- MPC keys over the pads: Shift (tap Shift, then a section pad to open its parts; Song goes back), Chop (cut on the nearest bar at the play position, with Undo; Shift + Chop removes the nearest cut) and Range.
+- Hold a pad to rename: the sheet offers "Same as" chips, so a section can join an existing group (letter and colour follow).
+- An analysis is a visible preview (dashed lane, Discard / Done) and leaving the screen asks to save it, so a new map is no longer lost by accident.
+- Phone layout: readable title, two pad rows always visible, Notes folds to one line, pad names and bar counts scale instead of being cut.
+- Cleanup: about 1,800 lines of dead code removed, 46 over-deep imports fixed; deploy Makefile and docs match production (landing on FTP, app on Firebase Hosting, flowgroove.app/app/ is a redirect); every lftp call has a network timeout.
+
 ## 0.35.0+379 — 2026-11-21
 
 Song Map replaces the pad banks in Song Lab, the brand fonts and theme now render correctly, and the design system is complete in FigCraft. Trace: `docs/plans/song-map/` (UX brief, task ledgers).
