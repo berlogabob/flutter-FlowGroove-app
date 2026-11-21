@@ -72,7 +72,7 @@ def main():
         if only and t["id"] not in only: continue
         if t.get("skip"): print(t["id"], "skipped:", t["skip"]); continue
         if t["id"] in done: print(t["id"], "already passed"); continue
-        if any(a not in done for a in t["after"]):
+        if any(a not in done for a in t.get("after", [])):
             print(t["id"], "skipped: dependency not passed", t["after"]); continue
         if dry: print(t["id"], t["executor"], t.get("model", "default"), t["title"]); continue
         order = [t["executor"]] + (["codex"] if t["executor"] == "pi" and not os.environ.get("NO_CODEX") else [])
