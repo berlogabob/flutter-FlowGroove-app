@@ -46,7 +46,7 @@ class SongMapTransport extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final label = playing ? 'Stop' : 'Play';
+    final label = playing ? 'Pause' : 'Play';
     final play = FilledButton(
       key: const ValueKey('play'),
       onPressed: playing ? onStop : onPlay,
@@ -59,7 +59,7 @@ class SongMapTransport extends StatelessWidget {
         elevation: 0,
         shape: _shape,
       ),
-      child: _face(playing ? Icons.stop : Icons.play_arrow, label, playLabel),
+      child: _face(playing ? Icons.pause : Icons.play_arrow, label, playLabel),
     );
 
     return Material(

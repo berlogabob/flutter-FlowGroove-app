@@ -72,7 +72,7 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.text('Stop'));
+    await tester.tap(find.text('Pause'));
     expect(stopped, isTrue);
   });
 

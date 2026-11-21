@@ -689,7 +689,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('play')));
     await settleAudio(tester);
     expect(audio.players.values.single.playCalls, 1);
-    expect(find.text('Stop'), findsOneWidget);
+    expect(find.text('Pause'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('play')));
     await settleAudio(tester);
     expect(audio.players.values.single.pauseCalls, 1);

@@ -746,7 +746,7 @@ void main() {
       expect(find.textContaining('Looping'), findsNothing);
       expect(player.clip, isNull);
       expect(player.loopMode, LoopModeMessage.off);
-      expect(find.text('Stop'), findsOneWidget);
+      expect(find.text('Pause'), findsOneWidget);
       expect(repo.saved, isEmpty);
     },
   );
@@ -998,7 +998,7 @@ void main() {
     await settleAudio(tester);
     expect(player.calls, ['pause', 'setClip', 'seek', 'play']);
     expect(player.position, Duration.zero);
-    expect(find.text('Stop'), findsOneWidget);
+    expect(find.text('Pause'), findsOneWidget);
   });
 
   testWidgets('section pads select and loop the whole section', (tester) async {
@@ -1085,7 +1085,7 @@ void main() {
       expect(repo.saved.single.regions[1].name, isEmpty);
       expect(find.byKey(const ValueKey('marker-handle-0')), findsOneWidget);
       expect(find.text('Region name'), findsNothing);
-      expect(find.text('Stop'), findsOneWidget);
+      expect(find.text('Pause'), findsOneWidget);
       expect(player.loadCalls, loads);
       expect(player.pauseCalls, pauses);
 
