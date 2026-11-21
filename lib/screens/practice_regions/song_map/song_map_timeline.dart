@@ -213,7 +213,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                       child: _waveform(context.mp, width, waveformHeight),
                     ),
                   ),
-                  _lane(context, width, section, parts, hasGrid ? barMs : null),
+                  _lane(context, width, section, parts, hasGrid ? grid : null),
                 ],
               ),
               if (widget.noteTicks case final ticks?)
@@ -373,7 +373,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     double width,
     int? section,
     List<AudioRegion> parts,
-    double? barMs,
+    AudioGrid? grid,
   ) {
     final regions = section == null ? _view.sections : parts;
     return SizedBox(
@@ -384,7 +384,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         children: [
           for (final (index, region) in regions.indexed)
             if (region.endMs > _startMs && region.startMs < _endMs)
-              _block(context, region, width, index, section, barMs),
+              _block(context, region, width, index, section, grid),
         ],
       ),
     );
@@ -396,7 +396,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     double width,
     int index,
     int? sectionIndex,
-    double? barMs,
+    AudioGrid? grid,
   ) {
     final letter = _view.sectionLetter(sectionIndex ?? index);
     final isPart = sectionIndex != null;
@@ -420,9 +420,9 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     final nameStyle = typography.bodySmall?.copyWith(
       color: palette.textPrimary,
     );
-    final bars = !isPart || barMs == null
-        ? 0
-        : (region.lengthMs / barMs).round();
+    final bars = isPart
+        ? grid?.displayBarsIn(region.startMs, region.endMs).count ?? 0
+        : 0;
     final border = playing
         ? MonoPulseColors.accentOrange
         : selected
@@ -486,7 +486,8 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     double width, {
     bool beats = false,
   }) {
-    final stepMs = beats ? grid.barMs / grid.beatsPerBar : grid.barMs;
+    final ticksPerBar = beats ? grid.beatsPerBar : 1;
+    final stepMs = grid.barMs / ticksPerBar;
     final span = _endMs - _startMs;
     final spacing = span > 0 ? width * stepMs / span : 0.0;
     final palette = context.mp;
@@ -503,13 +504,17 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         labelStride *= 2;
       }
     }
-    final first = math.max(
-      0,
-      ((_startMs - grid.offsetMs - 0.5) / stepMs).ceil(),
-    );
-    final last = ((_endMs - grid.offsetMs - 0.5) / stepMs).ceil() - 1;
-    double x(int tick) =>
-        _x(grid.msOfBar(beats ? tick / grid.beatsPerBar : tick), width);
+    final origin = grid.firstDownbeatMs;
+    final first = math.max(0, ((_startMs - origin - 0.5) / stepMs).ceil());
+    // Keep a downbeat near the end seam in the next section, as the pads do.
+    final endBar = grid.displayBarsIn(0, _endMs).count;
+    final last =
+        math.min(
+          ((_endMs - origin - 0.5) / stepMs).ceil(),
+          endBar * ticksPerBar,
+        ) -
+        1;
+    double x(int tick) => _x((origin + tick * stepMs).round(), width);
 
     return SizedBox(
       key: ValueKey(beats ? 'song-map-beats' : 'song-map-ruler'),
@@ -525,9 +530,10 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
             )
               Positioned(
                 left: x(tick),
-                width: (width - x(tick)).clamp(0.0, spacing),
+                width: (width - x(tick)).clamp(0.0, spacing * labelStride),
                 top: 0,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ColoredBox(
                       color: palette.borderStrong,
@@ -540,11 +546,19 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                     ),
                     const SizedBox(height: MonoPulseSpacing.xxs),
                     if (tick % labelStride == 0)
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          '${(beats ? tick % grid.beatsPerBar : tick) + 1}',
-                          style: style?.copyWith(color: palette.textSecondary),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: MonoPulseSpacing.xxs,
+                        ),
+                        child: FittedBox(
+                          alignment: Alignment.centerLeft,
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '${(beats ? tick % grid.beatsPerBar : tick) + 1}',
+                            style: style?.copyWith(
+                              color: palette.textSecondary,
+                            ),
+                          ),
                         ),
                       ),
                   ],

@@ -280,6 +280,28 @@ void main() {
       expect(grid.barAt(0), -0.25);
     });
 
+    test('first downbeat wraps the stored offset by whole bars', () {
+      expect(grid.firstDownbeatMs, 500);
+      expect(grid.copyWith(offsetMs: 4500).firstDownbeatMs, 500);
+      expect(grid.copyWith(offsetMs: -1500).firstDownbeatMs, 500);
+      expect(grid.copyWith(offsetMs: 4000).firstDownbeatMs, 0);
+      expect(
+        const AudioGrid(bpm: 170, offsetMs: 2471).firstDownbeatMs,
+        closeTo(1059.235294, 0.000001),
+      );
+    });
+
+    test('display bars count downbeats and share a tolerance at seams', () {
+      final lateGrid = grid.copyWith(offsetMs: 2500);
+      expect(lateGrid.displayBarsIn(0, 300), (first: 1, count: 0));
+      expect(lateGrid.displayBarsIn(0, 500), (first: 1, count: 0));
+      expect(lateGrid.displayBarsIn(0, 2500), (first: 1, count: 1));
+      expect(lateGrid.displayBarsIn(0, 2750), (first: 1, count: 1));
+      expect(lateGrid.displayBarsIn(2750, 4300), (first: 2, count: 1));
+      expect(lateGrid.displayBarsIn(0, 2751), (first: 1, count: 2));
+      expect(lateGrid.displayBarsIn(2751, 4300), (first: 3, count: 0));
+    });
+
     test('snap goes to the nearest bar line inside the file', () {
       expect(grid.snap(5300, durationMs: 60000), 4500);
       expect(grid.snap(5600, durationMs: 60000), 6500);

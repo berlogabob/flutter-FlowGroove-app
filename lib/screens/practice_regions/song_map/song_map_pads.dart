@@ -76,15 +76,6 @@ class _SongMapPadsState extends State<SongMapPads> {
     }
   }
 
-  int _bars(AudioRegion region) {
-    final grid = widget.view.grid;
-    if (grid == null || !grid.barMs.isFinite || grid.barMs <= 0) return 0;
-    return (grid.barAt(region.endMs).round() -
-            grid.barAt(region.startMs).round())
-        .abs()
-        .clamp(1, 9999);
-  }
-
   Widget _key(
     BuildContext context,
     String label,
@@ -270,18 +261,17 @@ class _SongMapPadsState extends State<SongMapPads> {
     final section = widget.view.sectionIndex;
     final letter = widget.view.sectionLetter(section ?? index);
     final label = section == null ? letter.label : songMapPartLetter(index);
-    final bars = _bars(region);
     final grid = widget.view.grid;
+    final displayBars = grid?.displayBarsIn(region.startMs, region.endMs);
+    final bars = displayBars?.count ?? 0;
     var name = songMapRegionName(region, index);
-    if (section != null && grid != null && bars > 0) {
-      final halfMs = 0.5 / grid.barMs;
-      final first = (grid.barAt(region.startMs) + halfMs).floor() + 1;
-      final last = (grid.barAt(region.endMs) - halfMs).ceil();
-      name = 'Bars $first-${math.max(first, last)}';
+    if (section != null && displayBars != null && bars > 0) {
+      final first = displayBars.first;
+      name = 'Bars $first-${first + bars - 1}';
     }
     final subtitle = region.skip
         ? 'Skipped'
-        : region.lengthMs < (widget.view.grid?.barMs ?? 2000)
+        : region.lengthMs < (grid?.barMs ?? 2000)
         ? '⚠ ${(region.lengthMs / 1000).toStringAsFixed(1)} s'
         : bars > 0
         ? '$bars bars'

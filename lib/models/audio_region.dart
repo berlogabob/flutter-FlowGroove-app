@@ -25,16 +25,31 @@ class AudioGrid {
 
   final double bpm;
 
-  /// Where bar 1 beat 1 lands in the file.
+  /// The saved grid's downbeat anchor in the file.
   final int offsetMs;
   final int beatsPerBar;
 
   double get barMs => 60000 / bpm * beatsPerBar;
 
-  /// Zero-based bar position of [ms]; negative before the first downbeat.
+  /// The first downbeat at or after the file start, used for display numbering.
+  double get firstDownbeatMs => offsetMs % barMs;
+
+  /// Zero-based bar position of [ms] relative to the saved anchor.
   double barAt(int ms) => (ms - offsetMs) / barMs;
 
   int msOfBar(num bar) => (offsetMs + bar * barMs).round();
+
+  /// The first display bar and number of downbeats in `[startMs, endMs)`.
+  ({int first, int count}) displayBarsIn(int startMs, int endMs) {
+    final length = barMs;
+    if (!length.isFinite || length <= 0) return (first: 1, count: 0);
+    final origin = firstDownbeatMs;
+    // A boundary within 1/8 bar of a downbeat assigns it to the next range.
+    int boundary(int ms) =>
+        math.max(0, ((ms - origin) / length - 1 / 8).ceil());
+    final start = boundary(startMs);
+    return (first: start + 1, count: math.max(0, boundary(endMs) - start));
+  }
 
   /// Nearest bar line to [ms], kept inside the file.
   int snap(int ms, {required int durationMs}) =>
