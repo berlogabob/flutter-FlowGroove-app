@@ -162,7 +162,7 @@ class SetlistBpmSlot extends StatelessWidget {
   final int? bpm;
   final Color? color;
 
-  static const width = 40.0;
+  static const width = 32.0;
 
   @override
   Widget build(BuildContext context) {
