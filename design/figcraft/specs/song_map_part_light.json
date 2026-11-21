@@ -4,38 +4,172 @@
   "mode": "light",
   "source": "lib/screens/practice_regions_screen.dart",
   "slot": 5,
-  "pad": [12, 16, 12, 16],
+  "pad": [
+    12,
+    16,
+    12,
+    16
+  ],
   "gap": 8,
   "top": [
-    {"t": "appbar", "v": "Inocente", "actions": [{"t": "chip", "v": "170 BPM ✓"}, {"t": "iconbtn", "v": "edit"}]}
+    {
+      "t": "appbar",
+      "v": "Inocente",
+      "actions": [
+        {
+          "t": "chip",
+          "v": "170 BPM ✓"
+        },
+        {
+          "t": "iconbtn",
+          "v": "edit"
+        }
+      ]
+    }
   ],
   "body": [
-    {"t": "breadcrumb", "items": ["Song", "Chorus 1", "b"]},
-    {"t": "minimap", "sections": [{"color": "section1", "w": 58}, {"color": "section5", "w": 180}, {"color": "section7", "w": 130}], "viewport": [142, 60]},
-    {"t": "row", "gap": 8, "cross": "center", "c": [
-      {"t": "text", "v": "PART b", "style": "labelSmall", "color": "textSecondary"},
-      {"t": "text", "v": "Bars 22–25 · 4 bars", "style": "labelMedium", "color": "textPrimary"}
-    ]},
-    {"t": "beatgrid", "beats": 4, "bars": 4},
-    {"t": "row", "gap": 8, "cross": "center", "main": "spaceBetween", "c": [
-      {"t": "text", "v": "Boundary nudge", "style": "labelMedium", "color": "textPrimary"},
-      {"t": "row", "gap": 4, "cross": "center", "c": [
-        {"t": "iconbtn", "v": "arrow_left", "size": 32},
-        {"t": "text", "v": "beat", "style": "labelSmall", "color": "textSecondary"},
-        {"t": "iconbtn", "v": "arrow_right", "size": 32}
-      ]}
-    ]},
-    {"t": "button", "v": "Listen across", "kind": "secondary", "icon": "headphones"},
-    {"t": "section", "v": "Parts", "action": "Range"},
-    {"t": "row", "gap": 8, "c": [
-      {"t": "pad", "label": "Part a", "sub": "4 bars · Bars 18–21", "color": "section5", "w": 186},
-      {"t": "pad", "label": "Part b", "sub": "4 bars · Bars 22–25", "color": "section5", "state": "selected", "w": 186}
-    ]},
-    {"t": "row", "gap": 8, "c": [
-      {"t": "pad", "label": "Part a2", "sub": "4 bars · Bars 26–29", "color": "section5", "w": 186}
-    ]}
+    {
+      "t": "breadcrumb",
+      "items": [
+        "Song",
+        "Chorus 1",
+        "b"
+      ]
+    },
+    {
+      "t": "minimap",
+      "sections": [
+        {
+          "color": "section1",
+          "w": 58
+        },
+        {
+          "color": "section5",
+          "w": 180
+        },
+        {
+          "color": "section7",
+          "w": 130
+        }
+      ],
+      "viewport": [
+        142,
+        60
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "cross": "center",
+      "c": [
+        {
+          "t": "text",
+          "v": "PART b",
+          "style": "labelSmall",
+          "color": "textSecondary"
+        },
+        {
+          "t": "text",
+          "v": "Bars 22–25 · 4 bars",
+          "style": "labelMedium",
+          "color": "textPrimary"
+        }
+      ]
+    },
+    {
+      "t": "beatgrid",
+      "beats": 4,
+      "bars": 4
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "cross": "center",
+      "main": "spaceBetween",
+      "c": [
+        {
+          "t": "text",
+          "v": "Boundary nudge",
+          "style": "labelMedium",
+          "color": "textPrimary"
+        },
+        {
+          "t": "row",
+          "gap": 4,
+          "cross": "center",
+          "c": [
+            {
+              "t": "iconbtn",
+              "v": "arrow_left",
+              "size": 32
+            },
+            {
+              "t": "text",
+              "v": "beat",
+              "style": "labelSmall",
+              "color": "textSecondary"
+            },
+            {
+              "t": "iconbtn",
+              "v": "arrow_right",
+              "size": 32
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "t": "button",
+      "v": "Listen across",
+      "kind": "secondary",
+      "icon": "headphones"
+    },
+    {
+      "t": "section",
+      "v": "Parts",
+      "action": "Range"
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part a",
+          "sub": "4 bars · Bars 18–21",
+          "color": "section5",
+          "w": 186
+        },
+        {
+          "t": "pad",
+          "label": "Part b",
+          "sub": "4 bars · Bars 22–25",
+          "color": "section5",
+          "state": "selected",
+          "w": 186
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part a2",
+          "sub": "4 bars · Bars 26–29",
+          "color": "section5",
+          "w": 186
+        }
+      ]
+    }
   ],
   "bottom": [
-    {"t": "transport", "speed": 100, "loop": true, "click": true}
+    {
+      "t": "transport",
+      "speed": 100,
+      "loop": true,
+      "click": true
+    }
   ]
 }

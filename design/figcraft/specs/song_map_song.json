@@ -1,5 +1,5 @@
 {
-  "name": "Song Map \u00b7 SONG",
+  "name": "Song Map · SONG",
   "page": "Song Map",
   "mode": "dark",
   "source": "lib/screens/practice_regions_screen.dart",
@@ -18,7 +18,7 @@
       "actions": [
         {
           "t": "chip",
-          "v": "170 BPM \u2713"
+          "v": "170 BPM ✓"
         },
         {
           "t": "iconbtn",
@@ -55,7 +55,7 @@
           "name": "Intro",
           "letter": "A",
           "color": "section1",
-          "w": 36,
+          "w": 25.983,
           "state": "confirmed"
         },
         {
@@ -63,7 +63,7 @@
           "name": "Part B 1",
           "letter": "B",
           "color": "section2",
-          "w": 36,
+          "w": 25.983,
           "state": "confirmed"
         },
         {
@@ -71,7 +71,7 @@
           "name": "Chorus 1",
           "letter": "C",
           "color": "section3",
-          "w": 36,
+          "w": 38.974,
           "state": "playing"
         },
         {
@@ -79,7 +79,7 @@
           "name": "Part D 1",
           "letter": "D",
           "color": "section4",
-          "w": 36,
+          "w": 51.966,
           "state": "confirmed"
         },
         {
@@ -87,7 +87,7 @@
           "name": "Part E 1",
           "letter": "E",
           "color": "section5",
-          "w": 36,
+          "w": 25.983,
           "state": "confirmed"
         },
         {
@@ -95,7 +95,7 @@
           "name": "Chorus 2",
           "letter": "C",
           "color": "section3",
-          "w": 36,
+          "w": 38.974,
           "state": "confirmed"
         },
         {
@@ -103,7 +103,7 @@
           "name": "Part D 2",
           "letter": "D",
           "color": "section4",
-          "w": 36,
+          "w": 51.966,
           "state": "confirmed"
         },
         {
@@ -111,7 +111,7 @@
           "name": "Bridge 1",
           "letter": "F",
           "color": "section6",
-          "w": 36,
+          "w": 38.974,
           "state": "confirmed"
         },
         {
@@ -119,7 +119,7 @@
           "name": "Bridge 2",
           "letter": "F",
           "color": "section6",
-          "w": 36,
+          "w": 12.991,
           "state": "confirmed"
         },
         {
@@ -127,13 +127,13 @@
           "name": "Part D 3",
           "letter": "D",
           "color": "section4",
-          "w": 36,
+          "w": 68.206,
           "state": "confirmed"
         }
       ]
     },
     {
-      "t": "box",
+      "t": "wave",
       "name": "Waveform",
       "w": "fill",
       "h": 92,
@@ -167,7 +167,7 @@
         {
           "t": "pad",
           "label": "Intro",
-          "sub": "Section",
+          "sub": "8 bars",
           "color": "section1",
           "w": 186,
           "state": "idle",
@@ -176,7 +176,7 @@
         {
           "t": "pad",
           "label": "Part B 1",
-          "sub": "Section",
+          "sub": "8 bars",
           "color": "section2",
           "w": 186,
           "state": "idle",
@@ -191,7 +191,7 @@
         {
           "t": "pad",
           "label": "Chorus 1",
-          "sub": "Section",
+          "sub": "12 bars",
           "color": "section3",
           "w": 186,
           "state": "playing",
@@ -200,7 +200,7 @@
         {
           "t": "pad",
           "label": "Part D 1",
-          "sub": "Section",
+          "sub": "16 bars",
           "color": "section4",
           "w": 186,
           "state": "idle",
@@ -215,7 +215,7 @@
         {
           "t": "pad",
           "label": "Part E 1",
-          "sub": "Section",
+          "sub": "8 bars",
           "color": "section5",
           "w": 186,
           "state": "idle",
@@ -224,7 +224,7 @@
         {
           "t": "pad",
           "label": "Chorus 2",
-          "sub": "Section",
+          "sub": "12 bars",
           "color": "section3",
           "w": 186,
           "state": "idle",
@@ -239,7 +239,7 @@
         {
           "t": "pad",
           "label": "Part D 2",
-          "sub": "Section",
+          "sub": "16 bars",
           "color": "section4",
           "w": 186,
           "state": "idle",
@@ -248,7 +248,7 @@
         {
           "t": "pad",
           "label": "Bridge 1",
-          "sub": "Section",
+          "sub": "12 bars",
           "color": "section6",
           "w": 186,
           "state": "idle",
@@ -263,7 +263,7 @@
         {
           "t": "pad",
           "label": "Bridge 2",
-          "sub": "Section",
+          "sub": "4 bars",
           "color": "section6",
           "w": 186,
           "state": "idle",
@@ -272,7 +272,7 @@
         {
           "t": "pad",
           "label": "Part D 3",
-          "sub": "Section",
+          "sub": "21 bars",
           "color": "section4",
           "w": 186,
           "state": "idle",

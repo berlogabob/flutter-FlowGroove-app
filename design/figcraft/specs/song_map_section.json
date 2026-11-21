@@ -18,7 +18,7 @@
       "actions": [
         {
           "t": "chip",
-          "v": "170 BPM \u2713"
+          "v": "170 BPM ✓"
         },
         {
           "t": "iconbtn",
@@ -69,14 +69,14 @@
         },
         {
           "t": "text",
-          "v": "Bars 18\u201330",
+          "v": "Bars 18–30",
           "style": "labelMedium",
           "color": "textPrimary"
         }
       ]
     },
     {
-      "t": "box",
+      "t": "wave",
       "name": "Waveform",
       "w": "fill",
       "h": 72,
@@ -136,7 +136,7 @@
       "c": [
         {
           "t": "text",
-          "v": "Bar 26 \u00b7 0:47.1",
+          "v": "Bar 26 · 0:47.1",
           "style": "labelMedium",
           "color": "textPrimary"
         },
@@ -188,14 +188,14 @@
         {
           "t": "pad",
           "label": "Whole section",
-          "sub": "12 bars \u00b7 Chorus 1",
+          "sub": "12 bars · Chorus 1",
           "color": "section5",
           "w": 186
         },
         {
           "t": "pad",
           "label": "Part a",
-          "sub": "4 bars \u00b7 Bars 18\u201321",
+          "sub": "4 bars · Bars 18–21",
           "color": "section5",
           "w": 186
         }
@@ -208,7 +208,7 @@
         {
           "t": "pad",
           "label": "Part b",
-          "sub": "4 bars \u00b7 Bars 22\u201325",
+          "sub": "4 bars · Bars 22–25",
           "color": "section5",
           "state": "queued",
           "w": 186
@@ -216,7 +216,7 @@
         {
           "t": "pad",
           "label": "Part a2",
-          "sub": "4 bars \u00b7 Bars 26\u201329",
+          "sub": "4 bars · Bars 26–29",
           "color": "section5",
           "w": 186
         }

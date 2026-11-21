@@ -67,6 +67,7 @@ Defaults: in a column, children fill the width; in a row, they hug.
 | `divider` | `color` | 1 px line |
 | `spacer` | `size` (px) or nothing (flex) | gap / Spacer() |
 | `box` | `w`, `h`, `bg`, `radius`, `circle`, `border` | plain rectangle (waveforms, images, placeholders) |
+| `wave` | `w` (defaults to `fill`), `h` (defaults to 72), `radius` (defaults to 8) | A surfaceRaised waveform with 64 thin `textSecondary` bars whose heights come from a fixed seed. |
 | `appbar` | `v` title, `sub`, `back` (default true), `leading` icon, `actions` (icon names or nodes), `style` | AppBar, headlineLarge title |
 | `bottomnav` | `sel` (Home/Songs/Bands/Setlists/More) | main shell tab bar (top-level tab screens) |
 | `actionbar` | `primary` label, `icon` | pushed screens' bottom bar: Back, primary action, Menu |
@@ -81,7 +82,7 @@ spec renders in the other theme by changing `mode` to `dark`.
 | `t` | Keys | Rendering |
 |---|---|---|
 | `pad` | `label`, `sub`, `color` (stripe token, defaults to `section1`), `state` (idle, selected, playing, queued, disabled), `progress` (0..1, defaults to 0), optional numeric `w` (180 px) | Idle has a 6 px stripe. Selected has a 3 px `textPrimary` border. Playing has an `accentOrange` fill, charcoal text, play icon and 4 px bottom progress bar. Queued has a 3 px `accentOrange` border and a “next” label. Disabled uses 38% opacity. |
-| `secblock` | `name` (visible section name), `letter`, `color` (defaults to `section1`), numeric `w` (112 px), `state` (confirmed, candidate, selected, playing) | Tinted section block. Candidate borders are dashed. Selected has a 3 px `textPrimary` outline. Playing has a 3 px `accentOrange` outline and a darker tint. |
+| `secblock` | `name`, `letter`, `color` (defaults to `section1`), numeric `w` (112 px), `state` (confirmed, candidate, selected, playing) | Tinted section block. At 64 px or wider, its label is the full name; below 64 px it shows only the letter. Candidate borders are dashed. Selected has a 3 px `textPrimary` outline. Playing has a 3 px `accentOrange` outline and a darker tint. |
 | `partblock` | `letter`, `bars` (defaults to 4), numeric `w` (80 px), optional `color`, `state` | Same states as `secblock`, with a bar count as the label. |
 | `boundary` | `state` (confirmed, candidate, selected), optional `h` (72 px) | Seam handle with a dashed stem for candidates. Use `overlay` to place it over the timeline. |
 | `playhead` | Optional `h` (72 px) | Orange playback marker. Set its position with the screen's `overlay` coordinates. |

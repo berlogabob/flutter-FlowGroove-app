@@ -10,7 +10,7 @@ FigCraft must run with its control channel:
   python3 design/figcraft/build.py dryrun           # validate all commands without FigCraft
 Spec format: design/figcraft/SPEC.md
 """
-import glob, json, os, re, socket, subprocess, sys
+import glob, json, os, random, re, socket, subprocess, sys
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 from contrast import matrix as contrast_matrix
@@ -931,9 +931,12 @@ def m_secblock(e, n, parent, pdir):
     if state == "playing":
         e.create("rectangle", r, "Playing tint", {"absolute": True, "x": 3, "y": 3, "height": 42,
                                                  "width": max(1, w - 6), "fill": color("charcoal"), "opacity": .12})
-    for layer, value, style in (("Letter", n.get("letter", ""), "labelSmall"),
-                                ("Label", block_label(n), "bodySmall")):
-        m_text(e, {"name": layer, "v": value, "style": style, "maxLines": 1}, r, "v")
+    if part:
+        for layer, value, style in (("Letter", n.get("letter", ""), "labelSmall"),
+                                    ("Label", block_label(n), "bodySmall")):
+            m_text(e, {"name": layer, "v": value, "style": style, "maxLines": 1}, r, "v")
+    else:
+        m_text(e, {"name": "Label", "v": block_label(n), "style": "bodySmall", "maxLines": 1}, r, "v")
     return r
 
 
@@ -941,7 +944,18 @@ def block_label(n):
     if n["t"] == "partblock":
         bars = n.get("bars", 4)
         return f"{bars} bar" if bars == 1 else f"{bars} bars"
-    return n.get("name", "")
+    return n.get("name", "") if n.get("w", 112) >= 64 else n.get("letter", "")
+
+
+def m_wave(e, n, parent, pdir):
+    height = n.get("h", 72)
+    rng = random.Random(7)
+    bars = [{"t": "box", "name": f"Wave {i + 1}", "w": 2,
+             "h": max(3, round(height * rng.uniform(.12, .9))), "bg": "textSecondary"}
+            for i in range(64)]
+    return m_container("h")(e, {"name": n.get("name", "Waveform"), "w": n.get("w", "fill"),
+                                 "h": height, "gap": 2, "cross": "center", "main": "spaceBetween",
+                                 "bg": "surfaceRaised", "radius": n.get("radius", 8), "c": bars}, parent, pdir)
 
 
 def timeline_marker(e, n, parent, pdir, name, ink, tip, dashes=False):
@@ -1071,7 +1085,7 @@ MACROS = {
     "appbar": m_appbar, "bottomnav": m_bottomnav, "actionbar": m_actionbar, "fab": m_fab,
     "sheet": m_sheet, "dialog": m_dialog, "raw": m_raw, "tab": m_tab, "segment": m_segment,
     "navitem": m_navitem, "statusbar": m_statusbar,
-    "pad": m_pad, "secblock": m_secblock, "partblock": m_secblock, "boundary": m_boundary,
+    "pad": m_pad, "secblock": m_secblock, "partblock": m_secblock, "wave": m_wave, "boundary": m_boundary,
     "playhead": m_playhead, "minimap": m_minimap, "ruler": m_ruler, "beatgrid": m_beatgrid,
     "breadcrumb": m_breadcrumb, "transport": m_transport,
 }
@@ -1486,7 +1500,10 @@ def i_secblock(n, pdir):
     over = {"Tint": {"fill": color(n.get("color", "section1")), "width": tint_w}}
     if state == "playing":
         over["Playing tint"] = {"width": tint_w}
-    return dict(v={"State": state.title()}, p={"Letter": str(n.get("letter", "")), "Label": str(block_label(n))},
+    p = {"Label": str(block_label(n))}
+    if n["t"] == "partblock":
+        p["Letter"] = str(n.get("letter", ""))
+    return dict(v={"State": state.title()}, p=p,
                 over=over, w=default_w, h=48)
 
 
@@ -1524,7 +1541,7 @@ def song_map_component(name, t, inst, sample=None, states=None, labels=(), slot=
 song_map_component("Pad", "pad", i_pad, {"label": "Chorus 1", "sub": "16 bars", "progress": .4},
                    PAD_STATES, ("Label", "Subtitle"), main_w=180)
 song_map_component("SectionBlock", "secblock", i_secblock, {"name": "Chorus 1", "letter": "C"},
-                   BLOCK_STATES, ("Letter", "Label"), main_w=112)
+                   BLOCK_STATES, ("Label",), main_w=112)
 song_map_component("PartBlock", "partblock", i_secblock, {"letter": "b", "bars": 4},
                    BLOCK_STATES, ("Letter", "Label"), main_w=80)
 song_map_component("Boundary", "boundary", i_boundary, states=BOUNDARY_STATES, main_w=16)
