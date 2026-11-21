@@ -60,6 +60,7 @@ Full plan: ~/.claude/plans/clever-baking-axolotl.md. Order: 1 → 3.1–3.3 → 
 - [x] Song Map inside-section specs: MPC rework with overview, Chorus 1 zoomwave, ‹ Song/Shift/Chop/Range keys, selected part b pads, caption and stopped transport in Dark and Light.
 - [x] Song Map PART screen specs: Chorus 1 part b, minimap, four-bar beat grid, beat boundary nudge, Listen across and part pads in Dark and Light.
 - [x] Song Map PLAYING + RANGE screen specs: range selection from Part B 1 through Chorus 1, with Chorus 1 playing and Part D 1 queued, in Dark and Light.
+- [x] Song Map CHOP WHILE PLAYING specs: dashed cut at bar 37 in the Part D 1 overview and zoom, lit Chop key, section pads, snackbar and playing transport in Dark and Light.
 - [x] Song Map REVIEW screen specs: candidate sections after Analyze, with sheet-less replacement and tempo banners in Dark and Light.
 - [x] SD7 review of the Song Map frames, and SD8 fixes: section widths proportional to bars, letter label below 64 dp, pad subtitle = bar count, waveform shape, Range at Song level. Code followed in `docs/plans/song-map/` (C1–C14), released in 0.35.0+379.
 - [x] MPC rework components (overview, zoomwave, key)

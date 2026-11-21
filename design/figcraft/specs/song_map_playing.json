@@ -1,14 +1,14 @@
 {
-  "name": "Song Map · PLAYING + RANGE (Dark)",
+  "name": "Song Map \u00b7 Chop",
   "page": "Song Map",
   "mode": "dark",
   "source": "lib/screens/practice_regions_screen.dart",
-  "slot": 8,
+  "slot": 9,
   "pad": [
-    12,
-    16,
-    12,
-    16
+    8,
+    8,
+    8,
+    8
   ],
   "gap": 8,
   "top": [
@@ -18,147 +18,135 @@
       "actions": [
         {
           "t": "chip",
-          "v": "170 BPM ✓"
+          "v": "170 BPM \u2713"
         },
         {
           "t": "iconbtn",
-          "v": "edit"
+          "v": "more_vert"
         }
       ]
     }
   ],
   "body": [
     {
+      "t": "overview",
+      "sections": [
+        {
+          "letter": "A",
+          "color": "section1",
+          "bars": 9,
+          "state": "confirmed"
+        },
+        {
+          "letter": "B",
+          "color": "section2",
+          "bars": 8,
+          "state": "confirmed"
+        },
+        {
+          "letter": "C",
+          "color": "section3",
+          "bars": 12,
+          "state": "confirmed"
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 16,
+          "state": "playing"
+        },
+        {
+          "letter": "E",
+          "color": "section5",
+          "bars": 8,
+          "state": "confirmed"
+        },
+        {
+          "letter": "C",
+          "color": "section3",
+          "bars": 12,
+          "state": "confirmed"
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 16,
+          "state": "confirmed"
+        },
+        {
+          "letter": "F",
+          "color": "section6",
+          "bars": 12,
+          "state": "confirmed"
+        },
+        {
+          "letter": "F",
+          "color": "section6",
+          "bars": 4,
+          "state": "confirmed"
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 21,
+          "state": "confirmed"
+        }
+      ],
+      "cuts": [
+        0.31
+      ]
+    },
+    {
+      "t": "zoomwave",
+      "title": "D \u00b7 Part D 1",
+      "color": "section4",
+      "parts": [
+        {
+          "letter": "a",
+          "bars": 8
+        },
+        {
+          "letter": "b",
+          "bars": 8
+        }
+      ],
+      "startBar": 30,
+      "cut": 0.44,
+      "cutLabel": "bar 37",
+      "playhead": 0.45
+    },
+    {
       "t": "row",
-      "main": "spaceBetween",
+      "gap": 8,
       "cross": "center",
       "c": [
         {
           "t": "text",
-          "v": "SONG",
-          "style": "labelLarge",
-          "color": "textSecondary"
+          "v": "Sections",
+          "style": "titleMedium",
+          "w": "fill"
         },
         {
-          "t": "badge",
-          "v": "10 sections",
-          "icon": "queue_music"
+          "t": "key",
+          "v": "Shift"
+        },
+        {
+          "t": "key",
+          "v": "Chop",
+          "icon": "content_cut",
+          "lit": true
+        },
+        {
+          "t": "key",
+          "v": "Range"
         }
       ]
     },
     {
-      "t": "row",
-      "gap": 2,
-      "c": [
-        {
-          "t": "secblock",
-          "name": "Intro",
-          "letter": "A",
-          "color": "section1",
-          "w": 25.983,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Part B 1",
-          "letter": "B",
-          "color": "section2",
-          "w": 25.983,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Chorus 1",
-          "letter": "C",
-          "color": "section3",
-          "w": 38.974,
-          "state": "playing"
-        },
-        {
-          "t": "secblock",
-          "name": "Part D 1",
-          "letter": "D",
-          "color": "section4",
-          "w": 51.966,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Part E 1",
-          "letter": "E",
-          "color": "section5",
-          "w": 25.983,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Chorus 2",
-          "letter": "C",
-          "color": "section3",
-          "w": 38.974,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Part D 2",
-          "letter": "D",
-          "color": "section4",
-          "w": 51.966,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Bridge 1",
-          "letter": "F",
-          "color": "section6",
-          "w": 38.974,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Bridge 2",
-          "letter": "F",
-          "color": "section6",
-          "w": 12.991,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Part D 3",
-          "letter": "D",
-          "color": "section4",
-          "w": 68.206,
-          "state": "confirmed"
-        }
-      ]
-    },
-    {
-      "t": "wave",
-      "name": "Waveform",
-      "w": "fill",
-      "h": 92,
-      "bg": "surfaceRaised",
-      "radius": 8
-    },
-    {
-      "t": "ruler",
-      "labels": [
-        1,
-        9,
-        17,
-        25,
-        33,
-        41,
-        49,
-        57,
-        65,
-        73
-      ]
-    },
-    {
-      "t": "section",
-      "v": "Sections",
-      "action": "Range: Part B 1–Chorus 1"
+      "t": "text",
+      "v": "Chop cuts on the nearest bar while playing. Shift + Chop removes the nearest cut.",
+      "style": "caption",
+      "color": "textSecondary"
     },
     {
       "t": "row",
@@ -167,20 +155,22 @@
         {
           "t": "pad",
           "label": "Intro",
-          "sub": "8 bars",
+          "sub": "9 bars",
+          "letter": "A",
           "color": "section1",
-          "w": 186,
           "state": "idle",
-          "progress": 0
+          "progress": 0,
+          "w": 186
         },
         {
           "t": "pad",
           "label": "Part B 1",
           "sub": "8 bars",
+          "letter": "B",
           "color": "section2",
-          "w": 186,
-          "state": "selected",
-          "progress": 0
+          "state": "idle",
+          "progress": 0,
+          "w": 186
         }
       ]
     },
@@ -192,19 +182,21 @@
           "t": "pad",
           "label": "Chorus 1",
           "sub": "12 bars",
+          "letter": "C",
           "color": "section3",
-          "w": 186,
-          "state": "playing",
-          "progress": 0.62
+          "state": "idle",
+          "progress": 0,
+          "w": 186
         },
         {
           "t": "pad",
           "label": "Part D 1",
           "sub": "16 bars",
+          "letter": "D",
           "color": "section4",
-          "w": 186,
-          "state": "idle",
-          "progress": 0
+          "state": "playing",
+          "progress": 0.45,
+          "w": 186
         }
       ]
     },
@@ -216,19 +208,21 @@
           "t": "pad",
           "label": "Part E 1",
           "sub": "8 bars",
+          "letter": "E",
           "color": "section5",
-          "w": 186,
           "state": "idle",
-          "progress": 0
+          "progress": 0,
+          "w": 186
         },
         {
           "t": "pad",
           "label": "Chorus 2",
           "sub": "12 bars",
+          "letter": "C",
           "color": "section3",
-          "w": 186,
           "state": "idle",
-          "progress": 0
+          "progress": 0,
+          "w": 186
         }
       ]
     },
@@ -240,19 +234,21 @@
           "t": "pad",
           "label": "Part D 2",
           "sub": "16 bars",
+          "letter": "D",
           "color": "section4",
-          "w": 186,
           "state": "idle",
-          "progress": 0
+          "progress": 0,
+          "w": 186
         },
         {
           "t": "pad",
           "label": "Bridge 1",
           "sub": "12 bars",
+          "letter": "F",
           "color": "section6",
-          "w": 186,
           "state": "idle",
-          "progress": 0
+          "progress": 0,
+          "w": 186
         }
       ]
     },
@@ -264,19 +260,21 @@
           "t": "pad",
           "label": "Bridge 2",
           "sub": "4 bars",
+          "letter": "F",
           "color": "section6",
-          "w": 186,
           "state": "idle",
-          "progress": 0
+          "progress": 0,
+          "w": 186
         },
         {
           "t": "pad",
           "label": "Part D 3",
           "sub": "21 bars",
+          "letter": "D",
           "color": "section4",
-          "w": 186,
           "state": "idle",
-          "progress": 0
+          "progress": 0,
+          "w": 186
         }
       ]
     }
@@ -286,16 +284,36 @@
       "t": "transport",
       "speed": 75,
       "loop": true,
-      "playing": true
+      "click": true,
+      "playing": true,
+      "countIn": true,
+      "drums": true
     }
   ],
   "overlay": [
     {
-      "x": 88,
-      "y": 130,
+      "x": 16,
+      "y": 748,
       "node": {
-        "t": "playhead",
-        "h": 120
+        "t": "card",
+        "dir": "h",
+        "name": "Cut snackbar",
+        "bg": "surfaceOverlay",
+        "radius": 8,
+        "pad": [
+          12,
+          16,
+          12,
+          16
+        ],
+        "c": [
+          {
+            "t": "text",
+            "v": "Cut at bar 37 \u00b7 Undo",
+            "style": "bodyMedium",
+            "w": "fill"
+          }
+        ]
       }
     }
   ]
