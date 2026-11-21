@@ -1083,42 +1083,6 @@ final tunerProvider = NotifierProvider<TunerNotifier, TunerState>(
   TunerNotifier.new,
 );
 
-final tunerModeProvider = Provider<TunerMode>(
-  (ref) => ref.watch(tunerProvider).mode,
-);
-final tunerFrequencyProvider = Provider<double>(
-  (ref) => ref.watch(tunerProvider).frequency,
-);
-final tunerNoteProvider = Provider<String>(
-  (ref) => ref.watch(tunerProvider).note,
-);
 final tunerCentsProvider = Provider<int>(
   (ref) => ref.watch(tunerProvider).cents,
-);
-final tunerIsPlayingProvider = Provider<bool>(
-  (ref) => ref.watch(tunerProvider).isPlaying,
-);
-final tunerIsListeningProvider = Provider<bool>(
-  (ref) => ref.watch(tunerProvider).isListening,
-);
-final selectedInstrumentProvider = Provider<Instrument?>(
-  (ref) => ref.watch(tunerProvider).selectedInstrument,
-);
-final selectedTuningProvider = Provider<Tuning?>(
-  (ref) => ref.watch(tunerProvider).selectedTuning,
-);
-final detectionModeProvider = Provider<DetectionMode>(
-  (ref) => ref.watch(tunerProvider).detectionMode,
-);
-final manualTargetStringIndexProvider = Provider<int?>(
-  (ref) => ref.watch(tunerProvider).manualTargetStringIndex,
-);
-final customTuningsProvider = Provider<List<Tuning>>(
-  (ref) => ref.watch(tunerProvider).customTunings,
-);
-final stageModeActiveProvider = Provider<bool>(
-  (ref) => ref.watch(tunerProvider).stageModeActive,
-);
-final stageModeEnabledProvider = Provider<bool>(
-  (ref) => ref.watch(tunerProvider).stageModeEnabled,
 );

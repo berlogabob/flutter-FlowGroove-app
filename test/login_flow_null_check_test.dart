@@ -81,20 +81,6 @@ void main() {
       expect(appUserAsync.value, isNull);
     });
 
-    test('LOGIN-006: Verifies count providers handle null user', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-
-      // Read count providers - should return 0 when user is null
-      final songCount = container.read(songCountProvider);
-      final bandCount = container.read(bandCountProvider);
-      final setlistCount = container.read(setlistCountProvider);
-
-      // ASSERT: Should return 0 when no user is logged in
-      expect(songCount, equals(0));
-      expect(bandCount, equals(0));
-      expect(setlistCount, equals(0));
-    });
   });
 
   group('Null Check Error Root Cause Analysis', () {

@@ -7,5 +7,3 @@ enum MetronomePlaybackPhase {
   pausedByLifecycle,
   error,
 }
-
-enum MetronomeEngineMode { pcmTimeline, legacy }

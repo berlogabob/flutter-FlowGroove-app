@@ -105,6 +105,3 @@ const List<MusicMode> allMusicModes = [
     description: 'Classic blues scale',
   ),
 ];
-
-/// Default mode index (Chromatic)
-const int defaultModeIndex = 0;

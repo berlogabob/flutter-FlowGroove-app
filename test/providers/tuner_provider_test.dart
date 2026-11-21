@@ -582,35 +582,11 @@ void main() {
     });
 
     group('Derived Providers', () {
-      test('tunerModeProvider returns current mode', () {
-        final mode = container.read(tunerModeProvider);
-        expect(mode, TunerMode.listen);
-      });
-
-      test('tunerFrequencyProvider returns current frequency', () {
-        final frequency = container.read(tunerFrequencyProvider);
-        expect(frequency, 440.0);
-      });
-
-      test('tunerNoteProvider returns current note', () {
-        final note = container.read(tunerNoteProvider);
-        expect(note, 'A4');
-      });
-
       test('tunerCentsProvider returns current cents', () {
         final cents = container.read(tunerCentsProvider);
         expect(cents, 0);
       });
 
-      test('tunerIsPlayingProvider returns playing state', () {
-        final isPlaying = container.read(tunerIsPlayingProvider);
-        expect(isPlaying, isFalse);
-      });
-
-      test('tunerIsListeningProvider returns listening state', () {
-        final isListening = container.read(tunerIsListeningProvider);
-        expect(isListening, isFalse);
-      });
     });
 
     group('NoteData Class', () {
@@ -731,20 +707,5 @@ void main() {
       });
     });
 
-    group('Provider Independence', () {
-      test('tunerProvider works independently of other providers', () {
-        final state = container.read(tunerProvider);
-        expect(state, isNotNull);
-      });
-
-      test('derived providers update with tunerProvider', () {
-        final notifier = container.read(tunerProvider.notifier);
-
-        notifier.updateFrequency(880);
-
-        expect(container.read(tunerFrequencyProvider), 880.0);
-        expect(container.read(tunerProvider).frequency, 880.0);
-      });
-    });
   });
 }

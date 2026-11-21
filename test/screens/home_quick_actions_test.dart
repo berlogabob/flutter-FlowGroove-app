@@ -93,9 +93,6 @@ void main() {
           songsProvider.overrideWith((ref) => Stream.value([])),
           bandsProvider.overrideWith((ref) => Stream.value([])),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
-          songCountProvider.overrideWith((ref) => 0),
-          bandCountProvider.overrideWith((ref) => 0),
-          setlistCountProvider.overrideWith((ref) => 0),
         ],
       );
       await tester.pumpAndSettle();
@@ -126,9 +123,6 @@ void main() {
           songsProvider.overrideWith((ref) => Stream.value([])),
           bandsProvider.overrideWith((ref) => Stream.value([])),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
-          songCountProvider.overrideWith((ref) => 0),
-          bandCountProvider.overrideWith((ref) => 0),
-          setlistCountProvider.overrideWith((ref) => 0),
         ],
       );
       await tester.pumpAndSettle();
@@ -160,9 +154,6 @@ void main() {
           songsProvider.overrideWith((ref) => Stream.value([])),
           bandsProvider.overrideWith((ref) => Stream.value([])),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
-          songCountProvider.overrideWith((ref) => 0),
-          bandCountProvider.overrideWith((ref) => 0),
-          setlistCountProvider.overrideWith((ref) => 0),
         ],
       );
       await tester.pumpAndSettle();

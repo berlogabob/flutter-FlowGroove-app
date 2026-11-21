@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flowgroove/models/band.dart';
-import 'package:flowgroove/models/canonical_song.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
@@ -105,47 +104,6 @@ void main() {
         verify(mockSetlistRepository.watchBandSetlists('band-1')).called(1);
       });
 
-      test('canonicalSongSearchProvider uses repository override', () async {
-        final canonicalRepo = _FakeCanonicalSongRepository([
-          CanonicalSong(
-            id: 'canonical-1',
-            title: 'Bohemian Rhapsody',
-            artist: 'Queen',
-          ),
-        ]);
-
-        final scopedContainer = ProviderContainer(
-          overrides: [
-            canonicalSongRepositoryProvider.overrideWithValue(canonicalRepo),
-          ],
-        );
-        addTearDown(scopedContainer.dispose);
-
-        final result = await scopedContainer.read(
-          canonicalSongSearchProvider('bohemian').future,
-        );
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'canonical-1');
-        expect(canonicalRepo.lastQuery, 'bohemian');
-      });
-
-      test('canonicalSongSearchProvider skips short queries', () async {
-        final canonicalRepo = _FakeCanonicalSongRepository([]);
-        final scopedContainer = ProviderContainer(
-          overrides: [
-            canonicalSongRepositoryProvider.overrideWithValue(canonicalRepo),
-          ],
-        );
-        addTearDown(scopedContainer.dispose);
-
-        final result = await scopedContainer.read(
-          canonicalSongSearchProvider('q').future,
-        );
-
-        expect(result, isEmpty);
-        expect(canonicalRepo.lastQuery, isNull);
-      });
     });
 
     // #91 regression: providers must forward every live-stream emission
@@ -277,76 +235,5 @@ void main() {
         expect(stream, isNotNull);
       });
     });
-
-    group('Count Providers', () {
-      test('songCountProvider returns 0 for empty list', () {
-        final count = container.read(songCountProvider);
-        expect(count, 0);
-      });
-
-      test('bandCountProvider returns 0 for empty list', () {
-        final count = container.read(bandCountProvider);
-        expect(count, 0);
-      });
-
-      test('setlistCountProvider returns 0 for empty list', () {
-        final count = container.read(setlistCountProvider);
-        expect(count, 0);
-      });
-    });
   });
-}
-
-class _FakeCanonicalSongRepository implements CanonicalSongRepository {
-  _FakeCanonicalSongRepository(this.songs);
-
-  final List<CanonicalSong> songs;
-  String? lastQuery;
-
-  @override
-  Future<int> count() async => songs.length;
-
-  @override
-  Future<CanonicalSong> create(CanonicalSong song) async => song;
-
-  @override
-  Future<void> delete(String id) async {}
-
-  @override
-  Future<bool> exists(String id) async => songs.any((song) => song.id == id);
-
-  @override
-  Future<CanonicalSong?> getByISRC(String isrc) async {
-    return songs.where((song) => song.isrc == isrc).firstOrNull;
-  }
-
-  @override
-  Future<CanonicalSong?> getById(String id) async {
-    return songs.where((song) => song.id == id).firstOrNull;
-  }
-
-  @override
-  Future<CanonicalSong?> getByMusicBrainzId(String mbId) async {
-    return songs.where((song) => song.musicBrainzId == mbId).firstOrNull;
-  }
-
-  @override
-  Future<List<CanonicalSong>> search({
-    required String query,
-    int limit = 20,
-  }) async {
-    lastQuery = query;
-    return songs.take(limit).toList();
-  }
-
-  @override
-  Future<List<CanonicalSong>> searchByTitle({
-    required String titlePrefix,
-    int limit = 20,
-  }) async {
-    return songs.take(limit).toList();
-  }
-
-  @override
-  Future<void> update(CanonicalSong song) async {}
 }

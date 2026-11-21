@@ -1,9 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 
-/// Minimum interactive dimension per Material Design spec (48dp).
-/// All tappable UI elements should have at least this width and height.
-const kMinInteractiveDimension = 48.0;
-
 /// Screen breakpoint categories for responsive design.
 enum ScreenBreakpoint { mobile, tablet, desktop }
 

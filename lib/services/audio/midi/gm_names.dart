@@ -130,9 +130,6 @@ const List<String> gmProgramNames = [
   'Gunshot',
 ];
 
-const gmNames = gmProgramNames;
-
-String gmName(int program) => gmProgramName(program);
 
 String gmProgramName(int program) {
   if (program < 0 || program >= gmProgramNames.length) return 'Instrument';

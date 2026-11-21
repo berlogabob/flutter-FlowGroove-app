@@ -713,18 +713,3 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     return result ?? false;
   }
 }
-
-/// Provider for song form error state (derived).
-final songFormErrorProvider = Provider<ApiError?>((ref) {
-  return ref.watch(songFormStateProvider).error;
-});
-
-/// Provider for song form unsaved changes state (derived).
-final songFormHasChangesProvider = Provider<bool>((ref) {
-  return ref.watch(songFormStateProvider).hasUnsavedChanges;
-});
-
-/// Provider for song form saving state (derived).
-final songFormIsSavingProvider = Provider<bool>((ref) {
-  return ref.watch(songFormStateProvider).isSaving;
-});

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../../models/band.dart';
-import '../../models/canonical_song.dart';
 import '../../models/event_suggestion.dart';
 import '../../models/rehearsal.dart';
 import '../../models/setlist.dart';
@@ -179,16 +178,6 @@ final rehearsalFunctionServiceProvider = Provider<RehearsalFunctionService>((
 ) {
   return RehearsalFunctionService();
 });
-
-/// Searches the canonical song catalog by title/artist query.
-final canonicalSongSearchProvider =
-    FutureProvider.family<List<CanonicalSong>, String>((ref, query) async {
-      final normalizedQuery = query.trim();
-      if (normalizedQuery.length < 2) return const [];
-
-      final repo = ref.watch(canonicalSongRepositoryProvider);
-      return repo.search(query: normalizedQuery);
-    });
 
 // Offline support comes from Firestore's built-in persistence (enabled in
 // main.dart), so these providers expose the raw real-time streams. The old
@@ -380,26 +369,6 @@ final bandSongsProvider = StreamProvider.autoDispose.family<List<Song>, String>(
     return songRepo.watchBandSongs(bandId);
   },
 );
-
-/// Provider that returns the count of songs.
-final songCountProvider = Provider<int>((ref) {
-  return ref.watch(songsProvider).whenOrNull(data: (songs) => songs.length) ??
-      0;
-});
-
-/// Provider that returns the count of bands.
-final bandCountProvider = Provider<int>((ref) {
-  return ref.watch(bandsProvider).whenOrNull(data: (bands) => bands.length) ??
-      0;
-});
-
-/// Provider that returns the count of setlists.
-final setlistCountProvider = Provider<int>((ref) {
-  return ref
-          .watch(setlistsProvider)
-          .whenOrNull(data: (setlists) => setlists.length) ??
-      0;
-});
 
 /// Provider that returns the count of shared setlists for a band.
 ///

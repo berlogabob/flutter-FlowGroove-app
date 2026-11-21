@@ -59,57 +59,11 @@ final canEditProvider = Provider<bool>((ref) {
   );
 });
 
-/// Can the current user delete content?
-///
-/// Same as [canEditProvider] for now, but may diverge if we add
-/// a "can edit but not delete" role in the future.
-final canDeleteProvider = Provider<bool>((ref) {
-  return ref.watch(canEditProvider);
-});
-
-/// Can the current user manage band members (add/remove, change roles)?
-///
-/// Requires at least `admin` app-level access AND admin role in the band.
-final canManageMembersProvider = Provider<bool>((ref) {
-  final userAsync = ref.watch(appUserProvider);
-  return userAsync.when(
-    data: (user) => user != null && _canManageMembers(user),
-    loading: () => false,
-    error: (_, _) => false,
-  );
-});
-
-/// Can the current user manage app settings (Firebase config, etc.)?
-///
-/// Only `owner` role.
-final canManageAppProvider = Provider<bool>((ref) {
-  final userAsync = ref.watch(appUserProvider);
-  return userAsync.when(
-    data: (user) =>
-        user != null &&
-        AccessLevel.hasAccess(user.accessRole, AccessLevel.owner),
-    loading: () => false,
-    error: (_, _) => false,
-  );
-});
-
 /// Is the current user in demo mode?
 final isDemoUserProvider = Provider<bool>((ref) {
   final userAsync = ref.watch(appUserProvider);
   return userAsync.when(
     data: (user) => user != null && user.accessRole == AccessLevel.demo,
-    loading: () => false,
-    error: (_, _) => false,
-  );
-});
-
-/// Is the current user an admin or owner?
-final isAdminUserProvider = Provider<bool>((ref) {
-  final userAsync = ref.watch(appUserProvider);
-  return userAsync.when(
-    data: (user) =>
-        user != null &&
-        AccessLevel.hasAccess(user.accessRole, AccessLevel.admin),
     loading: () => false,
     error: (_, _) => false,
   );
@@ -235,10 +189,6 @@ final canManageBandMembersProvider = Provider.autoDispose.family<bool, String>(
 
 bool _canEdit(AppUser user) {
   return user.accessRole != AccessLevel.demo;
-}
-
-bool _canManageMembers(AppUser user) {
-  return AccessLevel.hasAccess(user.accessRole, AccessLevel.admin);
 }
 
 bool _canEditBandIn(String uid, String bandId, List<Band> bands) {

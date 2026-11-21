@@ -20,13 +20,3 @@ final wakelockProvider = Provider<WakelockController>((ref) {
   ref.onDispose(controller.dispose);
   return controller;
 });
-
-/// Provider for wakelock enabled state (boolean).
-///
-/// Watches the wakelock state and rebuilds when it changes.
-final wakelockEnabledProvider = StreamProvider<bool>((ref) async* {
-  // Initial state: not enabled
-  yield false;
-  // Note: wakelock_plus doesn't emit state changes,
-  // so consumers should check controller.isEnabled directly
-});
