@@ -81,8 +81,11 @@ spec renders in the other theme by changing `mode` to `dark`.
 
 | `t` | Keys | Rendering |
 |---|---|---|
-| `pad` | `label`, `sub`, `color` (stripe token, defaults to `section1`), `state` (idle, selected, playing, queued, disabled), `progress` (0..1, defaults to 0), optional numeric `w` (180 px) | Idle has a 6 px stripe. Selected has a 3 px `textPrimary` border. Playing has an `accentOrange` fill, charcoal text, play icon and 4 px bottom progress bar. Queued has a 3 px `accentOrange` border and a “next” label. Disabled uses 38% opacity. |
-| `secblock` | `name`, `letter`, `color` (defaults to `section1`), numeric `w` (112 px), `state` (confirmed, candidate, selected, playing) | Tinted section block. At 64 px or wider, its label is the full name; below 64 px it shows only the letter. Candidate borders are dashed. Selected has a 3 px `textPrimary` outline. Playing has a 3 px `accentOrange` outline and a darker tint. |
+| `overview` | `sections` (list of objects with `letter`, `color`, positive integer `bars`, `state`), optional `playhead` (0..1), optional `cuts` (list of 0..1 fractions) | Full-width 64 px seeded waveform with 20% section tint bands and a 32 px lane with centered letters. The bands and blocks share edges at the same bar positions. Selected and playing have 3 px `textPrimary` and `accentOrange` outlines respectively. Candidate outlines and new cuts are dashed. A 2 px `textPrimary` playhead crosses both rows. |
+| `zoomwave` | `title`, `parts` (list of objects with `letter`, positive integer `bars`, `state`), `startBar` (integer), `color` (defaults to `section1`), optional `playhead` and `cut` (0..1), optional `cutLabel` | Full-width 96 px seeded waveform with a 20% section tint, a proportional parts lane with letters and bar counts, and one number per bar starting at `startBar`. Uses the overview states and playhead. The dashed cut can display a label such as “bar 37”. |
+| `key` | `v` (label), optional `icon` (Material icon name), `lit` (boolean, defaults to false) | 48 px MPC function key with medium radius. Idle uses `surfaceRaised`, a 1 px `borderStrong` outline and `textPrimary` ink. Lit uses `accentOrange` and charcoal ink. |
+| `pad` | `label`, `sub`, optional `letter`, `color` (stripe and badge token, defaults to `section1`), `state` (idle, selected, playing, queued, disabled), `progress` (0..1, defaults to 0), optional numeric `w` (180 px) | A small rounded section-color letter badge precedes the label when supplied. Idle has a 6 px stripe. Selected has a 3 px `textPrimary` border. Playing has an `accentOrange` fill, charcoal text, play icon and 4 px bottom progress bar. Queued has a 3 px `accentOrange` border and a “next” label. Disabled uses 38% opacity. |
+| `secblock` | `name` (optional layer name), `letter`, `color` (defaults to `section1`), numeric `w` (112 px), `state` (confirmed, candidate, selected, playing) | Tinted section block labeled with its letter at every width. Candidate borders are dashed. Selected has a 3 px `textPrimary` outline. Playing has a 3 px `accentOrange` outline and a darker tint. |
 | `partblock` | `letter`, `bars` (defaults to 4), numeric `w` (80 px), optional `color`, `state` | Same states as `secblock`, with a bar count as the label. |
 | `boundary` | `state` (confirmed, candidate, selected), optional `h` (72 px) | Seam handle with a dashed stem for candidates. Use `overlay` to place it over the timeline. |
 | `playhead` | Optional `h` (72 px) | Orange playback marker. Set its position with the screen's `overlay` coordinates. |
@@ -93,9 +96,14 @@ spec renders in the other theme by changing `mode` to `dark`.
 | `transport` | `speed` (percent number or display string, defaults to 100), boolean `loop`, `click`, `playing`, `countIn`, `drums` (all default to false) | Sticky playback controls for the screen's `bottom`. |
 
 The default state is idle for pads and confirmed for section blocks, part blocks and boundaries.
+Overview sections and zoom parts use the block states `confirmed`, `selected`, `playing` and
+`candidate`, with `confirmed` as the default.
 Pad contrast is required in both themes. Playing text needs 4.5:1 on `accentOrange`. The selected
 border, queued border and playing fill each need 3:1 against the idle pad surface. Dark pads use
 `surface` and Light pads use `white` so the orange states clear 3:1.
+Lit key text and letter badge text require 4.5:1 in both modes. Badges use white text on
+`section1` through `section4` and charcoal on `section5` through `section14`. The
+`section1` badge has a 6% charcoal overlay so white text clears 4.5:1.
 
 ## Tokens
 
@@ -156,10 +164,11 @@ Examples: `examples/modal_dialog.json`, `examples/modal_sheet.json`.
 - **Sheet:** variant Docked, Content slot.
 - **Dialog:** Content and Actions slots.
 - **Song Map:** Pad, SectionBlock, PartBlock, Boundary, Playhead, Minimap, Ruler, BeatGrid,
-  Breadcrumb and Transport have Mode (Dark, Light) variants using the MonoPulse collection.
-  Pad, SectionBlock, PartBlock and Boundary also have a State variant. The builder selects
-  the Mode variant from the screen's `mode` key. Pad and block labels are text properties.
-  Minimap, Ruler, BeatGrid, Breadcrumb and Transport use slots populated from their spec data.
+  Breadcrumb, Transport, Overview, ZoomWave and Key have Mode (Dark, Light) variants using the
+  MonoPulse collection. Pad, SectionBlock, PartBlock, Boundary and Key also have a State variant.
+  The builder selects the Mode variant from the screen's `mode` key. Pad, block and key labels
+  are text properties. Minimap, Ruler, BeatGrid, Breadcrumb, Transport, Overview and ZoomWave
+  use slots populated from their spec data.
 
 Labels, titles and icons are text properties. An icon property holds the Material glyph, and the icon layer is renamed `icon/<name>`. Optional parts have `Show …` boolean properties. Spec keys an instance can't express, such as a wrapping card, fall back to plain layers.
 

@@ -9,6 +9,8 @@ TEXT = ("textPrimary", "textHighEmphasis", "textSecondary", "textTertiary", "tex
 BACKGROUNDS = ("black", "blackSurface", "blackElevated", "surface", "surfaceRaised", "surfaceOverlay")
 TEXT_MIN, UI_MIN = 4.5, 3.0
 PAD_SURFACES = {"dark": "surface", "light": "white"}
+BADGE_WHITE_SECTIONS = {"section1", "section2", "section3", "section4"}
+BADGE_SECTION1_SHADE = .06
 # (use, foreground, background, minimum, required). Pad pairs use the rendered pad surface.
 PAIRS = (("UI", "accentOrange", "surface", UI_MIN, False),
          ("UI", "borderSubtle", "surface", UI_MIN, False),
@@ -16,7 +18,10 @@ PAIRS = (("UI", "accentOrange", "surface", UI_MIN, False),
          ("Pad playing text", "charcoal", "accentOrange", TEXT_MIN, True),
          ("Pad selected border", "textPrimary", "padSurface", UI_MIN, True),
          ("Pad queued border", "accentOrange", "padSurface", UI_MIN, True),
-         ("Pad playing fill", "accentOrange", "padSurface", UI_MIN, True))
+         ("Pad playing fill", "accentOrange", "padSurface", UI_MIN, True),
+         ("MPC lit key text", "charcoal", "accentOrange", TEXT_MIN, True)) + tuple(
+             ("Pad letter badge", "white" if token in BADGE_WHITE_SECTIONS else "charcoal", token, TEXT_MIN, True)
+             for token in (f"section{i}" for i in range(1, 15)))
 DECORATIVE_TEXT_PAIRS = {("textTertiary", "blackElevated")}
 
 
@@ -55,7 +60,13 @@ def matrix():
                 rows.append((mode, "Text", fg, bg, contrast, TEXT_MIN, required))
         for use, fg, bg, minimum, required in PAIRS:
             bg = PAD_SURFACES[theme] if bg == "padSurface" else bg
-            contrast = ratio(value(fg, theme), value(bg, theme))
+            background = value(bg, theme)
+            if use == "Pad letter badge" and bg == "section1":
+                shade = BADGE_SECTION1_SHADE
+                background = "#" + "".join(
+                    f"{round(255 * (base * (1 - shade) + ink * shade)):02x}"
+                    for base, ink in zip(_rgb(background), _rgb(value("charcoal", theme))))
+            contrast = ratio(value(fg, theme), background)
             rows.append((mode, use, fg, bg, contrast, minimum, required))
     return rows
 

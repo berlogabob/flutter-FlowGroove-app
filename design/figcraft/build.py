@@ -14,7 +14,7 @@ import glob, json, os, random, re, socket, subprocess, sys
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 from contrast import matrix as contrast_matrix
-from contrast import PAD_SURFACES
+from contrast import BADGE_SECTION1_SHADE, BADGE_WHITE_SECTIONS, PAD_SURFACES
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PORT = int(os.environ.get("FIGCRAFT_PORT", "47321"))
@@ -900,6 +900,15 @@ def m_pad(e, n, parent, pdir):
         if border:
             stripe["h"] = 64
         m_box(e, stripe, r, "h")
+    if n.get("letter"):
+        token = n.get("color", "section1")
+        badge = m_container("h")(e, {"name": "Letter badge", "w": 24, "h": 24, "radius": 8,
+                                    "bg": token, "main": "center", "cross": "center", "clip": True}, r, "h")
+        if token == "section1":
+            e.create("rectangle", badge, "Contrast tint", {"absolute": True, "x": 0, "y": 0,
+                     "width": 24, "height": 24, "fill": color("charcoal"), "opacity": BADGE_SECTION1_SHADE})
+        m_text(e, {"v": n["letter"], "style": "labelSmall",
+                   "color": "white" if token in BADGE_WHITE_SECTIONS else "charcoal"}, badge, "h")
     kids = [{"t": "text", "name": "Label", "v": n.get("label", ""), "style": "labelLarge",
              "color": fg, "maxLines": 1},
             {"t": "text", "name": "Subtitle", "v": n.get("sub", ""), "style": "bodySmall",
@@ -944,7 +953,7 @@ def block_label(n):
     if n["t"] == "partblock":
         bars = n.get("bars", 4)
         return f"{bars} bar" if bars == 1 else f"{bars} bars"
-    return n.get("name", "") if n.get("w", 112) >= 64 else n.get("letter", "")
+    return n.get("letter", "")
 
 
 def m_wave(e, n, parent, pdir):
@@ -955,7 +964,8 @@ def m_wave(e, n, parent, pdir):
             for i in range(64)]
     return m_container("h")(e, {"name": n.get("name", "Waveform"), "w": n.get("w", "fill"),
                                  "h": height, "gap": 2, "cross": "center", "main": "spaceBetween",
-                                 "bg": "surfaceRaised", "radius": n.get("radius", 8), "c": bars}, parent, pdir)
+                                 "bg": n.get("bg", "surfaceRaised"), "radius": n.get("radius", 8), "c": bars},
+                             parent, pdir)
 
 
 def timeline_marker(e, n, parent, pdir, name, ink, tip, dashes=False):
@@ -1076,6 +1086,122 @@ def m_transport(e, n, parent, pdir):
                           h=64, gap=4, pad=8, bg="blackSurface", cross="center")
 
 
+def timeline_content(n):
+    return [{**n, "_timeline_content": True}]
+
+
+def m_timeline(e, n, parent, pdir):
+    zoom = n["t"] == "zoomwave"
+    name = "ZoomWave" if zoom else "Overview"
+    if not n.get("_timeline_content"):
+        return m_song_map_row(e, n, parent, pdir, name, "Timeline", timeline_content)
+
+    blocks = n["parts" if zoom else "sections"]
+    counts = [block["bars"] for block in blocks]
+    if not counts or any(type(count) is not int or count < 1 for count in counts):
+        raise ValueError(f"{name} needs blocks with positive integer bar counts")
+    total = sum(counts)
+    edges = [0]
+    for count in counts:
+        edges.append(edges[-1] + count)
+    edges = [edge / total for edge in edges]
+    cuts = ([n["cut"]] if "cut" in n else []) if zoom else n.get("cuts", [])
+    playheads = [n["playhead"]] if "playhead" in n else []
+    markers = cuts + playheads
+    if any(type(fraction) not in (int, float) or not 0 <= fraction <= 1 for fraction in markers):
+        raise ValueError(f"{name} markers must be between 0 and 1")
+    start_bar = n["startBar"] if zoom else 0
+    if type(start_bar) is not int:
+        raise ValueError("ZoomWave startBar must be an integer")
+    bar_edges = [bar / total for bar in range(total + 1)] if zoom else []
+    stops = sorted(set(edges + bar_edges + markers))
+    columns = {x: i for i, x in enumerate(stops)}
+
+    r = m_container("v")(e, {"name": "Strip", "w": "fill", "c": [
+        {"t": "text", "name": "Title", "v": n["title"], "style": "labelMedium"}
+    ] if zoom else []}, parent, pdir)
+    wave_h, lane_h = (96, 40) if zoom else (64, 32)
+    rows = [wave_h, lane_h] + ([26] if zoom else [])
+    # Every layer uses these tracks, including markers that fall between bar boundaries.
+    grid = e.create("frame", r, "Timeline grid", {"layout": "grid", "sizingH": "fill",
+                    "height": sum(rows), "sizingV": "fixed", "clip": True,
+                    "gridColumns": len(stops) - 1, "gridRows": len(rows),
+                    "columnTracks": [{"sizing": "fill", "value": (b - a) * total}
+                                     for a, b in zip(stops, stops[1:])],
+                    "rowTracks": rows})
+
+    def place(draw, node, left, right, row, row_span=1, **props):
+        start = len(e.cmds)
+        draw(e, node, grid, "v")
+        e.cmds[start]["params"]["props"].update(
+            gridColumn=columns[left], gridColumnSpan=columns[right] - columns[left],
+            gridRow=row, gridRowSpan=row_span, **props)
+
+    def band(left, right, token, opacity=1):
+        place(m_box, {"name": "Tint band" if opacity < 1 else "Wave and lane surface",
+                      "w": "fill", "h": "fill", "bg": token}, left, right, 0, 2, opacity=opacity)
+
+    band(0, 1, "surfaceRaised")
+    if zoom:
+        band(0, 1, n.get("color", "section1"), .2)
+    else:
+        for block, left, right in zip(blocks, edges, edges[1:]):
+            band(left, right, block["color"], .2)
+    place(m_wave, {"h": wave_h, "bg": "none", "radius": 0}, 0, 1, 0)
+
+    for block, left, right in zip(blocks, edges, edges[1:]):
+        state = block.get("state", "confirmed")
+        if state not in ("confirmed", "selected", "playing", "candidate"):
+            raise ValueError(f"{name}: unknown block state {state!r}")
+        labels = [{"t": "text", "v": block["letter"], "style": "labelSmall", "align": "center", "maxLines": 1}]
+        if zoom:
+            labels.append({"t": "text", "v": block_label({"t": "partblock", **block}),
+                           "style": "caption", "align": "center", "maxLines": 1})
+        border = {"selected": "textPrimary", "playing": "accentOrange"}.get(state, "borderStrong")
+        place(m_container("v"), {"name": f"Block {block['letter']}", "w": "fill", "h": lane_h,
+                                 "main": "center", "clip": True, "border": border,
+                                 "borderW": 3 if state in ("selected", "playing") else 1, "c": labels},
+              left, right, 1, **({"dashes": [4, 3]} if state == "candidate" else {}))
+
+    if zoom:
+        for label, left, right in zip(ruler_labels({"labels": range(start_bar, start_bar + total)}),
+                                      bar_edges, bar_edges[1:]):
+            place(m_container("v"), label, left, right, 2)
+
+    for i, x in enumerate(markers):
+        cut = i < len(cuts)
+        j = min(columns[x], len(stops) - 2)
+        edge = "max" if x == 1 else "min"
+        if cut:
+            dashes = [{"t": "box", "w": 2, "h": min(4, wave_h + lane_h - y), "bg": "textPrimary"}
+                      for y in range(0, wave_h + lane_h, 8)]
+            place(m_container("v"), {"name": "New cut", "w": 2, "h": wave_h + lane_h, "gap": 4, "c": dashes},
+                  stops[j], stops[j + 1], 0, 2, gridAlignH=edge)
+        else:
+            place(m_box, {"name": "Playhead", "w": 2, "h": wave_h + lane_h, "bg": "textPrimary"},
+                  stops[j], stops[j + 1], 0, 2, gridAlignH=edge)
+    if zoom and cuts and n.get("cutLabel"):
+        x = cuts[0]
+        left, right, edge = (x, 1, "min") if x < .5 else (0, x, "max")
+        place(m_container("h"), {"name": "Cut label", "w": "hug", "bg": "surfaceRaised", "radius": 8,
+                                 "pad": 4, "c": [{"t": "text", "v": n["cutLabel"], "style": "caption"}]},
+              left, right, 0, gridAlignH=edge, gridAlignV="min")
+    return r
+
+
+def m_key(e, n, parent, pdir):
+    lit = n.get("lit", False)
+    fg = "charcoal" if lit else "textPrimary"
+    kids = []
+    if n.get("icon"):
+        kids.append({"t": "icon", "v": n["icon"], "size": 16, "color": fg, "layer": "Icon"})
+    kids.append({"t": "text", "v": n["v"], "name": "Label", "style": "labelMedium", "color": fg})
+    return m_container("h")(e, {"name": n.get("name", "Key"), "w": n.get("w", "hug"), "h": 48,
+                                "radius": "medium", "pad": [0, 12, 0, 12], "gap": 4,
+                                "main": "center", "cross": "center", "bg": "accentOrange" if lit else "surfaceRaised",
+                                **({} if lit else {"border": "borderStrong"}), "c": kids}, parent, pdir)
+
+
 MACROS = {
     "col": m_container("v"), "row": m_container("h"), "text": m_text, "icon": m_icon, "box": m_box,
     "spacer": m_spacer, "divider": m_divider, "card": m_card, "button": m_button, "chip": m_chip,
@@ -1088,6 +1214,7 @@ MACROS = {
     "pad": m_pad, "secblock": m_secblock, "partblock": m_secblock, "wave": m_wave, "boundary": m_boundary,
     "playhead": m_playhead, "minimap": m_minimap, "ruler": m_ruler, "beatgrid": m_beatgrid,
     "breadcrumb": m_breadcrumb, "transport": m_transport,
+    "overview": m_timeline, "zoomwave": m_timeline, "key": m_key,
 }
 
 
@@ -1520,6 +1647,18 @@ def i_minimap(n, pdir):
     return dict(over={"Viewport": viewport}, slots={"Sections": minimap_sections(n)}, w=max(1, total), h=16)
 
 
+def i_timeline(n, pdir):
+    if n.get("_timeline_content"):
+        raise Unsupported("draw timeline geometry inside the slot")
+    return dict(w="fill", slots={"Timeline": timeline_content(n)})
+
+
+def i_key(n, pdir):
+    p, over = {"Label": str(n["v"])}, {}
+    icon_prop(p, over, n.get("icon"))
+    return dict(v={"State": "Lit" if n.get("lit") else "Idle"}, p=p, over=over, w="hug", h=48)
+
+
 def song_map_component(name, t, inst, sample=None, states=None, labels=(), slot=None, main_w=380):
     axes = {"Mode": list(MODES.values())}
     if states:
@@ -1538,9 +1677,10 @@ def song_map_component(name, t, inst, sample=None, states=None, labels=(), slot=
          slots=[(slot, slot, "h")] if slot else [])
 
 
-song_map_component("Pad", "pad", i_pad, {"label": "Chorus 1", "sub": "16 bars", "progress": .4},
+song_map_component("Pad", "pad", i_pad, {"label": "Chorus 1", "letter": "C", "color": "section3",
+                                        "sub": "12 bars", "progress": .4},
                    PAD_STATES, ("Label", "Subtitle"), main_w=180)
-song_map_component("SectionBlock", "secblock", i_secblock, {"name": "Chorus 1", "letter": "C"},
+song_map_component("SectionBlock", "secblock", i_secblock, {"letter": "C"},
                    BLOCK_STATES, ("Label",), main_w=112)
 song_map_component("PartBlock", "partblock", i_secblock, {"letter": "b", "bars": 4},
                    BLOCK_STATES, ("Letter", "Label"), main_w=80)
@@ -1557,6 +1697,20 @@ song_map_component("Breadcrumb", "breadcrumb", lambda n, pdir: dict(w="fill", sl
                    {"items": ["Song", "Chorus 1", "b"]}, slot="Items")
 song_map_component("Transport", "transport", lambda n, pdir: dict(w="fill", slots={"Controls": transport_controls(n)}),
                    {"speed": 75, "loop": True, "click": True}, slot="Controls")
+song_map_component("Overview", "overview", i_timeline,
+                   {"sections": [{"letter": "A", "bars": 9, "color": "section1"},
+                                 {"letter": "B", "bars": 8, "color": "section2"},
+                                 {"letter": "C", "bars": 12, "color": "section3", "state": "selected"}],
+                    "playhead": .7, "cuts": [.8]}, slot="Timeline")
+song_map_component("ZoomWave", "zoomwave", i_timeline,
+                   {"title": "C · Chorus 1", "color": "section3", "startBar": 18, "playhead": .4,
+                    "parts": [{"letter": "a", "bars": 4}, {"letter": "b", "bars": 4, "state": "selected"},
+                              {"letter": "c", "bars": 4, "state": "candidate"}],
+                    "cut": 2 / 3, "cutLabel": "bar 26"}, slot="Timeline")
+comp("Key", ["key"], lambda v: {"t": "key", "v": "Shift", "icon": "keyboard_arrow_up", "lit": v["State"] == "Lit"},
+     i_key, axes={"Mode": list(MODES.values()), "State": ["Idle", "Lit"]},
+     props=[("Label", "text", "Label", None), ("Icon", "text", "Icon", None),
+            ("Show icon", "boolean", "Icon", True)], main_w=96)
 
 
 MAT = "package:flutter/material.dart"
@@ -1638,7 +1792,7 @@ DESC_ONLY = {
     "SetlistCard": "Setlist item with title, song count and optional date metadata.",
     "MemberCard": "Band member item with name, role and optional music-role metadata.",
     "StatusBar": "System status bar placeholder (not app code).",
-    "Pad": "Section or part launcher. The playing pad shows loop progress and a queued pad is marked next.",
+    "Pad": "Section or part launcher with an optional letter badge. Playing shows loop progress. Queued is marked next.",
     "SectionBlock": "Song timeline section. Repeats reuse a letter and colour. Dashed borders mark candidates.",
     "PartBlock": "Part lane block with a letter and bar count.",
     "Boundary": "Timeline seam handle. A dashed stem marks a candidate boundary.",
@@ -1648,6 +1802,9 @@ DESC_ONLY = {
     "BeatGrid": "Visible bars divided into beats, with a taller tick on each downbeat.",
     "Breadcrumb": "Zoom path from Song to the current section or part.",
     "Transport": "Sticky playback controls with speed, loop, count-in, click and drums.",
+    "Overview": "Whole-song waveform and letter lane on the same bar scale, with a playhead and dashed new cuts.",
+    "ZoomWave": "Section waveform with a proportional parts lane, individual bar numbers and an optional labeled new cut.",
+    "Key": "48 px MPC function key with an optional icon. Lit keys have an orange fill and charcoal text.",
 }
 
 
