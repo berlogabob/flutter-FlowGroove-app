@@ -133,6 +133,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   bool _setupOpen = false;
   bool _showAnalyzePrompt = false;
   bool _analyzing = false;
+  bool _candidateExitOpen = false;
   ({AudioGrid? grid, List<AudioRegion> regions, Set<int> boundaries})?
   _mapCandidate;
 
@@ -1660,6 +1661,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             selectedIndices: selectedSections,
             focusSection: focusSection,
             candidateBoundariesMs: candidateCuts,
+            preview: preview,
             onSectionHold: _canEdit && !preview ? _renameSection : null,
             onSectionTap: (i) {
               setState(() => view.overviewSelection = i);
@@ -1775,6 +1777,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 positionMs: position,
                 playing: playing,
                 candidateBoundariesMs: candidateCuts,
+                preview: preview,
                 cutLabel: _songMapCutMs == null || grid == null
                     ? null
                     : (
@@ -1829,7 +1832,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     (view.level == SongMapZoom.part
                         ? MonoPulseSpacing.xxxl
                         : 0);
-            return SingleChildScrollView(
+            final scroll = SingleChildScrollView(
               key: ValueKey((
                 view.sectionIndex,
                 view.partIndex,
@@ -1838,14 +1841,21 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               )),
               child: Column(
                 children: [
-                  ?banner,
-                  ?tempoBanner,
+                  if (candidate == null) ...[?banner, ?tempoBanner],
                   overview,
                   if (compact) pads,
                   timeline,
                   if (!compact) pads,
                 ],
               ),
+            );
+            if (candidate == null) return scroll;
+            return Column(
+              children: [
+                ?tempoBanner,
+                ?banner,
+                Expanded(child: scroll),
+              ],
             );
           },
         );
@@ -1947,16 +1957,51 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
+  Future<void> _leaveWithCandidate(Object? result) async {
+    if (_mapCandidate == null || _busy || _candidateExitOpen) return;
+    _candidateExitOpen = true;
+    try {
+      final save = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Save the new section map?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Discard'),
+            ),
+            FilledButton(
+              onPressed: _canEdit ? () => Navigator.pop(context, true) : null,
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || save == null) return;
+      if (save) {
+        await _useCandidate();
+        if (!mounted || _mapCandidate != null) return;
+      }
+      if (ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.of(context).pop(result);
+      }
+    } finally {
+      _candidateExitOpen = false;
+    }
+  }
+
   Widget? _analyzeBanner() {
     final candidate = _mapCandidate;
     if (!_showAnalyzePrompt && !_analyzing && candidate == null) return null;
     final replacing = _entry.regions.isNotEmpty;
     return MaterialBanner(
       content: Text(
-        _analyzing
-            ? 'Analyzing song…'
-            : candidate == null
-            ? 'Analyze song'
+        candidate == null
+            ? (_analyzing ? 'Analyzing song…' : 'Analyze song')
             : replacing
             ? 'New map'
             : '${candidate.boundaries.length + 1} sections found · check, then Done',
@@ -1970,32 +2015,26 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             }),
             child: const Text('Set up sections'),
           ),
-        if (!_analyzing)
+        if (!_analyzing || candidate != null)
           TextButton(
-            onPressed: () {
-              setState(() {
-                _showAnalyzePrompt = false;
-                _mapCandidate = null;
-              });
-              unawaited(_applyTempoSpeed());
-            },
-            child: Text(
-              candidate != null && replacing ? 'Keep old' : 'Dismiss',
-            ),
+            onPressed: _busy || _analyzing
+                ? null
+                : () {
+                    setState(() {
+                      _showAnalyzePrompt = false;
+                      _mapCandidate = null;
+                    });
+                    unawaited(_applyTempoSpeed());
+                  },
+            child: Text(candidate == null ? 'Dismiss' : 'Discard'),
           ),
         FilledButton(
-          onPressed: _analyzing
+          onPressed: _analyzing || _busy
               ? null
               : candidate == null
               ? _analyze
               : _useCandidate,
-          child: Text(
-            candidate == null
-                ? 'Analyze'
-                : replacing
-                ? 'Use new'
-                : 'Done',
-          ),
+          child: Text(candidate == null ? 'Analyze' : 'Done'),
         ),
       ],
     );
@@ -2129,7 +2168,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         ? _syncGrid.msOfBar(syncBar)
         : _positionMs;
     final editing = canEdit && _editing;
-    final analyzeBanner = canEdit ? _analyzeBanner() : null;
+    final analyzeBanner = canEdit || _mapCandidate != null
+        ? _analyzeBanner()
+        : null;
     final measuredBpm = _measuredBpm;
     final stretchTarget = songMapStretchTarget(measuredBpm);
     final tempoBanner =
@@ -2175,7 +2216,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               ),
             ),
     );
-    return Scaffold(
+    final scaffold = Scaffold(
       backgroundColor: context.mp.black,
       bottomNavigationBar: SongMapTransport(
         playing: playing,
@@ -2505,6 +2546,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           ),
         ),
       ),
+    );
+    return PopScope(
+      canPop: _mapCandidate == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) unawaited(_leaveWithCandidate(result));
+      },
+      child: scaffold,
     );
   }
 

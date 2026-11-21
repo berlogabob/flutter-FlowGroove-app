@@ -312,7 +312,9 @@ class PracticeRegionsScreenFixture {
     bool demo = false,
     Uint8List? bytes,
     ThemeData? theme,
+    bool pushRoute = false,
   }) async {
+    final screen = PracticeRegionsScreen(entry: entry);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -328,10 +330,18 @@ class PracticeRegionsScreenFixture {
         ],
         child: MaterialApp(
           theme: theme,
-          home: PracticeRegionsScreen(entry: entry),
+          home: pushRoute ? const SizedBox.shrink() : screen,
         ),
       ),
     );
+    if (pushRoute) {
+      unawaited(
+        tester
+            .state<NavigatorState>(find.byType(Navigator))
+            .push<void>(MaterialPageRoute(builder: (_) => screen)),
+      );
+      await tester.pumpAndSettle();
+    }
     await settleAudio(tester);
   }
 }
@@ -757,7 +767,7 @@ void main() {
     expect(prefs.containsKey('practice_setup_seen_e1'), isFalse);
   });
 
-  testWidgets('re-analysis keeps the old map until Use new', (tester) async {
+  testWidgets('re-analysis keeps the old map until Done', (tester) async {
     const second = 22050;
     final pcm = _clickTrack(seconds: 48);
     for (var i = 0; i < pcm.length; i++) {
@@ -786,7 +796,7 @@ void main() {
     }
 
     await analyze();
-    await tester.tap(find.text('Keep old'));
+    await tester.tap(find.text('Discard'));
     await tester.pumpAndSettle();
     expect(find.text('New map'), findsNothing);
     expect(map().view.regions, _regions);
@@ -794,7 +804,7 @@ void main() {
     expect(repo.saved, isEmpty);
 
     await analyze();
-    await tester.tap(find.text('Use new'));
+    await tester.tap(find.text('Done'));
     await settleAudio(tester);
     expect(find.text('New map'), findsNothing);
     expect(repo.saved.single.regions, isNot(equals(_regions)));

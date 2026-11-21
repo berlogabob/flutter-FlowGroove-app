@@ -20,10 +20,11 @@ class SongMapOverview extends SongMapTimeline {
     required super.playing,
     required super.candidateBoundariesMs,
     required super.selectedIndices,
+    required Widget noteTicks,
+    super.preview,
     super.onSectionHold,
     super.onSectionTap,
     super.onSeek,
-    required Widget noteTicks,
     super.focusSection,
   }) : super(
          entry: entry,
@@ -43,6 +44,7 @@ class SongMapTimeline extends StatefulWidget {
     this.positionMs,
     this.playing = false,
     this.candidateBoundariesMs = const {},
+    this.preview = false,
     this.cutLabel,
     this.boundariesMs,
     this.selectedBoundaryMs,
@@ -75,6 +77,7 @@ class SongMapTimeline extends StatefulWidget {
 
   /// Boundary positions and callback values are file-relative milliseconds.
   final Set<int> candidateBoundariesMs;
+  final bool preview;
   final (int, String)? cutLabel;
   final Set<int>? boundariesMs;
   final int? selectedBoundaryMs;
@@ -422,6 +425,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         : selected
         ? palette.textPrimary
         : palette.borderStrong;
+    final side = BorderSide(color: border, width: selected || playing ? 3 : 1);
     return Positioned(
       left: left,
       width: right - left,
@@ -448,10 +452,9 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
               letter.color.withValues(alpha: 0.35),
               palette.surfaceRaised,
             ),
-            border: Border.all(
-              color: border,
-              width: selected || playing ? 3 : 1,
-            ),
+            border: widget.preview
+                ? _CandidateBlockBorder(side)
+                : Border.fromBorderSide(side),
           ),
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -743,6 +746,32 @@ class _ZoomWaveformPainter extends CustomPainter {
       pcm != old.pcm ||
       viewport != old.viewport ||
       durationMs != old.durationMs;
+}
+
+class _CandidateBlockBorder extends Border {
+  const _CandidateBlockBorder(super.side) : super.fromBorderSide();
+
+  @override
+  void paint(
+    Canvas canvas,
+    Rect rect, {
+    TextDirection? textDirection,
+    BoxShape shape = BoxShape.rectangle,
+    BorderRadius? borderRadius,
+  }) {
+    final width = math.min(top.width, math.min(rect.width, rect.height) / 2);
+    final path = Path()..addRect(rect.deflate(width / 2));
+    final perimeter = path.computeMetrics().first;
+    final paint = top.toPaint()..strokeWidth = width;
+    const dash = MonoPulseSpacing.xs;
+    const gap = MonoPulseSpacing.xxs;
+    for (var start = 0.0; start < perimeter.length; start += dash + gap) {
+      canvas.drawPath(
+        perimeter.extractPath(start, math.min(start + dash, perimeter.length)),
+        paint,
+      );
+    }
+  }
 }
 
 class _MarkerStem extends CustomPainter {

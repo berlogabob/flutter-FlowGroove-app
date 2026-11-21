@@ -235,5 +235,18 @@ void main() {
     expect(tester.widget<SongMapTimeline>(zoom).viewport.startMs, next.startMs);
     expectOpenSectionOutlined(tester, next.id);
     expectTitleAndRows(tester);
+
+    final mapScroll = find.ancestor(
+      of: zoom,
+      matching: find.byType(Scrollable),
+    );
+    final scroll = tester.state<ScrollableState>(mapScroll).position;
+    final reviewTop = tester.getTopLeft(review);
+    expect(scroll.maxScrollExtent, greaterThan(0));
+    scroll.jumpTo(scroll.maxScrollExtent);
+    await tester.pumpAndSettle();
+    expect(tester.getTopLeft(review), reviewTop);
+    expect(find.text('Done').hitTestable(), findsOneWidget);
+    expect(find.text('Discard').hitTestable(), findsOneWidget);
   });
 }
