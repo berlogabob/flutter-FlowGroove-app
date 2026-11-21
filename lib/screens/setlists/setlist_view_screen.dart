@@ -381,11 +381,14 @@ class SetlistViewScreen extends ConsumerWidget {
             color: MonoPulseColors.selection,
             borderRadius: BorderRadius.circular(MonoPulseRadius.small),
           ),
-          child: Text(
-            song.ourKey ?? '-',
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              color: MonoPulseColors.selectionInk,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              song.ourKey ?? '-',
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: MonoPulseColors.selectionInk,
+              ),
             ),
           ),
         ),

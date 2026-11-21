@@ -240,7 +240,7 @@ void main() {
             id: 'b$i',
             title: 'Song $i',
             artist: 'Band',
-            ourKey: i == 3 ? null : 'Eb',
+            ourKey: i == 3 ? null : (i == 1 ? 'Bbm' : 'Eb'),
             ourBPM: bpm,
           ),
       ];
@@ -249,6 +249,9 @@ void main() {
         name: 'Gig Setlist',
         songIds: [for (final s in songs) s.id],
       );
+      // Text grows up to 1.15x on wide phones (AdaptiveTextScale).
+      tester.platformDispatcher.textScaleFactorTestValue = 1.15;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await pumpView(tester);
 
       final play = [
@@ -258,8 +261,16 @@ void main() {
       expect(play.map((r) => r.left).toSet(), hasLength(1));
       expect(play.map((r) => r.right).toSet(), hasLength(1));
       final eb = find.text('Eb');
-      expect(eb, findsNWidgets(4));
-      final keyX = {for (var i = 0; i < 4; i++) tester.getCenter(eb.at(i)).dx};
+      expect(eb, findsNWidgets(3));
+      final keyX = {
+        for (var i = 0; i < 3; i++) tester.getCenter(eb.at(i)).dx,
+        tester.getCenter(find.text('Bbm')).dx,
+      };
+      // 'Bbm' stays on one line in the 44 dp chip (it wrapped on an A24).
+      expect(
+        tester.getRect(find.text('Bbm')).height,
+        lessThanOrEqualTo(tester.getRect(eb.first).height),
+      );
       expect(keyX, hasLength(1));
       expect(tester.getCenter(find.text('-')).dx, keyX.single);
       final bpmRight = {

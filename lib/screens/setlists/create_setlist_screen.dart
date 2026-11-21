@@ -918,12 +918,15 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                               MonoPulseRadius.small,
                                             ),
                                           ),
-                                          child: Text(
-                                            song.ourKey ?? '-',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              color:
-                                                  MonoPulseColors.accentOrange,
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              song.ourKey ?? '-',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                color: MonoPulseColors
+                                                    .accentOrange,
+                                              ),
                                             ),
                                           ),
                                         ),
