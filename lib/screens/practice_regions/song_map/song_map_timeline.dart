@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/painting.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../models/audio_region.dart';
@@ -244,7 +245,8 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
                 region,
                 width,
                 isPart: isParts,
-                selected: selectedIndices.contains(index) ||
+                selected:
+                    selectedIndices.contains(index) ||
                     (isParts && _view.partIndex == index),
                 barMs: barMs,
                 onZoom: onZoom == null ? null : () => onZoom(index),
@@ -284,20 +286,28 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
       color.withValues(alpha: 0.2),
       palette.surface,
     );
-    final sectionName = section?.isNotEmpty == true ? section! : region.name;
+    final sectionName = section?.isNotEmpty == true
+        ? section!
+        : region.name.isNotEmpty
+        ? region.name
+        : 'Region ${_letter(_view.children().indexOf(region))}';
     final sectionBaseName = sectionName.trim().replaceFirst(
       _occurrenceSuffix,
       '',
     );
+    final nameStyle = typography.bodySmall?.copyWith(
+      color: palette.textPrimary,
+    );
+    final fullNameFits =
+        nameStyle != null &&
+        _fits(sectionName, nameStyle, right - left - MonoPulseSpacing.xxs * 2);
     final label = isPart
         ? section != null && region.name.startsWith('$section ')
               ? region.name.substring(section.length + 1)
               : region.name
-        : right - left >= 64
+        : fullNameFits
         ? sectionName
-        : sectionBaseName.isEmpty
-        ? ''
-        : sectionBaseName.substring(0, 1).toUpperCase();
+        : _letter(_view.children().indexOf(region));
     final bars = barMs == null ? 0 : (region.lengthMs / barMs).round();
     final border = playing
         ? MonoPulseColors.accentOrange
@@ -335,12 +345,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  label,
-                  style: typography.bodySmall?.copyWith(
-                    color: palette.textPrimary,
-                  ),
-                ),
+                Text(label, style: nameStyle),
                 if (bars > 0)
                   Text(
                     bars == 1 ? '1 bar' : '$bars bars',
@@ -355,6 +360,17 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
       ),
     );
   }
+
+  static bool _fits(String text, TextStyle style, double width) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: double.infinity);
+    return painter.width <= width;
+  }
+
+  static String _letter(int index) => String.fromCharCode(65 + index % 26);
 
   Widget _ticks(
     BuildContext context,

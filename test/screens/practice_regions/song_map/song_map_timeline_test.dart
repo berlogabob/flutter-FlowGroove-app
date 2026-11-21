@@ -158,7 +158,7 @@ void main() {
       ),
     );
 
-    expect(find.text('I'), findsOneWidget);
+    expect(find.text('A'), findsOneWidget);
     expect(find.text('Intro 1'), findsNothing);
     expect(find.text('Chorus 1'), findsOneWidget);
   });

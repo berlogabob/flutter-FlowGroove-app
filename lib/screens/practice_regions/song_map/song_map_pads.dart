@@ -55,7 +55,8 @@ class _SongMapPadsState extends State<SongMapPads> {
   int _bars(AudioRegion region) {
     final grid = widget.view.grid;
     if (grid == null || grid.barMs <= 0) return 0;
-    return (grid.barAt(region.endMs).round() - grid.barAt(region.startMs).round())
+    return (grid.barAt(region.endMs).round() -
+            grid.barAt(region.startMs).round())
         .abs()
         .clamp(1, 9999);
   }
@@ -79,11 +80,18 @@ class _SongMapPadsState extends State<SongMapPads> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
+            padding: const EdgeInsets.symmetric(
+              horizontal: MonoPulseSpacing.lg,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(widget.view.level == SongMapZoom.song ? 'Sections' : 'Practice pads', style: MonoPulseTypography.titleMedium),
+                Text(
+                  widget.view.level == SongMapZoom.song
+                      ? 'Sections'
+                      : 'Practice pads',
+                  style: MonoPulseTypography.titleMedium,
+                ),
                 if (widget.onRange != null)
                   TextButton(
                     onPressed: () => setState(() {
@@ -139,14 +147,22 @@ class _SongMapPadsState extends State<SongMapPads> {
     final pad = Opacity(
       opacity: disabled || region.skip ? .38 : 1,
       child: SizedBox(
-        width: (MediaQuery.sizeOf(context).width - MonoPulseSpacing.massive - MonoPulseSpacing.sm) / 2,
+        width:
+            (MediaQuery.sizeOf(context).width -
+                MonoPulseSpacing.massive -
+                MonoPulseSpacing.sm) /
+            2,
         height: 88,
         child: Material(
           color: bg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             side: BorderSide(
-              color: playing || queued ? MonoPulseColors.accentOrange : selected ? context.mp.textPrimary : Colors.transparent,
+              color: playing || queued
+                  ? MonoPulseColors.accentOrange
+                  : selected
+                  ? context.mp.textPrimary
+                  : Colors.transparent,
               width: playing || queued || selected ? 3 : 0,
             ),
           ),
@@ -187,26 +203,72 @@ class _SongMapPadsState extends State<SongMapPads> {
                   },
             child: Stack(
               children: [
-                if (!playing) Positioned(left: 0, top: 0, bottom: 0, width: 6, child: ColoredBox(color: accent)),
+                if (!playing)
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 6,
+                    child: ColoredBox(color: accent),
+                  ),
                 Padding(
                   padding: const EdgeInsets.all(MonoPulseSpacing.md),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(children: [
-                        if (playing) ...[
-                          Icon(Icons.play_arrow, color: fg, size: 20),
-                          const SizedBox(width: MonoPulseSpacing.xs),
+                      Row(
+                        children: [
+                          if (playing) ...[
+                            Icon(Icons.play_arrow, color: fg, size: 20),
+                            const SizedBox(width: MonoPulseSpacing.xs),
+                          ],
+                          Expanded(
+                            child: Text(
+                              region.name.isEmpty
+                                  ? 'Region ${_letter(index)}'
+                                  : region.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: MonoPulseTypography.bodyLarge.copyWith(
+                                color: fg,
+                              ),
+                            ),
+                          ),
+                          if (queued)
+                            Text(
+                              'next',
+                              style: MonoPulseTypography.labelSmall.copyWith(
+                                color: MonoPulseColors.accentOrange,
+                              ),
+                            ),
                         ],
-                        Expanded(child: Text(region.name.isEmpty ? 'Unnamed' : region.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: MonoPulseTypography.bodyLarge.copyWith(color: fg))),
-                        if (queued) Text('next', style: MonoPulseTypography.labelSmall.copyWith(color: MonoPulseColors.accentOrange)),
-                      ]),
-                      Text(subtitle, style: MonoPulseTypography.bodySmall.copyWith(color: fg)),
+                      ),
+                      Text(
+                        subtitle,
+                        style: MonoPulseTypography.bodySmall.copyWith(
+                          color: fg,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                if (playing) Positioned(left: 0, right: 0, bottom: 0, height: 4, child: Align(alignment: Alignment.centerLeft, child: FractionallySizedBox(widthFactor: widget.progress.clamp(0, 1), child: const ColoredBox(color: MonoPulseColors.charcoal)))),
+                if (playing)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 4,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: widget.progress.clamp(0, 1),
+                        child: const ColoredBox(
+                          color: MonoPulseColors.charcoal,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -233,4 +295,6 @@ class _SongMapPadsState extends State<SongMapPads> {
       ),
     );
   }
+
+  String _letter(int index) => String.fromCharCode(65 + index % 26);
 }
