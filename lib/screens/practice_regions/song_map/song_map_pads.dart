@@ -1,0 +1,165 @@
+import 'package:material_ui/material_ui.dart';
+
+import '../../../models/audio_region.dart';
+import '../../../theme/mono_pulse_theme.dart';
+import 'song_map_view.dart';
+
+/// Practice pads for the current level of a [SongMapView].
+class SongMapPads extends StatefulWidget {
+  const SongMapPads({
+    required this.view,
+    this.selectedIndex,
+    this.playingIndex,
+    this.queuedIndex,
+    this.disabledIndices = const {},
+    this.progress = 0,
+    this.onRange,
+    super.key,
+  });
+
+  final SongMapView view;
+  final int? selectedIndex;
+  final int? playingIndex;
+  final int? queuedIndex;
+  final Set<int> disabledIndices;
+  final double progress;
+  final ValueChanged<(int, int)>? onRange;
+
+  @override
+  State<SongMapPads> createState() => _SongMapPadsState();
+}
+
+class _SongMapPadsState extends State<SongMapPads> {
+  bool _rangeMode = false;
+  int? _rangeStart;
+
+  int _bars(AudioRegion region) {
+    final grid = widget.view.grid;
+    if (grid == null || grid.barMs <= 0) return 0;
+    return (grid.barAt(region.endMs).round() - grid.barAt(region.startMs).round())
+        .abs()
+        .clamp(1, 9999);
+  }
+
+  Color _sectionColor(int index) => switch (index % 7) {
+    0 => MonoPulseColors.section1,
+    1 => MonoPulseColors.section3,
+    2 => MonoPulseColors.section5,
+    3 => MonoPulseColors.section7,
+    4 => MonoPulseColors.section9,
+    5 => MonoPulseColors.section11,
+    _ => MonoPulseColors.section13,
+  };
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: widget.view,
+    builder: (context, _) {
+      final children = widget.view.children();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(widget.view.level == SongMapZoom.song ? 'Sections' : 'Practice pads', style: MonoPulseTypography.titleMedium),
+                if (widget.onRange != null)
+                  TextButton(
+                    onPressed: () => setState(() {
+                      _rangeMode = !_rangeMode;
+                      _rangeStart = null;
+                    }),
+                    child: Text(_rangeMode ? 'Range: on' : 'Range'),
+                  ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+            child: Wrap(
+              spacing: MonoPulseSpacing.sm,
+              runSpacing: MonoPulseSpacing.sm,
+              children: [
+                for (final (index, region) in children.indexed)
+                  _pad(context, region, index),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
+  );
+
+  Widget _pad(BuildContext context, AudioRegion region, int index) {
+    final disabled = widget.disabledIndices.contains(index);
+    final playing = widget.playingIndex == index;
+    final queued = widget.queuedIndex == index;
+    final selected = widget.selectedIndex == index || _rangeStart == index;
+    final accent = _sectionColor(index);
+    final bars = _bars(region);
+    final subtitle = bars > 0 ? '$bars bars' : '${(region.lengthMs / 1000).round()} s';
+    final bg = playing ? MonoPulseColors.accentOrange : context.mp.surface;
+    final fg = playing ? MonoPulseColors.charcoal : context.mp.textPrimary;
+    return Opacity(
+      opacity: disabled ? .38 : 1,
+      child: SizedBox(
+        width: (MediaQuery.sizeOf(context).width - MonoPulseSpacing.massive - MonoPulseSpacing.sm) / 2,
+        height: 88,
+        child: Material(
+          color: bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+            side: BorderSide(
+              color: playing || queued ? MonoPulseColors.accentOrange : selected ? context.mp.textPrimary : Colors.transparent,
+              width: playing || queued || selected ? 3 : 0,
+            ),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            key: ValueKey('song-map-pad-${region.id}'),
+            onTap: disabled ? null : () {
+              if (_rangeMode && widget.onRange != null) {
+                if (_rangeStart == null) {
+                  setState(() => _rangeStart = index);
+                } else {
+                  final start = _rangeStart! < index ? _rangeStart! : index;
+                  final end = _rangeStart! > index ? _rangeStart! : index;
+                  widget.onRange!((start, end));
+                  setState(() { _rangeMode = false; _rangeStart = null; });
+                }
+              } else {
+                widget.view.zoomIn(index);
+              }
+            },
+            child: Stack(
+              children: [
+                if (!playing) Positioned(left: 0, top: 0, bottom: 0, width: 6, child: ColoredBox(color: accent)),
+                Padding(
+                  padding: const EdgeInsets.all(MonoPulseSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(children: [
+                        if (playing) ...[
+                          Icon(Icons.play_arrow, color: fg, size: 20),
+                          const SizedBox(width: MonoPulseSpacing.xs),
+                        ],
+                        Expanded(child: Text(region.name.isEmpty ? 'Unnamed' : region.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: MonoPulseTypography.bodyLarge.copyWith(color: fg))),
+                        if (queued) Text('next', style: MonoPulseTypography.labelSmall.copyWith(color: MonoPulseColors.accentOrange)),
+                      ]),
+                      Text(subtitle, style: MonoPulseTypography.bodySmall.copyWith(color: fg)),
+                    ],
+                  ),
+                ),
+                if (playing) Positioned(left: 0, right: 0, bottom: 0, height: 4, child: Align(alignment: Alignment.centerLeft, child: FractionallySizedBox(widthFactor: widget.progress.clamp(0, 1), child: const ColoredBox(color: MonoPulseColors.charcoal)))),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
