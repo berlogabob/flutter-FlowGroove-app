@@ -25,6 +25,12 @@ class SongMapPads extends StatefulWidget {
     super.key,
   });
 
+  static const padHeight = 64.0;
+  static double heightForRows(int rows) =>
+      48 + rows * padHeight + (rows + 1) * MonoPulseSpacing.sm;
+
+  static int columnsForWidth(double width) => width >= 360 ? 4 : 3;
+
   final SongMapView view;
   final List<Widget> actions;
   final int? selectedIndex;
@@ -116,16 +122,31 @@ class _SongMapPadsState extends State<SongMapPads> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-              child: Wrap(
-                spacing: MonoPulseSpacing.sm,
-                runSpacing: MonoPulseSpacing.sm,
-                children: [
-                  for (final (index, region) in children.indexed)
-                    _pad(context, region, index),
-                ],
-              ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = SongMapPads.columnsForWidth(
+                  constraints.maxWidth,
+                );
+                const gap = MonoPulseSpacing.sm;
+                const inset = MonoPulseSpacing.lg;
+                final padWidth =
+                    (constraints.maxWidth - 2 * inset - (columns - 1) * gap) /
+                    columns;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: inset,
+                    vertical: gap,
+                  ),
+                  child: Wrap(
+                    spacing: gap,
+                    runSpacing: gap,
+                    children: [
+                      for (final (index, region) in children.indexed)
+                        _pad(context, region, index, padWidth),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -133,7 +154,12 @@ class _SongMapPadsState extends State<SongMapPads> {
     },
   );
 
-  Widget _pad(BuildContext context, AudioRegion region, int index) {
+  Widget _pad(
+    BuildContext context,
+    AudioRegion region,
+    int index,
+    double width,
+  ) {
     final disabled = widget.disabledIndices.contains(index);
     final playing = widget.playingIndex == index;
     final queued = widget.queuedIndex == index;
@@ -155,12 +181,8 @@ class _SongMapPadsState extends State<SongMapPads> {
     final pad = Opacity(
       opacity: disabled || region.skip ? .38 : 1,
       child: SizedBox(
-        width:
-            (MediaQuery.sizeOf(context).width -
-                MonoPulseSpacing.massive -
-                MonoPulseSpacing.sm) /
-            2,
-        height: 88,
+        width: width,
+        height: SongMapPads.padHeight,
         child: Material(
           color: bg,
           shape: RoundedRectangleBorder(
@@ -220,7 +242,10 @@ class _SongMapPadsState extends State<SongMapPads> {
                     child: ColoredBox(color: accent),
                   ),
                 Padding(
-                  padding: const EdgeInsets.all(MonoPulseSpacing.md),
+                  padding: const EdgeInsets.only(
+                    left: MonoPulseSpacing.sm,
+                    right: MonoPulseSpacing.xs,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -233,12 +258,10 @@ class _SongMapPadsState extends State<SongMapPads> {
                           ],
                           Expanded(
                             child: Text(
-                              region.name.isEmpty
-                                  ? 'Region ${_letter(index)}'
-                                  : region.name,
+                              songMapRegionName(region, index),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: MonoPulseTypography.bodyLarge.copyWith(
+                              style: MonoPulseTypography.bodyMedium.copyWith(
                                 color: fg,
                               ),
                             ),
@@ -254,6 +277,8 @@ class _SongMapPadsState extends State<SongMapPads> {
                       ),
                       Text(
                         subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: MonoPulseTypography.bodySmall.copyWith(
                           color: fg,
                         ),
@@ -303,6 +328,4 @@ class _SongMapPadsState extends State<SongMapPads> {
       ),
     );
   }
-
-  String _letter(int index) => String.fromCharCode(65 + index % 26);
 }

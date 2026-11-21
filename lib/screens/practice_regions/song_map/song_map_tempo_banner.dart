@@ -24,6 +24,8 @@ class SongMapTempoBanner extends StatelessWidget {
     super.key,
   });
 
+  static const height = 50.0;
+
   final double measuredBpm;
   final VoidCallback onStretch;
   final VoidCallback onKeep;
@@ -36,31 +38,44 @@ class SongMapTempoBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
-      padding: const EdgeInsets.all(MonoPulseSpacing.md),
+      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
       decoration: BoxDecoration(
         color: palette.surfaceRaised,
         border: Border.all(color: palette.borderSubtle),
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        spacing: MonoPulseSpacing.xs,
         children: [
-          Text(
-            'Audio runs at $measuredBpm BPM · Stretch to $target / Keep',
-            style: MonoPulseTypography.bodyMedium.copyWith(
-              color: palette.textPrimary,
+          Expanded(
+            child: Text(
+              '$measuredBpm BPM',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: MonoPulseTypography.bodyMedium.copyWith(
+                color: palette.textPrimary,
+              ),
             ),
           ),
-          const SizedBox(height: MonoPulseSpacing.sm),
-          Wrap(
-            spacing: MonoPulseSpacing.sm,
-            children: [
-              OutlinedButton(
-                onPressed: onStretch,
-                child: Text('Stretch to $target'),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(48, 48),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.sm,
               ),
-              TextButton(onPressed: onKeep, child: const Text('Keep')),
-            ],
+            ),
+            onPressed: onStretch,
+            child: Text('Stretch to $target'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              minimumSize: const Size(48, 48),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.sm,
+              ),
+            ),
+            onPressed: onKeep,
+            child: const Text('Keep'),
           ),
         ],
       ),

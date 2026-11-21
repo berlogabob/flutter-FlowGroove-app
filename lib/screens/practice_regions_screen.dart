@@ -1411,8 +1411,20 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (mounted && grid != null) await _setGrid(grid);
   }
 
-  String _name(AudioRegion region) =>
-      region.name.isEmpty ? 'Unnamed' : region.name;
+  String _name(AudioRegion region) {
+    if (region.name.isNotEmpty) return region.name;
+    final regions = _entry.regions;
+    final index = regions.indexOf(region);
+    final view = _songMap;
+    if (view != null && identical(view.regions, regions)) {
+      for (final (i, child) in view.children().indexed) {
+        final (start, end) = view.regionRange(i);
+        if (index >= start && index <= end) return songMapRegionName(child, i);
+      }
+    }
+    return songMapRegionName(region, index);
+  }
+
   String _time(int ms) => formatTimestamp(ms, padMinutes: false);
   String _preciseTime(int ms) =>
       '${formatTimestamp(ms)}.${(ms % 1000).toString().padLeft(3, '0')}';
@@ -1437,6 +1449,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     required int position,
     required bool playing,
     required Widget? banner,
+    required SongMapTempoBanner? tempoBanner,
     required List<Widget> padActions,
   }) {
     final regions = _entry.regions;
@@ -1631,18 +1644,34 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         );
         return LayoutBuilder(
           builder: (context, constraints) {
-            // The existing waveform remains visible above this scroll area.
-            final compact = constraints.maxHeight < 300;
+            final columns = SongMapPads.columnsForWidth(constraints.maxWidth);
+            final timelineHeight = switch (view.level) {
+              SongMapZoom.song => 172,
+              SongMapZoom.section => 240,
+              SongMapZoom.part => 272,
+            };
+            // The waveform above the scroll area remains visible in compact mode.
+            final compact =
+                constraints.maxHeight <
+                math.max(
+                  300,
+                  timelineHeight +
+                      SongMapPads.heightForRows(
+                        children.length > columns ? 2 : 1,
+                      ) +
+                      (tempoBanner == null ? 0 : SongMapTempoBanner.height),
+                );
             return SingleChildScrollView(
               key: ValueKey((
                 view.sectionIndex,
                 view.partIndex,
-                banner != null,
+                banner != null || tempoBanner != null,
                 candidate != null,
               )),
               child: Column(
                 children: [
                   ?banner,
+                  ?tempoBanner,
                   if (preview)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -1948,6 +1977,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           )
         : null;
     final displayedBpm = _stretched ? stretchTarget : measuredBpm;
+    final notes = entryNotes(_entry);
+    final showPads = regions.isNotEmpty || (_canEdit && _mapCandidate != null);
     final canPlay = _loaded && _durationMs > 0 && !_busy && !_preparingSync;
     final canClick = !_stretched && canSyncToClick(grid) && canPlay;
     final speedPercent = (_speed * 100).round();
@@ -1992,6 +2023,39 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           onPressed: _loaded && canEdit ? _addMarkerAtPlayhead : null,
         ),
     ];
+    final mapContent = showPads
+        ? _pads(
+            editing: editing,
+            position: positionMs,
+            playing: playing,
+            padActions: padActions,
+            banner: analyzeBanner,
+            tempoBanner: tempoBanner,
+          )
+        : Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: padActions,
+                  ),
+                  const Text('No sections yet'),
+                  if (analyzeBanner != null)
+                    analyzeBanner
+                  else if (canEdit)
+                    FilledButton(
+                      onPressed: _canAnalyze
+                          ? () => setState(() => _showAnalyzePrompt = true)
+                          : null,
+                      child: const Text('Analyze song'),
+                    ),
+                  ?tempoBanner,
+                ],
+              ),
+            ),
+          );
     return Scaffold(
       backgroundColor: context.mp.black,
       bottomNavigationBar: SongMapTransport(
@@ -2203,55 +2267,38 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                   ))
                 _nameChips(),
               Expanded(
-                child: regions.isEmpty && (!_canEdit || _mapCandidate == null)
-                    ? Center(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: padActions,
-                              ),
-                              const Text('No sections yet'),
-                              if (analyzeBanner != null)
-                                analyzeBanner
-                              else if (canEdit)
-                                FilledButton(
-                                  onPressed: _canAnalyze
-                                      ? () => setState(
-                                          () => _showAnalyzePrompt = true,
-                                        )
-                                      : null,
-                                  child: const Text('Analyze song'),
-                                ),
-                              ?tempoBanner,
-                            ],
-                          ),
-                        ),
-                      )
-                    : _pads(
-                        editing: editing,
-                        position: positionMs,
-                        playing: playing,
-                        padActions: padActions,
-                        banner: tempoBanner == null
-                            ? analyzeBanner
-                            : Column(children: [?analyzeBanner, tempoBanner]),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final mapMinHeight =
+                        SongMapPads.heightForRows(2) +
+                        (tempoBanner == null ? 0 : SongMapTempoBanner.height);
+                    // Leave room for the pad controls and two rows before Notes.
+                    final notesHeight = math.min(
+                      MediaQuery.sizeOf(context).height * 0.3,
+                      math.max(
+                        0.0,
+                        constraints.maxHeight - (showPads ? mapMinHeight : 0),
                       ),
-              ),
-              // Sized to its notes (capped), so the pads get the rest; a flex
-              // split left half the screen to an empty notes list.
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.sizeOf(context).height * 0.3,
-                ),
-                child: _NotesPanel(
-                  markers: entryNotes(_entry),
-                  positionMs: positionMs,
-                  onSeek: _seekNote,
-                  onAdd: canEdit ? _addMarkerAtPlayhead : null,
-                  onDelete: canEdit ? _deleteMarker : null,
+                    );
+                    return Column(
+                      children: [
+                        Expanded(child: mapContent),
+                        if (notes.isEmpty && notesHeight >= 48)
+                          _emptyNotes(positionMs, canEdit: canEdit)
+                        else if (notes.isNotEmpty && notesHeight >= 48)
+                          ConstrainedBox(
+                            constraints: BoxConstraints(maxHeight: notesHeight),
+                            child: _NotesPanel(
+                              markers: notes,
+                              positionMs: positionMs,
+                              onSeek: _seekNote,
+                              onAdd: canEdit ? _addMarkerAtPlayhead : null,
+                              onDelete: canEdit ? _deleteMarker : null,
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
               const Divider(height: 1),
@@ -2300,6 +2347,28 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       ),
     );
   }
+
+  Widget _emptyNotes(int positionMs, {required bool canEdit}) => Padding(
+    key: const ValueKey('recording-notes'),
+    padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text('Notes', style: MonoPulseTypography.titleMedium),
+        if (canEdit)
+          Tooltip(
+            message:
+                'No notes yet. Play the take and drop one where something '
+                'happens — tap it later to jump straight back.',
+            child: TextButton.icon(
+              onPressed: _addMarkerAtPlayhead,
+              icon: const Icon(Icons.add, size: 18),
+              label: Text('at ${_time(positionMs)}'),
+            ),
+          ),
+      ],
+    ),
+  );
 
   /// Shift: tap a name to give it to the first unnamed slice, in order, so a
   /// freshly chopped song gets its map in a few taps.
@@ -2777,23 +2846,6 @@ class _RegionsPainter extends CustomPainter {
             ..strokeWidth = 2,
         );
       }
-      // No room for a readable name: leave the colour alone, no "U…".
-      if (rect.width < 48) continue;
-      canvas
-        ..save()
-        ..clipRect(rect);
-      final label = TextPainter(
-        text: TextSpan(
-          text: region.name.isEmpty ? 'Unnamed' : region.name,
-          style: MonoPulseTypography.bodySmall.copyWith(color: textColor),
-        ),
-        textDirection: TextDirection.ltr,
-        maxLines: 1,
-        ellipsis: '…',
-      )..layout(maxWidth: (rect.width - 8).clamp(0.0, double.infinity));
-      label.paint(canvas, rect.topLeft + const Offset(4, 4));
-      label.dispose();
-      canvas.restore();
     }
     final grid = entry.grid;
     if (grid != null) {

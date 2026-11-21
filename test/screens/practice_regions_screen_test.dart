@@ -242,50 +242,54 @@ const _regions = [
   AudioRegion(id: 'chorus', name: 'Chorus', startMs: 10000, endMs: 20000),
 ];
 
-SongLabEntry _entry({
-  String id = 'e1',
-  String songId = '_inbox',
-  List<AudioRegion> regions = _regions,
-  AudioGrid? grid,
-}) => SongLabEntry(
-  id: id,
-  songId: songId,
-  type: LabEntryType.recording,
-  authorId: 'u1',
-  createdAt: DateTime(2026, 7, 28),
-  updatedAt: DateTime(2026, 7, 28),
-  attachmentIds: const ['https://example.com/take.wav'],
-  regions: regions,
-  grid: grid,
-);
+const _entry = PracticeRegionsScreenFixture.entry;
 
-void main() {
-  late _FakeJustAudio audio;
-  late _InMemoryLabRepo repo;
-  late JustAudioPlatform previousPlatform;
-  late List<String> fetched;
-  late _SessionLog sessions;
-  late FakeBackingEngine engine;
+class PracticeRegionsScreenFixture {
+  PracticeRegionsScreenFixture({
+    Duration duration = _FakeAudioPlayer.duration,
+  }) {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      _FakeAudioPlayer.sourceDuration = duration;
+      final previousAutoOpen = PracticeRegionsScreen.autoOpenSetup;
+      PracticeRegionsScreen.autoOpenSetup = false;
+      addTearDown(() => PracticeRegionsScreen.autoOpenSetup = previousAutoOpen);
+      final previousCache = audioFileCache;
+      audioFileCache = (_, _) async => null;
+      addTearDown(() => audioFileCache = previousCache);
+      final previousPlatform = JustAudioPlatform.instance;
+      _audio = _FakeJustAudio();
+      JustAudioPlatform.instance = _audio;
+      addTearDown(() => JustAudioPlatform.instance = previousPlatform);
+      _repo = _InMemoryLabRepo();
+      _fetched = [];
+      _sessions = _SessionLog();
+      _engine = FakeBackingEngine();
+    });
+  }
 
-  setUp(() {
-    SharedPreferences.setMockInitialValues({});
-    _FakeAudioPlayer.sourceDuration = _FakeAudioPlayer.duration;
-    final previousAutoOpen = PracticeRegionsScreen.autoOpenSetup;
-    PracticeRegionsScreen.autoOpenSetup = false;
-    addTearDown(() => PracticeRegionsScreen.autoOpenSetup = previousAutoOpen);
-    final previousCache = audioFileCache;
-    audioFileCache = (_, _) async => null;
-    addTearDown(() => audioFileCache = previousCache);
-    previousPlatform = JustAudioPlatform.instance;
-    audio = _FakeJustAudio();
-    JustAudioPlatform.instance = audio;
-    repo = _InMemoryLabRepo();
-    fetched = [];
-    sessions = _SessionLog();
-    engine = FakeBackingEngine();
-  });
+  late _FakeJustAudio _audio;
+  late _InMemoryLabRepo _repo;
+  late List<String> _fetched;
+  late _SessionLog _sessions;
+  late FakeBackingEngine _engine;
 
-  tearDown(() => JustAudioPlatform.instance = previousPlatform);
+  static SongLabEntry entry({
+    String id = 'e1',
+    String songId = '_inbox',
+    List<AudioRegion> regions = _regions,
+    AudioGrid? grid,
+  }) => SongLabEntry(
+    id: id,
+    songId: songId,
+    type: LabEntryType.recording,
+    authorId: 'u1',
+    createdAt: DateTime(2026, 7, 28),
+    updatedAt: DateTime(2026, 7, 28),
+    attachmentIds: const ['https://example.com/take.wav'],
+    regions: regions,
+    grid: grid,
+  );
 
   Future<void> settleAudio(WidgetTester tester) async {
     // just_audio activates its platform on real async gaps that fake time
@@ -307,13 +311,13 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          labRepositoryProvider.overrideWithValue(repo),
+          labRepositoryProvider.overrideWithValue(_repo),
           isDemoUserProvider.overrideWithValue(demo),
-          metronomeSessionRepositoryProvider.overrideWithValue(sessions),
-          backingEngineProvider.overrideWithValue(engine),
+          metronomeSessionRepositoryProvider.overrideWithValue(_sessions),
+          backingEngineProvider.overrideWithValue(_engine),
           metronomeProvider.overrideWith(FakeMetronome.new),
           audioBytesFetcherProvider.overrideWithValue((url) async {
-            fetched.add(url);
+            _fetched.add(url);
             return bytes ?? Uint8List(0);
           }),
         ],
@@ -322,6 +326,24 @@ void main() {
     );
     await settleAudio(tester);
   }
+}
+
+void main() {
+  final fixture = PracticeRegionsScreenFixture();
+  final pump = fixture.pump;
+  final settleAudio = fixture.settleAudio;
+  late _FakeJustAudio audio;
+  late _InMemoryLabRepo repo;
+  late List<String> fetched;
+  late _SessionLog sessions;
+  late FakeBackingEngine engine;
+  setUp(() {
+    audio = fixture._audio;
+    repo = fixture._repo;
+    fetched = fixture._fetched;
+    sessions = fixture._sessions;
+    engine = fixture._engine;
+  });
 
   Future<void> openMore(WidgetTester tester, String label) async {
     await tester.tap(find.byTooltip('More'));

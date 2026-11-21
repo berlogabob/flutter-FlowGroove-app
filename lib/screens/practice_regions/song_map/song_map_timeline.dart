@@ -288,9 +288,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     );
     final sectionName = section?.isNotEmpty == true
         ? section!
-        : region.name.isNotEmpty
-        ? region.name
-        : 'Region ${_letter(_view.children().indexOf(region))}';
+        : songMapRegionName(region, _view.children().indexOf(region));
     final nameStyle = typography.bodySmall?.copyWith(
       color: palette.textPrimary,
     );
@@ -303,7 +301,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
               : region.name
         : fullNameFits
         ? sectionName
-        : _letter(_view.children().indexOf(region));
+        : songMapRegionLetter(_view.children().indexOf(region));
     final bars = barMs == null ? 0 : (region.lengthMs / barMs).round();
     final border = playing
         ? MonoPulseColors.accentOrange
@@ -365,8 +363,6 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     )..layout(maxWidth: double.infinity);
     return painter.width <= width;
   }
-
-  static String _letter(int index) => String.fromCharCode(65 + index % 26);
 
   Widget _ticks(
     BuildContext context,

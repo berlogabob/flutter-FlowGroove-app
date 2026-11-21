@@ -22,12 +22,16 @@ void main() {
       ),
     );
 
-    expect(
-      find.text('Audio runs at 80.49 BPM · Stretch to 80 / Keep'),
-      findsOneWidget,
-    );
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Stretch to 80'));
-    await tester.tap(find.widgetWithText(TextButton, 'Keep'));
+    final tempo = find.text('80.49 BPM');
+    final stretch = find.widgetWithText(OutlinedButton, 'Stretch to 80');
+    final keep = find.widgetWithText(TextButton, 'Keep');
+    expect(tempo, findsOneWidget);
+    expect(tester.getCenter(stretch).dy, tester.getCenter(tempo).dy);
+    expect(tester.getCenter(keep).dy, tester.getCenter(tempo).dy);
+    expect(tester.getSize(stretch).shortestSide, greaterThanOrEqualTo(48));
+    expect(tester.getSize(keep).shortestSide, greaterThanOrEqualTo(48));
+    await tester.tap(stretch);
+    await tester.tap(keep);
     expect(stretches, 1);
     expect(keeps, 1);
   });

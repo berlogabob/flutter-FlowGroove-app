@@ -486,14 +486,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(repo.saved.single.body, 'Capo 2');
     expect(repo.saved.single.notes, isEmpty);
-    expect(find.textContaining('No notes yet'), findsOneWidget);
+    expect(
+      find.byTooltip(
+        'No notes yet. Play the take and drop one where something '
+        'happens — tap it later to jump straight back.',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('shows the empty state when there are no markers', (
     tester,
   ) async {
     await pump(tester, _entry(peaks: _peaks));
-    expect(find.textContaining('No notes yet'), findsOneWidget);
+    expect(
+      find.byTooltip(
+        'No notes yet. Play the take and drop one where something '
+        'happens — tap it later to jump straight back.',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('without peaks, offers a seek slider and waveform explanation', (

@@ -4,6 +4,11 @@ import '../../../models/audio_region.dart';
 
 enum SongMapZoom { song, section, part }
 
+String songMapRegionLetter(int index) => String.fromCharCode(65 + index % 26);
+
+String songMapRegionName(AudioRegion region, int index) =>
+    region.name.isEmpty ? 'Region ${songMapRegionLetter(index)}' : region.name;
+
 /// Timeline and pad navigation over a snapshot of regions in file order.
 class SongMapView extends ChangeNotifier {
   SongMapView({
