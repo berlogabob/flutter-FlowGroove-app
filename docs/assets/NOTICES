@@ -2746,7 +2746,6 @@ file_selector_platform_interface
 file_selector_windows
 flutter_plugin_android_lifecycle
 go_router
-google_fonts
 google_sign_in_android
 google_sign_in_ios
 google_sign_in_web
