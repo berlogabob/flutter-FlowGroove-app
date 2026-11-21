@@ -1,16 +1,16 @@
 {
-  "name": "Song Map · SONG",
+  "name": "Song Map · Sections",
   "page": "Song Map",
   "mode": "dark",
   "source": "lib/screens/practice_regions_screen.dart",
   "slot": 0,
   "pad": [
-    12,
-    16,
-    12,
-    16
+    8,
+    8,
+    8,
+    8
   ],
-  "gap": 8,
+  "gap": 4,
   "top": [
     {
       "t": "appbar",
@@ -22,143 +22,114 @@
         },
         {
           "t": "iconbtn",
-          "v": "edit"
+          "v": "more_vert"
         }
       ]
     }
   ],
   "body": [
     {
+      "t": "overview",
+      "sections": [
+        {
+          "letter": "A",
+          "color": "section1",
+          "bars": 9
+        },
+        {
+          "letter": "B",
+          "color": "section2",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section3",
+          "bars": 12,
+          "state": "playing"
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 16
+        },
+        {
+          "letter": "E",
+          "color": "section5",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section3",
+          "bars": 12
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 16
+        },
+        {
+          "letter": "F",
+          "color": "section6",
+          "bars": 12
+        },
+        {
+          "letter": "F",
+          "color": "section6",
+          "bars": 4
+        },
+        {
+          "letter": "D",
+          "color": "section4",
+          "bars": 21
+        }
+      ],
+      "playhead": 0.22
+    },
+    {
+      "t": "zoomwave",
+      "title": "C · Chorus 1",
+      "color": "section3",
+      "parts": [
+        {
+          "letter": "a",
+          "bars": 4
+        },
+        {
+          "letter": "b",
+          "bars": 4
+        },
+        {
+          "letter": "c",
+          "bars": 4
+        }
+      ],
+      "startBar": 18,
+      "playhead": 0.4
+    },
+    {
       "t": "row",
-      "main": "spaceBetween",
+      "gap": 8,
       "cross": "center",
       "c": [
         {
           "t": "text",
-          "v": "SONG",
-          "style": "labelLarge",
-          "color": "textSecondary"
+          "v": "Sections",
+          "style": "titleMedium",
+          "w": "fill"
         },
         {
-          "t": "badge",
-          "v": "10 sections",
-          "icon": "queue_music"
+          "t": "key",
+          "v": "Shift"
+        },
+        {
+          "t": "key",
+          "v": "Chop"
+        },
+        {
+          "t": "key",
+          "v": "Range"
         }
       ]
-    },
-    {
-      "t": "row",
-      "gap": 2,
-      "c": [
-        {
-          "t": "secblock",
-          "name": "Intro",
-          "letter": "A",
-          "color": "section1",
-          "w": 25.983,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Part B 1",
-          "letter": "B",
-          "color": "section2",
-          "w": 25.983,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Chorus 1",
-          "letter": "C",
-          "color": "section3",
-          "w": 38.974,
-          "state": "playing"
-        },
-        {
-          "t": "secblock",
-          "name": "Part D 1",
-          "letter": "D",
-          "color": "section4",
-          "w": 51.966,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Part E 1",
-          "letter": "E",
-          "color": "section5",
-          "w": 25.983,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Chorus 2",
-          "letter": "C",
-          "color": "section3",
-          "w": 38.974,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Part D 2",
-          "letter": "D",
-          "color": "section4",
-          "w": 51.966,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Bridge 1",
-          "letter": "F",
-          "color": "section6",
-          "w": 38.974,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Bridge 2",
-          "letter": "F",
-          "color": "section6",
-          "w": 12.991,
-          "state": "confirmed"
-        },
-        {
-          "t": "secblock",
-          "name": "Part D 3",
-          "letter": "D",
-          "color": "section4",
-          "w": 68.206,
-          "state": "confirmed"
-        }
-      ]
-    },
-    {
-      "t": "wave",
-      "name": "Waveform",
-      "w": "fill",
-      "h": 92,
-      "bg": "surfaceRaised",
-      "radius": 8
-    },
-    {
-      "t": "ruler",
-      "labels": [
-        1,
-        9,
-        17,
-        25,
-        33,
-        41,
-        49,
-        57,
-        65,
-        73
-      ]
-    },
-    {
-      "t": "section",
-      "v": "Sections",
-      "action": "Range"
     },
     {
       "t": "row",
@@ -166,21 +137,19 @@
       "c": [
         {
           "t": "pad",
+          "letter": "A",
           "label": "Intro",
-          "sub": "8 bars",
+          "sub": "9 bars",
           "color": "section1",
-          "w": 186,
-          "state": "idle",
-          "progress": 0
+          "w": 194
         },
         {
           "t": "pad",
+          "letter": "B",
           "label": "Part B 1",
           "sub": "8 bars",
           "color": "section2",
-          "w": 186,
-          "state": "idle",
-          "progress": 0
+          "w": 194
         }
       ]
     },
@@ -190,21 +159,21 @@
       "c": [
         {
           "t": "pad",
+          "letter": "C",
           "label": "Chorus 1",
           "sub": "12 bars",
           "color": "section3",
-          "w": 186,
+          "w": 194,
           "state": "playing",
           "progress": 0.4
         },
         {
           "t": "pad",
+          "letter": "D",
           "label": "Part D 1",
           "sub": "16 bars",
           "color": "section4",
-          "w": 186,
-          "state": "idle",
-          "progress": 0
+          "w": 194
         }
       ]
     },
@@ -214,21 +183,19 @@
       "c": [
         {
           "t": "pad",
+          "letter": "E",
           "label": "Part E 1",
           "sub": "8 bars",
           "color": "section5",
-          "w": 186,
-          "state": "idle",
-          "progress": 0
+          "w": 194
         },
         {
           "t": "pad",
+          "letter": "C",
           "label": "Chorus 2",
           "sub": "12 bars",
           "color": "section3",
-          "w": 186,
-          "state": "idle",
-          "progress": 0
+          "w": 194
         }
       ]
     },
@@ -238,21 +205,19 @@
       "c": [
         {
           "t": "pad",
+          "letter": "D",
           "label": "Part D 2",
           "sub": "16 bars",
           "color": "section4",
-          "w": 186,
-          "state": "idle",
-          "progress": 0
+          "w": 194
         },
         {
           "t": "pad",
+          "letter": "F",
           "label": "Bridge 1",
           "sub": "12 bars",
           "color": "section6",
-          "w": 186,
-          "state": "idle",
-          "progress": 0
+          "w": 194
         }
       ]
     },
@@ -262,21 +227,19 @@
       "c": [
         {
           "t": "pad",
+          "letter": "F",
           "label": "Bridge 2",
           "sub": "4 bars",
           "color": "section6",
-          "w": 186,
-          "state": "idle",
-          "progress": 0
+          "w": 194
         },
         {
           "t": "pad",
+          "letter": "D",
           "label": "Part D 3",
           "sub": "21 bars",
           "color": "section4",
-          "w": 186,
-          "state": "idle",
-          "progress": 0
+          "w": 194
         }
       ]
     }
@@ -284,20 +247,7 @@
   "bottom": [
     {
       "t": "transport",
-      "speed": 75,
-      "loop": true,
-      "click": true,
       "playing": true
-    }
-  ],
-  "overlay": [
-    {
-      "x": 88,
-      "y": 130,
-      "node": {
-        "t": "playhead",
-        "h": 120
-      }
     }
   ]
 }
