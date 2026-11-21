@@ -72,8 +72,9 @@ make deploy-stable
 
 Deploy target:
 
-- Hugo to `https://flowgroove.app/`
-- Flutter web to `https://flowgroove.app/app/`
+- Hugo to `https://flowgroove.app/` via FTP
+- Flutter web to `https://app.flowgroove.app/` via Firebase Hosting
+- FTP `/app/` is only a redirect page to `app.flowgroove.app`
 
 ## Features
 
@@ -155,7 +156,7 @@ Deploy target:
 | `make -f Makefile.hugo serve` | Run Hugo locally | Local landing-page development |
 | `make -f Makefile.hugo deploy-all` | GitHub Pages dual deploy | Safe preview path |
 | `make deploy-test` | Flutter-only GitHub Pages publish | Overwrites `docs/` root |
-| `make deploy-stable` | Production FTP deploy | Hugo root + Flutter `/app/` |
+| `make deploy-stable` | Production deploy | Hugo to `flowgroove.app` via FTP; Flutter web to `app.flowgroove.app` via Firebase Hosting; FTP `/app/` is a redirect page |
 | `make build-android` | Build APK | Demo config by default |
 | `make release` | Build APK + AAB + release flow | Uses current git branch/tag |
 | `flutter test` | Run the full Flutter suite | Not run in full during this audit pass |

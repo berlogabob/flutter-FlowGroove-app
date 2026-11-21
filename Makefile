@@ -6,7 +6,7 @@
 # Quick Start:
 #   make -f Makefile.hugo deploy-all → Safe GitHub Pages preview (Hugo + Flutter)
 #   make release                     → Build Android APK + GitHub Release
-#   make deploy-stable               → Production FTP deploy (Hugo + Flutter)
+#   make deploy-stable               → Hugo on FTP, app on Firebase Hosting
 #
 # Demo Configuration:
 #   - Firebase works out of the box (public key included)
@@ -25,7 +25,7 @@ release-check:
 
 .DEFAULT_GOAL := help
 
-.PHONY: help deploy-functions test-fast test-firebase-emulator deploy-rules deploy-stable deploy-hugo deploy-app-hosting ftp-upload-hugo ftp-upload-app-redirect backup-production-hugo deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
+.PHONY: help deploy-functions test-fast test-firebase-emulator deploy-rules deploy-stable deploy-hugo deploy-app-hosting build-web-hosting ftp-upload-hugo ftp-upload-app-redirect backup-production-hugo deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
 .PHONY: design design-check
 design:
@@ -44,7 +44,7 @@ FTP_DIR_DEFAULT := flowgroove.app
 FIREBASE_EMULATOR_TEST_FILES := integration_test/auth_flow_test.dart integration_test/setlist_management_test.dart
 GITHUB_PAGES_BASE_HREF ?= /flutter-FlowGroove-app/
 GITHUB_PAGES_DIST ?= docs
-FTP_WEB_DIST ?= dist/ftp-web
+HOSTING_WEB_DIST ?= dist/hosting-web
 RELEASE_GIT_PATHS ?= Makefile Makefile.hugo pubspec.yaml web/version.json assets firestore.indexes.json firestore.rules ios android macos docs lib scripts test
 
 # =============================================================================
@@ -58,24 +58,24 @@ help:
 	@echo ""
 	@echo "🚀 Quick Start:"
 	@echo ""
-	@echo "  make build-all       # Build all 3 release artifacts (FTP + Pages + Android), no deploy"
-	@echo "  make release-all     # Deploy all 3 channels (FTP + Pages + Android release)"
+	@echo "  make build-all       # Build all 3 release artifacts (Firebase Hosting + Pages + Android), no deploy"
+	@echo "  make release-all     # Deploy production + GitHub Pages + Android release"
 	@echo "  make -f Makefile.hugo deploy-all  # Safe GitHub Pages preview"
 	@echo "  make release         # Build Android APK + GitHub Release"
 	@echo "  make build-release-artifacts # Build GitHub Pages web + Android APK"
-	@echo "  make deploy-stable   # Production FTP (Hugo + Flutter)"
+	@echo "  make deploy-stable   # Hugo on FTP, app on Firebase Hosting (app.flowgroove.app)"
 	@echo "  make test-fast       # Full fast Flutter suite"
 	@echo "  make test-firebase-emulator  # Auth/Firestore emulator acceptance suite"
 	@echo ""
 	@echo "📦 Combined (all three release types):"
 	@echo ""
-	@echo "  make build-all       - Build FTP web + GitHub Pages web + Android APK/AAB (no deploy)"
-	@echo "  make release-all     - Deploy FTP + GitHub Pages + Android release (outward-facing!)"
+	@echo "  make build-all       - Build Firebase Hosting web + GitHub Pages web + Android APK/AAB (no deploy)"
+	@echo "  make release-all     - Deploy Hugo via FTP + Firebase Hosting + GitHub Pages + Android release (outward-facing!)"
 	@echo ""
 	@echo "📋 All Commands:"
 	@echo ""
 	@echo "  make deploy-test     - Deploy Flutter-only build to GitHub Pages"
-	@echo "  make deploy-stable   - Deploy Hugo + Flutter to FTP (flowgroove.app)"
+	@echo "  make deploy-stable   - Deploy Hugo to FTP, app to Firebase Hosting (app.flowgroove.app)"
 	@echo "  make deploy-hugo     - Deploy ONLY Hugo site/blog/wiki to FTP (no app rebuild)"
 	@echo "  make release         - Build Android APK + AAB + GitHub Release"
 	@echo "  make build-release-artifacts - Build GitHub Pages web + Android APK"
@@ -181,7 +181,7 @@ hugo-build-prod:
 	@echo ""
 
 # =============================================================================
-# STABLE DEPLOYMENT - FTP (flowgroove.app)
+# STABLE DEPLOYMENT - Hugo on FTP, app on Firebase Hosting (app.flowgroove.app)
 # =============================================================================
 
 deploy-hugo: preflight-prod hugo-build-prod backup-production-hugo ftp-upload-hugo health-check-prod
@@ -190,7 +190,7 @@ deploy-hugo: preflight-prod hugo-build-prod backup-production-hugo ftp-upload-hu
 	@echo "║         ✅ Hugo-only FTP Deployment Complete!             ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "🌐 Live URL: https://flowgroove.app/  (Flutter /app/ left untouched)"
+	@echo "🌐 Live URL: https://flowgroove.app/  (FTP /app/ redirect left untouched)"
 	@echo "💾 Backup saved to: $(BACKUP_DIR)/"
 	@echo "📝 To rollback: make rollback-production"
 	@echo ""
@@ -244,7 +244,7 @@ ftp-upload-hugo:
 		if [ -d site/public/.well-known ]; then \
 			lftp -c "set net:timeout 30; set net:max-retries 3; set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p .well-known; mirror --reverse site/public/.well-known/ .well-known/; bye"; \
 		fi
-	@echo "✅ Hugo upload complete (Flutter /app/ left as-is)"
+	@echo "✅ Hugo upload complete (FTP /app/ redirect left untouched)"
 	@echo ""
 
 ftp-upload-app-redirect:
@@ -289,10 +289,10 @@ auto-rollback:
 # BUILD COMMANDS
 # =============================================================================
 
-# Build for web (production FTP) - uses demo config
+# Build for web (demo config)
 build-web:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║              Building Web (FTP / Root)                    ║"
+	@echo "║              Building Web (Demo Config)                   ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "📝 Updating version.json..."
@@ -300,7 +300,7 @@ build-web:
 	@echo ""
 	@cp web/config.demo.js web/config.js
 	@echo "🔨 Building web app..."
-	@echo "   Base href: / (FTP - flowgroove.app)"
+	@echo "   Demo-config web build with base href /"
 	@flutter build web --release
 	@echo ""
 	@cp web/config.js build/web/config.js
@@ -308,33 +308,8 @@ build-web:
 	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
 	@echo ""
 
-# Build for web (production FTP with Hugo) - uses /app/ subdirectory
-build-web-prod:
-	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║         Building Web (FTP / Hugo + Flutter / /app/)       ║"
-	@echo "╚═══════════════════════════════════════════════════════════╝"
-	@echo ""
-	@echo "📝 Updating version.json..."
-	@./scripts/update-version-json.sh
-	@echo ""
-	@if [ ! -f web/config.js ]; then \
-		echo "❌ ERROR: web/config.js is missing. Run make check-env-prod first."; \
-		exit 1; \
-	fi
-	@if ! grep -q "Generated at build time" web/config.js; then \
-		echo "❌ ERROR: web/config.js must be generated by scripts/generate-web-config.sh for production builds."; \
-		exit 1; \
-	fi
-	@echo "🔨 Building web app..."
-	@echo "   Base href: /app/ (FTP - flowgroove.app/app/)"
-	@flutter build web --release --base-href "/app/"
-	@echo ""
-	@cp web/config.js build/web/config.js
-	@echo "✅ Build complete!"
-	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
-	@echo ""
-
-deploy-app-hosting: check-env-prod
+# Build production web app for Firebase Hosting.
+build-web-hosting: check-env-prod
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║     Building Web (Firebase Hosting / app.flowgroove.app)  ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
@@ -355,6 +330,11 @@ deploy-app-hosting: check-env-prod
 	@flutter build web --release --base-href "/"
 	@echo ""
 	@cp web/config.js build/web/config.js
+	@echo "✅ Build complete!"
+	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
+	@echo ""
+
+deploy-app-hosting: build-web-hosting
 	@echo "🚀 Deploying to Firebase Hosting..."
 	@firebase deploy --only hosting
 	@echo "✅ Firebase Hosting deployment complete!"
@@ -433,19 +413,18 @@ build-appbundle:
 # =============================================================================
 
 # Build all three release artifacts locally — no upload, no git push, no tag.
-#   1. FTP web      (base-href /app/, production config) → $(FTP_WEB_DIST)/
+#   1. Firebase Hosting web (base-href /, production config) → $(HOSTING_WEB_DIST)/
 #   2. GitHub Pages (base-href $(GITHUB_PAGES_BASE_HREF), demo config) → $(GITHUB_PAGES_DIST)/
 #   3. Android      (APK + AAB)                          → build/app/outputs/
 #
-# Order matters: the FTP build needs the production web/config.js, and the
-# GitHub Pages step overwrites web/config.js with the demo config — so the FTP
-# build runs first and its output is copied aside before the Pages build
-# clobbers build/web/. Requires production env (.env / .ftp-env) for the FTP step.
-build-all: check-env-prod build-web-prod
-	@echo "📦 Packaging FTP web build → $(FTP_WEB_DIST)/..."
-	@rm -rf "$(FTP_WEB_DIST)"
-	@mkdir -p "$(FTP_WEB_DIST)"
-	@cp -R build/web/. "$(FTP_WEB_DIST)/"
+# Order matters: the production build must run before the GitHub Pages step
+# overwrites web/config.js with the demo config, so its output is copied aside
+# before the Pages build clobbers build/web/. Requires production env (.env / .ftp-env).
+build-all: build-web-hosting
+	@echo "📦 Packaging Firebase Hosting web build → $(HOSTING_WEB_DIST)/..."
+	@rm -rf "$(HOSTING_WEB_DIST)"
+	@mkdir -p "$(HOSTING_WEB_DIST)"
+	@cp -R build/web/. "$(HOSTING_WEB_DIST)/"
 	@$(MAKE) package-github-pages
 	@$(MAKE) build-android
 	@$(MAKE) build-appbundle
@@ -454,7 +433,7 @@ build-all: check-env-prod build-web-prod
 	@echo "║         ✅ All Release Artifacts Built                    ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "🌐 FTP web (/app/):  $(FTP_WEB_DIST)/"
+	@echo "🌐 Firebase Hosting web: $(HOSTING_WEB_DIST)/"
 	@echo "🌐 GitHub Pages:     $(GITHUB_PAGES_DIST)/"
 	@echo "📱 Android APK:      build/app/outputs/flutter-apk/app-release.apk"
 	@echo "📦 Android AAB:      build/app/outputs/bundle/release/app-release.aab"
@@ -501,10 +480,10 @@ deploy-rules:
 
 # Deploy all three release channels — OUTWARD-FACING and largely irreversible.
 #   0. Rules   → Firestore + Storage security rules (deployed FIRST)
-#   1. FTP     → flowgroove.app (Hugo root + Flutter /app/, with backup + health check)
+#   1. Production → Hugo on FTP, app on Firebase Hosting (app.flowgroove.app)
 #   2. Pages   → GitHub Pages (Hugo + Flutter), git commit + push
 #   3. Android → version bump + git tag + push + GitHub Release (APK + AAB)
-# Bump ONCE up front so every channel (FTP web, GitHub Pages, Android) ships the
+# Bump ONCE up front so every channel (Firebase Hosting, GitHub Pages, Android) ships the
 # SAME build number. The bump must run before deploy-stable builds the web app,
 # so deploy-rules/deploy-stable are invoked in the recipe (not as prerequisites,
 # which Make would run before the bump). release is told to skip its own bump.
@@ -528,7 +507,8 @@ release-all:
 	@echo "║         🎉 All Release Channels Deployed                  ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "🌐 FTP:          https://flowgroove.app/  (app: /app/)"
+	@echo "🌐 Hugo (FTP):   https://flowgroove.app/"
+	@echo "🌐 App:          https://app.flowgroove.app/ (Firebase Hosting)"
 	@echo "🌐 GitHub Pages: https://berlogabob.github.io/flutter-FlowGroove-app/"
 	@echo "📱 Android:      see GitHub Releases"
 	@echo ""
@@ -702,7 +682,7 @@ help-env:
 	@echo "  ✅ Firebase works (public key included)"
 	@echo "  ⚠️  Spotify/Twitter disabled"
 	@echo ""
-	@echo "📝 For PRODUCTION (Hugo root + Flutter /app/ on FTP):"
+	@echo "📝 For PRODUCTION (Hugo on FTP, app on Firebase Hosting):"
 	@echo ""
 	@echo "  cp .env.example .env"
 	@echo "  cp .ftp-env.example .ftp-env   # optional override for FTP-only values"

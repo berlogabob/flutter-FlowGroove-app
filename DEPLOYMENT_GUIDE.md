@@ -33,7 +33,7 @@ make deploy-test
 
 This publishes only the Flutter web app and overwrites `docs/` root output. Use it only when that destructive behavior is intentional.
 
-### 3. Production FTP Deploy
+### 3. Production Deploy
 
 ```bash
 make deploy-stable
@@ -41,8 +41,9 @@ make deploy-stable
 
 Publishes:
 
-- Hugo landing page to `https://flowgroove.app/`
-- Flutter web app to `https://flowgroove.app/app/`
+- Hugo landing page to `https://flowgroove.app/` via FTP
+- Flutter web app to `https://app.flowgroove.app/` via Firebase Hosting
+- FTP `/app/` is only a redirect page to `app.flowgroove.app`
 
 ## Configuration Sources
 
@@ -146,13 +147,14 @@ If local `.env` exists, the build script uses it. Otherwise it falls back to the
 
 ### `make deploy-stable`
 
-1. Generates production web config
-2. Builds Hugo with production base URL
-3. Builds Flutter web with `/app/` base href
-4. Backs up current FTP production state
-5. Uploads Hugo to FTP root
-6. Uploads Flutter to FTP `/app/`
-7. Runs health checks and auto-rollback on failure
+1. Runs the preflight and production environment check.
+2. Builds Hugo for production.
+3. Backs up the current FTP site, excluding `/app/`.
+4. Uploads Hugo to the FTP root with `mirror --delete`, excluding `/app/` and `.well-known/` so both remain intact.
+5. Builds Flutter web with base href `/` and deploys it to Firebase Hosting at `https://app.flowgroove.app/`.
+6. Runs the production health check; on failure, it automatically rolls back the Hugo FTP backup.
+
+The FTP `/app/` path contains only a redirect page to `app.flowgroove.app`; FTP deploys never touch `app/**`.
 
 ## Security Notes
 

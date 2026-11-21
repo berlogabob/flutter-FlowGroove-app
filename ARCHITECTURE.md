@@ -101,7 +101,8 @@ so nav links must be added in both `hugo.toml` and `layouts/index.html`.
 #### Important Output Paths
 
 - GitHub Pages preview root: `docs/`
-- production FTP root: `site/public/` mirrored to `flowgroove.app/`
+- production Hugo root: `site/public/` mirrored by FTP to `flowgroove.app/`
+- production Flutter web: Firebase Hosting at `https://app.flowgroove.app/`; FTP `/app/` is only a redirect page
 
 ### 3. Telegram Bot
 
@@ -555,7 +556,8 @@ make deploy-stable
 Result:
 
 - `site/public/` -> `flowgroove.app/`
-- `build/web/` -> `flowgroove.app/app/`
+- Flutter web -> `https://app.flowgroove.app/` via Firebase Hosting
+- FTP `/app/` -> redirect page to `app.flowgroove.app` (FTP deploys never touch `app/**`)
 
 ## Operational Notes
 
