@@ -4,6 +4,15 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## 0.36.1+381 — 2026-11-21
+
+Fixes from testing 0.36.0 on a Galaxy A24 (420 dp wide).
+
+- Text scales with screen width (up to 1.15x from 360 dp), on top of the Android font size, so wide phones read like the reference phone; Songs filter row, bottom-bar labels and Home tiles fit at the larger size.
+- Setlists: fixed BPM column (three digits, tabular) and reserved Spotify slot, so Play, key and BPM line up in every row; key chips scale down instead of wrapping ("Bbm").
+- Song Map bars: bar 1 is the first downbeat of the recording, a lead-in shorter than a bar is not counted (Inocente intro: 8 bars, not 9), ruler ticks and numbers sit on the bar lines.
+- Song Map pads: two per row on phones with names at full size, as in the approved design.
+
 ## 0.36.0+380 — 2026-11-21
 
 Song Map reworked MPC-style after testing 0.35.0 on a phone: one overview, one colour per section, and pads that cut, open and rename sections. Designed in FigCraft first (Song Map page, approved before code).
