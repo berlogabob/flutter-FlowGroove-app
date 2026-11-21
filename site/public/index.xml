@@ -273,7 +273,7 @@ of what will be added or merged, then save.&lt;/li&gt;
 &lt;li&gt;Band setlists export and share just like personal ones: the card&amp;rsquo;s &lt;strong&gt;⋯ menu&lt;/strong&gt;
 offers &lt;em&gt;Copy links&lt;/em&gt; and &lt;em&gt;Export PDF&lt;/em&gt; (&lt;strong&gt;As is&lt;/strong&gt; / &lt;strong&gt;Compact&lt;/strong&gt;), and the
 metronome button queues the whole setlist.&lt;/li&gt;
-&lt;li&gt;Plan the next session with &lt;a href="../rehearsals/"&gt;Rehearsals&lt;/a&gt; — an availability poll
+&lt;li&gt;Plan the next session with &lt;a href="https://flowgroove.app/wiki/rehearsals/"&gt;Rehearsals&lt;/a&gt; — an availability poll
 that turns into a confirmed rehearsal with a setlist.&lt;/li&gt;
 &lt;/ul&gt;</description></item><item><title>Changelog &amp; Archive</title><link>https://flowgroove.app/wiki/changelog/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/changelog/</guid><description>What shipped in FlowGroove, when, and why — the human-readable project history.</description></item><item><title>Concert Mode</title><link>https://flowgroove.app/wiki/concert-mode/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/concert-mode/</guid><description>&lt;h1 id="concert-mode"&gt;Concert Mode&lt;/h1&gt;
 &lt;p&gt;Perform a setlist live.&lt;/p&gt;
@@ -288,9 +288,9 @@ chords and lyrics, seeded with the live tempo, while the click keeps running.&lt
 &lt;ul&gt;
 &lt;li&gt;Tap a navigation tab at the bottom to switch sections.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Menu (⋯)&lt;/strong&gt; in the bottom bar opens the current screen&amp;rsquo;s actions and your
-&lt;a href="../profile/"&gt;Profile&lt;/a&gt;.&lt;/li&gt;
+&lt;a href="https://flowgroove.app/wiki/profile/"&gt;Profile&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;The &lt;strong&gt;practice dashboard&lt;/strong&gt; on top shows this week&amp;rsquo;s minutes, streak and a
-7-day graph — tap it for the full &lt;a href="../practice/"&gt;Practice&lt;/a&gt; screen.&lt;/li&gt;
+7-day graph — tap it for the full &lt;a href="https://flowgroove.app/wiki/practice/"&gt;Practice&lt;/a&gt; screen.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Quick Actions&lt;/strong&gt;: create a Song, Band or Setlist — or &lt;strong&gt;Audio note&lt;/strong&gt;, which
 starts recording the moment it opens (link it to a song later from the
 Recorder).&lt;/li&gt;
@@ -299,18 +299,30 @@ takes in one place) and &lt;strong&gt;Practice&lt;/strong&gt; on the full-width 
 &lt;/ul&gt;</description></item><item><title>Metronome</title><link>https://flowgroove.app/wiki/metronome/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/metronome/</guid><description>&lt;h1 id="metronome"&gt;Metronome&lt;/h1&gt;
 &lt;p&gt;Practice to a steady beat.&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;Set the tempo (BPM) and time signature — the two dot rows are labeled
-&lt;strong&gt;Beats&lt;/strong&gt; and &lt;strong&gt;Subdivision&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;Set the tempo (BPM) and time signature with the two dot rows.
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Top row, main beats:&lt;/strong&gt; one dot per beat of the bar (the top number of
+the time signature, 1–12). &lt;code&gt;−&lt;/code&gt; and &lt;code&gt;+&lt;/code&gt; change how many beats.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Bottom row, subdivision:&lt;/strong&gt; how many clicks each beat is split into
+(1 = just the beat, 2 = eighths, 3 = triplets, 4 = sixteenths).&lt;/li&gt;
+&lt;li&gt;Dot &lt;code&gt;i&lt;/code&gt; of the bottom row sits under beat &lt;code&gt;i&lt;/code&gt; of the top row.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Change the tempo by dragging the white knob on the dial, with the −5 / −1 / +1 / +5 buttons, or by tapping the BPM number to type it. Tapping elsewhere on the ring does nothing, so a stray touch cannot change a song&amp;rsquo;s tempo.&lt;/li&gt;
 &lt;li&gt;Tap accents to emphasize beats.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Menu (⋯)&lt;/strong&gt; in the bottom bar holds Sound, Count-in, Ramp, Haptics and the
 save-to-song actions; toggles flip right inside the sheet.&lt;/li&gt;
 &lt;li&gt;Unloading the current song can be undone from the snackbar.&lt;/li&gt;
 &lt;li&gt;On the web, audio uses the Web Audio engine automatically.&lt;/li&gt;
-&lt;/ul&gt;</description></item><item><title>Page Not Found — FlowGroove</title><link>https://flowgroove.app/404/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/404/</guid><description>The page you&amp;#39;re looking for doesn&amp;#39;t exist. Return to FlowGroove homepage.</description></item><item><title>Practice</title><link>https://flowgroove.app/wiki/practice/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/practice/</guid><description>&lt;h1 id="practice"&gt;Practice&lt;/h1&gt;
+&lt;/ul&gt;
+&lt;h2 id="backing-tracks-and-the-launchpad"&gt;Backing tracks and the launchpad&lt;/h2&gt;
+&lt;p&gt;Load a song that has a MIDI file in its Lab and the metronome shows one &lt;strong&gt;pad&lt;/strong&gt;
+per section (Intro, Verse, Chorus…). Tap a pad to play that section; the click
+and the backing always play from one clock, so they stay in time.&lt;/p&gt;</description></item><item><title>Page Not Found — FlowGroove</title><link>https://flowgroove.app/404/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/404/</guid><description>The page you&amp;#39;re looking for doesn&amp;#39;t exist. Return to FlowGroove homepage.</description></item><item><title>Practice</title><link>https://flowgroove.app/wiki/practice/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/practice/</guid><description>&lt;h1 id="practice"&gt;Practice&lt;/h1&gt;
 &lt;p&gt;Your practice, tracked automatically — every metronome session is logged
 (when it started, how long, which song, at what BPM). Nothing to set up.&lt;/p&gt;</description></item><item><title>Profile</title><link>https://flowgroove.app/wiki/profile/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/profile/</guid><description>&lt;h1 id="profile"&gt;Profile&lt;/h1&gt;
 &lt;p&gt;Your account. Open it from &lt;strong&gt;Menu (⋯)&lt;/strong&gt; in the bottom bar. App-wide
-preferences live in &lt;a href="../settings/"&gt;Settings&lt;/a&gt;.&lt;/p&gt;
+preferences live in &lt;a href="https://flowgroove.app/wiki/settings/"&gt;Settings&lt;/a&gt;.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Update your display name and photo.&lt;/li&gt;
 &lt;li&gt;Set your music roles.&lt;/li&gt;
