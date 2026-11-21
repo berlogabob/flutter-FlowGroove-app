@@ -1437,6 +1437,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     required int position,
     required bool playing,
     required Widget? banner,
+    required List<Widget> padActions,
   }) {
     final regions = _entry.regions;
     final candidate = _canEdit ? _mapCandidate : null;
@@ -1523,6 +1524,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         final pads = SongMapPads(
           key: ValueKey((view, view.sectionIndex, view.partIndex)),
           view: view,
+          actions: padActions,
           selectedIndices: selected,
           playingIndex: active < 0 ? null : active,
           queuedIndex: queued ? selected.firstOrNull : null,
@@ -1641,6 +1643,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
               child: Column(
                 children: [
                   ?banner,
+                  if (preview)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: padActions,
+                    ),
                   if (compact && !preview && candidate == null) pads,
                   timeline,
                   if (!preview && (!compact || candidate != null)) pads,
@@ -1944,6 +1951,47 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final canPlay = _loaded && _durationMs > 0 && !_busy && !_preparingSync;
     final canClick = !_stretched && canSyncToClick(grid) && canPlay;
     final speedPercent = (_speed * 100).round();
+    final padActions = <Widget>[
+      if (canEdit)
+        IconButton(
+          key: const ValueKey('shift'),
+          icon: const Icon(Icons.keyboard_capslock, semanticLabel: 'Shift'),
+          iconSize: 20,
+          tooltip: 'Shift',
+          isSelected: editing,
+          style: editing
+              ? IconButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                )
+              : null,
+          onPressed: () => setState(() {
+            _editing = !_editing;
+            _focus = null;
+          }),
+        ),
+      if (editing)
+        IconButton(
+          key: const ValueKey('add-marker'),
+          icon: const Icon(
+            Icons.add_location_alt_outlined,
+            semanticLabel: 'Add marker',
+          ),
+          iconSize: 20,
+          tooltip: 'Add marker',
+          onPressed: !_busy && _loaded && _durationMs >= 2 * minRegionMs
+              ? _addMarker
+              : null,
+        )
+      else
+        IconButton(
+          key: const ValueKey('add-note'),
+          icon: const Icon(Icons.add_comment_outlined, semanticLabel: 'Note'),
+          iconSize: 20,
+          tooltip: 'Note',
+          onPressed: _loaded && canEdit ? _addMarkerAtPlayhead : null,
+        ),
+    ];
     return Scaffold(
       backgroundColor: context.mp.black,
       bottomNavigationBar: SongMapTransport(
@@ -1980,33 +2028,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             : null,
         onClickAndDrumsChanged: canClick ? _setSync : null,
         clickUnavailableReason: _clickUnavailableReason(grid),
-        leading: canEdit
-            ? _barButton(
-                key: const ValueKey('shift'),
-                icon: Icons.keyboard_capslock,
-                label: 'Shift',
-                active: editing,
-                onPressed: () => setState(() {
-                  _editing = !_editing;
-                  _focus = null;
-                }),
-              )
-            : null,
-        trailing: editing
-            ? _barButton(
-                key: const ValueKey('add-marker'),
-                icon: Icons.add_location_alt_outlined,
-                label: 'Add marker',
-                onPressed: !_busy && _loaded && _durationMs >= 2 * minRegionMs
-                    ? _addMarker
-                    : null,
-              )
-            : _barButton(
-                key: const ValueKey('add-note'),
-                icon: Icons.add_comment_outlined,
-                label: 'Note',
-                onPressed: _loaded && canEdit ? _addMarkerAtPlayhead : null,
-              ),
       ),
       appBar: AppBar(
         title: canEdit
@@ -2188,6 +2209,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: padActions,
+                              ),
                               const Text('No sections yet'),
                               if (analyzeBanner != null)
                                 analyzeBanner
@@ -2209,6 +2234,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                         editing: editing,
                         position: positionMs,
                         playing: playing,
+                        padActions: padActions,
                         banner: tempoBanner == null
                             ? analyzeBanner
                             : Column(children: [?analyzeBanner, tempoBanner]),
@@ -2339,49 +2365,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       ),
     );
   }
-
-  /// One of the three equal bottom-bar buttons.
-  Widget _barButton({
-    required Key key,
-    required IconData icon,
-    required String label,
-    required VoidCallback? onPressed,
-    bool active = false,
-  }) {
-    return SizedBox(
-      height: 64,
-      child: active
-          ? FilledButton(
-              key: key,
-              onPressed: onPressed,
-              style: FilledButton.styleFrom(
-                padding: EdgeInsets.zero,
-                backgroundColor: MonoPulseColors.accentOrange,
-                foregroundColor: MonoPulseColors.black,
-              ),
-              child: _slot(icon, label),
-            )
-          : OutlinedButton(
-              key: key,
-              onPressed: onPressed,
-              style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-              child: _slot(icon, label),
-            ),
-    );
-  }
-
-  Widget _slot(IconData icon, String label) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icon),
-      Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(fontSize: MonoPulseTypography.bodySmall.fontSize),
-      ),
-    ],
-  );
 
   String? _clickUnavailableReason(AudioGrid? grid) => _stretched
       ? 'Click & drums is unavailable while audio is stretched'

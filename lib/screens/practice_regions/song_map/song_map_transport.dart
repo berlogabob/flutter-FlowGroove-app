@@ -21,8 +21,6 @@ class SongMapTransport extends StatelessWidget {
     this.playLabel,
     this.onPlayLongPress,
     this.clickUnavailableReason,
-    this.leading,
-    this.trailing,
     this.stretched = false,
     super.key,
   });
@@ -36,8 +34,6 @@ class SongMapTransport extends StatelessWidget {
   final bool stretched;
   final String? playLabel;
   final String? clickUnavailableReason;
-  final Widget? leading;
-  final Widget? trailing;
   final VoidCallback? onPlay;
   final VoidCallback? onStop;
   final VoidCallback? onPlayLongPress;
@@ -48,127 +44,160 @@ class SongMapTransport extends StatelessWidget {
   final ValueChanged<bool>? onClickAndDrumsChanged;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: MonoPulseColors.surfaceRaised,
-    child: SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: MonoPulseSpacing.md,
-          vertical: MonoPulseSpacing.sm,
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final controls = _controls();
-            if (leading == null && trailing == null) return controls;
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final label = playing ? 'Stop' : 'Play';
+    final play = FilledButton(
+      key: const ValueKey('play'),
+      onPressed: playing ? onStop : onPlay,
+      onLongPress: onPlayLongPress,
+      style: FilledButton.styleFrom(
+        foregroundColor: colors.onPrimary,
+        backgroundColor: colors.primary,
+        padding: EdgeInsets.zero,
+        minimumSize: const Size(0, 48),
+        elevation: 0,
+        shape: _shape,
+      ),
+      child: _face(playing ? Icons.stop : Icons.play_arrow, label, playLabel),
+    );
 
-            final left = Expanded(child: leading ?? const SizedBox.shrink());
-            final right = Expanded(child: trailing ?? const SizedBox.shrink());
-            if (constraints.maxWidth >= 740) {
-              return Row(
-                children: [
-                  left,
-                  Expanded(flex: 6, child: controls),
-                  right,
-                ],
-              );
-            }
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(children: [left, const Spacer(), right]),
-                const SizedBox(height: MonoPulseSpacing.xs),
-                controls,
-              ],
-            );
-          },
+    return Material(
+      color: colors.surface,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(MonoPulseSpacing.sm),
+          child: Row(
+            spacing: MonoPulseSpacing.xs,
+            children: [
+              Expanded(
+                child: onPlayLongPress == null
+                    ? play
+                    : Tooltip(
+                        message: 'Hold for speed, pre-roll, drums',
+                        child: play,
+                      ),
+              ),
+              Expanded(
+                child: _toggle(
+                  colors,
+                  'loop',
+                  Icons.repeat,
+                  'Loop',
+                  loop,
+                  onLoopChanged,
+                ),
+              ),
+              Expanded(
+                child: OutlinedButton(
+                  key: const ValueKey('speed'),
+                  onPressed: onSpeedTap,
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: colors.surfaceContainerHighest,
+                    foregroundColor: colors.onSurface,
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 48),
+                    shape: _shape,
+                  ),
+                  child: _face(Icons.speed, '$speedPercent%'),
+                ),
+              ),
+              Expanded(
+                child: _toggle(
+                  colors,
+                  'count-in',
+                  Icons.timer,
+                  'Count-in',
+                  countIn,
+                  onCountInChanged,
+                ),
+              ),
+              Expanded(
+                child: Tooltip(
+                  message: clickUnavailableReason ?? 'Click',
+                  child: _toggle(
+                    colors,
+                    'click',
+                    Icons.volume_up,
+                    'Click',
+                    click,
+                    onClickChanged,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Tooltip(
+                  message: stretched
+                      ? 'Click & drums is unavailable while audio is stretched'
+                      : clickUnavailableReason ?? 'Click & drums',
+                  child: _toggle(
+                    colors,
+                    'click-and-drums',
+                    Icons.graphic_eq,
+                    'Drums',
+                    clickAndDrums,
+                    stretched ? null : onClickAndDrumsChanged,
+                    semanticsLabel: 'Click & drums',
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
+    );
+  }
+
+  static const _shape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.circular(MonoPulseRadius.medium)),
   );
 
-  Widget _controls() => Wrap(
-    alignment: WrapAlignment.spaceBetween,
-    crossAxisAlignment: WrapCrossAlignment.center,
-    spacing: MonoPulseSpacing.xs,
-    runSpacing: MonoPulseSpacing.xs,
+  Widget _face(IconData icon, String label, [String? semanticsLabel]) => Column(
+    mainAxisSize: MainAxisSize.min,
+    mainAxisAlignment: MainAxisAlignment.center,
     children: [
-      _playButton(),
-      _toggle('loop', Icons.repeat, 'Loop', loop, onLoopChanged),
-      OutlinedButton.icon(
-        key: const ValueKey('speed'),
-        onPressed: onSpeedTap,
-        icon: const Icon(Icons.speed, size: 18),
-        label: Text('$speedPercent%'),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
-          minimumSize: const Size(0, 40),
-        ),
-      ),
-      _toggle('count-in', Icons.timer, 'Count-in', countIn, onCountInChanged),
-      Tooltip(
-        message: clickUnavailableReason ?? 'Click',
-        child: _toggle(
-          'click',
-          Icons.music_note,
-          'Click',
-          click,
-          onClickChanged,
-        ),
-      ),
-      Tooltip(
-        message: stretched
-            ? 'Click & drums is unavailable while audio is stretched'
-            : clickUnavailableReason ?? 'Click & drums',
-        child: _toggle(
-          'click-and-drums',
-          Icons.queue_music,
-          'Click & drums',
-          clickAndDrums,
-          stretched ? null : onClickAndDrumsChanged,
+      Icon(icon, size: 20),
+      Flexible(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            semanticsLabel: semanticsLabel,
+            style: const TextStyle(fontSize: 11),
+          ),
         ),
       ),
     ],
   );
 
-  Widget _playButton() {
-    final button = FilledButton.icon(
-      key: const ValueKey('play'),
-      onPressed: playing ? onStop : onPlay,
-      onLongPress: onPlayLongPress,
-      icon: Icon(
-        playing
-            ? (playLabel == 'Pause' ? Icons.pause : Icons.stop)
-            : Icons.play_arrow,
-        size: 18,
-      ),
-      label: Text(playLabel ?? (playing ? 'Stop' : 'Play')),
-      style: FilledButton.styleFrom(
-        foregroundColor: MonoPulseColors.black,
-        backgroundColor: MonoPulseColors.accentOrange,
-        padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
-        minimumSize: const Size(0, 40),
-      ),
-    );
-    return onPlayLongPress == null
-        ? button
-        : Tooltip(message: 'Hold for speed, pre-roll, drums', child: button);
-  }
-
   Widget _toggle(
+    ColorScheme colors,
     String key,
     IconData icon,
     String label,
     bool value,
-    ValueChanged<bool>? onChanged,
-  ) => FilterChip(
+    ValueChanged<bool>? onChanged, {
+    String? semanticsLabel,
+  }) => FilterChip(
     key: ValueKey(key),
-    avatar: Icon(icon, size: 16),
-    label: Text(label),
+    label: SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: _face(icon, label, semanticsLabel),
+    ),
     selected: value,
     onSelected: onChanged,
     showCheckmark: false,
-    labelPadding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xs),
-    visualDensity: VisualDensity.compact,
+    backgroundColor: colors.surfaceContainerHighest,
+    selectedColor: colors.surfaceContainerHighest,
+    side: value
+        ? BorderSide(color: colors.onSurface, width: 2)
+        : BorderSide.none,
+    shape: _shape,
+    padding: EdgeInsets.zero,
+    labelPadding: EdgeInsets.zero,
+    visualDensity: VisualDensity.standard,
+    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
   );
 }

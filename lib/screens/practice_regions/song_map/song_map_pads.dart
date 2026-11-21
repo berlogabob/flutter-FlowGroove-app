@@ -12,6 +12,7 @@ import 'song_map_view.dart';
 class SongMapPads extends StatefulWidget {
   const SongMapPads({
     required this.view,
+    this.actions = const [],
     this.selectedIndex,
     this.selectedIndices = const {},
     this.playingIndex,
@@ -25,6 +26,7 @@ class SongMapPads extends StatefulWidget {
   });
 
   final SongMapView view;
+  final List<Widget> actions;
   final int? selectedIndex;
   final Set<int> selectedIndices;
   final int? playingIndex;
@@ -85,13 +87,16 @@ class _SongMapPadsState extends State<SongMapPads> {
                 horizontal: MonoPulseSpacing.lg,
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    widget.view.level == SongMapZoom.song
-                        ? 'Sections'
-                        : 'Practice pads',
-                    style: MonoPulseTypography.titleMedium,
+                  Expanded(
+                    child: Text(
+                      widget.view.level == SongMapZoom.song
+                          ? 'Sections'
+                          : 'Practice pads',
+                      style: MonoPulseTypography.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   if (widget.onRange != null)
                     TextButton(
@@ -107,6 +112,7 @@ class _SongMapPadsState extends State<SongMapPads> {
                       onPressed: widget.view.zoomOut,
                       icon: const Icon(Icons.zoom_out),
                     ),
+                  ...widget.actions,
                 ],
               ),
             ),

@@ -38,10 +38,10 @@ void main() {
 
     await tester.tap(find.text('Play'));
     await tester.tap(find.text('75%'));
-    await tester.tap(find.text('Loop'));
-    await tester.tap(find.text('Count-in'));
-    await tester.tap(find.text('Click').first);
-    await tester.tap(find.text('Click & drums'));
+    await tester.tap(find.byKey(const ValueKey('loop')));
+    await tester.tap(find.byKey(const ValueKey('count-in')));
+    await tester.tap(find.byKey(const ValueKey('click')));
+    await tester.tap(find.byKey(const ValueKey('click-and-drums')));
 
     expect(played, isTrue);
     expect(speedTapped, isTrue);
@@ -103,7 +103,9 @@ void main() {
       ),
     );
 
-    final chip = tester.widget<FilterChip>(find.widgetWithText(FilterChip, 'Click & drums'));
+    final chip = tester.widget<FilterChip>(
+      find.byKey(const ValueKey('click-and-drums')),
+    );
     expect(chip.onSelected, isNull);
     expect(
       find.byTooltip('Click & drums is unavailable while audio is stretched'),

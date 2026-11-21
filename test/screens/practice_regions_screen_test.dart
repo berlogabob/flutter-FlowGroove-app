@@ -363,18 +363,18 @@ void main() {
   ) async {
     await pump(tester, _entry());
     expect(find.byType(SongMapPads), findsOneWidget);
-    expect(find.text('Add marker'), findsNothing);
+    expect(find.byKey(const ValueKey('add-marker')), findsNothing);
     expect(find.text('Snap to bar'), findsNothing);
     expect(find.byKey(const ValueKey('marker-handle-0')), findsNothing);
     await tester.tap(find.byKey(const ValueKey('shift')));
     await tester.pumpAndSettle();
     expect(find.text('Tap a pad to edit'), findsOneWidget);
-    expect(find.text('Add marker'), findsOneWidget);
+    expect(find.byKey(const ValueKey('add-marker')), findsOneWidget);
     expect(find.byType(SongMapPads), findsOneWidget);
     expect(find.byKey(const ValueKey('marker-handle-0')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('shift')));
     await tester.pumpAndSettle();
-    expect(find.text('Add marker'), findsNothing);
+    expect(find.byKey(const ValueKey('add-marker')), findsNothing);
     expect(find.byType(SongMapPads), findsOneWidget);
   });
 
@@ -746,7 +746,7 @@ void main() {
       expect(find.textContaining('Looping'), findsNothing);
       expect(player.clip, isNull);
       expect(player.loopMode, LoopModeMessage.off);
-      expect(find.text('Pause'), findsOneWidget);
+      expect(find.text('Stop'), findsOneWidget);
       expect(repo.saved, isEmpty);
     },
   );
@@ -998,7 +998,7 @@ void main() {
     await settleAudio(tester);
     expect(player.calls, ['pause', 'setClip', 'seek', 'play']);
     expect(player.position, Duration.zero);
-    expect(find.text('Pause'), findsOneWidget);
+    expect(find.text('Stop'), findsOneWidget);
   });
 
   testWidgets('section pads select and loop the whole section', (tester) async {
@@ -1072,7 +1072,7 @@ void main() {
       await tester.pumpAndSettle();
       final loads = player.loadCalls;
       final pauses = player.pauseCalls;
-      await tester.tap(find.text('Add marker'));
+      await tester.tap(find.byKey(const ValueKey('add-marker')));
       await settleAudio(tester);
       expect(repo.saved, hasLength(1));
       expect(repo.saved.single.regions, hasLength(2));
@@ -1085,7 +1085,7 @@ void main() {
       expect(repo.saved.single.regions[1].name, isEmpty);
       expect(find.byKey(const ValueKey('marker-handle-0')), findsOneWidget);
       expect(find.text('Region name'), findsNothing);
-      expect(find.text('Pause'), findsOneWidget);
+      expect(find.text('Stop'), findsOneWidget);
       expect(player.loadCalls, loads);
       expect(player.pauseCalls, pauses);
 
@@ -1365,7 +1365,7 @@ void main() {
     expect(find.text('Tempo grid'), findsNothing);
     await tester.tapAt(const Offset(5, 5));
     await tester.pumpAndSettle();
-    expect(find.text('Add marker'), findsNothing);
+    expect(find.byKey(const ValueKey('add-marker')), findsNothing);
     expect(find.byKey(const ValueKey('marker-handle-0')), findsNothing);
     await tester.tap(find.byKey(const ValueKey('region-pad-verse')));
     await settleAudio(tester);
