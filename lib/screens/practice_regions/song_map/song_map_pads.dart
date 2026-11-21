@@ -76,51 +76,53 @@ class _SongMapPadsState extends State<SongMapPads> {
     listenable: widget.view,
     builder: (context, _) {
       final children = widget.view.children();
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: MonoPulseSpacing.lg,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  widget.view.level == SongMapZoom.song
-                      ? 'Sections'
-                      : 'Practice pads',
-                  style: MonoPulseTypography.titleMedium,
-                ),
-                if (widget.onRange != null)
-                  TextButton(
-                    onPressed: () => setState(() {
-                      _rangeMode = !_rangeMode;
-                      _rangeStart = null;
-                    }),
-                    child: Text(_rangeMode ? 'Range: on' : 'Range'),
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.lg,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.view.level == SongMapZoom.song
+                        ? 'Sections'
+                        : 'Practice pads',
+                    style: MonoPulseTypography.titleMedium,
                   ),
-                if (widget.view.level != SongMapZoom.song)
-                  IconButton(
-                    tooltip: 'Zoom out',
-                    onPressed: widget.view.zoomOut,
-                    icon: const Icon(Icons.zoom_out),
-                  ),
-              ],
+                  if (widget.onRange != null)
+                    TextButton(
+                      onPressed: () => setState(() {
+                        _rangeMode = !_rangeMode;
+                        _rangeStart = null;
+                      }),
+                      child: Text(_rangeMode ? 'Range: on' : 'Range'),
+                    ),
+                  if (widget.view.level != SongMapZoom.song)
+                    IconButton(
+                      tooltip: 'Zoom out',
+                      onPressed: widget.view.zoomOut,
+                      icon: const Icon(Icons.zoom_out),
+                    ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-            child: Wrap(
-              spacing: MonoPulseSpacing.sm,
-              runSpacing: MonoPulseSpacing.sm,
-              children: [
-                for (final (index, region) in children.indexed)
-                  _pad(context, region, index),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+              child: Wrap(
+                spacing: MonoPulseSpacing.sm,
+                runSpacing: MonoPulseSpacing.sm,
+                children: [
+                  for (final (index, region) in children.indexed)
+                    _pad(context, region, index),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
     },
   );
