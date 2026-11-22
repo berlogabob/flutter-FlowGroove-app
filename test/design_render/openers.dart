@@ -79,6 +79,35 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'add_song_helper_search_on_web': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Search on Web'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Open Spotify search in browser?'),
+            const SizedBox(height: 16),
+            const Text(
+              'Wonderwall Oasis',
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          CustomButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            label: 'Open Spotify',
+          ),
+        ],
+      ),
+    ),
+  ),
   'create_band_discard_changes': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,
