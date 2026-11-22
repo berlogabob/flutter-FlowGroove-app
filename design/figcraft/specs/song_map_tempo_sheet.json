@@ -1,0 +1,318 @@
+{
+  "name": "Song Map · Tempo sheet",
+  "page": "Song Map",
+  "mode": "dark",
+  "source": "lib/screens/practice_regions_screen.dart",
+  "slot": 12,
+  "pad": [
+    8,
+    8,
+    8,
+    8
+  ],
+  "gap": 8,
+  "top": [
+    {
+      "t": "appbar",
+      "v": "Rapido",
+      "opacity": 0.38,
+      "actions": [
+        {
+          "t": "chip",
+          "v": "100 BPM",
+          "opacity": 0.38
+        },
+        {
+          "t": "iconbtn",
+          "v": "more_vert",
+          "opacity": 0.38
+        }
+      ]
+    }
+  ],
+  "body": [
+    {
+      "t": "overview",
+      "opacity": 0.38,
+      "sections": [
+        {
+          "letter": "A",
+          "color": "section1",
+          "bars": 9
+        },
+        {
+          "letter": "B",
+          "color": "section5",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section8",
+          "bars": 12
+        },
+        {
+          "letter": "D",
+          "color": "section3",
+          "bars": 16
+        },
+        {
+          "letter": "E",
+          "color": "section11",
+          "bars": 8
+        },
+        {
+          "letter": "C",
+          "color": "section8",
+          "bars": 12
+        },
+        {
+          "letter": "D",
+          "color": "section3",
+          "bars": 16
+        },
+        {
+          "letter": "F",
+          "color": "section7",
+          "bars": 12
+        },
+        {
+          "letter": "F",
+          "color": "section7",
+          "bars": 4
+        },
+        {
+          "letter": "D",
+          "color": "section3",
+          "bars": 21
+        }
+      ]
+    },
+    {
+      "t": "zoomwave",
+      "opacity": 0.38,
+      "title": "A · Intro",
+      "color": "section1",
+      "startBar": 1,
+      "parts": [
+        {
+          "letter": "a",
+          "bars": 4,
+          "color": "section1"
+        },
+        {
+          "letter": "b",
+          "bars": 5,
+          "color": "section1"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "opacity": 0.38,
+      "gap": 4,
+      "cross": "center",
+      "c": [
+        {
+          "t": "text",
+          "v": "Sections",
+          "style": "titleMedium",
+          "w": "fill"
+        },
+        {
+          "t": "key",
+          "v": "Shift"
+        },
+        {
+          "t": "key",
+          "v": "Chop"
+        },
+        {
+          "t": "key",
+          "v": "Range"
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "opacity": 0.38,
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Intro",
+          "sub": "9 bars",
+          "letter": "A",
+          "color": "section1",
+          "w": 124
+        },
+        {
+          "t": "pad",
+          "label": "Chorus 1",
+          "sub": "12 bars",
+          "letter": "C",
+          "color": "section8",
+          "w": 124
+        },
+        {
+          "t": "pad",
+          "label": "Part D 1",
+          "sub": "16 bars",
+          "letter": "D",
+          "color": "section3",
+          "w": 124
+        }
+      ]
+    },
+    {
+      "t": "spacer",
+      "size": 8
+    }
+  ],
+  "bottom": [
+    {
+      "t": "transport",
+      "click": true,
+      "opacity": 0.38
+    }
+  ],
+  "overlay": [
+    {
+      "x": 0,
+      "y": 475,
+      "node": {
+        "t": "sheet",
+        "bg": "surfaceRaised",
+        "radius": 20,
+        "pad": [
+          16,
+          20,
+          20,
+          20
+        ],
+        "gap": 8,
+        "c": [
+          {
+            "t": "text",
+            "v": "Tempo",
+            "style": "headlineMedium",
+            "color": "textPrimary"
+          },
+          {
+            "t": "row",
+            "h": 60,
+            "main": "center",
+            "cross": "center",
+            "gap": 8,
+            "c": [
+              {
+                "t": "text",
+                "v": "170",
+                "style": "headlineLarge",
+                "color": "textPrimary",
+                "w": "hug"
+              },
+              {
+                "t": "text",
+                "v": "BPM",
+                "style": "titleMedium",
+                "color": "textSecondary",
+                "w": "hug"
+              }
+            ]
+          },
+          {
+            "t": "row",
+            "h": 48,
+            "gap": 8,
+            "c": [
+              {
+                "t": "key",
+                "v": "/2",
+                "w": "fill",
+                "h": 48
+              },
+              {
+                "t": "key",
+                "v": "-1",
+                "w": "fill",
+                "h": 48
+              },
+              {
+                "t": "key",
+                "v": "+1",
+                "w": "fill",
+                "h": 48
+              },
+              {
+                "t": "key",
+                "v": "x2",
+                "w": "fill",
+                "h": 48
+              }
+            ]
+          },
+          {
+            "t": "row",
+            "w": "fill",
+            "h": 56,
+            "bg": "surface",
+            "border": "borderStrong",
+            "radius": 10,
+            "pad": [
+              4,
+              12,
+              4,
+              12
+            ],
+            "cross": "center",
+            "main": "spaceBetween",
+            "c": [
+              {
+                "t": "col",
+                "gap": 0,
+                "c": [
+                  {
+                    "t": "text",
+                    "v": "Tap",
+                    "style": "labelLarge",
+                    "color": "textPrimary"
+                  },
+                  {
+                    "t": "text",
+                    "v": "Tap 4 times",
+                    "style": "bodySmall",
+                    "color": "textSecondary"
+                  }
+                ]
+              },
+              {
+                "t": "icon",
+                "v": "touch_app",
+                "size": 20,
+                "color": "accentOrange"
+              }
+            ]
+          },
+          {
+            "t": "switchrow",
+            "title": "Listen",
+            "sub": "Click over the recording",
+            "on": true
+          },
+          {
+            "t": "button",
+            "kind": "primary",
+            "v": "Save to song",
+            "w": "fill"
+          },
+          {
+            "t": "button",
+            "kind": "text",
+            "v": "Cancel",
+            "w": "fill"
+          }
+        ]
+      }
+    }
+  ]
+}
