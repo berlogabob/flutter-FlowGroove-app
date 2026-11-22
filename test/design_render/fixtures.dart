@@ -55,6 +55,8 @@ List<Object> renderOverrides() {
   ];
   final band = MockDataHelper.createMockBand(
     id: 'band1',
+    name: 'Test Band',
+    description: 'A group of friends playing songs together.',
     inviteCode: 'INVITE1',
     members: [
       BandMember(
@@ -73,7 +75,7 @@ List<Object> renderOverrides() {
         displayName: 'Test Member Three',
       ),
     ],
-  );
+  ).copyWith(tags: const ['rock', 'funk', 'original']);
   final setlist = MockDataHelper.createMockSetlist(
     id: 'setlist1',
     bandId: band.id,
@@ -102,6 +104,8 @@ List<Object> renderOverrides() {
     setlistsProvider.overrideWith((ref) => Stream.value([setlist])),
     guestEventsProvider.overrideWith((ref) => Stream.value([])),
     bandSongsProvider(band.id).overrideWith((ref) => Stream.value(songs)),
+    bandSetlistsProvider(band.id)
+        .overrideWith((ref) => Stream.value([setlist])),
     bandRehearsalsProvider(band.id)
         .overrideWith((ref) => Stream.value([rehearsal])),
     rehearsalProvider((band.id, rehearsal.id))

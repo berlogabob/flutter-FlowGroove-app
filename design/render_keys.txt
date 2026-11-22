@@ -10,3 +10,9 @@ setlists_list
 home
 practice
 song_duplicates
+the_band
+band_about
+band_songs
+band_setlists
+rehearsals_list
+rehearsal_edit
