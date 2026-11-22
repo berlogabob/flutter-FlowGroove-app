@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../models/song.dart';
 import '../theme/mono_pulse_theme.dart';
+import 'stable_slot_text.dart';
 
 /// A single setlist song row: a numbered avatar (or a custom [leading],
 /// e.g. a drag handle), the song's title/artist, and — only when the song
@@ -172,18 +173,46 @@ class SetlistBpmSlot extends StatelessWidget {
           ? null
           : Align(
               alignment: Alignment.centerRight,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  '$bpm',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+              child: StableSlotText(
+                '$bpm',
+                sample: '000',
+                alignment: Alignment.centerRight,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ),
     );
   }
+}
+
+class SetlistKeySlot extends StatelessWidget {
+  const SetlistKeySlot(
+    this.songKey, {
+    required this.color,
+    required this.background,
+    super.key,
+  });
+
+  final String? songKey;
+  final Color color;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 44,
+    alignment: Alignment.center,
+    padding: const EdgeInsets.all(MonoPulseSpacing.xs),
+    decoration: BoxDecoration(
+      color: background,
+      borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+    ),
+    child: StableSlotText(
+      songKey ?? '-',
+      sample: 'B♭m',
+      style: TextStyle(fontWeight: FontWeight.w700, color: color),
+    ),
+  );
 }

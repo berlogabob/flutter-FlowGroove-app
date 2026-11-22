@@ -78,6 +78,7 @@ class _NotesPanel extends StatelessWidget {
   const _NotesPanel({
     required this.markers,
     required this.positionMs,
+    required this.durationMs,
     required this.onSeek,
     this.onAdd,
     this.onDelete,
@@ -85,6 +86,7 @@ class _NotesPanel extends StatelessWidget {
 
   final List<AudioMarker> markers;
   final int positionMs;
+  final int durationMs;
   final Future<void> Function(int) onSeek;
   final VoidCallback? onAdd;
   final void Function(AudioMarker)? onDelete;
@@ -105,8 +107,9 @@ class _NotesPanel extends StatelessWidget {
               TextButton.icon(
                 onPressed: onAdd,
                 icon: const Icon(Icons.add, size: 18),
-                label: Text(
-                  'at ${formatTimestamp(positionMs, padMinutes: false)}',
+                label: _NoteTimeLabel(
+                  positionMs: positionMs,
+                  durationMs: durationMs,
                 ),
               ),
           ],
@@ -130,6 +133,21 @@ class _NotesPanel extends StatelessWidget {
       ],
     );
   }
+}
+
+class _NoteTimeLabel extends StatelessWidget {
+  const _NoteTimeLabel({required this.positionMs, required this.durationMs});
+
+  final int positionMs;
+  final int durationMs;
+
+  @override
+  Widget build(BuildContext context) => StableSlotText(
+    'at ${formatTimestamp(positionMs, padMinutes: false)}',
+    sample: 'at ${formatTimestamp(durationMs, padMinutes: false)}',
+    alignment: Alignment.centerLeft,
+    style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
+  );
 }
 
 /// Notes stay in file time; region boundaries and zoom never move them.

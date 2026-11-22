@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../models/api_error.dart';
 import '../../models/band.dart';
@@ -24,6 +24,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/stable_slot_text.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/tag_cloud_widget.dart';
 import '../../widgets/unified_item/adapters/song_item_adapter.dart';
@@ -786,8 +787,10 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
           ),
         ),
 
-        // Filter indicators
-        if (state.keyFilter != null || state.bpmFilter != null)
+        // Filter indicators occupy the same slot with or without filters.
+        if (state.keyFilter == null && state.bpmFilter == null)
+          const SizedBox(height: MonoPulseSpacing.massive)
+        else
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: MonoPulseSpacing.lg,
@@ -869,10 +872,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                 ),
               ),
               const SizedBox(width: MonoPulseSpacing.sm),
-              Text(
+              StableSlotText(
                 '${filteredSongs.length} ${filteredSongs.length == 1 ? 'song' : 'songs'}',
+                sample: '${songs.length} songs',
+                alignment: Alignment.centerRight,
                 style: MonoPulseTypography.bodySmall.copyWith(
                   color: context.mp.textSecondary,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],

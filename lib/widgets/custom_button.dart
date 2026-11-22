@@ -56,7 +56,7 @@ class CustomButton extends StatelessWidget {
 
   Widget _buildButton(BuildContext context) {
     final tap = isLoading ? null : onPressed;
-    final child = isLoading ? _spinner(context) : _content();
+    final child = _content(context);
     switch (variant) {
       case ButtonVariant.primary:
         return ElevatedButton(
@@ -116,43 +116,40 @@ class CustomButton extends StatelessWidget {
     }
   }
 
-  Widget _spinner(BuildContext context) {
+  Widget _content(BuildContext context) {
     final onLight =
         variant == ButtonVariant.secondary || variant == ButtonVariant.danger;
+    const spinnerSize = MonoPulseIcons.sizeSmall;
+    final slotSize = icon == null ? spinnerSize : _iconSize;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              onLight ? MonoPulseColors.charcoal : context.mp.textPrimary,
-            ),
+        SizedBox.square(
+          dimension: slotSize,
+          child: Center(
+            child: isLoading
+                ? SizedBox.square(
+                    dimension: spinnerSize,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: onLight
+                          ? MonoPulseColors.charcoal
+                          : context.mp.textPrimary,
+                    ),
+                  )
+                : icon == null
+                ? null
+                : Icon(icon, size: _iconSize),
           ),
         ),
-        // Flexible like Material's ButtonStyleButton.icon, so a label in a
-        // tight row shrinks instead of overflowing.
         if (label.isNotEmpty) ...[
-          const SizedBox(width: 8),
-          Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
-        ],
-      ],
-    );
-  }
-
-  Widget _content() {
-    if (icon == null) return Text(label);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: _iconSize),
-        // Flexible like Material's ButtonStyleButton.icon, so a label in a
-        // tight row shrinks instead of overflowing.
-        if (label.isNotEmpty) ...[
-          const SizedBox(width: 8),
-          Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
+          const SizedBox(width: MonoPulseSpacing.sm),
+          Flexible(
+            child: Text(
+              label,
+              overflow: icon == null ? null : TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ],
     );

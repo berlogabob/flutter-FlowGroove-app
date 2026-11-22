@@ -39,6 +39,7 @@ import '../theme/mono_pulse_theme.dart';
 import '../utils/play_mode.dart';
 import '../utils/snackbar.dart';
 import '../widgets/confirmation_dialog.dart';
+import '../widgets/stable_slot_text.dart';
 import 'practice_regions/auto_slice_sheet.dart';
 import 'practice_regions/grid_editor_dialog.dart';
 import 'practice_regions/region_name_sheet.dart';
@@ -2528,6 +2529,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                                     child: _NotesPanel(
                                       markers: notes,
                                       positionMs: positionMs,
+                                      durationMs: _durationMs,
                                       onSeek: _seekNote,
                                       onAdd: canEdit
                                           ? _addMarkerAtPlayhead
@@ -2560,11 +2562,15 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 ),
                 child: Row(
                   children: [
-                    Text(
+                    StableSlotText(
                       _sync
                           ? 'Bar ${syncBar + 1}'
                           : '${_time(positionMs)} / ${_time(_durationMs)}',
-                      style: MonoPulseTypography.bodySmall,
+                      sample: '${_time(_durationMs)} / ${_time(_durationMs)}',
+                      alignment: Alignment.centerLeft,
+                      style: MonoPulseTypography.bodySmall.copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
                     const SizedBox(width: MonoPulseSpacing.md),
                     if (!editing && regions.any((region) => region.skip))
@@ -2673,7 +2679,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             child: TextButton.icon(
               onPressed: _addMarkerAtPlayhead,
               icon: const Icon(Icons.add, size: 18),
-              label: Text('at ${_time(positionMs)}'),
+              label: _NoteTimeLabel(
+                positionMs: positionMs,
+                durationMs: _durationMs,
+              ),
             ),
           ),
       ],

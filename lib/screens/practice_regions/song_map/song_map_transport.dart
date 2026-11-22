@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/stable_slot_text.dart';
 
 /// Persistent playback controls for the Song Map.
 class SongMapTransport extends StatelessWidget {
@@ -59,7 +60,12 @@ class SongMapTransport extends StatelessWidget {
         elevation: 0,
         shape: _shape,
       ),
-      child: _face(playing ? Icons.pause : Icons.play_arrow, label, playLabel),
+      child: _face(
+        playing ? Icons.pause : Icons.play_arrow,
+        label,
+        semanticsLabel: playLabel,
+        sample: 'Pause',
+      ),
     );
 
     return Material(
@@ -100,7 +106,7 @@ class SongMapTransport extends StatelessWidget {
                     minimumSize: const Size(0, 48),
                     shape: _shape,
                   ),
-                  child: _face(Icons.speed, '$speedPercent%'),
+                  child: _face(Icons.speed, '$speedPercent%', sample: '000%'),
                 ),
               ),
               Expanded(
@@ -153,18 +159,24 @@ class SongMapTransport extends StatelessWidget {
     borderRadius: BorderRadius.all(Radius.circular(MonoPulseRadius.medium)),
   );
 
-  Widget _face(IconData icon, String label, [String? semanticsLabel]) => Column(
+  Widget _face(
+    IconData icon,
+    String label, {
+    String? semanticsLabel,
+    String? sample,
+  }) => Column(
     mainAxisSize: MainAxisSize.min,
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
       Icon(icon, size: 20),
       Flexible(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            label,
-            semanticsLabel: semanticsLabel,
-            style: const TextStyle(fontSize: 11),
+        child: StableSlotText(
+          label,
+          sample: sample ?? label,
+          semanticsLabel: semanticsLabel,
+          style: const TextStyle(
+            fontSize: 11,
+            fontFeatures: [FontFeature.tabularFigures()],
           ),
         ),
       ),
@@ -185,7 +197,7 @@ class SongMapTransport extends StatelessWidget {
       key: ValueKey(key),
       label: SizedBox(
         width: double.infinity,
-        child: _face(icon, label, semanticsLabel),
+        child: _face(icon, label, semanticsLabel: semanticsLabel),
       ),
       selected: value,
       onSelected: onChanged,

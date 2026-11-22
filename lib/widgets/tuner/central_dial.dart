@@ -1,13 +1,14 @@
 import 'dart:math' as math;
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../models/music_mode.dart';
 import '../../providers/tuner_provider.dart';
 import '../../services/audio/pitch_analysis.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../stable_slot_text.dart';
 import 'tick_marks.dart';
 
 /// Angle math shared by the tuner dial's drag tracking and handle rotation.
@@ -475,52 +476,56 @@ class _FrequencyDisplay extends StatelessWidget {
     final noteFontSize = (size * 0.25).clamp(64.0, 80.0);
     final subFontSize = (size * 0.065).clamp(16.0, 20.0);
 
+    final listeningMode = mode == TunerMode.listen;
+    final frequencyLabel = listeningMode
+        ? hasValidPitch
+              ? '${frequency.toStringAsFixed(1)} Hz'
+              : isStarting
+              ? 'Starting microphone…'
+              : signalLabel
+        : '${frequency.round()} Hz';
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Large note display (e.g., "A4") - 72px Bold
-        Text(
-          mode == TunerMode.listen && !hasValidPitch ? '--' : note,
+        StableSlotText(
+          listeningMode && !hasValidPitch ? '--' : note,
+          sample: 'G#0',
           style: TextStyle(
             fontSize: noteFontSize,
             fontWeight: MonoPulseTypography.bold,
             color: context.mp.textHighEmphasis,
             letterSpacing: -2,
             height: 1,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
-        const SizedBox(height: 8),
-        // Hz label or cents display based on mode
-        if (mode == TunerMode.generate)
-          // Generate mode: show frequency
-          Text(
-            '${frequency.round()} Hz',
-            style: MonoPulseTypography.bodyLarge.copyWith(
-              color: context.mp.textTertiary,
-              fontWeight: MonoPulseTypography.medium,
-              fontSize: subFontSize,
-            ),
-          )
-        else ...[
-          Text(
-            hasValidPitch
-                ? '${frequency.toStringAsFixed(1)} Hz'
-                : isStarting
-                ? 'Starting microphone…'
-                : signalLabel,
-            style: MonoPulseTypography.bodyLarge.copyWith(
-              color: context.mp.textTertiary,
-              fontWeight: MonoPulseTypography.medium,
-              fontSize: subFontSize,
-            ),
+        const SizedBox(height: MonoPulseSpacing.sm),
+        StableSlotText(
+          frequencyLabel,
+          sample: listeningMode
+              ? 'Too quiet — play one note louder'
+              : '0000 Hz',
+          style: MonoPulseTypography.bodyLarge.copyWith(
+            color: context.mp.textTertiary,
+            fontWeight: MonoPulseTypography.medium,
+            fontSize: subFontSize,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
-          const SizedBox(height: 4),
-          if (hasValidPitch)
-            _CentsDisplay(
+        ),
+        if (listeningMode) ...[
+          const SizedBox(height: MonoPulseSpacing.xs),
+          Visibility(
+            visible: hasValidPitch,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: _CentsDisplay(
               cents: cents,
               fontSize: subFontSize,
               isInTune: isInTune,
             ),
+          ),
         ],
       ],
     );
@@ -555,12 +560,14 @@ class _CentsDisplay extends StatelessWidget {
     final sign = cents > 0 ? '+' : '';
     final centsText = isInTune ? 'In Tune' : '$sign$cents cents';
 
-    return Text(
+    return StableSlotText(
       centsText,
+      sample: '+00 cents',
       style: MonoPulseTypography.bodyLarge.copyWith(
         color: centsColor,
         fontWeight: MonoPulseTypography.medium,
         fontSize: fontSize,
+        fontFeatures: const [FontFeature.tabularFigures()],
       ),
     );
   }

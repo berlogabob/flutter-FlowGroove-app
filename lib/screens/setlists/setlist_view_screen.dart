@@ -1,6 +1,6 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../models/event_access.dart';
 import '../../models/lineup.dart';
@@ -370,29 +370,12 @@ class SetlistViewScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: MonoPulseSpacing.md),
-        Container(
-          width: 44,
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(
-            horizontal: MonoPulseSpacing.xs,
-            vertical: MonoPulseSpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: MonoPulseColors.selection,
-            borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              song.ourKey ?? '-',
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: MonoPulseColors.selectionInk,
-              ),
-            ),
-          ),
+        SetlistKeySlot(
+          song.ourKey,
+          color: MonoPulseColors.selectionInk,
+          background: MonoPulseColors.selection,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: MonoPulseSpacing.sm),
         SetlistBpmSlot(song.ourBPM, color: context.mp.textPrimary),
       ],
     );

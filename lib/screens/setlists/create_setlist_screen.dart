@@ -1,6 +1,6 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
@@ -904,33 +904,15 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                             songNumber,
                                           ),
                                         ),
-                                        Container(
-                                          width: 44,
-                                          alignment: Alignment.center,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: MonoPulseSpacing.xs,
-                                            vertical: MonoPulseSpacing.xs,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                MonoPulseColors.accentOrange10,
-                                            borderRadius: BorderRadius.circular(
-                                              MonoPulseRadius.small,
-                                            ),
-                                          ),
-                                          child: FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Text(
-                                              song.ourKey ?? '-',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                                color: MonoPulseColors
-                                                    .accentOrange,
-                                              ),
-                                            ),
-                                          ),
+                                        SetlistKeySlot(
+                                          song.ourKey,
+                                          color: MonoPulseColors.accentOrange,
+                                          background:
+                                              MonoPulseColors.accentOrange10,
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(
+                                          width: MonoPulseSpacing.sm,
+                                        ),
                                         SetlistBpmSlot(song.ourBPM),
                                         if (song.spotifyUrl != null) ...[
                                           const SizedBox(width: 4),

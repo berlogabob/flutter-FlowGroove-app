@@ -123,8 +123,12 @@ class ToolButton extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (!isEnabled)
-                Container(
+              Visibility(
+                visible: !isEnabled,
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: MonoPulseSpacing.sm,
                     vertical: MonoPulseSpacing.xxs,
@@ -141,6 +145,7 @@ class ToolButton extends StatelessWidget {
                     ),
                   ),
                 ),
+              ),
             ],
           ),
         ),
