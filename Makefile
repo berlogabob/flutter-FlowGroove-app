@@ -32,6 +32,7 @@ design:
 	python3 design/figcraft/build.py all
 
 design-check: stable-layout-check
+	python3 design/ratchet.py
 	python3 design/figcraft/build.py check
 	python3 design/figcraft/build.py dryrun
 	python3 design/figcraft/build.py verify-components
