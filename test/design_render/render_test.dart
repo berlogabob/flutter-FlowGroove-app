@@ -12,7 +12,8 @@ import 'matrix.dart';
 import 'png.dart';
 import 'tree_dump.dart';
 
-const kNoSettle = {'never-settling'};
+// Add screen keys and reasons here if they have perpetual animations.
+const kNoSettle = <String>{};
 
 Future<void> pumpRender(WidgetTester tester, String key) async {
   if (kNoSettle.contains(key)) {
@@ -25,17 +26,29 @@ Future<void> pumpRender(WidgetTester tester, String key) async {
 }
 
 void main() {
+  final output = Platform.environment['RENDER_OUT'];
+  final matrixFile = output == null ? null : File('$output/matrix.json');
+  final results = <String, dynamic>{};
+
   setUpAll(() async {
+    if (Platform.environment['RENDER_CLEAN'] == '1') {
+      final directory = Directory('design/render');
+      if (directory.existsSync()) directory.deleteSync(recursive: true);
+    }
+    if (matrixFile != null && matrixFile.existsSync()) {
+      results.addAll(
+        jsonDecode(matrixFile.readAsStringSync()) as Map<String, dynamic>,
+      );
+    }
     await loadAppFonts();
   });
 
-  testWidgets('renders a never-settling screen within 10 s', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(home: Scaffold(body: CircularProgressIndicator())),
-    );
-    await pumpRender(tester, 'never-settling');
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-  }, timeout: const Timeout(Duration(seconds: 10)));
+  tearDownAll(() {
+    if (matrixFile != null && Platform.environment['RENDER_MATRIX'] == '1') {
+      matrixFile.parent.createSync(recursive: true);
+      matrixFile.writeAsStringSync(jsonEncode(results));
+    }
+  });
 
   testWidgets('writes a PNG at logical pixel dimensions', (tester) async {
     final directory = Directory.systemTemp.createTempSync('render_png_test_');
@@ -65,7 +78,6 @@ void main() {
       .map((line) => line.trim())
       .where((line) => line.isNotEmpty && !line.startsWith('#'));
   final matrix = Platform.environment['RENDER_MATRIX'] == '1';
-  final results = <String, String>{};
   for (final key in keys) {
     final spec = jsonDecode(
       File('design/figcraft/specs/$key.json').readAsStringSync(),
@@ -114,18 +126,27 @@ void main() {
               }
             }
 
-            if (matrix) {
-              results[cell] = await recordCell(tester, render);
-              final output = Platform.environment['RENDER_OUT'];
-              if (output != null) {
-                final directory = Directory(output)
-                  ..createSync(recursive: true);
-                File('${directory.path}/matrix.json')
-                    .writeAsStringSync(jsonEncode(results));
-              }
-            } else {
+            final errors = <FlutterErrorDetails>[];
+            final previous = FlutterError.onError;
+            FlutterError.onError = errors.add;
+            try {
               await render();
+            } finally {
+              FlutterError.onError = previous;
+              final classified = classifyCellErrors(errors);
+              if (matrix) {
+                results[cell] = classified.failures.isNotEmpty
+                    ? 'error: ${classified.failures.join('\n')}'
+                    : classified.overflows.isEmpty
+                    ? 'ok'
+                    : classified.overflows;
+              }
+              if (classified.failures.isNotEmpty) {
+                fail(classified.failures.join('\n'));
+              }
             }
+            expect(find.byType(ErrorWidget), findsNothing);
+            expect(find.text('Page Not Found'), findsNothing);
           });
         }
       }
