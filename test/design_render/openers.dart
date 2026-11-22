@@ -1,3 +1,5 @@
+import 'package:flowgroove/models/audio_region.dart';
+import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
@@ -312,6 +314,15 @@ final kOpeners = <String, Opener>{
           ),
         ],
       ),
+    ),
+  ),
+  'grid_editor_dialog_tempo_grid': Opener(
+    (context, _, _) => showGridEditorDialog(
+      context,
+      getGrid: () => const AudioGrid(bpm: 120),
+      positionMs: () => 0,
+      preciseTime: (_) => '00:00.000',
+      onRemoveGrid: () async {},
     ),
   ),
 };
