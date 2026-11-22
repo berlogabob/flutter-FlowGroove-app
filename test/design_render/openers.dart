@@ -44,4 +44,37 @@ final kOpeners = <String, Opener>{
     (context, _, _) => showRolePicker(context: context, currentRoles: const []),
   ),
   'tag_input_dialog': Opener((context, _, _) => TagInputDialog.show(context)),
+  'song_form_provider_similar_song_exists': Opener(
+    (context, _, _) => showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.warning_amber_rounded),
+        title: const Text('Similar Song Exists'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '"Wonderwall" by Oasis',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'A similar song already exists in your library. Do you want to:',
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {},
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {},
+            child: const Text('Save Anyway'),
+          ),
+        ],
+      ),
+    ),
+  ),
 };
