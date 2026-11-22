@@ -14,8 +14,10 @@ These rules apply to every agent and every task in this repo. A task brief can n
    approval and a `Design-Approved: <who, when>` line in the commit message.
 
 ## Gates
-5. Never edit gate files to make a check pass: `design/ratchets.json`, `design/parity_lock.txt`,
-   `design/stable_layout_allow.txt`, `scripts/check_stable_layout.py`, `design/gate_guard.py`.
+5. Never edit gate files: `design/ratchets.json`, `design/parity_lock.txt`, `design/stable_layout_allow.txt`,
+   `scripts/check_stable_layout.py`, `design/gate_guard.py`, `AGENTS.md`. Guard code (`design/diff_lint.py`,
+   `design/ratchet.py`, `design/metrics.py`, `.githooks/*`, `scripts/plan_run.py`, the design targets in `Makefile`,
+   `.github/workflows/checks.yml`) changes only when your task names the file, and only to make a check stricter.
 6. Never delete, weaken or skip a test assertion.
 7. Before you finish: run the tests of the files you changed (`scripts/ftest.sh <test files>`), and
    `make design-guard` when that target exists.
