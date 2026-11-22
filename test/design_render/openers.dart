@@ -1,5 +1,6 @@
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
+import 'package:flowgroove/screens/practice_regions/slice_edit_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
@@ -344,6 +345,28 @@ final kOpeners = <String, Opener>{
           ),
         ],
       ),
+    ),
+  ),
+  'slice_edit_sheet_start': Opener(
+    (context, _, _) => showSliceEditSheet(
+      context,
+      regions: const [
+        AudioRegion(
+          id: 'region1',
+          name: 'Night Set — Verse pad',
+          startMs: 12000,
+          endMs: 24000,
+        ),
+        AudioRegion(
+          id: 'region2',
+          name: 'Night Set — Chorus pad',
+          startMs: 24000,
+          endMs: 48000,
+        ),
+      ],
+      i: 0,
+      name: (region) => region.name,
+      preciseTime: (ms) => '00:${(ms ~/ 1000).toString().padLeft(2, '0')}.000',
     ),
   ),
 };
