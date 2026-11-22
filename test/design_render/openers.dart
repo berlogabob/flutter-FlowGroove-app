@@ -1,4 +1,5 @@
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
+import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
@@ -288,4 +289,29 @@ final kOpeners = <String, Opener>{
       field.onChanged!(lyrics);
     });
   }),
+  'performance_sheet_you_already_have_a_song_map': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('You already have a song map'),
+        content: const Text(
+          'Replace it with the imported one, or append the imported sections?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Append'),
+          ),
+          CustomButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            label: 'Replace',
+          ),
+        ],
+      ),
+    ),
+  ),
 };
