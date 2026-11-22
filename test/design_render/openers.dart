@@ -1,4 +1,5 @@
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
+import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -89,6 +90,35 @@ final kOpeners = <String, Opener>{
           TextButton(onPressed: () {}, child: const Text('Cancel')),
           TextButton(onPressed: () {}, child: const Text('Discard')),
         ],
+      ),
+    ),
+  ),
+  'create_band_band_created': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Band Created!'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Share this invite code with your bandmates:'),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Expanded(child: InviteCodeField(code: 'KQ7X2M')),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.copy),
+                  tooltip: 'Copy',
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [TextButton(onPressed: () {}, child: const Text('Done'))],
       ),
     ),
   ),

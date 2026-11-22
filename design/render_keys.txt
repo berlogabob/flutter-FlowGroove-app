@@ -36,3 +36,4 @@ role_picker_dialog
 tag_input_dialog
 song_form_provider_similar_song_exists
 create_band_discard_changes
+create_band_band_created
