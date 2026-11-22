@@ -130,6 +130,53 @@ void main() {
     expect(edited.map((r) => r.endMs), isNot(contains(16000)));
   });
 
+  test('mergePadRange rebuilds three sections under the first section', () {
+    final view = SongMapView(regions: regions, durationMs: outro.endMs);
+    addTearDown(view.dispose);
+
+    final edited = mergePadRange(view, 1, 3, grid: _grid);
+    final merged = edited.skip(1);
+    expect(edited.first, same(intro));
+    expect(merged.first.id, verseA.id);
+    expect(merged.first.startMs, verseA.startMs);
+    expect(merged.last.endMs, outro.endMs);
+    expect(merged.map((r) => r.section).toSet(), {'Verse 1'});
+    expect(merged.map((r) => r.sectionId).toSet(), {'verse'});
+    expect(_lengths(merged), [8, 8, 4, 2, 1]);
+    expect(view.regions, same(regions));
+  });
+
+  test('mergePadRange combines selected parts within their section', () {
+    final verseC = _region('e', 'Verse 1', 14, 15, sectionId: 'verse');
+    final input = [intro, verseA, verseB, verseC];
+    final view = SongMapView(regions: input, durationMs: verseC.endMs)
+      ..zoomIn(1);
+    addTearDown(view.dispose);
+
+    final edited = mergePadRange(view, 0, 2, grid: _grid);
+    expect(edited, hasLength(2));
+    expect(edited.first, same(intro));
+    expect(edited.last.toJson(), verseA.copyWith(endMs: verseC.endMs).toJson());
+  });
+
+  test('mergePadRange keeps a repeated legacy section outside the range', () {
+    final first = _region('first', 'Verse', 0, 4);
+    final middle = _region('middle', 'Chorus', 4, 8);
+    final last = _region('last', 'Verse', 8, 12);
+    final view = SongMapView(
+      regions: [first, middle, last],
+      durationMs: last.endMs,
+    );
+    addTearDown(view.dispose);
+
+    final edited = mergePadRange(view, 0, 1, grid: _grid);
+    final mergedView = SongMapView(regions: edited, durationMs: last.endMs);
+    addTearDown(mergedView.dispose);
+    expect(mergedView.sections.map((r) => r.id), ['first', 'last']);
+    expect(mergedView.sections.first.endMs, middle.endMs);
+    expect(edited.last, same(last));
+  });
+
   test('splitAt names the new section with the first unused letter', () {
     final partA = _region('part-a', 'Part A 2', 0, 2);
     final partC = _region('part-c', 'Part C 1', 14, 23);

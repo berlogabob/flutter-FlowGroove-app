@@ -529,12 +529,17 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     List<AudioRegion> regions, {
     List<AudioRegion>? undoTo,
     int? cutMs,
+    (int, int)? selectionToRemap,
   }) async {
     if (!_canEdit) return;
     setState(() {
       _songMapCutMs = cutMs;
       _undoRegions = undoTo ?? _entry.regions;
-      _selection = remapSelection(_entry.regions, regions, _selection);
+      _selection = remapSelection(
+        _entry.regions,
+        regions,
+        selectionToRemap ?? _selection,
+      );
       _entry = _entry.copyWith(regions: regions);
       _clampSelection();
     });
@@ -1513,7 +1518,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   int _barNumber(AudioGrid grid, int ms) =>
       (grid.barAt(ms) + 0.5 / grid.barMs).floor() + 1;
 
-  void _chop(SongMapView view, AudioGrid grid, int position, bool remove) {
+  void _chop(
+    SongMapView view,
+    AudioGrid grid,
+    int position,
+    bool remove,
+    Set<int> selected,
+  ) {
     if (!_canEdit) return;
     final regions = _entry.regions;
     final section = view.sectionIndex;
@@ -1521,7 +1532,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         ? view.snapMs(position)
         : grid.snap(position, durationMs: view.durationMs);
     List<AudioRegion> updated;
-    if (remove) {
+    (int, int)? mergedRange;
+    if (remove && selected.length > 1) {
+      final first = selected.first;
+      final last = selected.last;
+      updated = song_map_edit.mergePadRange(view, first, last, grid: grid);
+      mergedRange = (view.regionRange(first).$1, view.regionRange(last).$2);
+    } else if (remove) {
       int? nearest;
       final count = view.children().length;
       for (var i = 0; i + 1 < count; i++) {
@@ -1553,6 +1570,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       );
     }
     if (identical(updated, regions)) return;
+    if (mergedRange != null) view.overviewSelection = null;
     if (!remove && section == null) {
       view.overviewSelection = view.sections.indexWhere(
         (span) => span.startMs < cut && cut < span.endMs,
@@ -1564,7 +1582,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final messenger = ScaffoldMessenger.of(context)..removeCurrentSnackBar();
     final notice = messenger.showSnackBar(
       SnackBar(
-        content: Text('${remove ? 'Removed cut' : 'Cut'} at bar $bar'),
+        content: Text(
+          mergedRange != null
+              ? 'Merged ${selected.length} pads'
+              : '${remove ? 'Removed cut' : 'Cut'} at bar $bar',
+        ),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 5),
         action: SnackBarAction(
@@ -1577,7 +1599,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         ),
       ),
     );
-    unawaited(_changeRegions(updated, cutMs: remove ? null : cut));
+    unawaited(
+      _changeRegions(
+        updated,
+        cutMs: remove ? null : cut,
+        selectionToRemap: mergedRange,
+      ),
+    );
     if (!remove) {
       unawaited(
         notice.closed.then((_) {
@@ -1775,7 +1803,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           showChop: _canEdit,
           chopLit: _songMapCutMs != null,
           onChop: canChop
-              ? (remove) => _chop(view, grid, position, remove)
+              ? (remove) => _chop(view, grid, position, remove, selected)
               : null,
           selectedIndices: selected,
           playingIndex: active < 0 ? null : active,

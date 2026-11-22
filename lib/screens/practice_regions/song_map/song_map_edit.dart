@@ -150,6 +150,59 @@ List<AudioRegion> deleteBoundary(
   ];
 }
 
+/// Merges the inclusive pad range at the view's current level.
+List<AudioRegion> mergePadRange(
+  SongMapView view,
+  int firstPad,
+  int lastPad, {
+  required AudioGrid grid,
+}) {
+  final regions = view.regions;
+  if (!_canEdit(grid) ||
+      firstPad < 0 ||
+      firstPad >= lastPad ||
+      lastPad >= view.children().length) {
+    return regions;
+  }
+  final (start, firstSeam) = view.regionRange(firstPad);
+  final (_, end) = view.regionRange(lastPad);
+  final first = regions[start];
+  final endMs = regions[end].endMs;
+  if (view.sectionIndex != null) {
+    return [
+      ...regions.take(start),
+      first.copyWith(endMs: endMs),
+      ...regions.skip(end + 1),
+    ];
+  }
+
+  final name = songMapRegionName(view.sections[firstPad], firstPad);
+  final legacyKey = (null, name);
+  // A rebuilt legacy section needs its own key if an untouched neighbour
+  // would otherwise be grouped with it by name.
+  final needsId =
+      first.sectionId == null &&
+      ((start > 0 && songMapSectionKey(regions[start - 1]) == legacyKey) ||
+          (end + 1 < regions.length &&
+              songMapSectionKey(regions[end + 1]) == legacyKey));
+  return [
+    ...regions.take(start),
+    ..._parts(
+      first.copyWith(
+        section: name,
+        sectionId: needsId ? first.id : first.sectionId,
+        skip: regions.getRange(start, end + 1).every((region) => region.skip),
+      ),
+      first.startMs,
+      endMs,
+      grid,
+      _partIds(regions),
+      avoidBoundaryMs: regions[firstSeam].endMs,
+    ),
+    ...regions.skip(end + 1),
+  ];
+}
+
 /// Starts a new section or splits a part at the caller-snapped [ms].
 /// A section split requires a bar on either side and may reuse a part seam.
 List<AudioRegion> splitAt(

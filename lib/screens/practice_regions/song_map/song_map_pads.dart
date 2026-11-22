@@ -281,6 +281,8 @@ class _SongMapPadsState extends State<SongMapPads> {
         ? 'Skipped'
         : region.lengthMs < (grid?.barMs ?? 2000)
         ? '⚠ ${(region.lengthMs / 1000).toStringAsFixed(1)} s'
+        : bars == 1
+        ? '1 bar'
         : bars > 0
         ? '$bars bars'
         : '${(region.lengthMs / 1000).round()} s';
