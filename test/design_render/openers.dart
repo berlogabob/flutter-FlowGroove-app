@@ -77,4 +77,19 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'create_band_discard_changes': Opener(
+    (context, _, _) => showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Discard Changes?'),
+        content: const Text(
+          'You have unsaved changes. Are you sure you want to discard them?',
+        ),
+        actions: [
+          TextButton(onPressed: () {}, child: const Text('Cancel')),
+          TextButton(onPressed: () {}, child: const Text('Discard')),
+        ],
+      ),
+    ),
+  ),
 };
