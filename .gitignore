@@ -232,3 +232,4 @@ audit/
 
 # Real-app screenshots from capture.py (personal account data, never commit)
 design/real/*.png
+design/render/

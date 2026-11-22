@@ -27,9 +27,12 @@ release-check:
 
 .PHONY: help deploy-functions test-fast test-firebase-emulator deploy-rules deploy-stable deploy-hugo deploy-app-hosting build-web-hosting ftp-upload-hugo ftp-upload-app-redirect backup-production-hugo deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
-.PHONY: design design-check stable-layout-check design-metrics design-guard
+.PHONY: design design-check stable-layout-check design-metrics design-guard design-render
 design:
 	python3 design/figcraft/build.py all
+
+design-render:
+	RENDER_OUT=design/render RENDER_PNG=1 RENDER_MATRIX=1 bash scripts/ftest.sh test/design_render/render_test.dart
 
 design-check: stable-layout-check
 	python3 design/ratchet.py
