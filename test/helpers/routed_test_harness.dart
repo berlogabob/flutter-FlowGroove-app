@@ -9,6 +9,8 @@ import 'package:flowgroove/screens/login_screen.dart';
 import 'package:flowgroove/screens/main_shell.dart';
 import 'package:flowgroove/screens/setlists/setlists_list_screen.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
+import 'package:flowgroove/theme/mono_pulse_theme.dart';
+import 'package:flowgroove/utils/adaptive_text_scale.dart';
 import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -287,25 +289,49 @@ Future<GoRouter> pumpRoutedTestApp(
   required String initialLocation,
   List<dynamic> overrides = const [],
   List<RouteBase>? routes,
+  ThemeMode? themeMode,
+  double textScale = 1.0,
+  Key? boundaryKey,
+  bool productionRoutes = false,
 }) async {
   // The menu registry is process-global; wipe it so a previous test's
   // published items (with closures over disposed containers) can't leak in.
   MenuScopeRegistry.reset();
   BranchStackObserver.reset();
   final container = ProviderContainer(overrides: overrides.cast());
-  final router = createRoutedTestRouter(
-    initialLocation: initialLocation,
-    routes: routes,
-  );
+  // Production routes render the real screens (design renders); no analytics
+  // observer, it needs a Firebase app.
+  final router = productionRoutes
+      ? createAppRouter(
+          authClient: TestAuthRouterClient(),
+          initialLocation: initialLocation,
+          enableAuthRedirect: false,
+          observers: const [],
+        )
+      : createRoutedTestRouter(initialLocation: initialLocation, routes: routes);
 
   addTearDown(container.dispose);
   addTearDown(router.dispose);
 
+  Widget app = themeMode == null
+      ? MaterialApp.router(routerConfig: router)
+      : MaterialApp.router(
+          routerConfig: router,
+          theme: MonoPulseTheme.lightTheme,
+          darkTheme: MonoPulseTheme.theme,
+          themeMode: themeMode,
+          // Same wrapping as lib/main.dart: user text scale, then AdaptiveTextScale.
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(textScale)),
+            child: AdaptiveTextScale(child: child ?? const SizedBox.shrink()),
+          ),
+        );
+  if (boundaryKey != null) {
+    app = RepaintBoundary(key: boundaryKey, child: app);
+  }
   await tester.pumpWidget(
-    UncontrolledProviderScope(
-      container: container,
-      child: MaterialApp.router(routerConfig: router),
-    ),
+    UncontrolledProviderScope(container: container, child: app),
   );
   await tester.pump();
 
