@@ -22,6 +22,7 @@ if [ -n "$SPOTIFY_SECRET" ]; then
   exit 1
 fi
 
-make design-guard || exit 1
+# `git commit -a` sets GIT_INDEX_FILE to a temp index; the guard tests make their own repos and must not inherit it.
+env -u GIT_INDEX_FILE make design-guard || exit 1
 
 echo "✅ Security checks passed"
