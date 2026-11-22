@@ -23,7 +23,8 @@ def verify(task):
     # analyzer: fail only on error-level issues (baseline has 0 errors, ~238 infos)
     v = task["verify"].replace("dart analyze", "dartan")
     pre = PRE + "dartan(){ ! dart analyze \"$@\" 2>&1 | rg -q '^\\s*error -'; }; "
-    rc, out = sh(pre + (f"({v}) && make design-guard" if v.strip() else "make design-guard"), timeout=1500)
+    # "( v )" with spaces: "((" would be read by bash as an arithmetic command
+    rc, out = sh(pre + (f"( {v} ) && make design-guard" if v.strip() else "make design-guard"), timeout=1500)
     return rc == 0, out[-2500:]
 
 def run_exec(ex, task):
