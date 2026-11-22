@@ -27,7 +27,7 @@ release-check:
 
 .PHONY: help deploy-functions test-fast test-firebase-emulator deploy-rules deploy-stable deploy-hugo deploy-app-hosting build-web-hosting ftp-upload-hugo ftp-upload-app-redirect backup-production-hugo deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
-.PHONY: design design-check stable-layout-check
+.PHONY: design design-check stable-layout-check design-metrics
 design:
 	python3 design/figcraft/build.py all
 
@@ -39,6 +39,9 @@ design-check: stable-layout-check
 
 stable-layout-check:
 	python3 scripts/check_stable_layout.py
+
+design-metrics:
+	python3 design/metrics.py --append
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
