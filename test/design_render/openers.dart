@@ -335,4 +335,22 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'practice_regions_replace_n_regions': Opener(
+    (context, _, _) => showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Replace 9 regions?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Replace'),
+          ),
+        ],
+      ),
+    ),
+  ),
 };

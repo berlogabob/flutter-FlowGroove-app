@@ -47,3 +47,4 @@ backing_sheet
 import_lyrics_dialog
 performance_sheet_you_already_have_a_song_map
 practice_regions_replace_n_sections
+practice_regions_replace_n_regions
