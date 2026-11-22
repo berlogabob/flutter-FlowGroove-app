@@ -126,6 +126,23 @@ massive 48. Radius (MonoPulseRadius): small 8, medium 10, large 12, xlarge 16, h
 
 ## Rules
 
+### Stable layout
+
+Stable layout is the main design-system rule for every component.
+
+| Rule | Do | Don't |
+|---|---|---|
+| **S1. Preserve geometry across states.** Selected, active, pressed, focused, disabled, loading, playing and queued may change colour, fill, opacity or icon glyph. Keep size, padding, border width, font size, font weight and line count constant. Reserve the widest border in every state and make it transparent when off. | Give Song Map lane blocks a 3 dp outline slot in every state and change the outline colour. | Give the lane a 3 dp border when selected and 1 dp at rest, add a FilterChip side only on selection, bold its selected label, or grow a tuner pad from 72 to 80 dp when active. |
+| **S2. Reserve space for changing values.** Use tabular figures and fixed-width slots for time, BPM, counters and bar numbers. Size swapped labels and indicators for their largest content. | Give the metronome BPM a fixed-width slot for the widest value and give Play/Pause a slot that fits Pause. | Let unslotted BPM text push nearby controls as digits change, or let a loading spinner shrink its button. |
+| **S3. Repaint live data in place.** Use reserved bounds for playback position, meters, progress and analysis results. Keep the playhead inside the playing clip. | Update the Song Map playhead and pad progress inside the playing clip's bounds. | Show a stale playback position in the neighbouring clip during a loop wrap. |
+| **S4. Reserve or overlay appearing content.** Banners, hints, errors and loaders use a reserved slot or an overlay. Reflow is allowed only for an explicit user-tapped expand or collapse, and it animates. | Reserve a line under an input for its error message. | Insert the error as a new row that pushes the rest of the form down. |
+| **S5. Align list columns.** Give each column a fixed slot across rows and keep slots for missing values. | Keep a BPM slot in every song row, including songs without a tempo. | Move the key or trailing actions into the BPM slot when a value is missing. |
+
+`build.py check` checks the width and height of component-set variants offline. It compares states
+at the same declared Button Size or Input Lines setting.
+
+### Screen composition
+
 - Recreate what the screen shows in its main, populated state for a signed-in user with realistic
   sample data (FlowGroove is a band/rehearsal app: songs, setlists, bands, rehearsals). Use the
   real labels, icons, section order and controls from the Dart code and the widgets it uses.
@@ -151,7 +168,7 @@ Examples: `examples/modal_dialog.json`, `examples/modal_sheet.json`.
 - **Chip:** variant State (Default, Selected, Disabled). Disabled uses 38% opacity.
 - **Avatar:** variant Type (Initials, Icon).
 - **Switch, Checkbox:** variant State (On, Off).
-- **Input:** variants State (Hint, Filled, Focus, Error, Disabled) and Lines (Single, Multi). Focus uses a 2 px `accentOrange` border; Error uses an `error` border and helper text; Disabled uses 38% opacity.
+- **Input:** variants State (Hint, Filled, Focus, Error, Disabled) and Lines (Single, Multi). All states use a 2 px border and reserve a helper line. Focus uses `accentOrange`; Error uses `error` and shows the helper text; Disabled uses 38% opacity.
 - **Slider, Progress:** variant Value, in 10% steps.
 - **Tab, Segment, NavItem:** variant State.
 - **BottomNav:** variant Tab in the library. Screen footers place individual NavItem instances so each tab can carry its own prototype link.

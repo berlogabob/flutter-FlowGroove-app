@@ -434,12 +434,16 @@ def m_text(e, n, parent, pdir):
         p["fontStyle"] = n["weight"]
     if n.get("maxLines"):
         p["maxLines"] = n["maxLines"]
+    if "opacity" in n:
+        p["opacity"] = n["opacity"]
     w = n.get("w", "fill" if pdir == "v" else "hug")
     if w == "hug":
         p["textAutoResize"] = "widthAndHeight"
     else:
         p["textAutoResize"] = "height"
         p.update(size_props({"w": w}, pdir))
+    if "h" in n:
+        p.update(textAutoResize="none", **size_props({"h": n["h"]}, pdir))
     return e.create("text", parent, n.get("name"), p, text=str(n.get("v", "")))
 
 
@@ -452,6 +456,8 @@ def m_icon(e, n, parent, pdir):
     p = {"fontFamily": "Material Icons", "fontStyle": "Regular", "fontSize": size,
          "lineHeight": size, "fill": color(n.get("color", "textPrimary")),
          "textAutoResize": "widthAndHeight"}
+    if "opacity" in n:
+        p["opacity"] = n["opacity"]
     return e.create("text", parent, n.get("layer", f"icon/{name}"), p, text=chr(cp))
 
 
@@ -532,16 +538,32 @@ def m_button(e, n, parent, pdir):
     state = n.get("state", "default")
     if state == "disabled":
         d["opacity"] = .38
+    loading = state == "loading"
+    ink_opacity = 0 if loading else 1
     kids = []
-    if state == "loading":
-        kids.append({"t": "icon", "v": "autorenew", "size": 18, "color": fg, "layer": "Loading"})
-    if n.get("icon") and state != "loading":
-        kids.append({"t": "icon", "v": n["icon"], "size": isz, "color": fg, "layer": "Icon"})
-    if n.get("v") and state != "loading":
+    if n.get("icon"):
+        kids.append({"t": "icon", "v": n["icon"], "size": isz, "color": fg, "layer": "Icon",
+                     "opacity": ink_opacity})
+    if n.get("v"):
         kids.append({"t": "text", "v": n["v"], "style": "labelLarge", "color": fg, "w": "hug",
-                     "name": "Label"})
-    d["c"] = kids
-    return m_container("h")(e, d, parent, pdir)
+                     "name": "Label", "opacity": ink_opacity})
+    spinner = {"t": "icon", "v": "autorenew", "size": 18, "color": fg, "layer": "Loading",
+               "opacity": int(loading)}
+    if variant == "fab":
+        return m_container("h")(e, dict(d, c=[spinner] if loading else kids), parent, pdir)
+    root = m_container("h")(e, d, parent, pdir)
+    slot = e.create("frame", root, "Content", {"fill": "none", "layout": "grid", "gridColumns": 1, "gridRows": 1,
+                    "columnTracks": ["auto"], "rowTracks": ["auto"], "sizingH": "hug", "sizingV": "hug"})
+    # Both layers contribute to the same cell's size while their opacity swaps.
+    cell = {"gridColumn": 0, "gridRow": 0, "gridAlignH": "center", "gridAlignV": "center"}
+    for draw, content in (
+        (m_container("h"), {"name": "Label and icon", "gap": 8, "cross": "center", "c": kids}),
+        (m_icon, spinner),
+    ):
+        start = len(e.cmds)
+        draw(e, content, slot, "h")
+        e.cmds[start]["params"]["props"].update(cell)
+    return root
 
 
 def m_chip(e, n, parent, pdir):
@@ -565,7 +587,7 @@ def m_input(e, n, parent, pdir):
                      "name": "Label"})
     state = n.get("state", "filled" if n.get("v") else "hint")
     field = {"name": "Field", "bg": "white", "border": "accentOrange" if state == "focus" else "error" if state == "error" else "borderDefault",
-             "borderW": 2 if state == "focus" else 1, "radius": 10,
+             "borderW": 2, "radius": 10,
              "pad": [14, 14, 14, 14], "gap": 10, "cross": "min" if n.get("lines") else "center",
              "c": []}
     if n.get("lines"):
@@ -574,13 +596,14 @@ def m_input(e, n, parent, pdir):
         field["c"].append({"t": "icon", "v": n["icon"], "size": 20, "color": "#62625A", "layer": "Icon"})
     val = n.get("v")
     field["c"].append({"t": "text", "v": val or n.get("hint", ""), "style": "bodyLarge",
-                       "color": "#1E1E1C" if val else "#62625A", "w": "fill", "name": "Value"})
+                       "color": "#1E1E1C" if val else "#62625A", "w": "fill", "name": "Value",
+                       "maxLines": n.get("lines") or 1})
     if n.get("trail"):
         field["c"].append({"t": "icon", "v": n["trail"], "size": 20, "color": "#62625A", "layer": "Trail"})
     kids.append(dict(field, t="row"))
-    if state == "error":
-        kids.append({"t": "text", "name": "Helper", "v": n.get("helper", "Please check this field"),
-                      "style": "bodySmall", "color": "error"})
+    kids.append({"t": "text", "name": "Helper", "v": n.get("helper", "Please check this field"),
+                 "style": "bodySmall", "color": "error", "maxLines": 1,
+                 "opacity": 1 if state == "error" else 0})
     return m_container("v")(e, {"name": n.get("name", "Input"), "gap": 6, "c": kids,
                                 "opacity": .38 if state == "disabled" else 1,
                                 "w": n.get("w", "fill" if pdir == "v" else "hug")}, parent, pdir)
@@ -724,6 +747,8 @@ def m_section(e, n, parent, pdir):
     label = n.get("kind") == "label"
     kids = [{"t": "text", "v": n.get("v", ""), "style": n.get("style", "labelMedium" if label else "titleMedium"),
              "color": n.get("color", "textSecondary" if label else "textPrimary"), "w": "fill", "name": "Title"}]
+    if "style" not in n:
+        kids[0].update(h=24, maxLines=1)
     if n.get("action"):
         kids.append({"t": "text", "v": n["action"], "style": "labelMedium", "color": "accentOrange", "w": "hug",
                      "name": "Action"})
@@ -823,12 +848,10 @@ def m_fab(e, n, parent, pdir):
 
 
 def m_sheet(e, n, parent, pdir):
-    """Bottom sheet (docked) or floating panel: optional grabber + Content frame (the slot)."""
+    """Bottom sheet (docked) or floating panel with a reserved handle slot."""
     docked = n.get("bottom", True)
-    kids = []
-    if docked:
-        kids.append({"t": "row", "name": "Handle", "main": "center",
-                     "c": [{"t": "box", "bg": "borderStrong", "w": 36, "h": 4, "radius": 2, "name": "Grabber"}]})
+    kids = [{"t": "row", "name": "Handle", "main": "center", "opacity": int(docked),
+             "c": [{"t": "box", "bg": "borderStrong", "w": 36, "h": 4, "radius": 2, "name": "Grabber"}]}]
     kids.append({"t": "col", "name": "Content", "gap": n.get("gap", 8), "c": n.get("c", [])})
     d = {"name": n.get("name", "Sheet"), "bg": "surfaceRaised", "radius": [16, 16, 0, 0] if docked else 16,
          "pad": n.get("pad", [12, 16, 24, 16]), "gap": 8, "c": kids, "border": "borderSubtle",
@@ -1745,7 +1768,9 @@ CONNECT = {
     "Input": (APP + "custom_text_field.dart", "CustomTextField",
               'CustomTextField(label: {Show label ? "" : "null /* "}{Label}{Show label ? "" : " */"}, hint: {Value},'
               '{Show icon ? " prefixIcon: Icons.search /* icon */," : ""} maxLines: {Lines} == InputLines.multi ? 3 : 1)',
-              "CustomTextField / TextField: white fill, borderDefault, radius 10 (MonoPulseRadius.medium). Focus = 2px accentOrange border; Error = error border and helper text; Disabled = 38% opacity."),
+              "CustomTextField / TextField: white fill, radius 10 (MonoPulseRadius.medium). "
+              "FigCraft variants use a 2px border and reserve a helper line. Focus uses accentOrange. "
+              "Error uses error and shows the helper. Disabled uses 38% opacity."),
     "Slider": (MAT, "Slider", 'Slider(value: 0.5 /* {Value} */, onChanged: (v) {})', "Material Slider; Value variants in 10% steps."),
     "Progress": (MAT, "LinearProgressIndicator", 'LinearProgressIndicator(value: 0.5 /* {Value} */)',
                  "LinearProgressIndicator; Value variants in 10% steps."),
@@ -1902,24 +1927,99 @@ def outline_layers(node_id):
     return out
 
 
+def draw_variant(e, c, v):
+    e.mode = v.get("Mode", "Dark").lower()
+    e.drawing = set(c["types"])
+    start = len(e.cmds)
+    emit(e, c["draw"](v), None, "v")
+    cmd = e.cmds[start]["params"]
+    if cmd["props"].get("sizingH") == "fill":
+        cmd["props"].update(sizingH="fixed", width=c["main_w"])
+    if cmd["props"].get("sizingV") == "fill":
+        cmd["props"]["sizingV"] = "hug"
+    return cmd
+
+
+def variant_dimensions(e):
+    """Compare fixed sizes and intrinsic layout expressions without FigCraft's font engine."""
+    children_by_parent = {}
+    nodes = {}
+    for cmd in e.cmds:
+        if cmd["command"] != "node.create":
+            continue
+        ref, node = cmd["as"], cmd["params"]
+        nodes[ref] = node
+        parent = node.get("parent", {}).get("$ref")
+        if not node["props"].get("absolute") and node["props"].get("visible", True):
+            children_by_parent.setdefault(parent, []).append(ref)
+
+    def size(ref, axis):
+        node = nodes[ref]
+        p = node["props"]
+        key, sizing = ("width", "sizingH") if axis == 0 else ("height", "sizingV")
+        if p.get(sizing) == "fill":
+            return 0  # Assigned by the parent rather than contributing to its hug size.
+        if key in p or key in node:
+            return p.get(key, node.get(key))
+        if node["type"] == "text":
+            metrics = tuple(p.get(k) for k in
+                            ("textStyle", "fontFamily", "fontStyle", "fontSize", "lineHeight", "letterSpacing"))
+            if p.get("fontFamily") == "Material Icons":
+                return p["fontSize"]  # Material glyphs share a square em box.
+            content = node["text"]
+            if axis == 1 and (p.get("maxLines") == 1 or p.get("textAutoResize") == "widthAndHeight"):
+                content = content.count("\n") + 1 if p.get("maxLines") != 1 else 1
+            return ("text", metrics, content, p.get("maxLines"), p.get("textAutoResize"))
+        kids = [size(child, axis) for child in children_by_parent.get(ref, ())]
+        pad = p.get("padding", 0)
+        inset = pad[(1 - axis)] + pad[3 - axis] if isinstance(pad, list) else 2 * pad
+        along = p.get("layout") == ("horizontal", "vertical")[axis]
+        fixed = [k for k in kids if isinstance(k, (int, float))]
+        intrinsic = [k for k in kids if not isinstance(k, (int, float))]
+        if along:
+            base = inset + sum(fixed) + p.get("gap", 0) * max(0, len(kids) - 1)
+            return ("sum", base, tuple(intrinsic)) if intrinsic else base
+        largest = max(fixed, default=0)
+        if not intrinsic:
+            return inset + largest
+        return ("max", inset, largest, tuple(sorted(set(intrinsic), key=repr)))
+
+    root, = children_by_parent[None]
+    return size(root, 0), size(root, 1)
+
+
+def check_component_dimensions():
+    errors = []
+    for cname, c in C.items():
+        if not c["axes"]:
+            continue
+        groups = {}
+        for v in combos(c):
+            e = Emit()
+            draw_variant(e, c, v)
+            # Size and Lines describe different component sizes, independently of state.
+            group = (v.get("Size"), v.get("Lines"))
+            groups.setdefault(group, {}).setdefault(variant_dimensions(e), []).append(vkey(c, v))
+        for dimensions in groups.values():
+            if len(dimensions) > 1:
+                axes = [axis for i, axis in enumerate(("width", "height"))
+                        if len({d[i] for d in dimensions}) > 1]
+                variants = " vs ".join(" / ".join(names) for names in dimensions.values())
+                errors.append(f"{cname}: variant {' and '.join(axes)} differ: {variants}")
+    return errors
+
+
 def build_components():
     """Draw every component's variants on the Components page and make them components."""
     ex("page.select", {"id": page_ids()[COMP_PAGE]})
     reg, y = {}, 0
     for cname, c in C.items():
         e = Emit()
-        e.drawing = set(c["types"])
         starts, vs = [], combos(c)
         for i, v in enumerate(vs):
-            e.mode = v.get("Mode", "Dark").lower()
             starts.append(len(e.cmds))
-            emit(e, c["draw"](v), None, "v")  # drawn as if in a column; fill -> fixed main_w
-            cmd = e.cmds[starts[-1]]["params"]
+            cmd = draw_variant(e, c, v)
             cmd.update(x=(i % 6) * (c["main_w"] + 48), y=y + (i // 6) * 240, name=vkey(c, v) if c["axes"] else cname)
-            if cmd["props"].get("sizingH") == "fill":
-                cmd["props"].update(sizingH="fixed", width=c["main_w"])
-            if cmd["props"].get("sizingV") == "fill":
-                cmd["props"]["sizingV"] = "hug"
         res = ex("command.batch", {"label": f"Component {cname}", "commands": e.cmds, "onError": "abort"})
         ids = [res[i]["id"] for i in starts]
         for mode in c["axes"].get("Mode", []):
@@ -2021,10 +2121,25 @@ def build_foundations():
         ex("variable.bind", {"ids": ids, "field": "width", "variable": VARS[f"Spacing/{k}"]})
 
 
-def build_docs(reg):
+def build_docs(reg, *, dryrun=False):
     """Docs page: one card per component -- description, properties, Flutter snippet, an instance."""
     ex("page.select", {"id": page_ids()["Docs"]})
     cards = []
+    if not dryrun:
+        rules = [
+            "S1. Preserve size, padding, border width and text metrics across states. Change colour, fill, opacity or glyph. Reserve the widest border, with transparent ink when off.",
+            "S2. Use tabular figures in fixed-width slots for time, BPM, counters and bar numbers. Reserve room for the largest label or indicator.",
+            "S3. Repaint live data in reserved bounds. Keep the playhead inside the playing clip.",
+            "S4. Reserve space or overlay appearing content. Animate reflow only for a user-tapped expand or collapse.",
+            "S5. Align list columns with fixed slots. Keep the slot when a value is missing.",
+        ]
+        cards.append((None, None, {
+            "t": "col", "name": "Doc/Stable layout", "bg": "surface", "border": "borderSubtle",
+            "radius": 16, "pad": 24, "gap": 12, "w": 560, "c": [
+                {"t": "text", "v": "Stable layout", "style": "headlineLarge"},
+                *({"t": "text", "v": rule, "style": "bodySmall"} for rule in rules),
+            ],
+        }))
     for cname, variants in reg.items():
         any_id = next(iter(variants.values()))
         props = ex("component.properties", {"id": any_id})["properties"]
@@ -2688,7 +2803,10 @@ def main(a=None, dry_dir=None):
             except Exception as err:
                 bad += 1
                 print(f"FAIL {os.path.basename(path)}: {err}")
-        sys.exit(1 if bad else 0)
+        errors = check_component_dimensions()
+        for error in errors:
+            print("FAIL", error)
+        sys.exit(1 if bad or errors else 0)
     elif a[0] == "verify-components":
         checked, errors = verify_components()
         for e in errors:
@@ -2724,7 +2842,7 @@ def main(a=None, dry_dir=None):
         setup()
         reg = build_components()
         build_foundations()
-        build_docs(reg)
+        build_docs(reg, dryrun=dry_dir is not None)
         build_icons_page()
         failed = []
         pending_links, frame_ids, named_nodes = [], {}, {}
