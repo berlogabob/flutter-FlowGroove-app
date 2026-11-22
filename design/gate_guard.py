@@ -19,6 +19,16 @@ def _expectations(content):
     return len(re.findall(r"\b(?:expect|expectLater)\s*\(", content))
 
 
+def _skips(content):
+    import re
+
+    return len(re.findall(r"\bskip\s*:", content))
+
+
+def _code_of(test_path):
+    return "lib/" + test_path[len("test/"):-len("_test.dart")] + ".dart"
+
+
 def violations(head: dict[str, str], work: dict[str, str]) -> list[str]:
     """Return messages for changes that weaken the supplied HEAD baseline."""
     messages = []
@@ -44,31 +54,66 @@ def violations(head: dict[str, str], work: dict[str, str]) -> list[str]:
         messages.extend(f"{allow}: added allowance: {line}" for line in sorted(added))
 
     for path in sorted(set(head) | set(work)):
-        if path.startswith("test/") and path.endswith("_test.dart") and path in head and path in work:
-            before, after = _expectations(head[path]), _expectations(work[path])
-            if after < before:
-                messages.append(f"{path}: expect count decreased from {before} to {after}")
+        if not (path.startswith("test/") and path.endswith("_test.dart") and path in head):
+            continue
+        if path not in work:
+            code = _code_of(path)
+            if not (code in head and code not in work):  # a test may go only together with its code
+                messages.append(f"{path}: test file deleted (allowed only together with {code})")
+            continue
+        before, after = _expectations(head[path]), _expectations(work[path])
+        if after < before:
+            messages.append(f"{path}: expect count decreased from {before} to {after}")
+        if _skips(work[path]) > _skips(head[path]):
+            messages.append(f"{path}: skip added")
     return messages
 
 
-def main() -> int:
-    repo = Path(__file__).resolve().parent.parent
+def main(argv=None, repo=None) -> int:
+    """Local: working tree vs HEAD. CI: `--base <ref>` compares HEAD with its merge-base with <ref>;
+    a `Design-Approved:` line in a pushed commit message lets an approved change through."""
+    import sys
+
+    argv = sys.argv[1:] if argv is None else argv
+    repo = Path(repo) if repo else Path(__file__).resolve().parent.parent
+
+    def git(*args):
+        return subprocess.run(["git", *args], cwd=repo, text=True, capture_output=True)
+
+    base = argv[argv.index("--base") + 1] if "--base" in argv else None
+    if base:
+        old = git("merge-base", base, "HEAD").stdout.strip()
+        changed = git("diff", "--name-only", f"{old}..HEAD").stdout.splitlines()
+
+        def read_work(path):
+            result = git("show", f"HEAD:{path}")
+            return result.stdout if result.returncode == 0 else None
+    else:
+        old = "HEAD"
+        changed = git("diff", "--name-only", "HEAD").stdout.splitlines()
+
+        def read_work(path):
+            file_path = repo / path
+            return file_path.read_text(encoding="utf-8") if file_path.is_file() else None
+
     paths = ["design/ratchets.json", "design/parity_lock.txt", "design/stable_layout_allow.txt"]
-    changed = subprocess.run(["git", "diff", "--name-only", "HEAD"], cwd=repo, text=True, capture_output=True, check=True).stdout.splitlines()
-    paths.extend(path for path in changed if path.startswith("test/") and path.endswith("_test.dart"))
+    tests = [path for path in changed if path.startswith("test/") and path.endswith("_test.dart")]
+    paths += tests + [_code_of(path) for path in tests]
     head, work = {}, {}
     for path in paths:
-        result = subprocess.run(["git", "show", f"HEAD:{path}"], cwd=repo, text=True, capture_output=True)
+        result = git("show", f"{old}:{path}")
         if result.returncode == 0:
             head[path] = result.stdout
-        file_path = repo / path
-        if file_path.is_file():
-            work[path] = file_path.read_text(encoding="utf-8")
+        content = read_work(path)
+        if content is not None:
+            work[path] = content
     messages = violations(head, work)
     for message in messages:
         print(message)
+    if messages and base and "Design-Approved:" in git("log", "--format=%B", f"{old}..HEAD").stdout:
+        print("Design-Approved in the pushed commits: not blocking")
+        return 0
     return 1 if messages else 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
