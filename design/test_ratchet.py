@@ -48,3 +48,12 @@ class RatchetTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SurfaceRatchetTests(unittest.TestCase):
+    def test_current_counts_ratchet_unspecced_surfaces_from_inventory(self):
+        repo = Path(__file__).resolve().parent.parent
+        expected = sum(item["spec"] is None for item in json.loads((repo / "design/surfaces.json").read_text()))
+        from design.ratchet import current_counts
+        self.assertEqual(current_counts(repo)["unspecced_surfaces"], expected)
+

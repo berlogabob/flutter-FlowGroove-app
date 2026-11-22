@@ -88,21 +88,21 @@
     "kind": "route",
     "source": "lib/router/app_router.dart:374",
     "widget": "dispose",
-    "spec": null
+    "spec": "design/figcraft/specs/song_lab.json"
   },
   {
     "key": "/main/songs/:id/edit",
     "kind": "route",
     "source": "lib/router/app_router.dart:380",
     "widget": "dispose",
-    "spec": null
+    "spec": "design/figcraft/specs/song_editor.json"
   },
   {
     "key": "/main/songs/:id",
     "kind": "route",
     "source": "lib/router/app_router.dart:391",
     "widget": "dispose",
-    "spec": null
+    "spec": "design/figcraft/specs/song_page.json"
   },
   {
     "key": "/main/bands",
@@ -123,7 +123,7 @@
     "kind": "route",
     "source": "lib/router/app_router.dart:419",
     "widget": "BandRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/the_band.json"
   },
   {
     "key": "/main/bands/:id/edit",
@@ -137,14 +137,14 @@
     "kind": "route",
     "source": "lib/router/app_router.dart:437",
     "widget": "BandRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/band_songs.json"
   },
   {
     "key": "/main/bands/:id/setlists",
     "kind": "route",
     "source": "lib/router/app_router.dart:446",
     "widget": "BandRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/band_setlists.json"
   },
   {
     "key": "/main/bands/:id/setlists/:setlistId",
@@ -158,35 +158,35 @@
     "kind": "route",
     "source": "lib/router/app_router.dart:476",
     "widget": "BandRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/band_about.json"
   },
   {
     "key": "/main/bands/:id/invite",
     "kind": "route",
     "source": "lib/router/app_router.dart:485",
     "widget": "BandRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/band_invite.json"
   },
   {
     "key": "/main/bands/:id/members",
     "kind": "route",
     "source": "lib/router/app_router.dart:494",
     "widget": "BandRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/band_members.json"
   },
   {
     "key": "/main/bands/:id/rehearsals",
     "kind": "route",
     "source": "lib/router/app_router.dart:503",
     "widget": "BandRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/rehearsals_list.json"
   },
   {
     "key": "/main/bands/:id/rehearsals/create",
     "kind": "route",
     "source": "lib/router/app_router.dart:513",
     "widget": "BandRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/rehearsal_edit.json"
   },
   {
     "key": "/main/bands/:id/rehearsals/:rid/edit",
@@ -200,7 +200,7 @@
     "kind": "route",
     "source": "lib/router/app_router.dart:533",
     "widget": "BandRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/rehearsal_detail.json"
   },
   {
     "key": "/main/setlists",
@@ -221,7 +221,7 @@
     "kind": "route",
     "source": "lib/router/app_router.dart:578",
     "widget": "SetlistRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/setlist_view.json"
   },
   {
     "key": "/main/setlists/:id/edit",

@@ -38,6 +38,14 @@ def inventory(root: Path) -> list[dict]:
         unanchored = [p for s, p in matches if ':' not in s]
         return (exact or unanchored or [None])[0]
 
+    def norm_route(route):
+        # Specs write params as {band}, the router as :id; compare shapes only.
+        return re.sub(r'\{[^}]+\}|:\w+', '*', route.rstrip('/'))
+
+    def route_spec(key):
+        found = [p for _, p, data in specs if data.get('route') and norm_route(data['route']) == norm_route(key)]
+        return found[0] if found else None
+
     def modal_spec(source, line, widget):
         for spec_source, spec_path, data in specs:
             anchor = re.fullmatch(r'(.+):(\d+)', spec_source)
@@ -85,7 +93,7 @@ def inventory(root: Path) -> list[dict]:
                     key = route_parents[-1][1].rstrip('/') + '/' + key
                 route_parents.append((end, key))
                 kind = 'route'
-                spec = spec_for(classes.get(widget, relative), line)
+                spec = route_spec(key) or spec_for(classes.get(widget, relative), line)
             else:
                 kind = 'sheet' if name in ('showModalBottomSheet', 'DraggableScrollableSheet') else 'dialog' if name == 'showDialog' else 'picker'
                 fallback = re.sub(r'^_?show', '', method) or method

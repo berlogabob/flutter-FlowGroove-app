@@ -27,6 +27,17 @@ void use() { helper(); helper(); }
             self.assertTrue(any(s['key'] == '/home' for s in found))
             self.assertTrue(any(s['spec'] == 'design/figcraft/specs/home.json' for s in found))
 
+    def test_parameterized_route_matches_spec_route_field(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'lib/router').mkdir(parents=True)
+            (root / 'design/figcraft/specs').mkdir(parents=True)
+            (root / 'lib/router/routes.dart').write_text("GoRoute(path: '/main/bands/:id/members', builder: (c, s) => BandRouteResolver()),\n")
+            (root / 'design/figcraft/specs/band_members.json').write_text(json.dumps(
+                {'source': 'lib/screens/bands/band_members_screen.dart', 'route': '/main/bands/{band}/members'}))
+            found = surfaces.inventory(root)
+            self.assertEqual('design/figcraft/specs/band_members.json', found[0]['spec'])
+
     def test_modal_matching_keys_and_state_specs(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
