@@ -8,6 +8,9 @@ from pathlib import Path
 
 CALL = re.compile(r'\b(GoRoute|showModalBottomSheet|showDialog|DraggableScrollableSheet|show\w*Picker)(?:<[^;()]*>)?\s*\(')
 METHOD = re.compile(r'\b(?:Future(?:<[^\n]*?>)?|void|Widget|[A-Z]\w*)\s+(\w+)\s*\([^;{}]*\)\s*(?:async\s*)?\{')
+WRAPPERS = {'StatefulBuilder', 'Builder', 'SafeArea', 'Padding', 'Column', 'Row', 'Material',
+            'DraggableScrollableSheet', 'Container', 'SizedBox', 'Center', 'Align', 'Expanded',
+            'Flexible', 'SingleChildScrollView', 'Scaffold', 'AlertDialog', 'Dialog', 'Text'}
 WIDGET = re.compile(r'(?:=>\s*|return\s+)(?:const\s+)?([A-Z]\w*)\s*\(')
 
 
@@ -17,13 +20,15 @@ def inventory(root: Path) -> list[dict]:
         if any(part.startswith('.') for part in path.relative_to(root / 'design/figcraft/specs').parts):
             continue
         data = json.loads(path.read_text(encoding='utf-8'))
-        if isinstance(data, dict) and isinstance(data.get('source'), str):
-            specs.append((data['source'], path.relative_to(root).as_posix(), data))
+        if isinstance(data, dict):
+            specs.append((data.get('source', ''), path.relative_to(root).as_posix(), data))
 
     files = sorted((root / 'lib').rglob('*.dart'))
     classes = {}
+    widget_classes = set()
     for path in files:
         text = path.read_text(encoding='utf-8')
+        widget_classes.update(re.findall(r'\bclass\s+(\w+)\s+extends\s+\w*Widget\b', text))
         for name in re.findall(r'\bclass\s+(\w+)', text):
             classes[name] = path.relative_to(root).as_posix()
 
@@ -33,7 +38,16 @@ def inventory(root: Path) -> list[dict]:
         unanchored = [p for s, p in matches if ':' not in s]
         return (exact or unanchored or [None])[0]
 
+    def modal_spec(source, line, widget):
+        for spec_source, spec_path, data in specs:
+            anchor = re.fullmatch(r'(.+):(\d+)', spec_source)
+            if (anchor and anchor.group(1) == source and abs(int(anchor.group(2)) - line) <= 3) or (widget and data.get('name') == widget):
+                return spec_path
+        return None
+
     result = []
+    modal_entries = {}
+    keys = set()
     for path in files:
         text = path.read_text(encoding='utf-8')
         relative = path.relative_to(root).as_posix()
@@ -55,6 +69,10 @@ def inventory(root: Path) -> list[dict]:
             body = clean[match.end():end]
             widget_match = WIDGET.search(body)
             widget = widget_match.group(1) if widget_match else None
+            if name != 'GoRoute':
+                builder = re.search(r'\bbuilder\s*:', body)
+                candidate_body = body[builder.end():] if builder else body
+                widget = next((m.group(1) for m in re.finditer(r'\b([A-Z]\w*)\s*\(', candidate_body) if m.group(1) in widget_classes and m.group(1) not in WRAPPERS), None)
             methods = list(METHOD.finditer(clean[:match.start()]))
             method = methods[-1].group(1) if methods else name
             if name == 'GoRoute':
@@ -70,13 +88,33 @@ def inventory(root: Path) -> list[dict]:
                 spec = spec_for(classes.get(widget, relative), line)
             else:
                 kind = 'sheet' if name in ('showModalBottomSheet', 'DraggableScrollableSheet') else 'dialog' if name == 'showDialog' else 'picker'
-                key = f'{path.stem}.{widget or method}'
-                spec = spec_for(relative, line)
-            result.append({'key': key, 'kind': kind, 'source': f'{relative}:{line}', 'widget': widget or method, 'spec': spec})
+                fallback = re.sub(r'^_?show', '', method) or method
+                label = widget or fallback
+                base = f'{path.stem}.{label}'
+                identity = (relative, method, kind, label)
+                source = f'{relative}:{line}'
+                spec = modal_spec(relative, line, widget)
+                if identity in modal_entries:
+                    entry = modal_entries[identity]
+                    entry.setdefault('sources', [entry['source']]).append(source)
+                    entry['spec'] = entry['spec'] or spec
+                    continue
+                key = base
+                suffix = 2
+                while key in keys:
+                    key = f'{base}#{suffix}'
+                    suffix += 1
+                widget = label
+            entry = {'key': key, 'kind': kind, 'source': f'{relative}:{line}', 'widget': widget or method, 'spec': spec}
+            result.append(entry)
+            keys.add(key)
+            if name != 'GoRoute':
+                modal_entries[identity] = entry
 
     for source, spec, data in specs:
-        if isinstance(data.get('state'), str):
-            result.append({'key': Path(spec).stem, 'kind': 'state', 'source': source if ':' in source else source + ':1', 'widget': data.get('name', Path(spec).stem), 'spec': spec})
+        stem = Path(spec).stem
+        if 'state' in data or re.match(r'^(?:metronome|tuner|recorder)(?:_|$)|^(?:song_map|practice)_', stem):
+            result.append({'key': stem, 'kind': 'state', 'source': source if re.search(r':\d+$', source) else (source or spec) + ':1', 'widget': data.get('name', stem), 'spec': spec})
     return sorted(result, key=lambda item: (item['source'], item['kind'], item['key']))
 
 
