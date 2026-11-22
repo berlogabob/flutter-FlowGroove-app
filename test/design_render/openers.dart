@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
+
 /// How to show a spec that has no route of its own (sheet, dialog, picker).
 ///
 /// Modal specs describe the modal only, so [route] is just a backdrop; parity
@@ -67,14 +69,8 @@ final kOpeners = <String, Opener>{
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () {},
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {},
-            child: const Text('Save Anyway'),
-          ),
+          TextButton(onPressed: () {}, child: const Text('Cancel')),
+          TextButton(onPressed: () {}, child: const Text('Save Anyway')),
         ],
       ),
     ),
@@ -132,9 +128,7 @@ final kOpeners = <String, Opener>{
           title: const Text('Suggest a different time'),
           content: TextField(
             controller: controller,
-            decoration: const InputDecoration(
-              hintText: 'e.g. Sunday 18:00?',
-            ),
+            decoration: const InputDecoration(hintText: 'e.g. Sunday 18:00?'),
           ),
           actions: [
             TextButton(
@@ -178,9 +172,7 @@ final kOpeners = <String, Opener>{
       builder: (context) => AlertDialog(
         title: const Text('Edit Description'),
         content: TextField(
-          controller: TextEditingController(
-            text: 'Rock band from Portland.',
-          ),
+          controller: TextEditingController(text: 'Rock band from Portland.'),
           decoration: const InputDecoration(
             labelText: 'Description',
             border: OutlineInputBorder(),
@@ -261,9 +253,7 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
-  'metronome_launchpad': Opener(
-    (_, _, router) => router.go('/main/metronome'),
-  ),
+  'metronome_launchpad': Opener((_, _, router) => router.go('/main/metronome')),
   'backing_sheet': Opener(
     (context, _, _) => showModalBottomSheet<void>(
       context: context,
@@ -272,4 +262,30 @@ final kOpeners = <String, Opener>{
       builder: (_) => const BackingSheet(songId: 'song1', bandId: 'band1'),
     ),
   ),
+  'import_lyrics_dialog': Opener((context, tester, _) {
+    const lyrics =
+        '{title: Back to Black}\n'
+        '{artist: Amy Winehouse}\n'
+        '{key: Dm}\n'
+        '{tempo: 123}\n\n'
+        '{start_of_verse: Verse 1}\n'
+        '[Dm]He left no time to [Gm]regret\n'
+        '{end_of_verse}\n'
+        '{start_of_chorus}\n'
+        '[C]For love is [G]the thing that [Am]keeps me breathing\n'
+        '{end_of_chorus}\n'
+        '{start_of_verse: Verse 2}\n'
+        '[Dm]No [Am]room for an[n]y other\n'
+        '{end_of_verse}';
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const ImportLyricsDialog(),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final field = tester.widget<TextField>(find.byType(TextField));
+      field.controller!.text = lyrics;
+      field.onChanged!(lyrics);
+    });
+  }),
 };

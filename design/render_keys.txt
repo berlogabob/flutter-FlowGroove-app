@@ -44,3 +44,4 @@ home_sheet_l112
 home_rehearsals
 metronome_launchpad
 backing_sheet
+import_lyrics_dialog
