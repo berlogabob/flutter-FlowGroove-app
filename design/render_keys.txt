@@ -51,3 +51,4 @@ practice_regions_replace_n_regions
 practice_setup_wizard_sheet_l27
 profile_link_telegram
 profile_delete_account
+recorder_link_recording_to_song

@@ -433,4 +433,45 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'recorder_link_recording_to_song': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        const songs = [
+          ('Wonderwall', 'Oasis'),
+          ('Seven Nation Army', 'The White Stripes'),
+          ('Valerie', 'Amy Winehouse'),
+          ('Hey Jude', 'The Beatles'),
+          ('Wonderwall', 'Oasis'),
+          ('Wonderwall', 'Oasis'),
+        ];
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              const ListTile(title: Text('Link recording to song')),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  "Choose a song to attach this recording to. It will appear in that song's Lab timeline.",
+                ),
+              ),
+              const ListTile(title: Text('SONGS')),
+              for (var i = 0; i < songs.length; i++) ...[
+                ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.music_note),
+                  title: Text(songs[i].$1),
+                  subtitle: Text(songs[i].$2),
+                  trailing: const Icon(Icons.arrow_right),
+                  onTap: () => Navigator.pop(sheetContext),
+                ),
+                if (i < songs.length - 1) const Divider(),
+              ],
+            ],
+          ),
+        );
+      },
+    ),
+  ),
 };
