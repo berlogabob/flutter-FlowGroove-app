@@ -4,7 +4,7 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-export LOG="$tmp/log" WATCH_STATUS=0
+export LOG="$tmp/log" WATCH_STATUS=0 RERUN_WAIT=0
 sha=0123456789012345678901234567890123456789
 export SHA="$sha"
 mkdir "$tmp/bin"
@@ -43,6 +43,7 @@ if bash "$root/scripts/push_verified.sh" HEAD second01 > "$tmp/red-output" 2>&1;
   exit 1
 fi
 grep -q '42' "$tmp/red-output"
+grep -Fx 'gh run rerun 42 --failed' "$LOG"  # one retry for the emulator flake (FINDINGS F19)
 if grep -F "git push origin $sha:refs/heads/second01" "$LOG" || grep -F 'git push origin --delete' "$LOG"; then
   echo 'Failed CI must keep the temporary branch and not push the release branch' >&2
   exit 1

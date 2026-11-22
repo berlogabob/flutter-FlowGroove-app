@@ -18,8 +18,14 @@ if [[ -z $run_id ]]; then
   exit 1
 fi
 if ! gh run watch "$run_id" --exit-status --interval 60; then
-  echo "CI run $run_id failed; keeping $tmp" >&2
-  exit 1
+  # one retry: the emulator job sometimes loses its device (FINDINGS F19); a real failure fails again
+  echo "CI run $run_id failed; rerunning its failed jobs once" >&2
+  gh run rerun "$run_id" --failed
+  sleep "${RERUN_WAIT:-20}"
+  if ! gh run watch "$run_id" --exit-status --interval 60; then
+    echo "CI run $run_id failed; keeping $tmp" >&2
+    exit 1
+  fi
 fi
 git push origin "$sha:refs/heads/$branch"
 git push origin --delete "$tmp"
