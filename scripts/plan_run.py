@@ -23,7 +23,7 @@ def verify(task):
     # analyzer: fail only on error-level issues (baseline has 0 errors, ~238 infos)
     v = task["verify"].replace("dart analyze", "dartan")
     pre = PRE + "dartan(){ ! dart analyze \"$@\" 2>&1 | rg -q '^\\s*error -'; }; "
-    rc, out = sh(pre + v + " && make design-guard", timeout=1500)
+    rc, out = sh(pre + (f"({v}) && make design-guard" if v.strip() else "make design-guard"), timeout=1500)
     return rc == 0, out[-2500:]
 
 def run_exec(ex, task):
@@ -90,13 +90,12 @@ def main():
             if ok and t.get("suite", True):  # regression gate: whole suite must stay green (caught T11 breaking 39 tests)
                 rc2, o2 = sh(PRE + "flutter test 2>&1 | tail -8", timeout=3000)
                 if rc2 != 0: ok, vout = False, 'FULL SUITE FAILED: ' + o2[-400:]
-            rec = dict(id=t["id"], finding=t["finding"], executor=ex, attempt=n, secs=round(time.time() - t0),
-                       exec_rc=rc, verdict="pass" if ok else "fail", diff=stat, verify_tail=vout if not ok else "")
-            if ok and dirty:
+            if ok and dirty:  # hooks (design-guard, Design-Approved) may refuse the commit: that is a fail
                 commit_rc, commit_out = sh(f'git add -A && git commit -qm "{PFX}: {t["id"]} {t["title"]} [{t["finding"]}] via {ex}"')
                 if commit_rc != 0:
-                    ok = False
-                    vout = "COMMIT FAILED: " + commit_out[-1500:]
+                    ok, vout = False, "COMMIT FAILED: " + commit_out[-1500:]
+            rec = dict(id=t["id"], finding=t["finding"], executor=ex, attempt=n, secs=round(time.time() - t0),
+                       exec_rc=rc, verdict="pass" if ok else "fail", diff=stat, verify_tail=vout if not ok else "")
             if ok: done.add(t["id"])
             else:
                 rollback()

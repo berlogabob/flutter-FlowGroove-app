@@ -23,7 +23,7 @@ if [ -n "$SPOTIFY_SECRET" ]; then
 fi
 
 if git diff --cached --name-only | grep -Eq '^(lib/|design/|test/)'; then
-  make design-guard
+  make design-guard || exit 1
 fi
 
 echo "✅ Security checks passed"

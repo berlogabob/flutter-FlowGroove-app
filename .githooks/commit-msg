@@ -1,11 +1,13 @@
 #!/bin/bash
+# Design changes need the user's approval (AGENTS.md rule 4): any change to a FigCraft spec or tokens.json,
+# or a removed parity-lock line, needs "Design-Approved: <who, when>" in the commit message.
 set -euo pipefail
 
 message_file="$1"
-design_diff=$(git diff --cached --no-ext-diff --unified=0 -- \
-  'design/figcraft/specs/' 'design/tokens/tokens.json' 'design/parity_lock.txt')
-if printf '%s\n' "$design_diff" | grep -qE '^-[^-]' && \
-   ! grep -Eq '^Design-Approved: .+' "$message_file"; then
-  echo "design change needs Design-Approved" >&2
+grep -Eq '^Design-Approved: .+' "$message_file" && exit 0
+design_files=$(git diff --cached --name-only -- design/figcraft/specs/ design/tokens/tokens.json)
+unlocked=$(git diff --cached --no-ext-diff --unified=0 -- design/parity_lock.txt | grep -E '^-([^-]|$)' || true)
+if [ -n "$design_files" ] || [ -n "$unlocked" ]; then
+  echo "design change needs Design-Approved: <who, when> in the commit message" >&2
   exit 1
 fi

@@ -52,6 +52,7 @@ design-guard: stable-layout-check
 	python3 design/gate_guard.py
 	python3 design/diff_lint.py
 	python3 design/ratchet.py
+	bash design/test_hooks.sh
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
