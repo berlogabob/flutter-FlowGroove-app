@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
+import 'package:flowgroove/screens/songs/components/csv_import_export/song_import_dialog.dart';
 
 /// How to show a spec that has no route of its own (sheet, dialog, picker).
 ///
@@ -289,6 +290,12 @@ final kOpeners = <String, Opener>{
       field.onChanged!(lyrics);
     });
   }),
+  'song_import_dialog': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (_) => const SongImportDialog(librarySongs: []),
+    ),
+  ),
   'performance_sheet_you_already_have_a_song_map': Opener(
     (context, _, _) => showDialog<void>(
       context: context,
