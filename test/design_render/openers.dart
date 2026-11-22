@@ -10,6 +10,8 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
 import 'package:flowgroove/screens/songs/components/csv_import_export/song_import_dialog.dart';
+import 'package:flowgroove/screens/songs/components/csv_import_export/song_export_dialog.dart';
+import 'package:flowgroove/models/song.dart';
 
 /// How to show a spec that has no route of its own (sheet, dialog, picker).
 ///
@@ -300,6 +302,23 @@ final kOpeners = <String, Opener>{
     (context, _, _) => showDialog<void>(
       context: context,
       builder: (_) => const SongImportDialog(librarySongs: []),
+    ),
+  ),
+  'song_export_dialog': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (_) => SongExportDialog(
+        songs: List.generate(
+          128,
+          (index) => Song(
+            id: 'song${index + 1}',
+            title: index == 0 ? 'First Song' : 'Song ${index + 1}',
+            artist: 'Test Artist',
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ),
+      ),
     ),
   ),
   'performance_sheet_you_already_have_a_song_map': Opener(
