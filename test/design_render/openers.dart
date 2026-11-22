@@ -4,6 +4,7 @@ import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
+import 'package:flowgroove/screens/practice_setup_wizard.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -351,6 +352,16 @@ final kOpeners = <String, Opener>{
           ),
         ],
       ),
+    ),
+  ),
+  'practice_setup_wizard_sheet_l27': Opener(
+    (context, _, _) => showPracticeSetupWizard(
+      context,
+      durationMs: 180000,
+      detectGrid: () async => (bpm: 87.0, firstDownbeatMs: 12345),
+      fileMarkers: () async => const [],
+      previewGrid: (_) async {},
+      newId: () => 'region1',
     ),
   ),
 };
