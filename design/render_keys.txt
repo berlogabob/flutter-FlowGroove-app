@@ -41,3 +41,4 @@ rehearsal_detail_suggest_a_different_time
 the_band_edit_band_name
 the_band_edit_description
 home_sheet_l112
+home_rehearsals

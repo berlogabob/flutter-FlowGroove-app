@@ -228,4 +228,36 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'home_rehearsals': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const ListTile(
+              title: Text('Rehearsals — choose a band'),
+              subtitle: Text(
+                'Rehearsals are per band — choose one to see its schedule.',
+              ),
+            ),
+            const Divider(),
+            for (final bandName in [
+              'FlowGroove',
+              'The Neon Skyline',
+              'Midnight Canvas',
+              'Solar Flare',
+              'Paper Planes Quartet',
+            ])
+              ListTile(
+                leading: const Icon(Icons.event),
+                title: Text(bandName),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.pop(sheetContext),
+              ),
+          ],
+        ),
+      ),
+    ),
+  ),
 };
