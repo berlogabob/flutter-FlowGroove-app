@@ -361,9 +361,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         _player.currentIndexStream.listen(_onLoopIndex),
         _player.playerStateStream.listen((state) {
           if (!mounted) return;
-          if (!_sync) _clock(state.playing);
-          if (_playing != state.playing) {
-            setState(() => _playing = state.playing);
+          final playing =
+              state.playing &&
+              state.processingState != ProcessingState.completed;
+          if (!_sync) _clock(playing);
+          if (_playing != playing) {
+            setState(() => _playing = playing);
           }
         }),
       ]);
@@ -880,7 +883,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
     // A resume must reach the platform after the previous pause and reload.
     await (_loopUpdate = _loopUpdate.then((_) async {
-      if (!mounted || _sync || _player.playing == playing) return;
+      if (!mounted || _sync) return;
+      final isPlaying =
+          _player.playing &&
+          _player.processingState != ProcessingState.completed;
+      if (isPlaying == playing) return;
       try {
         if (!playing) {
           await _player.pause();

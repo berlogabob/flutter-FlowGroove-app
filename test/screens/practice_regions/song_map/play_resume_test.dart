@@ -56,14 +56,17 @@ void main() {
     await fixture.pump(tester, entry, player: player);
   }
 
-  void expectTransport(WidgetTester tester, bool playing) {
-    expect(player.playing, playing);
-    final label = player.playing ? 'Pause' : 'Play';
+  void expectTransportLabel(WidgetTester tester, String label) {
     expect(
       find.descendant(of: play, matching: find.text(label)),
       findsOneWidget,
     );
     expect(tester.getSemantics(play).label, label);
+  }
+
+  void expectTransport(WidgetTester tester, bool playing) {
+    expect(player.playing, playing);
+    expectTransportLabel(tester, playing ? 'Pause' : 'Play');
   }
 
   Future<void> press(WidgetTester tester, Finder control) async {
@@ -115,6 +118,41 @@ void main() {
           await fixture.settleAudio(tester);
           expect(tester.widget<SongMapTimeline>(zoom).positionMs, resumed);
         }
+      },
+    );
+  }
+
+  for (final selectPad in [true, false]) {
+    testWidgets(
+      '${selectPad ? 'Region A with Loop off' : 'The whole song'} plays to its end and restarts on one tap',
+      (tester) async {
+        await pump(tester);
+        if (selectPad) {
+          await press(tester, firstPad);
+          await press(tester, loop);
+          expect(tester.widget<FilterChip>(loop).selected, isFalse);
+        }
+
+        await press(tester, play);
+        expectTransportLabel(tester, 'Pause');
+        expect(fixture.platformPlaying, isTrue);
+
+        fixture.emitCompleted();
+        await fixture.settleAudio(tester);
+        expect(
+          fixture.platformPosition,
+          Duration(milliseconds: selectPad ? regionLength : 8 * regionLength),
+        );
+        expectTransportLabel(tester, 'Play');
+
+        await press(tester, play);
+        expect(fixture.platformPosition, Duration.zero);
+        expect(fixture.platformPlaying, isTrue);
+        expectTransportLabel(tester, 'Pause');
+
+        await press(tester, play);
+        expect(fixture.platformPlaying, isFalse);
+        expectTransportLabel(tester, 'Play');
       },
     );
   }

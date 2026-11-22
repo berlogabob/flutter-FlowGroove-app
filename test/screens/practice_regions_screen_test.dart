@@ -57,9 +57,12 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
 
   static const duration = Duration(seconds: 20);
 
-  void emit({Duration? reportedDuration}) => _events.add(
+  void emit({
+    Duration? reportedDuration,
+    ProcessingStateMessage processingState = ProcessingStateMessage.ready,
+  }) => _events.add(
     PlaybackEventMessage(
-      processingState: ProcessingStateMessage.ready,
+      processingState: processingState,
       updateTime: DateTime.now(),
       updatePosition: position,
       bufferedPosition: loadedDuration,
@@ -292,6 +295,17 @@ class PracticeRegionsScreenFixture {
       ..position = Duration(milliseconds: ms)
       ..emit(reportedDuration: reportedDuration);
   }
+
+  // ignore: unreachable_from_main, used by play_resume_test.dart.
+  void emitCompleted() {
+    final player = _audio.players.values.single;
+    player
+      ..position = player.loadedDuration
+      ..emit(processingState: ProcessingStateMessage.completed);
+  }
+
+  // ignore: unreachable_from_main, used by play_resume_test.dart.
+  Duration get platformPosition => _audio.players.values.single.position;
 
   // ignore: unreachable_from_main, used by stability_test.dart.
   Completer<void> holdNextLoad() {
