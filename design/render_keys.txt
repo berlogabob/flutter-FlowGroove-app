@@ -4,3 +4,9 @@ forgot_password
 band_invite
 band_members
 app_settings
+my_bands
+songs_list
+setlists_list
+home
+practice
+song_duplicates

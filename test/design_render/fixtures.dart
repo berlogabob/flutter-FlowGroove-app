@@ -4,10 +4,13 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/analytics_consent_provider.dart';
 import 'package:flowgroove/providers/haptics_provider.dart';
+import 'package:flowgroove/providers/homework_provider.dart';
 import 'package:flowgroove/providers/keep_screen_on_provider.dart';
+import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/providers/theme_mode_provider.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/mocks.dart';
@@ -30,6 +33,8 @@ String fillRoute(String route) =>
 
 List<Object> renderOverrides() {
   SharedPreferences.setMockInitialValues({});
+  final auth = MockFirebaseAuth();
+  when(auth.currentUser).thenReturn(null);
   final user = MockDataHelper.createMockAppUser(bandIds: ['band1']);
   final songs = [
     MockDataHelper.createMockSong(
@@ -86,9 +91,7 @@ List<Object> renderOverrides() {
   );
   return [
     offlineProvider.overrideWith((ref) => false),
-    firebaseAuthProvider.overrideWith(
-      (ref) => throw StateError('Firebase Auth unavailable in renders'),
-    ),
+    firebaseAuthProvider.overrideWith((ref) => auth),
     firebaseFirestoreProvider.overrideWith(
       (ref) => throw StateError('Firestore unavailable in renders'),
     ),
@@ -97,6 +100,7 @@ List<Object> renderOverrides() {
     songsProvider.overrideWith((ref) => Stream.value(songs)),
     bandsProvider.overrideWith((ref) => Stream.value([band])),
     setlistsProvider.overrideWith((ref) => Stream.value([setlist])),
+    guestEventsProvider.overrideWith((ref) => Stream.value([])),
     bandSongsProvider(band.id).overrideWith((ref) => Stream.value(songs)),
     bandRehearsalsProvider(band.id)
         .overrideWith((ref) => Stream.value([rehearsal])),
@@ -104,6 +108,9 @@ List<Object> renderOverrides() {
         .overrideWith((ref) => Stream.value(rehearsal)),
     rehearsalVotesProvider((band.id, rehearsal.id))
         .overrideWith((ref) => Stream.value({})),
+    practiceStatsProvider.overrideWith((ref) async => PracticeStats.empty),
+    practiceSessionsProvider.overrideWith((ref) async => []),
+    myHomeworkProvider.overrideWith((ref) async => []),
     keepScreenOnProvider.overrideWith(_RenderKeepScreenOn.new),
     hapticsEnabledProvider.overrideWith(_RenderHapticsEnabled.new),
     analyticsConsentProvider.overrideWith(_RenderAnalyticsConsent.new),
