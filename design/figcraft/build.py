@@ -428,6 +428,8 @@ def m_container(layout):
 def m_text(e, n, parent, pdir):
     style = n.get("style", "bodyMedium")
     p, _ = text_props(style, n.get("color", "textPrimary"))
+    if isinstance(n.get("size"), (int, float)):
+        p["fontSize"] = n["size"]
     if n.get("align"):
         p["textAlign"] = n["align"]
     if n.get("weight"):

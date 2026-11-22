@@ -64,7 +64,8 @@
                   "color": "textPrimary",
                   "align": "center"
                 }
-              ]
+              ],
+              "w": 182
             },
             {
               "t": "card",
@@ -83,7 +84,8 @@
                   "color": "textPrimary",
                   "align": "center"
                 }
-              ]
+              ],
+              "w": 182
             }
           ]
         },
@@ -244,7 +246,7 @@
           "sub": "9 bars",
           "letter": "A",
           "color": "section1",
-          "w": 124
+          "w": 194
         },
         {
           "t": "pad",
@@ -252,15 +254,7 @@
           "sub": "8 bars",
           "letter": "B",
           "color": "section5",
-          "w": 124
-        },
-        {
-          "t": "pad",
-          "label": "Chorus 1",
-          "sub": "12 bars",
-          "letter": "C",
-          "color": "section8",
-          "w": 124
+          "w": 194
         }
       ]
     },
@@ -270,19 +264,33 @@
       "c": [
         {
           "t": "pad",
+          "label": "Chorus 1",
+          "sub": "12 bars",
+          "letter": "C",
+          "color": "section8",
+          "w": 194
+        },
+        {
+          "t": "pad",
           "label": "Part D 1",
           "sub": "16 bars",
           "letter": "D",
           "color": "section3",
-          "w": 124
-        },
+          "w": 194
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
         {
           "t": "pad",
           "label": "Part E 1",
           "sub": "8 bars",
           "letter": "E",
           "color": "section11",
-          "w": 124
+          "w": 194
         },
         {
           "t": "pad",
@@ -290,7 +298,7 @@
           "sub": "12 bars",
           "letter": "C",
           "color": "section8",
-          "w": 124
+          "w": 194
         }
       ]
     },
@@ -304,7 +312,7 @@
           "sub": "16 bars",
           "letter": "D",
           "color": "section3",
-          "w": 124
+          "w": 194
         },
         {
           "t": "pad",
@@ -312,15 +320,21 @@
           "sub": "12 bars",
           "letter": "F",
           "color": "section7",
-          "w": 124
-        },
+          "w": 194
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
         {
           "t": "pad",
           "label": "Bridge 2",
           "sub": "4 bars",
           "letter": "F",
           "color": "section7",
-          "w": 124
+          "w": 194
         }
       ]
     }

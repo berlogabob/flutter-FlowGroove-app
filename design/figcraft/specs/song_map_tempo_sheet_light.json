@@ -207,9 +207,10 @@
               {
                 "t": "text",
                 "v": "170",
-                "style": "headlineLarge",
+                "style": "labelLarge",
                 "color": "textPrimary",
-                "w": "hug"
+                "w": "hug",
+                "size": 40
               },
               {
                 "t": "text",
@@ -227,7 +228,7 @@
             "c": [
               {
                 "t": "key",
-                "v": "/2",
+                "v": "÷2",
                 "w": "fill",
                 "h": 48
               },
@@ -245,7 +246,7 @@
               },
               {
                 "t": "key",
-                "v": "x2",
+                "v": "×2",
                 "w": "fill",
                 "h": 48
               }
@@ -265,8 +266,13 @@
               12
             ],
             "cross": "center",
-            "main": "spaceBetween",
             "c": [
+              {
+                "t": "icon",
+                "v": "touch_app",
+                "size": 20,
+                "color": "accentOrange"
+              },
               {
                 "t": "col",
                 "gap": 0,
@@ -283,15 +289,11 @@
                     "style": "bodySmall",
                     "color": "textSecondary"
                   }
-                ]
-              },
-              {
-                "t": "icon",
-                "v": "touch_app",
-                "size": 20,
-                "color": "accentOrange"
+                ],
+                "w": "fill"
               }
-            ]
+            ],
+            "gap": 12
           },
           {
             "t": "switchrow",
