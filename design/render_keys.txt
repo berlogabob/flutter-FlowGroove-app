@@ -47,3 +47,4 @@ backing_sheet
 import_lyrics_dialog
 song_import_dialog
 performance_sheet_you_already_have_a_song_map
+songs_list_importing_songs

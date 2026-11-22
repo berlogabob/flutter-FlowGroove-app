@@ -296,6 +296,12 @@ final kOpeners = <String, Opener>{
       builder: (_) => const SongImportDialog(librarySongs: []),
     ),
   ),
+  'songs_list_importing_songs': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (_) => const SongImportDialog(librarySongs: []),
+    ),
+  ),
   'performance_sheet_you_already_have_a_song_map': Opener(
     (context, _, _) => showDialog<void>(
       context: context,
