@@ -27,3 +27,4 @@ create_setlist
 join_welcome
 rehearsal_detail
 profile
+metronome
