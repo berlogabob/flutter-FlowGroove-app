@@ -79,4 +79,48 @@ fi
 printf '#!/bin/sh\nexit 0\n' > "$fake/make"
 (cd "$guard_repo" && PATH="$fake:$PATH" "$HOOKS/pre-commit") >/dev/null
 
+# A Makefile-only commit must run the guard too.
+make_repo="$TMP/make-only"
+setup_repo "$make_repo"
+cp "$HOOKS/pre-commit" "$make_repo/.git/hooks/pre-commit"
+chmod +x "$make_repo/.git/hooks/pre-commit"
+echo 'all:' > "$make_repo/Makefile"
+git -C "$make_repo" add Makefile
+printf '#!/bin/sh\nexit 1\n' > "$fake/make"
+if (cd "$make_repo" && PATH="$fake:$PATH" git commit -qm 'test: makefile'); then
+  echo "expected Makefile-only commit to fail when design-guard fails" >&2
+  exit 1
+fi
+
+# A runner must reject and undo commits made by an executor.
+python3 - "$HOOKS/../scripts/plan_run.py" "$TMP" <<'PYTEST'
+import importlib.util, json, pathlib, sys
+from unittest.mock import patch
+spec = importlib.util.spec_from_file_location("plan_run", sys.argv[1])
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+root = pathlib.Path(sys.argv[2]) / "plan"
+root.mkdir()
+(root / "tasks.json").write_text(json.dumps({"tasks": [{"id": "G10", "executor": "codex", "title": "guard", "finding": "test", "files": [], "verify": "", "suite": False}]}))
+m.PLAN = root
+m.LEDGER = root / "ledger.jsonl"
+commands = []
+heads = iter(["start", "moved"])
+def sh(cmd, **kwargs):
+    commands.append(cmd)
+    if "rev-parse HEAD" in cmd:
+        return 0, next(heads)
+    return 0, ""
+m.sh = sh
+m.rollback = lambda: commands.append("rollback")
+m.run_exec = lambda ex, task: (0, "")
+m.verify = lambda task: (True, "")
+with patch.object(sys, "argv", ["plan_run.py", "--only=G10"]):
+    m.main()
+record = json.loads(m.LEDGER.read_text())
+assert record["verdict"] == "fail", record
+assert record["verify_tail"] == "executor moved HEAD", record
+assert any("git reset -q --hard start" in cmd for cmd in commands), commands
+PYTEST
+
 echo "hook scenarios passed"

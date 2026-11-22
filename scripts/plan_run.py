@@ -80,7 +80,17 @@ def main():
         if (PLAN / ".force_codex").exists(): order = ["codex"]  # touch to bypass pi while Studio is offline
         for n, ex in enumerate(order, 1):
             t0 = time.time(); rollback()
+            start = sh("git rev-parse HEAD")[1].strip()
             rc, log = run_exec(ex, t)
+            head = sh("git rev-parse HEAD")[1].strip()
+            if head != start:
+                sh(f"git reset -q --hard {shlex.quote(start)}")
+                rollback()
+                rec = dict(id=t["id"], finding=t["finding"], executor=ex, attempt=n, secs=round(time.time() - t0),
+                           exec_rc=rc, verdict="fail", diff="", verify_tail="executor moved HEAD")
+                with LEDGER.open("a") as f: f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                print(rec["id"], ex, rec["verdict"], "")
+                continue
             dirty = bool(sh("git status --porcelain")[1].strip())
             ok, vout = verify(t)  # no diff is fine when the real verify already passes at HEAD
             if not dirty and ok:
@@ -92,7 +102,8 @@ def main():
                 rc2, o2 = sh(PRE + "flutter test 2>&1 | tail -8", timeout=3000)
                 if rc2 != 0: ok, vout = False, 'FULL SUITE FAILED: ' + o2[-400:]
             if ok and dirty:  # hooks (design-guard, Design-Approved) may refuse the commit: that is a fail
-                commit_rc, commit_out = sh(f'git add -A && git commit -qm "{PFX}: {t["id"]} {t["title"]} [{t["finding"]}] via {ex}"')
+                message = f'{PFX}: {t["id"]} {t["title"]} [{t["finding"]}] via {ex}'
+                commit_rc, commit_out = sh(f"git add -A && git commit -qm {shlex.quote(message)}")
                 if commit_rc != 0:
                     ok, vout = False, "COMMIT FAILED: " + commit_out[-1500:]
             rec = dict(id=t["id"], finding=t["finding"], executor=ex, attempt=n, secs=round(time.time() - t0),

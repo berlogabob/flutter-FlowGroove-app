@@ -4,6 +4,11 @@ import json
 import re
 from pathlib import Path
 
+try:
+    from design.diff_lint import ALLOW
+except ImportError:
+    from diff_lint import ALLOW
+
 
 _RAW_PATTERNS = {
     "fontSize": re.compile(r"fontSize:\s*\d"),
@@ -23,12 +28,17 @@ def raw_counts(lib_dir: str) -> dict[str, int]:
         relative = path.relative_to(root).as_posix()
         if path.name.endswith((".g.dart", ".freezed.dart")):
             continue
-        if relative.startswith("theme/") or path.name == "pdf_service.dart":
+        if relative.startswith("theme/") or relative == "services/export/pdf_service.dart":
             continue
-        source = path.read_text(encoding="utf-8")
+        source = "\n".join(line for line in path.read_text(encoding="utf-8").splitlines() if not ALLOW.search(line))
         for key, pattern in _RAW_PATTERNS.items():
             counts[key] += len(pattern.findall(source))
     return counts
+
+
+def spec_files(specs_dir):
+    root = Path(specs_dir)
+    return (path for path in root.rglob("*.json") if not any(part.startswith(".") for part in path.relative_to(root).parts))
 
 
 def spec_offscale(specs_dir: str, tokens_path: str) -> int:
@@ -62,9 +72,7 @@ def spec_offscale(specs_dir: str, tokens_path: str) -> int:
             for item in value:
                 walk(item)
 
-    for path in Path(specs_dir).rglob("*.json"):
-        if path.name.startswith("."):
-            continue
+    for path in spec_files(specs_dir):
         walk(json.loads(path.read_text(encoding="utf-8")))
     return total
 
@@ -157,7 +165,7 @@ def main(argv: list[str]) -> int:
     specs = repo / "design/figcraft/specs"
     links = link_counts(str(repo / "design/figcraft/figcraft.connect.json"), str(repo / "lib/widgets"), str(repo / "lib/screens"))
     renders = render_counts(str(repo / "design/render"), str(repo / "design/parity_lock.txt"))
-    routed = sum(1 for path in specs.glob("[!.]*.json") if json.loads(path.read_text(encoding="utf-8")).get("route"))
+    routed = sum(1 for path in spec_files(specs) if json.loads(path.read_text(encoding="utf-8")).get("route"))
     metrics = summarize(links, renders, routed,
                         spec_offscale(str(specs), str(repo / "design/tokens/tokens.json")), raw_counts(str(repo / "lib")))
     if args.append:

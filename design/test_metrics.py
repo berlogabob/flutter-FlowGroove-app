@@ -26,6 +26,24 @@ class MetricsTests(unittest.TestCase):
                 {"fontSize": 1, "TextStyle": 1, "EdgeInsets": 1, "SizedBox": 1, "radius": 1, "Colors": 1},
             )
 
+    def test_raw_counts_respects_reasons_and_exact_exemption(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            lib = Path(tmp)
+            (lib / "screens").mkdir()
+            (lib / "screens/pdf_service.dart").write_text("Colors.red\n")
+            (lib / "a.dart").write_text("fontSize: 13, // ds-allow: PDF export\nfontSize: 13, // ds-allow:\n")
+            counts = raw_counts(str(lib))
+            self.assertEqual(1, counts["fontSize"])
+            self.assertEqual(1, counts["Colors"])
+
+    def test_recursive_spec_files_include_nested_routes_and_skip_dotfiles(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "nested").mkdir()
+            (root / "nested/screen.json").write_text('{"route": "/screen"}')
+            (root / ".hidden.json").write_text('{"route": "/hidden"}')
+            self.assertEqual(1, sum(1 for path in metrics.spec_files(root) if json.loads(path.read_text()).get("route")))
+
     def test_render_counts_handles_missing_and_populated_data(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
