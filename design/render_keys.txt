@@ -16,3 +16,9 @@ band_songs
 band_setlists
 rehearsals_list
 rehearsal_edit
+add_song
+create_band
+join_band
+song_page
+song_editor
+setlist_view

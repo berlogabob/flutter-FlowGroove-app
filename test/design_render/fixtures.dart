@@ -1,7 +1,9 @@
 import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/metronome_state.dart';
 import 'package:flowgroove/models/rehearsal.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/providers/analytics_consent_provider.dart';
 import 'package:flowgroove/providers/haptics_provider.dart';
 import 'package:flowgroove/providers/homework_provider.dart';
@@ -40,16 +42,28 @@ List<Object> renderOverrides() {
     MockDataHelper.createMockSong(
       id: 'song1',
       title: 'First Song',
+      originalKey: 'F#m',
+      ourKey: 'F#m',
+      originalBPM: 87,
+      ourBPM: 87,
       bandId: 'band1',
     ),
     MockDataHelper.createMockSong(
       id: 'song2',
       title: 'Second Song',
+      originalKey: 'Em',
+      ourKey: 'Em',
+      originalBPM: 124,
+      ourBPM: 124,
       bandId: 'band1',
     ),
     MockDataHelper.createMockSong(
       id: 'song3',
       title: 'Third Song',
+      originalKey: 'Eb',
+      ourKey: 'Eb',
+      originalBPM: 106,
+      ourBPM: 106,
       bandId: 'band1',
     ),
   ];
@@ -112,6 +126,7 @@ List<Object> renderOverrides() {
         .overrideWith((ref) => Stream.value(rehearsal)),
     rehearsalVotesProvider((band.id, rehearsal.id))
         .overrideWith((ref) => Stream.value({})),
+    metronomeProvider.overrideWith(_RenderMetronome.new),
     practiceStatsProvider.overrideWith((ref) async => PracticeStats.empty),
     practiceSessionsProvider.overrideWith((ref) async => []),
     myHomeworkProvider.overrideWith((ref) async => []),
@@ -120,6 +135,11 @@ List<Object> renderOverrides() {
     analyticsConsentProvider.overrideWith(_RenderAnalyticsConsent.new),
     themeModeProvider.overrideWith(_RenderThemeMode.new),
   ];
+}
+
+class _RenderMetronome extends MetronomeNotifier {
+  @override
+  MetronomeState build() => MetronomeState.initial();
 }
 
 class _RenderKeepScreenOn extends KeepScreenOn {
