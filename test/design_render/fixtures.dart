@@ -10,6 +10,7 @@ import 'package:flowgroove/providers/homework_provider.dart';
 import 'package:flowgroove/providers/keep_screen_on_provider.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/providers/theme_mode_provider.dart';
+import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:flowgroove/services/band_function_service.dart';
 import 'package:material_ui/material_ui.dart';
@@ -129,6 +130,7 @@ List<Object> renderOverrides() {
     rehearsalVotesProvider((band.id, rehearsal.id))
         .overrideWith((ref) => Stream.value({})),
     metronomeProvider.overrideWith(_RenderMetronome.new),
+    tunerProvider.overrideWith(_RenderTuner.new),
     practiceStatsProvider.overrideWith((ref) async => PracticeStats.empty),
     practiceSessionsProvider.overrideWith((ref) async => []),
     myHomeworkProvider.overrideWith((ref) async => []),
@@ -153,6 +155,14 @@ class _RenderBandFunctions extends Mock implements BandFunctionService {
 class _RenderMetronome extends MetronomeNotifier {
   @override
   MetronomeState build() => MetronomeState.initial();
+}
+
+class _RenderTuner extends TunerNotifier {
+  @override
+  TunerState build() => const TunerState();
+
+  @override
+  Future<void> stopAll() async {}
 }
 
 class _RenderKeepScreenOn extends KeepScreenOn {

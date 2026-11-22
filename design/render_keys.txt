@@ -28,3 +28,4 @@ join_welcome
 rehearsal_detail
 profile
 metronome
+tuner
