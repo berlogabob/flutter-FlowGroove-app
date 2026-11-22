@@ -303,6 +303,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
     bottom: 0,
     child: IgnorePointer(
       child: CustomPaint(
+        key: dashed ? null : const ValueKey('song-map-playhead'),
         painter: _MarkerStem(
           context.mp.textPrimary,
           thick: false,
@@ -448,7 +449,11 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
             : null,
         child: Container(
           key: ValueKey('song-map-${isPart ? 'part' : 'section'}-${region.id}'),
-          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxs),
+          // BoxDecoration contributes the outline width to the content inset.
+          padding: EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.xxs + 3 - side.width,
+            vertical: 3 - side.width,
+          ),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: Color.alphaBlend(
@@ -719,23 +724,34 @@ class _ZoomWaveformPainter extends CustomPainter {
     if (peaksInView.isEmpty || domain <= 0) return;
 
     final levels = waveformLevels(peaksInView);
-    final scale = size.width / span;
-    final step = domain * scale / levels.length;
-    final offset = usePcm ? 0 : -viewport.startMs * scale;
+    final buckets = usePcm ? levels.length : size.width.ceil();
+    final step = size.width / buckets;
     final paint = Paint()
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = (step * 0.6).clamp(1.0, 3.0);
+      ..strokeWidth = step;
     final mid = size.height / 2;
     canvas
       ..save()
       ..clipRect(Offset.zero & size);
-    for (var i = 0; i < levels.length; i++) {
-      final x = offset + (i + 0.5) * step;
-      if (x < 0 || x >= size.width) continue;
-      final extent = levels[i].clamp(0.03, 1.0) * (mid - paint.strokeWidth / 2);
+    for (var i = 0; i < buckets; i++) {
+      final x = (i + 0.5) * step;
+      final level = usePcm
+          ? levels[i]
+          : _interpolate(levels, viewport.startMs + x / size.width * span);
+      final extent = level.clamp(0.03, 1.0) * (mid - paint.strokeWidth / 2);
       canvas.drawLine(Offset(x, mid - extent), Offset(x, mid + extent), paint);
     }
     canvas.restore();
+  }
+
+  double _interpolate(List<double> levels, double ms) {
+    final index = (ms / durationMs * levels.length - 0.5).clamp(
+      0.0,
+      levels.length - 1.0,
+    );
+    final left = index.floor();
+    return levels[left] +
+        (levels[index.ceil()] - levels[left]) * (index - left);
   }
 
   List<int> _envelope(Int16List samples, int buckets) {

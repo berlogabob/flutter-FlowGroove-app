@@ -49,17 +49,18 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   int loadCalls = 0;
   double speed = 1;
   String? loadedUri;
+  Future<void>? loadGate;
   final calls = <String>[];
 
   static const duration = Duration(seconds: 20);
 
-  void emit() => _events.add(
+  void emit({Duration? reportedDuration}) => _events.add(
     PlaybackEventMessage(
       processingState: ProcessingStateMessage.ready,
       updateTime: DateTime.now(),
       updatePosition: position,
       bufferedPosition: loadedDuration,
-      duration: loadedDuration,
+      duration: reportedDuration ?? loadedDuration,
       icyMetadata: null,
       currentIndex: 0,
       androidAudioSessionId: null,
@@ -72,6 +73,7 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   @override
   Future<LoadResponse> load(LoadRequest request) async {
     loadCalls++;
+    if (loadGate case final gate?) await gate;
     var source = request.audioSourceMessage;
     if (source is ConcatenatingAudioSourceMessage) {
       source = source.children.single;
@@ -277,6 +279,23 @@ class PracticeRegionsScreenFixture {
 
   // ignore: unreachable_from_main, used by song_map_keys_test.dart.
   List<SongLabEntry> get savedEntries => _repo.saved;
+
+  // ignore: unreachable_from_main, used by stability_test.dart.
+  void emitPosition(int ms, {Duration? reportedDuration}) {
+    _audio.players.values.single
+      ..position = Duration(milliseconds: ms)
+      ..emit(reportedDuration: reportedDuration);
+  }
+
+  // ignore: unreachable_from_main, used by stability_test.dart.
+  Completer<void> holdNextLoad() {
+    final release = Completer<void>();
+    _audio.players.values.single.loadGate = release.future;
+    return release;
+  }
+
+  // ignore: unreachable_from_main, used by stability_test.dart.
+  void startQueuedBacking() => _engine.playing(_engine.commands.last);
 
   static SongLabEntry entry({
     String id = 'e1',

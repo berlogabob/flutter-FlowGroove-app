@@ -179,25 +179,28 @@ class SongMapTransport extends StatelessWidget {
     bool value,
     ValueChanged<bool>? onChanged, {
     String? semanticsLabel,
-  }) => FilterChip(
-    key: ValueKey(key),
-    label: SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: _face(icon, label, semanticsLabel),
+  }) => SizedBox(
+    height: MonoPulseSpacing.massive,
+    child: FilterChip(
+      key: ValueKey(key),
+      label: SizedBox(
+        width: double.infinity,
+        child: _face(icon, label, semanticsLabel),
+      ),
+      selected: value,
+      onSelected: onChanged,
+      showCheckmark: false,
+      backgroundColor: colors.surfaceContainerHighest,
+      selectedColor: colors.surfaceContainerHighest,
+      side: BorderSide(
+        color: value ? colors.onSurface : Colors.transparent,
+        width: MonoPulseSpacing.xxs,
+      ),
+      shape: _shape,
+      padding: EdgeInsets.zero,
+      labelPadding: EdgeInsets.zero,
+      visualDensity: VisualDensity.standard,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     ),
-    selected: value,
-    onSelected: onChanged,
-    showCheckmark: false,
-    backgroundColor: colors.surfaceContainerHighest,
-    selectedColor: colors.surfaceContainerHighest,
-    side: value
-        ? BorderSide(color: colors.onSurface, width: 2)
-        : BorderSide.none,
-    shape: _shape,
-    padding: EdgeInsets.zero,
-    labelPadding: EdgeInsets.zero,
-    visualDensity: VisualDensity.standard,
-    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
   );
 }

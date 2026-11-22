@@ -290,6 +290,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       } else {
         setState(() => _entry = updated);
       }
+      if (mounted && _loaded && _entry.regions.isNotEmpty) {
+        unawaited(_ensurePcm());
+      }
     } catch (_) {}
   }
 
@@ -329,27 +332,40 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           setState(() => _duration = duration);
         }),
         _player.positionStream.listen((position) {
-          if (!mounted) return;
+          if (!mounted || _changingClip) return;
+          if (_pendingLoop != null &&
+              (_player.playbackEvent.currentIndex ?? 0) > 0) {
+            return; // The next WAV's position uses a different origin.
+          }
           // A looping clip jumps back to its start: count the pass.
           final ms = position.inMilliseconds;
           if (_playing && _clipEnd != null && ms + 1000 < _lastPosMs) _reps++;
           _lastPosMs = ms;
           final seam = _seam;
-          if (seam != null && !_changingClip && ms > seam.$1 && ms < seam.$2) {
+          final end = _clipEnd;
+          final pastEnd = end != null && ms >= end - _clipStart;
+          if (seam != null && ms > seam.$1 && ms < seam.$2) {
             unawaited(_player.seek(Duration(milliseconds: seam.$2)));
-          } else if (seam == null && _playing && !_sync && !_changingClip) {
+          } else if (seam == null && _playing && !_sync && !pastEnd) {
             _skipFrom(ms);
           }
-          setState(() => _position = position);
+          setState(() {
+            _position = pastEnd || position.isNegative
+                ? Duration.zero
+                : position;
+          });
         }),
         _player.currentIndexStream.listen(_onLoopIndex),
         _player.playerStateStream.listen((state) {
           if (!mounted) return;
           if (!_sync) _clock(state.playing);
-          setState(() => _playing = state.playing);
+          if (!_changingClip) setState(() => _playing = state.playing);
         }),
       ]);
       await _applyLoop();
+      if (mounted && _entry.regions.isNotEmpty && _entry.peaks.isNotEmpty) {
+        unawaited(_ensurePcm());
+      }
       if (mounted &&
           PracticeRegionsScreen.autoOpenSetup &&
           _durationMs > 0 &&
@@ -624,37 +640,31 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     try {
       if (wasPlaying) await _player.pause();
       if (!mounted) return;
-      if (selection == null) {
+      if (span == null) {
         await _wholeSongSource();
-        if (!mounted) return;
-        await _player.setLoopMode(_audioLoopMode);
-        if (!mounted) return;
-        setState(() {
-          _clipStart = 0;
-          _clipEnd = null;
-          _position = resume;
-        });
       } else {
-        final (start, end) = span!;
-        setState(() {
-          _clipStart = start;
-          _clipEnd = end;
-          _position = Duration.zero;
-          _lastPosMs = 0;
-        });
-        await _loopSource(start, end);
-        if (!mounted) return;
-        await _player.setLoopMode(_audioLoopMode);
-        if (!mounted) return;
+        await _loopSource(span.$1, span.$2);
       }
-      await _player.seek(selection == null ? resume : Duration.zero);
-      if (mounted && wasPlaying) unawaited(_player.play());
+      if (!mounted) return;
+      await _player.setLoopMode(_audioLoopMode);
+      if (!mounted) return;
+      final target = span == null ? resume : Duration.zero;
+      await _player.seek(target);
+      if (!mounted) return;
+      setState(() {
+        _clipStart = span?.$1 ?? 0;
+        _clipEnd = span?.$2;
+        _position = target;
+        _lastPosMs = target.inMilliseconds;
+      });
+      if (wasPlaying) unawaited(_player.play());
     } catch (e) {
       if (mounted) {
         showAppSnackBar(context, "Couldn't set loop: $e", error: true);
       }
     } finally {
       _changingClip = false;
+      if (mounted) setState(() => _playing = _player.playing);
     }
   });
 
@@ -685,6 +695,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       _selection = selection;
     });
     if (_sync) _syncLaunch(startIfStopped: false);
+    if (_loaded && selection != null) unawaited(_ensurePcm());
     unawaited(_applyLoop());
   }
 
@@ -867,12 +878,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       }
       return;
     }
-    if (_playing) {
+    final wasPlaying = _playing;
+    await _loopUpdate;
+    if (!mounted) return;
+    if (wasPlaying) {
       await _player.pause();
     } else {
       if (_loopEnabled != null && _player.loopMode != _audioLoopMode) {
-        await _loopUpdate;
-        if (!mounted) return;
         if (_pendingLoop == null) await _player.setLoopMode(_audioLoopMode);
         if (!mounted) return;
       }
@@ -1041,19 +1053,23 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         await _player.setLoopMode(LoopMode.one);
         if (!mounted) return;
         final length = endMs - startMs;
+        final seam = length > 2 * _seamMs ? (_seamMs, length - _seamMs) : null;
+        final target = Duration(milliseconds: seam?.$2 ?? 0);
+        await _player.seek(target);
+        if (!mounted) return;
         setState(() {
           _clipStart = startMs;
           _clipEnd = endMs;
-          _position = Duration.zero;
-          _lastPosMs = 0;
-          _seam = length > 2 * _seamMs ? (_seamMs, length - _seamMs) : null;
+          _position = target;
+          _lastPosMs = target.inMilliseconds;
+          _seam = seam;
         });
-        await _player.seek(Duration(milliseconds: _seam?.$2 ?? 0));
-        if (mounted) unawaited(_player.play());
+        unawaited(_player.play());
       } catch (_) {
         // Fine-tuning still works without the preview.
       } finally {
         _changingClip = false;
+        if (mounted) setState(() => _playing = _player.playing);
       }
     }));
   }
@@ -1642,15 +1658,16 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             editedSection = i;
           }
         }
-        final playingSection = playing
-            ? view.sections.indexWhere(
-                (r) => r.startMs <= position && position < r.endMs,
-              )
-            : -1;
+        final positionSection = view.sections.indexWhere(
+          (r) => r.startMs <= position && position < r.endMs,
+        );
+        final cursorSection = positionSection < 0 ? null : positionSection;
         final focusSection =
             editedSection ??
+            overviewSelection ??
+            (playing ? cursorSection : null) ??
             selectedSections.firstOrNull ??
-            (playingSection < 0 ? null : playingSection);
+            cursorSection;
         Widget overview([double waveHeight = SongMapTimeline.waveformHeight]) =>
             Padding(
               padding: const EdgeInsets.symmetric(
@@ -1830,7 +1847,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 builder: (context, constraints) {
                   final width = constraints.maxWidth;
                   final rows =
-                      children.length > SongMapPads.columnsForWidth(width)
+                      mapRegions.length > SongMapPads.columnsForWidth(width)
                       ? 2
                       : 1;
                   final fullHeight =
@@ -2584,11 +2601,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   double _mapHeightForPads(double width, int rows) =>
       SongMapOverview.height +
       (_entry.peaks.isEmpty ? 84 : 0) +
-      SongMapPads.heightForRows(
-        rows,
-        width,
-        inSection: _songMap?.sectionIndex != null,
-      );
+      SongMapPads.heightForRows(context, rows, width);
 
   Widget _editableTitle() {
     const key = ValueKey('recording-title');

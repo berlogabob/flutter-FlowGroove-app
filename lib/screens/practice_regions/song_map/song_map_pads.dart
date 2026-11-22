@@ -29,20 +29,17 @@ class SongMapPads extends StatefulWidget {
   });
 
   static const padHeight = 64.0;
-  static double heightForRows(
-    int rows,
-    double width, {
-    required bool inSection,
-  }) =>
+  static double heightForRows(BuildContext context, int rows, double width) =>
       MonoPulseSpacing.massive +
-      (inSection || width < 316 ? MonoPulseSpacing.xxxl : 0) +
-      (inSection && width < 300 || width < 232
-          ? MonoPulseSpacing.massive + MonoPulseSpacing.xs
-          : 0) +
+      (_compactHeader(context, width) ? 0 : MonoPulseSpacing.xxl) +
+      (width < 300 ? MonoPulseSpacing.massive + MonoPulseSpacing.xs : 0) +
       rows * padHeight +
       (rows + 1) * MonoPulseSpacing.sm;
 
   static int columnsForWidth(double width) => width < 600 ? 2 : 4;
+  static const _backWidth = 68.0;
+  static bool _compactHeader(BuildContext context, double width) =>
+      width >= 340 && MediaQuery.sizeOf(context).height < 640;
 
   final SongMapView view;
   final bool showChop;
@@ -81,14 +78,13 @@ class _SongMapPadsState extends State<SongMapPads> {
     String label,
     VoidCallback? onPressed, {
     bool? selected,
-    IconData? icon,
   }) {
     final palette = context.mp;
     final lit = selected == true;
     final width = switch (label) {
       'Shift' => 56.0,
-      'Chop' => icon == null ? 60.0 : 80.0,
-      _ => 68.0,
+      'Chop' => 80.0,
+      _ => SongMapPads._backWidth,
     };
     return Semantics(
       selected: selected,
@@ -118,7 +114,15 @@ class _SongMapPadsState extends State<SongMapPads> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             spacing: MonoPulseSpacing.xs,
-            children: [if (icon != null) Icon(icon, size: 16), Text(label)],
+            children: [
+              if (label == 'Chop')
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: lit ? const Icon(Icons.content_cut, size: 16) : null,
+                ),
+              Text(label),
+            ],
           ),
         ),
       ),
@@ -141,7 +145,7 @@ class _SongMapPadsState extends State<SongMapPads> {
                 horizontal: MonoPulseSpacing.sm,
               ),
               child: LayoutBuilder(
-                builder: (context, constraints) {
+                builder: (context, _) {
                   final name = Text(
                     section == null
                         ? 'Sections'
@@ -155,7 +159,9 @@ class _SongMapPadsState extends State<SongMapPads> {
                       Tooltip(
                         message: 'Zoom out',
                         child: _key(context, '‹ Song', widget.view.zoomToSong),
-                      ),
+                      )
+                    else
+                      const SizedBox(width: SongMapPads._backWidth, height: 48),
                     Tooltip(
                       message: 'Shift',
                       excludeFromSemantics: true,
@@ -178,7 +184,6 @@ class _SongMapPadsState extends State<SongMapPads> {
                                 widget.onChop!(remove);
                               },
                         selected: widget.chopLit,
-                        icon: widget.chopLit ? Icons.content_cut : null,
                       ),
                     _key(
                       context,
@@ -192,24 +197,27 @@ class _SongMapPadsState extends State<SongMapPads> {
                       selected: _rangeMode,
                     ),
                   ];
-                  if (section != null || constraints.maxWidth < 300) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  if (SongMapPads._compactHeader(
+                    context,
+                    constraints.maxWidth,
+                  )) {
+                    return Row(
+                      spacing: MonoPulseSpacing.xs,
                       children: [
-                        name,
-                        Wrap(
-                          spacing: MonoPulseSpacing.xs,
-                          runSpacing: MonoPulseSpacing.xs,
-                          children: keys,
-                        ),
+                        Expanded(child: name),
+                        ...keys,
                       ],
                     );
                   }
-                  return Row(
-                    spacing: MonoPulseSpacing.xs,
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: name),
-                      ...keys,
+                      name,
+                      Wrap(
+                        spacing: MonoPulseSpacing.xs,
+                        runSpacing: MonoPulseSpacing.xs,
+                        children: keys,
+                      ),
                     ],
                   );
                 },
@@ -300,7 +308,7 @@ class _SongMapPadsState extends State<SongMapPads> {
                   : selected
                   ? context.mp.textPrimary
                   : Colors.transparent,
-              width: playing || queued || selected ? 3 : 0,
+              width: 3,
             ),
           ),
           clipBehavior: Clip.antiAlias,
@@ -396,8 +404,17 @@ class _SongMapPadsState extends State<SongMapPads> {
                               ),
                             Row(
                               children: [
-                                if (playing)
-                                  Icon(Icons.play_arrow, color: fg, size: 16),
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: playing
+                                      ? Icon(
+                                          Icons.play_arrow,
+                                          color: fg,
+                                          size: 16,
+                                        )
+                                      : null,
+                                ),
                                 Expanded(
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
@@ -410,14 +427,19 @@ class _SongMapPadsState extends State<SongMapPads> {
                                     ),
                                   ),
                                 ),
-                                if (queued)
-                                  Text(
+                                Visibility(
+                                  visible: queued,
+                                  maintainState: true,
+                                  maintainAnimation: true,
+                                  maintainSize: true,
+                                  child: Text(
                                     'next',
                                     style: MonoPulseTypography.labelSmall
                                         .copyWith(
                                           color: MonoPulseColors.accentOrange,
                                         ),
                                   ),
+                                ),
                               ],
                             ),
                           ],
