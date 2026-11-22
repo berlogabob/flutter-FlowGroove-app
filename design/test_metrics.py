@@ -144,6 +144,14 @@ class KpiMappingTest(unittest.TestCase):
             self.assertEqual((r["rendered"], r["passing"], r["locked_passing"]), (2, 2, 1))
 
 class SurfaceMetricsTest(unittest.TestCase):
+    def test_render_coverage_counts_listed_keys_over_specced_surfaces(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            keys = Path(tmp) / 'render_keys.txt'
+            keys.write_text('# comment\nlogin\n\ntag_input_dialog\n')
+            surfaces = Path(tmp) / 'surfaces.json'
+            surfaces.write_text(json.dumps([{'spec': 'a.json'}, {'spec': 'b.json'}, {'spec': 'b.json'}, {'spec': None}]))
+            self.assertEqual(metrics.render_coverage(keys, surfaces), '2/2')
+
     def test_surface_counts_use_inventory_including_unspecced(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'surfaces.json'

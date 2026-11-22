@@ -10,6 +10,7 @@ import '../helpers/routed_test_harness.dart';
 import 'fixtures.dart';
 import 'fonts.dart';
 import 'matrix.dart';
+import 'openers.dart';
 import 'png.dart';
 import 'tree_dump.dart';
 
@@ -88,6 +89,23 @@ void main() {
     );
   });
 
+  test('render keys are inventory spec stems', () {
+    final inventory = jsonDecode(
+      File('design/surfaces.json').readAsStringSync(),
+    ) as List<dynamic>;
+    final stems = {
+      for (final surface in inventory.cast<Map<String, dynamic>>())
+        if (surface['spec'] != null)
+          (surface['spec'] as String).split('/').last.replaceAll('.json', ''),
+    };
+    final listed = File('design/render_keys.txt')
+        .readAsLinesSync()
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty && !line.startsWith('#'))
+        .toSet();
+    expect(listed.difference(stems), isEmpty);
+  });
+
   final keys = File('design/render_keys.txt')
       .readAsLinesSync()
       .map((line) => line.trim())
@@ -97,6 +115,8 @@ void main() {
     final spec = jsonDecode(
       File('design/figcraft/specs/$key.json').readAsStringSync(),
     ) as Map<String, dynamic>;
+    final route = spec['route'] as String?;
+    final opener = route == null ? kOpeners[key] : null;
     final mode = spec['mode'] as String? ?? 'dark';
     for (final theme in matrix ? ['light', 'dark'] : [mode]) {
       for (final width
@@ -115,9 +135,12 @@ void main() {
             addTearDown(tester.view.reset);
             const boundaryKey = Key('render-boundary');
             Future<void> render() async {
-              await pumpRoutedTestApp(
+              if (route == null && opener == null) {
+                fail('no opener for $key');
+              }
+              final router = await pumpRoutedTestApp(
                 tester,
-                initialLocation: fillRoute(spec['route'] as String),
+                initialLocation: fillRoute(route ?? opener!.route),
                 overrides: renderOverrides(),
                 themeMode: theme == 'light' ? ThemeMode.light : ThemeMode.dark,
                 textScale: scale,
@@ -125,6 +148,10 @@ void main() {
                 boundaryKey: boundaryKey,
               );
               await pumpRender(tester, key);
+              if (opener != null) {
+                opener.open(hostContext(tester), tester, router);
+                await pumpRender(tester, key);
+              }
               final output = Platform.environment['RENDER_OUT'];
               if (output != null) {
                 final directory = Directory(output)

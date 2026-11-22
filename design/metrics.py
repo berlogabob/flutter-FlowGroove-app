@@ -141,6 +141,14 @@ def surface_counts(path: Path) -> tuple[int, int]:
     return len(surfaces), sum(item["spec"] is None for item in surfaces)
 
 
+def render_coverage(keys_path: Path, surfaces_path: Path) -> str:
+    """k8: render keys / distinct specs among inventory surfaces."""
+    keys = [line.strip() for line in keys_path.read_text(encoding="utf-8").splitlines()]
+    listed = sum(1 for key in keys if key and not key.startswith("#"))
+    specs = {item["spec"] for item in json.loads(surfaces_path.read_text(encoding="utf-8")) if item["spec"]}
+    return f"{listed}/{len(specs)}"
+
+
 def summarize(links: dict, renders: dict, routed: int, offscale: int, raw: dict) -> dict:
     """KPI line: k1 linked/reused widgets, k2 rendered/routed screens, k3 locked screens passing parity,
     k4 off-scale spec values, k5 raw code values, k6 FigCraft names that differ from the Dart class, k7 matrix."""
@@ -174,6 +182,7 @@ def main(argv: list[str]) -> int:
     metrics = summarize(links, renders, routed,
                         spec_offscale(str(specs), str(repo / "design/tokens/tokens.json")), raw_counts(str(repo / "lib")))
     metrics["unspecced_screens"] = unspecced
+    metrics["k8"] = render_coverage(repo / "design/render_keys.txt", repo / "design/surfaces.json")
     if args.append:
         metrics["date"] = datetime.date.today().isoformat()
         metrics["sha"] = subprocess.check_output(

@@ -31,3 +31,6 @@ metronome
 tuner
 recorder
 song_lab
+confirmation_dialog
+role_picker_dialog
+tag_input_dialog
