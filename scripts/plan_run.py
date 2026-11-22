@@ -61,7 +61,7 @@ def rollback():
 
 def main():
     import fcntl
-    lock = open(PLAN / '.lock', 'w')
+    lock = open(PLAN / f'.lock-{WT.name}', 'w')  # one lock per worktree: lanes run in parallel
     try: fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError: sys.exit('another plan_run is active')
     only = next((a.split("=")[1].split(",") for a in sys.argv if a.startswith("--only=")), None)
