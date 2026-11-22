@@ -23,3 +23,4 @@ song_page
 song_editor
 setlist_view
 canonical_browse
+create_setlist
