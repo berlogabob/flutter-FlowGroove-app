@@ -2818,7 +2818,7 @@ def main(a=None, dry_dir=None):
         print(f"verify-components: {checked} linked widgets checked, {len(errors)} problem(s)")
         sys.exit(1 if errors else 0)
     elif a[0] == "dryrun":
-        catalog = os.path.join(HERE, "..", "..", "..", "_plans", "song-map", "fc_commands.json")
+        catalog = os.path.join(HERE, "fc_commands.json")
         sys.exit(dryrun(a[1] if len(a) > 1 else catalog))
     elif a[0] == "export-connect":
         print("connect file:", export_connect())

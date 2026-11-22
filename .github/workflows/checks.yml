@@ -20,11 +20,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Activity registry and release-hold checks
         run: |
           python3 scripts/activity_plan.py check
           python3 scripts/test_activity_plan.py
+
+      - name: Design guards
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || 'origin/second01' }}
+        run: |
+          make stable-layout-check
+          python3 design/ratchet.py
+          python3 design/gate_guard.py --base "$BASE"
+          python3 design/diff_lint.py --base "$BASE"
+          make design-check
+          while IFS= read -r c; do
+            changed=$(git diff-tree --no-commit-id --name-only -r "$c" -- design/figcraft/specs design/tokens/tokens.json)
+            if [ -n "$changed" ] && ! git log -1 --format=%B "$c" | grep -q '^Design-Approved: '; then
+              printf '%s changes a spec or tokens without Design-Approved\n' "$c"
+              exit 1
+            fi
+          done < <(git rev-list "$BASE..HEAD")
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
