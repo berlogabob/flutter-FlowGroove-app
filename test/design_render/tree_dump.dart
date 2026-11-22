@@ -42,6 +42,8 @@ const Map<Type, String> kRenderKinds = {
 String? _kind(Widget widget) =>
     widget is SegmentedButton ? 'segmented' : kRenderKinds[widget.runtimeType];
 
+double roundHalf(double value) => (value * 2).round() / 2;
+
 Map<String, Object?> dumpTree(WidgetTester tester) {
   final texts = <Map<String, Object?>>[];
   final kinds = <Map<String, Object?>>[];
@@ -55,33 +57,74 @@ Map<String, Object?> dumpTree(WidgetTester tester) {
     if (render is! RenderBox || !render.hasSize || render.size.isEmpty)
       continue;
     final rect = render.localToGlobal(Offset.zero) & render.size;
-    if (!rect.overlaps(screen)) continue;
+    var offscreen = !rect.overlaps(screen);
     if (widget is Text) {
+      var hidden = false;
+      var scrollable = false;
+      element.visitAncestorElements((ancestor) {
+        final widget = ancestor.widget;
+        if ((widget is Opacity && widget.opacity == 0) ||
+            (widget is Visibility && !widget.visible))
+          hidden = true;
+        if (widget is Scrollable) scrollable = true;
+        return true;
+      });
+      if (hidden || (offscreen && !scrollable)) continue;
+      RenderObject child = render;
+      var parent = child.parent;
+      while (parent is RenderObject) {
+        final clip = parent.describeApproximatePaintClip(child);
+        if (clip != null) {
+          final globalClip = MatrixUtils.transformRect(
+            parent.getTransformTo(null),
+            clip,
+          );
+          if (!rect.overlaps(globalClip)) {
+            if (parent is RenderAbstractViewport && scrollable) {
+              offscreen = true;
+            } else {
+              hidden = true;
+              break;
+            }
+          }
+        }
+        child = parent;
+        parent = parent.parent;
+      }
+      if (hidden) continue;
       final value = widget.data ?? widget.textSpan?.toPlainText() ?? '';
       if (value.trim().isNotEmpty) {
         texts.add({
           'v': value,
-          'x': rect.left,
-          'y': rect.top,
-          'w': rect.width,
-          'h': rect.height,
+          'x': roundHalf(rect.left),
+          'y': roundHalf(rect.top),
+          'w': roundHalf(rect.width),
+          'h': roundHalf(rect.height),
+          if (offscreen) 'offscreen': true,
         });
       }
     }
-    if (kind != null) {
+    if (kind != null && !offscreen) {
       var nested = false;
       element.visitAncestorElements((ancestor) {
         if (_kind(ancestor.widget) == kind) nested = true;
         return !nested;
       });
-      if (!nested) kinds.add({'kind': kind, 'x': rect.left, 'y': rect.top});
+      if (!nested)
+        kinds.add({
+          'kind': kind,
+          'x': roundHalf(rect.left),
+          'y': roundHalf(rect.top),
+        });
     }
   }
   int compare(Map<String, Object?> a, Map<String, Object?> b) {
-    final y = ((a['y'] as num) / 8).round().compareTo(
-      ((b['y'] as num) / 8).round(),
-    );
-    return y != 0 ? y : (a['x'] as num).compareTo(b['x'] as num);
+    final y = (a['y'] as num).compareTo(b['y'] as num);
+    if (y != 0) return y;
+    final x = (a['x'] as num).compareTo(b['x'] as num);
+    return x != 0
+        ? x
+        : (a['v'] as String? ?? '').compareTo(b['v'] as String? ?? '');
   }
 
   texts.sort(compare);

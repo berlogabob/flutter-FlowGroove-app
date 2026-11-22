@@ -317,6 +317,7 @@ Future<GoRouter> pumpRoutedTestApp(
       ? MaterialApp.router(routerConfig: router)
       : MaterialApp.router(
           routerConfig: router,
+          debugShowCheckedModeBanner: false,
           theme: MonoPulseTheme.lightTheme,
           darkTheme: MonoPulseTheme.theme,
           themeMode: themeMode,

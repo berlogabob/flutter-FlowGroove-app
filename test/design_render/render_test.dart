@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -50,7 +51,7 @@ void main() {
     }
   });
 
-  testWidgets('writes a PNG at logical pixel dimensions', (tester) async {
+  testWidgets('writes a PNG at physical pixel dimensions', (tester) async {
     final directory = Directory.systemTemp.createTempSync('render_png_test_');
     addTearDown(() => directory.deleteSync(recursive: true));
     const boundaryKey = Key('png-boundary');
@@ -69,8 +70,22 @@ void main() {
     final bytes = File(path).readAsBytesSync();
     expect(bytes.sublist(0, 8), [137, 80, 78, 71, 13, 10, 26, 10]);
     final header = ByteData.sublistView(bytes);
-    expect(header.getUint32(16), 412);
-    expect(header.getUint32(20), 915);
+    expect(header.getUint32(16), 412 * 3);
+    expect(header.getUint32(20), 915 * 3);
+  });
+
+  testWidgets('themed harness hides the debug banner', (tester) async {
+    await pumpRoutedTestApp(
+      tester,
+      initialLocation: '/login',
+      themeMode: ThemeMode.dark,
+    );
+    expect(
+      tester
+          .widget<MaterialApp>(find.byType(MaterialApp))
+          .debugShowCheckedModeBanner,
+      isFalse,
+    );
   });
 
   final keys = File('design/render_keys.txt')
@@ -130,7 +145,7 @@ void main() {
             final previous = FlutterError.onError;
             FlutterError.onError = errors.add;
             try {
-              await render();
+              await withClock(Clock.fixed(DateTime(2026, 1, 15, 10)), render);
             } finally {
               FlutterError.onError = previous;
               final classified = classifyCellErrors(errors);

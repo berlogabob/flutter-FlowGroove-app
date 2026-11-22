@@ -10,7 +10,9 @@ Future<void> writePng(WidgetTester tester, Key boundaryKey, String path) async {
     find.byKey(boundaryKey),
   );
   await tester.runAsync(() async {
-    final image = await boundary.toImage(pixelRatio: 1);
+    final image = await boundary.toImage(
+      pixelRatio: tester.view.devicePixelRatio,
+    );
     try {
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
       await File(path).writeAsBytes(bytes!.buffer.asUint8List());
