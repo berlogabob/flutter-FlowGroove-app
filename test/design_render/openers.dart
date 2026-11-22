@@ -386,4 +386,18 @@ final kOpeners = <String, Opener>{
       },
     ),
   ),
+  'song_map_part_light': Opener(
+    (context, _, _) => showSectionNameSheet(
+      context,
+      initialName: 'Bridge',
+      groups: const {
+        'Intro': SongMapLetter('A', MonoPulseColors.section1),
+        'Part B': SongMapLetter('B', MonoPulseColors.section5),
+        'Chorus': SongMapLetter('C', MonoPulseColors.section8),
+        'Part D': SongMapLetter('D', MonoPulseColors.section3),
+        'Part E': SongMapLetter('E', MonoPulseColors.section11),
+        'Bridge': SongMapLetter('F', MonoPulseColors.section7),
+      },
+    ),
+  ),
 };

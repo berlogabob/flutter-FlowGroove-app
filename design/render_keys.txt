@@ -53,3 +53,4 @@ notes_panel_note_at_n
 slice_edit_sheet_start
 
 song_map_part
+song_map_part_light
