@@ -35,6 +35,7 @@ design-render:
 	RENDER_OUT=design/render RENDER_PNG=1 RENDER_MATRIX=1 bash scripts/ftest.sh test/design_render/render_test.dart
 
 design-check: stable-layout-check
+	python3 design/surfaces.py --check
 	python3 design/ratchet.py
 	python3 design/figcraft/build.py check
 	python3 design/figcraft/build.py dryrun

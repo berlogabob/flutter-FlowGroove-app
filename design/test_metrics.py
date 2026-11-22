@@ -142,3 +142,10 @@ class KpiMappingTest(unittest.TestCase):
             (root / "lock.txt").write_text("a\n")
             r = metrics.render_counts(str(root), str(root / "lock.txt"))
             self.assertEqual((r["rendered"], r["passing"], r["locked_passing"]), (2, 2, 1))
+
+class SurfaceMetricsTest(unittest.TestCase):
+    def test_surface_counts_use_inventory_including_unspecced(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'surfaces.json'
+            path.write_text(json.dumps([{'spec': 'a.json'}, {'spec': None}, {'spec': None}]))
+            self.assertEqual(metrics.surface_counts(path), (3, 2))

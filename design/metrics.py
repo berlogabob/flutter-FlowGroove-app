@@ -136,6 +136,11 @@ def render_counts(render_dir: str, lock_path: str) -> dict:
     }
 
 
+def surface_counts(path: Path) -> tuple[int, int]:
+    surfaces = json.loads(path.read_text(encoding="utf-8"))
+    return len(surfaces), sum(item["spec"] is None for item in surfaces)
+
+
 def summarize(links: dict, renders: dict, routed: int, offscale: int, raw: dict) -> dict:
     """KPI line: k1 linked/reused widgets, k2 rendered/routed screens, k3 locked screens passing parity,
     k4 off-scale spec values, k5 raw code values, k6 FigCraft names that differ from the Dart class, k7 matrix."""
@@ -165,9 +170,10 @@ def main(argv: list[str]) -> int:
     specs = repo / "design/figcraft/specs"
     links = link_counts(str(repo / "design/figcraft/figcraft.connect.json"), str(repo / "lib/widgets"), str(repo / "lib/screens"))
     renders = render_counts(str(repo / "design/render"), str(repo / "design/parity_lock.txt"))
-    routed = sum(1 for path in spec_files(specs) if json.loads(path.read_text(encoding="utf-8")).get("route"))
+    routed, unspecced = surface_counts(repo / "design/surfaces.json")
     metrics = summarize(links, renders, routed,
                         spec_offscale(str(specs), str(repo / "design/tokens/tokens.json")), raw_counts(str(repo / "lib")))
+    metrics["unspecced_screens"] = unspecced
     if args.append:
         metrics["date"] = datetime.date.today().isoformat()
         metrics["sha"] = subprocess.check_output(

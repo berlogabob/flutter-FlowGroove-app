@@ -1,0 +1,1087 @@
+[
+  {
+    "key": "song_form_provider.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/providers/song_form_provider.dart:677",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/song_form_provider_similar_song_exists.json"
+  },
+  {
+    "key": "/login",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:277",
+    "widget": "LoginScreen",
+    "spec": "design/figcraft/specs/login.json"
+  },
+  {
+    "key": "/register",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:282",
+    "widget": "RegisterScreen",
+    "spec": "design/figcraft/specs/register.json"
+  },
+  {
+    "key": "/forgot-password",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:287",
+    "widget": "ForgotPasswordScreen",
+    "spec": "design/figcraft/specs/forgot_password.json"
+  },
+  {
+    "key": "/join",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:295",
+    "widget": "Scaffold",
+    "spec": null
+  },
+  {
+    "key": "/join-welcome",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:304",
+    "widget": "JoinWelcomeScreen",
+    "spec": "design/figcraft/specs/join_welcome.json"
+  },
+  {
+    "key": "/event",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:313",
+    "widget": "EventShareScreen",
+    "spec": "design/figcraft/specs/event_share.json"
+  },
+  {
+    "key": "/main/home",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:333",
+    "widget": "HomeScreen",
+    "spec": "design/figcraft/specs/home.json"
+  },
+  {
+    "key": "/main/songs",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:344",
+    "widget": "SongsListScreen",
+    "spec": "design/figcraft/specs/songs_list.json"
+  },
+  {
+    "key": "/main/songs/duplicates",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:349",
+    "widget": "SongDuplicatesScreen",
+    "spec": "design/figcraft/specs/song_duplicates.json"
+  },
+  {
+    "key": "/main/songs/catalog",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:354",
+    "widget": "CanonicalBrowseScreen",
+    "spec": "design/figcraft/specs/canonical_browse.json"
+  },
+  {
+    "key": "/main/songs/add",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:359",
+    "widget": "AddSongScreen",
+    "spec": "design/figcraft/specs/add_song.json"
+  },
+  {
+    "key": "/main/songs/:id/lab",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:374",
+    "widget": "dispose",
+    "spec": null
+  },
+  {
+    "key": "/main/songs/:id/edit",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:380",
+    "widget": "dispose",
+    "spec": null
+  },
+  {
+    "key": "/main/songs/:id",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:391",
+    "widget": "dispose",
+    "spec": null
+  },
+  {
+    "key": "/main/bands",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:404",
+    "widget": "MyBandsScreen",
+    "spec": "design/figcraft/specs/my_bands.json"
+  },
+  {
+    "key": "/main/bands/create",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:414",
+    "widget": "CreateBandScreen",
+    "spec": "design/figcraft/specs/create_band.json"
+  },
+  {
+    "key": "/main/bands/:id",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:419",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/edit",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:428",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/songs",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:437",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/setlists",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:446",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/setlists/:setlistId",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:459",
+    "widget": "SetlistRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/about",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:476",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/invite",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:485",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/members",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:494",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/rehearsals",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:503",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/rehearsals/create",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:513",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/rehearsals/:rid/edit",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:522",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/bands/:id/rehearsals/:rid",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:533",
+    "widget": "BandRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/setlists",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:552",
+    "widget": "SetlistsListScreen",
+    "spec": "design/figcraft/specs/setlists_list.json"
+  },
+  {
+    "key": "/main/setlists/create",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:557",
+    "widget": "CreateSetlistScreen",
+    "spec": "design/figcraft/specs/create_setlist.json"
+  },
+  {
+    "key": "/main/setlists/:id",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:578",
+    "widget": "SetlistRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/setlists/:id/edit",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:601",
+    "widget": "SetlistRouteResolver",
+    "spec": null
+  },
+  {
+    "key": "/main/profile",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:632",
+    "widget": "ProfileScreen",
+    "spec": "design/figcraft/specs/profile.json"
+  },
+  {
+    "key": "/main/metronome",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:648",
+    "widget": "MetronomeScreen",
+    "spec": "design/figcraft/specs/metronome.json"
+  },
+  {
+    "key": "/main/practice",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:657",
+    "widget": "PracticeScreen",
+    "spec": "design/figcraft/specs/practice.json"
+  },
+  {
+    "key": "/main/recorder",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:666",
+    "widget": "RecorderScreen",
+    "spec": "design/figcraft/specs/recorder.json"
+  },
+  {
+    "key": "/main/audio-note/:id",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:679",
+    "widget": "RecorderScreen",
+    "spec": "design/figcraft/specs/recorder.json"
+  },
+  {
+    "key": "/main/practice-regions/:id",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:697",
+    "widget": "RecorderScreen",
+    "spec": "design/figcraft/specs/recorder.json"
+  },
+  {
+    "key": "/main/tuner",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:715",
+    "widget": "TunerScreen",
+    "spec": "design/figcraft/specs/tuner.json"
+  },
+  {
+    "key": "/main/settings",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:728",
+    "widget": "AppSettingsScreen",
+    "spec": "design/figcraft/specs/app_settings.json"
+  },
+  {
+    "key": "/main/join-band",
+    "kind": "route",
+    "source": "lib/router/app_router.dart:734",
+    "widget": "JoinBandScreen",
+    "spec": "design/figcraft/specs/join_band.json"
+  },
+  {
+    "key": "band_about_screen.SafeArea",
+    "kind": "sheet",
+    "source": "lib/screens/bands/band_about_screen.dart:493",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/band_about.json"
+  },
+  {
+    "key": "band_about_screen._editMemberMusicRoles",
+    "kind": "picker",
+    "source": "lib/screens/bands/band_about_screen.dart:593",
+    "widget": "_editMemberMusicRoles",
+    "spec": "design/figcraft/specs/band_about.json"
+  },
+  {
+    "key": "band_about_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/bands/band_about_screen.dart:630",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/band_about.json"
+  },
+  {
+    "key": "band_setlists_screen._buildSetlistList",
+    "kind": "picker",
+    "source": "lib/screens/bands/band_setlists_screen.dart:313",
+    "widget": "_buildSetlistList",
+    "spec": "design/figcraft/specs/band_setlists.json"
+  },
+  {
+    "key": "create_band_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/bands/create_band_screen.dart:162",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/create_band_discard_changes.json"
+  },
+  {
+    "key": "create_band_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/bands/create_band_screen.dart:186",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/create_band_band_created.json"
+  },
+  {
+    "key": "rehearsal_detail_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/bands/rehearsals/rehearsal_detail_screen.dart:133",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/rehearsal_detail.json"
+  },
+  {
+    "key": "rehearsal_edit_screen._pickDeadline",
+    "kind": "picker",
+    "source": "lib/screens/bands/rehearsals/rehearsal_edit_screen.dart:118",
+    "widget": "_pickDeadline",
+    "spec": "design/figcraft/specs/rehearsal_edit.json"
+  },
+  {
+    "key": "rehearsal_edit_screen._pickDeadline",
+    "kind": "picker",
+    "source": "lib/screens/bands/rehearsals/rehearsal_edit_screen.dart:125",
+    "widget": "_pickDeadline",
+    "spec": "design/figcraft/specs/rehearsal_edit.json"
+  },
+  {
+    "key": "rehearsal_edit_screen._addSlot",
+    "kind": "picker",
+    "source": "lib/screens/bands/rehearsals/rehearsal_edit_screen.dart:77",
+    "widget": "_addSlot",
+    "spec": "design/figcraft/specs/rehearsal_edit.json"
+  },
+  {
+    "key": "rehearsal_edit_screen._addSlot",
+    "kind": "picker",
+    "source": "lib/screens/bands/rehearsals/rehearsal_edit_screen.dart:84",
+    "widget": "_addSlot",
+    "spec": "design/figcraft/specs/rehearsal_edit.json"
+  },
+  {
+    "key": "rehearsal_edit_screen._addSlot",
+    "kind": "picker",
+    "source": "lib/screens/bands/rehearsals/rehearsal_edit_screen.dart:90",
+    "widget": "_addSlot",
+    "spec": "design/figcraft/specs/rehearsal_edit.json"
+  },
+  {
+    "key": "the_band_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/bands/the_band_screen.dart:314",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/the_band_edit_band_name.json"
+  },
+  {
+    "key": "the_band_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/bands/the_band_screen.dart:384",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/the_band_edit_description.json"
+  },
+  {
+    "key": "home_screen.SafeArea",
+    "kind": "sheet",
+    "source": "lib/screens/home_screen.dart:112",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/home_sheet_l112.json"
+  },
+  {
+    "key": "home_screen.SafeArea",
+    "kind": "sheet",
+    "source": "lib/screens/home_screen.dart:162",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/home_rehearsals.json"
+  },
+  {
+    "key": "metronome_screen.onPressed",
+    "kind": "sheet",
+    "source": "lib/screens/metronome_screen.dart:585",
+    "widget": "onPressed",
+    "spec": "design/figcraft/specs/metronome.json"
+  },
+  {
+    "key": "performance_sheet_screen.ImportLyricsDialog",
+    "kind": "sheet",
+    "source": "lib/screens/performance_sheet_screen.dart:123",
+    "widget": "ImportLyricsDialog",
+    "spec": "design/figcraft/specs/performance_sheet.json"
+  },
+  {
+    "key": "performance_sheet_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/performance_sheet_screen.dart:132",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/performance_sheet.json"
+  },
+  {
+    "key": "auto_slice_sheet.StatefulBuilder",
+    "kind": "sheet",
+    "source": "lib/screens/practice_regions/auto_slice_sheet.dart:40",
+    "widget": "StatefulBuilder",
+    "spec": null
+  },
+  {
+    "key": "file_actions.ConfirmationDialog",
+    "kind": "dialog",
+    "source": "lib/screens/practice_regions/file_actions.dart:174",
+    "widget": "ConfirmationDialog",
+    "spec": null
+  },
+  {
+    "key": "file_actions.ConfirmationDialog",
+    "kind": "dialog",
+    "source": "lib/screens/practice_regions/file_actions.dart:363",
+    "widget": "ConfirmationDialog",
+    "spec": null
+  },
+  {
+    "key": "file_actions.ConfirmationDialog",
+    "kind": "dialog",
+    "source": "lib/screens/practice_regions/file_actions.dart:89",
+    "widget": "ConfirmationDialog",
+    "spec": "design/figcraft/specs/confirmation_dialog.json"
+  },
+  {
+    "key": "grid_editor_dialog.StatefulBuilder",
+    "kind": "dialog",
+    "source": "lib/screens/practice_regions/grid_editor_dialog.dart:20",
+    "widget": "StatefulBuilder",
+    "spec": "design/figcraft/specs/grid_editor_dialog_tempo_grid.json"
+  },
+  {
+    "key": "notes_panel.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/practice_regions/notes_panel.dart:26",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/notes_panel_note_at_n.json"
+  },
+  {
+    "key": "region_name_sheet.StatefulBuilder",
+    "kind": "sheet",
+    "source": "lib/screens/practice_regions/region_name_sheet.dart:266",
+    "widget": "StatefulBuilder",
+    "spec": null
+  },
+  {
+    "key": "slice_edit_sheet.SafeArea",
+    "kind": "sheet",
+    "source": "lib/screens/practice_regions/slice_edit_sheet.dart:15",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/slice_edit_sheet_start.json"
+  },
+  {
+    "key": "practice_regions_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/practice_regions_screen.dart:1010",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/practice_regions.json"
+  },
+  {
+    "key": "practice_regions_screen.StatefulBuilder",
+    "kind": "sheet",
+    "source": "lib/screens/practice_regions_screen.dart:1165",
+    "widget": "StatefulBuilder",
+    "spec": "design/figcraft/specs/practice_regions.json"
+  },
+  {
+    "key": "practice_regions_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/practice_regions_screen.dart:2067",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/practice_regions.json"
+  },
+  {
+    "key": "practice_regions_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/practice_regions_screen.dart:2152",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/practice_regions.json"
+  },
+  {
+    "key": "practice_regions_screen.StatefulBuilder",
+    "kind": "sheet",
+    "source": "lib/screens/practice_regions_screen.dart:2854",
+    "widget": "StatefulBuilder",
+    "spec": "design/figcraft/specs/practice_regions.json"
+  },
+  {
+    "key": "practice_setup_wizard.showModalBottomSheet",
+    "kind": "sheet",
+    "source": "lib/screens/practice_setup_wizard.dart:29",
+    "widget": "showModalBottomSheet",
+    "spec": null
+  },
+  {
+    "key": "profile_screen.SafeArea",
+    "kind": "sheet",
+    "source": "lib/screens/profile_screen.dart:168",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/profile.json"
+  },
+  {
+    "key": "profile_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/profile_screen.dart:321",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/profile.json"
+  },
+  {
+    "key": "profile_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/profile_screen.dart:650",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/profile.json"
+  },
+  {
+    "key": "profile_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/profile_screen.dart:693",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/profile.json"
+  },
+  {
+    "key": "profile_screen.Center",
+    "kind": "dialog",
+    "source": "lib/screens/profile_screen.dart:720",
+    "widget": "Center",
+    "spec": "design/figcraft/specs/profile.json"
+  },
+  {
+    "key": "profile_screen._editRoles",
+    "kind": "picker",
+    "source": "lib/screens/profile_screen.dart:846",
+    "widget": "_editRoles",
+    "spec": "design/figcraft/specs/profile.json"
+  },
+  {
+    "key": "recorder_screen.SafeArea",
+    "kind": "sheet",
+    "source": "lib/screens/recorder_screen.dart:187",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/recorder_link_recording_to_song.json"
+  },
+  {
+    "key": "create_setlist_screen.Theme",
+    "kind": "picker",
+    "source": "lib/screens/setlists/create_setlist_screen.dart:304",
+    "widget": "Theme",
+    "spec": "design/figcraft/specs/create_setlist.json"
+  },
+  {
+    "key": "create_setlist_screen.DraggableScrollableSheet",
+    "kind": "sheet",
+    "source": "lib/screens/setlists/create_setlist_screen.dart:351",
+    "widget": "DraggableScrollableSheet",
+    "spec": "design/figcraft/specs/create_setlist.json"
+  },
+  {
+    "key": "create_setlist_screen._showSongPicker",
+    "kind": "sheet",
+    "source": "lib/screens/setlists/create_setlist_screen.dart:354",
+    "widget": "_showSongPicker",
+    "spec": "design/figcraft/specs/create_setlist.json"
+  },
+  {
+    "key": "create_setlist_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/setlists/create_setlist_screen.dart:524",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/create_setlist.json"
+  },
+  {
+    "key": "event_kit_editor_screen._showShareInventory",
+    "kind": "dialog",
+    "source": "lib/screens/setlists/event_kit_editor_screen.dart:105",
+    "widget": "_showShareInventory",
+    "spec": "design/figcraft/specs/event_kit_editor.json"
+  },
+  {
+    "key": "event_kit_editor_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/setlists/event_kit_editor_screen.dart:1376",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/event_kit_editor.json"
+  },
+  {
+    "key": "event_kit_editor_screen._addToZone",
+    "kind": "sheet",
+    "source": "lib/screens/setlists/event_kit_editor_screen.dart:156",
+    "widget": "_addToZone",
+    "spec": "design/figcraft/specs/event_kit_editor.json"
+  },
+  {
+    "key": "event_kit_editor_screen._addPerson",
+    "kind": "sheet",
+    "source": "lib/screens/setlists/event_kit_editor_screen.dart:183",
+    "widget": "_addPerson",
+    "spec": "design/figcraft/specs/event_kit_editor.json"
+  },
+  {
+    "key": "event_kit_editor_screen._editPerson",
+    "kind": "sheet",
+    "source": "lib/screens/setlists/event_kit_editor_screen.dart:193",
+    "widget": "_editPerson",
+    "spec": "design/figcraft/specs/event_kit_editor.json"
+  },
+  {
+    "key": "event_kit_editor_screen._addRiderItem",
+    "kind": "sheet",
+    "source": "lib/screens/setlists/event_kit_editor_screen.dart:258",
+    "widget": "_addRiderItem",
+    "spec": "design/figcraft/specs/event_kit_editor.json"
+  },
+  {
+    "key": "event_kit_editor_screen.StatefulBuilder",
+    "kind": "dialog",
+    "source": "lib/screens/setlists/event_kit_editor_screen.dart:713",
+    "widget": "StatefulBuilder",
+    "spec": "design/figcraft/specs/event_kit_editor.json"
+  },
+  {
+    "key": "event_share_screen._suggest",
+    "kind": "sheet",
+    "source": "lib/screens/setlists/event_share_screen.dart:107",
+    "widget": "_suggest",
+    "spec": "design/figcraft/specs/event_share.json"
+  },
+  {
+    "key": "performer_sheet.SafeArea",
+    "kind": "sheet",
+    "source": "lib/screens/setlists/performer_sheet.dart:104",
+    "widget": "SafeArea",
+    "spec": null
+  },
+  {
+    "key": "performer_sheet._pickRole",
+    "kind": "picker",
+    "source": "lib/screens/setlists/performer_sheet.dart:280",
+    "widget": "_pickRole",
+    "spec": null
+  },
+  {
+    "key": "performer_sheet.showModalBottomSheet",
+    "kind": "sheet",
+    "source": "lib/screens/setlists/performer_sheet.dart:33",
+    "widget": "showModalBottomSheet",
+    "spec": null
+  },
+  {
+    "key": "setlists_list_screen._buildSetlistList",
+    "kind": "picker",
+    "source": "lib/screens/setlists/setlists_list_screen.dart:340",
+    "widget": "_buildSetlistList",
+    "spec": "design/figcraft/specs/setlists_list.json"
+  },
+  {
+    "key": "api_access_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/settings/api_access_screen.dart:55",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/api_access.json"
+  },
+  {
+    "key": "api_access_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/settings/api_access_screen.dart:89",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/api_access_revoke_key.json"
+  },
+  {
+    "key": "app_settings_screen.build",
+    "kind": "picker",
+    "source": "lib/screens/settings/app_settings_screen.dart:197",
+    "widget": "build",
+    "spec": "design/figcraft/specs/app_settings.json"
+  },
+  {
+    "key": "app_settings_screen.build",
+    "kind": "picker",
+    "source": "lib/screens/settings/app_settings_screen.dart:210",
+    "widget": "build",
+    "spec": "design/figcraft/specs/app_settings.json"
+  },
+  {
+    "key": "add_song_screen.SuggestionSelectionDialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/add_song_screen.dart:239",
+    "widget": "SuggestionSelectionDialog",
+    "spec": "design/figcraft/specs/suggestion_selection_dialog.json"
+  },
+  {
+    "key": "add_song_screen.ImportLyricsDialog",
+    "kind": "sheet",
+    "source": "lib/screens/songs/add_song_screen.dart:422",
+    "widget": "ImportLyricsDialog",
+    "spec": "design/figcraft/specs/add_song.json"
+  },
+  {
+    "key": "links_editor.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/components/links_editor.dart:103",
+    "widget": "AlertDialog",
+    "spec": null
+  },
+  {
+    "key": "song_constructor.EditSectionDialog",
+    "kind": "sheet",
+    "source": "lib/screens/songs/components/song_constructor/song_constructor.dart:104",
+    "widget": "EditSectionDialog",
+    "spec": null
+  },
+  {
+    "key": "song_constructor.Dialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/components/song_constructor/song_constructor.dart:80",
+    "widget": "Dialog",
+    "spec": null
+  },
+  {
+    "key": "section_picker.Dialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/components/song_constructor/widgets/section_picker.dart:254",
+    "widget": "Dialog",
+    "spec": null
+  },
+  {
+    "key": "song_editor_screen.EditSectionDialog",
+    "kind": "sheet",
+    "source": "lib/screens/songs/song_editor_screen.dart:107",
+    "widget": "EditSectionDialog",
+    "spec": "design/figcraft/specs/song_editor.json"
+  },
+  {
+    "key": "song_editor_screen.Dialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/song_editor_screen.dart:129",
+    "widget": "Dialog",
+    "spec": "design/figcraft/specs/song_editor.json"
+  },
+  {
+    "key": "song_editor_screen.ImportLyricsDialog",
+    "kind": "sheet",
+    "source": "lib/screens/songs/song_editor_screen.dart:150",
+    "widget": "ImportLyricsDialog",
+    "spec": "design/figcraft/specs/song_editor.json"
+  },
+  {
+    "key": "song_editor_screen.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/song_editor_screen.dart:160",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/song_editor.json"
+  },
+  {
+    "key": "song_lab_screen.build",
+    "kind": "picker",
+    "source": "lib/screens/songs/song_lab_screen.dart:1064",
+    "widget": "build",
+    "spec": "design/figcraft/specs/song_lab.json"
+  },
+  {
+    "key": "song_lab_screen._migrateNotesIfNeeded",
+    "kind": "sheet",
+    "source": "lib/screens/songs/song_lab_screen.dart:145",
+    "widget": "_migrateNotesIfNeeded",
+    "spec": "design/figcraft/specs/song_lab.json"
+  },
+  {
+    "key": "song_lab_screen.ConfirmationDialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/song_lab_screen.dart:250",
+    "widget": "ConfirmationDialog",
+    "spec": "design/figcraft/specs/song_lab.json"
+  },
+  {
+    "key": "song_lab_screen._composeTask",
+    "kind": "sheet",
+    "source": "lib/screens/songs/song_lab_screen.dart:665",
+    "widget": "_composeTask",
+    "spec": "design/figcraft/specs/song_lab.json"
+  },
+  {
+    "key": "song_lab_screen.MidiSongPanel",
+    "kind": "sheet",
+    "source": "lib/screens/songs/song_lab_screen.dart:796",
+    "widget": "MidiSongPanel",
+    "spec": "design/figcraft/specs/song_lab.json"
+  },
+  {
+    "key": "songs_list_screen.SongImportDialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/songs_list_screen.dart:151",
+    "widget": "SongImportDialog",
+    "spec": "design/figcraft/specs/songs_list.json"
+  },
+  {
+    "key": "songs_list_screen.PopScope",
+    "kind": "dialog",
+    "source": "lib/screens/songs/songs_list_screen.dart:164",
+    "widget": "PopScope",
+    "spec": "design/figcraft/specs/songs_list.json"
+  },
+  {
+    "key": "songs_list_screen.SongExportDialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/songs_list_screen.dart:307",
+    "widget": "SongExportDialog",
+    "spec": "design/figcraft/specs/songs_list.json"
+  },
+  {
+    "key": "songs_list_screen.StatefulBuilder",
+    "kind": "sheet",
+    "source": "lib/screens/songs/songs_list_screen.dart:443",
+    "widget": "StatefulBuilder",
+    "spec": "design/figcraft/specs/songs_list.json"
+  },
+  {
+    "key": "add_song_screen_helper.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/utils/add_song_screen_helper.dart:61",
+    "widget": "AlertDialog",
+    "spec": null
+  },
+  {
+    "key": "tuner_screen.InstrumentPicker",
+    "kind": "sheet",
+    "source": "lib/screens/tuner_screen.dart:162",
+    "widget": "InstrumentPicker",
+    "spec": "design/figcraft/specs/instrument_picker.json"
+  },
+  {
+    "key": "tuner_screen.CustomTuningEditor",
+    "kind": "sheet",
+    "source": "lib/screens/tuner_screen.dart:172",
+    "widget": "CustomTuningEditor",
+    "spec": "design/figcraft/specs/custom_tuning_editor.json"
+  },
+  {
+    "key": "tuner_screen.TunerSettingsSheet",
+    "kind": "sheet",
+    "source": "lib/screens/tuner_screen.dart:184",
+    "widget": "TunerSettingsSheet",
+    "spec": "design/figcraft/specs/tuner_settings_sheet.json"
+  },
+  {
+    "key": "setlist_export_sheet.SafeArea",
+    "kind": "sheet",
+    "source": "lib/services/export/setlist_export_sheet.dart:49",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/setlist_export_sheet_whose_copy.json"
+  },
+  {
+    "key": "setlist_export_sheet.SafeArea",
+    "kind": "sheet",
+    "source": "lib/services/export/setlist_export_sheet.dart:91",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/setlist_export_sheet_as_is.json"
+  },
+  {
+    "key": "idea_recorder.LabRecordingSheet",
+    "kind": "sheet",
+    "source": "lib/services/idea_recorder.dart:86",
+    "widget": "LabRecordingSheet",
+    "spec": "design/figcraft/specs/lab_recording_sheet.json"
+  },
+  {
+    "key": "app_menu_sheet.StatefulBuilder",
+    "kind": "sheet",
+    "source": "lib/widgets/app_menu_sheet.dart:53",
+    "widget": "StatefulBuilder",
+    "spec": "design/figcraft/specs/app_menu_sheet_sheet_l53.json"
+  },
+  {
+    "key": "confirmation_dialog.ConfirmationDialog",
+    "kind": "dialog",
+    "source": "lib/widgets/confirmation_dialog.dart:102",
+    "widget": "ConfirmationDialog",
+    "spec": null
+  },
+  {
+    "key": "confirmation_dialog.ConfirmationDialog",
+    "kind": "dialog",
+    "source": "lib/widgets/confirmation_dialog.dart:84",
+    "widget": "ConfirmationDialog",
+    "spec": null
+  },
+  {
+    "key": "backing_sheet.open",
+    "kind": "sheet",
+    "source": "lib/widgets/metronome/backing_sheet.dart:33",
+    "widget": "open",
+    "spec": "design/figcraft/specs/drum_practice_panel.json"
+  },
+  {
+    "key": "bpm_input_overlay.showTempoInputSheet",
+    "kind": "sheet",
+    "source": "lib/widgets/metronome/bpm_input_overlay.dart:16",
+    "widget": "showTempoInputSheet",
+    "spec": null
+  },
+  {
+    "key": "drum_practice_panel.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/widgets/metronome/drum_practice_panel.dart:151",
+    "widget": "AlertDialog",
+    "spec": null
+  },
+  {
+    "key": "drum_practice_panel.SafeArea",
+    "kind": "sheet",
+    "source": "lib/widgets/metronome/drum_practice_panel.dart:271",
+    "widget": "SafeArea",
+    "spec": null
+  },
+  {
+    "key": "metronome_sheets._showSheet",
+    "kind": "sheet",
+    "source": "lib/widgets/metronome/metronome_sheets.dart:14",
+    "widget": "_showSheet",
+    "spec": "design/figcraft/specs/metronome_sheets_sheet_l14.json"
+  },
+  {
+    "key": "reliability_sheet.SafeArea",
+    "kind": "sheet",
+    "source": "lib/widgets/metronome/reliability_sheet.dart:16",
+    "widget": "SafeArea",
+    "spec": null
+  },
+  {
+    "key": "song_library_block._openLibrarySheet",
+    "kind": "sheet",
+    "source": "lib/widgets/metronome/song_library_block.dart:85",
+    "widget": "_openLibrarySheet",
+    "spec": "design/figcraft/specs/song_library_block_sheet_l85.json"
+  },
+  {
+    "key": "arrangement_sheet.SafeArea",
+    "kind": "sheet",
+    "source": "lib/widgets/midi/arrangement_sheet.dart:129",
+    "widget": "SafeArea",
+    "spec": null
+  },
+  {
+    "key": "midi_import_flow.AlertDialog",
+    "kind": "dialog",
+    "source": "lib/widgets/midi/midi_import_flow.dart:37",
+    "widget": "AlertDialog",
+    "spec": "design/figcraft/specs/midi_import_flow_import_midi.json"
+  },
+  {
+    "key": "midi_song_panel.SafeArea",
+    "kind": "sheet",
+    "source": "lib/widgets/midi/midi_song_panel.dart:49",
+    "widget": "SafeArea",
+    "spec": null
+  },
+  {
+    "key": "launchpad_view.NoteEditorSheet",
+    "kind": "sheet",
+    "source": "lib/widgets/practice/launchpad_view.dart:316",
+    "widget": "NoteEditorSheet",
+    "spec": null
+  },
+  {
+    "key": "launchpad_view.ArrangementSheet",
+    "kind": "sheet",
+    "source": "lib/widgets/practice/launchpad_view.dart:519",
+    "widget": "ArrangementSheet",
+    "spec": null
+  },
+  {
+    "key": "role_picker_widget.showRolePicker",
+    "kind": "picker",
+    "source": "lib/widgets/role_picker_widget.dart:22",
+    "widget": "showRolePicker",
+    "spec": null
+  },
+  {
+    "key": "role_picker_widget.RolePickerDialog",
+    "kind": "dialog",
+    "source": "lib/widgets/role_picker_widget.dart:27",
+    "widget": "RolePickerDialog",
+    "spec": null
+  },
+  {
+    "key": "share_sheet.SafeArea",
+    "kind": "sheet",
+    "source": "lib/widgets/share_sheet.dart:14",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/share_sheet_copy_to_clipboard.json"
+  },
+  {
+    "key": "support_sheet.SafeArea",
+    "kind": "sheet",
+    "source": "lib/widgets/support_sheet.dart:13",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/support_sheet_telegram.json"
+  },
+  {
+    "key": "tag_input_dialog.Padding",
+    "kind": "sheet",
+    "source": "lib/widgets/tag_input_dialog.dart:26",
+    "widget": "Padding",
+    "spec": null
+  },
+  {
+    "key": "transport_bar.TunerSettingsSheet",
+    "kind": "sheet",
+    "source": "lib/widgets/tuner/transport_bar.dart:69",
+    "widget": "TunerSettingsSheet",
+    "spec": null
+  },
+  {
+    "key": "setlist_card_actions.set",
+    "kind": "picker",
+    "source": "lib/widgets/unified_item/setlist_card_actions.dart:60",
+    "widget": "set",
+    "spec": null
+  },
+  {
+    "key": "setlist_card_actions.SafeArea",
+    "kind": "sheet",
+    "source": "lib/widgets/unified_item/setlist_card_actions.dart:65",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/setlist_card_actions_quick_action.json"
+  },
+  {
+    "key": "song_card_actions._runQuickAction",
+    "kind": "picker",
+    "source": "lib/widgets/unified_item/song_card_actions.dart:202",
+    "widget": "_runQuickAction",
+    "spec": null
+  },
+  {
+    "key": "song_card_actions.SafeArea",
+    "kind": "sheet",
+    "source": "lib/widgets/unified_item/song_card_actions.dart:209",
+    "widget": "SafeArea",
+    "spec": "design/figcraft/specs/song_card_actions_sheet_l209.json"
+  },
+  {
+    "key": "song_card_actions.set",
+    "kind": "picker",
+    "source": "lib/widgets/unified_item/song_card_actions.dart:61",
+    "widget": "set",
+    "spec": null
+  },
+  {
+    "key": "song_card_actions.SafeArea",
+    "kind": "sheet",
+    "source": "lib/widgets/unified_item/song_card_actions.dart:63",
+    "widget": "SafeArea",
+    "spec": null
+  }
+]
