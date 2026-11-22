@@ -1,0 +1,29 @@
+#!/bin/bash
+# Pre-commit hook to prevent committing secrets.
+echo "🔒 Running security checks..."
+
+STAGED_ADDED_MODIFIED=$(git diff --cached --name-only --diff-filter=AM)
+SECRET_FILES=$(echo "$STAGED_ADDED_MODIFIED" | grep -E "(env\.json$|\.env$|google-services\.json$|GoogleService-Info\.plist$)" | grep -v "\.example$" | grep -v "\.template$" || true)
+if [ -n "$SECRET_FILES" ]; then
+  echo "❌ ERROR: Attempting to commit secret files!"
+  echo "$SECRET_FILES"
+  exit 1
+fi
+
+FIREBASE_KEY=$(git diff --cached | grep -E "AIzaSy[0-9A-Za-z_-]{35}" || true)
+if [ -n "$FIREBASE_KEY" ]; then
+  echo "❌ ERROR: Firebase API key detected in staged changes!"
+  exit 1
+fi
+
+SPOTIFY_SECRET=$(git diff --cached | grep -E "SPOTIFY_CLIENT_SECRET.*[a-zA-Z0-9]{32}" || true)
+if [ -n "$SPOTIFY_SECRET" ]; then
+  echo "❌ ERROR: Spotify client secret detected in staged changes!"
+  exit 1
+fi
+
+if git diff --cached --name-only | grep -Eq '^(lib/|design/|test/)'; then
+  make design-guard
+fi
+
+echo "✅ Security checks passed"

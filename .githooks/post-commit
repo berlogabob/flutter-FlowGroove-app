@@ -1,0 +1,5 @@
+#!/bin/bash
+hook=".git/hooks/post-commit"
+if [ -x "$hook" ]; then
+  "$hook" "$@"
+fi

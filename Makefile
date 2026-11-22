@@ -44,10 +44,14 @@ stable-layout-check:
 design-metrics:
 	python3 design/metrics.py --append
 
-design-guard:
+setup:
+	git config core.hooksPath .githooks
+
+design-guard: stable-layout-check
 	python3 -m unittest design/test_gate_guard.py design/test_diff_lint.py
 	python3 design/gate_guard.py
 	python3 design/diff_lint.py
+	python3 design/ratchet.py
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)

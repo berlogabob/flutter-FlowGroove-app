@@ -23,7 +23,7 @@ def verify(task):
     # analyzer: fail only on error-level issues (baseline has 0 errors, ~238 infos)
     v = task["verify"].replace("dart analyze", "dartan")
     pre = PRE + "dartan(){ ! dart analyze \"$@\" 2>&1 | rg -q '^\\s*error -'; }; "
-    rc, out = sh(pre + v, timeout=1500)
+    rc, out = sh(pre + v + " && make design-guard", timeout=1500)
     return rc == 0, out[-2500:]
 
 def run_exec(ex, task):
@@ -56,7 +56,7 @@ def diffstat():
     return sh("git diff --shortstat HEAD")[1].strip()
 
 def rollback():
-    sh("git checkout -- . && git clean -fdq")
+    sh("git reset -q && git checkout -- . && git clean -fdq")
 
 def main():
     import fcntl
@@ -93,7 +93,10 @@ def main():
             rec = dict(id=t["id"], finding=t["finding"], executor=ex, attempt=n, secs=round(time.time() - t0),
                        exec_rc=rc, verdict="pass" if ok else "fail", diff=stat, verify_tail=vout if not ok else "")
             if ok and dirty:
-                sh(f'git add -A && git commit -qm "{PFX}: {t["id"]} {t["title"]} [{t["finding"]}] via {ex}"')
+                commit_rc, commit_out = sh(f'git add -A && git commit -qm "{PFX}: {t["id"]} {t["title"]} [{t["finding"]}] via {ex}"')
+                if commit_rc != 0:
+                    ok = False
+                    vout = "COMMIT FAILED: " + commit_out[-1500:]
             if ok: done.add(t["id"])
             else:
                 rollback()

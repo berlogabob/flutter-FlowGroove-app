@@ -1,0 +1,11 @@
+#!/bin/bash
+set -euo pipefail
+
+message_file="$1"
+design_diff=$(git diff --cached --no-ext-diff --unified=0 -- \
+  'design/figcraft/specs/' 'design/tokens/tokens.json' 'design/parity_lock.txt')
+if printf '%s\n' "$design_diff" | grep -qE '^-[^-]' && \
+   ! grep -Eq '^Design-Approved: .+' "$message_file"; then
+  echo "design change needs Design-Approved" >&2
+  exit 1
+fi

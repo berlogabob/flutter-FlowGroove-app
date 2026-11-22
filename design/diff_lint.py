@@ -2,6 +2,7 @@
 
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 _RAW_PATTERNS = (
@@ -50,14 +51,30 @@ def bad_lines(diff: str) -> list[str]:
     return hits
 
 
-def main() -> int:
-    repo = Path(__file__).resolve().parent.parent
-    if subprocess.run(["git", "rev-parse", "--verify", "HEAD~1"], cwd=repo, capture_output=True).returncode == 0 and __import__("os").environ.get("CI"):
-        command = ["git", "diff", "--no-ext-diff", "--unified=0", "HEAD~1..HEAD", "--", "lib/"]
+def main(argv=None, repo=None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    repo = Path(repo or Path(__file__).resolve().parent.parent)
+    if argv:
+        if len(argv) != 2 or argv[0] != "--base":
+            raise SystemExit("usage: diff_lint.py [--base <ref>]")
+        command = ["git", "diff", "--no-ext-diff", "--unified=0", f"{argv[1]}...HEAD", "--", "lib/"]
     else:
-        command = ["git", "diff", "--cached", "--no-ext-diff", "--unified=0", "--", "lib/"]
-    result = subprocess.run(command, cwd=repo, text=True, capture_output=True, check=True)
-    messages = bad_lines(result.stdout)
+        has_head = subprocess.run(["git", "rev-parse", "--verify", "HEAD"], cwd=repo, capture_output=True).returncode == 0
+        command = ["git", "diff", "HEAD", "--no-ext-diff", "--unified=0", "--", "lib/"] if has_head else None
+    if command is None:
+        diff = ""
+    else:
+        result = subprocess.run(command, cwd=repo, text=True, capture_output=True, check=True)
+        diff = result.stdout
+    if not argv:
+        untracked = subprocess.run(
+            ["git", "ls-files", "--others", "--exclude-standard", "--", "lib/"],
+            cwd=repo, text=True, capture_output=True, check=True,
+        ).stdout.splitlines()
+        for path in untracked:
+            content = (repo / path).read_text(errors="replace").splitlines()
+            diff += f"\n+++ b/{path}\n@@ -0,0 +1,{len(content)} @@\n" + "".join(f"+{line}\n" for line in content)
+    messages = bad_lines(diff)
     for message in messages:
         print(message)
     return 1 if messages else 0
