@@ -416,4 +416,21 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'profile_delete_account': Opener(
+    (context, _, _) => showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        icon: const Icon(Icons.delete_forever),
+        title: const Text('Delete account'),
+        content: const Text(
+          'This permanently deletes your account and all your data — your '
+          'songs, setlists, and band memberships. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () {}, child: const Text('Cancel')),
+          TextButton(onPressed: () {}, child: const Text('Delete')),
+        ],
+      ),
+    ),
+  ),
 };
