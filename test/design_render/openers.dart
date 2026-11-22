@@ -197,4 +197,35 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'home_sheet_l112': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            ListTile(
+              title: const Text('Rehearsals — choose a band'),
+              subtitle: const Text(
+                'Rehearsals are per band — choose one to see its schedule.',
+              ),
+            ),
+            const Divider(),
+            for (final bandName in [
+              'The Groove Collective',
+              'Neon Drifters',
+              'Basement Static',
+              'Cedar & Rue',
+            ])
+              ListTile(
+                leading: const Icon(Icons.event),
+                title: Text(bandName),
+                trailing: const Icon(Icons.arrow_forward),
+                onTap: () => Navigator.pop(sheetContext),
+              ),
+          ],
+        ),
+      ),
+    ),
+  ),
 };
