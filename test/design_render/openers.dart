@@ -122,4 +122,31 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'rehearsal_detail_suggest_a_different_time': Opener(
+    (context, _, _) => showDialog<String>(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController(text: 'Sunday 18:00?');
+        return AlertDialog(
+          title: const Text('Suggest a different time'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: 'e.g. Sunday 18:00?',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text('Send'),
+            ),
+          ],
+        );
+      },
+    ),
+  ),
 };
