@@ -30,3 +30,4 @@ profile
 metronome
 tuner
 recorder
+song_lab

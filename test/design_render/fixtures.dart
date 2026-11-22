@@ -134,6 +134,9 @@ List<Object> renderOverrides() {
     tunerProvider.overrideWith(_RenderTuner.new),
     labEntriesProvider((ideaInboxSongId, null))
         .overrideWith((ref) => Stream.value([])),
+    labEntriesProvider(('song1', null))
+        .overrideWith((ref) => Stream.value([])),
+    labTasksProvider(('song1', null)).overrideWith((ref) => Stream.value([])),
     practiceStatsProvider.overrideWith((ref) async => PracticeStats.empty),
     practiceSessionsProvider.overrideWith((ref) async => []),
     myHomeworkProvider.overrideWith((ref) async => []),
