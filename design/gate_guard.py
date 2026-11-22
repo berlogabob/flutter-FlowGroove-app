@@ -13,16 +13,22 @@ def _numbers(value, prefix=""):
         yield prefix, value
 
 
+def _code_only(content):
+    import re
+
+    return re.sub(r"//[^\n]*", "", re.sub(r"/\*.*?\*/", "", content, flags=re.S))
+
+
 def _expectations(content):
     import re
 
-    return len(re.findall(r"\b(?:expect|expectLater)\s*\(", content))
+    return len(re.findall(r"\b(?:expect|expectLater)\s*\(", _code_only(content)))
 
 
 def _skips(content):
     import re
 
-    return len(re.findall(r"\bskip\s*:", content))
+    return len(re.findall(r"\bskip\s*:|@Skip\s*\(|\bmarkTestSkipped\s*\(", _code_only(content)))
 
 
 def _code_of(test_path):
@@ -33,19 +39,23 @@ def violations(head: dict[str, str], work: dict[str, str]) -> list[str]:
     """Return messages for changes that weaken the supplied HEAD baseline."""
     messages = []
     ratchet = "design/ratchets.json"
-    if ratchet in head and ratchet in work:
+    if ratchet in head and ratchet not in work:
+        messages.append(f"{ratchet}: deleted")
+    elif ratchet in head:
         try:
             old = dict(_numbers(json.loads(head[ratchet])))
             new = dict(_numbers(json.loads(work[ratchet])))
-            for key, value in new.items():
-                if key in old and value > old[key]:
-                    messages.append(f"{ratchet}: {key} increased from {old[key]} to {value}")
+            for key, value in old.items():
+                if key not in new:
+                    messages.append(f"{ratchet}: {key} removed or no longer a number")
+                elif new[key] > value:
+                    messages.append(f"{ratchet}: {key} increased from {value} to {new[key]}")
         except (json.JSONDecodeError, TypeError):
             messages.append(f"{ratchet}: could not compare JSON values")
 
     parity = "design/parity_lock.txt"
-    if parity in head and parity in work:
-        removed = set(head[parity].splitlines()) - set(work[parity].splitlines())
+    if parity in head:  # a deleted lock file removes every locked line
+        removed = set(head[parity].splitlines()) - set(work.get(parity, "").splitlines())
         messages.extend(f"{parity}: removed locked line: {line}" for line in sorted(removed))
 
     allow = "design/stable_layout_allow.txt"
@@ -82,15 +92,19 @@ def main(argv=None, repo=None) -> int:
 
     base = argv[argv.index("--base") + 1] if "--base" in argv else None
     if base:
-        old = git("merge-base", base, "HEAD").stdout.strip()
-        changed = git("diff", "--name-only", f"{old}..HEAD").stdout.splitlines()
+        merge_base = git("merge-base", base, "HEAD")
+        old = merge_base.stdout.strip()
+        if merge_base.returncode != 0 or not old:
+            print(f"gate_guard: cannot resolve --base {base} (fetch-depth 0?): {merge_base.stderr.strip()}")
+            return 2
+        changed = git("diff", "--name-only", "--no-renames", f"{old}..HEAD").stdout.splitlines()
 
         def read_work(path):
             result = git("show", f"HEAD:{path}")
             return result.stdout if result.returncode == 0 else None
     else:
         old = "HEAD"
-        changed = git("diff", "--name-only", "HEAD").stdout.splitlines()
+        changed = git("diff", "--name-only", "--no-renames", "HEAD").stdout.splitlines()
 
         def read_work(path):
             file_path = repo / path
@@ -110,7 +124,9 @@ def main(argv=None, repo=None) -> int:
     messages = violations(head, work)
     for message in messages:
         print(message)
-    if messages and base and "Design-Approved:" in git("log", "--format=%B", f"{old}..HEAD").stdout:
+    import re
+
+    if messages and base and re.search(r"^Design-Approved: .+", git("log", "--format=%B", f"{old}..HEAD").stdout, re.M):
         print("Design-Approved in the pushed commits: not blocking")
         return 0
     return 1 if messages else 0
