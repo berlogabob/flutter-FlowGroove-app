@@ -13,6 +13,7 @@ import 'package:flowgroove/providers/theme_mode_provider.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:flowgroove/services/band_function_service.dart';
+import 'package:flowgroove/services/idea_recorder.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -131,6 +132,8 @@ List<Object> renderOverrides() {
         .overrideWith((ref) => Stream.value({})),
     metronomeProvider.overrideWith(_RenderMetronome.new),
     tunerProvider.overrideWith(_RenderTuner.new),
+    labEntriesProvider((ideaInboxSongId, null))
+        .overrideWith((ref) => Stream.value([])),
     practiceStatsProvider.overrideWith((ref) async => PracticeStats.empty),
     practiceSessionsProvider.overrideWith((ref) async => []),
     myHomeworkProvider.overrideWith((ref) async => []),

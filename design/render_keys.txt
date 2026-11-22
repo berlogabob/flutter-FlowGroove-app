@@ -29,3 +29,4 @@ rehearsal_detail
 profile
 metronome
 tuner
+recorder
