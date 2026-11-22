@@ -1,6 +1,9 @@
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
+import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
 import 'package:flowgroove/screens/practice_regions/slice_edit_sheet.dart';
+import 'package:flowgroove/screens/practice_regions/song_map/song_map_letters.dart';
+import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
@@ -367,6 +370,20 @@ final kOpeners = <String, Opener>{
       i: 0,
       name: (region) => region.name,
       preciseTime: (ms) => '00:${(ms ~/ 1000).toString().padLeft(2, '0')}.000',
+    ),
+  ),
+  'song_map_part': Opener(
+    (context, _, _) => showSectionNameSheet(
+      context,
+      initialName: 'Bridge',
+      groups: const {
+        'Intro': SongMapLetter('A', MonoPulseColors.section1),
+        'Part B': SongMapLetter('B', MonoPulseColors.section5),
+        'Chorus': SongMapLetter('C', MonoPulseColors.section8),
+        'Part D': SongMapLetter('D', MonoPulseColors.section3),
+        'Part E': SongMapLetter('E', MonoPulseColors.section11),
+        'Bridge': SongMapLetter('F', MonoPulseColors.section7),
+      },
     ),
   ),
 };

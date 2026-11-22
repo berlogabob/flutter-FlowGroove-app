@@ -51,3 +51,5 @@ grid_editor_dialog_tempo_grid
 notes_panel_note_at_n
 
 slice_edit_sheet_start
+
+song_map_part
