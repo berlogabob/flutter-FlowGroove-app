@@ -25,3 +25,4 @@ setlist_view
 canonical_browse
 create_setlist
 join_welcome
+rehearsal_detail
