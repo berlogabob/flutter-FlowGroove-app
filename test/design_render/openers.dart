@@ -149,4 +149,26 @@ final kOpeners = <String, Opener>{
       },
     ),
   ),
+  'the_band_edit_band_name': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Band Name'),
+        content: TextField(
+          controller: TextEditingController(text: 'FlowGroove'),
+          decoration: InputDecoration(
+            labelText: 'Band Name',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(onPressed: () {}, child: const Text('Save')),
+        ],
+      ),
+    ),
+  ),
 };

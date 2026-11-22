@@ -38,3 +38,4 @@ song_form_provider_similar_song_exists
 create_band_discard_changes
 create_band_band_created
 rehearsal_detail_suggest_a_different_time
+the_band_edit_band_name
