@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import '../helpers/routed_test_harness.dart';
 import 'fixtures.dart';
 import 'fonts.dart';
+import 'matrix.dart';
 import 'png.dart';
 import 'tree_dump.dart';
 
@@ -63,39 +64,71 @@ void main() {
       .readAsLinesSync()
       .map((line) => line.trim())
       .where((line) => line.isNotEmpty && !line.startsWith('#'));
+  final matrix = Platform.environment['RENDER_MATRIX'] == '1';
+  final results = <String, String>{};
   for (final key in keys) {
-    testWidgets(key, (tester) async {
-      final spec = jsonDecode(
-        File('design/figcraft/specs/$key.json').readAsStringSync(),
-      ) as Map<String, dynamic>;
-      final mode = spec['mode'] as String? ?? 'dark';
-      tester.view
-        ..devicePixelRatio = 3
-        ..physicalSize = const Size(412 * 3, 915 * 3);
-      addTearDown(tester.view.reset);
-      const boundaryKey = Key('render-boundary');
-      await pumpRoutedTestApp(
-        tester,
-        initialLocation: fillRoute(spec['route'] as String),
-        overrides: renderOverrides(),
-        themeMode: mode == 'light' ? ThemeMode.light : ThemeMode.dark,
-        productionRoutes: true,
-        boundaryKey: boundaryKey,
-      );
-      await pumpRender(tester, key);
-      final output = Platform.environment['RENDER_OUT'];
-      if (output != null) {
-        final directory = Directory(output)..createSync(recursive: true);
-        File('${directory.path}/$key@$mode-412-1.00.json')
-            .writeAsStringSync(jsonEncode(dumpTree(tester)));
-        if (Platform.environment['RENDER_PNG'] == '1') {
-          await writePng(
-            tester,
-            boundaryKey,
-            '${directory.path}/$key@$mode-412-1.00.png',
-          );
+    final spec = jsonDecode(
+      File('design/figcraft/specs/$key.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final mode = spec['mode'] as String? ?? 'dark';
+    for (final theme in matrix ? ['light', 'dark'] : [mode]) {
+      for (final width
+          in matrix
+              ? kMatrixWidths.keys.map((width) => width.toDouble())
+              : [412.0]) {
+        for (final scale in matrix ? kTextScales : [1.0]) {
+          final cell = cellName(key, theme, width, scale);
+          testWidgets(cell, (tester) async {
+            tester.view
+              ..devicePixelRatio = 3
+              ..physicalSize = Size(
+                width * 3,
+                kMatrixWidths[width.toInt()]! * 3,
+              );
+            addTearDown(tester.view.reset);
+            const boundaryKey = Key('render-boundary');
+            Future<void> render() async {
+              await pumpRoutedTestApp(
+                tester,
+                initialLocation: fillRoute(spec['route'] as String),
+                overrides: renderOverrides(),
+                themeMode: theme == 'light' ? ThemeMode.light : ThemeMode.dark,
+                textScale: scale,
+                productionRoutes: true,
+                boundaryKey: boundaryKey,
+              );
+              await pumpRender(tester, key);
+              final output = Platform.environment['RENDER_OUT'];
+              if (output != null) {
+                final directory = Directory(output)
+                  ..createSync(recursive: true);
+                File('${directory.path}/$cell.json')
+                    .writeAsStringSync(jsonEncode(dumpTree(tester)));
+                if (Platform.environment['RENDER_PNG'] == '1') {
+                  await writePng(
+                    tester,
+                    boundaryKey,
+                    '${directory.path}/$cell.png',
+                  );
+                }
+              }
+            }
+
+            if (matrix) {
+              results[cell] = await recordCell(tester, render);
+              final output = Platform.environment['RENDER_OUT'];
+              if (output != null) {
+                final directory = Directory(output)
+                  ..createSync(recursive: true);
+                File('${directory.path}/matrix.json')
+                    .writeAsStringSync(jsonEncode(results));
+              }
+            } else {
+              await render();
+            }
+          });
         }
       }
-    });
+    }
   }
 }
