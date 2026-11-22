@@ -13,6 +13,7 @@ import 'song_map_view.dart';
 class SongMapPads extends StatefulWidget {
   const SongMapPads({
     required this.view,
+    this.stackHeader = false,
     this.showChop = false,
     this.chopLit = false,
     this.onChop,
@@ -29,19 +30,23 @@ class SongMapPads extends StatefulWidget {
   });
 
   static const padHeight = 64.0;
-  static double heightForRows(BuildContext context, int rows, double width) =>
+  static double heightForRows(
+    int rows,
+    double width, {
+    required bool stackHeader,
+  }) =>
       MonoPulseSpacing.massive +
-      (_compactHeader(context, width) ? 0 : MonoPulseSpacing.xxl) +
-      (width < 300 ? MonoPulseSpacing.massive + MonoPulseSpacing.xs : 0) +
+      (_keysFitOnNameRow(width) && !stackHeader ? 0 : MonoPulseSpacing.xxl) +
+      (width < 280 ? MonoPulseSpacing.massive + MonoPulseSpacing.xs : 0) +
       rows * padHeight +
       (rows + 1) * MonoPulseSpacing.sm;
 
   static int columnsForWidth(double width) => width < 600 ? 2 : 4;
   static const _backWidth = 68.0;
-  static bool _compactHeader(BuildContext context, double width) =>
-      width >= 340 && MediaQuery.sizeOf(context).height < 640;
+  static bool _keysFitOnNameRow(double width) => width >= 340;
 
   final SongMapView view;
+  final bool stackHeader;
   final bool showChop;
   final bool chopLit;
   final ValueChanged<bool>? onChop;
@@ -81,11 +86,9 @@ class _SongMapPadsState extends State<SongMapPads> {
   }) {
     final palette = context.mp;
     final lit = selected == true;
-    final width = switch (label) {
-      'Shift' => 56.0,
-      'Chop' => 80.0,
-      _ => SongMapPads._backWidth,
-    };
+    final width = label == 'Shift' || label == 'Chop'
+        ? 56.0
+        : SongMapPads._backWidth;
     return Semantics(
       selected: selected,
       child: OutlinedButton(
@@ -109,22 +112,7 @@ class _SongMapPadsState extends State<SongMapPads> {
           textStyle: MonoPulseTypography.labelMedium,
         ),
         onPressed: onPressed,
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: MonoPulseSpacing.xs,
-            children: [
-              if (label == 'Chop')
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: lit ? const Icon(Icons.content_cut, size: 16) : null,
-                ),
-              Text(label),
-            ],
-          ),
-        ),
+        child: FittedBox(fit: BoxFit.scaleDown, child: Text(label)),
       ),
     );
   }
@@ -197,15 +185,27 @@ class _SongMapPadsState extends State<SongMapPads> {
                       selected: _rangeMode,
                     ),
                   ];
-                  if (SongMapPads._compactHeader(
-                    context,
-                    constraints.maxWidth,
-                  )) {
-                    return Row(
+                  if (SongMapPads._keysFitOnNameRow(constraints.maxWidth)) {
+                    final nameAboveKeys = widget.stackHeader && section != null;
+                    final row = Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       spacing: MonoPulseSpacing.xs,
                       children: [
-                        Expanded(child: name),
+                        Expanded(
+                          child: nameAboveKeys ? const SizedBox.shrink() : name,
+                        ),
                         ...keys,
+                      ],
+                    );
+                    if (!widget.stackHeader) return row;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: MonoPulseSpacing.xxl,
+                          child: nameAboveKeys ? name : null,
+                        ),
+                        row,
                       ],
                     );
                   }

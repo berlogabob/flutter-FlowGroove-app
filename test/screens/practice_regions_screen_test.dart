@@ -25,6 +25,7 @@ import 'package:flowgroove/services/audio/backing_engine.dart';
 import 'package:flowgroove/services/audio/song_peaks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:just_audio/just_audio.dart' show AudioPlayer;
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,6 +51,8 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   double speed = 1;
   String? loadedUri;
   Future<void>? loadGate;
+  Future<void>? pauseGate;
+  bool playing = false;
   final calls = <String>[];
 
   static const duration = Duration(seconds: 20);
@@ -97,6 +100,7 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   Future<PlayResponse> play(PlayRequest request) async {
     playCalls++;
     calls.add('play');
+    playing = true;
     return PlayResponse();
   }
 
@@ -104,6 +108,8 @@ class _FakeAudioPlayer extends AudioPlayerPlatform {
   Future<PauseResponse> pause(PauseRequest request) async {
     pauseCalls++;
     calls.add('pause');
+    if (pauseGate case final gate?) await gate;
+    playing = false;
     return PauseResponse();
   }
 
@@ -294,6 +300,16 @@ class PracticeRegionsScreenFixture {
     return release;
   }
 
+  // ignore: unreachable_from_main, used by play_resume_test.dart.
+  bool get platformPlaying => _audio.players.values.single.playing;
+
+  // ignore: unreachable_from_main, used by play_resume_test.dart.
+  Completer<void> holdNextPause() {
+    final release = Completer<void>();
+    _audio.players.values.single.pauseGate = release.future;
+    return release;
+  }
+
   // ignore: unreachable_from_main, used by stability_test.dart.
   void startQueuedBacking() => _engine.playing(_engine.commands.last);
 
@@ -331,9 +347,10 @@ class PracticeRegionsScreenFixture {
     bool demo = false,
     Uint8List? bytes,
     ThemeData? theme,
+    AudioPlayer? player,
     bool pushRoute = false,
   }) async {
-    final screen = PracticeRegionsScreen(entry: entry);
+    final screen = PracticeRegionsScreen(entry: entry, player: player);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

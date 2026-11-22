@@ -149,7 +149,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   (int, int)? _selection;
   int _clipStart = 0;
   int? _clipEnd;
-  bool _changingClip = false;
+  // Keep the pad and lane on the outgoing clip during the source swap.
+  bool? _playingBeforeClipChange;
+  bool get _changingClip => _playingBeforeClipChange != null;
+  set _changingClip(bool changing) {
+    _playingBeforeClipChange = changing ? _player.playing : null;
+  }
+
   // The cached song file, and whether the player is on a loop WAV cut from it.
   String? _songPath;
   bool _onLoopWav = false;
@@ -356,7 +362,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         _player.playerStateStream.listen((state) {
           if (!mounted) return;
           if (!_sync) _clock(state.playing);
-          if (!_changingClip) setState(() => _playing = state.playing);
+          if (_playing != state.playing) {
+            setState(() => _playing = state.playing);
+          }
         }),
       ]);
       await _applyLoop();
@@ -657,8 +665,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         showAppSnackBar(context, "Couldn't set loop: $e", error: true);
       }
     } finally {
-      _changingClip = false;
-      if (mounted) setState(() => _playing = _player.playing);
+      if (mounted) setState(() => _changingClip = false);
     }
   });
 
@@ -862,30 +869,38 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     return null;
   }
 
-  Future<void> _togglePlay() async {
+  Future<void> _setPlaying(bool playing) async {
     if (_sync) {
-      if (ref.read(metronomeProvider).isPlaying) {
-        _metronome.stop();
-      } else {
+      if (playing) {
         _syncLaunch();
+      } else {
+        _metronome.stop();
       }
       return;
     }
-    final wasPlaying = _playing;
-    await _loopUpdate;
-    if (!mounted) return;
-    if (wasPlaying) {
-      await _player.pause();
-    } else {
-      if (_loopEnabled != null && _player.loopMode != _audioLoopMode) {
-        if (_pendingLoop == null) await _player.setLoopMode(_audioLoopMode);
+    // A resume must reach the platform after the previous pause and reload.
+    await (_loopUpdate = _loopUpdate.then((_) async {
+      if (!mounted || _sync || _player.playing == playing) return;
+      try {
+        if (!playing) {
+          await _player.pause();
+          return;
+        }
+        if (_loopEnabled != null &&
+            _pendingLoop == null &&
+            _player.loopMode != _audioLoopMode) {
+          await _player.setLoopMode(_audioLoopMode);
+        }
         if (!mounted) return;
+        if (_player.processingState == ProcessingState.completed) {
+          await _player.seek(Duration.zero);
+        }
+        if (mounted) unawaited(_player.play());
+      } catch (e) {
+        if (!mounted) return;
+        showAppSnackBar(context, "Couldn't change playback: $e", error: true);
       }
-      if (_player.processingState == ProcessingState.completed) {
-        await _player.seek(Duration.zero);
-      }
-      unawaited(_player.play());
-    }
+    }));
   }
 
   Future<void> _addMarker() async {
@@ -1073,8 +1088,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       } catch (_) {
         // Fine-tuning still works without the preview.
       } finally {
-        _changingClip = false;
-        if (mounted) setState(() => _playing = _player.playing);
+        if (mounted) setState(() => _changingClip = false);
       }
     }));
   }
@@ -1572,6 +1586,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     required bool editing,
     required int position,
     required bool playing,
+    required bool stackPadHeader,
     required Widget? banner,
     required SongMapTempoBanner? tempoBanner,
     Widget? emptyContent,
@@ -1749,6 +1764,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         final pads = SongMapPads(
           key: ValueKey((view, view.sectionIndex, view.partIndex)),
           view: view,
+          stackHeader: stackPadHeader,
           showChop: _canEdit,
           chopLit: _songMapCutMs != null,
           onChop: canChop
@@ -1862,7 +1878,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                       ? 2
                       : 1;
                   final fullHeight =
-                      _mapHeightForPads(width, rows) +
+                      _mapHeightForPads(
+                        width,
+                        rows,
+                        stackHeader: stackPadHeader,
+                      ) +
                       SongMapTimeline.zoomHeight +
                       (view.level == SongMapZoom.part
                           ? MonoPulseSpacing.xxxl
@@ -2198,6 +2218,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       if (_sync) _clock(playing);
     });
     final playing = _sync ? syncPlaying : _playing;
+    final looping = _loopEnabled ?? (_sync || selection != null);
     final positionMs = _sync && grid != null
         ? _syncGrid.msOfBar(syncBar)
         : _positionMs;
@@ -2221,10 +2242,14 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final canPlay = _loaded && _durationMs > 0 && !_busy && !_preparingSync;
     final canClick = !_stretched && canSyncToClick(grid) && canPlay;
     final speedPercent = (_speed * 100).round();
+    // Keep room for the full parts bank name with the tempo prompt on tall screens.
+    final stackPadHeader =
+        tempoBanner != null && MediaQuery.sizeOf(context).height >= 640;
     final mapContent = _pads(
       editing: editing,
       position: positionMs,
-      playing: playing,
+      playing: _sync ? syncPlaying : _playingBeforeClipChange ?? playing,
+      stackPadHeader: stackPadHeader,
       banner: analyzeBanner,
       tempoBanner: tempoBanner,
       emptyContent: showPads
@@ -2260,15 +2285,15 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             ? 'Play'
             : 'Play $speedPercent%',
         speedPercent: speedPercent,
-        loop: _loopEnabled ?? (_sync || selection != null),
+        loop: looping,
         countIn: _sync
             ? ref.watch(metronomeProvider.select((m) => m.countInBars)) > 0
             : _preRoll > 0,
         click: _sync && !_withDrums,
         clickAndDrums: _sync && _withDrums,
         stretched: _stretched,
-        onPlay: canPlay ? _togglePlay : null,
-        onStop: canPlay ? _togglePlay : null,
+        onPlay: canPlay ? () => _setPlaying(true) : null,
+        onStop: canPlay ? () => _setPlaying(false) : null,
         onPlayLongPress: _playbackOptions,
         onSpeedTap: _busy ? null : _playbackOptions,
         onLoopChanged: canPlay ? _setLoopEnabled : null,
@@ -2475,7 +2500,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                         ? 2
                         : 1;
                     final padBudget = showPads
-                        ? _mapHeightForPads(width, rows) +
+                        ? _mapHeightForPads(
+                                width,
+                                rows,
+                                stackHeader: stackPadHeader,
+                              ) +
                               (analyzeBanner == null ? 0 : 120) +
                               (tempoBanner == null
                                   ? 0
@@ -2580,7 +2609,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                           color: context.mp.textSecondary,
                         ),
                       ),
-                    if (selection != null)
+                    if (selection != null && (looping || _pendingLoop != null))
                       Expanded(
                         child: Text(
                           '${_pendingLoop == null ? 'Looping' : 'Next:'} ${_name(regions[selection.$1])}'
@@ -2614,10 +2643,14 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   double get _zoomBudget => SongMapTimeline.zoomHeight + MonoPulseSpacing.xxxl;
 
-  double _mapHeightForPads(double width, int rows) =>
+  double _mapHeightForPads(
+    double width,
+    int rows, {
+    required bool stackHeader,
+  }) =>
       SongMapOverview.height +
       (_entry.peaks.isEmpty ? 84 : 0) +
-      SongMapPads.heightForRows(context, rows, width);
+      SongMapPads.heightForRows(rows, width, stackHeader: stackHeader);
 
   Widget _editableTitle() {
     const key = ValueKey('recording-title');
