@@ -418,10 +418,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (view == null) return null;
     final children = view.children();
     final (start, end) = selection;
-    String label(int index) {
-      if (children[index].name.trim().isNotEmpty) return children[index].name;
-      return 'Section ${view.regionRange(index).$1 + 1}';
-    }
+    // The name the pad shows, so the status and the pad always agree.
+    String label(int index) => songMapRegionName(children[index], index);
 
     var firstPad = -1;
     var lastPad = -1;

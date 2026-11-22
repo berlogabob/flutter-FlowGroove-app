@@ -85,4 +85,35 @@ void main() {
     expect(find.text('Looping Part 1 1'), findsOneWidget);
     expect(find.textContaining('→'), findsNothing);
   });
+
+  testWidgets('loop status uses the pad name of an unnamed section', (
+    tester,
+  ) async {
+    // P30: pad B read 'Region B' while the status said 'Looping Section 2'.
+    tester.view
+      ..physicalSize = const Size(1080, 2340)
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final unnamed = PracticeRegionsScreenFixture.entry(
+      songId: 'saved-song',
+      grid: grid,
+      regions: [
+        for (var i = 0; i < 3; i++)
+          AudioRegion(
+            id: 'u$i',
+            name: '',
+            startMs: grid.msOfBar(1 + i * 4),
+            endMs: grid.msOfBar(5 + i * 4),
+          ),
+      ],
+    );
+    await fixture.pump(tester, unnamed);
+    expect(
+      find.descendant(of: pad('u1'), matching: find.text('Region B')),
+      findsOneWidget,
+    );
+    await press(tester, pad('u1'));
+    expect(find.text('Looping Region B'), findsOneWidget);
+    expect(find.textContaining('Section 2'), findsNothing);
+  });
 }
