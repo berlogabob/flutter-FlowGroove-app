@@ -325,4 +325,25 @@ final kOpeners = <String, Opener>{
       onRemoveGrid: () async {},
     ),
   ),
+  'notes_panel_note_at_n': Opener(
+    (context, _, _) => showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Note at 1:23'),
+        content: const TextField(
+          decoration: InputDecoration(hintText: 'e.g. good chorus entry'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    ),
+  ),
 };
