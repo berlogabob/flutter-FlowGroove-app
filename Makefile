@@ -27,15 +27,18 @@ release-check:
 
 .PHONY: help deploy-functions test-fast test-firebase-emulator deploy-rules deploy-stable deploy-hugo deploy-app-hosting build-web-hosting ftp-upload-hugo ftp-upload-app-redirect backup-production-hugo deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
-.PHONY: design design-check
+.PHONY: design design-check stable-layout-check
 design:
 	python3 design/figcraft/build.py all
 
-design-check:
+design-check: stable-layout-check
 	python3 design/figcraft/build.py check
 	python3 design/figcraft/build.py dryrun
 	python3 design/figcraft/build.py verify-components
 	python3 design/figcraft/contrast.py
+
+stable-layout-check:
+	python3 scripts/check_stable_layout.py
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
@@ -99,7 +102,7 @@ help:
 # PRE-DEPLOYMENT VALIDATION
 # =============================================================================
 
-test-fast:
+test-fast: stable-layout-check
 	@flutter test --exclude-tags firebase-emulator
 
 test-firebase-emulator:

@@ -158,9 +158,7 @@ class _InstrumentTile extends StatelessWidget {
               color: isSelected
                   ? MonoPulseColors.charcoal
                   : context.mp.textHighEmphasis,
-              fontWeight: isSelected
-                  ? MonoPulseTypography.semibold
-                  : MonoPulseTypography.regular,
+              fontWeight: MonoPulseTypography.semibold,
             ),
           ),
           subtitle: Text(

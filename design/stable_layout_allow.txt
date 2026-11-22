@@ -1,0 +1,14 @@
+# Repo-relative path, pattern with condition as reported by the checker, reason
+lib/screens/practice_regions/song_map/song_map_timeline.dart, height [section == null], Section and part lanes are distinct layouts.
+lib/screens/practice_regions/song_map/song_map_timeline.dart, height [beats], The beat and time rulers are distinct layouts.
+lib/screens/practice_regions/song_map/song_map_timeline.dart, height [beats && tick % grid.beatsPerBar == 0], Bar lines and beat ticks have different fixed lengths inside the ruler.
+lib/screens/songs/components/drum_grid_editor.dart, fontWeight [step % 4 == 0], The printed step index sets the group accent independently of selection.
+lib/services/export/pdf_service.dart, fontSize [firstPage], The first printed page has a larger title and performer heading.
+lib/services/export/pdf_service.dart, height [firstPage], The first printed page has larger header spacers.
+lib/widgets/app_badge.dart, Border.all vs null [outlined], Outlined is a badge variant set by the caller.
+lib/widgets/dashboard_grid.dart, fontSize [breakpoint == ScreenBreakpoint.desktop], The title size follows the viewport breakpoint.
+lib/widgets/midi/drum_kit_view.dart, border width [offset == 0], The principal cell has a fixed emphasis based on its offset.
+lib/widgets/performance_sheet_view.dart, padding [first], The first group heading has no preceding gap.
+lib/widgets/practice/note_editor_sheet.dart, border width [step % 4 == 0], Every fourth column has a fixed group separator.
+lib/widgets/unified_item/unified_item_card.dart, padding [showCompact], Compact is a card layout set by the caller.
+lib/widgets/unified_item/unified_item_card.dart, height [showCompact], Compact is a card layout set by the caller.

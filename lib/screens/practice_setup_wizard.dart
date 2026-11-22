@@ -505,12 +505,14 @@ class _SetupWizardState extends State<_SetupWizard> {
             children: [
               for (var i = 0; i < 3; i++) ...[
                 if (i > 0) const Text(' · '),
-                if (i < _step)
-                  const Icon(
+                Opacity(
+                  opacity: i < _step ? 1 : 0,
+                  child: const Icon(
                     Icons.check,
                     size: 16,
                     color: MonoPulseColors.accentOrange,
                   ),
+                ),
                 Container(
                   color: i == _step ? MonoPulseColors.stone : null,
                   child: Text(
@@ -519,9 +521,7 @@ class _SetupWizardState extends State<_SetupWizard> {
                       color: i == _step
                           ? MonoPulseColors.charcoal
                           : context.mp.textSecondary,
-                      fontWeight: i == _step
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      fontWeight: MonoPulseTypography.bold,
                     ),
                   ),
                 ),

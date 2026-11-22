@@ -409,7 +409,7 @@ class _LibraryTabButton extends StatelessWidget {
                 color: selected
                     ? context.mp.borderStrong
                     : context.mp.borderSubtle,
-                width: selected ? 2 : 1,
+                width: MonoPulseBorder.bold,
               ),
             ),
           ),

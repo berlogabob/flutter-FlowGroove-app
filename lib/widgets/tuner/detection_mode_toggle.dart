@@ -101,9 +101,7 @@ class _ModeOption extends StatelessWidget {
                 color: isActive
                     ? MonoPulseColors.charcoal
                     : context.mp.textTertiary,
-                fontWeight: isActive
-                    ? MonoPulseTypography.semibold
-                    : MonoPulseTypography.regular,
+                fontWeight: MonoPulseTypography.semibold,
               ),
             ),
           ],

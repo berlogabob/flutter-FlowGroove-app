@@ -345,7 +345,7 @@ void main() {
       expect(activeText.style?.fontWeight, equals(FontWeight.w600));
     });
 
-    testWidgets('inactive mode text is normal weight (w400)', (tester) async {
+    testWidgets('inactive mode text is semibold (w600)', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ToolModeSwitcher<TestMode>(
@@ -365,7 +365,7 @@ void main() {
         orElse: () => const Text(''),
       );
 
-      expect(inactiveText.style?.fontWeight, equals(FontWeight.w400));
+      expect(inactiveText.style?.fontWeight, equals(FontWeight.w600));
     });
 
     testWidgets('uses MonoPulseTypography.labelLarge for text', (tester) async {

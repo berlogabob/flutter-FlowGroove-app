@@ -241,9 +241,7 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                               color: isSelected
                                   ? MonoPulseColors.charcoal
                                   : context.mp.textHighEmphasis,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
+                              fontWeight: MonoPulseTypography.semibold,
                             ),
                           ),
                         ],

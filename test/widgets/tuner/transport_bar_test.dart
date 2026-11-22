@@ -7,11 +7,49 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 class _Tuner extends TunerNotifier {
+  _Tuner({this.initialMode = TunerMode.listen});
+
+  final TunerMode initialMode;
+
   @override
-  TunerState build() => const TunerState();
+  TunerState build() => TunerState(mode: initialMode);
+
+  void setTransportState({bool playing = false, bool starting = false}) {
+    state = state.copyWith(isPlaying: playing, isStarting: starting);
+  }
 }
 
 void main() {
+  testWidgets('transport keeps the same slots while starting and playing', (
+    tester,
+  ) async {
+    final tuner = _Tuner(initialMode: TunerMode.generate);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [tunerProvider.overrideWith(() => tuner)],
+        child: const MaterialApp(home: Scaffold(body: TransportBar())),
+      ),
+    );
+    final action = find.byType(AnimatedContainer);
+    final calibration = find.text('A4 440');
+    final actionRect = tester.getRect(action);
+    final calibrationRect = tester.getRect(calibration);
+    expect(actionRect.width, 80);
+    expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+    tuner.setTransportState(starting: true);
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(tester.getRect(action), actionRect);
+    expect(tester.getRect(calibration), calibrationRect);
+
+    tuner.setTransportState(playing: true);
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.stop), findsOneWidget);
+    expect(tester.getRect(action), actionRect);
+    expect(tester.getRect(calibration), calibrationRect);
+  });
+
   for (final scale in [1.0, 1.3]) {
     testWidgets('calibration label fits at width 320 and text scale $scale', (
       tester,

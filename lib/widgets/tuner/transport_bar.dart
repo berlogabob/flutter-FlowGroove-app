@@ -119,46 +119,44 @@ class _MainActionButton extends StatelessWidget {
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        curve: MonoPulseAnimation.curveCustom,
-        // Oval shape: 80px wide, 64px tall
-        width: isActive ? 72 : 80,
-        height: 64,
-        decoration: BoxDecoration(
-          // Active (tap-to-stop) reads as "pressed in" via the darker shade,
-          // on top of the existing width/icon changes.
-          color: isActive
-              ? MonoPulseColors.accentOrangeDark
-              : MonoPulseColors.accentOrange,
-          borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            if (isStarting)
-              const SizedBox(
-                width: 30,
-                height: 30,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  color: MonoPulseColors.white,
-                ),
-              )
-            else
-              Icon(icon, color: MonoPulseColors.white, size: 44),
-            if (label != null)
-              Positioned(
-                bottom: -18,
-                child: Text(
-                  label,
-                  style: MonoPulseTypography.labelSmall.copyWith(
-                    color: context.mp.textSecondary,
+          duration: const Duration(milliseconds: 100),
+          curve: MonoPulseAnimation.curveCustom,
+          width: 80,
+          height: 64,
+          decoration: BoxDecoration(
+            // Keep the active feedback inside the fixed transport slot.
+            color: isActive
+                ? MonoPulseColors.accentOrangeDark
+                : MonoPulseColors.accentOrange,
+            borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (isStarting)
+                const SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: MonoPulseColors.white,
+                  ),
+                )
+              else
+                Icon(icon, color: MonoPulseColors.white, size: 44),
+              if (label != null)
+                Positioned(
+                  bottom: -18,
+                  child: Text(
+                    label,
+                    style: MonoPulseTypography.labelSmall.copyWith(
+                      color: context.mp.textSecondary,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

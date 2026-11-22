@@ -261,16 +261,8 @@ class _DialNotesPainter extends CustomPainter {
         ..text = TextSpan(
           text: notes[i],
           style: TextStyle(
-            fontSize: isCurrent
-                ? 16.0
-                : isInScale
-                ? 13.0
-                : 11.0,
-            fontWeight: isCurrent
-                ? MonoPulseTypography.bold
-                : isInScale
-                ? MonoPulseTypography.medium
-                : MonoPulseTypography.regular,
+            fontSize: 16,
+            fontWeight: MonoPulseTypography.bold,
             color: color,
             letterSpacing: 0.5,
           ),

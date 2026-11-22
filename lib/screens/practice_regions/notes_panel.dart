@@ -190,7 +190,7 @@ class _MarkerRow extends StatelessWidget {
           color: active
               ? MonoPulseColors.accentOrange
               : context.mp.textSecondary,
-          fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+          fontWeight: MonoPulseTypography.bold,
         ),
       ),
       title: Text(

@@ -129,7 +129,7 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
             color: selected
                 ? context.mp.borderStrong
                 : context.mp.borderDefault,
-            width: selected ? 2 : 1,
+            width: MonoPulseBorder.bold,
           ),
           borderRadius: BorderRadius.circular(8),
         ),

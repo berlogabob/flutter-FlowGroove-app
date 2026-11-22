@@ -429,7 +429,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
         : selected
         ? palette.textPrimary
         : palette.borderStrong;
-    final side = BorderSide(color: border, width: selected || playing ? 3 : 1);
+    final side = BorderSide(color: border, width: 3);
     return Positioned(
       left: left,
       width: right - left,
@@ -449,11 +449,7 @@ class _SongMapTimelineState extends State<SongMapTimeline> {
             : null,
         child: Container(
           key: ValueKey('song-map-${isPart ? 'part' : 'section'}-${region.id}'),
-          // BoxDecoration contributes the outline width to the content inset.
-          padding: EdgeInsets.symmetric(
-            horizontal: MonoPulseSpacing.xxs + 3 - side.width,
-            vertical: 3 - side.width,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxs),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: Color.alphaBlend(

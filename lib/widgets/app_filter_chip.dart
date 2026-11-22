@@ -50,9 +50,9 @@ class AppFilterChip extends StatelessWidget {
       pressElevation: selected ? 2 : 1,
       shadowColor: context.mp.borderStrong.withValues(alpha: 0.14),
       selectedShadowColor: context.mp.borderStrong.withValues(alpha: 0.22),
-      labelStyle: TextStyle(
+      labelStyle: const TextStyle(
         color: MonoPulseColors.charcoal,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+        fontWeight: MonoPulseTypography.semibold,
       ),
       // Unselected: neutral raised surface per chipTheme (readable, not the old
       // near-black `surface` / brown tint). F-012.
@@ -60,7 +60,6 @@ class AppFilterChip extends StatelessWidget {
       side: BorderSide(
         color: selected ? context.mp.borderStrong : context.mp.borderDefault,
       ),
-      // Show checkmark icon when selected
       showCheckmark: false,
       // Padding and shape
       padding: const EdgeInsets.symmetric(

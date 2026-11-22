@@ -810,18 +810,18 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
                     color: isSelected
                         ? MonoPulseColors.charcoal
                         : context.mp.textHighEmphasis,
-                    fontWeight: isSelected
-                        ? FontWeight.w600
-                        : FontWeight.normal,
+                    fontWeight: MonoPulseTypography.semibold,
                   ),
                 ),
               ),
-              if (isSelected)
-                const Icon(
+              Opacity(
+                opacity: isSelected ? 1 : 0,
+                child: const Icon(
                   Icons.check,
                   size: 18,
                   color: MonoPulseColors.charcoal,
                 ),
+              ),
             ],
           ),
         ),

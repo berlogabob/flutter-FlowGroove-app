@@ -143,7 +143,7 @@ class _ModePill extends StatelessWidget {
                     color: isActive
                         ? MonoPulseColors.charcoal
                         : context.mp.textSecondary,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: MonoPulseTypography.semibold,
                   ),
                 ),
               ),
