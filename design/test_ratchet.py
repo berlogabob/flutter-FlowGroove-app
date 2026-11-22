@@ -34,6 +34,17 @@ class RatchetTests(unittest.TestCase):
             self.assertEqual(check({"unspecced_screens": 1}, {"unspecced_screens": 0}),
                              ["unspecced_screens grew 0 -> 1"])
 
+    def test_spec_source_with_line_anchor_covers_its_screen(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            screens = root / "lib/screens"
+            specs = root / "design/figcraft/specs"
+            screens.mkdir(parents=True)
+            specs.mkdir(parents=True)
+            (screens / "sheet_screen.dart").write_text("class SheetScreen {}")
+            (specs / "sheet.json").write_text(json.dumps({"source": "lib/screens/sheet_screen.dart:122"}))
+            self.assertEqual(unspecced_screens(screens, specs), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -37,7 +37,7 @@ def unspecced_screens(screens_dir: Path, specs_dir: Path) -> int:
         spec = json.loads(path.read_text(encoding="utf-8"))
         source = spec.get("source")
         if isinstance(source, str):
-            sources.add(source)
+            sources.add(source.split(":", 1)[0])  # "path:line" anchors cover the file
     repo_root = screens_dir.parent.parent
     count = 0
     for path in screens_dir.rglob("*_screen.dart"):
