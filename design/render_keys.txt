@@ -50,3 +50,4 @@ performance_sheet_you_already_have_a_song_map
 songs_list_importing_songs
 song_export_dialog
 add_song_helper_search_on_web
+tuner_tone
