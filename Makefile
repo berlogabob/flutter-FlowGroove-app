@@ -154,6 +154,9 @@ deploy-test: check-env-test
 	@read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ] || (echo "Aborted."; exit 1)
 	@$(MAKE) deploy-pages
 
+push-verified:
+	bash scripts/push_verified.sh $(REV) $(BRANCH)
+
 # Non-interactive Pages deploy (#149): Flutter app at docs/ root — the layout
 # github.io actually serves (Pages source = second01/docs). release-all uses
 # THIS, not Makefile.hugo deploy-all, whose docs/app/ output is gitignored
@@ -176,7 +179,7 @@ deploy-pages: check-env-test build-web-github
 	@git commit -m "docs: Deploy test build $$(cat web/version.json | grep version | head -1)" || echo "No changes to commit"
 	@echo ""
 	@echo "🚀 Pushing to second01 branch..."
-	@git push origin second01
+	@bash scripts/push_verified.sh HEAD second01
 	@echo ""
 	@echo "✅ GitHub Pages deployment complete!"
 	@echo "🌐 Test URL: https://berlogabob.github.io/flutter-FlowGroove-app/"
@@ -581,7 +584,7 @@ release:
 	git tag -a "v$$NEW_VERSION" -m "Release $$NEW_VERSION"; \
 	echo ""; \
 	echo "🚀 Pushing to GitHub..."; \
-	git push origin HEAD; \
+	bash scripts/push_verified.sh HEAD "$$(git rev-parse --abbrev-ref HEAD)"; \
 	git push origin "v$$NEW_VERSION"; \
 	echo ""; \
 	echo "📱 Creating GitHub Release..."; \
