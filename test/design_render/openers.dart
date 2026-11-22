@@ -260,4 +260,7 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'metronome_launchpad': Opener(
+    (_, _, router) => router.go('/main/metronome'),
+  ),
 };
