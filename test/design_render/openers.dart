@@ -1,5 +1,6 @@
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
+import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -262,5 +263,13 @@ final kOpeners = <String, Opener>{
   ),
   'metronome_launchpad': Opener(
     (_, _, router) => router.go('/main/metronome'),
+  ),
+  'backing_sheet': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const BackingSheet(songId: 'song1', bandId: 'band1'),
+    ),
   ),
 };

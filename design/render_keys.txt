@@ -43,3 +43,4 @@ the_band_edit_description
 home_sheet_l112
 home_rehearsals
 metronome_launchpad
+backing_sheet
