@@ -727,7 +727,9 @@ class _ZoomWaveformPainter extends CustomPainter {
     final buckets = usePcm ? levels.length : size.width.ceil();
     final step = size.width / buckets;
     final paint = Paint()
-      ..strokeCap = StrokeCap.round
+      ..strokeCap = usePcm ? StrokeCap.round : StrokeCap.butt
+      // Adjacent fallback strokes share an edge. Antialiasing leaves a seam.
+      ..isAntiAlias = usePcm
       ..strokeWidth = step;
     final mid = size.height / 2;
     canvas

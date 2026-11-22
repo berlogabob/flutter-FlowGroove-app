@@ -95,8 +95,7 @@ class PracticeRegionsScreen extends ConsumerStatefulWidget {
   @visibleForTesting
   static bool autoOpenSetup = true;
 
-  /// Decoder for fine-tuning and click & drums mode; tests swap it, since SoLoud's native
-  /// decoder isn't loaded there.
+  /// Decoder for the zoom, analysis, fine-tuning, and click & drums mode.
   @visibleForTesting
   static Future<Int16List?> Function(
     Uint8List bytes, {
@@ -290,9 +289,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       } else {
         setState(() => _entry = updated);
       }
-      if (mounted && _loaded && _entry.regions.isNotEmpty) {
-        unawaited(_ensurePcm());
-      }
     } catch (_) {}
   }
 
@@ -363,9 +359,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         }),
       ]);
       await _applyLoop();
-      if (mounted && _entry.regions.isNotEmpty && _entry.peaks.isNotEmpty) {
-        unawaited(_ensurePcm());
-      }
       if (mounted &&
           PracticeRegionsScreen.autoOpenSetup &&
           _durationMs > 0 &&
@@ -695,7 +688,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       _selection = selection;
     });
     if (_sync) _syncLaunch(startIfStopped: false);
-    if (_loaded && selection != null) unawaited(_ensurePcm());
     unawaited(_applyLoop());
   }
 
@@ -926,15 +918,27 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   Future<Int16List?> _ensurePcm() {
     if (_analysisPcm != null) return Future.value(_analysisPcm);
     return _analysisPcmLoad ??= (() async {
-      if (_entry.attachmentIds.isEmpty) return null;
+      final url = _url;
+      if (url == null) return null;
+      final duration = _durationMs;
       try {
-        Future<Int16List?> decode() async => PracticeRegionsScreen.decodePcm(
-          await _readAudioBytes(),
-          sampleRate: 22050,
-          durationMs: _durationMs,
+        final path = _songPath;
+        Future<Int16List?> decode() async {
+          final bytes = await _readAudioBytes();
+          if (!mounted || _url != url) return null;
+          return PracticeRegionsScreen.decodePcm(
+            bytes,
+            sampleRate: 22050,
+            durationMs: duration,
+          );
+        }
+
+        final pcm = await cachedPcm22k(
+          path == null ? null : File(path),
+          decode,
         );
-        final pcm = await cachedPcm22k(await _cachedFile(), decode);
-        if (mounted && pcm != null && pcm.isNotEmpty) {
+        if (!mounted || _url != url) return null;
+        if (pcm != null && pcm.isNotEmpty) {
           setState(() => _analysisPcm = pcm);
         }
         return pcm;
@@ -1596,12 +1600,19 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         view.restoreZoom(previous);
         previous.dispose();
       }
-      view.addListener(() {
-        if (view.sectionIndex != null && _loaded) unawaited(_ensurePcm());
-      });
       _songMap = view;
     }
     final view = _songMap!;
+    if (emptyContent == null &&
+        view.sections.isNotEmpty &&
+        _loaded &&
+        !_busy &&
+        _durationMs > 0 &&
+        _analysisPcmLoad == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _songMap == view) unawaited(_ensurePcm());
+      });
+    }
     final queuedId = _sync
         ? ref.watch(backingTransportProvider.select((t) => t.queuedId))
         : null;
@@ -1686,7 +1697,6 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                 onSectionHold: _canEdit && !preview ? _renameSection : null,
                 onSectionTap: (i) {
                   setState(() => view.overviewSelection = i);
-                  if (_loaded) unawaited(_ensurePcm());
                 },
                 onSeek: _loaded && _durationMs > 0
                     ? (ms) => unawaited(_seekTimeline(ms))

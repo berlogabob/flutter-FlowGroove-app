@@ -796,13 +796,15 @@ void main() {
     }
     _FakeAudioPlayer.sourceDuration = const Duration(seconds: 48);
     final previousDecode = PracticeRegionsScreen.decodePcm;
-    PracticeRegionsScreen.decodePcm = (
-      bytes, {
-      required sampleRate,
-      required durationMs,
-    }) async => pcm;
+    var decodes = 0;
+    PracticeRegionsScreen.decodePcm =
+        (bytes, {required sampleRate, required durationMs}) async {
+          decodes++;
+          return pcm;
+        };
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
     await pump(tester, _entry());
+    expect(decodes, 1);
 
     SongMapTimeline map() => tester.widget(find.byType(SongMapTimeline));
     Future<void> analyze() async {
@@ -829,6 +831,7 @@ void main() {
     expect(repo.saved.single.regions, isNot(equals(_regions)));
     expect(map().view.regions, repo.saved.single.regions);
     expect(map().candidateBoundariesMs, isEmpty);
+    expect(decodes, 1);
   });
 
   testWidgets(
@@ -934,7 +937,11 @@ void main() {
           return _clickTrack();
         };
     addTearDown(() => PracticeRegionsScreen.decodePcm = previousDecode);
-    await pump(tester, _entry());
+    final skipped = [
+      for (final region in _regions) region.copyWith(skip: true),
+    ];
+    await pump(tester, _entry(regions: skipped));
+    expect(find.byKey(const ValueKey('song-map-zoom-waveform')), findsNothing);
     expect(decodes, 0);
     await openMore(tester, 'Auto slice');
     await settleAudio(tester);
@@ -947,6 +954,7 @@ void main() {
     expect(repo.saved.single.grid!.offsetMs, closeTo(300, 20));
     expect(repo.saved.single.grid!.beatsPerBar, 4);
     expect(repo.saved.single.regions, hasLength(2));
+    expect(repo.saved.single.regions, skipped);
     await openMore(tester, 'Auto slice');
     await settleAudio(tester);
     expect(decodes, 1);
@@ -1674,6 +1682,8 @@ void main() {
         };
     addTearDown(() => PracticeRegionsScreen.decodePcm = decodeSongPcm);
     await pump(tester, _entry(grid: const AudioGrid(bpm: 120)));
+    expect(decoded, [22050]);
+    decoded.clear();
     await tester.longPress(find.byKey(const ValueKey('play')));
     await tester.pumpAndSettle();
     final toggle = find.widgetWithText(SwitchListTile, 'Click & drums');
@@ -1682,6 +1692,7 @@ void main() {
     await tester.tapAt(const Offset(5, 5));
     await tester.pumpAndSettle();
     expect(decoded, hasLength(1));
+    expect(decoded.single, await engine.engineSampleRate());
     expect(fetched, ['https://example.com/take.wav']);
     expect(engine.loads.single.names, ['Song']);
 
