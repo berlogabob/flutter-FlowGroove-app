@@ -171,4 +171,30 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'the_band_edit_description': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Description'),
+        content: TextField(
+          controller: TextEditingController(
+            text: 'Rock band from Portland.',
+          ),
+          decoration: const InputDecoration(
+            labelText: 'Description',
+            border: OutlineInputBorder(),
+            hintText: 'Enter band description...',
+          ),
+          maxLines: 4,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(onPressed: () {}, child: const Text('Save')),
+        ],
+      ),
+    ),
+  ),
 };
