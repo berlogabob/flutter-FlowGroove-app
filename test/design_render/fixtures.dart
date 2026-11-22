@@ -11,6 +11,7 @@ import 'package:flowgroove/providers/keep_screen_on_provider.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/providers/theme_mode_provider.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
+import 'package:flowgroove/services/band_function_service.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -112,6 +113,7 @@ List<Object> renderOverrides() {
       (ref) => throw StateError('Firestore unavailable in renders'),
     ),
     firestoreProvider.overrideWith((ref) => MockFirestoreService()),
+    bandFunctionServiceProvider.overrideWith((ref) => _RenderBandFunctions()),
     appUserProvider.overrideWith(() => TestAppUserNotifier(user)),
     songsProvider.overrideWith((ref) => Stream.value(songs)),
     bandsProvider.overrideWith((ref) => Stream.value([band])),
@@ -135,6 +137,17 @@ List<Object> renderOverrides() {
     analyticsConsentProvider.overrideWith(_RenderAnalyticsConsent.new),
     themeModeProvider.overrideWith(_RenderThemeMode.new),
   ];
+}
+
+class _RenderBandFunctions extends Mock implements BandFunctionService {
+  @override
+  Future<BandInviteInfo> getBandInviteInfo(String code) async =>
+      const BandInviteInfo(
+        bandId: 'band1',
+        name: 'Test Band',
+        memberCount: 3,
+        adminName: 'Test User',
+      );
 }
 
 class _RenderMetronome extends MetronomeNotifier {
