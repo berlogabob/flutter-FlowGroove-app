@@ -12,3 +12,4 @@ contact.png
 # Embeds the real-device screenshots (Parity page); public repo. Rebuild with build.py all.
 *.figcraft
 figcraft/specs/.tmp.json
+render/
