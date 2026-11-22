@@ -414,12 +414,28 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   String? _loopLabel() {
     final selection = _selection;
     if (selection == null) return null;
-    final (a, b) = selection;
-    final regions = _entry.regions;
-    String label(int index) => regions[index].name.trim().isEmpty
-        ? 'Section ${index + 1}'
-        : regions[index].name;
-    return a == b ? label(a) : '${label(a)} → ${label(b)}';
+    final view = _songMap;
+    if (view == null) return null;
+    final children = view.children();
+    final (start, end) = selection;
+    String label(int index) {
+      if (children[index].name.trim().isNotEmpty) return children[index].name;
+      return 'Section ${view.regionRange(index).$1 + 1}';
+    }
+
+    var firstPad = -1;
+    var lastPad = -1;
+    for (var i = 0; i < children.length; i++) {
+      final (a, b) = view.regionRange(i);
+      if (a <= end && b >= start) {
+        firstPad = firstPad < 0 ? i : firstPad;
+        lastPad = i;
+      }
+    }
+    if (firstPad < 0) return null;
+    return firstPad == lastPad
+        ? label(firstPad)
+        : '${label(firstPad)} → ${label(lastPad)}';
   }
 
   /// Writes the current loop's practice to the log and starts a fresh one.
@@ -2647,8 +2663,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     if (selection != null && (looping || _pendingLoop != null))
                       Expanded(
                         child: Text(
-                          '${_pendingLoop == null ? 'Looping' : 'Next:'} ${_name(regions[selection.$1])}'
-                          '${selection.$1 == selection.$2 ? '' : ' → ${_name(regions[selection.$2])}'}',
+                          '${_pendingLoop == null ? 'Looping' : 'Next:'} ${_loopLabel()}',
                           textAlign: TextAlign.end,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
