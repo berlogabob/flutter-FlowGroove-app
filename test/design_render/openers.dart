@@ -364,4 +364,56 @@ final kOpeners = <String, Opener>{
       newId: () => 'region1',
     ),
   ),
+  'profile_link_telegram': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.send),
+        title: const Text('Link Telegram'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Link your Telegram account to automatically import your profile name and photo to FlowGroove.',
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(dialogContext)
+                      .colorScheme
+                      .surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('How it works:'),
+                    SizedBox(height: 6),
+                    Text('1. Click "Open Telegram" below'),
+                    Text('2. Send /link command to the bot'),
+                    Text('3. Tap "Yes, link my profile"'),
+                    Text('4. Your name and photo will be imported'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          CustomButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            icon: Icons.send,
+            label: 'Open Telegram',
+          ),
+        ],
+      ),
+    ),
+  ),
 };
