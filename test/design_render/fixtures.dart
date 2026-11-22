@@ -2,7 +2,12 @@ import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/rehearsal.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/analytics_consent_provider.dart';
+import 'package:flowgroove/providers/haptics_provider.dart';
+import 'package:flowgroove/providers/keep_screen_on_provider.dart';
+import 'package:flowgroove/providers/theme_mode_provider.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/mocks.dart';
@@ -99,5 +104,29 @@ List<Object> renderOverrides() {
         .overrideWith((ref) => Stream.value(rehearsal)),
     rehearsalVotesProvider((band.id, rehearsal.id))
         .overrideWith((ref) => Stream.value({})),
+    keepScreenOnProvider.overrideWith(_RenderKeepScreenOn.new),
+    hapticsEnabledProvider.overrideWith(_RenderHapticsEnabled.new),
+    analyticsConsentProvider.overrideWith(_RenderAnalyticsConsent.new),
+    themeModeProvider.overrideWith(_RenderThemeMode.new),
   ];
+}
+
+class _RenderKeepScreenOn extends KeepScreenOn {
+  @override
+  bool build() => true;
+}
+
+class _RenderHapticsEnabled extends HapticsEnabled {
+  @override
+  bool build() => true;
+}
+
+class _RenderAnalyticsConsent extends AnalyticsConsent {
+  @override
+  bool build() => true;
+}
+
+class _RenderThemeMode extends AppThemeMode {
+  @override
+  ThemeMode build() => ThemeMode.light;
 }

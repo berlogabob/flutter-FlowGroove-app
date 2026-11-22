@@ -1,1 +1,6 @@
 login
+register
+forgot_password
+band_invite
+band_members
+app_settings
