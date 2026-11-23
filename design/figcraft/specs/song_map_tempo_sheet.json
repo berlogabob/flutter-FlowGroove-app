@@ -170,6 +170,45 @@
   ],
   "bottom": [
     {
+      "t": "row",
+      "name": "Notes",
+      "cross": "center",
+      "gap": 4,
+      "pad": [
+        0,
+        8,
+        0,
+        8
+      ],
+      "c": [
+        {
+          "t": "text",
+          "v": "Notes",
+          "style": "titleMedium",
+          "color": "textPrimary",
+          "w": "fill"
+        },
+        {
+          "t": "icon",
+          "v": "add",
+          "size": 18,
+          "color": "textPrimary"
+        },
+        {
+          "t": "text",
+          "v": "at 0:30",
+          "style": "labelLarge",
+          "color": "textPrimary",
+          "w": "hug"
+        }
+      ],
+      "opacity": 0.38
+    },
+    {
+      "t": "divider",
+      "opacity": 0.38
+    },
+    {
       "t": "transport",
       "click": true,
       "opacity": 0.38
@@ -178,7 +217,7 @@
   "overlay": [
     {
       "x": 0,
-      "y": 475,
+      "y": 463,
       "node": {
         "t": "sheet",
         "bg": "surfaceRaised",
@@ -271,7 +310,7 @@
                 "t": "icon",
                 "v": "touch_app",
                 "size": 20,
-                "color": "accentOrange"
+                "color": "textPrimary"
               },
               {
                 "t": "col",
@@ -303,13 +342,13 @@
           },
           {
             "t": "button",
-            "kind": "primary",
+            "kind": "secondary",
             "v": "Save",
             "w": "fill"
           },
           {
             "t": "button",
-            "kind": "text",
+            "kind": "secondary",
             "v": "Cancel",
             "w": "fill"
           }

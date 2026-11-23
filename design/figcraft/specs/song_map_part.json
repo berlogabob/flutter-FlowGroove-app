@@ -203,6 +203,43 @@
   ],
   "bottom": [
     {
+      "t": "row",
+      "name": "Notes",
+      "cross": "center",
+      "gap": 4,
+      "pad": [
+        0,
+        8,
+        0,
+        8
+      ],
+      "c": [
+        {
+          "t": "text",
+          "v": "Notes",
+          "style": "titleMedium",
+          "color": "textPrimary",
+          "w": "fill"
+        },
+        {
+          "t": "icon",
+          "v": "add",
+          "size": 18,
+          "color": "textPrimary"
+        },
+        {
+          "t": "text",
+          "v": "at 0:30",
+          "style": "labelLarge",
+          "color": "textPrimary",
+          "w": "hug"
+        }
+      ]
+    },
+    {
+      "t": "divider"
+    },
+    {
       "t": "transport",
       "speed": 100
     }

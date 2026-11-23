@@ -29,54 +29,33 @@
   ],
   "body": [
     {
-      "t": "card",
+      "t": "col",
       "name": "Tempo review",
-      "bg": "surfaceRaised",
-      "border": "borderSubtle",
-      "radius": 12,
-      "pad": 8,
       "gap": 4,
       "c": [
         {
           "t": "text",
-          "v": "Audio runs at 169.6 BPM · Stretch to 170 / Keep",
+          "v": "Detected tempo 169.6",
           "style": "bodyMedium",
           "color": "textPrimary"
         },
         {
           "t": "row",
           "gap": 8,
-          "main": "max",
           "c": [
             {
-              "t": "button",
+              "t": "key",
               "v": "Stretch to 170",
-              "kind": "secondary",
-              "size": "small"
+              "w": "fill",
+              "name": "Stretch"
             },
             {
-              "t": "button",
+              "t": "key",
               "v": "Keep",
-              "kind": "text",
-              "size": "small"
+              "w": "fill",
+              "name": "Keep"
             }
           ]
-        }
-      ]
-    },
-    {
-      "t": "card",
-      "name": "Sections review",
-      "bg": "surfaceRaised",
-      "border": "borderSubtle",
-      "radius": 12,
-      "pad": 8,
-      "c": [
-        {
-          "t": "text",
-          "v": "10 sections found · check, then Done",
-          "style": "bodySmall",
-          "color": "textPrimary"
         }
       ]
     },
@@ -171,10 +150,37 @@
       "cross": "center",
       "c": [
         {
-          "t": "text",
-          "v": "Sections",
-          "style": "titleMedium",
-          "w": "fill"
+          "t": "col",
+          "name": "Sections found",
+          "gap": 0,
+          "w": "fill",
+          "main": "center",
+          "c": [
+            {
+              "t": "text",
+              "v": "Sections",
+              "style": "bodySmall",
+              "color": "textPrimary",
+              "maxLines": 1
+            },
+            {
+              "t": "text",
+              "v": "10 found",
+              "style": "bodySmall",
+              "color": "textSecondary",
+              "maxLines": 1
+            }
+          ]
+        },
+        {
+          "t": "key",
+          "v": "Discard",
+          "name": "Discard"
+        },
+        {
+          "t": "key",
+          "v": "Done",
+          "name": "Done"
         },
         {
           "t": "key",
@@ -296,6 +302,43 @@
     }
   ],
   "bottom": [
+    {
+      "t": "row",
+      "name": "Notes",
+      "cross": "center",
+      "gap": 4,
+      "pad": [
+        0,
+        8,
+        0,
+        8
+      ],
+      "c": [
+        {
+          "t": "text",
+          "v": "Notes",
+          "style": "titleMedium",
+          "color": "textPrimary",
+          "w": "fill"
+        },
+        {
+          "t": "icon",
+          "v": "add",
+          "size": 18,
+          "color": "textPrimary"
+        },
+        {
+          "t": "text",
+          "v": "at 0:30",
+          "style": "labelLarge",
+          "color": "textPrimary",
+          "w": "hug"
+        }
+      ]
+    },
+    {
+      "t": "divider"
+    },
     {
       "t": "transport"
     }
