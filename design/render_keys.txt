@@ -57,3 +57,4 @@ song_map_part_light
 
 practice_regions
 song_map_song
+song_map_song_light
