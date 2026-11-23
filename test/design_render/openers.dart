@@ -25,6 +25,7 @@ import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
 import 'package:flowgroove/screens/practice_regions/slice_edit_sheet.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_letters.dart';
 import 'package:flowgroove/screens/practice_setup_wizard.dart';
+import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flowgroove/screens/setlists/event_share_screen.dart';
 import 'package:flowgroove/screens/setlists/performer_sheet.dart';
@@ -74,6 +75,7 @@ import 'package:mockito/mockito.dart';
 
 import '../helpers/mocks.dart';
 import '../helpers/mocks.mocks.dart';
+import '../screens/practice_regions_screen_test.dart';
 import 'fixtures.dart';
 
 /// How to show a spec that has no route of its own (sheet, dialog, picker).
@@ -461,27 +463,38 @@ final kOpeners = <String, Opener>{
       onRemoveGrid: () async {},
     ),
   ),
-  'notes_panel_note_at_n': Opener(
-    (context, _, _) => showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Note at 1:23'),
-        content: const TextField(
-          decoration: InputDecoration(hintText: 'e.g. good chorus entry'),
+  'notes_panel_note_at_n': Opener((context, _, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [
+            labRepositoryProvider.overrideWithValue(RenderLabRepository()),
+          ],
+          child: PracticeRegionsScreen(
+            entry: PracticeRegionsScreenFixture.entry().copyWith(
+              attachmentIds: const [],
+            ),
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Add'),
-          ),
-        ],
       ),
-    ),
-  ),
+    );
+    tapWhenBuilt(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is PopupMenuButton<String> && widget.tooltip == 'More',
+        skipOffstage: false,
+      ),
+      (element) =>
+          (element.widget as PopupMenuButton<String>).onSelected!('note'),
+    );
+    tapWhenBuilt(find.byType(AlertDialog), (_) {
+      expect(
+        find.byType(PracticeRegionsScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('Note at 0:00'), findsOneWidget);
+    });
+  }),
   'slice_edit_sheet_start': Opener(
     (context, _, _) => showSliceEditSheet(
       context,

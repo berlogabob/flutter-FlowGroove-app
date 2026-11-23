@@ -18,6 +18,7 @@ import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/providers/theme_mode_provider.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/repositories/song_repository.dart';
+import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/services/band_function_service.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
@@ -36,6 +37,8 @@ const kFixtureIds = {
   'rehearsal': 'reh1',
   'invite': 'INVITE1',
 };
+
+class RenderLabRepository extends Mock implements FirestoreLabRepository {}
 
 class RenderSongRepository extends Mock implements SongRepository {
   @override
