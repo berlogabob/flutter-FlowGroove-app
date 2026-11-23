@@ -55,6 +55,45 @@ final kOpeners = <String, Opener>{
     (context, _, _) => showRolePicker(context: context, currentRoles: const []),
   ),
   'tag_input_dialog': Opener((context, _, _) => TagInputDialog.show(context)),
+  'setlist_export_sheet_whose_copy': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: const [
+            ListTile(title: Text('Whose copy?')),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Marcus Reed'),
+              subtitle: Text('#1, #3, #5, #7'),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Dana Kowalski'),
+              subtitle: Text('#2, #6'),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Devon Diaz'),
+              subtitle: Text('#4, #8, #10'),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Priya Nair'),
+              subtitle: Text('#9'),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Sam Okafor'),
+              subtitle: Text('#1, #2, #4, #6, #8, #10'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
   'song_form_provider_similar_song_exists': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,
