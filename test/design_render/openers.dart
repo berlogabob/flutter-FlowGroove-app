@@ -5,6 +5,7 @@ import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/event_kit.dart';
 import 'package:flowgroove/models/instrument.dart';
 import 'package:flowgroove/models/midi_song.dart';
+import 'package:flowgroove/models/rehearsal.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
@@ -16,6 +17,7 @@ import 'package:flowgroove/providers/data/midi_song_provider.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/screens/bands/create_band_screen.dart';
+import 'package:flowgroove/screens/bands/rehearsals/rehearsal_detail_screen.dart';
 import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
 import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
@@ -224,31 +226,42 @@ final kOpeners = <String, Opener>{
       expect(find.text('Band Created!'), findsOneWidget);
     });
   }),
-  'rehearsal_detail_suggest_a_different_time': Opener(
-    (context, _, _) => showDialog<String>(
-      context: context,
-      builder: (context) {
-        final controller = TextEditingController(text: 'Sunday 18:00?');
-        return AlertDialog(
-          title: const Text('Suggest a different time'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: 'e.g. Sunday 18:00?'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
-              child: const Text('Send'),
+  'rehearsal_detail_suggest_a_different_time': Opener((context, _, _) {
+    final user = MockUser();
+    when(user.uid).thenReturn('user1');
+    final band = MockDataHelper.createMockBand(id: 'band1', name: 'Test Band');
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWith((ref) => AsyncValue.data(user)),
+            rehearsalVotesProvider(('band1', 'reh1')).overrideWith(
+              (ref) => Stream.value({
+                'user1': RehearsalVote(
+                  uid: 'user1',
+                  answers: const {},
+                  comment: 'Sunday 18:00?',
+                  updatedAt: DateTime(2024),
+                ),
+              }),
             ),
           ],
-        );
-      },
-    ),
-  ),
+          child: RehearsalDetailScreen(band: band, rehearsalId: 'reh1'),
+        ),
+      ),
+    );
+    tapWhenBuilt(
+      find.text('None of these work — suggest a time', skipOffstage: false),
+      (element) =>
+          element.findAncestorWidgetOfExactType<TextButton>()!.onPressed!(),
+    );
+    tapWhenBuilt(find.byType(AlertDialog), (_) {
+      expect(
+        find.byType(RehearsalDetailScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+    });
+  }),
   'the_band_edit_band_name': Opener(
     (context, _, _) => showDialog<void>(
       context: context,
