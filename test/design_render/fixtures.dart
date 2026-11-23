@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart' show UserInfo;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flowgroove/models/band.dart';
@@ -42,6 +43,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/mocks.dart';
@@ -343,6 +345,24 @@ class _SilentDrumPlayer implements DrumPlayer {
   Future<void> dispose() async {}
 }
 
+List<Object> _profileOverrides() {
+  final user = MockUser();
+  when(user.uid).thenReturn('test-user-id');
+  when(user.email).thenReturn('riley@example.com');
+  return [
+    currentUserProvider.overrideWith((ref) => AsyncValue.data(user)),
+    appUserProvider.overrideWith(
+      () => TestAppUserNotifier(
+        MockDataHelper.createMockAppUser(
+          displayName: 'Riley Lane',
+          email: 'riley@example.com',
+          bandIds: ['band1'],
+        ).copyWith(musicRoles: const ['guitarist', 'vocalist']),
+      ),
+    ),
+  ];
+}
+
 final kKeyOverrides = <String, List<Object> Function()>{
   'song_page': () => [
     songsProvider.overrideWith(
@@ -484,20 +504,42 @@ final kKeyOverrides = <String, List<Object> Function()>{
       ),
     ],
   ),
-  'profile': () {
+  'profile': _profileOverrides,
+  // The band picker offers the bands the user can write to.
+  'song_card_actions_sheet_l209': () => [
+    bandsProvider.overrideWith(
+      (ref) => Stream.value([
+        for (final (id, name) in [
+          ('band1', 'FlowGroove'),
+          ('band2', 'The Weekend Set'),
+          ('band3', 'Sunday Jam'),
+          ('band4', 'Cover Crew'),
+        ])
+          MockDataHelper.createMockBand(
+            id: id,
+            name: name,
+            members: [BandMember(uid: 'test-user-id', role: 'admin')],
+          ),
+      ]),
+    ),
+  ],
+  // The photo sheet of a Telegram- and Google-linked user whose photo is an upload.
+  'profile_currently_using': () {
     final user = MockUser();
     when(user.uid).thenReturn('test-user-id');
     when(user.email).thenReturn('riley@example.com');
+    when(user.providerData).thenReturn([_GoogleInfo()]);
+    final auth = MockFirebaseAuth();
+    when(auth.currentUser).thenReturn(user);
     return [
-      currentUserProvider.overrideWith((ref) => AsyncValue.data(user)),
-      appUserProvider.overrideWith(
-        () => TestAppUserNotifier(
-          MockDataHelper.createMockAppUser(
-            displayName: 'Riley Lane',
-            email: 'riley@example.com',
-            bandIds: ['band1'],
-          ).copyWith(musicRoles: const ['guitarist', 'vocalist']),
-        ),
+      ..._profileOverrides(),
+      firebaseAuthProvider.overrideWith((ref) => auth),
+      userDocProvider.overrideWith(
+        (ref) => Stream.value({
+          'photoURL': 'https://example.com/riley.jpg',
+          'photoSource': 'upload',
+          'telegramId': 'tg1',
+        }),
       ),
     ];
   },
@@ -705,6 +747,14 @@ final kKeyOverrides = <String, List<Object> Function()>{
 
 List<Object> renderOverrides({String? key}) {
   SharedPreferences.setMockInitialValues({});
+  // The version row reads package_info_plus; its own test seam answers at once.
+  PackageInfo.setMockInitialValues(
+    appName: 'FlowGroove',
+    packageName: 'com.flowgroove',
+    version: '0.16.0',
+    buildNumber: '1',
+    buildSignature: '',
+  );
   final auth = MockFirebaseAuth();
   when(auth.currentUser).thenReturn(null);
   final user = MockDataHelper.createMockAppUser(bandIds: ['band1']);
@@ -854,6 +904,11 @@ CanonicalSong _canonical(
     for (var i = 0; i < sections; i++) Section(id: '$id-$i', name: 'Verse'),
   ],
 );
+
+class _GoogleInfo extends Mock implements UserInfo {
+  @override
+  String get providerId => 'google.com';
+}
 
 class _RenderBandFunctions extends Mock implements BandFunctionService {
   @override

@@ -1158,6 +1158,19 @@ final kOpeners = <String, Opener>{
         'Sam Rivera',
       );
       await tester.pumpAndSettle();
+      // The frame's person: a client (may suggest) whose running order is
+      // raised to Edit.
+      final client = find.widgetWithText(ActionChip, 'Client');
+      await tester.ensureVisible(client);
+      await tester.tap(client);
+      await tester.pumpAndSettle();
+      final edit = find.descendant(
+        of: find.byKey(const ValueKey('access-runningOrder')),
+        matching: find.text('Edit'),
+      );
+      await tester.ensureVisible(edit);
+      await tester.tap(edit);
+      await tester.pumpAndSettle();
     },
   ),
   'event_kit_editor_sheet_l256': Opener((context, tester, _) {

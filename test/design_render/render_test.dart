@@ -16,6 +16,18 @@ import 'png.dart';
 import 'states.dart';
 import 'tree_dump.dart';
 
+// Frames that draw a whole scrolling screen or sheet, not one 915 px window: the
+// render needs a viewport tall enough to build every row the frame lists.
+const kFrameHeights = <String, double>{
+  'app_settings': 3000,
+  'rehearsal_detail': 3000,
+  'rehearsal_edit': 3000,
+  'metronome_launchpad': 3000,
+  'event_kit_editor_sheet_l181': 3000,
+  'event_kit_editor_sheet_l191': 3000,
+  'import_lyrics_dialog': 3000,
+};
+
 // Add screen keys and reasons here if they have perpetual animations.
 const kNoSettle = <String>{};
 
@@ -136,7 +148,9 @@ void main() {
               ..devicePixelRatio = 3
               ..physicalSize = Size(
                 width * 3,
-                kMatrixWidths[width.toInt()]! * 3,
+                ((matrix ? null : kFrameHeights[key]) ??
+                        kMatrixWidths[width.toInt()]!) *
+                    3,
               );
             addTearDown(tester.view.reset);
             const boundaryKey = Key('render-boundary');

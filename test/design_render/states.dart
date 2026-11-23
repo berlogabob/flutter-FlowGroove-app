@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flowgroove/models/audio_region.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../helpers/mocks.dart';
 import '../screens/practice_regions_screen_test.dart';
 
 late PracticeRegionsScreenFixture practiceFixture;
@@ -47,30 +49,112 @@ const _regions = [
   AudioRegion(id: 'f', name: 'Bridge 1', startMs: 74824, endMs: 91765),
 ];
 
+// The frames' whole map, 118 bars at 170 BPM; Intro is two parts, 4 + 5 bars.
+const _fullRegions = [
+  AudioRegion(
+    id: 'a',
+    name: 'Intro',
+    startMs: 0,
+    endMs: 5647,
+    sectionId: 'a',
+    section: 'Intro',
+  ),
+  AudioRegion(
+    id: 'a2',
+    name: 'Intro',
+    startMs: 5647,
+    endMs: 12706,
+    sectionId: 'a',
+    section: 'Intro',
+  ),
+  AudioRegion(id: 'b', name: 'Part B 1', startMs: 12706, endMs: 24000),
+  AudioRegion(
+    id: 'c',
+    name: 'Chorus 1',
+    startMs: 24000,
+    endMs: 29647,
+    sectionId: 'c',
+    section: 'Chorus 1',
+  ),
+  AudioRegion(
+    id: 'c2',
+    name: 'Chorus 1',
+    startMs: 29647,
+    endMs: 35294,
+    sectionId: 'c',
+    section: 'Chorus 1',
+  ),
+  AudioRegion(
+    id: 'c3',
+    name: 'Chorus 1',
+    startMs: 35294,
+    endMs: 40941,
+    sectionId: 'c',
+    section: 'Chorus 1',
+  ),
+  AudioRegion(id: 'd', name: 'Part D 1', startMs: 40941, endMs: 63529),
+  AudioRegion(id: 'e', name: 'Part E 1', startMs: 63529, endMs: 74824),
+  AudioRegion(id: 'c4', name: 'Chorus 2', startMs: 74824, endMs: 91765),
+  AudioRegion(id: 'd2', name: 'Part D 2', startMs: 91765, endMs: 114353),
+  AudioRegion(id: 'f', name: 'Bridge 1', startMs: 114353, endMs: 131294),
+  AudioRegion(id: 'f2', name: 'Bridge 2', startMs: 131294, endMs: 136941),
+  AudioRegion(id: 'd3', name: 'Part D 3', startMs: 136941, endMs: 166588),
+];
+
 Future<void> _pumpPractice(
   WidgetTester tester, {
   bool review = false,
   bool noAudio = false,
   bool beats = false,
+  bool full = false,
+  double reviewBpm = 170,
+  int? songBpm,
 }) async {
   final decode = PracticeRegionsScreen.decodePcm;
   PracticeRegionsScreen
       .decodePcm = (_, {required sampleRate, required durationMs}) async {
     // noAudio: analysis fails with 'Missing audio' (the Manual setup path).
-    final pcm = Int16List(noAudio ? 0 : sampleRate * durationMs ~/ 1000);
+    // review: the frames' song, 118 bars: a quiet 9-bar Intro (A), then
+    // B C D E C D F F D in 8 12 16 8 12 16 12 4 21 bars, one tone per letter,
+    // clicks on every beat from 0.3 s. Shorter than the player's duration.
+    const letters = 'ABCDECDFFD';
+    const bars = [9, 8, 12, 16, 8, 12, 16, 12, 4, 21];
+    const tones = {
+      'A': [110.0],
+      'B': [262.0, 392.0],
+      'C': [392.0, 494.0, 587.0],
+      'D': [147.0, 220.0],
+      'E': [330.0, 698.0, 880.0],
+      'F': [220.0, 277.0, 1318.0],
+    };
+    final bar = sampleRate * 240 / reviewBpm;
+    final length = noAudio
+        ? 0
+        : review
+        ? (sampleRate * 0.3 + 118 * bar).round()
+        : sampleRate * durationMs ~/ 1000;
+    final pcm = Int16List(length);
     if (review) {
-      const frequencies = [110, 262, 392, 147, 330, 220, 440, 196, 294, 131];
-      for (var i = 0; i < pcm.length; i++) {
-        final frequency = frequencies[i * frequencies.length ~/ pcm.length];
-        pcm[i] = (4000 * math.sin(2 * math.pi * frequency * i / sampleRate))
-            .round();
+      var edge = sampleRate * 0.3;
+      for (var s = 0; s < letters.length; s++) {
+        final from = edge.round();
+        edge += bars[s] * bar;
+        final to = math.min(edge.round(), pcm.length);
+        final volume = s == 0 ? 0.05 : 1;
+        for (var i = from; i < to; i++) {
+          var v = 0.0;
+          for (final f in tones[letters[s]]!) {
+            v += math.sin(2 * math.pi * f * i / sampleRate);
+          }
+          pcm[i] = (volume * 3000 * v).round();
+        }
       }
       if (beats) {
-        // A click on every beat of a 170 BPM take, so the detector finds it.
-        final step = sampleRate * 60 / 170;
+        final step = sampleRate * 60 / reviewBpm;
         for (var t = sampleRate * 0.3; t + 220 < pcm.length; t += step) {
+          final volume = t < sampleRate * 0.3 + 9 * bar ? 0.05 : 1;
           for (var b = 0; b < 220; b++) {
-            pcm[t.round() + b] = b.isEven ? 20000 : -20000;
+            pcm[t.round() + b] = (volume * (b.isEven ? 20000 : -20000)).round();
           }
         }
       }
@@ -81,9 +165,27 @@ Future<void> _pumpPractice(
   await practiceFixture.pump(
     tester,
     PracticeRegionsScreenFixture.entry(
-      regions: review ? const [] : _regions,
+      songId: songBpm == null ? '_inbox' : 'song1',
+      regions: review
+          ? const []
+          : full
+          ? _fullRegions
+          : _regions,
       grid: AudioGrid(bpm: review ? 169.6 : 170),
     ).copyWith(title: 'First Song', peaks: const [25, 60, 40, 80, 35]),
+    overrides: [
+      if (songBpm != null)
+        songsProvider.overrideWith(
+          (ref) => Stream.value([
+            MockDataHelper.createMockSong(
+              id: 'song1',
+              title: 'Inocente',
+              originalBPM: songBpm,
+              ourBPM: songBpm,
+            ),
+          ]),
+        ),
+    ],
     theme: stateTheme == ThemeMode.light
         ? MonoPulseTheme.lightTheme
         : MonoPulseTheme.theme,
@@ -108,7 +210,7 @@ Future<void> _songMapSong(WidgetTester tester) async {
 }
 
 Future<void> _songMapPart(WidgetTester tester) async {
-  await _pumpPractice(tester);
+  await _pumpPractice(tester, full: true);
   await tester.tap(
     find.descendant(
       of: find.byKey(const ValueKey('song-map-overview')),
@@ -122,7 +224,7 @@ Future<void> _songMapPart(WidgetTester tester) async {
 }
 
 Future<void> _songMapPlaying(WidgetTester tester) async {
-  await _pumpPractice(tester);
+  await _pumpPractice(tester, full: true);
   await tester.tap(find.byKey(const ValueKey('play')));
   await practiceFixture.settleAudio(tester);
   practiceFixture.emitPosition(50824);
@@ -137,7 +239,13 @@ Future<void> _songMapPlaying(WidgetTester tester) async {
 }
 
 Future<void> _songMapReview(WidgetTester tester) async {
-  await _pumpPractice(tester, review: true);
+  await _pumpPractice(
+    tester,
+    review: true,
+    beats: true,
+    reviewBpm: 169.6,
+    songBpm: 170,
+  );
   await tester.tap(find.text('Analyze song'));
   await tester.pumpAndSettle();
   await tester.tap(find.text('Analyze'));
@@ -150,7 +258,7 @@ Future<void> _songMapReview(WidgetTester tester) async {
 }
 
 Future<void> _analyzeWithBeats(WidgetTester tester) async {
-  await _pumpPractice(tester, review: true, beats: true);
+  await _pumpPractice(tester, review: true, beats: true, reviewBpm: 169.6);
   await tester.tap(find.text('Analyze song'));
   await tester.pumpAndSettle();
   await tester.tap(find.text('Analyze'));
@@ -171,7 +279,7 @@ Future<void> _songMapTempo(WidgetTester tester) async {
 
 Future<void> _songMapTempoSheet(WidgetTester tester) async {
   // A saved map: the app-bar tempo chip opens the sheet.
-  await _pumpPractice(tester);
+  await _pumpPractice(tester, full: true);
   await tester.tap(find.byKey(const ValueKey('tempo-chip')));
   await tester.pumpAndSettle();
   expect(find.text('Tempo'), findsOneWidget);

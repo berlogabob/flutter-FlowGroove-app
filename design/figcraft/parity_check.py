@@ -62,7 +62,9 @@ def compare(spec_flat: dict, dump: dict, literals: set[str]) -> dict:
 
     common = spec_set & dump_set
     spec_order = list(dict.fromkeys(label for label in spec_labels if label in common))
-    dump_order = list(dict.fromkeys(label for label in dump_labels if label in common))
+    # Every dump occurrence counts: a label repeated elsewhere on screen (a background
+    # "F" before the sheet's "F") must not hide the occurrence in the right place.
+    dump_order = [label for label in dump_labels if label in common]
     # LCS preserves the first occurrence order while tolerating unrelated labels.
     previous = [0] * (len(dump_order) + 1)
     for left in spec_order:

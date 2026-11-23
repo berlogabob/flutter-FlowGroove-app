@@ -56,6 +56,19 @@ class ParityCheckTests(unittest.TestCase):
         self.assertEqual(result["extra"], [])
         self.assertEqual(result["kinds_missing"], [])
 
+    def test_label_repeated_behind_a_sheet_does_not_hide_the_sheet_occurrence(self):
+        # "F" is also a weekday letter on the screen behind the sheet.
+        flat = {"modal": "sheet", "texts": ["Title", "F", "Eb"], "kinds": []}
+        dump = {"texts": [{"v": "F"}, {"v": "Title"}, {"v": "F"}, {"v": "Eb"}], "kinds": []}
+        result = compare(flat, dump, {"Title", "F", "Eb"})
+        self.assertEqual(result["order"], 1.0)
+        self.assertTrue(result["pass"])
+
+    def test_wrong_order_still_fails(self):
+        flat = {"texts": ["One", "Two"], "kinds": []}
+        dump = {"texts": [{"v": "Two"}, {"v": "One"}], "kinds": []}
+        self.assertLess(compare(flat, dump, {"One", "Two"})["order"], 1.0)
+
     def test_fewer_than_two_shared_labels_is_not_a_pass(self):
         flat = {"texts": ["Only"], "kinds": []}
         dump = {"texts": [{"v": "Only"}], "kinds": []}
