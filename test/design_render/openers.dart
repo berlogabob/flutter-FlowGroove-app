@@ -5,9 +5,12 @@ import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
 import 'package:flowgroove/screens/practice_setup_wizard.dart';
+import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+
+import '../helpers/mocks.dart';
 
 import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
 
@@ -315,6 +318,23 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'event_kit_editor_sheet_l154': Opener((context, tester, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(
+          setlist: MockDataHelper.createMockSetlist(
+            id: 'setlist1',
+            bandId: 'band1',
+            name: 'Gig Setlist',
+          ),
+          bandId: 'band1',
+        ),
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tester.tap(find.byIcon(Icons.add).first);
+    });
+  }),
   'practice_regions_replace_n_sections': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,
