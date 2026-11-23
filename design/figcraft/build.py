@@ -1458,6 +1458,59 @@ comp("EmptyState", [], lambda v: {"t": "col", "name": "EmptyState", "main": "cen
             ("Action", "text", "Action", "Add item"),
             ("SecondaryAction", "text", "SecondaryAction", "Other action")])
 
+comp("TimeSignatureBlock", [], lambda v: {"t": "col", "name": "TimeSignatureBlock", "bg": "blackSurface",
+     "border": "borderSubtle", "radius": 12, "pad": 16, "gap": 10, "c": [
+         {"t": "text", "v": "Beats (badge = count)", "style": "bodyMedium", "color": "textSecondary"},
+         {"t": "row", "cross": "center", "gap": 8, "c": [
+             {"t": "button", "kind": "secondary", "v": "−"},
+             {"t": "icon", "v": "circle", "size": 16, "color": "beatModeNormal"},
+             {"t": "icon", "v": "star", "size": 16, "color": "beatModeAccent"},
+             {"t": "icon", "v": "block", "size": 16, "color": "textDisabled"},
+             {"t": "button", "kind": "secondary", "v": "+", "badge": "4"}]},
+         {"t": "text", "v": "Subdivisions (badge = count)", "style": "bodyMedium", "color": "textSecondary"},
+         {"t": "row", "cross": "center", "gap": 8, "c": [
+             {"t": "button", "kind": "secondary", "v": "−"},
+             {"t": "icon", "v": "circle", "size": 16, "color": "beatModeNormal"},
+             {"t": "icon", "v": "circle", "size": 16, "color": "beatModeNormal"},
+             {"t": "button", "kind": "secondary", "v": "+", "badge": "2"}]},
+         {"t": "text", "v": "Dot: normal · Star: accent · ⊘: silent. Tap to change.",
+          "style": "bodySmall", "color": "textSecondary"}]},
+     _component_instance(lambda n: {}))
+
+comp("TempoControlCluster", [], lambda v: {"t": "col", "name": "TempoControlCluster", "bg": "blackSurface",
+     "radius": 120, "width": 280, "height": 280, "sizingH": "fixed", "sizingV": "fixed",
+     "main": "center", "cross": "center", "c": [
+         {"t": "text", "v": "−5", "style": "labelLarge", "color": "textPrimary", "name": "Decrease 5"},
+         {"t": "text", "v": "120", "style": "displayMedium", "color": "accentOrange", "name": "Tempo"},
+         {"t": "text", "v": "BPM", "style": "labelMedium", "color": "textSecondary"},
+         {"t": "text", "v": "+5", "style": "labelLarge", "color": "textPrimary", "name": "Increase 5"},
+         {"t": "text", "v": "−1       +1", "style": "labelLarge", "color": "textPrimary", "name": "Fine tempo controls"}]},
+     _component_instance(lambda n: {}))
+
+comp("StatCard", [], lambda v: {"t": "col", "name": "StatCard", "bg": "surfaceRaised", "border": "borderSubtle",
+     "radius": 7, "pad": [16, 8, 16, 8], "main": "center", "cross": "center", "gap": 4, "c": [
+         {"t": "icon", "v": "speed", "size": 24, "color": "accentOrange", "layer": "Icon"},
+         {"t": "text", "v": "24", "style": "titleLarge", "color": "accentOrange", "name": "Value", "maxLines": 1},
+         {"t": "text", "v": "Songs", "style": "bodySmall", "color": "textTertiary", "name": "Label", "maxLines": 1}]},
+     _component_instance(lambda n: {"Icon": glyph(n.get("icon", "speed")), "Value": n.get("value", "24"),
+                                    "Label": n.get("label", "Songs")}),
+     props=[("Icon", "text", "Icon", "speed"), ("Value", "text", "Value", "24"),
+            ("Label", "text", "Label", "Songs")])
+
+comp("SongLibraryBlock", [], lambda v: {"t": "col", "name": "SongLibraryBlock", "gap": 8, "c": [
+     {"t": "row", "name": "Library action", "bg": "surface", "border": "borderSubtle", "radius": 20,
+      "pad": [16, 8, 16, 8], "gap": 8, "cross": "center", "c": [
+          {"t": "icon", "v": "library_music", "size": 20, "color": "textSecondary"},
+          {"t": "text", "v": "Songs & Setlists", "style": "bodyLarge", "color": "textPrimary", "name": "Library label"}]},
+     {"t": "row", "name": "Loaded song card", "bg": "surface", "border": "borderSubtle", "radius": 8,
+      "pad": [16, 8, 16, 8], "gap": 8, "cross": "center", "c": [
+          {"t": "icon", "v": "music_note", "size": 20, "color": "accentOrange"},
+          {"t": "col", "gap": 2, "c": [
+              {"t": "text", "v": "First Song", "style": "bodyMedium", "color": "textPrimary", "name": "Song title"},
+              {"t": "text", "v": "Test Band", "style": "bodySmall", "color": "textTertiary", "name": "Song source"}]},
+          {"t": "icon", "v": "close", "size": 20, "color": "textSecondary"}]}]},
+     _component_instance(lambda n: {}))
+
 comp("ToolButton", [], lambda v: {"t": "row", "name": "ToolButton", "bg": "surfaceRaised",
      "border": "borderDefault", "radius": 6, "pad": [12, 4, 12, 4], "gap": 8, "cross": "center", "c": [
          {"t": "icon", "v": "tune", "size": 24, "color": "textSecondary", "layer": "Icon"},
@@ -1923,6 +1976,15 @@ CONNECT = {
     "ConfirmationDialog": (APP + "confirmation_dialog.dart", "ConfirmationDialog",
               'ConfirmationDialog(title: {Title}, message: {Message}, confirmLabel: {confirmLabel}, cancelLabel: {cancelLabel}, icon: Icons.warning_amber /* {Icon} */, isDestructive: {isDestructive})',
               "Confirmation dialog with icon, explanatory text, cancel action and confirm action."),
+    "TimeSignatureBlock": (APP + "metronome/time_signature_block.dart", "TimeSignatureBlock",
+              'const TimeSignatureBlock()', "Beat and subdivision rows with step controls, mode glyphs and count badges."),
+    "TempoControlCluster": (APP + "metronome/tempo_control_cluster.dart", "TempoControlCluster",
+              'const TempoControlCluster()', "Tempo dial with four corner step buttons: coarse ±5 and repeatable fine ±1."),
+    "StatCard": (APP + "stat_card.dart", "StatCard",
+              'StatCard(icon: Icons.speed /* {Icon} */, label: {Label}, value: {Value}, color: MonoPulseColors.accentOrange)',
+              "Raised statistic card with a colored icon, prominent value and supporting label."),
+    "SongLibraryBlock": (APP + "metronome/song_library_block.dart", "SongLibraryBlock",
+              'const SongLibraryBlock()', "Songs and setlists library action with an optional loaded song summary and clear action."),
     "SectionHeader": (APP + "section_header.dart", "SectionHeader",
                       'SectionHeader({Title}, style: {Style},{Show action ? " actionLabel: " : " /* "}{Action}'
                       '{Show action ? ", onAction: onSeeAll," : " */"})',

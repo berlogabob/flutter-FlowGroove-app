@@ -1744,6 +1744,13 @@
       "template": "Slider(value: 0.5 /* {Value} */, onChanged: (v) {})"
     },
     {
+      "component": "SongLibraryBlock",
+      "importPath": "package:flowgroove/widgets/metronome/song_library_block.dart",
+      "language": "flutter",
+      "name": "SongLibraryBlock",
+      "template": "const SongLibraryBlock()"
+    },
+    {
       "component": "SongMapOverview",
       "importPath": "package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart",
       "language": "flutter",
@@ -1772,6 +1779,13 @@
       "template": "SongMapTransport(playing: false, speedPercent: 100, loop: false, countIn: false, click: false, clickAndDrums: false, onPlay: () {}, onStop: () {}, onSpeedTap: () {}, onLoopChanged: (_) {}, onCountInChanged: (_) {}, onClickChanged: (_) {}, onClickAndDrumsChanged: (_) {})"
     },
     {
+      "component": "StatCard",
+      "importPath": "package:flowgroove/widgets/stat_card.dart",
+      "language": "flutter",
+      "name": "StatCard",
+      "template": "StatCard(icon: Icons.speed /* {Icon} */, label: {Label}, value: {Value}, color: MonoPulseColors.accentOrange)"
+    },
+    {
       "component": "Switch",
       "importPath": "package:flutter/material.dart",
       "language": "flutter",
@@ -1791,6 +1805,20 @@
       "language": "flutter",
       "name": "Tab",
       "template": "Tab(text: {Label})"
+    },
+    {
+      "component": "TempoControlCluster",
+      "importPath": "package:flowgroove/widgets/metronome/tempo_control_cluster.dart",
+      "language": "flutter",
+      "name": "TempoControlCluster",
+      "template": "const TempoControlCluster()"
+    },
+    {
+      "component": "TimeSignatureBlock",
+      "importPath": "package:flowgroove/widgets/metronome/time_signature_block.dart",
+      "language": "flutter",
+      "name": "TimeSignatureBlock",
+      "template": "const TimeSignatureBlock()"
     },
     {
       "component": "ToolButton",
