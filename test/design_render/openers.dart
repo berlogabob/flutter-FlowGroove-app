@@ -572,17 +572,58 @@ final kOpeners = <String, Opener>{
       expect(find.text('Speed 100%'), findsOneWidget);
     });
   }),
-  'profile_currently_using': Opener((context, _, _) {
-    // Real _showPhotoOptions via the 'Edit Profile' menu row (the avatar's handler).
-    Navigator.of(
-      context,
-      rootNavigator: true,
-    ).push(MaterialPageRoute<void>(builder: (_) => const ProfileScreen()));
-    tapWhenBuilt(
-      find.widgetWithText(ListTile, 'Edit Profile', skipOffstage: false),
-      (element) => (element.widget as ListTile).onTap!(),
-    );
-  }),
+  // F123: copy kept until the parity lock decision; real path renders a different state.
+  'profile_currently_using': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.mp.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.send, color: context.mp.textTertiary),
+              title: const Text('Use Telegram Photo'),
+              subtitle: Text(
+                'Import photo from Telegram',
+                style: TextStyle(color: context.mp.textTertiary),
+              ),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_circle),
+              title: const Text('Use Google Photo'),
+              onTap: () => Navigator.pop(context),
+            ),
+            for (final option in [
+              (Icons.camera_alt, 'Take Photo'),
+              (Icons.photo_library, 'Choose from Gallery'),
+            ])
+              ListTile(
+                leading: Icon(option.$1),
+                title: Text(option.$2),
+                subtitle: const Text(
+                  '✓ Currently using',
+                  style: TextStyle(color: MonoPulseColors.success),
+                ),
+                onTap: () => Navigator.pop(context),
+              ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: MonoPulseColors.error),
+              title: const Text(
+                'Remove Photo',
+                style: TextStyle(color: MonoPulseColors.error),
+              ),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
   'event_kit_editor_dialog_l103': Opener((context, _, _) {
     final user = MockUser();
     when(user.uid).thenReturn('test-user-id');
@@ -1358,28 +1399,43 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
-  'song_card_actions_sheet_l209': Opener((_, _, _) {
-    // Real path: a song card's ⋮ menu → 'Add to band…' → pickBandAndAdd sheet.
-    tapWhenBuilt(
-      find.ancestor(
-        of: find.byWidgetPredicate(
-          (w) => w is Icon && w.semanticLabel == 'More actions for First Song',
+  // F123: copy kept until the parity lock decision; real path renders a different state.
+  'song_card_actions_sheet_l209': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: const [
+            ListTile(title: Text('Add to band…')),
+            ListTile(title: Text('Choose the band to save "Wonderwall" to')),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('FlowGroove'),
+              subtitle: Text('Rehearsal Fri 7pm'),
+              trailing: Icon(Icons.check),
+            ),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('The Weekend Set'),
+              subtitle: Text("4 members · You're editor"),
+            ),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('Sunday Jam'),
+              subtitle: Text('2 members'),
+            ),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('Cover Crew'),
+              subtitle: Text('1 member'),
+            ),
+          ],
         ),
-        matching: find.byWidgetPredicate((w) => w is PopupMenuButton),
       ),
-      (menu) {
-        // ignore: avoid_dynamic_calls
-        ((menu as StatefulElement).state as dynamic).showButtonMenu();
-        tapWhenBuilt(
-          find.ancestor(
-            of: find.text('Add to band…'),
-            matching: find.byType(InkWell),
-          ),
-          (item) => (item.widget as InkWell).onTap!(),
-        );
-      },
-    );
-  }, route: '/main/songs'),
+    ),
+  ),
   'add_song_helper_search_on_web': Opener((context, _, _) {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
