@@ -72,6 +72,8 @@ Map<String, Object?> dumpTree(WidgetTester tester) {
             (widget is Visibility && !widget.visible))
           hidden = true;
         if (widget is Scrollable) scrollable = true;
+        // An avatar is its kind only: its initial is not a text label.
+        if (_kind(widget) == 'avatar') hidden = true;
         return true;
       });
       if (hidden || (offscreen && !scrollable)) continue;

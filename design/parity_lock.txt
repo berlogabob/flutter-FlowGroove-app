@@ -4,9 +4,12 @@ api_access_revoke_key
 app_menu_sheet_sheet_l53
 arrangement_sheet
 backing_sheet
+band_about
 band_invite
+band_members
 band_setlists
 band_songs
+bpm_input_overlay_sheet_l15
 canonical_browse
 confirmation_dialog
 create_band
@@ -38,6 +41,7 @@ metronome
 metronome_sheets_sheet_l14
 midi_import_flow_import_midi
 midi_song_panel
+my_bands
 note_editor_sheet
 notes_panel_note_at_n
 performance_sheet_you_already_have_a_song_map
@@ -79,10 +83,12 @@ song_map_section_light
 song_map_song
 song_map_song_light
 songs_list
+songs_list_filter_options
 songs_list_importing_songs
 suggestion_selection_dialog
 support_sheet_telegram
 tag_input_dialog
+the_band
 the_band_edit_band_name
 the_band_edit_description
 tuner

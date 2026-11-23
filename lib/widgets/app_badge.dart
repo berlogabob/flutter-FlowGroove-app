@@ -14,7 +14,19 @@ class AppBadge extends StatelessWidget {
     this.color = MonoPulseColors.accentOrange,
     this.outlined = false,
     super.key,
-  });
+  }) : solidLabelColor = null;
+
+  /// Solid pill: [color] fills the badge and [labelColor] is the label
+  /// (white or charcoal by contrast, e.g. section letters).
+  const AppBadge.solid({
+    required this.label,
+    required this.color,
+    required Color labelColor,
+    super.key,
+  }) : icon = null,
+       trailingIcon = null,
+       outlined = false,
+       solidLabelColor = labelColor;
 
   final String label;
   final IconData? icon;
@@ -28,16 +40,20 @@ class AppBadge extends StatelessWidget {
   /// Adds a [color] border and shows the label in the text colour.
   final bool outlined;
 
+  /// Non-null for [AppBadge.solid].
+  final Color? solidLabelColor;
+
   @override
   Widget build(BuildContext context) {
-    final labelColor = outlined ? context.mp.textPrimary : color;
+    final labelColor =
+        solidLabelColor ?? (outlined ? context.mp.textPrimary : color);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.md,
         vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: solidLabelColor != null ? color : color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
         border: outlined ? Border.all(color: color) : null,
       ),

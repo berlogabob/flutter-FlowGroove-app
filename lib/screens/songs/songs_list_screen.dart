@@ -20,6 +20,7 @@ import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
@@ -430,179 +431,182 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
   ];
 
   /// Show filter options bottom sheet.
+  ///
+  /// Frame songs_list_filter_options: Major / Minor / All chips and a BPM
+  /// input. The frame has no per-root key chips; they appear under the chips
+  /// once Major or Minor is chosen so a specific key stays reachable.
   void _showFilterOptions() {
-    // Local (non-provider) UI state for the Major/Minor toggle. Declared
-    // here, outside the StatefulBuilder's rebuilding closure, so it
-    // survives setModalState calls. Defaults to whichever mode the current
-    // filter (if any) is already in.
-    var keyIsMinor =
-        canonicalKey(ref.read(songsFilterSortProvider).keyFilter)
-            ?.endsWith('m') ??
-        false;
+    // Local (non-provider) UI state for the Major / Minor / All mode. Declared
+    // outside the StatefulBuilder's rebuilding closure so it survives
+    // setModalState calls. Starts from the current key filter, if any.
+    final initialKey = canonicalKey(
+      ref.read(songsFilterSortProvider).keyFilter,
+    );
+    var keyMode = initialKey == null
+        ? 'all'
+        : (initialKey.endsWith('m') ? 'minor' : 'major');
+    final bpmFieldKey = GlobalKey();
+    final bpmController = TextEditingController();
 
     showModalBottomSheet<void>(
       context: context,
       useRootNavigator: true,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: context.mp.surfaceRaised,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MonoPulseRadius.xlarge),
+        ),
+      ),
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {
           final state = ref.read(songsFilterSortProvider);
           final currentKey = state.keyFilter;
           final currentBpm = state.bpmFilter;
           final canonicalCurrentKey = canonicalKey(currentKey);
+          final keyIsMinor = keyMode == 'minor';
+          bpmController.text = currentBpm == null
+              ? ''
+              : 'Exact $currentBpm BPM';
+          final labelStyle = MonoPulseTypography.labelMedium.copyWith(
+            color: context.mp.textSecondary,
+          );
 
-          return SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Filter Options',
-                    style: MonoPulseTypography.titleLarge.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+          Future<void> pickBpm() async {
+            final box =
+                bpmFieldKey.currentContext!.findRenderObject()! as RenderBox;
+            final origin = box.localToGlobal(Offset.zero);
+            final overlay =
+                Overlay.of(context).context.findRenderObject()! as RenderBox;
+            final rect = RelativeRect.fromRect(
+              origin & box.size,
+              Offset.zero & overlay.size,
+            );
+            final picked = await showMenu<int>(
+              context: context,
+              position: rect,
+              constraints: BoxConstraints.tightFor(width: box.size.width),
+              items: [
+                const PopupMenuItem(value: 0, child: Text('Any BPM')),
+                ...[60, 80, 100, 120, 140, 160, 180].map(
+                  (bpm) =>
+                      PopupMenuItem(value: bpm, child: Text('Exact $bpm BPM')),
+                ),
+              ],
+            );
+            if (picked == null) return;
+            ref
+                .read(songsFilterSortProvider.notifier)
+                .setBpmFilter(picked == 0 ? null : picked);
+            setModalState(() {});
+          }
 
-                  // Key filter
-                  const Text(
-                    'Key',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      AppFilterChip(
-                        label: 'Major',
-                        selected: !keyIsMinor,
-                        onSelected: (_) {
-                          setModalState(() => keyIsMinor = false);
-                        },
-                      ),
-                      AppFilterChip(
-                        label: 'Minor',
-                        selected: keyIsMinor,
-                        onSelected: (_) {
-                          setModalState(() => keyIsMinor = true);
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      AppFilterChip(
-                        label: 'All',
-                        selected: currentKey == null,
-                        onSelected: (_) {
-                          ref
-                              .read(songsFilterSortProvider.notifier)
-                              .setKeyFilter(null);
-                          setModalState(() {});
-                        },
-                      ),
-                      ..._keyRoots.map((root) {
-                        final value = keyIsMinor ? '${root}m' : root;
-                        final selected =
-                            canonicalCurrentKey != null &&
-                            canonicalCurrentKey == canonicalKey(value);
-                        final flat = const {
-                          'C#': 'Db',
-                          'D#': 'Eb',
-                          'F#': 'Gb',
-                          'G#': 'Ab',
-                          'A#': 'Bb',
-                        }[root];
-                        final label = flat == null
-                            ? value
-                            : '$value/$flat${keyIsMinor ? 'm' : ''}';
-                        return AppFilterChip(
-                          label: label,
-                          selected: selected,
-                          onSelected: (_) {
-                            ref
-                                .read(songsFilterSortProvider.notifier)
-                                .setKeyFilter(value);
-                            setModalState(() {});
-                          },
-                        );
-                      }),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // BPM filter
-                  const Text(
-                    'BPM',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    'Exact Our BPM; songs without one stay visible',
-                    style: MonoPulseTypography.bodySmall.copyWith(
-                      color: context.mp.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButton<int?>(
-                          isExpanded: true,
-                          value: currentBpm,
-                          hint: const Text('Any BPM'),
-                          items: [
-                            const DropdownMenuItem(child: Text('Any BPM')),
-                            ...[60, 80, 100, 120, 140, 160, 180].map(
-                              (bpm) => DropdownMenuItem(
-                                value: bpm,
-                                child: Text('Exact $bpm BPM'),
-                              ),
+          return Padding(
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 12,
+                      children: [
+                        const Text(
+                          'Filter Options',
+                          style: MonoPulseTypography.headlineMedium,
+                        ),
+                        Text('Key', style: labelStyle),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            AppFilterChip(
+                              label: 'Major',
+                              selected: keyMode == 'major',
+                              onSelected: (_) =>
+                                  setModalState(() => keyMode = 'major'),
+                            ),
+                            AppFilterChip(
+                              label: 'Minor',
+                              selected: keyIsMinor,
+                              onSelected: (_) =>
+                                  setModalState(() => keyMode = 'minor'),
+                            ),
+                            AppFilterChip(
+                              label: 'All',
+                              selected: keyMode == 'all',
+                              onSelected: (_) {
+                                ref
+                                    .read(songsFilterSortProvider.notifier)
+                                    .setKeyFilter(null);
+                                setModalState(() => keyMode = 'all');
+                              },
                             ),
                           ],
-                          onChanged: (value) {
-                            ref
-                                .read(songsFilterSortProvider.notifier)
-                                .setBpmFilter(value);
-                            setModalState(() {});
-                          },
                         ),
-                      ),
-                      if (currentBpm != null)
-                        IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            ref
-                                .read(songsFilterSortProvider.notifier)
-                                .setBpmFilter(null);
-                            setModalState(() {});
-                          },
+                        if (keyMode != 'all')
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _keyRoots.map((root) {
+                              final value = keyIsMinor ? '${root}m' : root;
+                              final selected =
+                                  canonicalCurrentKey != null &&
+                                  canonicalCurrentKey == canonicalKey(value);
+                              final flat = const {
+                                'C#': 'Db',
+                                'D#': 'Eb',
+                                'F#': 'Gb',
+                                'G#': 'Ab',
+                                'A#': 'Bb',
+                              }[root];
+                              final label = flat == null
+                                  ? value
+                                  : '$value/$flat${keyIsMinor ? 'm' : ''}';
+                              return AppFilterChip(
+                                label: label,
+                                selected: selected,
+                                onSelected: (_) {
+                                  ref
+                                      .read(songsFilterSortProvider.notifier)
+                                      .setKeyFilter(value);
+                                  setModalState(() {});
+                                },
+                              );
+                            }).toList(),
+                          ),
+                        // Exact Our BPM; songs without one stay visible.
+                        Text('BPM', style: labelStyle),
+                        KeyedSubtree(
+                          key: bpmFieldKey,
+                          child: CustomTextField(
+                            hint: 'Any BPM',
+                            readOnly: true,
+                            controller: bpmController,
+                            suffix: const Icon(Icons.arrow_drop_down),
+                            onFocus: pickBpm,
+                          ),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Clear all filters button
-                  SizedBox(
-                    width: double.infinity,
-                    child: CustomButton(
-                      onPressed: () {
-                        ref
-                            .read(songsFilterSortProvider.notifier)
-                            .clearFilters();
-                        Navigator.pop(context);
-                      },
-                      label: 'Clear All Filters',
-                      variant: ButtonVariant.outline,
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                ],
-              ),
+                ),
+                const SizedBox(height: MonoPulseSpacing.md),
+                SizedBox(
+                  width: double.infinity,
+                  child: CustomButton(
+                    onPressed: () {
+                      ref.read(songsFilterSortProvider.notifier).clearFilters();
+                      Navigator.pop(context);
+                    },
+                    label: 'Clear All Filters',
+                    variant: ButtonVariant.outline,
+                  ),
+                ),
+              ],
             ),
           );
         },

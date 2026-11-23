@@ -68,6 +68,9 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Key / BPM'));
         await tester.pumpAndSettle();
+        // Root-key chips appear once Major or Minor is chosen.
+        await tester.tap(find.text('Major'));
+        await tester.pumpAndSettle();
         final chip = find.widgetWithText(FilterChip, 'C');
         expect(tester.widget<FilterChip>(chip).selected, isFalse);
         await expectStableLayout(tester, () async {

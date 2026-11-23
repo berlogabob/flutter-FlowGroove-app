@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../models/section.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/app_badge.dart';
 import 'song_map/song_map_letters.dart';
 
 Future<({String name, bool move})?> showSectionNameSheet(
@@ -210,22 +211,10 @@ class _SectionGroupChip extends StatelessWidget {
           spacing: MonoPulseSpacing.xs,
           children: [
             ExcludeSemantics(
-              child: Container(
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 30),
-                decoration: ShapeDecoration(
-                  color: letter.color,
-                  shape: const StadiumBorder(),
-                ),
-                child: Center(
-                  widthFactor: 1,
-                  heightFactor: 1,
-                  child: Text(
-                    letter.label,
-                    style: MonoPulseTypography.labelSmall.copyWith(
-                      color: letter.textColor,
-                    ),
-                  ),
-                ),
+              child: AppBadge.solid(
+                label: letter.label,
+                color: letter.color,
+                labelColor: letter.textColor,
               ),
             ),
             Flexible(

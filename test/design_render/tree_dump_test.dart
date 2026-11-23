@@ -40,6 +40,21 @@ void main() {
     expect(values(dump, 'kinds', 'kind'), ['button', 'chip']);
   });
 
+  testWidgets('avatar initials are not text labels', (tester) async {
+    await pump(
+      tester,
+      const Row(
+        children: [
+          CircleAvatar(child: Text('T')),
+          Text('The Band'),
+        ],
+      ),
+    );
+    final dump = dumpTree(tester);
+    expect(values(dump, 'texts', 'v'), ['The Band']);
+    expect(values(dump, 'kinds', 'kind'), ['avatar']);
+  });
+
   testWidgets('plain Dialog counts as a dialog kind', (tester) async {
     await pump(tester, const Dialog(child: Text('D')));
     expect(values(dumpTree(tester), 'kinds', 'kind'), ['dialog']);

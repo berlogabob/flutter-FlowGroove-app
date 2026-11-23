@@ -196,6 +196,7 @@ class _EnterBpmPanelState extends ConsumerState<_EnterBpmPanel> {
           decoration: InputDecoration(
             filled: true,
             fillColor: context.mp.surfaceRaised,
+            hintText: 'Any BPM',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(MonoPulseRadius.large),
               borderSide: BorderSide.none,

@@ -7,6 +7,7 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
+import 'package:flowgroove/widgets/custom_text_field.dart';
 import 'package:flowgroove/widgets/unified_item/song_card_actions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -617,17 +618,16 @@ void main() {
           overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
         );
 
-        // Open the Key / BPM filter sheet and select the G# chip (major,
-        // the default toggle state).
+        // Open the Key / BPM filter sheet, choose Major and select G#.
         await tester.tap(find.text('Key / BPM'));
         await tester.pumpAndSettle();
-        // The BPM semantics subtitle renders in the sheet; the 'Exact N BPM'
-        // dropdown ITEMS only exist while the dropdown is open, so they are
-        // not asserted here.
-        expect(
-          find.text('Exact Our BPM; songs without one stay visible'),
-          findsOneWidget,
-        );
+        // Frame: BPM input with the "Any BPM" hint and a visible clear button.
+        expect(find.text('Any BPM'), findsOneWidget);
+        expect(find.text('Clear All Filters'), findsOneWidget);
+        // Root chips stay hidden until Major or Minor is chosen.
+        expect(find.textContaining('G#'), findsNothing);
+        await tester.tap(find.text('Major'));
+        await tester.pumpAndSettle();
         await tester.tap(find.textContaining('G#'));
         await tester.pumpAndSettle();
 
@@ -668,6 +668,34 @@ void main() {
 
       expect(find.text('Minor Song'), findsOneWidget);
       expect(find.text('Major Song'), findsNothing);
+    });
+
+    testWidgets('BPM input offers exact BPMs and Any BPM clears the filter', (
+      tester,
+    ) async {
+      final songs = [
+        createTestSong(id: '1', title: 'Slow Song', artist: 'A', ourBPM: 60),
+        createTestSong(id: '2', title: 'Fast Song', artist: 'B', ourBPM: 140),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+      );
+
+      await tester.tap(find.text('Key / BPM'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(CustomTextField));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Exact 140 BPM'));
+      await tester.pumpAndSettle();
+      expect(find.text('Exact 140 BPM'), findsOneWidget);
+
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(find.text('Fast Song'), findsOneWidget);
+      expect(find.text('Slow Song'), findsNothing);
     });
   });
 }

@@ -1,11 +1,12 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../theme/mono_pulse_theme.dart';
 
 /// A reusable filter chip with clear selected/unselected states.
 ///
 /// Provides consistent styling for filter chips across the app:
 /// - Selected: stone surface + dark text, without a checkmark
-/// - Unselected: outlined border + muted text
+/// - Unselected: raised surface, outline and primary text (frame `chip`)
 ///
 /// Usage:
 /// ```dart
@@ -50,13 +51,13 @@ class AppFilterChip extends StatelessWidget {
       pressElevation: selected ? 2 : 1,
       shadowColor: context.mp.borderStrong.withValues(alpha: 0.14),
       selectedShadowColor: context.mp.borderStrong.withValues(alpha: 0.22),
-      labelStyle: const TextStyle(
-        color: MonoPulseColors.charcoal,
+      labelStyle: MonoPulseTypography.labelMedium.copyWith(
+        color: selected ? MonoPulseColors.charcoal : context.mp.textPrimary,
         fontWeight: MonoPulseTypography.semibold,
       ),
       // Unselected: neutral raised surface per chipTheme (readable, not the old
       // near-black `surface` / brown tint). F-012.
-      backgroundColor: unselectedBackgroundColor ?? MonoPulseColors.white,
+      backgroundColor: unselectedBackgroundColor ?? context.mp.surfaceRaised,
       side: BorderSide(
         color: selected ? context.mp.borderStrong : context.mp.borderDefault,
       ),
