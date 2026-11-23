@@ -19,23 +19,23 @@
         },
         {
           "t": "col",
-          "gap": 10,
+          "gap": 8,
           "c": [
-            {"t": "col", "gap": 6, "c": [
+            {"t": "col", "gap": 4, "c": [
               {"t": "row", "cross": "center", "c": [
                 {"t": "text", "v": "A4 Reference", "style": "labelMedium", "color": "textSecondary", "w": "fill"},
                 {"t": "text", "v": "440 Hz", "style": "bodyMedium", "color": "textHighEmphasis", "w": "hug"}
               ]},
               {"t": "slider", "value": 0.49}
             ]},
-            {"t": "col", "gap": 6, "c": [
+            {"t": "col", "gap": 4, "c": [
               {"t": "row", "cross": "center", "c": [
                 {"t": "text", "v": "In-Tune Tolerance", "style": "labelMedium", "color": "textSecondary", "w": "fill"},
                 {"t": "text", "v": "±5 cents", "style": "bodyMedium", "color": "textHighEmphasis", "w": "hug"}
               ]},
               {"t": "slider", "value": 0.21}
             ]},
-            {"t": "col", "gap": 6, "c": [
+            {"t": "col", "gap": 4, "c": [
               {"t": "row", "cross": "center", "c": [
                 {"t": "text", "v": "Input Sensitivity", "style": "labelMedium", "color": "textSecondary", "w": "fill"},
                 {"t": "text", "v": "75%", "style": "bodyMedium", "color": "textHighEmphasis", "w": "hug"}

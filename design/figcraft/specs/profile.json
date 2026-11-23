@@ -71,13 +71,13 @@
             {
               "t": "card",
               "dir": "h",
-              "gap": 6,
+              "gap": 4,
               "cross": "center",
               "c": [
                 {
                   "t": "row",
                   "w": "fill",
-                  "gap": 6,
+                  "gap": 4,
                   "wrap": true,
                   "c": [
                     {

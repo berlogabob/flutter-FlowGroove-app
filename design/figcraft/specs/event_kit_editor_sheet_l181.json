@@ -9,12 +9,12 @@
       {"t": "text", "v": "Add to zone", "style": "titleLarge"},
       {"t": "input", "hint": "Search gear or type your own…", "icon": "search", "v": ""},
       {"t": "text", "v": "Selected", "style": "labelSmall", "color": "textSecondary"},
-      {"t": "row", "gap": 6, "wrap": true, "c": [
+      {"t": "row", "gap": 4, "wrap": true, "c": [
         {"t": "chip", "v": "Guitar amp", "sel": true},
         {"t": "chip", "v": "Drum kit", "sel": true}
       ]},
       {"t": "text", "v": "Likely needed", "style": "labelSmall", "color": "textSecondary"},
-      {"t": "row", "gap": 6, "wrap": true, "c": [
+      {"t": "row", "gap": 4, "wrap": true, "c": [
         {"t": "chip", "v": "Microphone"},
         {"t": "chip", "v": "Monitor wedge"},
         {"t": "chip", "v": "DI box"},

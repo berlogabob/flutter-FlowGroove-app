@@ -12,7 +12,7 @@
       "pad": [8, 16, 16, 16],
       "gap": 0,
       "c": [
-        {"t": "box", "w": 40, "h": 4, "bg": "borderStrong", "radius": 2},
+        {"t": "box", "w": 40, "h": 4, "bg": "borderStrong", "radius": 4},
         {"t": "row", "main": "spaceBetween", "cross": "center", "c": [
           {"t": "text", "v": "Select Instrument", "style": "headlineSmall", "w": "hug"},
           {"t": "iconbtn", "v": "close", "size": 24, "color": "textSecondary"}

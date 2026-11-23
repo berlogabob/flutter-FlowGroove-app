@@ -242,7 +242,7 @@
                   "w": 8,
                   "h": 8,
                   "bg": "accentOrange",
-                  "radius": 2
+                  "radius": 4
                 },
                 {
                   "t": "text",
@@ -269,7 +269,7 @@
                   "w": 8,
                   "h": 8,
                   "bg": "#D9B49A",
-                  "radius": 2
+                  "radius": 4
                 },
                 {
                   "t": "text",
@@ -296,7 +296,7 @@
                   "w": 8,
                   "h": 8,
                   "bg": "#8A6A50",
-                  "radius": 2
+                  "radius": 4
                 },
                 {
                   "t": "text",

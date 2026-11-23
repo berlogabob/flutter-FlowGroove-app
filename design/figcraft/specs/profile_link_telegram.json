@@ -20,7 +20,7 @@
         {
           "t": "col",
           "pad": 12,
-          "gap": 6,
+          "gap": 4,
           "bg": "surfaceRaised",
           "radius": 8,
           "c": [

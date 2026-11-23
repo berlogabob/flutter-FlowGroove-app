@@ -23,7 +23,7 @@
         },
         {
           "t": "row",
-          "gap": 6,
+          "gap": 4,
           "wrap": true,
           "c": [
             {"t": "chip", "v": "🎸 Guitarist", "sel": true},
@@ -39,11 +39,11 @@
         },
         {
           "t": "col",
-          "gap": 6,
+          "gap": 4,
           "c": [
             {
               "t": "row",
-              "gap": 6,
+              "gap": 4,
               "c": [
                 {"t": "text", "v": "🎤 Singer", "style": "bodySmall", "color": "textHighEmphasis"},
                 {"t": "spacer", "size": "fill"},
@@ -52,7 +52,7 @@
             },
             {
               "t": "row",
-              "gap": 6,
+              "gap": 4,
               "c": [
                 {"t": "text", "v": "🎹 Pianist", "style": "bodySmall", "color": "textHighEmphasis"},
                 {"t": "spacer", "size": "fill"},
@@ -61,7 +61,7 @@
             },
             {
               "t": "row",
-              "gap": 6,
+              "gap": 4,
               "c": [
                 {"t": "text", "v": "🎺 Trumpeter", "style": "bodySmall", "color": "textHighEmphasis"},
                 {"t": "spacer", "size": "fill"},
@@ -70,7 +70,7 @@
             },
             {
               "t": "row",
-              "gap": 6,
+              "gap": 4,
               "c": [
                 {"t": "text", "v": "🎻 Violinist", "style": "bodySmall", "color": "textHighEmphasis"},
                 {"t": "spacer", "size": "fill"},
@@ -79,7 +79,7 @@
             },
             {
               "t": "row",
-              "gap": 6,
+              "gap": 4,
               "c": [
                 {"t": "text", "v": "🎷 Saxophonist", "style": "bodySmall", "color": "textHighEmphasis"},
                 {"t": "spacer", "size": "fill"},
@@ -88,7 +88,7 @@
             },
             {
               "t": "row",
-              "gap": 6,
+              "gap": 4,
               "c": [
                 {"t": "text", "v": "🎸 Bass Player", "style": "bodySmall", "color": "textHighEmphasis"},
                 {"t": "spacer", "size": "fill"},

@@ -20,7 +20,7 @@
         {"t": "chip", "v": "🗂️ Manager", "icon": "badge"}
       ]},
       {"t": "text", "v": "Access for this event", "style": "labelMedium", "color": "textSecondary", "align": "left"},
-      {"t": "col", "gap": 10, "c": [
+      {"t": "col", "gap": 8, "c": [
         {"t": "row", "main": "spaceBetween", "cross": "center", "c": [
           {"t": "text", "v": "Event info (date, venue, call time)", "style": "bodySmall", "align": "left"},
           {"t": "segmented", "items": ["Hidden", "View", "Edit"], "sel": 1}

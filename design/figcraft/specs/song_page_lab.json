@@ -13,13 +13,13 @@
     ]},
     {"t": "row", "pad": [12, 16, 8, 16], "c": [
       {"t": "row", "w": "fill", "border": "borderDefault", "radius": 20, "cross": "center", "c": [
-        {"t": "row", "w": "fill", "pad": [10, 8, 10, 8], "gap": 8, "main": "center", "cross": "center", "c": [
+        {"t": "row", "w": "fill", "pad": [12, 8, 12, 8], "gap": 8, "main": "center", "cross": "center", "c": [
           {"t": "icon", "v": "edit_outlined", "size": 18}, {"t": "text", "v": "Edit", "style": "labelMedium", "w": "hug"}
         ]},
-        {"t": "row", "w": "fill", "pad": [10, 8, 10, 8], "gap": 8, "bg": "surfaceRaised", "main": "center", "cross": "center", "c": [
+        {"t": "row", "w": "fill", "pad": [12, 8, 12, 8], "gap": 8, "bg": "surfaceRaised", "main": "center", "cross": "center", "c": [
           {"t": "icon", "v": "queue_music", "size": 18}, {"t": "text", "v": "Sheet", "style": "labelMedium", "w": "hug"}
         ]},
-        {"t": "row", "w": "fill", "pad": [10, 8, 10, 8], "gap": 8, "bg": "surfaceRaised", "main": "center", "cross": "center", "c": [
+        {"t": "row", "w": "fill", "pad": [12, 8, 12, 8], "gap": 8, "bg": "surfaceRaised", "main": "center", "cross": "center", "c": [
           {"t": "icon", "v": "science_outlined", "size": 18}, {"t": "text", "v": "Lab", "style": "labelMedium", "w": "hug"}
         ]}
       ]}
