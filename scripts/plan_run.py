@@ -95,13 +95,13 @@ def main():
                 print(rec["id"], ex, rec["verdict"], "")
                 continue
             dirty = bool(sh("git status --porcelain")[1].strip())
-            ok, vout = verify(t)  # no diff is fine when the real verify already passes at HEAD
-            if not dirty and ok:
-                ok = all((WT / f).is_file() for f in t["files"] if f.endswith(".dart")); vout = "noop: already satisfied" if ok else "no changes made"
+            ok, vout = verify(t)
+            if not dirty:  # N8/F118: a green verify with no diff was a vacuous pass (S6.1)
+                ok, vout = False, "no changes made"
             if ok:
                 ok, vout = guard(t)
             stat = diffstat()
-            if ok and t.get("suite", True):  # regression gate: whole suite must stay green (caught T11 breaking 39 tests)
+            if ok and t.get("suite", False):  # opt-in; default = targeted verify, full suite runs in push-verified (user 2026-11-23)
                 rc2, o2 = sh(PRE + "flutter test 2>&1 | tail -8", timeout=3000)
                 if rc2 != 0: ok, vout = False, 'FULL SUITE FAILED: ' + o2[-400:]
             if ok and dirty:  # hooks (design-guard, Design-Approved) may refuse the commit: that is a fail
