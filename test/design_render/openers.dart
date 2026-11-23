@@ -53,6 +53,31 @@ final kOpeners = <String, Opener>{
     (context, _, _) => showRolePicker(context: context, currentRoles: const []),
   ),
   'tag_input_dialog': Opener((context, _, _) => TagInputDialog.show(context)),
+  'performer_sheet_link_to_band_member': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const ListTile(title: Text('Link to band member')),
+            for (final name in [
+              'Max Rivera',
+              'Jordan Lee',
+              'Sam Okafor',
+              'Priya Nair',
+              'Diego Ferrer',
+            ])
+              ListTile(
+                leading: const Icon(Icons.person),
+                title: Text(name),
+                onTap: () => Navigator.pop(context),
+              ),
+          ],
+        ),
+      ),
+    ),
+  ),
   'song_form_provider_similar_song_exists': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,

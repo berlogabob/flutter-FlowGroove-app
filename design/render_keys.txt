@@ -55,3 +55,4 @@ recorder_link_recording_to_song
 event_kit_editor_sheet_l154
 event_kit_editor_sheet_l181
 event_kit_editor_brand_optional
+performer_sheet_link_to_band_member
