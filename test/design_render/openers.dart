@@ -28,6 +28,7 @@ import 'package:flowgroove/screens/songs/components/csv_import_export/song_impor
 import 'package:flowgroove/screens/songs/components/csv_import_export/song_export_dialog.dart';
 import 'package:flowgroove/screens/songs/components/lab_recording_sheet.dart';
 import 'package:flowgroove/widgets/share_sheet.dart';
+import 'package:flowgroove/widgets/support_sheet.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/widgets/tools/tool_mode_switcher.dart';
@@ -609,5 +610,8 @@ final kOpeners = <String, Opener>{
   ),
   'share_sheet_copy_to_clipboard': Opener(
     (context, _, _) => showShareSheet(context, 'First Song'),
+  ),
+  'support_sheet_telegram': Opener(
+    (context, _, _) => showSupportSheet(context),
   ),
 };

@@ -64,3 +64,4 @@ midi_import_flow_import_midi
 note_editor_sheet
 arrangement_sheet
 share_sheet_copy_to_clipboard
+support_sheet_telegram
