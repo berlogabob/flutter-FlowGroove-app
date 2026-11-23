@@ -3,6 +3,7 @@ import '../helpers/mocks.dart';
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/event_kit.dart';
+import 'package:flowgroove/models/instrument.dart';
 import 'package:flowgroove/models/midi_song.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/song.dart';
@@ -46,6 +47,7 @@ import 'package:flowgroove/widgets/support_sheet.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
 import 'package:flowgroove/widgets/tools/tool_mode_switcher.dart';
 import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
+import 'package:flowgroove/widgets/tuner/stage_mode_overlay.dart';
 import 'package:flowgroove/widgets/unified_item/setlist_card_actions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1206,6 +1208,15 @@ final kOpeners = <String, Opener>{
         .onPressed!(),
     route: '/main/songs',
   ),
+  'tuner_stage': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (_) => ProviderScope(
+        overrides: [tunerProvider.overrideWith(_StageTuner.new)],
+        child: const StageModeOverlay(child: SizedBox.expand()),
+      ),
+    ),
+  ),
   'tuner_tone': Opener((context, tester, _) {
     tester
         .widget<ToolModeSwitcher<TunerMode>>(
@@ -1365,3 +1376,25 @@ final kOpeners = <String, Opener>{
     (context, _, _) => showSupportSheet(context),
   ),
 };
+
+class _StageTuner extends TunerNotifier {
+  @override
+  TunerState build() => const TunerState(
+    note: 'C4',
+    frequency: 262,
+    cents: 4,
+    isListening: true,
+    stageModeActive: true,
+    selectedInstrument: Instrument(
+      id: 'guitar',
+      name: 'Guitar',
+      subtitle: '',
+      origin: '',
+      icon: '',
+      stringCount: 6,
+      stringLabels: [],
+      tunings: [],
+    ),
+    selectedTuning: Tuning(id: 'standard', name: 'Standard', notes: []),
+  );
+}
