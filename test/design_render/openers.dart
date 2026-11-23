@@ -119,6 +119,22 @@ final kOpeners = <String, Opener>{
       songTitle: 'Wonderwall',
     ),
   ),
+  'api_access_revoke_key': Opener(
+    (context, _, _) => showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.delete_outline),
+        title: const Text('Revoke key'),
+        content: const Text(
+          'Revoke sk_7f3a…? Any AI using it loses access.',
+        ),
+        actions: [
+          TextButton(onPressed: () {}, child: const Text('Cancel')),
+          TextButton(onPressed: () {}, child: const Text('Revoke')),
+        ],
+      ),
+    ),
+  ),
   'song_form_provider_similar_song_exists': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,
