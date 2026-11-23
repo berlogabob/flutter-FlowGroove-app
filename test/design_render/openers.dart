@@ -1,4 +1,5 @@
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
+import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
@@ -438,6 +439,18 @@ final kOpeners = <String, Opener>{
       context: context,
       isScrollControlled: true,
       builder: (_) => const LabRecordingSheet(),
+    ),
+  ),
+  'app_menu_sheet_sheet_l53': Opener(
+    (context, _, _) => showAppMenuSheet(
+      context,
+      title: 'More',
+      items: const [
+        AppMenuItem(icon: Icons.av_timer, label: 'Metronome'),
+        AppMenuItem(icon: Icons.tune, label: 'Tuner'),
+        AppMenuItem(icon: Icons.mic_outlined, label: 'Recorder'),
+      ],
+      showProfileRow: true,
     ),
   ),
 };
