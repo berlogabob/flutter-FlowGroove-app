@@ -5,6 +5,7 @@ import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/metronome/bpm_input_overlay.dart';
 import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
+import 'package:flowgroove/widgets/metronome/metronome_sheets.dart';
 import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
@@ -476,5 +477,8 @@ final kOpeners = <String, Opener>{
   ),
   'bpm_input_overlay_sheet_l15': Opener(
     (context, _, _) => showTempoInputSheet(context),
+  ),
+  'metronome_sheets_sheet_l14': Opener(
+    (context, _, _) => showSoundSheet(context),
   ),
 };
