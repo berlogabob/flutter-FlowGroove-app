@@ -9,6 +9,7 @@ event_kit_editor_dialog_l103
 event_share_sheet_l106
 grid_editor_dialog_tempo_grid
 login
+metronome_sheets_sheet_l14
 midi_import_flow_import_midi
 notes_panel_note_at_n
 performance_sheet_you_already_have_a_song_map
@@ -19,6 +20,9 @@ profile_delete_account
 profile_link_telegram
 rehearsal_detail_suggest_a_different_time
 song_card_actions_sheet_l209
+song_export_dialog
 song_form_provider_similar_song_exists
+song_import_dialog
+songs_list_importing_songs
 suggestion_selection_dialog
 the_band_edit_description

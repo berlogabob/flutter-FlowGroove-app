@@ -37,6 +37,8 @@ const Map<Type, String> kRenderKinds = {
   AppBar: 'appbar',
   Divider: 'divider',
   AlertDialog: 'dialog',
+  Dialog: 'dialog',
+  SimpleDialog: 'dialog',
 };
 
 String? _kind(Widget widget) =>

@@ -40,6 +40,11 @@ void main() {
     expect(values(dump, 'kinds', 'kind'), ['button', 'chip']);
   });
 
+  testWidgets('plain Dialog counts as a dialog kind', (tester) async {
+    await pump(tester, const Dialog(child: Text('D')));
+    expect(values(dumpTree(tester), 'kinds', 'kind'), ['dialog']);
+  });
+
   testWidgets('does not capture icon glyphs as text', (tester) async {
     await pump(tester, const Row(children: [Icon(Icons.add), Text('B')]));
     expect(values(dumpTree(tester), 'texts', 'v'), ['B']);

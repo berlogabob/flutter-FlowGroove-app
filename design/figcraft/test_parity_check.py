@@ -63,6 +63,11 @@ class ParityCheckTests(unittest.TestCase):
         self.assertFalse(result["pass"])
         self.assertTrue(result["weak"])
 
+    def test_spec_switchrow_matches_code_switch(self):
+        flat = {"texts": ["A", "B"], "kinds": ["switchrow"]}
+        dump = {"texts": [{"v": "A"}, {"v": "B"}], "kinds": [{"kind": "switch"}]}
+        self.assertTrue(compare(flat, dump, {"A", "B"})["pass"])
+
     def test_compare_identical(self):
         spec = {"texts": [{"v": "All"}, {"v": "Edit"}], "kinds": []}
         dump = {"texts": [{"v": "All"}, {"v": "Edit"}], "kinds": []}

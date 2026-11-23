@@ -32,6 +32,7 @@ def static(texts: list[str], literals: set[str]) -> list[str]:
 
 
 MIN_LABELS = 2
+KIND_ALIASES = {"switchrow": "switch"}
 
 
 def compare(spec_flat: dict, dump: dict, literals: set[str]) -> dict:
@@ -50,7 +51,9 @@ def compare(spec_flat: dict, dump: dict, literals: set[str]) -> dict:
 
     def kind_set(items):
         # flatten() yields strings, tree dumps yield {"kind": ...}.
-        return {item if isinstance(item, str) else item.get("kind") for item in items} - {None, ""}
+        kinds = {item if isinstance(item, str) else item.get("kind") for item in items} - {None, ""}
+        # A spec switchrow is a Switch in a row in code (private _SwitchRow widgets): same kind.
+        return {KIND_ALIASES.get(kind, kind) for kind in kinds}
 
     spec_kinds = kind_set(spec_flat.get("kinds", []))
     dump_kinds = kind_set(dump.get("kinds", []))
