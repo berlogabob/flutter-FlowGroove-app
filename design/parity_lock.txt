@@ -71,6 +71,10 @@ song_lab
 song_lab_sheet_l144
 song_lab_sheet_l664
 song_library_block_sheet_l85
+song_map_section
+song_map_section_light
+song_map_song
+song_map_song_light
 songs_list
 songs_list_filter_options
 songs_list_importing_songs

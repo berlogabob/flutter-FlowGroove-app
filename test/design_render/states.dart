@@ -17,7 +17,31 @@ late ThemeMode stateTheme;
 const _regions = [
   AudioRegion(id: 'a', name: 'Intro', startMs: 0, endMs: 12706),
   AudioRegion(id: 'b', name: 'Part B 1', startMs: 12706, endMs: 24000),
-  AudioRegion(id: 'c', name: 'Chorus 1', startMs: 24000, endMs: 40941),
+  // Chorus 1 has three 4-bar parts (a b c), as in the frames.
+  AudioRegion(
+    id: 'c',
+    name: 'Chorus 1',
+    startMs: 24000,
+    endMs: 29647,
+    sectionId: 'c',
+    section: 'Chorus 1',
+  ),
+  AudioRegion(
+    id: 'c2',
+    name: 'Chorus 1',
+    startMs: 29647,
+    endMs: 35294,
+    sectionId: 'c',
+    section: 'Chorus 1',
+  ),
+  AudioRegion(
+    id: 'c3',
+    name: 'Chorus 1',
+    startMs: 35294,
+    endMs: 40941,
+    sectionId: 'c',
+    section: 'Chorus 1',
+  ),
   AudioRegion(id: 'd', name: 'Part D 1', startMs: 40941, endMs: 63529),
   AudioRegion(id: 'e', name: 'Part E 1', startMs: 63529, endMs: 74824),
   AudioRegion(id: 'f', name: 'Bridge 1', startMs: 74824, endMs: 91765),
@@ -146,8 +170,9 @@ Future<void> _songMapTempo(WidgetTester tester) async {
 }
 
 Future<void> _songMapTempoSheet(WidgetTester tester) async {
-  await _songMapTempo(tester);
-  await tester.tap(find.byKey(const ValueKey('tempo-other')));
+  // A saved map: the app-bar tempo chip opens the sheet.
+  await _pumpPractice(tester);
+  await tester.tap(find.byKey(const ValueKey('tempo-chip')));
   await tester.pumpAndSettle();
   expect(find.text('Tempo'), findsOneWidget);
 }

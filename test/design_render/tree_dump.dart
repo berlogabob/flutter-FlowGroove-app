@@ -112,7 +112,10 @@ Map<String, Object?> dumpTree(WidgetTester tester) {
     if (kind != null && !offscreen) {
       var nested = false;
       element.visitAncestorElements((ancestor) {
-        if (_kind(ancestor.widget) == kind) nested = true;
+        final outer = _kind(ancestor.widget);
+        // SwitchListTile builds a ListTile: one switchrow, not also a tile.
+        if (outer == kind || (kind == 'tile' && outer == 'switchrow'))
+          nested = true;
         return !nested;
       });
       if (!nested)
