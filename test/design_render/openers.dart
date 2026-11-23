@@ -605,6 +605,84 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'event_share': Opener((context, tester, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [
+            eventShareServiceProvider.overrideWithValue(
+              EventShareService(
+                invoker: (_, _) async => {
+                  'setlistId': 'setlist1',
+                  'name': 'Summer Garden Party',
+                  'eventDateTime': '2027-06-12T19:00:00',
+                  'eventLocation': 'The Garden House, Lisbon',
+                  'description': 'An evening of live music in the garden.',
+                  'viewer': {
+                    'name': 'Test User',
+                    'canSuggest': true,
+                    'access': {
+                      'eventInfo': 'view',
+                      'runningOrder': 'view',
+                      'songDetail': 'view',
+                      'stage': 'view',
+                      'rider': 'view',
+                    },
+                  },
+                  'people': [
+                    {'name': 'Maya Santos', 'role': 'vocalist'},
+                    {'name': 'Daniel Costa', 'role': 'guitarist'},
+                  ],
+                  'items': [
+                    {'id': 'item1', 'songId': 'song1'},
+                    {'id': 'item2', 'songId': 'song2'},
+                    {'id': 'break1', 'type': 'break'},
+                    {'id': 'item3', 'songId': 'song3'},
+                  ],
+                  'songs': [
+                    {
+                      'id': 'song1',
+                      'title': 'Valerie',
+                      'artist': 'Amy Winehouse',
+                      'ourKey': 'Eb',
+                      'ourBPM': 106,
+                    },
+                    {
+                      'id': 'song2',
+                      'title': 'Wonderwall',
+                      'artist': 'Oasis',
+                      'ourKey': 'F#m',
+                      'ourBPM': 87,
+                    },
+                    {
+                      'id': 'song3',
+                      'title': 'Seven Nation Army',
+                      'artist': 'The White Stripes',
+                      'ourKey': 'Em',
+                      'ourBPM': 124,
+                    },
+                  ],
+                  'stage': {
+                    'Front': [
+                      {'label': 'Vocals'},
+                      {'label': 'Guitar'},
+                    ],
+                  },
+                  'rider': [
+                    {'label': 'Vocal microphone', 'qty': 2},
+                  ],
+                  'mySuggestions': [
+                    {'text': 'Could you play an encore?', 'status': 'open'},
+                  ],
+                },
+              ),
+            ),
+          ],
+          child: const EventShareScreen(),
+        ),
+      ),
+    );
+  }),
   'event_share_sheet_l106': Opener((context, tester, _) {
     showDialog<void>(
       context: context,
