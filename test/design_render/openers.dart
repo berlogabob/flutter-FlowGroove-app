@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
+import 'package:file_picker/src/platform/file_picker_platform_interface.dart';
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/event_kit.dart';
@@ -17,32 +20,32 @@ import 'package:flowgroove/providers/data/midi_song_provider.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/screens/bands/create_band_screen.dart';
-import 'package:flowgroove/screens/bands/the_band_screen.dart';
 import 'package:flowgroove/screens/bands/rehearsals/rehearsal_detail_screen.dart';
+import 'package:flowgroove/screens/bands/the_band_screen.dart';
 import 'package:flowgroove/screens/home_screen.dart';
-import 'package:flowgroove/screens/profile_screen.dart';
-import 'package:flowgroove/screens/recorder_screen.dart';
-import 'package:flowgroove/screens/settings/api_access_screen.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
 import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
 import 'package:flowgroove/screens/practice_regions/slice_edit_sheet.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_letters.dart';
-import 'package:flowgroove/screens/practice_setup_wizard.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
+import 'package:flowgroove/screens/practice_setup_wizard.dart';
+import 'package:flowgroove/screens/profile_screen.dart';
+import 'package:flowgroove/screens/recorder_screen.dart';
 import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flowgroove/screens/setlists/event_share_screen.dart';
 import 'package:flowgroove/screens/setlists/performer_sheet.dart';
+import 'package:flowgroove/screens/settings/api_access_screen.dart';
+import 'package:flowgroove/screens/songs/add_song_screen.dart';
 import 'package:flowgroove/screens/songs/components/csv_import_export/song_export_dialog.dart';
 import 'package:flowgroove/screens/songs/components/csv_import_export/song_import_dialog.dart';
 import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
 import 'package:flowgroove/screens/songs/components/lab_recording_sheet.dart';
 import 'package:flowgroove/screens/songs/components/links_editor.dart';
-import 'package:flowgroove/screens/songs/components/song_form.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/widgets/edit_section_dialog.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/widgets/section_picker.dart';
-import 'package:flowgroove/screens/songs/add_song_screen.dart';
-import 'package:flowgroove/screens/songs/song_editor_screen.dart';
+import 'package:flowgroove/screens/songs/components/song_form.dart';
 import 'package:flowgroove/screens/songs/models/song_form_data.dart';
+import 'package:flowgroove/screens/songs/song_editor_screen.dart';
 import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flowgroove/services/export/setlist_export_sheet.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
@@ -50,7 +53,6 @@ import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
-import 'package:flowgroove/widgets/primary_action_bar.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/metronome/bpm_input_overlay.dart';
 import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
@@ -59,14 +61,15 @@ import 'package:flowgroove/widgets/metronome/reliability_sheet.dart';
 import 'package:flowgroove/widgets/midi/arrangement_sheet.dart';
 import 'package:flowgroove/widgets/midi/midi_song_panel.dart';
 import 'package:flowgroove/widgets/practice/note_editor_sheet.dart';
+import 'package:flowgroove/widgets/primary_action_bar.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/share_sheet.dart';
 import 'package:flowgroove/widgets/standard_screen_scaffold.dart';
 import 'package:flowgroove/widgets/suggestion_selection_dialog.dart';
 import 'package:flowgroove/widgets/support_sheet.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
-import 'package:flowgroove/widgets/tools/tool_mode_switcher.dart';
 import 'package:flowgroove/widgets/tool_button.dart';
+import 'package:flowgroove/widgets/tools/tool_mode_switcher.dart';
 import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
 import 'package:flowgroove/widgets/tuner/instrument_picker.dart';
 import 'package:flowgroove/widgets/tuner/settings_sheet.dart';
@@ -1544,21 +1547,23 @@ final kOpeners = <String, Opener>{
         )
         .onTap!();
   }, route: '/main/metronome'),
-  'midi_import_flow_import_midi': Opener(
-    (context, _, _) => showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Import MIDI'),
-        content: const Text('Not a valid MIDI file'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('OK'),
-          ),
-        ],
+  'midi_import_flow_import_midi': Opener((_, _, _) {
+    // Real pickAndImportMidi: the picker returns a file that is not MIDI, so
+    // the flow shows its own 'Import MIDI' failure dialog.
+    final previous = FilePickerPlatform.instance;
+    FilePickerPlatform.instance = _RenderFilePicker(
+      'notes.txt',
+      'not a midi file'.codeUnits,
+    );
+    addTearDown(() => FilePickerPlatform.instance = previous);
+    tapWhenBuilt(
+      find.ancestor(
+        of: find.text('Import MIDI'),
+        matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
       ),
-    ),
-  ),
+      (element) => (element.widget as ButtonStyleButton).onPressed!(),
+    );
+  }, route: '/main/songs/song1/lab'),
   'note_editor_sheet': Opener(
     (context, _, _) => showModalBottomSheet<void>(
       context: context,
@@ -1733,4 +1738,35 @@ class _PickerTuner extends TunerNotifier {
 
   @override
   Future<void> stopAll() async {}
+}
+
+/// Picker that "picks" one in-memory file.
+class _RenderFilePicker extends FilePickerPlatform {
+  _RenderFilePicker(this.name, this.bytes);
+
+  final String name;
+  final List<int> bytes;
+
+  @override
+  Future<FilePickerResult?> pickFiles({
+    String? dialogTitle,
+    String? initialDirectory,
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    Function(FilePickerStatus)? onFileLoading,
+    int compressionQuality = 0,
+    bool allowMultiple = false,
+    bool withData = false,
+    bool withReadStream = false,
+    bool lockParentWindow = false,
+    bool readSequential = false,
+    bool cancelUploadOnWindowBlur = true,
+    AndroidSAFOptions? androidSafOptions,
+  }) async => FilePickerResult([
+    PlatformFile(
+      name: name,
+      size: bytes.length,
+      bytes: Uint8List.fromList(bytes),
+    ),
+  ]);
 }
