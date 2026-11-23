@@ -10,8 +10,10 @@ import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/midi_song_provider.dart';
+import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
@@ -59,8 +61,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:mockito/mockito.dart';
 
 import '../helpers/mocks.dart';
+import '../helpers/mocks.mocks.dart';
 import 'fixtures.dart';
 
 /// How to show a spec that has no route of its own (sheet, dialog, picker).
@@ -542,63 +546,85 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
-  'event_kit_editor_dialog_l103': Opener(
-    (context, _, _) => showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Share links inventory'),
-        content: SizedBox(
-          width: 480,
-          height: MediaQuery.sizeOf(context).height * .55,
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  children: [
-                    for (final share in [
+  'event_kit_editor_dialog_l103': Opener((context, _, _) {
+    final user = MockUser();
+    when(user.uid).thenReturn('test-user-id');
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWithValue(AsyncData(user)),
+            canEditBandProvider('band1').overrideWith((ref) => true),
+            eventShareServiceProvider.overrideWithValue(
+              EventShareService(
+                invoker: (_, _) async => {
+                  'shares': [
+                    for (final (id, name, role, access, date) in [
                       (
-                        'Jordan Rivera',
-                        'venue · stage: view, rider: view · active · 2024-05-12',
+                        'share1',
+                        'Test User',
+                        'venue',
+                        {'stage': 'view', 'rider': 'view'},
+                        '2024-05-12T00:00:00.000Z',
                       ),
                       (
-                        'Sam Chen',
-                        'sound_engineer · stage: edit · active · 2024-05-11',
+                        'share2',
+                        'Test Member Two',
+                        'sound_engineer',
+                        {'stage': 'edit'},
+                        '2024-05-11T00:00:00.000Z',
                       ),
                       (
-                        'Riley Park',
-                        'client · setlist: view · active · 2024-05-10',
+                        'share3',
+                        'Test Member Three',
+                        'client',
+                        {'runningOrder': 'view'},
+                        '2024-05-10T00:00:00.000Z',
                       ),
                     ])
-                      ListTile(
-                        title: Text(share.$1),
-                        subtitle: Text(share.$2),
-                        trailing: IconButton(
-                          tooltip: 'Revoke ${share.$1}',
-                          icon: const Icon(Icons.link_off),
-                          onPressed: () {},
-                        ),
-                      ),
-                    Align(
-                      child: TextButton(
-                        onPressed: () {},
-                        child: const Text('Load more'),
-                      ),
-                    ),
+                      {
+                        'tokenId': id,
+                        'participantId': id,
+                        'name': name,
+                        'role': role,
+                        'access': access,
+                        'state': 'active',
+                        'createdAt': date,
+                        'expiresAt': null,
+                      },
                   ],
-                ),
+                  'hasMore': true,
+                  'nextCursor': 'share3',
+                },
               ),
-            ],
+            ),
+          ],
+          child: EventKitEditorScreen(
+            setlist: MockDataHelper.createMockSetlist(
+              id: 'setlist1',
+              bandId: 'band1',
+              name: 'Gig Setlist',
+            ),
+            bandId: 'band1',
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
       ),
-    ),
-  ),
+    );
+    tapWhenBuilt(
+      find.widgetWithText(
+        ActionChip,
+        'Share links inventory',
+        skipOffstage: false,
+      ),
+      (element) {
+        expect(
+          find.byType(EventKitEditorScreen, skipOffstage: false),
+          findsOneWidget,
+        );
+        (element.widget as ActionChip).onPressed!();
+      },
+    );
+  }),
   'event_share': Opener((context, tester, _) {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
