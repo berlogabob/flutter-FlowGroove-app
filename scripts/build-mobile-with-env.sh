@@ -75,7 +75,9 @@ echo "   $SOURCE_LABEL"
 # when it actually regenerates; deleting forces that.
 rm -f android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 
-build_cmd=(flutter build "$TARGET" --release)
+# FLUTTER_BUILD_ARGS: extra flags, e.g. "--split-per-abi --target-platform android-arm64" for a small phone APK.
+# shellcheck disable=SC2206
+build_cmd=(flutter build "$TARGET" --release ${FLUTTER_BUILD_ARGS:-})
 
 add_define() {
     local key="$1"
@@ -109,6 +111,8 @@ done
 if [ "$TARGET" = "apk" ]; then
     EXPECTED_APK_CERT_SHA256="${EXPECTED_APK_CERT_SHA256:-4ef0bb90641050755a0659a6a70f819e2787549ff6746c7703c6ae92ed0785de}"
     APK_PATH="$PROJECT_ROOT/build/app/outputs/flutter-apk/app-release.apk"
+    # --split-per-abi writes app-<abi>-release.apk instead.
+    [ -f "$APK_PATH" ] && [ -z "${FLUTTER_BUILD_ARGS:-}" ] || APK_PATH="$(ls -t "$PROJECT_ROOT"/build/app/outputs/flutter-apk/app-*release.apk | head -1)"
     # `|| true`: find returns non-zero on any missing search dir, which under
     # `set -euo pipefail` would abort the script before we check anything.
     APKSIGNER="$(find "${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}" "$HOME/Android/Sdk" -name apksigner 2>/dev/null | sort | tail -1 || true)"

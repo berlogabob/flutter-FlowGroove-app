@@ -54,6 +54,14 @@ android {
         }
     }
 
+    // Test builds shared by hand must stay under 30 MB: FG_COMPRESS_NATIVE_LIBS=1 stores
+    // the .so files compressed (smaller APK, slightly larger install). Store builds leave it off.
+    packaging {
+        jniLibs {
+            useLegacyPackaging = System.getenv("FG_COMPRESS_NATIVE_LIBS") == "1"
+        }
+    }
+
     buildTypes {
         release {
             signingConfig = if (hasReleaseSigning) {
