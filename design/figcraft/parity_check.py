@@ -31,6 +31,9 @@ def static(texts: list[str], literals: set[str]) -> list[str]:
     return [text for text in texts if text in literals]
 
 
+MIN_LABELS = 2
+
+
 def compare(spec_flat: dict, dump: dict, literals: set[str]) -> dict:
     """Compare flattened spec labels and kinds with a rendered dump."""
     def labels(items):
@@ -45,12 +48,14 @@ def compare(spec_flat: dict, dump: dict, literals: set[str]) -> dict:
     missing = sorted(spec_set - dump_set)
     extra = [] if "modal" in spec_flat else sorted(dump_set - spec_set)
 
-    spec_kinds = {item.get("kind") for item in spec_flat.get("kinds", [])
-                  if item.get("kind")}
-    dump_kinds = {item.get("kind") for item in dump.get("kinds", [])
-                  if item.get("kind")}
+    def kind_set(items):
+        # flatten() yields strings, tree dumps yield {"kind": ...}.
+        return {item if isinstance(item, str) else item.get("kind") for item in items} - {None, ""}
+
+    spec_kinds = kind_set(spec_flat.get("kinds", []))
+    dump_kinds = kind_set(dump.get("kinds", []))
     kinds_missing = sorted(spec_kinds - dump_kinds)
-    kinds_extra = sorted(dump_kinds - spec_kinds)
+    kinds_extra = [] if "modal" in spec_flat else sorted(dump_kinds - spec_kinds)
 
     common = spec_set & dump_set
     spec_order = list(dict.fromkeys(label for label in spec_labels if label in common))
@@ -65,9 +70,12 @@ def compare(spec_flat: dict, dump: dict, literals: set[str]) -> dict:
         previous = current
     order = previous[-1] / len(common) if common else 1.0
 
-    passed = not (missing or extra or kinds_missing or kinds_extra) and order == 1.0
+    # Fewer than 2 shared static labels proves nothing about the screen: never a pass, never locked.
+    weak = len(common) < MIN_LABELS
+    passed = not (missing or extra or kinds_missing or kinds_extra) and order == 1.0 and not weak
     return {
         "pass": passed,
+        "weak": weak,
         "missing": missing,
         "extra": extra,
         "kinds_missing": kinds_missing,

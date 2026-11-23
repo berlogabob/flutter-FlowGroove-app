@@ -98,4 +98,7 @@ def flatten(spec: dict, icons: set[str]) -> dict:
         else:
             visit(overlay)
 
-    return {"texts": texts, "kinds": kinds}
+    flat = {"texts": texts, "kinds": kinds}
+    if spec.get("modal"):
+        flat["modal"] = spec["modal"]  # parity ignores the backdrop's extras (F94)
+    return flat

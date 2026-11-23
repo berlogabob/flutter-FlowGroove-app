@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from design.figcraft.parity_check import compare, lib_literals, static
+from design.figcraft.spec_tree import flatten
 
 
 class ParityCheckTests(unittest.TestCase):
@@ -18,13 +19,13 @@ class ParityCheckTests(unittest.TestCase):
             (root / "design/render_keys.txt").write_text("screen\n", encoding="utf-8")
             (root / "design/parity_lock.txt").write_text(lock_key + "\n", encoding="utf-8")
             (root / "design/figcraft/specs/screen.json").write_text(
-                json.dumps({"top": [{"t": "text", "v": "Expected"}]}),
+                json.dumps({"top": [{"t": "text", "v": "Expected"}, {"t": "text", "v": "Second"}]}),
                 encoding="utf-8",
             )
             (root / "design/render/screen@dark-412-1.00.json").write_text(
-                json.dumps({"texts": [rendered_text], "kinds": []}), encoding="utf-8"
+                json.dumps({"texts": [rendered_text, "Second"], "kinds": []}), encoding="utf-8"
             )
-            (root / "lib/labels.dart").write_text("const label = 'Expected';", encoding="utf-8")
+            (root / "lib/labels.dart").write_text("const label = 'Expected'; const second = 'Second';", encoding="utf-8")
             script = Path(__file__).with_name("parity_check.py")
             return subprocess.run(
                 [sys.executable, str(script)], cwd=root, text=True,
@@ -44,18 +45,36 @@ class ParityCheckTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("parity: 1 rendered, 1 pass, 1 locked, 0 locked failing", result.stdout)
 
+    def test_real_flatten_output_and_modal_spec(self):
+        # flatten() returns kinds as strings; a modal spec must keep its flag (F94).
+        spec = {"modal": "dialog", "body": [{"t": "dialog", "title": "Save trim?", "c": [{"t": "button", "v": "Trim"}]}]}
+        flat = flatten(spec, set())
+        dump = {"texts": [{"v": "Home"}, {"v": "Save trim?"}, {"v": "Trim"}],
+                "kinds": [{"kind": "dialog"}, {"kind": "button"}, {"kind": "card"}]}
+        result = compare(flat, dump, {"Home", "Save trim?", "Trim"})
+        self.assertEqual(result["missing"], [])
+        self.assertEqual(result["extra"], [])
+        self.assertEqual(result["kinds_missing"], [])
+
+    def test_fewer_than_two_shared_labels_is_not_a_pass(self):
+        flat = {"texts": ["Only"], "kinds": []}
+        dump = {"texts": [{"v": "Only"}], "kinds": []}
+        result = compare(flat, dump, {"Only"})
+        self.assertFalse(result["pass"])
+        self.assertTrue(result["weak"])
+
     def test_compare_identical(self):
         spec = {"texts": [{"v": "All"}, {"v": "Edit"}], "kinds": []}
         dump = {"texts": [{"v": "All"}, {"v": "Edit"}], "kinds": []}
         self.assertEqual(compare(spec, dump, {"All", "Edit"}), {
-            "pass": True, "missing": [], "extra": [],
+            "pass": True, "weak": False, "missing": [], "extra": [],
             "kinds_missing": [], "kinds_extra": [], "order": 1.0,
         })
 
     def test_modal_ignores_extra_backdrop_labels(self):
-        spec = {"modal": "dialog", "texts": [{"v": "Edit"}], "kinds": []}
-        dump = {"texts": [{"v": "Back"}, {"v": "Edit"}], "kinds": []}
-        self.assertTrue(compare(spec, dump, {"Back", "Edit"})["pass"])
+        spec = {"modal": "dialog", "texts": [{"v": "Edit"}, {"v": "Save"}], "kinds": []}
+        dump = {"texts": [{"v": "Back"}, {"v": "Edit"}, {"v": "Save"}], "kinds": []}
+        self.assertTrue(compare(spec, dump, {"Back", "Edit", "Save"})["pass"])
 
     def test_compare_reports_missing_extra_order_and_kind_differences(self):
         spec = {"texts": [{"v": "All"}, {"v": "Edit"}],
