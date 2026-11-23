@@ -59,3 +59,4 @@ drum_practice_panel
 bpm_input_overlay_sheet_l15
 drum_grid_editor
 metronome_sheets_sheet_l14
+reliability_sheet_keep_timing_reliable

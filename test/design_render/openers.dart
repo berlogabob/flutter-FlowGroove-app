@@ -6,6 +6,7 @@ import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/metronome/bpm_input_overlay.dart';
 import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
 import 'package:flowgroove/widgets/metronome/metronome_sheets.dart';
+import 'package:flowgroove/widgets/metronome/reliability_sheet.dart';
 import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
@@ -480,5 +481,8 @@ final kOpeners = <String, Opener>{
   ),
   'metronome_sheets_sheet_l14': Opener(
     (context, _, _) => showSoundSheet(context),
+  ),
+  'reliability_sheet_keep_timing_reliable': Opener(
+    (context, _, _) => showReliabilitySheet(context),
   ),
 };
