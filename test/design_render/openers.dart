@@ -477,6 +477,63 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'event_kit_editor_dialog_l103': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Share links inventory'),
+        content: SizedBox(
+          width: 480,
+          height: MediaQuery.sizeOf(context).height * .55,
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final share in [
+                      (
+                        'Jordan Rivera',
+                        'venue · stage: view, rider: view · active · 2024-05-12',
+                      ),
+                      (
+                        'Sam Chen',
+                        'sound_engineer · stage: edit · active · 2024-05-11',
+                      ),
+                      (
+                        'Riley Park',
+                        'client · setlist: view · active · 2024-05-10',
+                      ),
+                    ])
+                      ListTile(
+                        title: Text(share.$1),
+                        subtitle: Text(share.$2),
+                        trailing: IconButton(
+                          tooltip: 'Revoke ${share.$1}',
+                          icon: const Icon(Icons.link_off),
+                          onPressed: () {},
+                        ),
+                      ),
+                    Align(
+                      child: TextButton(
+                        onPressed: () {},
+                        child: const Text('Load more'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    ),
+  ),
   'song_map_part': Opener(
     (context, _, _) => showSectionNameSheet(
       context,
