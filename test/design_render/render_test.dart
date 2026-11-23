@@ -122,7 +122,7 @@ void main() {
     ) as Map<String, dynamic>;
     final route = spec['route'] as String?;
     final state = kStates[key];
-    final opener = route == null && state == null ? kOpeners[key] : null;
+    final opener = state == null ? kOpeners[key] : null;
     final mode = spec['mode'] as String? ?? 'dark';
     for (final theme in matrix ? ['light', 'dark'] : [mode]) {
       for (final width
@@ -162,8 +162,8 @@ void main() {
                 }
                 final router = await pumpRoutedTestApp(
                   tester,
-                  initialLocation: fillRoute(route ?? opener!.route),
-                  overrides: renderOverrides(),
+                  initialLocation: fillRoute(opener?.route ?? route!),
+                  overrides: renderOverrides(key: key),
                   themeMode: theme == 'light'
                       ? ThemeMode.light
                       : ThemeMode.dark,
@@ -185,6 +185,10 @@ void main() {
                     await tester.pump();
                   }
                   await pumpRender(tester, key);
+                  if (opener.then != null) {
+                    await opener.then!(tester);
+                    await pumpRender(tester, key);
+                  }
                 }
               }
               final output = Platform.environment['RENDER_OUT'];

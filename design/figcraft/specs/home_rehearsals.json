@@ -7,7 +7,6 @@
   "body": [
     {"t": "sheet", "gap": 4, "c": [
       {"t": "tile", "lead": "event", "title": "Rehearsals — choose a band", "sub": "Rehearsals are per band — choose one to see its schedule."},
-      {"t": "divider"},
       {"t": "tile", "lead": "event", "title": "FlowGroove", "trail": "chevron_right"},
       {"t": "tile", "lead": "event", "title": "The Neon Skyline", "trail": "chevron_right"},
       {"t": "tile", "lead": "event", "title": "Midnight Canvas", "trail": "chevron_right"},

@@ -50,7 +50,6 @@ import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flowgroove/services/export/setlist_export_sheet.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
-import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
@@ -93,7 +92,15 @@ import 'fixtures.dart';
 /// real trigger) after the backdrop has settled. Do not await the returned
 /// Future of a show helper: it completes only when the modal closes.
 class Opener {
-  const Opener(this.open, {this.route = '/main/home', this.realAsync = false});
+  const Opener(
+    this.open, {
+    this.route = '/main/home',
+    this.realAsync = false,
+    this.then,
+  });
+
+  /// Real taps and typing after [open] and the first settle (awaited).
+  final Future<void> Function(WidgetTester tester)? then;
 
   final String route;
 
@@ -136,6 +143,68 @@ BuildContext hostContext(WidgetTester tester) =>
     tester.element(find.byType(Scaffold).last);
 
 final kOpeners = <String, Opener>{
+  'forgot_password': Opener(
+    (_, _, _) {},
+    route: '/login',
+    then: (tester) async {
+      // The app pushes this screen from the login form, so it has a back arrow.
+      final forgot = find.widgetWithText(TextButton, 'Forgot Password?');
+      await tester.ensureVisible(forgot);
+      await tester.tap(forgot);
+      await tester.pumpAndSettle();
+    },
+  ),
+  'rehearsal_edit': Opener(
+    (_, _, _) {},
+    route: '/main/bands/band1/rehearsals/reh1',
+    then: (tester) async {
+      // Detail screen -> its real 'Edit details' button.
+      final edit = find.widgetWithText(TextButton, 'Edit details');
+      await tester.ensureVisible(edit);
+      await tester.tap(edit);
+      await tester.pumpAndSettle();
+    },
+  ),
+  'join_band': Opener(
+    (_, _, _) {},
+    route: '/main/join-band',
+    then: (tester) async {
+      await tester.runAsync(setupRenderBandInvite);
+      await tester.enterText(find.byType(TextField), 'abc123');
+      await tester.tap(find.text('Find Band'));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pumpAndSettle();
+    },
+  ),
+  'create_setlist': Opener(
+    (_, _, _) {},
+    route: '/main/setlists/create',
+    then: (tester) async {
+      await tester.enterText(find.byType(TextField).first, 'Friday Night');
+      await tester.tap(find.widgetWithText(TextButton, 'Add'));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pumpAndSettle();
+      for (final title in ['Wonderwall', 'Seven Nation Army', 'Valerie']) {
+        await tester.tap(find.text(title));
+      }
+      await tester.pump();
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+    },
+  ),
+  'canonical_browse': Opener(
+    (_, _, _) {},
+    route: '/main/songs/catalog',
+    then: (tester) async {
+      await tester.enterText(find.byType(TextField), 'love');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+    },
+  ),
   'confirmation_dialog': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,
@@ -150,9 +219,18 @@ final kOpeners = <String, Opener>{
     ),
   ),
   'role_picker_dialog': Opener(
-    (context, _, _) => showRolePicker(context: context, currentRoles: const []),
+    (context, _, _) => showRolePicker(
+      context: context,
+      currentRoles: const ['guitarist', 'drummer', 'Bass Player'],
+    ),
   ),
-  'tag_input_dialog': Opener((context, _, _) => TagInputDialog.show(context)),
+  'tag_input_dialog': Opener(
+    (context, _, _) => TagInputDialog.show(
+      context,
+      initialTags: const ['setlist', 'crowd-pleaser', 'working-title'],
+      suggestions: const ['live', 'studio', 'cover', 'soundcheck'],
+    ),
+  ),
   'song_form_provider_similar_song_exists': Opener((context, _, _) {
     final user = MockUser();
     when(user.uid).thenReturn('user1');
@@ -366,30 +444,17 @@ final kOpeners = <String, Opener>{
       },
     );
   }),
-  'home_rehearsals': Opener((context, _, _) {
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ProviderScope(
-          overrides: [bandsProvider.overrideWith((ref) => Stream.value([]))],
-          child: const HomeScreen(),
+  'home_rehearsals': Opener(
+    (_, _, _) {},
+    then: (tester) async {
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is ToolButton && widget.label == 'Rehearsals',
         ),
-      ),
-    );
-    tapWhenBuilt(
-      find
-          .byWidgetPredicate(
-            (widget) => widget is ToolButton && widget.label == 'Rehearsals',
-            skipOffstage: false,
-          )
-          .last,
-      (element) {
-        (element.widget as ToolButton).onTap!();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          expect(find.text('Create a band'), findsOneWidget);
-        });
-      },
-    );
-  }),
+      );
+      await tester.pumpAndSettle();
+    },
+  ),
   'metronome_launchpad': Opener((_, _, router) => router.go('/main/metronome')),
   'backing_sheet': Opener(
     (context, _, _) => showModalBottomSheet<void>(
@@ -861,11 +926,18 @@ final kOpeners = <String, Opener>{
         people: [EventPerson(id: 'guest1', name: 'Test User', role: '')],
       ),
       members: [
-        BandMember(
-          uid: 'user1',
-          role: BandMember.roleAdmin,
-          displayName: 'Test User',
-        ),
+        for (final (i, name) in [
+          'Max Rivera',
+          'Jordan Lee',
+          'Sam Okafor',
+          'Priya Nair',
+          'Diego Ferrer',
+        ].indexed)
+          BandMember(
+            uid: 'user$i',
+            role: BandMember.roleEditor,
+            displayName: name,
+          ),
       ],
       songNumber: 1,
       songTitle: 'First Song',
@@ -1002,58 +1074,92 @@ final kOpeners = <String, Opener>{
       (element) => (element.widget as InkWell).onTap!(),
     );
   }),
-  'event_kit_editor_sheet_l181': Opener((context, _, _) {
-    // _addPerson via the 'Add person' chip.
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        builder: (_) => EventKitEditorScreen(
-          setlist: MockDataHelper.createMockSetlist(
-            id: 'setlist1',
-            bandId: 'band1',
-            name: 'Gig Setlist',
-          ),
-          bandId: 'band1',
-        ),
-      ),
-    );
-    tapWhenBuilt(
-      find.widgetWithText(ActionChip, 'Add person', skipOffstage: false),
-      (element) => (element.widget as ActionChip).onPressed!(),
-    );
-  }),
-  'event_kit_editor_sheet_l191': Opener((context, tester, _) {
-    // _editPerson: person rows are tappable only without a band (personal event).
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        builder: (_) => EventKitEditorScreen(
-          setlist: Setlist(
-            id: 'setlist1',
-            bandId: '',
-            name: 'Gig Setlist',
-            songIds: const [],
-            createdAt: DateTime(2026),
-            updatedAt: DateTime(2026),
-            eventKit: const EventKit(
-              people: [
-                EventPerson(
-                  id: 'p1',
-                  name: 'Sam Rivera',
-                  role: 'Sound engineer',
-                ),
-              ],
+  'event_kit_editor_sheet_l181': Opener(
+    (context, _, _) {
+      // _addToZone: tap the first stage zone cell, then pick people and gear.
+      Navigator.of(context, rootNavigator: true).push(
+        MaterialPageRoute<void>(
+          builder: (_) => EventKitEditorScreen(
+            setlist: MockDataHelper.createMockSetlist(
+              id: 'setlist1',
+              bandId: 'band1',
+              name: 'Gig Setlist',
             ),
+            bandId: 'band1',
           ),
         ),
-      ),
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+      );
+    },
+    then: (tester) async {
+      // Tap the first stage zone cell once the band's members have loaded.
+      await tester.tap(
+        find
+            .byWidgetPredicate(
+              (w) =>
+                  w is InkWell &&
+                  w.onTap != null &&
+                  w.child is Container &&
+                  (w.child! as Container).constraints?.minHeight == 84,
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+      final sheet = find.byType(BottomSheet);
+      for (final label in ['Dana Rivera', 'Drum kit', 'Guitar amp']) {
+        final row = find.descendant(of: sheet, matching: find.text(label));
+        // Scroll the sheet's list (its last Scrollable; the search field has
+        // one too) until the lazily built row exists.
+        final scrollable = tester.state<ScrollableState>(
+          find.descendant(of: sheet, matching: find.byType(Scrollable)).last,
+        );
+        scrollable.position.jumpTo(0);
+        await tester.pump();
+        for (var i = 0; i < 80 && row.evaluate().isEmpty; i++) {
+          scrollable.position.jumpTo(scrollable.position.pixels + 150);
+          await tester.pump();
+        }
+        await tester.ensureVisible(row.first);
+        await tester.pump();
+        await tester.tap(row.first);
+        await tester.pump();
+      }
       tester
-          .widget<ListTile>(
-            find.widgetWithText(ListTile, 'Sam Rivera', skipOffstage: false),
+          .state<ScrollableState>(
+            find.descendant(of: sheet, matching: find.byType(Scrollable)).last,
           )
-          .onTap!();
-    });
-  }),
+          .position
+          .jumpTo(0);
+      await tester.pump();
+    },
+  ),
+  'event_kit_editor_sheet_l191': Opener(
+    (context, _, _) {
+      // _addPerson via the 'Add person' chip, then the name is typed.
+      Navigator.of(context, rootNavigator: true).push(
+        MaterialPageRoute<void>(
+          builder: (_) => EventKitEditorScreen(
+            setlist: MockDataHelper.createMockSetlist(
+              id: 'setlist1',
+              bandId: 'band1',
+              name: 'Gig Setlist',
+            ),
+            bandId: 'band1',
+          ),
+        ),
+      );
+    },
+    then: (tester) async {
+      final chip = find.widgetWithText(ActionChip, 'Add person');
+      await tester.ensureVisible(chip);
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Name').last,
+        'Sam Rivera',
+      );
+      await tester.pumpAndSettle();
+    },
+  ),
   'event_kit_editor_sheet_l256': Opener((context, tester, _) {
     // _addRiderItem via the 'Add rider item' chip.
     Navigator.of(context, rootNavigator: true).push(
@@ -1461,18 +1567,31 @@ final kOpeners = <String, Opener>{
       showDragHandle: true,
       builder: (_) => const DrumPracticePanel(songId: 'song1', bandId: 'band1'),
     ),
+    then: (tester) async {
+      // Drag the sheet up to its full height so the buttons at the end of the
+      // list are on screen.
+      await tester.drag(
+        find.descendant(
+          of: find.byType(DrumPracticePanel),
+          matching: find.byType(ListView),
+        ),
+        const Offset(0, -300),
+      );
+      await tester.pumpAndSettle();
+    },
   ),
-  'drum_grid_editor': Opener((context, tester, _) {
-    showModalBottomSheet<void>(
+  'drum_grid_editor': Opener(
+    (context, tester, _) => showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (_) => const DrumPracticePanel(songId: 'song1'),
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      tester.tap(find.text('New pattern'));
-    });
-  }),
+    ),
+    then: (tester) async {
+      await tester.tap(find.byTooltip('Edit pattern'));
+      await tester.pumpAndSettle();
+    },
+  ),
   'song_import_dialog': Opener(
     (context, _, _) => showDialog<void>(
       context: context,
@@ -1524,11 +1643,16 @@ final kOpeners = <String, Opener>{
     route: '/main/songs',
   ),
   'tuner_stage': Opener(
-    (context, _, _) => showDialog<void>(
-      context: context,
-      builder: (_) => ProviderScope(
-        overrides: [tunerProvider.overrideWith(_StageTuner.new)],
-        child: const StageModeOverlay(child: SizedBox.expand()),
+    // The real overlay with the tuner in stage mode, on its own full-screen
+    // route so the Home backdrop is covered like the tuner's own content.
+    (context, _, _) => Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [tunerProvider.overrideWith(_StageTuner.new)],
+          child: const Scaffold(
+            body: StageModeOverlay(child: SizedBox.expand()),
+          ),
+        ),
       ),
     ),
   ),
@@ -1555,16 +1679,14 @@ final kOpeners = <String, Opener>{
     ),
   ),
   'app_menu_sheet_sheet_l53': Opener(
-    (context, _, _) => showAppMenuSheet(
-      context,
-      title: 'More',
-      items: const [
-        AppMenuItem(icon: Icons.av_timer, label: 'Metronome'),
-        AppMenuItem(icon: Icons.tune, label: 'Tuner'),
-        AppMenuItem(icon: Icons.mic_outlined, label: 'Recorder'),
-      ],
-      showProfileRow: true,
-    ),
+    // The root menu: the 'More' tab of the shell's bottom bar. Songs is the
+    // backdrop because it shows none of the menu's tool names.
+    (_, _, _) {},
+    route: '/main/songs',
+    then: (tester) async {
+      await tester.tap(find.text('More'));
+      await tester.pumpAndSettle();
+    },
   ),
   'bpm_input_overlay_sheet_l15': Opener(
     (context, _, _) => showTempoInputSheet(context),

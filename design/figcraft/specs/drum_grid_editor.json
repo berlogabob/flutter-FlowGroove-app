@@ -3,193 +3,1031 @@
   "page": "Sheets & Dialogs",
   "source": "lib/widgets/metronome/drum_practice_panel.dart:150",
   "slot": 22,
-  "modal": "dialog",
   "body": [
-    {"t": "dialog", "icon": "music_note", "title": "Edit pattern", "c": [
-      {"t": "input", "label": "Name", "v": "Groove A", "name": "Name"},
-      {"t": "text", "v": "Bars", "style": "labelMedium", "color": "textSecondary", "name": "BarsLabel"},
-      {"t": "row", "gap": 8, "c": [
-        {"t": "chip", "v": "1 bar"},
-        {"t": "chip", "v": "2 bars", "sel": true},
-        {"t": "chip", "v": "3 bars"},
-        {"t": "chip", "v": "4 bars"}
-      ]},
-      {"t": "text", "v": "Tap: Off → Normal (90) → Accent (120) → Ghost (40) → Off", "style": "bodySmall", "color": "textTertiary"},
-      {"t": "text", "v": "Steps", "style": "labelMedium", "color": "textSecondary"},
-      {"t": "row", "gap": 8, "c": [
-        {"t": "chip", "v": "1-8", "sel": true},
-        {"t": "chip", "v": "9-16"}
-      ]},
-      {"t": "col", "gap": 4, "name": "Grid", "c": [
-        {"t": "row", "gap": 4, "w": "fill", "c": [
-          {"t": "spacer", "size": 64},
-          {"t": "text", "v": "1", "style": "labelSmall", "w": "fill"},
-          {"t": "text", "v": "2", "style": "labelSmall", "w": "fill"},
-          {"t": "text", "v": "3", "style": "labelSmall", "w": "fill"},
-          {"t": "text", "v": "4", "style": "labelSmall", "w": "fill"},
-          {"t": "text", "v": "5", "style": "labelSmall", "w": "fill"},
-          {"t": "text", "v": "6", "style": "labelSmall", "w": "fill"},
-          {"t": "text", "v": "7", "style": "labelSmall", "w": "fill"},
-          {"t": "text", "v": "8", "style": "labelSmall", "w": "fill"}
-        ]},
-        {"t": "row", "gap": 4, "c": [
-          {"t": "text", "v": "Kick", "style": "labelSmall", "color": "textSecondary", "w": 64, "name": "Label"},
-          {"t": "row", "w": "fill", "gap": 4, "c": [
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "accentOrange", "name": "Hit"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "accentOrange", "name": "Hit"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"}
-          ]},
-          {"t": "row", "w": "hug", "gap": 4, "c": [
-            {"t": "chip", "v": "M", "sel": false},
-            {"t": "chip", "v": "S", "sel": false}
-          ]}
-        ]},
-        {"t": "row", "gap": 4, "c": [
-          {"t": "text", "v": "Snare", "style": "labelSmall", "color": "textSecondary", "w": 64, "name": "Label"},
-          {"t": "row", "w": "fill", "gap": 4, "c": [
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "accentOrange", "name": "Hit"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "accentOrange", "name": "Hit"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"}
-          ]},
-          {"t": "row", "w": "hug", "gap": 4, "c": [
-            {"t": "chip", "v": "M", "sel": false},
-            {"t": "chip", "v": "S", "sel": false}
-          ]}
-        ]},
-        {"t": "row", "gap": 4, "c": [
-          {"t": "text", "v": "Closed hat", "style": "labelSmall", "color": "textSecondary", "w": 64, "name": "Label"},
-          {"t": "row", "w": "fill", "gap": 4, "c": [
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "accentOrange", "name": "Hit"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "accentOrange", "name": "Hit"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "accentOrange", "name": "Hit"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "accentOrange", "name": "Hit"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"}
-          ]},
-          {"t": "row", "w": "hug", "gap": 4, "c": [
-            {"t": "chip", "v": "M", "sel": false},
-            {"t": "chip", "v": "S", "sel": false}
-          ]}
-        ]},
-        {"t": "row", "gap": 4, "c": [
-          {"t": "text", "v": "Open hat", "style": "labelSmall", "color": "textSecondary", "w": 64, "name": "Label"},
-          {"t": "row", "w": "fill", "gap": 4, "c": [
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"}
-          ]},
-          {"t": "row", "w": "hug", "gap": 4, "c": [
-            {"t": "chip", "v": "M", "sel": false},
-            {"t": "chip", "v": "S", "sel": false}
-          ]}
-        ]},
-        {"t": "row", "gap": 4, "c": [
-          {"t": "text", "v": "High tom", "style": "labelSmall", "color": "textSecondary", "w": 64, "name": "Label"},
-          {"t": "row", "w": "fill", "gap": 4, "c": [
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "accentOrange", "name": "Hit"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"}
-          ]},
-          {"t": "row", "w": "hug", "gap": 4, "c": [
-            {"t": "chip", "v": "M", "sel": false},
-            {"t": "chip", "v": "S", "sel": false}
-          ]}
-        ]},
-        {"t": "row", "gap": 4, "c": [
-          {"t": "text", "v": "Mid tom", "style": "labelSmall", "color": "textSecondary", "w": 64, "name": "Label"},
-          {"t": "row", "w": "fill", "gap": 4, "c": [
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"}
-          ]},
-          {"t": "row", "w": "hug", "gap": 4, "c": [
-            {"t": "chip", "v": "M", "sel": false},
-            {"t": "chip", "v": "S", "sel": false}
-          ]}
-        ]},
-        {"t": "row", "gap": 4, "c": [
-          {"t": "text", "v": "Floor tom", "style": "labelSmall", "color": "textSecondary", "w": 64, "name": "Label"},
-          {"t": "row", "w": "fill", "gap": 4, "c": [
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"}
-          ]},
-          {"t": "row", "w": "hug", "gap": 4, "c": [
-            {"t": "chip", "v": "M", "sel": false},
-            {"t": "chip", "v": "S", "sel": false}
-          ]}
-        ]},
-        {"t": "row", "gap": 4, "c": [
-          {"t": "text", "v": "Crash", "style": "labelSmall", "color": "textSecondary", "w": 64, "name": "Label"},
-          {"t": "row", "w": "fill", "gap": 4, "c": [
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "accentOrange", "name": "Hit"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"}
-          ]},
-          {"t": "row", "w": "hug", "gap": 4, "c": [
-            {"t": "chip", "v": "M", "sel": false},
-            {"t": "chip", "v": "S", "sel": false}
-          ]}
-        ]},
-        {"t": "row", "gap": 4, "c": [
-          {"t": "text", "v": "Ride", "style": "labelSmall", "color": "textSecondary", "w": 64, "name": "Label"},
-          {"t": "row", "w": "fill", "gap": 4, "c": [
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"},
-            {"t": "box", "w": "fill", "h": 46, "radius": 8, "bg": "surfaceRaised", "name": "Rest"}
-          ]},
-          {"t": "row", "w": "hug", "gap": 4, "c": [
-            {"t": "chip", "v": "M", "sel": false},
-            {"t": "chip", "v": "S", "sel": false}
-          ]}
-        ]}
-      ]},
-      {"t": "row", "gap": 12, "c": [
-        {"t": "button", "v": "Play", "icon": "play_arrow", "w": "fill"},
-        {"t": "button", "v": "Save", "w": "fill"}
-      ]}
-    ]}
+    {
+      "t": "col",
+      "pad": 8,
+      "gap": 16,
+      "c": [
+        {
+          "t": "input",
+          "label": "Name",
+          "v": "Groove A",
+          "name": "Name"
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "c": [
+            {
+              "t": "chip",
+              "v": "1 bar",
+              "sel": true
+            },
+            {
+              "t": "chip",
+              "v": "2 bars",
+              "sel": false
+            },
+            {
+              "t": "chip",
+              "v": "3 bars",
+              "sel": false
+            },
+            {
+              "t": "chip",
+              "v": "4 bars",
+              "sel": false
+            }
+          ]
+        },
+        {
+          "t": "text",
+          "v": "Tap: Off → Normal (90) → Accent (120) → Ghost (40) → Off",
+          "style": "bodySmall",
+          "color": "textTertiary"
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "c": [
+            {
+              "t": "chip",
+              "v": "1-8",
+              "sel": true
+            },
+            {
+              "t": "chip",
+              "v": "9-16"
+            }
+          ]
+        },
+        {
+          "t": "col",
+          "gap": 4,
+          "name": "Grid",
+          "c": [
+            {
+              "t": "row",
+              "gap": 4,
+              "w": "fill",
+              "c": [
+                {
+                  "t": "spacer",
+                  "size": 64
+                },
+                {
+                  "t": "text",
+                  "v": "1",
+                  "style": "labelSmall",
+                  "w": "fill"
+                },
+                {
+                  "t": "text",
+                  "v": "2",
+                  "style": "labelSmall",
+                  "w": "fill"
+                },
+                {
+                  "t": "text",
+                  "v": "3",
+                  "style": "labelSmall",
+                  "w": "fill"
+                },
+                {
+                  "t": "text",
+                  "v": "4",
+                  "style": "labelSmall",
+                  "w": "fill"
+                },
+                {
+                  "t": "text",
+                  "v": "5",
+                  "style": "labelSmall",
+                  "w": "fill"
+                },
+                {
+                  "t": "text",
+                  "v": "6",
+                  "style": "labelSmall",
+                  "w": "fill"
+                },
+                {
+                  "t": "text",
+                  "v": "7",
+                  "style": "labelSmall",
+                  "w": "fill"
+                },
+                {
+                  "t": "text",
+                  "v": "8",
+                  "style": "labelSmall",
+                  "w": "fill"
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Kick",
+                  "style": "labelSmall",
+                  "color": "textSecondary",
+                  "w": 64,
+                  "name": "Label"
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 4,
+                  "c": [
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "accentOrange",
+                      "main": "center",
+                      "cross": "center",
+                      "name": "Hit",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "90",
+                          "style": "labelMedium",
+                          "color": "charcoal",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "accentOrange",
+                      "main": "center",
+                      "cross": "center",
+                      "name": "Hit",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "90",
+                          "style": "labelMedium",
+                          "color": "charcoal",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Snare",
+                  "style": "labelSmall",
+                  "color": "textSecondary",
+                  "w": 64,
+                  "name": "Label"
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 4,
+                  "c": [
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "accentOrange",
+                      "main": "center",
+                      "cross": "center",
+                      "name": "Hit",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "90",
+                          "style": "labelMedium",
+                          "color": "charcoal",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "accentOrange",
+                      "main": "center",
+                      "cross": "center",
+                      "name": "Hit",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "90",
+                          "style": "labelMedium",
+                          "color": "charcoal",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Closed hat",
+                  "style": "labelSmall",
+                  "color": "textSecondary",
+                  "w": 64,
+                  "name": "Label"
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 4,
+                  "c": [
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "accentOrange",
+                      "main": "center",
+                      "cross": "center",
+                      "name": "Hit",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "90",
+                          "style": "labelMedium",
+                          "color": "charcoal",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "accentOrange",
+                      "main": "center",
+                      "cross": "center",
+                      "name": "Hit",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "90",
+                          "style": "labelMedium",
+                          "color": "charcoal",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "accentOrange",
+                      "main": "center",
+                      "cross": "center",
+                      "name": "Hit",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "90",
+                          "style": "labelMedium",
+                          "color": "charcoal",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "accentOrange",
+                      "main": "center",
+                      "cross": "center",
+                      "name": "Hit",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "90",
+                          "style": "labelMedium",
+                          "color": "charcoal",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Open hat",
+                  "style": "labelSmall",
+                  "color": "textSecondary",
+                  "w": 64,
+                  "name": "Label"
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 4,
+                  "c": [
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "High tom",
+                  "style": "labelSmall",
+                  "color": "textSecondary",
+                  "w": 64,
+                  "name": "Label"
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 4,
+                  "c": [
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "accentOrange",
+                      "main": "center",
+                      "cross": "center",
+                      "name": "Hit",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "90",
+                          "style": "labelMedium",
+                          "color": "charcoal",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Mid tom",
+                  "style": "labelSmall",
+                  "color": "textSecondary",
+                  "w": 64,
+                  "name": "Label"
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 4,
+                  "c": [
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Floor tom",
+                  "style": "labelSmall",
+                  "color": "textSecondary",
+                  "w": 64,
+                  "name": "Label"
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 4,
+                  "c": [
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Crash",
+                  "style": "labelSmall",
+                  "color": "textSecondary",
+                  "w": 64,
+                  "name": "Label"
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 4,
+                  "c": [
+                    {
+                      "t": "row",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "accentOrange",
+                      "main": "center",
+                      "cross": "center",
+                      "name": "Hit",
+                      "c": [
+                        {
+                          "t": "text",
+                          "v": "90",
+                          "style": "labelMedium",
+                          "color": "charcoal",
+                          "w": "hug"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "row",
+              "gap": 4,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Ride",
+                  "style": "labelSmall",
+                  "color": "textSecondary",
+                  "w": 64,
+                  "name": "Label"
+                },
+                {
+                  "t": "row",
+                  "w": "fill",
+                  "gap": 4,
+                  "c": [
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    },
+                    {
+                      "t": "box",
+                      "w": "fill",
+                      "h": 46,
+                      "radius": 8,
+                      "bg": "surfaceRaised",
+                      "name": "Rest"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "gap": 12,
+          "c": [
+            {
+              "t": "button",
+              "v": "Play",
+              "icon": "play_arrow",
+              "w": "fill"
+            },
+            {
+              "t": "button",
+              "v": "Save",
+              "w": "fill"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "top": [
+    {
+      "t": "appbar",
+      "v": "Edit pattern",
+      "leading": "close"
+    }
   ]
 }

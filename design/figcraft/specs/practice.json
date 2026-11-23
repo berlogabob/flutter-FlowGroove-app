@@ -326,7 +326,7 @@
             },
             {
               "t": "text",
-              "v": "Loading homework...",
+              "v": "Loading homework…",
               "style": "bodySmall",
               "color": "textSecondary"
             }
