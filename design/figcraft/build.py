@@ -1284,6 +1284,17 @@ for _pattern, _component in (("song_card", "SongCard"), ("setlist_card", "Setlis
          props=[("Title", "text", "Title", None), ("Subtitle", "text", "Subtitle", None),
                 ("Meta", "text", "Meta", None)])
 
+for _pattern, _component in (("loading_indicator", "LoadingIndicator"),
+                              ("error_banner", "ErrorBanner"),
+                              ("quick_action_button", "QuickActionButton"),
+                              ("empty_state", "EmptyState")):
+    comp(_component, [], lambda v, pattern=_pattern: {"t": "col", "name": pattern,
+         "pad": 12, "gap": 4, "c": [{"t": "text", "v": "Title", "name": "Title"},
+         {"t": "text", "v": "Subtitle", "name": "Subtitle"},
+         {"t": "text", "v": "Meta", "name": "Meta"}]}, i_pattern,
+         props=[("Title", "text", "Title", None), ("Subtitle", "text", "Subtitle", None),
+                ("Meta", "text", "Meta", None)])
+
 
 def glyph(name):
     if name not in ICONS:
@@ -1814,6 +1825,18 @@ CONNECT = {
     "AppBadge": (APP + "app_badge.dart", "AppBadge",
               'AppBadge(label: {Label},{Show icon ? " icon: Icons.star /* icon */," : ""})',
               "AppBadge: pill label (band facts, status, offline). 10% tint of its colour, radius 20, 16 px icon."),
+    "LoadingIndicator": (APP + "loading_indicator.dart", "LoadingIndicator",
+              'LoadingIndicator(message: {Message}, semanticsLabel: {Label})',
+              "LoadingIndicator: centered progress indicator with optional message and screen-reader label."),
+    "ErrorBanner": (APP + "error_banner.dart", "ErrorBanner",
+              'ErrorBanner(message: {Message}, title: {Title})',
+              "ErrorBanner: error message with optional title and retry action."),
+    "QuickActionButton": (APP + "quick_action_button.dart", "QuickActionButton",
+              'QuickActionButton(icon: Icons.add, label: {Label}, onTap: () {})',
+              "QuickActionButton: responsive dashboard action tile with icon and label."),
+    "EmptyState": (APP + "empty_state.dart", "EmptyState",
+              'EmptyState(icon: Icons.search_off, message: {Message}, hint: {Hint})',
+              "EmptyState: centered empty message with optional hint and actions."),
     "SectionHeader": (APP + "section_header.dart", "SectionHeader",
                       'SectionHeader({Title}, style: {Style},{Show action ? " actionLabel: " : " /* "}{Action}'
                       '{Show action ? ", onAction: onSeeAll," : " */"})',
