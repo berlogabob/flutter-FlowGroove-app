@@ -68,7 +68,7 @@
       "importPath": "package:flowgroove/widgets/confirmation_dialog.dart",
       "language": "flutter",
       "name": "ConfirmationDialog",
-      "template": "ConfirmationDialog(title: {Title}, message: {Message}, confirmLabel: {confirmLabel}, cancelLabel: {cancelLabel}, icon: Icons.warning_amber /* {Icon} */, isDestructive: {isDestructive})"
+      "template": "ConfirmationDialog(title: {Title}, message: {Message}, confirmLabel: {confirmLabel}, cancelLabel: {cancelLabel}, icon: Icons.warning_amber /* {Icon} */)"
     },
     {
       "component": "CustomButton",
@@ -1734,7 +1734,7 @@
       "importPath": "package:flowgroove/widgets/primary_action_bar.dart",
       "language": "flutter",
       "name": "PrimaryActionBar",
-      "template": "PrimaryActionBar(label: {Label}, onPressed: onPressed)"
+      "template": "PrimaryActionBar(label: {Label}, onPressed: onPressed, secondaryAction: (label: {SecondaryLabel}, onPressed: onSecondary))"
     },
     {
       "component": "QuickActionButton",
@@ -1748,7 +1748,7 @@
       "importPath": "package:flowgroove/widgets/practice/section_card.dart",
       "language": "flutter",
       "name": "SectionCard",
-      "template": "SectionCard(section: section, queued: {Queued})"
+      "template": "SectionCard(section: section, queued: {Queued} == SectionCardQueued.nextBar)"
     },
     {
       "component": "SectionHeader",
@@ -1769,7 +1769,7 @@
       "importPath": "package:flowgroove/widgets/setlist_song_row.dart",
       "language": "flutter",
       "name": "SetlistSongRow",
-      "template": "SetlistSongRow(index: {Index}, song: song, savedTitle: {Title}, savedArtist: {Artist}, performers: {Performers})"
+      "template": "SetlistSongRow(index: {Index}, song: song, savedTitle: {Title}, savedArtist: {Artist}, performers: {Performers}, isCurrent: {isCurrent})"
     },
     {
       "component": "SingleFab",
@@ -1867,7 +1867,7 @@
       "importPath": "package:flowgroove/widgets/tool_button.dart",
       "language": "flutter",
       "name": "ToolButton",
-      "template": "ToolButton(icon: Icons.tune /* {Icon} */, label: {Label}, isCompact: {isCompact}, onTap: onTap)"
+      "template": "ToolButton(icon: Icons.tune /* {Icon} */, label: {Label}, onTap: onTap)"
     },
     {
       "component": "UnifiedFilterSortWidget",

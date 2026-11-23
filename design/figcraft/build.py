@@ -358,6 +358,8 @@ def frame_props(n, layout):
                          "radius": 8, "visible": True}]
     if n.get("clip"):
         p["clip"] = True
+    if n.get("abs"):
+        p.update(absolute=True, x=n["abs"][0], y=n["abs"][1])
     if n.get("wrap"):
         p["wrap"] = True
         p["crossGap"] = n.get("gap", 0)
@@ -470,8 +472,10 @@ def m_box(e, n, parent, pdir):
     if "radius" in n:
         p["cornerRadius"] = radius(n["radius"])
     if "border" in n:
-        p.update(stroke=color(n["border"]), strokeWeight=1, strokeAlign="inside")
+        p.update(stroke=color(n["border"]), strokeWeight=n.get("borderW", 1), strokeAlign="inside")
     p.update(size_props({"w": n.get("w", 40), "h": n.get("h", 40)}, pdir))
+    if n.get("abs"):
+        p.update(absolute=True, x=n["abs"][0], y=n["abs"][1])
     typ = "ellipse" if n.get("circle") else "rectangle"
     return e.create(typ, parent, n.get("name", "Box"), p)
 
@@ -1413,23 +1417,26 @@ comp("AppBadge", ["badge"], lambda v: {"t": "badge", "v": "Badge", "icon": "star
 
 
 comp("ChordChartView", [], lambda v: {"t": "col", "name": "ChordChartView", "gap": 10, "cross": "min", "c": [
-    {"t": "row", "gap": 2, "cross": "end", "c": [
-        {"t": "text", "v": "G", "style": "bodyLarge", "color": "accentOrange", "name": "Chord"},
-        {"t": "text", "v": "Amazing", "style": "bodyLarge", "color": "textPrimary", "name": "Lyric"}]},
-    {"t": "row", "gap": 2, "cross": "end", "c": [
-        {"t": "text", "v": "D", "style": "bodyLarge", "color": "accentOrange"},
-        {"t": "text", "v": "grace", "style": "bodyLarge", "color": "textPrimary"}]}]},
-     lambda n, pdir: {"p": {"Lyric": n.get("chart", "Amazing grace")}},
-     props=[("Lyric", "text", "Lyric", "Amazing grace")])
+    {"t": "row", "gap": 8, "cross": "min", "c": [
+        {"t": "col", "gap": 2, "cross": "min", "c": [
+            {"t": "text", "v": "G", "style": "bodyLarge", "color": "accentOrange", "w": "hug"},
+            {"t": "text", "v": "Amazing", "style": "bodyLarge", "color": "textPrimary", "name": "Lyric", "w": "hug"}]},
+        {"t": "col", "gap": 2, "cross": "min", "c": [
+            {"t": "text", "v": "D", "style": "bodyLarge", "color": "accentOrange", "w": "hug"},
+            {"t": "text", "v": "grace", "style": "bodyLarge", "color": "textPrimary", "w": "hug"}]}]}]},
+     lambda n, pdir: {"p": {"Lyric": n.get("chart", "Amazing")}},
+     props=[("Lyric", "text", "Lyric", "Amazing")])
 
 comp("PerformanceSheetView", [], lambda v: {"t": "col", "name": "PerformanceSheetView", "gap": 12, "w": "fill", "c": [
     {"t": "col", "gap": 8, "w": "fill", "c": [
         {"t": "text", "v": "Verse", "style": "titleMedium", "color": "accentOrange", "name": "Section"},
-        {"t": "row", "gap": 2, "cross": "end", "c": [
-            {"t": "text", "v": "G", "style": "headlineSmall", "color": "accentOrange"},
-            {"t": "text", "v": "Amazing", "style": "headlineSmall", "name": "Lyric"},
-            {"t": "text", "v": "D", "style": "headlineSmall", "color": "accentOrange"},
-            {"t": "text", "v": "grace", "style": "headlineSmall"}]}]},
+        {"t": "row", "gap": 8, "cross": "min", "c": [
+            {"t": "col", "gap": 2, "cross": "min", "c": [
+                {"t": "text", "v": "G", "style": "headlineSmall", "color": "accentOrange", "w": "hug"},
+                {"t": "text", "v": "Amazing", "style": "headlineSmall", "name": "Lyric", "w": "hug"}]},
+            {"t": "col", "gap": 2, "cross": "min", "c": [
+                {"t": "text", "v": "D", "style": "headlineSmall", "color": "accentOrange", "w": "hug"},
+                {"t": "text", "v": "grace", "style": "headlineSmall", "w": "hug"}]}]}]},
     {"t": "col", "gap": 4, "bg": "surfaceRaised", "radius": 6, "pad": 8, "w": "fill", "c": [
         {"t": "row", "gap": 8, "cross": "center", "c": [
             {"t": "icon", "v": "music_note", "size": 20, "color": "textSecondary"},
@@ -1443,8 +1450,8 @@ comp("PerformanceSheetView", [], lambda v: {"t": "col", "name": "PerformanceShee
             {"t": "icon", "v": "add", "size": 20}, {"t": "spacer"},
             {"t": "badge", "v": "Manual"}]}]}]},
      lambda n, pdir: {"p": {"Section": n.get("section", "Verse"),
-                            "Lyric": n.get("lyric", "Amazing grace")}},
-     props=[("Section", "text", "Section", "Verse"), ("Lyric", "text", "Lyric", "Amazing grace")])
+                            "Lyric": n.get("lyric", "Amazing")}},
+     props=[("Section", "text", "Section", "Verse"), ("Lyric", "text", "Lyric", "Amazing")])
 
 
 # Reused widget components. Each preview draws the actual visual structure of
@@ -1460,7 +1467,7 @@ comp("LoadingIndicator", [], lambda v: {"t": "col", "name": "LoadingIndicator", 
      _component_instance(lambda n: {"Message": n.get("message", "Loading")}),
      props=[("Message", "text", "Message", "Loading")])
 comp("ErrorBanner", [], lambda v: {"t": "col", "name": "ErrorBanner", "bg": "error10", "border": "error30",
-     "radius": 5, "pad": 16, "gap": 8, "c": [
+     "radius": 8, "pad": 16, "gap": 8, "c": [
          {"t": "row", "cross": "center", "gap": 8, "c": [
              {"t": "icon", "v": "error_outline", "size": 24, "color": "error"},
              {"t": "text", "v": "Error title", "style": "titleMedium", "color": "error", "name": "Title"}]},
@@ -1478,12 +1485,16 @@ comp("QuickActionButton", [], lambda v: {"t": "row", "name": "QuickActionButton"
      _component_instance(lambda n: {"Label": n.get("label", "Quick action")}),
      props=[("Label", "text", "Label", "Quick action")])
 comp("EmptyState", [], lambda v: {"t": "col", "name": "EmptyState", "main": "center", "cross": "center",
-     "gap": 8, "c": [
+     "c": [
          {"t": "icon", "v": "music_note", "size": 80, "color": "textTertiary", "name": "Icon"},
+         {"t": "spacer", "size": 16},
          {"t": "text", "v": "No items yet", "style": "headlineSmall", "color": "textPrimary", "name": "Message"},
+         {"t": "spacer", "size": 8},
          {"t": "text", "v": "Add something to get started", "style": "bodyMedium", "color": "textTertiary",
           "name": "Hint"},
+         {"t": "spacer", "size": 24},
          {"t": "button", "kind": "secondary", "v": "Add item", "icon": "add", "name": "Action"},
+         {"t": "spacer", "size": 8},
          {"t": "button", "kind": "secondary", "v": "Other action", "icon": "group_add", "name": "SecondaryAction"}]},
      _component_instance(lambda n: {"Message": n.get("message", "No items yet"),
                                     "Hint": n.get("hint", "Add something to get started"),
@@ -1494,7 +1505,7 @@ comp("EmptyState", [], lambda v: {"t": "col", "name": "EmptyState", "main": "cen
             ("SecondaryAction", "text", "SecondaryAction", "Other action")])
 
 comp("TimeSignatureBlock", [], lambda v: {"t": "col", "name": "TimeSignatureBlock", "bg": "blackSurface",
-     "border": "borderSubtle", "radius": 12, "pad": 16, "gap": 10, "c": [
+     "border": "borderSubtle", "radius": 16, "pad": 16, "gap": 10, "c": [
          {"t": "text", "v": "Beats (badge = count)", "style": "bodyMedium", "color": "textSecondary"},
          {"t": "row", "cross": "center", "gap": 8, "c": [
              {"t": "button", "kind": "secondary", "v": "−"},
@@ -1512,15 +1523,23 @@ comp("TimeSignatureBlock", [], lambda v: {"t": "col", "name": "TimeSignatureBloc
           "style": "bodySmall", "color": "textSecondary"}]},
      _component_instance(lambda n: {}))
 
-comp("TempoControlCluster", [], lambda v: {"t": "col", "name": "TempoControlCluster", "bg": "blackSurface",
-     "radius": 120, "width": 280, "height": 280, "sizingH": "fixed", "sizingV": "fixed",
-     "main": "center", "cross": "center", "c": [
-         {"t": "text", "v": "−5", "style": "labelLarge", "color": "textPrimary", "name": "Decrease 5"},
-         {"t": "text", "v": "120", "style": "displayMedium", "color": "accentOrange", "name": "Tempo"},
-         {"t": "text", "v": "BPM", "style": "labelMedium", "color": "textSecondary"},
-         {"t": "text", "v": "+5", "style": "labelLarge", "color": "textPrimary", "name": "Increase 5"},
-         {"t": "text", "v": "−1       +1", "style": "labelLarge", "color": "textPrimary", "name": "Fine tempo controls"}]},
-     _component_instance(lambda n: {}))
+def _tempo_step(label, x, y, name):
+    return [{"t": "box", "circle": True, "bg": "surfaceRaised", "border": "borderDefault", "borderW": 1.5,
+             "w": 52, "h": 52, "abs": [x, y], "name": name + " circle"},
+            {"t": "col", "w": 52, "h": 52, "abs": [x, y], "main": "center", "cross": "center", "c": [
+                {"t": "text", "v": label, "style": "labelLarge", "color": "textSecondary", "name": name,
+                 "w": "hug"}]}]
+
+
+comp("TempoControlCluster", [], lambda v: {"t": "col", "name": "TempoControlCluster", "w": 300, "h": 300, "c": [
+         {"t": "box", "circle": True, "bg": "blackSurface", "w": 300, "h": 300, "abs": [0, 0], "name": "Dial"},
+         {"t": "col", "w": 300, "h": 300, "abs": [0, 0], "main": "center", "cross": "center", "c": [
+             {"t": "text", "v": "120", "style": "displayMedium", "color": "accentOrange", "name": "Tempo",
+              "w": "hug"},
+             {"t": "text", "v": "BPM", "style": "labelMedium", "color": "textSecondary", "w": "hug"}]},
+         *_tempo_step("−5", 0, 0, "Decrease 5"), *_tempo_step("+5", 248, 0, "Increase 5"),
+         *_tempo_step("−1", 0, 248, "Decrease 1"), *_tempo_step("+1", 248, 248, "Increase 1")]},
+     _component_instance(lambda n: {}), main_w=300)
 
 comp("StatCard", [], lambda v: {"t": "col", "name": "StatCard", "bg": "surfaceRaised", "border": "borderSubtle",
      "radius": 7, "pad": [16, 8, 16, 8], "main": "center", "cross": "center", "gap": 4, "c": [
@@ -1534,36 +1553,43 @@ comp("StatCard", [], lambda v: {"t": "col", "name": "StatCard", "bg": "surfaceRa
 
 comp("SongLibraryBlock", [], lambda v: {"t": "col", "name": "SongLibraryBlock", "gap": 8, "c": [
      {"t": "row", "name": "Library action", "bg": "surface", "border": "borderSubtle", "radius": 20,
-      "pad": [16, 8, 16, 8], "gap": 8, "cross": "center", "c": [
-          {"t": "icon", "v": "library_music", "size": 20, "color": "textSecondary"},
-          {"t": "text", "v": "Songs & Setlists", "style": "bodyLarge", "color": "textPrimary", "name": "Library label"}]},
-     {"t": "row", "name": "Loaded song card", "bg": "surface", "border": "borderSubtle", "radius": 8,
-      "pad": [16, 8, 16, 8], "gap": 8, "cross": "center", "c": [
-          {"t": "icon", "v": "music_note", "size": 20, "color": "accentOrange"},
+      "pad": [20, 12, 20, 12], "gap": 12, "cross": "center", "c": [
+          {"t": "icon", "v": "library_music_outlined", "size": 24, "color": "textSecondary"},
+          {"t": "text", "v": "Songs & Setlists", "style": "bodyLarge", "color": "textHighEmphasis",
+           "name": "Library label"}]},
+     {"t": "row", "name": "Loaded song card", "bg": "surface", "border": "borderSubtle", "radius": 12,
+      "pad": [16, 12, 16, 12], "gap": 12, "cross": "center", "c": [
+          {"t": "icon", "v": "music_note", "size": 24, "color": "accentOrange"},
           {"t": "col", "gap": 2, "c": [
-              {"t": "text", "v": "First Song", "style": "bodyMedium", "color": "textPrimary", "name": "Song title"},
+              {"t": "text", "v": "First Song", "style": "bodyMedium", "color": "textHighEmphasis",
+               "name": "Song title"},
               {"t": "text", "v": "Test Band", "style": "bodySmall", "color": "textTertiary", "name": "Song source"}]},
           {"t": "icon", "v": "close", "size": 20, "color": "textSecondary"}]}]},
      _component_instance(lambda n: {}))
 
-comp("SetlistSongRow", [], lambda v: {"t": "row", "name": "SetlistSongRow", "bg": "surface",
-     "border": "borderSubtle", "pad": [12, 8, 12, 8], "gap": 12, "cross": "center", "c": [
-         {"t": "text", "v": "01", "style": "labelLarge", "color": "textTertiary", "name": "Index"},
+comp("SetlistSongRow", [], lambda v: {"t": "col", "name": "SetlistSongRow", "bg": "surface", "c": [
+     {"t": "row", "name": "Row", "pad": [0, 8, 16, 8], "gap": 12, "cross": "center", "c": [
+         {"t": "box", "w": 3, "h": 40, "bg": "selectionInk", "name": "Current bar"},
+         {"t": "col", "w": 44, "cross": "center", "c": [
+             {"t": "text", "v": "01", "style": "labelLarge", "color": "textTertiary", "name": "Index",
+              "w": "hug"}]},
          {"t": "col", "gap": 2, "w": "fill", "c": [
              {"t": "text", "v": "First Song", "style": "bodyLarge", "color": "textPrimary", "name": "Title"},
              {"t": "text", "v": "Test Band", "style": "bodyMedium", "color": "textSecondary", "name": "Artist"},
              {"t": "text", "v": "Performers", "style": "bodySmall", "color": "textTertiary", "name": "Performers"}]},
-         {"t": "text", "v": "B♭m · 120 BPM", "style": "labelSmall", "color": "textSecondary", "name": "Details"} ]},
+         {"t": "text", "v": "B♭m · 120 BPM", "style": "labelSmall", "color": "textSecondary", "name": "Details"}]},
+     {"t": "box", "w": "fill", "h": 1, "bg": "borderSubtle", "name": "Bottom border"}]},
      _component_instance(lambda n: {"Index": n.get("index", 1), "Title": n.get("title", "First Song"),
                                     "Artist": n.get("artist", "Test Band"),
                                     "Performers": n.get("performers", "Performers"),
-                                    "Details": n.get("details", "B♭m · 120 BPM")}),
+                                    "Details": n.get("details", "B♭m · 120 BPM"),
+                                    "isCurrent": n.get("isCurrent", False)}),
      props=[("Index", "number", "Index", 1), ("Title", "text", "Title", "First Song"),
             ("Artist", "text", "Artist", "Test Band"), ("Performers", "text", "Performers", "Performers"),
-            ("Details", "text", "Details", "B♭m · 120 BPM")])
+            ("Details", "text", "Details", "B♭m · 120 BPM"), ("isCurrent", "boolean", "Current bar", False)])
 
 comp("SetlistBreakRow", [], lambda v: {"t": "row", "name": "SetlistBreakRow", "bg": "surfaceRaised",
-     "border": "borderDefault", "radius": 5, "pad": [16, 8, 16, 8], "gap": 12, "cross": "center", "c": [
+     "border": "borderDefault", "radius": 8, "pad": [12, 8, 12, 8], "gap": 12, "cross": "center", "c": [
          {"t": "icon", "v": "pause_circle_outline", "size": 18, "color": "textTertiary"},
          {"t": "text", "v": "Break", "style": "labelLarge", "color": "textSecondary", "name": "Label", "w": "fill"}]},
      _component_instance(lambda n: {"Label": n.get("label", "Break")}),
@@ -1571,15 +1597,16 @@ comp("SetlistBreakRow", [], lambda v: {"t": "row", "name": "SetlistBreakRow", "b
 
 comp("SectionCard", [], lambda v: {"t": "col", "name": "SectionCard", "bg": "surfaceRaised",
      "border": "borderSubtle", "radius": 7, "pad": 16, "gap": 8, "c": [
-         {"t": "text", "v": "Verse · Playing", "style": "titleMedium", "color": "accentOrange", "name": "Section"},
+         {"t": "text", "v": "Verse · " + ("Next bar" if v["Queued"] == "Next bar" else "Playing"),
+          "style": "titleMedium", "color": "accentOrange", "name": "Section", "maxLines": 1},
          {"t": "text", "v": "C     G     Am     F", "style": "bodyMedium", "color": "textPrimary", "name": "Chord chart"}]},
-     _component_instance(lambda n: {"Queued": n.get("queued", False)}),
-     props=[("Queued", "boolean", "Section", False)])
+     lambda n, pdir: {"v": {"Queued": "Next bar" if n.get("queued") else "Playing"}, "p": {}},
+     axes={"Queued": ["Playing", "Next bar"]})
 
 comp("PrimaryActionBar", [], lambda v: {"t": "col", "name": "PrimaryActionBar", "bg": "surface",
      "pad": 16, "gap": 12, "c": [
          {"t": "row", "gap": 12, "c": [
-             {"t": "button", "kind": "secondary", "v": "Cancel", "name": "Secondary", "w": "fill"},
+             {"t": "button", "kind": "outline", "v": "Cancel", "name": "Secondary", "w": "fill"},
              {"t": "button", "kind": "primary", "v": "Save", "icon": "save", "name": "Primary", "w": "fill"}]}]},
      _component_instance(lambda n: {"Label": n.get("label", "Save"), "SecondaryLabel": n.get("secondaryLabel", "Cancel")}),
      props=[("Label", "text", "Primary", "Save"), ("SecondaryLabel", "text", "Secondary", "Cancel")])
@@ -1588,21 +1615,22 @@ comp("ToolButton", [], lambda v: {"t": "row", "name": "ToolButton", "bg": "surfa
      "border": "borderDefault", "radius": 6, "pad": [12, 4, 12, 4], "gap": 8, "cross": "center", "c": [
          {"t": "icon", "v": "tune", "size": 24, "color": "textSecondary", "layer": "Icon"},
          {"t": "text", "v": "Tool", "style": "labelLarge", "color": "textPrimary", "name": "Label", "maxLines": 2},
-         {"t": "text", "v": "Soon", "style": "labelSmall", "color": "textPrimary", "name": "Soon"}]},
+         {"t": "row", "name": "Soon badge", "bg": "borderStrong", "radius": 8, "pad": [8, 2, 8, 2], "c": [
+             {"t": "text", "v": "Soon", "style": "labelSmall", "color": "textPrimary", "name": "Soon"}]}]},
      _component_instance(lambda n: {"Label": n.get("label", "Tool"), "Icon": glyph(n.get("icon", "tune"))}),
-     props=[("Label", "text", "Label", "Tool"), ("Icon", "text", "Icon", "tune"),
-            ("isCompact", "boolean", "Label", False)])
-comp("SingleFab", [], lambda v: {"t": "row", "name": "SingleFab", "bg": "accentOrange", "radius": 28,
+     props=[("Label", "text", "Label", "Tool"), ("Icon", "text", "Icon", "tune")])
+comp("SingleFab", [], lambda v: {"t": "row", "name": "SingleFab", "bg": "white", "border": "charcoal",
+     "borderW": 1.2, "radius": 6,
      "pad": [16, 16, 16, 16], "main": "center", "cross": "center", "c": [
          {"t": "icon", "v": "add", "size": 24, "color": "charcoal", "layer": "Icon"}]},
      _component_instance(lambda n: {"Icon": glyph(n.get("icon", "add"))}),
      props=[("Icon", "text", "Icon", "add")])
 comp("UnifiedFilterSortWidget", [], lambda v: {"t": "row", "name": "UnifiedFilterSortWidget", "gap": 8,
      "cross": "center", "c": [
-         {"t": "input", "hint": "Search...", "icon": "search", "name": "Filter", "w": "fill"},
-         {"t": "row", "name": "Sort", "bg": "surface", "border": "borderDefault", "radius": 5,
+         {"t": "input", "hint": "Search...", "name": "Filter", "w": "fill"},
+         {"t": "row", "name": "Sort", "bg": "surface", "border": "borderDefault", "radius": 8,
           "pad": [8, 0, 8, 0], "gap": 8, "cross": "center", "c": [
-              {"t": "text", "v": "Alphabetical", "style": "bodyMedium", "color": "textPrimary", "name": "Sort option"},
+              {"t": "text", "v": "Manual order", "style": "bodyMedium", "color": "textPrimary", "name": "Sort option"},
               {"t": "icon", "v": "sort", "size": 20, "color": "textSecondary"}]}]},
      _component_instance(lambda n: {"Filter": n.get("filterText", ""), "Hint": n.get("hintText", "Search..."),
                                     "Sort": "Manual order"}),
@@ -1620,7 +1648,7 @@ comp("ConfirmationDialog", [], lambda v: {"t": "dialog", "name": "ConfirmationDi
                                     "Confirm": n.get("confirmLabel", "Confirm"), "Cancel": n.get("cancelLabel", "Cancel")}),
      props=[("Title", "text", "Title", "Confirm"), ("Message", "text", "Message", "Are you sure?"),
             ("confirmLabel", "text", "Confirm", "Confirm"), ("cancelLabel", "text", "Cancel", "Cancel"),
-            ("Icon", "text", "Icon", "warning_amber"), ("isDestructive", "boolean", "Icon", True)])
+            ("Icon", "text", "Icon", "warning_amber")])
 
 
 def i_avatar(n, pdir):
@@ -2044,7 +2072,7 @@ CONNECT = {
               'EmptyState(icon: Icons.music_note, message: {Message}, hint: {Hint}, actionLabel: {Action}, onAction: onAction, secondaryActionLabel: {SecondaryAction}, onSecondaryAction: onSecondaryAction)',
               "Centered empty state with icon, message, optional hint and up to two outline actions."),
     "ToolButton": (APP + "tool_button.dart", "ToolButton",
-              'ToolButton(icon: Icons.tune /* {Icon} */, label: {Label}, isCompact: {isCompact}, onTap: onTap)',
+              'ToolButton(icon: Icons.tune /* {Icon} */, label: {Label}, onTap: onTap)',
               "Tool tile with icon, label, and a reserved Soon badge when disabled."),
     "SingleFab": (APP + "fab_variants.dart", "SingleFab",
               'SingleFab(icon: Icons.add /* {Icon} */, onPressed: onPressed, tooltip: "Create", heroTag: "main_fab")',
@@ -2053,7 +2081,7 @@ CONNECT = {
               'UnifiedFilterSortWidget(currentSort: SortOption.manual /* {Sort} */, onSortChanged: onSortChanged, filterText: {Filter}, onFilterChanged: onFilterChanged, hintText: {Hint})',
               "Search field with sort dropdown for unified lists."),
     "ConfirmationDialog": (APP + "confirmation_dialog.dart", "ConfirmationDialog",
-              'ConfirmationDialog(title: {Title}, message: {Message}, confirmLabel: {confirmLabel}, cancelLabel: {cancelLabel}, icon: Icons.warning_amber /* {Icon} */, isDestructive: {isDestructive})',
+              'ConfirmationDialog(title: {Title}, message: {Message}, confirmLabel: {confirmLabel}, cancelLabel: {cancelLabel}, icon: Icons.warning_amber /* {Icon} */)',
               "Confirmation dialog with icon, explanatory text, cancel action and confirm action."),
     "TimeSignatureBlock": (APP + "metronome/time_signature_block.dart", "TimeSignatureBlock",
               'const TimeSignatureBlock()', "Beat and subdivision rows with step controls, mode glyphs and count badges."),
@@ -2065,16 +2093,16 @@ CONNECT = {
     "SongLibraryBlock": (APP + "metronome/song_library_block.dart", "SongLibraryBlock",
               'const SongLibraryBlock()', "Songs and setlists library action with an optional loaded song summary and clear action."),
     "SetlistSongRow": (APP + "setlist_song_row.dart", "SetlistSongRow",
-              'SetlistSongRow(index: {Index}, song: song, savedTitle: {Title}, savedArtist: {Artist}, performers: {Performers})',
+              'SetlistSongRow(index: {Index}, song: song, savedTitle: {Title}, savedArtist: {Artist}, performers: {Performers}, isCurrent: {isCurrent})',
               "Setlist row with numbered leading column, song title and artist, optional performers and trailing metadata."),
     "SetlistBreakRow": (APP + "setlist_break_row.dart", "SetlistBreakRow",
               'SetlistBreakRow(breakType: "break", label: {Label})',
               "Raised, bordered setlist divider with a pause icon and section label."),
     "SectionCard": (APP + "practice/section_card.dart", "SectionCard",
-              'SectionCard(section: section, queued: {Queued})',
+              'SectionCard(section: section, queued: {Queued} == SectionCardQueued.nextBar)',
               "Playback section card with section name and state plus its chord chart when present."),
     "PrimaryActionBar": (APP + "primary_action_bar.dart", "PrimaryActionBar",
-              'PrimaryActionBar(label: {Label}, onPressed: onPressed)',
+              'PrimaryActionBar(label: {Label}, onPressed: onPressed, secondaryAction: (label: {SecondaryLabel}, onPressed: onSecondary))',
               "Safe area bottom action bar with a full width primary button and optional secondary action."),
     "SectionHeader": (APP + "section_header.dart", "SectionHeader",
                       'SectionHeader({Title}, style: {Style},{Show action ? " actionLabel: " : " /* "}{Action}'
