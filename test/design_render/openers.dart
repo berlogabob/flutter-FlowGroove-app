@@ -21,6 +21,7 @@ import 'package:flowgroove/screens/bands/the_band_screen.dart';
 import 'package:flowgroove/screens/bands/rehearsals/rehearsal_detail_screen.dart';
 import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/screens/profile_screen.dart';
+import 'package:flowgroove/screens/recorder_screen.dart';
 import 'package:flowgroove/screens/settings/api_access_screen.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
 import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
@@ -43,6 +44,7 @@ import 'package:flowgroove/screens/songs/add_song_screen.dart';
 import 'package:flowgroove/screens/songs/song_editor_screen.dart';
 import 'package:flowgroove/screens/songs/models/song_form_data.dart';
 import 'package:flowgroove/services/event_share_service.dart';
+import 'package:flowgroove/services/idea_recorder.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
@@ -1304,47 +1306,39 @@ final kOpeners = <String, Opener>{
       expect(find.text('Delete account'), findsWidgets);
     });
   }),
-  'recorder_link_recording_to_song': Opener(
-    (context, _, _) => showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) {
-        const songs = [
-          ('Wonderwall', 'Oasis'),
-          ('Seven Nation Army', 'The White Stripes'),
-          ('Valerie', 'Amy Winehouse'),
-          ('Hey Jude', 'The Beatles'),
-          ('Wonderwall', 'Oasis'),
-          ('Wonderwall', 'Oasis'),
-        ];
-        return SafeArea(
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              const ListTile(title: Text('Link recording to song')),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  "Choose a song to attach this recording to. It will appear in that song's Lab timeline.",
-                ),
-              ),
-              const ListTile(title: Text('SONGS')),
-              for (var i = 0; i < songs.length; i++) ...[
-                ListTile(
-                  dense: true,
-                  leading: const Icon(Icons.music_note),
-                  title: Text(songs[i].$1),
-                  subtitle: Text(songs[i].$2),
-                  trailing: const Icon(Icons.arrow_right),
-                  onTap: () => Navigator.pop(sheetContext),
-                ),
-                if (i < songs.length - 1) const Divider(),
-              ],
-            ],
-          ),
-        );
-      },
-    ),
-  ),
+  'recorder_link_recording_to_song': Opener((context, _, _) {
+    final user = MockUser();
+    when(user.uid).thenReturn('test-user-id');
+    final auth = MockFirebaseAuth();
+    when(auth.currentUser).thenReturn(user);
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [
+            firebaseAuthProvider.overrideWith((ref) => auth),
+            labEntriesProvider((ideaInboxSongId, null))
+                .overrideWith((ref) => Stream.value([kRenderRecording])),
+          ],
+          child: const RecorderScreen(),
+        ),
+      ),
+    );
+    tapWhenBuilt(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is PopupMenuButton<String> &&
+            widget.tooltip == 'Menu for Test Recording',
+        skipOffstage: false,
+      ),
+      (element) =>
+          (element.widget as PopupMenuButton<String>).onSelected!('link'),
+    );
+    tapWhenBuilt(find.byType(BottomSheet), (_) {
+      expect(find.byType(RecorderScreen, skipOffstage: false), findsOneWidget);
+      expect(find.text('Link recording to song'), findsOneWidget);
+      expect(find.text('First Song'), findsOneWidget);
+    });
+  }),
   'section_picker': Opener(
     (context, _, _) => showDialog<void>(
       context: context,

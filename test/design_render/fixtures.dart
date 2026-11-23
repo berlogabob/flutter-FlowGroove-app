@@ -293,6 +293,16 @@ const _kMidiTracks = [
   ),
 ];
 
+final kRenderRecording = SongLabEntry(
+  id: 'recording1',
+  songId: ideaInboxSongId,
+  type: LabEntryType.recording,
+  title: 'Test Recording',
+  authorId: 'test-user-id',
+  createdAt: DateTime(2024),
+  updatedAt: DateTime(2024),
+);
+
 /// MIDI lab entry for the midi_song_panel render.
 final kRenderMidiEntry = SongLabEntry(
   id: 'midi',
