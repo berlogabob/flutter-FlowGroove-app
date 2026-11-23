@@ -15,6 +15,7 @@ import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/midi_song_provider.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
+import 'package:flowgroove/screens/bands/create_band_screen.dart';
 import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
 import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
@@ -172,21 +173,24 @@ final kOpeners = <String, Opener>{
       expect(find.text('"First Song" by Test Artist'), findsOneWidget);
     });
   }),
-  'create_band_discard_changes': Opener(
-    (context, _, _) => showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Discard Changes?'),
-        content: const Text(
-          'You have unsaved changes. Are you sure you want to discard them?',
-        ),
-        actions: [
-          TextButton(onPressed: () {}, child: const Text('Cancel')),
-          TextButton(onPressed: () {}, child: const Text('Discard')),
-        ],
-      ),
-    ),
-  ),
+  'create_band_discard_changes': Opener((context, _, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(builder: (_) => const CreateBandScreen()),
+    );
+    tapWhenBuilt(find.byType(EditableText, skipOffstage: false), (element) {
+      ((element as StatefulElement).state as EditableTextState)
+          .userUpdateTextEditingValue(
+            const TextEditingValue(text: 'Test Band'),
+            SelectionChangedCause.keyboard,
+          );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(element).maybePop();
+      });
+    });
+    tapWhenBuilt(find.byType(AlertDialog), (_) {
+      expect(find.byType(CreateBandScreen, skipOffstage: false), findsOneWidget);
+    });
+  }),
   'create_band_band_created': Opener(
     (context, _, _) => showDialog<void>(
       context: context,
