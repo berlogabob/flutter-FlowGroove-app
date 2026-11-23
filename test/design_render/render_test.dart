@@ -150,7 +150,12 @@ void main() {
                   tester.platformDispatcher.clearTextScaleFactorTestValue,
                 );
                 await state(tester);
-                expect(find.text('Sections'), findsOneWidget);
+                // Every state is on the Song Map; each state asserts its own
+                // level ('Sections' is the Song-level bank only, F101).
+                expect(
+                  find.byKey(const ValueKey('song-map-overview')),
+                  findsOneWidget,
+                );
               } else {
                 if (route == null && opener == null) {
                   fail('no opener for $key');

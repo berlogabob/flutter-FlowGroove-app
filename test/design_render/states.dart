@@ -110,7 +110,19 @@ Future<void> _songMapReview(WidgetTester tester) async {
   expect(find.text('Keep'), findsOneWidget);
 }
 
+Future<void> _songMapSection(WidgetTester tester) async {
+  // Section level: Shift + pad C opens Chorus 1 (parts bank, Song key back).
+  await _pumpPractice(tester);
+  await tester.tap(find.text('Shift'));
+  await tester.pump();
+  await tester.tap(find.byKey(const ValueKey('song-map-pad-c')));
+  await tester.pumpAndSettle();
+  expect(find.text('C · Chorus 1'), findsOneWidget);
+}
+
 final kStates = <String, Future<void> Function(WidgetTester)>{
+  'song_map_section': _songMapSection,
+  'song_map_section_light': _songMapSection,
   'practice_regions': _pumpPractice,
   'song_map_song': _songMapSong,
   'song_map_song_light': _songMapSong,
