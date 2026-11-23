@@ -24,6 +24,9 @@ def verify(task):
     v = task["verify"].replace("dart analyze", "dartan")
     pre = PRE + "dartan(){ ! dart analyze \"$@\" 2>&1 | rg -q '^\\s*error -'; }; "
     # "( v )" with spaces: "((" would be read by bash as an arithmetic command
+    # Codex's sandboxed flutter runs leave a hook hash without hook.dill ("Building native assets
+    # failed", F110): the build-hook cache is regenerable, so verify always starts without it.
+    pre += "rm -rf .dart_tool/hooks_runner; "
     rc, out = sh(pre + (f"( {v} ) && make design-guard" if v.strip() else "make design-guard"), timeout=1500)
     return rc == 0, out[-2500:]
 
