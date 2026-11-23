@@ -223,27 +223,58 @@ void main() {
       await tester.tap(find.text('Analyze song'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Analyze'));
-      final done = find.widgetWithText(FilledButton, 'Done');
+      final done = find.byKey(const ValueKey('song-map-key-Done'));
       for (var i = 0; i < 20 && done.evaluate().isEmpty; i++) {
         await fixture.settleAudio(tester);
       }
       expect(done, findsOneWidget);
     }
 
-    testWidgets('TC1: one row with the section count, Discard and Done', (
+    bool lit(WidgetTester tester, String key) =>
+        tester
+            .widget<OutlinedButton>(find.byKey(ValueKey(key)))
+            .style!
+            .backgroundColor!
+            .resolve({}) ==
+        MonoPulseColors.accentOrange;
+
+    testWidgets('TC1: one header row with the section count, Discard, Done', (
       tester,
     ) async {
       await analyze(tester);
       expect(find.byType(MaterialBanner), findsNothing);
-      expect(find.textContaining(RegExp(r'^\d+ sections?$')), findsOneWidget);
+      expect(find.textContaining(RegExp(r'\d+ found$')), findsOneWidget);
       expect(find.text('Discard'), findsOneWidget);
       expect(find.text('Done'), findsOneWidget);
-      final row = tester.getSize(find.byType(SongMapReviewRow));
-      expect(row.height, SongMapReviewRow.height);
+      final keyTops = {
+        for (final label in ['Discard', 'Done', 'Shift', 'Chop', 'Range'])
+          tester.getRect(find.byKey(ValueKey('song-map-key-$label'))).top,
+      };
+      expect(keyTops.length, 1);
       await tester.tap(find.text('Discard'));
       await tester.pumpAndSettle();
-      expect(find.byType(SongMapReviewRow), findsNothing);
+      expect(find.text('Done'), findsNothing);
+      expect(find.textContaining(RegExp(r'\d+ found$')), findsNothing);
     });
+
+    for (final width in [360.0, 393.0, 412.0, 420.0]) {
+      testWidgets('TC1: review header fits at $width wide', (tester) async {
+        tester.view.physicalSize = Size(width * 2.75, 2340);
+        tester.view.devicePixelRatio = 2.75;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await analyze(tester);
+        expect(tester.takeException(), isNull);
+        for (final label in ['Discard', 'Done', 'Shift', 'Chop', 'Range']) {
+          final rect = tester.getRect(
+            find.byKey(ValueKey('song-map-key-$label')),
+          );
+          expect(rect.left, greaterThanOrEqualTo(0));
+          expect(rect.right, lessThanOrEqualTo(width));
+        }
+        expect(find.textContaining(RegExp(r'\d+ found$')), findsOneWidget);
+      });
+    }
 
     testWidgets(
       'TC2: A | B | Other of equal fixed size; the detected one is chosen',
@@ -255,8 +286,9 @@ void main() {
         final sizes = [for (final key in tempoKeys) tester.getSize(key)];
         expect(sizes.toSet().length, 1);
         expect(sizes.first.height, SongMapTempoRow.keyHeight);
-        expect(find.widgetWithText(FilledButton, '85'), findsOneWidget);
-        expect(find.widgetWithText(OutlinedButton, '170'), findsOneWidget);
+        expect(lit(tester, 'tempo-a'), isTrue);
+        expect(lit(tester, 'tempo-b'), isFalse);
+        expect(lit(tester, 'tempo-other'), isFalse);
       },
     );
 
@@ -268,7 +300,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('tempo-a')));
       await fixture.settleAudio(tester);
       expect(find.text('85 BPM'), findsOneWidget);
-      expect(find.widgetWithText(FilledButton, '85'), findsOneWidget);
+      expect(lit(tester, 'tempo-a'), isTrue);
       expect(
         tester.widget<SongMapTransport>(find.byType(SongMapTransport)).click,
         isTrue,
@@ -351,7 +383,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('tempo-cancel')));
       await tester.pumpAndSettle();
       expect(find.text('85 BPM'), findsOneWidget);
-      expect(find.widgetWithText(FilledButton, '85'), findsOneWidget);
+      expect(lit(tester, 'tempo-a'), isTrue);
     });
 
     testWidgets('TC3: the BPM chip opens the sheet for a saved map', (

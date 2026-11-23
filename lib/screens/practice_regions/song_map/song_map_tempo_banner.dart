@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../services/audio/audio_analysis.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import 'song_map_pads.dart';
 
 int? songMapStretchTarget(double? measuredBpm) {
   if (measuredBpm == null || !measuredBpm.isFinite || measuredBpm < 0.5) {
@@ -24,7 +25,12 @@ class SongMapTempoBanner extends StatelessWidget {
     super.key,
   });
 
-  static const height = 50.0;
+  static const _lineHeight = 20.0;
+  static const height =
+      MonoPulseSpacing.sm +
+      _lineHeight +
+      MonoPulseSpacing.xs +
+      MonoPulseSpacing.massive;
 
   final double measuredBpm;
   final VoidCallback onStretch;
@@ -34,48 +40,47 @@ class SongMapTempoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final target = songMapStretchTarget(measuredBpm);
     if (target == null) return const SizedBox.shrink();
-    final palette = context.mp;
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
-      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
-      decoration: BoxDecoration(
-        color: palette.surfaceRaised,
-        border: Border.all(color: palette.borderSubtle),
-        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: MonoPulseSpacing.sm,
+        right: MonoPulseSpacing.sm,
+        top: MonoPulseSpacing.sm,
       ),
-      child: Row(
+      child: Column(
         spacing: MonoPulseSpacing.xs,
         children: [
-          Expanded(
+          SizedBox(
+            height: _lineHeight,
+            width: double.infinity,
             child: Text(
-              '$measuredBpm BPM',
+              'Detected tempo $measuredBpm',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: MonoPulseTypography.bodyMedium.copyWith(
-                color: palette.textPrimary,
+                color: context.mp.textPrimary,
               ),
             ),
           ),
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(48, 48),
-              padding: const EdgeInsets.symmetric(
-                horizontal: MonoPulseSpacing.sm,
+          Row(
+            spacing: MonoPulseSpacing.sm,
+            children: [
+              Expanded(
+                child: songMapKey(
+                  context,
+                  'Stretch to $target',
+                  onStretch,
+                  width: double.infinity,
+                ),
               ),
-            ),
-            onPressed: onStretch,
-            child: Text('Stretch to $target'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              minimumSize: const Size(48, 48),
-              padding: const EdgeInsets.symmetric(
-                horizontal: MonoPulseSpacing.sm,
+              Expanded(
+                child: songMapKey(
+                  context,
+                  'Keep',
+                  onKeep,
+                  width: double.infinity,
+                ),
               ),
-            ),
-            onPressed: onKeep,
-            child: const Text('Keep'),
+            ],
           ),
         ],
       ),

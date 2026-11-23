@@ -627,21 +627,21 @@
   {
     "key": "practice_regions_screen._leaveWithCandidate",
     "kind": "dialog",
-    "source": "lib/screens/practice_regions_screen.dart:2079",
+    "source": "lib/screens/practice_regions_screen.dart:2084",
     "widget": "_leaveWithCandidate",
     "spec": null
   },
   {
     "key": "practice_regions_screen._manualSetup",
     "kind": "dialog",
-    "source": "lib/screens/practice_regions_screen.dart:2247",
+    "source": "lib/screens/practice_regions_screen.dart:2236",
     "widget": "_manualSetup",
     "spec": null
   },
   {
     "key": "practice_regions_screen._playbackOptions",
     "kind": "sheet",
-    "source": "lib/screens/practice_regions_screen.dart:2955",
+    "source": "lib/screens/practice_regions_screen.dart:2949",
     "widget": "_playbackOptions",
     "spec": null
   },

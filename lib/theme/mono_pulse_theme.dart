@@ -311,7 +311,7 @@ class MonoPulseTheme {
       // Buttons - Text (Tertiary)
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: MonoPulseColors.charcoal,
+          foregroundColor: p.textPrimary,
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.md,
             vertical: MonoPulseSpacing.sm,

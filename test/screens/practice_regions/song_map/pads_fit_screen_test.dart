@@ -51,7 +51,10 @@ void main() {
 
       final banner = find.byType(SongMapTempoBanner);
       expect(
-        find.descendant(of: banner, matching: find.text('123.5 BPM')),
+        find.descendant(
+          of: banner,
+          matching: find.text('Detected tempo 123.5'),
+        ),
         findsOneWidget,
       );
       expect(find.text('Stretch to 124').hitTestable(), findsOneWidget);
@@ -114,7 +117,7 @@ void main() {
   testWidgets('Notes gives way to two pad rows on a short, narrow screen', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(350, 570);
+    tester.view.physicalSize = const Size(350, 600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);

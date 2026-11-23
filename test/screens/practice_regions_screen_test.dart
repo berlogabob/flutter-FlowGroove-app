@@ -739,7 +739,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.widgetWithText(MaterialBanner, 'Analyze song'), findsOneWidget);
     await runAnalysis(tester);
-    expect(find.textContaining(RegExp(r'^\d+ sections?$')), findsOneWidget);
+    expect(find.textContaining(RegExp(r'\d+ found$')), findsOneWidget);
     expect(find.byType(SongMapTimeline), findsOneWidget);
     expect(repo.saved, isEmpty);
     await tester.tap(find.text('Done'));
@@ -841,7 +841,7 @@ void main() {
     Future<void> analyze() async {
       await openMore(tester, 'Analyze song');
       await runAnalysis(tester);
-      expect(find.text('New map'), findsOneWidget);
+      expect(find.textContaining(RegExp(r'\d+ found$')), findsOneWidget);
       expect(map().view.regions, _regions);
       expect(map().candidateBoundariesMs, isNotEmpty);
       expect(repo.saved, isEmpty);
@@ -850,7 +850,7 @@ void main() {
     await analyze();
     await tester.tap(find.text('Discard'));
     await tester.pumpAndSettle();
-    expect(find.text('New map'), findsNothing);
+    expect(find.textContaining(RegExp(r'\d+ found$')), findsNothing);
     expect(map().view.regions, _regions);
     expect(map().candidateBoundariesMs, isEmpty);
     expect(repo.saved, isEmpty);
@@ -858,7 +858,7 @@ void main() {
     await analyze();
     await tester.tap(find.text('Done'));
     await settleAudio(tester);
-    expect(find.text('New map'), findsNothing);
+    expect(find.textContaining(RegExp(r'\d+ found$')), findsNothing);
     expect(repo.saved.single.regions, isNot(equals(_regions)));
     expect(map().view.regions, repo.saved.single.regions);
     expect(map().candidateBoundariesMs, isEmpty);

@@ -13,21 +13,34 @@ void main() {
       MaterialApp(
         theme: MonoPulseTheme.theme,
         home: Scaffold(
-          body: SongMapTempoBanner(
-            measuredBpm: 80.49,
-            onStretch: () => stretches++,
-            onKeep: () => keeps++,
+          body: Column(
+            children: [
+              SongMapTempoBanner(
+                measuredBpm: 80.49,
+                onStretch: () => stretches++,
+                onKeep: () => keeps++,
+              ),
+            ],
           ),
         ),
       ),
     );
 
-    final tempo = find.text('80.49 BPM');
+    final tempo = find.text('Detected tempo 80.49');
     final stretch = find.widgetWithText(OutlinedButton, 'Stretch to 80');
-    final keep = find.widgetWithText(TextButton, 'Keep');
+    final keep = find.widgetWithText(OutlinedButton, 'Keep');
     expect(tempo, findsOneWidget);
-    expect(tester.getCenter(stretch).dy, tester.getCenter(tempo).dy);
-    expect(tester.getCenter(keep).dy, tester.getCenter(tempo).dy);
+    expect(
+      tester.getRect(tempo).bottom,
+      lessThanOrEqualTo(tester.getRect(stretch).top),
+    );
+    expect(tester.getRect(stretch).top, tester.getRect(keep).top);
+    expect(tester.getSize(stretch), tester.getSize(keep));
+    expect(tester.getSize(stretch).height, 48);
+    expect(
+      tester.getSize(find.byType(SongMapTempoBanner)).height,
+      SongMapTempoBanner.height,
+    );
     expect(tester.getSize(stretch).shortestSide, greaterThanOrEqualTo(48));
     expect(tester.getSize(keep).shortestSide, greaterThanOrEqualTo(48));
     await tester.tap(stretch);

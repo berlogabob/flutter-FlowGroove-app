@@ -117,7 +117,7 @@ Future<void> _songMapReview(WidgetTester tester) async {
   await tester.tap(find.text('Analyze song'));
   await tester.pumpAndSettle();
   await tester.tap(find.text('Analyze'));
-  final review = find.textContaining(RegExp(r'^\d+ sections?$'));
+  final review = find.textContaining(RegExp(r'\d+ found$'));
   for (var i = 0; i < 20 && review.evaluate().isEmpty; i++) {
     await practiceFixture.settleAudio(tester);
   }
@@ -130,7 +130,7 @@ Future<void> _analyzeWithBeats(WidgetTester tester) async {
   await tester.tap(find.text('Analyze song'));
   await tester.pumpAndSettle();
   await tester.tap(find.text('Analyze'));
-  final done = find.widgetWithText(FilledButton, 'Done');
+  final done = find.byKey(const ValueKey('song-map-key-Done'));
   for (var i = 0; i < 20 && done.evaluate().isEmpty; i++) {
     await practiceFixture.settleAudio(tester);
   }

@@ -9,11 +9,59 @@ import '../../../theme/mono_pulse_theme.dart';
 import 'song_map_letters.dart';
 import 'song_map_view.dart';
 
+/// The shared "key" button: Shift / Chop / Range, review actions, tempo choices.
+/// Lit (orange) only for a playing / selected state.
+Widget songMapKey(
+  BuildContext context,
+  String label,
+  VoidCallback? onPressed, {
+  Key? key,
+  bool? selected,
+  double? width,
+}) {
+  final palette = context.mp;
+  final lit = selected == true;
+  final fixedWidth =
+      width ??
+      (label == 'Shift' || label == 'Chop' || label == 'Done'
+          ? 56.0
+          : SongMapPads._backWidth);
+  return Semantics(
+    selected: selected,
+    child: OutlinedButton(
+      key: key ?? ValueKey('song-map-key-$label'),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(48, 48),
+        fixedSize: Size(fixedWidth, 48),
+        padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xs),
+        visualDensity: VisualDensity.standard,
+        backgroundColor: lit
+            ? MonoPulseColors.accentOrange
+            : palette.surfaceRaised,
+        disabledBackgroundColor: palette.surfaceRaised,
+        foregroundColor: lit ? MonoPulseColors.charcoal : palette.textPrimary,
+        side: BorderSide(
+          color: lit ? MonoPulseColors.accentOrange : palette.borderStrong,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+        ),
+        textStyle: MonoPulseTypography.labelMedium,
+      ),
+      onPressed: onPressed,
+      child: FittedBox(fit: BoxFit.scaleDown, child: Text(label)),
+    ),
+  );
+}
+
 /// Practice pads for the current level of a [SongMapView].
 class SongMapPads extends StatefulWidget {
   const SongMapPads({
     required this.view,
     this.stackHeader = false,
+    this.reviewCount,
+    this.onDiscard,
+    this.onDone,
     this.showChop = false,
     this.chopLit = false,
     this.onChop,
@@ -34,19 +82,28 @@ class SongMapPads extends StatefulWidget {
     int rows,
     double width, {
     required bool stackHeader,
+    bool review = false,
   }) =>
       MonoPulseSpacing.massive +
-      (_keysFitOnNameRow(width) && !stackHeader ? 0 : MonoPulseSpacing.xxl) +
+      (_keysFitOnNameRow(width, review) && (review || !stackHeader)
+          ? 0
+          : MonoPulseSpacing.xxl) +
       (width < 280 ? MonoPulseSpacing.massive + MonoPulseSpacing.xs : 0) +
       rows * padHeight +
       (rows + 1) * MonoPulseSpacing.sm;
 
   static int columnsForWidth(double width) => width < 600 ? 2 : 4;
   static const _backWidth = 68.0;
-  static bool _keysFitOnNameRow(double width) => width >= 340;
+  static bool _keysFitOnNameRow(double width, [bool review = false]) =>
+      width >= (review ? 400 : 340);
 
   final SongMapView view;
   final bool stackHeader;
+
+  /// Sections found in a candidate awaiting review; null outside review.
+  final int? reviewCount;
+  final VoidCallback? onDiscard;
+  final VoidCallback? onDone;
   final bool showChop;
   final bool chopLit;
   final ValueChanged<bool>? onChop;
@@ -78,51 +135,13 @@ class _SongMapPadsState extends State<SongMapPads> {
     }
   }
 
-  Widget _key(
-    BuildContext context,
-    String label,
-    VoidCallback? onPressed, {
-    bool? selected,
-  }) {
-    final palette = context.mp;
-    final lit = selected == true;
-    final width = label == 'Shift' || label == 'Chop'
-        ? 56.0
-        : SongMapPads._backWidth;
-    return Semantics(
-      selected: selected,
-      child: OutlinedButton(
-        key: ValueKey('song-map-key-$label'),
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(48, 48),
-          fixedSize: Size(width, 48),
-          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xs),
-          visualDensity: VisualDensity.standard,
-          backgroundColor: lit
-              ? MonoPulseColors.accentOrange
-              : palette.surfaceRaised,
-          disabledBackgroundColor: palette.surfaceRaised,
-          foregroundColor: lit ? MonoPulseColors.charcoal : palette.textPrimary,
-          side: BorderSide(
-            color: lit ? MonoPulseColors.accentOrange : palette.borderStrong,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          ),
-          textStyle: MonoPulseTypography.labelMedium,
-        ),
-        onPressed: onPressed,
-        child: FittedBox(fit: BoxFit.scaleDown, child: Text(label)),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: widget.view,
     builder: (context, _) {
       final children = widget.view.children();
       final section = widget.view.sectionIndex;
+      final count = section == null ? widget.reviewCount : null;
       return LayoutBuilder(
         builder: (context, constraints) => Column(
           mainAxisSize: MainAxisSize.min,
@@ -134,26 +153,58 @@ class _SongMapPadsState extends State<SongMapPads> {
               ),
               child: LayoutBuilder(
                 builder: (context, _) {
-                  final name = Text(
-                    section == null
-                        ? 'Sections'
-                        : '${widget.view.sectionLetter(section).label} · ${songMapRegionName(widget.view.sections[section], section)}',
-                    style: MonoPulseTypography.titleMedium,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  final fit = SongMapPads._keysFitOnNameRow(
+                    constraints.maxWidth,
+                    count != null,
                   );
+                  final name = count != null && fit
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final (line, color) in [
+                              ('Sections', context.mp.textPrimary),
+                              ('$count found', context.mp.textSecondary),
+                            ])
+                              Text(
+                                line,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: MonoPulseTypography.bodySmall.copyWith(
+                                  color: color,
+                                ),
+                              ),
+                          ],
+                        )
+                      : Text(
+                          section == null
+                              ? count == null
+                                    ? 'Sections'
+                                    : 'Sections · $count found'
+                              : '${widget.view.sectionLetter(section).label} · ${songMapRegionName(widget.view.sections[section], section)}',
+                          style: MonoPulseTypography.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
                   final keys = [
-                    if (section != null)
+                    if (count != null) ...[
+                      songMapKey(context, 'Discard', widget.onDiscard),
+                      songMapKey(context, 'Done', widget.onDone),
+                    ] else if (section != null)
                       Tooltip(
                         message: 'Zoom out',
-                        child: _key(context, '‹ Song', widget.view.zoomToSong),
+                        child: songMapKey(
+                          context,
+                          '‹ Song',
+                          widget.view.zoomToSong,
+                        ),
                       )
                     else
                       const SizedBox(width: SongMapPads._backWidth, height: 48),
                     Tooltip(
                       message: 'Shift',
                       excludeFromSemantics: true,
-                      child: _key(
+                      child: songMapKey(
                         context,
                         'Shift',
                         () => setState(() => _shift = !_shift),
@@ -161,7 +212,7 @@ class _SongMapPadsState extends State<SongMapPads> {
                       ),
                     ),
                     if (widget.showChop)
-                      _key(
+                      songMapKey(
                         context,
                         'Chop',
                         widget.onChop == null
@@ -173,7 +224,7 @@ class _SongMapPadsState extends State<SongMapPads> {
                               },
                         selected: widget.chopLit,
                       ),
-                    _key(
+                    songMapKey(
                       context,
                       'Range',
                       widget.onRange == null
@@ -185,10 +236,12 @@ class _SongMapPadsState extends State<SongMapPads> {
                       selected: _rangeMode,
                     ),
                   ];
-                  if (SongMapPads._keysFitOnNameRow(constraints.maxWidth)) {
+                  if (fit) {
                     final nameAboveKeys = widget.stackHeader && section != null;
                     final row = Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: count == null
+                          ? CrossAxisAlignment.start
+                          : CrossAxisAlignment.center,
                       spacing: MonoPulseSpacing.xs,
                       children: [
                         Expanded(
@@ -197,7 +250,7 @@ class _SongMapPadsState extends State<SongMapPads> {
                         ...keys,
                       ],
                     );
-                    if (!widget.stackHeader) return row;
+                    if (!widget.stackHeader || count != null) return row;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

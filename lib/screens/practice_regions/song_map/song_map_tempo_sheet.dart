@@ -72,6 +72,11 @@ class _SongMapTempoSheetState extends State<SongMapTempoSheet> {
         child: Text(label),
       ),
     );
+    const fullWidth = ButtonStyle(
+      minimumSize: WidgetStatePropertyAll(
+        Size(double.infinity, MonoPulseSpacing.massive),
+      ),
+    );
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
@@ -148,10 +153,10 @@ class _SongMapTempoSheetState extends State<SongMapTempoSheet> {
               child: Row(
                 spacing: MonoPulseSpacing.md,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.touch_app,
                     size: MonoPulseSpacing.xl,
-                    color: MonoPulseColors.accentOrange,
+                    color: palette.textPrimary,
                   ),
                   Expanded(
                     child: Column(
@@ -184,22 +189,16 @@ class _SongMapTempoSheetState extends State<SongMapTempoSheet> {
               value: _listen,
               onChanged: (value) => setState(() => _listen = value),
             ),
-            FilledButton(
+            OutlinedButton(
               key: const ValueKey('tempo-save'),
-              style: const ButtonStyle(
-                minimumSize: WidgetStatePropertyAll(
-                  Size(double.infinity, MonoPulseSpacing.massive),
-                ),
-              ),
+              style: fullWidth,
               onPressed: () =>
                   Navigator.pop(context, (bpm: _bpm, listen: _listen)),
               child: const Text('Save'),
             ),
-            TextButton(
+            OutlinedButton(
               key: const ValueKey('tempo-cancel'),
-              style: TextButton.styleFrom(
-                foregroundColor: MonoPulseColors.accentOrange,
-              ),
+              style: fullWidth,
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),

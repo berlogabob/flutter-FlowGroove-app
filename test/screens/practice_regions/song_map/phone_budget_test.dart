@@ -234,7 +234,7 @@ void main() {
         ),
     ];
     await pump(tester, entry(regions));
-    expect(find.byType(SongMapTempoBanner).hitTestable(), findsOneWidget);
+    expect(find.text('Keep').hitTestable(), findsOneWidget);
     expectTitleAndRows(tester);
     expectThinBars(tester, pcm: false);
     expectOpenSectionOutlined(tester, 'r0');
@@ -299,12 +299,12 @@ void main() {
         await tester.tap(find.text('Analyze song'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Analyze'));
-        final review = find.text('$sectionCount sections');
+        final review = find.textContaining('$sectionCount found');
         for (var i = 0; i < 20 && review.evaluate().isEmpty; i++) {
           await fixture.settleAudio(tester);
         }
         expect(review.hitTestable(), findsOneWidget);
-        expect(find.byType(SongMapTempoBanner).hitTestable(), findsOneWidget);
+        expect(find.text('Keep').hitTestable(), findsOneWidget);
         final notesHeader = find.text('Notes · 1');
         expect(notesHeader.hitTestable(), findsOneWidget);
         expect(tester.getSize(notes).height, 48);

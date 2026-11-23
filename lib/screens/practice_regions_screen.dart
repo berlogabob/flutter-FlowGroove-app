@@ -1829,6 +1829,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           key: ValueKey((view, view.sectionIndex, view.partIndex)),
           view: view,
           stackHeader: stackPadHeader,
+          reviewCount: _mapCandidate == null
+              ? null
+              : _mapCandidate!.boundaries.length + 1,
+          onDiscard: _busy || _analyzing ? null : _discardCandidate,
+          onDone: _analyzing || _busy ? null : _useCandidate,
           showChop: _canEdit,
           chopLit: _songMapCutMs != null,
           onChop: canChop
@@ -2128,10 +2133,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       : songMapTempoOptions(_detectedBpm, _songBpm());
 
   /// Height the review controls reserve above the map.
-  double get _reviewHeight => _mapCandidate == null
-      ? 120
-      : SongMapReviewRow.height +
-            (_tempoOptions == null ? 0 : SongMapTempoRow.height);
+  double get _reviewHeight =>
+      _mapCandidate == null ? 120 : SongMapTempoRow.height;
 
   /// Sets only the candidate's grid (same downbeat, regions unchanged in ms).
   /// The song's own BPM is the band's live tempo and is never written here.
@@ -2181,27 +2184,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (candidate != null) {
       final options = _tempoOptions;
       final selected = candidate.grid?.bpm.round();
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (options != null)
-            SongMapTempoRow(
-              a: options.a,
-              b: options.b,
-              selected: selected,
-              onChoose: (bpm) => unawaited(_setCandidateBpm(bpm, listen: true)),
-              onOther: () => unawaited(_openTempoSheet()),
-            ),
-          SongMapReviewRow(
-            label: _entry.regions.isNotEmpty
-                ? 'New map'
-                : candidate.boundaries.isEmpty
-                ? '1 section'
-                : '${candidate.boundaries.length + 1} sections',
-            onDiscard: _busy || _analyzing ? null : _discardCandidate,
-            onDone: _analyzing || _busy ? null : _useCandidate,
-          ),
-        ],
+      if (options == null) return null;
+      return SongMapTempoRow(
+        a: options.a,
+        b: options.b,
+        selected: selected,
+        onChoose: (bpm) => unawaited(_setCandidateBpm(bpm, listen: true)),
+        onOther: () => unawaited(_openTempoSheet()),
       );
     }
     if (!_showAnalyzePrompt && !_analyzing) return null;
@@ -2799,7 +2788,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   }) =>
       SongMapOverview.height +
       (_entry.peaks.isEmpty ? 84 : 0) +
-      SongMapPads.heightForRows(rows, width, stackHeader: stackHeader);
+      SongMapPads.heightForRows(
+        rows,
+        width,
+        stackHeader: stackHeader,
+        review: _mapCandidate != null,
+      );
 
   Widget _editableTitle() {
     const key = ValueKey('recording-title');
