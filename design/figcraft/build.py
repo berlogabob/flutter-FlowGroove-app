@@ -2467,11 +2467,27 @@ def export_png(node_id, path, scale=1):
 GITHUB = "https://github.com/berlogabob/flutter-FlowGroove-app/blob/second01/"
 WEB_APP = "https://app.flowgroove.app/#"  # hash URL strategy (no usePathUrlStrategy in lib/)
 REAL = os.path.join(HERE, "..", "real")
-# Pixel RMSE is only a sort hint: on the first device run it ranked a structurally wrong Songs design (13) as
-# better than a correct invite screen (29, the real QR code dominates). Readiness comes from verdicts.json.
-VERDICTS = {}
-if os.path.exists(os.path.join(REAL, "verdicts.json")):
-    VERDICTS = {k: v for k, v in json.load(open(os.path.join(REAL, "verdicts.json"))).items() if not k.startswith("_")}
+RENDER = os.path.join(HERE, "..", "render")
+
+
+def real_png(key: str, spec: dict) -> str | None:
+    render = os.path.join(RENDER, f"{key}@{screen_mode(spec)}-412-1.00.png")
+    fallback = os.path.join(REAL, f"{key}.png")
+    return next((path for path in (render, fallback) if os.path.exists(path)), None)
+
+
+def parity_note(key: str) -> str:
+    path = os.path.join(RENDER, "parity.json")
+    if not os.path.exists(path):
+        return "parity: unavailable"
+    with open(path) as f:
+        result = json.load(f).get(key)
+    if result is None:
+        return "parity: unavailable"
+    if result.get("pass") is True:
+        return "parity pass"
+    return (f"parity: missing {len(result.get('missing', []))}, "
+            f"extra {len(result.get('extra', []))}, order {result.get('order', 0):.2f}")
 
 
 def rmse(a, b):
@@ -2520,16 +2536,18 @@ def parity(dryrun=False):
                     ex("edit.delete", {"ids": [old]})
                 except RuntimeError:
                     pass
-        png = os.path.join(REAL, f"{key}.png")
-        ex("node.set", {"ids": [fid], "devStatus": None})  # set again below only if it still matches
-        if not os.path.exists(png):
+        png = real_png(key, spec)
+        ex("node.set", {"ids": [fid], "devStatus":
+                        "readyForDev" if parity_note(key) == "parity pass" else None})
+        if not png:
             rows.append((None, spec, key, route))
             continue
         ex("page.select", {"id": pages[spec.get("page", "Home & Tools")]})
         pos = ex("node.get", {"id": fid, "fields": ["x", "y"]})
         design = os.path.join(HERE, "logs", f".{key}.design.png")
         meta = index.get(key, {})
-        mode = "Dark" if meta.get("night", "").endswith("yes") else "Light"  # compare in the device's theme
+        mode = (MODES[screen_mode(spec)] if os.path.dirname(png) == RENDER else
+                "Dark" if meta.get("night", "").endswith("yes") else "Light")
         ex("variable.setMode", {"ids": [fid], "collection": COL, "mode": mode})
         export_png(fid, design)
         ex("variable.setMode", {"ids": [fid], "collection": COL, "mode": MODES[screen_mode(spec)]})
@@ -2538,13 +2556,10 @@ def parity(dryrun=False):
                                  "width": W, "name": f"Real · {spec['name']}"})
         note = ex("node.create", {"type": "text", "x": pos["x"] + W + 40, "y": pos["y"] + img["height"] + 12,
                                   "width": W, "select": False, "name": f"Parity · {spec['name']}",
-                                  "text": f"{VERDICTS.get(key, 'unreviewed')} · diff {score} · {meta.get('route', route)} · "
+                                  "text": f"{parity_note(key)} · diff {score} · {meta.get('route', route)} · "
                                           f"{meta.get('device', '?')} · {meta.get('captured', '?')[:10]}",
                                   "props": {"textStyle": "Type/caption", "fill": "#D8D6CC"}})
         reg[f"real:{spec['name']}"], reg[f"realnote:{spec['name']}"] = img["id"], note["id"]
-        verdict = VERDICTS.get(key, "unreviewed")
-        if verdict == "match":  # a human/vision review, not the pixel score, decides readiness
-            ex("node.set", {"ids": [fid], "devStatus": "readyForDev"})
         rows.append((score, spec, key, route))
     json.dump(reg, open(REG, "w"), indent=1)
     parity_page(rows, pages)
@@ -2562,20 +2577,61 @@ def parity_page(rows, pages):
             ex("edit.delete", {"ids": [old]})
         except RuntimeError:
             pass
-    rows = sorted(rows, key=lambda r: (r[0] is None, VERDICTS.get(r[2]) == "match", -(r[0] or 0)))
+    rows = sorted(rows, key=lambda r: (r[0] is None, parity_note(r[2]) == "parity pass", -(r[0] or 0)))
     done = sum(r[0] is not None for r in rows)
-    ok = sum(VERDICTS.get(r[2]) == "match" for r in rows)
-    lines = [f"Parity: {done} of {len(rows)} screens captured, {ok} reviewed as matching (readyForDev) · "
-             "verdicts in design/real/verdicts.json · capture.py then build.py parity", ""]
+    ok = sum(parity_note(r[2]) == "parity pass" for r in rows)
+    lines = [f"Parity: {done} of {len(rows)} screens captured, {ok} passing (readyForDev) · "
+             "results in design/render/parity.json · build.py parity", ""]
     for score, spec, key, route in rows:
         s = "  —  " if score is None else f"{score:5.1f}"
-        v = VERDICTS.get(key, "" if score is None else "unreviewed")
+        v = parity_note(key)
         lines.append(f"{s}  {spec['name'][:28]:28}  {(route or 'no route')[:44]:44}  {v[:90]}")
     t = ex("node.create", {"type": "text", "x": 0, "y": 0, "width": 1400, "select": False, "name": "Parity table",
                            "text": "\n".join(lines), "props": {"textStyle": "Type/mono", "fill": "#F6F5F0"}})
     reg = load_reg()
     reg["parity:table"] = t["id"]
     json.dump(reg, open(REG, "w"), indent=1)
+
+
+def matrix(keys):
+    """Place the render matrix in allCells order, including missing cells."""
+    pages = page_ids()
+    if "Matrix" not in pages:
+        ex("page.add", {"name": "Matrix"})
+        pages = page_ids()
+    ex("page.select", {"id": pages["Matrix"]})
+    reg = load_reg()
+    for node in reg.get("matrix:nodes", []):
+        try:
+            ex("edit.delete", {"ids": [node]})
+        except RuntimeError:
+            pass
+    status_path = os.path.join(RENDER, "matrix.json")
+    if os.path.exists(status_path):
+        with open(status_path) as f:
+            statuses = json.load(f)
+    else:
+        statuses = {}
+    nodes = []
+    for row, key in enumerate(keys):
+        cells = (f"{key}@{theme}-{width}-{scale:.2f}"
+                 for theme in ("light", "dark") for width in (360, 393, 412, 420)
+                 for scale in (1.0, 1.3))
+        for col, cell in enumerate(cells):
+            x, y = col * 230, row * 550
+            png = os.path.join(RENDER, cell + ".png")
+            if os.path.exists(png):
+                img = ex("image.place", {"path": os.path.abspath(png), "x": x, "y": y,
+                                         "width": 200, "name": cell})
+                nodes.append(img["id"])
+            caption = ex("node.create", {"type": "text", "x": x, "y": y + 490,
+                                        "width": 220, "select": False, "name": cell,
+                                        "text": f"{cell} · {statuses.get(cell, 'missing')}",
+                                        "props": {"textStyle": "Type/caption", "fill": "#F6F5F0"}})
+            nodes.append(caption["id"])
+    reg["matrix:nodes"] = nodes
+    with open(REG, "w") as f:
+        json.dump(reg, f, indent=1)
 
 
 def _hex(c):
@@ -2822,11 +2878,17 @@ def main(a=None, dry_dir=None):
         sys.exit(dryrun(a[1] if len(a) > 1 else catalog))
     elif a[0] == "export-connect":
         print("connect file:", export_connect())
+    elif a[0] == "matrix":
+        keys_path = os.path.join(HERE, "..", "render_keys.txt")
+        with open(keys_path) as f:
+            keys = a[1:] or [line.strip() for line in f if line.strip()]
+        matrix(keys)
+        ex("file.save", {})
     elif a[0] == "parity":  # after capture.py: real screens beside frames, scores, code links
         rows = parity()
         got = [r for r in rows if r[0] is not None]
         print(f"parity: {len(got)} captured of {len(rows)} screens;",
-              f"{sum(VERDICTS.get(r[2]) == 'match' for r in got)} reviewed as matching")
+              f"{sum(parity_note(r[2]) == 'parity pass' for r in got)} passing")
         ex("file.save", {})
     elif a[0] in ("pull", "drift"):  # FigCraft document -> tokens.json (pull) or just compare (drift)
         tok, notes = doc_tokens()
@@ -2869,6 +2931,8 @@ def main(a=None, dry_dir=None):
                 continue
             apply_links([(source_id, link["to"])], frame_ids, {})
         drop_lib()
+        if dry_dir is not None:
+            matrix(["dryrun"])
         rows = parity(dryrun=dry_dir is not None)
         print("parity:", sum(r[0] is not None for r in rows), "captured of", len(rows))
         print("tokens bound:", STATS["on"], "off-scale values:", STATS["off"],
