@@ -1826,15 +1826,13 @@ CONNECT = {
                   'clickAndDrums: false, onPlay: () {}, onStop: () {}, onSpeedTap: () {}, onLoopChanged: (_) {}, '
                   'onCountInChanged: (_) {}, onClickChanged: (_) {}, onClickAndDrumsChanged: (_) {})',
                   "Persistent Song Map playback controls."),
-    "Overview": ("package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart", "SongMapTimeline",
-                 'SongMapTimeline(view: songMapView)', "Whole-song Song Map timeline."),
+    "Overview": ("package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart", "SongMapOverview",
+                 'SongMapOverview(entry: entry, view: songMapView)', "Whole-song Song Map overview."),
     "ZoomWave": ("package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart", "SongMapTimeline",
                  'SongMapTimeline(view: songMapView)', "Zoomed section waveform and timeline."),
-    "Pads": ("package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart", "SongMapPads",
+    "Pad": ("package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart", "SongMapPads",
              'SongMapPads(view: songMapView)', "Song Map practice pads."),
-    "Tempo banner": ("package:flowgroove/screens/practice_regions/song_map/song_map_tempo_banner.dart", "SongMapTempoBanner",
-                     'SongMapTempoBanner(measuredBpm: 120, onStretch: () {}, onKeep: () {})',
-                     "Song Map detected tempo banner."),
+    # ponytail: SongMapTempoBanner has no FigCraft component yet (banner is a frame), add its entry with one.
 }
 DESC_ONLY = {
     "SongCard": "Song list item with title, artist and key/tempo metadata.",
@@ -2784,9 +2782,9 @@ def verify_components():
     """Code Connect templates and FigCraft variants vs the Dart widgets they link to. Offline."""
     errors, checked = [], 0
     for cname, (imp, name, tpl, _desc) in CONNECT.items():
-        if not imp.startswith(APP):
+        if not imp.startswith("package:flowgroove/"):
             continue  # Material widget: the SDK is the contract
-        path = os.path.join(REPO, "lib", "widgets", imp[len(APP):])
+        path = os.path.join(REPO, "lib", imp[len("package:flowgroove/"):])
         if not os.path.exists(path):
             errors.append(f"{cname}: {path} does not exist")
             continue
