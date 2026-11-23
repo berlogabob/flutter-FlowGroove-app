@@ -855,31 +855,36 @@ final kOpeners = <String, Opener>{
       },
     ),
   ),
-  'performer_sheet_link_to_band_member': Opener(
-    (context, _, _) => showModalBottomSheet<void>(
+  'performer_sheet_link_to_band_member': Opener((context, _, _) {
+    showPerformerSheet(
       context: context,
-      builder: (context) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            const ListTile(title: Text('Link to band member')),
-            for (final name in [
-              'Max Rivera',
-              'Jordan Lee',
-              'Sam Okafor',
-              'Priya Nair',
-              'Diego Ferrer',
-            ])
-              ListTile(
-                leading: const Icon(Icons.person),
-                title: Text(name),
-                onTap: () => Navigator.pop(context),
-              ),
-          ],
-        ),
+      selected: const [],
+      kit: const EventKit(
+        people: [EventPerson(id: 'guest1', name: 'Test User', role: '')],
       ),
-    ),
-  ),
+      members: [
+        BandMember(
+          uid: 'user1',
+          role: BandMember.roleAdmin,
+          displayName: 'Test User',
+        ),
+      ],
+      songNumber: 1,
+      songTitle: 'First Song',
+    );
+    tapWhenBuilt(
+      find.descendant(
+        of: find.byKey(const ValueKey('performer_guest1'), skipOffstage: false),
+        matching: find.byType(PopupMenuButton<String>, skipOffstage: false),
+        skipOffstage: false,
+      ),
+      (element) =>
+          (element.widget as PopupMenuButton<String>).onSelected!('link'),
+    );
+    tapWhenBuilt(find.text('Link to band member'), (_) {
+      expect(find.text('Who plays #1', skipOffstage: false), findsOneWidget);
+    });
+  }),
   'performer_sheet_sheet_l32': Opener(
     (context, _, _) => showPerformerSheet(
       context: context,
@@ -1291,9 +1296,10 @@ final kOpeners = <String, Opener>{
     });
   }),
   'profile_delete_account': Opener((context, _, _) {
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(builder: (_) => const ProfileScreen()),
-    );
+    Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push(MaterialPageRoute<void>(builder: (_) => const ProfileScreen()));
     tapWhenBuilt(find.text('Danger zone', skipOffstage: false), (element) {
       element.findAncestorWidgetOfExactType<InkWell>()!.onTap!();
       tapWhenBuilt(
