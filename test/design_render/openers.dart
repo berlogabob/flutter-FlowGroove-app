@@ -13,6 +13,7 @@ import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/midi_song_provider.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
+import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
 import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
 import 'package:flowgroove/screens/practice_regions/slice_edit_sheet.dart';
@@ -48,6 +49,7 @@ import 'package:flowgroove/widgets/suggestion_selection_dialog.dart';
 import 'package:flowgroove/widgets/support_sheet.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
 import 'package:flowgroove/widgets/tools/tool_mode_switcher.dart';
+import 'package:flowgroove/widgets/tool_button.dart';
 import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
 import 'package:flowgroove/widgets/tuner/instrument_picker.dart';
 import 'package:flowgroove/widgets/tuner/settings_sheet.dart';
@@ -299,38 +301,30 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
-  'home_rehearsals': Opener(
-    (context, _, _) => showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            const ListTile(
-              title: Text('Rehearsals — choose a band'),
-              subtitle: Text(
-                'Rehearsals are per band — choose one to see its schedule.',
-              ),
-            ),
-            const Divider(),
-            for (final bandName in [
-              'FlowGroove',
-              'The Neon Skyline',
-              'Midnight Canvas',
-              'Solar Flare',
-              'Paper Planes Quartet',
-            ])
-              ListTile(
-                leading: const Icon(Icons.event),
-                title: Text(bandName),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.pop(sheetContext),
-              ),
-          ],
+  'home_rehearsals': Opener((context, _, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [bandsProvider.overrideWith((ref) => Stream.value([]))],
+          child: const HomeScreen(),
         ),
       ),
-    ),
-  ),
+    );
+    tapWhenBuilt(
+      find
+          .byWidgetPredicate(
+            (widget) => widget is ToolButton && widget.label == 'Rehearsals',
+            skipOffstage: false,
+          )
+          .last,
+      (element) {
+        (element.widget as ToolButton).onTap!();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          expect(find.text('Create a band'), findsOneWidget);
+        });
+      },
+    );
+  }),
   'metronome_launchpad': Opener((_, _, router) => router.go('/main/metronome')),
   'backing_sheet': Opener(
     (context, _, _) => showModalBottomSheet<void>(
