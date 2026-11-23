@@ -522,60 +522,33 @@ final kOpeners = <String, Opener>{
       preciseTime: (ms) => '00:${(ms ~/ 1000).toString().padLeft(2, '0')}.000',
     ),
   ),
-  'practice_regions_speed_n': Opener(
-    (context, _, _) => showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: context.mp.surface,
-      builder: (_) => StatefulBuilder(
-        builder: (context, setSheetState) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Speed 100%',
-                  style: MonoPulseTypography.titleMedium,
-                ),
-                Wrap(
-                  spacing: MonoPulseSpacing.sm,
-                  children: [
-                    for (final percent in [50, 60, 70, 75, 80, 85, 90, 100])
-                      ChoiceChip(
-                        label: Text('$percent%'),
-                        selected: percent == 100,
-                        onSelected: (_) {},
-                      ),
-                  ],
-                ),
-                const SizedBox(height: MonoPulseSpacing.md),
-                const Text('Pre-roll', style: MonoPulseTypography.titleMedium),
-                Wrap(
-                  spacing: MonoPulseSpacing.sm,
-                  children: [
-                    for (final value in [0, 1, 2])
-                      ChoiceChip(
-                        label: Text('$value s'),
-                        selected: value == 0,
-                        onSelected: (_) {},
-                      ),
-                  ],
-                ),
-                const SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text('Click & drums'),
-                  subtitle: Text('Needs a whole-number BPM grid'),
-                  value: false,
-                  onChanged: null,
-                ),
-              ],
+  'practice_regions_speed_n': Opener((context, _, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [
+            labRepositoryProvider.overrideWithValue(RenderLabRepository()),
+          ],
+          child: PracticeRegionsScreen(
+            entry: PracticeRegionsScreenFixture.entry().copyWith(
+              attachmentIds: const [],
             ),
           ),
         ),
       ),
-    ),
-  ),
+    );
+    tapWhenBuilt(
+      find.byKey(const ValueKey('speed'), skipOffstage: false),
+      (element) => (element.widget as OutlinedButton).onPressed!(),
+    );
+    tapWhenBuilt(find.byType(BottomSheet), (_) {
+      expect(
+        find.byType(PracticeRegionsScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('Speed 100%'), findsOneWidget);
+    });
+  }),
   'profile_currently_using': Opener(
     (context, _, _) => showModalBottomSheet<void>(
       context: context,
