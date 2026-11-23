@@ -372,6 +372,60 @@ final kOpeners = <String, Opener>{
       preciseTime: (ms) => '00:${(ms ~/ 1000).toString().padLeft(2, '0')}.000',
     ),
   ),
+  'practice_regions_speed_n': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.mp.surface,
+      builder: (_) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Speed 100%',
+                  style: MonoPulseTypography.titleMedium,
+                ),
+                Wrap(
+                  spacing: MonoPulseSpacing.sm,
+                  children: [
+                    for (final percent in [50, 60, 70, 75, 80, 85, 90, 100])
+                      ChoiceChip(
+                        label: Text('$percent%'),
+                        selected: percent == 100,
+                        onSelected: (_) {},
+                      ),
+                  ],
+                ),
+                const SizedBox(height: MonoPulseSpacing.md),
+                const Text('Pre-roll', style: MonoPulseTypography.titleMedium),
+                Wrap(
+                  spacing: MonoPulseSpacing.sm,
+                  children: [
+                    for (final value in [0, 1, 2])
+                      ChoiceChip(
+                        label: Text('$value s'),
+                        selected: value == 0,
+                        onSelected: (_) {},
+                      ),
+                  ],
+                ),
+                const SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('Click & drums'),
+                  subtitle: Text('Needs a whole-number BPM grid'),
+                  value: false,
+                  onChanged: null,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  ),
   'song_map_part': Opener(
     (context, _, _) => showSectionNameSheet(
       context,

@@ -62,3 +62,4 @@ song_map_playing
 song_map_playing_light
 song_map_review
 song_map_review_light
+practice_regions_speed_n
