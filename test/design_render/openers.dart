@@ -1423,12 +1423,25 @@ final kOpeners = <String, Opener>{
       builder: (_) => const SongImportDialog(librarySongs: []),
     ),
   ),
-  'songs_list_importing_songs': Opener(
-    (context, _, _) => showDialog<void>(
-      context: context,
-      builder: (_) => const SongImportDialog(librarySongs: []),
-    ),
-  ),
+  'songs_list_importing_songs': Opener((_, _, _) {
+    // Real path: Songs 'Library actions' menu -> 'Import from CSV' -> _handleImport.
+    tapWhenBuilt(
+      find.byWidgetPredicate(
+        (w) => w is PopupMenuButton && w.tooltip == 'Library actions',
+      ),
+      (menu) {
+        // ignore: avoid_dynamic_calls
+        ((menu as StatefulElement).state as dynamic).showButtonMenu();
+        tapWhenBuilt(
+          find.ancestor(
+            of: find.text('Import from CSV'),
+            matching: find.byType(InkWell),
+          ),
+          (item) => (item.widget as InkWell).onTap!(),
+        );
+      },
+    );
+  }, route: '/main/songs'),
   'song_export_dialog': Opener(
     (context, _, _) => showDialog<void>(
       context: context,
