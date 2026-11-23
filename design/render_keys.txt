@@ -60,3 +60,4 @@ performer_sheet_sheet_l32
 api_access_revoke_key
 suggestion_selection_dialog
 links_editor_add_link
+edit_section_dialog

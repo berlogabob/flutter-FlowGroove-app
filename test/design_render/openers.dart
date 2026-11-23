@@ -1,8 +1,10 @@
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/event_kit.dart';
+import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/screens/practice_setup_wizard.dart';
 import 'package:flowgroove/screens/songs/components/links_editor.dart';
+import 'package:flowgroove/screens/songs/components/song_constructor/widgets/edit_section_dialog.dart';
 import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flowgroove/screens/setlists/performer_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
@@ -691,6 +693,21 @@ final kOpeners = <String, Opener>{
           ),
         );
       },
+    ),
+  ),
+  'edit_section_dialog': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => EditSectionDialog(
+        section: Section(
+          id: 'section1',
+          name: 'Verse',
+          duration: 3,
+          notes: '',
+          chordChart: '[Am]Twinkle [F]little [C]star',
+        ),
+      ),
     ),
   ),
 };
