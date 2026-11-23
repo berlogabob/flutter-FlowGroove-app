@@ -23,11 +23,16 @@ const _regions = [
   AudioRegion(id: 'f', name: 'Bridge 1', startMs: 74824, endMs: 91765),
 ];
 
-Future<void> _pumpPractice(WidgetTester tester, {bool review = false}) async {
+Future<void> _pumpPractice(
+  WidgetTester tester, {
+  bool review = false,
+  bool noAudio = false,
+}) async {
   final decode = PracticeRegionsScreen.decodePcm;
   PracticeRegionsScreen
       .decodePcm = (_, {required sampleRate, required durationMs}) async {
-    final pcm = Int16List(sampleRate * durationMs ~/ 1000);
+    // noAudio: analysis fails with 'Missing audio' (the Manual setup path).
+    final pcm = Int16List(noAudio ? 0 : sampleRate * durationMs ~/ 1000);
     if (review) {
       const frequencies = [110, 262, 392, 147, 330, 220, 440, 196, 294, 131];
       for (var i = 0; i < pcm.length; i++) {
@@ -120,7 +125,29 @@ Future<void> _songMapSection(WidgetTester tester) async {
   expect(find.text('C · Chorus 1'), findsOneWidget);
 }
 
+Future<void> _replaceSections(WidgetTester tester) async {
+  // Analysis fails on a mapped song -> snackbar 'Manual setup' -> the real
+  // 'Replace N sections?' dialog (practice_regions_screen.dart _manualSetup).
+  await _pumpPractice(tester, noAudio: true);
+  // Mapped song: analysis starts from the app-bar menu's 'analyze' entry.
+  tester
+      .widget<PopupMenuButton<String>>(
+        find.byWidgetPredicate((w) => w is PopupMenuButton<String>).first,
+      )
+      .onSelected!('analyze');
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(FilledButton, 'Analyze'));
+  final action = find.text('Manual setup');
+  for (var i = 0; i < 20 && action.evaluate().isEmpty; i++) {
+    await practiceFixture.settleAudio(tester);
+  }
+  await tester.tap(action);
+  await tester.pumpAndSettle();
+  expect(find.text('Replace ${_regions.length} sections?'), findsOneWidget);
+}
+
 final kStates = <String, Future<void> Function(WidgetTester)>{
+  'practice_regions_replace_n_sections': _replaceSections,
   'song_map_section': _songMapSection,
   'song_map_section_light': _songMapSection,
   'practice_regions': _pumpPractice,
