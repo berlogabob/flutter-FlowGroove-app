@@ -61,3 +61,4 @@ drum_grid_editor
 metronome_sheets_sheet_l14
 reliability_sheet_keep_timing_reliable
 midi_import_flow_import_midi
+note_editor_sheet

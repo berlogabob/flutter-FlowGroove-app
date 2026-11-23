@@ -7,6 +7,8 @@ import 'package:flowgroove/widgets/metronome/bpm_input_overlay.dart';
 import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
 import 'package:flowgroove/widgets/metronome/metronome_sheets.dart';
 import 'package:flowgroove/widgets/metronome/reliability_sheet.dart';
+import 'package:flowgroove/widgets/practice/note_editor_sheet.dart';
+import 'package:flowgroove/models/midi_song.dart';
 import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
@@ -497,6 +499,37 @@ final kOpeners = <String, Opener>{
             child: const Text('OK'),
           ),
         ],
+      ),
+    ),
+  ),
+  'note_editor_sheet': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => NoteEditorSheet(
+        track: const MidiTrackMeta(
+          index: 0,
+          name: 'Bass',
+          channel: 0,
+          program: 0,
+          detectedRole: MidiRole.bass,
+          noteCount: 6,
+          minPitch: 45,
+          maxPitch: 55,
+        ),
+        notes: const [
+          MidiNote(tick: 120, dur: 120, pitch: 45, vel: 100),
+          MidiNote(tick: 480, dur: 120, pitch: 45, vel: 100),
+          MidiNote(tick: 240, dur: 120, pitch: 48, vel: 100),
+          MidiNote(tick: 720, dur: 120, pitch: 48, vel: 100),
+          MidiNote(tick: 360, dur: 120, pitch: 50, vel: 100),
+          MidiNote(tick: 59520, dur: 120, pitch: 55, vel: 100),
+        ],
+        ppq: 480,
+        beatsPerBar: 4,
+        sections: const [],
+        onApply: (_) {},
       ),
     ),
   ),
