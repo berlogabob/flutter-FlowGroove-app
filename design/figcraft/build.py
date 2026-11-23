@@ -1821,6 +1821,20 @@ CONNECT = {
                'AlertDialog(title: {Show title ? "Text(" : "null /* "}{Title}{Show title ? ")" : " */"}, '
                'content: /* Content slot */ null, actions: [/* Actions slot */])',
                "AlertDialog (ConfirmationDialog for confirms): surfaceRaised, radius 16. Destructive confirm = Danger button."),
+    "Transport": ("package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart", "SongMapTransport",
+                  'SongMapTransport(playing: false, speedPercent: 100, loop: false, countIn: false, click: false, '
+                  'clickAndDrums: false, onPlay: () {}, onStop: () {}, onSpeedTap: () {}, onLoopChanged: (_) {}, '
+                  'onCountInChanged: (_) {}, onClickChanged: (_) {}, onClickAndDrumsChanged: (_) {})',
+                  "Persistent Song Map playback controls."),
+    "Overview": ("package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart", "SongMapTimeline",
+                 'SongMapTimeline(view: songMapView)', "Whole-song Song Map timeline."),
+    "ZoomWave": ("package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart", "SongMapTimeline",
+                 'SongMapTimeline(view: songMapView)', "Zoomed section waveform and timeline."),
+    "Pads": ("package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart", "SongMapPads",
+             'SongMapPads(view: songMapView)', "Song Map practice pads."),
+    "Tempo banner": ("package:flowgroove/screens/practice_regions/song_map/song_map_tempo_banner.dart", "SongMapTempoBanner",
+                     'SongMapTempoBanner(measuredBpm: 120, onStretch: () {}, onKeep: () {})',
+                     "Song Map detected tempo banner."),
 }
 DESC_ONLY = {
     "SongCard": "Song list item with title, artist and key/tempo metadata.",
