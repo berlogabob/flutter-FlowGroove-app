@@ -1,3 +1,4 @@
+import 'package:flowgroove/widgets/tuner/instrument_picker.dart';
 import 'package:flowgroove/widgets/tuner/settings_sheet.dart';
 
 import '../helpers/mocks.dart';
@@ -1256,6 +1257,17 @@ final kOpeners = <String, Opener>{
   'bpm_input_overlay_sheet_l15': Opener(
     (context, _, _) => showTempoInputSheet(context),
   ),
+  'instrument_picker': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => ProviderScope(
+        overrides: [tunerProvider.overrideWith(_PickerTuner.new)],
+        child: const InstrumentPicker(),
+      ),
+    ),
+  ),
   'tuner_settings_sheet': Opener(
     (context, _, _) => showModalBottomSheet<void>(
       context: context,
@@ -1419,4 +1431,56 @@ class _StageTuner extends TunerNotifier {
     ),
     selectedTuning: Tuning(id: 'standard', name: 'Standard', notes: []),
   );
+}
+
+const _kGuitar = Instrument(
+  id: 'guitar',
+  name: 'Guitar',
+  subtitle: '6 strings',
+  origin: '',
+  icon: '',
+  stringCount: 6,
+  stringLabels: [],
+  tunings: [
+    Tuning(
+      id: 'standard',
+      name: 'Standard',
+      notes: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'],
+    ),
+  ],
+);
+
+/// Two instruments, guitar selected: the picker builds its ListTile rows (F92).
+class _PickerTuner extends TunerNotifier {
+  @override
+  TunerState build() => const TunerState(
+    instruments: [
+      _kGuitar,
+      Instrument(
+        id: 'bass',
+        name: 'Bass',
+        subtitle: '4 strings',
+        origin: '',
+        icon: '',
+        stringCount: 4,
+        stringLabels: [],
+        tunings: [
+          Tuning(
+            id: 'standard',
+            name: 'Standard',
+            notes: ['E1', 'A1', 'D2', 'G2'],
+          ),
+        ],
+      ),
+    ],
+    selectedInstrument: _kGuitar,
+    selectedTuning: Tuning(
+      id: 'standard',
+      name: 'Standard',
+      notes: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'],
+    ),
+  );
+
+  @override
+  Future<void> stopAll() async {}
 }

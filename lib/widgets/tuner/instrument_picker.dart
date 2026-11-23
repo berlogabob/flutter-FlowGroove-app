@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/instrument.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
@@ -17,94 +18,98 @@ class InstrumentPicker extends ConsumerWidget {
     final state = ref.watch(tunerProvider);
     final notifier = ref.read(tunerProvider.notifier);
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.7,
-      ),
-      decoration: BoxDecoration(
-        color: context.mp.surface,
-        borderRadius: const BorderRadius.vertical(
+    // Material, not a decorated Container: the ListTiles paint ink on it (F92).
+    return Material(
+      color: context.mp.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
           top: Radius.circular(MonoPulseRadius.xlarge),
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          Padding(
-            padding: const EdgeInsets.only(top: MonoPulseSpacing.sm),
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: context.mp.borderStrong,
-                borderRadius: BorderRadius.circular(2),
+      clipBehavior: Clip.antiAlias,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Padding(
+              padding: const EdgeInsets.only(top: MonoPulseSpacing.sm),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: context.mp.borderStrong,
+                  borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                ),
               ),
             ),
-          ),
 
-          // Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              MonoPulseSpacing.xl,
-              MonoPulseSpacing.lg,
-              MonoPulseSpacing.xl,
-              MonoPulseSpacing.md,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Select Instrument',
-                  style: MonoPulseTypography.headlineSmall.copyWith(
-                    color: context.mp.textHighEmphasis,
+            // Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                MonoPulseSpacing.xl,
+                MonoPulseSpacing.lg,
+                MonoPulseSpacing.xl,
+                MonoPulseSpacing.md,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Instrument',
+                    style: MonoPulseTypography.headlineSmall.copyWith(
+                      color: context.mp.textHighEmphasis,
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 24),
-                  color: context.mp.textSecondary,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-          ),
-
-          Divider(height: 1, color: context.mp.borderSubtle),
-
-          // Instrument list
-          Flexible(
-            child: ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.symmetric(
-                vertical: MonoPulseSpacing.sm,
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 24),
+                    color: context.mp.textSecondary,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
               ),
-              itemCount: state.instruments.length,
-              itemBuilder: (context, index) {
-                final instrument = state.instruments[index];
-                final isSelected =
-                    state.selectedInstrument?.id == instrument.id;
-
-                return _InstrumentTile(
-                  instrument: instrument,
-                  tunings: isSelected
-                      ? state.availableTunings
-                      : instrument.tunings,
-                  isSelected: isSelected,
-                  isExpanded: isSelected,
-                  onTap: () {
-                    HapticFeedback.mediumImpact();
-                    notifier.selectInstrument(instrument);
-                  },
-                  onTuningSelected: (tuning) {
-                    HapticFeedback.lightImpact();
-                    notifier.selectTuning(tuning);
-                    Navigator.of(context).pop();
-                  },
-                );
-              },
             ),
-          ),
-        ],
+
+            Divider(height: 1, color: context.mp.borderSubtle),
+
+            // Instrument list
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(
+                  vertical: MonoPulseSpacing.sm,
+                ),
+                itemCount: state.instruments.length,
+                itemBuilder: (context, index) {
+                  final instrument = state.instruments[index];
+                  final isSelected =
+                      state.selectedInstrument?.id == instrument.id;
+
+                  return _InstrumentTile(
+                    instrument: instrument,
+                    tunings: isSelected
+                        ? state.availableTunings
+                        : instrument.tunings,
+                    isSelected: isSelected,
+                    isExpanded: isSelected,
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      notifier.selectInstrument(instrument);
+                    },
+                    onTuningSelected: (tuning) {
+                      HapticFeedback.lightImpact();
+                      notifier.selectTuning(tuning);
+                      Navigator.of(context).pop();
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
