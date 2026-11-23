@@ -1288,23 +1288,22 @@ final kOpeners = <String, Opener>{
       });
     });
   }),
-  'profile_delete_account': Opener(
-    (context, _, _) => showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        icon: const Icon(Icons.delete_forever),
-        title: const Text('Delete account'),
-        content: const Text(
-          'This permanently deletes your account and all your data — your '
-          'songs, setlists, and band memberships. This cannot be undone.',
-        ),
-        actions: [
-          TextButton(onPressed: () {}, child: const Text('Cancel')),
-          TextButton(onPressed: () {}, child: const Text('Delete')),
-        ],
-      ),
-    ),
-  ),
+  'profile_delete_account': Opener((context, _, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(builder: (_) => const ProfileScreen()),
+    );
+    tapWhenBuilt(find.text('Danger zone', skipOffstage: false), (element) {
+      element.findAncestorWidgetOfExactType<InkWell>()!.onTap!();
+      tapWhenBuilt(
+        find.widgetWithText(TextButton, 'Delete account', skipOffstage: false),
+        (element) => (element.widget as TextButton).onPressed!(),
+      );
+    });
+    tapWhenBuilt(find.byType(AlertDialog), (_) {
+      expect(find.byType(ProfileScreen, skipOffstage: false), findsOneWidget);
+      expect(find.text('Delete account'), findsWidgets);
+    });
+  }),
   'recorder_link_recording_to_song': Opener(
     (context, _, _) => showModalBottomSheet<void>(
       context: context,
