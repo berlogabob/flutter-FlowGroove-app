@@ -53,3 +53,4 @@ add_song_helper_search_on_web
 tuner_tone
 custom_tuning_editor
 setlist_export_sheet_whose_copy
+lab_recording_sheet

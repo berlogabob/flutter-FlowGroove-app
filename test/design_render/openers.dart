@@ -12,6 +12,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
 import 'package:flowgroove/screens/songs/components/csv_import_export/song_import_dialog.dart';
 import 'package:flowgroove/screens/songs/components/csv_import_export/song_export_dialog.dart';
+import 'package:flowgroove/screens/songs/components/lab_recording_sheet.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/widgets/tools/tool_mode_switcher.dart';
@@ -430,6 +431,13 @@ final kOpeners = <String, Opener>{
           ),
         ],
       ),
+    ),
+  ),
+  'lab_recording_sheet': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const LabRecordingSheet(),
     ),
   ),
 };
