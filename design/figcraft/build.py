@@ -2806,6 +2806,11 @@ def verify_components():
         for arg in template_args(tpl):
             if arg not in params:
                 errors.append(f"{cname}: template passes `{arg}:` but {name} has no such parameter")
+        if cname in C:  # a {Placeholder} the component cannot fill renders as literal text in Dev Mode
+            known = {pr[0] for pr in C[cname]["props"]} | set(C[cname]["axes"]) | {sl[0] if isinstance(sl, tuple) else sl for sl in C[cname]["slots"]}
+            for ph in re.findall(r"\{(\w+)\}", tpl):
+                if ph not in known:
+                    errors.append(f"{cname}: template placeholder {{{ph}}} is not a prop, axis or slot of the component")
         for axis, opts in C[cname]["axes"].items():
             enum = f"{'Button' if cname == 'CustomButton' else cname}{axis}"
             em = re.search(rf"enum {enum}\s*\{{([^}}]*)\}}", src)
