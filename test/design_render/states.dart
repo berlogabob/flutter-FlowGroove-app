@@ -59,8 +59,23 @@ Future<void> _songMapSong(WidgetTester tester) async {
   );
 }
 
+Future<void> _songMapPart(WidgetTester tester) async {
+  await _pumpPractice(tester);
+  await tester.tap(
+    find.descendant(
+      of: find.byKey(const ValueKey('song-map-overview')),
+      matching: find.byKey(const ValueKey('song-map-section-c')),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await tester.longPress(find.byKey(const ValueKey('song-map-pad-f')));
+  await tester.pumpAndSettle();
+  expect(find.text('Rename section'), findsOneWidget);
+}
+
 final kStates = <String, Future<void> Function(WidgetTester)>{
   'practice_regions': _pumpPractice,
   'song_map_song': _songMapSong,
   'song_map_song_light': _songMapSong,
+  'song_map_part': _songMapPart,
 };
