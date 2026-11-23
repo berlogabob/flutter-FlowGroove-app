@@ -24,6 +24,7 @@ import 'package:flowgroove/services/audio/audio_note_recorder.dart';
 import 'package:flowgroove/services/audio/backing_engine.dart';
 import 'package:flowgroove/services/audio/song_peaks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:just_audio/just_audio.dart' show AudioPlayer;
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
@@ -363,6 +364,7 @@ class PracticeRegionsScreenFixture {
     ThemeData? theme,
     AudioPlayer? player,
     bool pushRoute = false,
+    List<Override> overrides = const [],
   }) async {
     final screen = PracticeRegionsScreen(entry: entry, player: player);
     await tester.pumpWidget(
@@ -373,6 +375,7 @@ class PracticeRegionsScreenFixture {
           metronomeSessionRepositoryProvider.overrideWithValue(_sessions),
           backingEngineProvider.overrideWithValue(_engine),
           metronomeProvider.overrideWith(FakeMetronome.new),
+          ...overrides,
           audioBytesFetcherProvider.overrideWithValue((url) async {
             _fetched.add(url);
             return bytes ?? Uint8List(0);
@@ -736,10 +739,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.widgetWithText(MaterialBanner, 'Analyze song'), findsOneWidget);
     await runAnalysis(tester);
-    expect(
-      find.textContaining('sections found · check, then Done'),
-      findsOneWidget,
-    );
+    expect(find.textContaining(RegExp(r'^\d+ sections?$')), findsOneWidget);
     expect(find.byType(SongMapTimeline), findsOneWidget);
     expect(repo.saved, isEmpty);
     await tester.tap(find.text('Done'));

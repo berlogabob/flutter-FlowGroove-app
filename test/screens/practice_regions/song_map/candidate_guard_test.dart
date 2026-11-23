@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:flowgroove/screens/practice_regions/song_map/song_map_tempo_row.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart';
 import 'package:flowgroove/screens/practice_regions_screen.dart';
@@ -17,7 +18,7 @@ void main() {
   final screen = find.byType(PracticeRegionsScreen);
   final overview = find.byKey(const ValueKey('song-map-overview'));
   final zoom = find.byKey(const ValueKey('song-map-zoom'));
-  final review = find.widgetWithText(MaterialBanner, 'Discard');
+  final review = find.byType(SongMapReviewRow);
   final dialog = find.widgetWithText(AlertDialog, 'Save the new section map?');
 
   setUp(() {
@@ -55,10 +56,7 @@ void main() {
     }
 
     expect(review.hitTestable(), findsOneWidget);
-    expect(
-      find.textContaining('sections found · check, then Done'),
-      findsOneWidget,
-    );
+    expect(find.textContaining(RegExp(r'^\d+ sections?$')), findsOneWidget);
     expect(find.text('Done').hitTestable(), findsOneWidget);
     expect(find.text('Discard').hitTestable(), findsOneWidget);
     expect(fixture.savedEntries, isEmpty);

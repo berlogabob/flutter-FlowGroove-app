@@ -27,6 +27,7 @@ Future<void> _pumpPractice(
   WidgetTester tester, {
   bool review = false,
   bool noAudio = false,
+  bool beats = false,
 }) async {
   final decode = PracticeRegionsScreen.decodePcm;
   PracticeRegionsScreen
@@ -39,6 +40,15 @@ Future<void> _pumpPractice(
         final frequency = frequencies[i * frequencies.length ~/ pcm.length];
         pcm[i] = (4000 * math.sin(2 * math.pi * frequency * i / sampleRate))
             .round();
+      }
+      if (beats) {
+        // A click on every beat of a 170 BPM take, so the detector finds it.
+        final step = sampleRate * 60 / 170;
+        for (var t = sampleRate * 0.3; t + 220 < pcm.length; t += step) {
+          for (var b = 0; b < 220; b++) {
+            pcm[t.round() + b] = b.isEven ? 20000 : -20000;
+          }
+        }
       }
     }
     return pcm;
@@ -107,12 +117,39 @@ Future<void> _songMapReview(WidgetTester tester) async {
   await tester.tap(find.text('Analyze song'));
   await tester.pumpAndSettle();
   await tester.tap(find.text('Analyze'));
-  final review = find.textContaining('sections found · check, then Done');
+  final review = find.textContaining(RegExp(r'^\d+ sections?$'));
   for (var i = 0; i < 20 && review.evaluate().isEmpty; i++) {
     await practiceFixture.settleAudio(tester);
   }
   expect(review, findsOneWidget);
   expect(find.text('Keep'), findsOneWidget);
+}
+
+Future<void> _analyzeWithBeats(WidgetTester tester) async {
+  await _pumpPractice(tester, review: true, beats: true);
+  await tester.tap(find.text('Analyze song'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Analyze'));
+  final done = find.widgetWithText(FilledButton, 'Done');
+  for (var i = 0; i < 20 && done.evaluate().isEmpty; i++) {
+    await practiceFixture.settleAudio(tester);
+  }
+  expect(done, findsOneWidget);
+}
+
+Future<void> _songMapTempo(WidgetTester tester) async {
+  // Analyze, then hear the other octave: key B of the Tempo row.
+  await _analyzeWithBeats(tester);
+  await tester.tap(find.byKey(const ValueKey('tempo-b')));
+  await practiceFixture.settleAudio(tester);
+  expect(find.text('170 BPM'), findsOneWidget);
+}
+
+Future<void> _songMapTempoSheet(WidgetTester tester) async {
+  await _songMapTempo(tester);
+  await tester.tap(find.byKey(const ValueKey('tempo-other')));
+  await tester.pumpAndSettle();
+  expect(find.text('Tempo'), findsOneWidget);
 }
 
 Future<void> _songMapSection(WidgetTester tester) async {
@@ -159,4 +196,8 @@ final kStates = <String, Future<void> Function(WidgetTester)>{
   'song_map_playing_light': _songMapPlaying,
   'song_map_review': _songMapReview,
   'song_map_review_light': _songMapReview,
+  'song_map_tempo': _songMapTempo,
+  'song_map_tempo_light': _songMapTempo,
+  'song_map_tempo_sheet': _songMapTempoSheet,
+  'song_map_tempo_sheet_light': _songMapTempoSheet,
 };

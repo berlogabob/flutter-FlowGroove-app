@@ -48,6 +48,8 @@ import 'practice_regions/song_map/song_map_edit.dart' as song_map_edit;
 import 'practice_regions/song_map/song_map_letters.dart';
 import 'practice_regions/song_map/song_map_pads.dart';
 import 'practice_regions/song_map/song_map_tempo_banner.dart';
+import 'practice_regions/song_map/song_map_tempo_row.dart';
+import 'practice_regions/song_map/song_map_tempo_sheet.dart';
 import 'practice_regions/song_map/song_map_timeline.dart';
 import 'practice_regions/song_map/song_map_transport.dart';
 import 'practice_regions/song_map/song_map_view.dart';
@@ -136,6 +138,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   bool _candidateExitOpen = false;
   ({AudioGrid? grid, List<AudioRegion> regions, Set<int> boundaries})?
   _mapCandidate;
+
+  /// The detector's tempo for [_mapCandidate]: the Tempo row's options come
+  /// from it, whatever grid tempo is chosen since.
+  double? _detectedBpm;
 
   /// The slice opened for editing in Shift mode.
   int? _focus;
@@ -749,17 +755,26 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   /// The grid moved back whole bars so its bar 0 is at or before the file
   /// start: the pickup before the first downbeat plays instead of being cut.
   AudioGrid get _syncGrid {
-    final grid = _entry.grid!;
+    final grid = _clickGrid!;
     final pickupBars = (grid.offsetMs / grid.barMs).ceil();
     return grid.copyWith(
       offsetMs: (grid.offsetMs - pickupBars * grid.barMs).round(),
     );
   }
 
+  /// The grid the click follows: the candidate's while it awaits review.
+  AudioGrid? get _clickGrid => _mapCandidate?.grid ?? _entry.grid;
+
   /// Launchable spans: each region, the whole song, and the selected run.
   List<SectionSpan> _syncSpans() {
     final grid = _syncGrid;
-    final spans = regionSpans(_entry.regions, grid);
+    final candidate = _mapCandidate;
+    final spans = regionSpans(
+      candidate != null && _entry.regions.isEmpty
+          ? candidate.regions
+          : _entry.regions,
+      grid,
+    );
     final songBars = grid.barAt(_durationMs).ceil();
     final selection = _selection;
     return [
@@ -797,7 +812,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   }
 
   Future<void> _setSync(bool on, {bool withDrums = true}) async {
-    final grid = _entry.grid;
+    final grid = _clickGrid;
     if (!on || grid == null) {
       _flushSession();
       _metronome.stop();
@@ -833,13 +848,13 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         return;
       }
       final drums = withDrums ? await _songDrums() : null;
-      if (!mounted || _entry.grid != grid || _stretched) return;
+      if (!mounted || _clickGrid != grid || _stretched) return;
       await transport.attachAudio(
         audio: alignToDownbeat(pcm, _syncGrid.offsetMs, rate),
         spans: _syncSpans(),
         drums: drums,
       );
-      if (!mounted || _entry.grid != grid || _stretched) return;
+      if (!mounted || _clickGrid != grid || _stretched) return;
       setState(() {
         _sync = true;
         _withDrums = withDrums;
@@ -2004,13 +2019,10 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       while (_songMap != null && _songMap!.level != SongMapZoom.song) {
         _songMap!.zoomOut();
       }
-      setState(
-        () => _mapCandidate = (
-          grid: grid,
-          regions: regions,
-          boundaries: boundaries,
-        ),
-      );
+      setState(() {
+        _detectedBpm = grid?.bpm;
+        _mapCandidate = (grid: grid, regions: regions, boundaries: boundaries);
+      });
       await _applyTempoSpeed();
     } catch (_) {
       if (mounted && _url == url && _canEdit) {
@@ -2097,20 +2109,107 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
+  void _discardCandidate() {
+    final candidate = _mapCandidate;
+    setState(() {
+      _showAnalyzePrompt = false;
+      _mapCandidate = null;
+    });
+    // The click followed the candidate's grid.
+    if (_sync && candidate != null && candidate.grid != _entry.grid) {
+      unawaited(_setSync(false));
+    }
+    unawaited(_applyTempoSpeed());
+  }
+
+  /// The Tempo row's two options while a candidate awaits review.
+  ({int a, int b})? get _tempoOptions => _mapCandidate?.grid == null
+      ? null
+      : songMapTempoOptions(_detectedBpm, _songBpm());
+
+  /// Height the review controls reserve above the map.
+  double get _reviewHeight => _mapCandidate == null
+      ? 120
+      : SongMapReviewRow.height +
+            (_tempoOptions == null ? 0 : SongMapTempoRow.height);
+
+  /// Sets only the candidate's grid (same downbeat, regions unchanged in ms).
+  /// The song's own BPM is the band's live tempo and is never written here.
+  Future<void> _setCandidateBpm(int bpm, {required bool listen}) async {
+    final candidate = _mapCandidate;
+    if (candidate == null) return;
+    final old = candidate.grid;
+    final withDrums = _sync && _withDrums;
+    setState(
+      () => _mapCandidate = (
+        grid: AudioGrid(
+          bpm: bpm.toDouble(),
+          offsetMs: old?.offsetMs ?? 0,
+          beatsPerBar: old?.beatsPerBar ?? 4,
+        ),
+        regions: candidate.regions,
+        boundaries: candidate.boundaries,
+      ),
+    );
+    await _applyTempoSpeed();
+    if (mounted) await _setSync(listen, withDrums: withDrums);
+  }
+
+  /// The Tempo sheet: applies to the candidate, else to the saved map's grid.
+  Future<void> _openTempoSheet() async {
+    final grid = _clickGrid;
+    if (!_canEdit || _busy || grid == null) return;
+    final result = await showSongMapTempoSheet(
+      context,
+      bpm: grid.bpm.round(),
+      listen: _sync,
+    );
+    if (result == null || !mounted) return;
+    if (_mapCandidate != null) {
+      await _setCandidateBpm(result.bpm, listen: result.listen);
+      return;
+    }
+    final withDrums = _sync && _withDrums;
+    await _setGrid(grid.copyWith(bpm: result.bpm.toDouble()));
+    if (mounted && result.listen) {
+      await _setSync(true, withDrums: withDrums);
+    }
+  }
+
   Widget? _analyzeBanner() {
     final candidate = _mapCandidate;
-    if (!_showAnalyzePrompt && !_analyzing && candidate == null) return null;
+    if (candidate != null) {
+      final options = _tempoOptions;
+      final selected = candidate.grid?.bpm.round();
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (options != null)
+            SongMapTempoRow(
+              a: options.a,
+              b: options.b,
+              selected: selected,
+              onChoose: (bpm) => unawaited(_setCandidateBpm(bpm, listen: true)),
+              onOther: () => unawaited(_openTempoSheet()),
+            ),
+          SongMapReviewRow(
+            label: _entry.regions.isNotEmpty
+                ? 'New map'
+                : candidate.boundaries.isEmpty
+                ? '1 section'
+                : '${candidate.boundaries.length + 1} sections',
+            onDiscard: _busy || _analyzing ? null : _discardCandidate,
+            onDone: _analyzing || _busy ? null : _useCandidate,
+          ),
+        ],
+      );
+    }
+    if (!_showAnalyzePrompt && !_analyzing) return null;
     final replacing = _entry.regions.isNotEmpty;
     return MaterialBanner(
-      content: Text(
-        candidate == null
-            ? (_analyzing ? 'Analyzing song…' : 'Analyze song')
-            : replacing
-            ? 'New map'
-            : '${candidate.boundaries.length + 1} sections found · check, then Done',
-      ),
+      content: Text(_analyzing ? 'Analyzing song…' : 'Analyze song'),
       actions: [
-        if (!_analyzing && candidate == null && !replacing)
+        if (!_analyzing && !replacing)
           TextButton(
             onPressed: () => setState(() {
               _showAnalyzePrompt = false;
@@ -2118,9 +2217,9 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             }),
             child: const Text('Set up sections'),
           ),
-        if (!_analyzing || candidate != null)
+        if (!_analyzing)
           TextButton(
-            onPressed: _busy || _analyzing
+            onPressed: _busy
                 ? null
                 : () {
                     setState(() {
@@ -2129,15 +2228,11 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                     });
                     unawaited(_applyTempoSpeed());
                   },
-            child: Text(candidate == null ? 'Dismiss' : 'Discard'),
+            child: const Text('Dismiss'),
           ),
         FilledButton(
-          onPressed: _analyzing || _busy
-              ? null
-              : candidate == null
-              ? _analyze
-              : _useCandidate,
-          child: Text(candidate == null ? 'Analyze' : 'Done'),
+          onPressed: _analyzing || _busy ? null : _analyze,
+          child: const Text('Analyze'),
         ),
       ],
     );
@@ -2268,7 +2363,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     });
     final playing = _sync ? syncPlaying : _playing;
     final looping = _loopEnabled ?? (_sync || selection != null);
-    final positionMs = _sync && grid != null
+    final clickGrid = _clickGrid;
+    final positionMs = _sync && clickGrid != null
         ? _syncGrid.msOfBar(syncBar)
         : _positionMs;
     final editing = canEdit && _editing;
@@ -2289,7 +2385,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     final notes = entryNotes(_entry);
     final showPads = regions.isNotEmpty || (_canEdit && _mapCandidate != null);
     final canPlay = _loaded && _durationMs > 0 && !_busy && !_preparingSync;
-    final canClick = !_stretched && canSyncToClick(grid) && canPlay;
+    final canClick = !_stretched && canSyncToClick(clickGrid) && canPlay;
     final speedPercent = (_speed * 100).round();
     // Keep room for the full parts bank name with the tempo prompt on tall screens.
     final stackPadHeader =
@@ -2359,7 +2455,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             ? (value) => _setSync(value, withDrums: false)
             : null,
         onClickAndDrumsChanged: canClick ? _setSync : null,
-        clickUnavailableReason: _clickUnavailableReason(grid),
+        clickUnavailableReason: _clickUnavailableReason(clickGrid),
       ),
       appBar: AppBar(
         titleTextStyle:
@@ -2388,14 +2484,19 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
             : null,
         actions: [
           if (displayedBpm != null && displayedBpm.isFinite && displayedBpm > 0)
-            Chip(
-              label: Text(
-                '${displayedBpm % 1 == 0 ? displayedBpm.toInt().toString() : displayedBpm} BPM',
+            GestureDetector(
+              key: const ValueKey('tempo-chip'),
+              behavior: HitTestBehavior.opaque,
+              onTap: canEdit ? () => unawaited(_openTempoSheet()) : null,
+              child: Chip(
+                label: Text(
+                  '${displayedBpm % 1 == 0 ? displayedBpm.toInt().toString() : displayedBpm} BPM',
+                ),
+                backgroundColor: stretchTarget != null && !_stretched
+                    ? MonoPulseColors.warning5
+                    : context.mp.surfaceRaised,
+                visualDensity: VisualDensity.compact,
               ),
-              backgroundColor: stretchTarget != null && !_stretched
-                  ? MonoPulseColors.warning5
-                  : context.mp.surfaceRaised,
-              visualDensity: VisualDensity.compact,
             ),
           if (editing)
             IconButton(
@@ -2554,7 +2655,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                                 rows,
                                 stackHeader: stackPadHeader,
                               ) +
-                              (analyzeBanner == null ? 0 : 120) +
+                              (analyzeBanner == null ? 0 : _reviewHeight) +
                               (tempoBanner == null
                                   ? 0
                                   : SongMapTempoBanner.height)

@@ -485,6 +485,27 @@
     "spec": "design/figcraft/specs/slice_edit_sheet_start.json"
   },
   {
+    "key": "song_map_tempo_sheet.SongMapTempoSheet",
+    "kind": "sheet",
+    "source": "lib/screens/practice_regions/song_map/song_map_tempo_sheet.dart:17",
+    "widget": "SongMapTempoSheet",
+    "spec": "design/figcraft/specs/song_map_tempo_sheet.json"
+  },
+  {
+    "key": "song_map_tempo_sheet",
+    "kind": "state",
+    "source": "lib/screens/practice_regions/song_map/song_map_tempo_sheet.dart:17",
+    "widget": "Song Map \u00b7 Tempo sheet",
+    "spec": "design/figcraft/specs/song_map_tempo_sheet.json"
+  },
+  {
+    "key": "song_map_tempo_sheet_light",
+    "kind": "state",
+    "source": "lib/screens/practice_regions/song_map/song_map_tempo_sheet.dart:17",
+    "widget": "Song Map \u00b7 Tempo sheet Light",
+    "spec": "design/figcraft/specs/song_map_tempo_sheet_light.json"
+  },
+  {
     "key": "practice_regions",
     "kind": "state",
     "source": "lib/screens/practice_regions_screen.dart:1",
@@ -576,30 +597,16 @@
     "spec": "design/figcraft/specs/song_map_tempo_light.json"
   },
   {
-    "key": "song_map_tempo_sheet",
-    "kind": "state",
-    "source": "lib/screens/practice_regions_screen.dart:1",
-    "widget": "Song Map \u00b7 Tempo sheet",
-    "spec": "design/figcraft/specs/song_map_tempo_sheet.json"
-  },
-  {
-    "key": "song_map_tempo_sheet_light",
-    "kind": "state",
-    "source": "lib/screens/practice_regions_screen.dart:1",
-    "widget": "Song Map \u00b7 Tempo sheet Light",
-    "spec": "design/figcraft/specs/song_map_tempo_sheet_light.json"
-  },
-  {
     "key": "practice_regions_screen._autoSlice",
     "kind": "dialog",
-    "source": "lib/screens/practice_regions_screen.dart:1010",
+    "source": "lib/screens/practice_regions_screen.dart:1025",
     "widget": "_autoSlice",
     "spec": null
   },
   {
     "key": "practice_regions_screen.playSeam",
     "kind": "sheet",
-    "source": "lib/screens/practice_regions_screen.dart:1165",
+    "source": "lib/screens/practice_regions_screen.dart:1180",
     "widget": "playSeam",
     "spec": null
   },
@@ -620,21 +627,21 @@
   {
     "key": "practice_regions_screen._leaveWithCandidate",
     "kind": "dialog",
-    "source": "lib/screens/practice_regions_screen.dart:2067",
+    "source": "lib/screens/practice_regions_screen.dart:2079",
     "widget": "_leaveWithCandidate",
     "spec": null
   },
   {
     "key": "practice_regions_screen._manualSetup",
     "kind": "dialog",
-    "source": "lib/screens/practice_regions_screen.dart:2152",
+    "source": "lib/screens/practice_regions_screen.dart:2247",
     "widget": "_manualSetup",
     "spec": null
   },
   {
     "key": "practice_regions_screen._playbackOptions",
     "kind": "sheet",
-    "source": "lib/screens/practice_regions_screen.dart:2854",
+    "source": "lib/screens/practice_regions_screen.dart:2955",
     "widget": "_playbackOptions",
     "spec": null
   },

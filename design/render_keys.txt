@@ -62,6 +62,10 @@ song_map_playing
 song_map_playing_light
 song_map_review
 song_map_review_light
+song_map_tempo
+song_map_tempo_light
+song_map_tempo_sheet
+song_map_tempo_sheet_light
 practice_regions_speed_n
 
 profile_currently_using

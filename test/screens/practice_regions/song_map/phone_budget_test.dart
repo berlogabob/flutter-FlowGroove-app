@@ -299,9 +299,7 @@ void main() {
         await tester.tap(find.text('Analyze song'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Analyze'));
-        final review = find.text(
-          '$sectionCount sections found · check, then Done',
-        );
+        final review = find.text('$sectionCount sections');
         for (var i = 0; i < 20 && review.evaluate().isEmpty; i++) {
           await fixture.settleAudio(tester);
         }

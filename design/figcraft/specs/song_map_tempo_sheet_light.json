@@ -2,7 +2,7 @@
   "name": "Song Map · Tempo sheet Light",
   "page": "Song Map",
   "mode": "light",
-  "source": "lib/screens/practice_regions_screen.dart",
+  "source": "lib/screens/practice_regions/song_map/song_map_tempo_sheet.dart:17",
   "slot": 13,
   "pad": [
     8,
