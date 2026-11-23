@@ -1,5 +1,6 @@
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/event_kit.dart';
+import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/screens/practice_setup_wizard.dart';
 import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flowgroove/screens/setlists/performer_sheet.dart';
@@ -9,6 +10,7 @@ import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
+import 'package:flowgroove/widgets/suggestion_selection_dialog.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -132,6 +134,24 @@ final kOpeners = <String, Opener>{
           TextButton(onPressed: () {}, child: const Text('Cancel')),
           TextButton(onPressed: () {}, child: const Text('Revoke')),
         ],
+      ),
+    ),
+  ),
+  'suggestion_selection_dialog': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (context) => const SuggestionSelectionDialog(
+        suggestion: SongSuggestion(
+          id: 'suggestion1',
+          title: 'Wonderwall',
+          artist: 'Oasis',
+          source: SuggestionSource.spotify,
+          type: SuggestionType.exact,
+          album: "What's the Story Afternoon?",
+          releaseYear: 1995,
+          bpm: 87,
+          key: 'G',
+        ),
       ),
     ),
   ),

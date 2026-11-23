@@ -58,3 +58,4 @@ event_kit_editor_brand_optional
 performer_sheet_link_to_band_member
 performer_sheet_sheet_l32
 api_access_revoke_key
+suggestion_selection_dialog
