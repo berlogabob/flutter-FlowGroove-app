@@ -54,3 +54,6 @@ slice_edit_sheet_start
 
 song_map_part
 song_map_part_light
+
+practice_regions
+song_map_song

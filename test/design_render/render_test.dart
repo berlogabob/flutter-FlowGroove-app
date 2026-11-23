@@ -7,11 +7,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../helpers/routed_test_harness.dart';
+import '../screens/practice_regions_screen_test.dart';
 import 'fixtures.dart';
 import 'fonts.dart';
 import 'matrix.dart';
 import 'openers.dart';
 import 'png.dart';
+import 'states.dart';
 import 'tree_dump.dart';
 
 // Add screen keys and reasons here if they have perpetual animations.
@@ -28,6 +30,9 @@ Future<void> pumpRender(WidgetTester tester, String key) async {
 }
 
 void main() {
+  practiceFixture = PracticeRegionsScreenFixture(
+    duration: const Duration(seconds: 204),
+  );
   final output = Platform.environment['RENDER_OUT'];
   final matrixFile = output == null ? null : File('$output/matrix.json');
   final results = <String, dynamic>{};
@@ -116,7 +121,8 @@ void main() {
       File('design/figcraft/specs/$key.json').readAsStringSync(),
     ) as Map<String, dynamic>;
     final route = spec['route'] as String?;
-    final opener = route == null ? kOpeners[key] : null;
+    final state = kStates[key];
+    final opener = route == null && state == null ? kOpeners[key] : null;
     final mode = spec['mode'] as String? ?? 'dark';
     for (final theme in matrix ? ['light', 'dark'] : [mode]) {
       for (final width
@@ -135,22 +141,36 @@ void main() {
             addTearDown(tester.view.reset);
             const boundaryKey = Key('render-boundary');
             Future<void> render() async {
-              if (route == null && opener == null) {
-                fail('no opener for $key');
-              }
-              final router = await pumpRoutedTestApp(
-                tester,
-                initialLocation: fillRoute(route ?? opener!.route),
-                overrides: renderOverrides(),
-                themeMode: theme == 'light' ? ThemeMode.light : ThemeMode.dark,
-                textScale: scale,
-                productionRoutes: true,
-                boundaryKey: boundaryKey,
-              );
-              await pumpRender(tester, key);
-              if (opener != null) {
-                opener.open(hostContext(tester), tester, router);
+              if (state != null) {
+                stateTheme = theme == 'light'
+                    ? ThemeMode.light
+                    : ThemeMode.dark;
+                tester.platformDispatcher.textScaleFactorTestValue = scale;
+                addTearDown(
+                  tester.platformDispatcher.clearTextScaleFactorTestValue,
+                );
+                await state(tester);
+                expect(find.text('Sections'), findsOneWidget);
+              } else {
+                if (route == null && opener == null) {
+                  fail('no opener for $key');
+                }
+                final router = await pumpRoutedTestApp(
+                  tester,
+                  initialLocation: fillRoute(route ?? opener!.route),
+                  overrides: renderOverrides(),
+                  themeMode: theme == 'light'
+                      ? ThemeMode.light
+                      : ThemeMode.dark,
+                  textScale: scale,
+                  productionRoutes: true,
+                  boundaryKey: boundaryKey,
+                );
                 await pumpRender(tester, key);
+                if (opener != null) {
+                  opener.open(hostContext(tester), tester, router);
+                  await pumpRender(tester, key);
+                }
               }
               final output = Platform.environment['RENDER_OUT'];
               if (output != null) {
