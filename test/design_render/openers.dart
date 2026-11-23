@@ -125,6 +125,44 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'song_card_actions_sheet_l209': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: const [
+            ListTile(title: Text('Add to band…')),
+            ListTile(
+              title: Text('Choose the band to save "Wonderwall" to'),
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('FlowGroove'),
+              subtitle: Text('Rehearsal Fri 7pm'),
+              trailing: Icon(Icons.check),
+            ),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('The Weekend Set'),
+              subtitle: Text("4 members · You're editor"),
+            ),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('Sunday Jam'),
+              subtitle: Text('2 members'),
+            ),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('Cover Crew'),
+              subtitle: Text('1 member'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
   'song_form_provider_similar_song_exists': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,
