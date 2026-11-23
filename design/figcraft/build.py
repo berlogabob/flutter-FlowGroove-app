@@ -1511,6 +1511,44 @@ comp("SongLibraryBlock", [], lambda v: {"t": "col", "name": "SongLibraryBlock", 
           {"t": "icon", "v": "close", "size": 20, "color": "textSecondary"}]}]},
      _component_instance(lambda n: {}))
 
+comp("SetlistSongRow", [], lambda v: {"t": "row", "name": "SetlistSongRow", "bg": "surface",
+     "border": "borderSubtle", "pad": [12, 8, 12, 8], "gap": 12, "cross": "center", "c": [
+         {"t": "text", "v": "01", "style": "labelLarge", "color": "textTertiary", "name": "Index"},
+         {"t": "col", "gap": 2, "w": "fill", "c": [
+             {"t": "text", "v": "First Song", "style": "bodyLarge", "color": "textPrimary", "name": "Title"},
+             {"t": "text", "v": "Test Band", "style": "bodyMedium", "color": "textSecondary", "name": "Artist"},
+             {"t": "text", "v": "Performers", "style": "bodySmall", "color": "textTertiary", "name": "Performers"}]},
+         {"t": "text", "v": "B♭m · 120 BPM", "style": "labelSmall", "color": "textSecondary", "name": "Details"} ]},
+     _component_instance(lambda n: {"Index": n.get("index", 1), "Title": n.get("title", "First Song"),
+                                    "Artist": n.get("artist", "Test Band"),
+                                    "Performers": n.get("performers", "Performers"),
+                                    "Details": n.get("details", "B♭m · 120 BPM")}),
+     props=[("Index", "number", "Index", 1), ("Title", "text", "Title", "First Song"),
+            ("Artist", "text", "Artist", "Test Band"), ("Performers", "text", "Performers", "Performers"),
+            ("Details", "text", "Details", "B♭m · 120 BPM")])
+
+comp("SetlistBreakRow", [], lambda v: {"t": "row", "name": "SetlistBreakRow", "bg": "surfaceRaised",
+     "border": "borderDefault", "radius": 5, "pad": [16, 8, 16, 8], "gap": 12, "cross": "center", "c": [
+         {"t": "icon", "v": "pause_circle_outline", "size": 18, "color": "textTertiary"},
+         {"t": "text", "v": "Break", "style": "labelLarge", "color": "textSecondary", "name": "Label", "w": "fill"}]},
+     _component_instance(lambda n: {"Label": n.get("label", "Break")}),
+     props=[("Label", "text", "Label", "Break")])
+
+comp("SectionCard", [], lambda v: {"t": "col", "name": "SectionCard", "bg": "surfaceRaised",
+     "border": "borderSubtle", "radius": 7, "pad": 16, "gap": 8, "c": [
+         {"t": "text", "v": "Verse · Playing", "style": "titleMedium", "color": "accentOrange", "name": "Section"},
+         {"t": "text", "v": "C     G     Am     F", "style": "bodyMedium", "color": "textPrimary", "name": "Chord chart"}]},
+     _component_instance(lambda n: {"Queued": n.get("queued", False)}),
+     props=[("Queued", "boolean", "Section", False)])
+
+comp("PrimaryActionBar", [], lambda v: {"t": "col", "name": "PrimaryActionBar", "bg": "surface",
+     "pad": 16, "gap": 12, "c": [
+         {"t": "row", "gap": 12, "c": [
+             {"t": "button", "kind": "secondary", "v": "Cancel", "name": "Secondary", "w": "fill"},
+             {"t": "button", "kind": "primary", "v": "Save", "icon": "save", "name": "Primary", "w": "fill"}]}]},
+     _component_instance(lambda n: {"Label": n.get("label", "Save"), "SecondaryLabel": n.get("secondaryLabel", "Cancel")}),
+     props=[("Label", "text", "Primary", "Save"), ("SecondaryLabel", "text", "Secondary", "Cancel")])
+
 comp("ToolButton", [], lambda v: {"t": "row", "name": "ToolButton", "bg": "surfaceRaised",
      "border": "borderDefault", "radius": 6, "pad": [12, 4, 12, 4], "gap": 8, "cross": "center", "c": [
          {"t": "icon", "v": "tune", "size": 24, "color": "textSecondary", "layer": "Icon"},
@@ -1985,6 +2023,18 @@ CONNECT = {
               "Raised statistic card with a colored icon, prominent value and supporting label."),
     "SongLibraryBlock": (APP + "metronome/song_library_block.dart", "SongLibraryBlock",
               'const SongLibraryBlock()', "Songs and setlists library action with an optional loaded song summary and clear action."),
+    "SetlistSongRow": (APP + "setlist_song_row.dart", "SetlistSongRow",
+              'SetlistSongRow(index: {Index}, song: song, savedTitle: {Title}, savedArtist: {Artist}, performers: {Performers})',
+              "Setlist row with numbered leading column, song title and artist, optional performers and trailing metadata."),
+    "SetlistBreakRow": (APP + "setlist_break_row.dart", "SetlistBreakRow",
+              'SetlistBreakRow(breakType: "break", label: {Label})',
+              "Raised, bordered setlist divider with a pause icon and section label."),
+    "SectionCard": (APP + "practice/section_card.dart", "SectionCard",
+              'SectionCard(section: section, queued: {Queued})',
+              "Playback section card with section name and state plus its chord chart when present."),
+    "PrimaryActionBar": (APP + "primary_action_bar.dart", "PrimaryActionBar",
+              'PrimaryActionBar(label: {Label}, onPressed: onPressed)',
+              "Safe area bottom action bar with a full width primary button and optional secondary action."),
     "SectionHeader": (APP + "section_header.dart", "SectionHeader",
                       'SectionHeader({Title}, style: {Style},{Show action ? " actionLabel: " : " /* "}{Action}'
                       '{Show action ? ", onAction: onSeeAll," : " */"})',

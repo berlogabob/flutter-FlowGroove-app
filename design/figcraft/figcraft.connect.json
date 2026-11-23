@@ -1716,6 +1716,13 @@
       "template": "NavTab(item: (icon: Icons.home_outlined, selectedIcon: Icons.home, label: {Label}), selected: {State} == NavItemState.selected, onTap: () {})"
     },
     {
+      "component": "PrimaryActionBar",
+      "importPath": "package:flowgroove/widgets/primary_action_bar.dart",
+      "language": "flutter",
+      "name": "PrimaryActionBar",
+      "template": "PrimaryActionBar(label: {Label}, onPressed: onPressed)"
+    },
+    {
       "component": "QuickActionButton",
       "importPath": "package:flowgroove/widgets/quick_action_button.dart",
       "language": "flutter",
@@ -1723,11 +1730,32 @@
       "template": "QuickActionButton(icon: Icons.add, label: {Label}, onTap: onTap)"
     },
     {
+      "component": "SectionCard",
+      "importPath": "package:flowgroove/widgets/practice/section_card.dart",
+      "language": "flutter",
+      "name": "SectionCard",
+      "template": "SectionCard(section: section, queued: {Queued})"
+    },
+    {
       "component": "SectionHeader",
       "importPath": "package:flowgroove/widgets/section_header.dart",
       "language": "flutter",
       "name": "SectionHeader",
       "template": "SectionHeader({Title}, style: {Style},{Show action ? \" actionLabel: \" : \" /* \"}{Action}{Show action ? \", onAction: onSeeAll,\" : \" */\"})"
+    },
+    {
+      "component": "SetlistBreakRow",
+      "importPath": "package:flowgroove/widgets/setlist_break_row.dart",
+      "language": "flutter",
+      "name": "SetlistBreakRow",
+      "template": "SetlistBreakRow(breakType: \"break\", label: {Label})"
+    },
+    {
+      "component": "SetlistSongRow",
+      "importPath": "package:flowgroove/widgets/setlist_song_row.dart",
+      "language": "flutter",
+      "name": "SetlistSongRow",
+      "template": "SetlistSongRow(index: {Index}, song: song, savedTitle: {Title}, savedArtist: {Artist}, performers: {Performers})"
     },
     {
       "component": "SingleFab",
