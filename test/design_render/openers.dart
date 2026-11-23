@@ -37,6 +37,7 @@ import 'package:flowgroove/screens/songs/components/song_form.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/widgets/edit_section_dialog.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/widgets/section_picker.dart';
 import 'package:flowgroove/screens/songs/add_song_screen.dart';
+import 'package:flowgroove/screens/songs/song_editor_screen.dart';
 import 'package:flowgroove/screens/songs/models/song_form_data.dart';
 import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
@@ -394,31 +395,63 @@ final kOpeners = <String, Opener>{
       field.onChanged!(lyrics);
     });
   }),
-  'performance_sheet_you_already_have_a_song_map': Opener(
-    (context, _, _) => showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('You already have a song map'),
-        content: const Text(
-          'Replace it with the imported one, or append the imported sections?',
+  'performance_sheet_you_already_have_a_song_map': Opener((context, _, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SongEditorScreen(
+          title: 'First Song',
+          sections: [Section(id: 'section1', name: 'Verse')],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Append'),
-          ),
-          CustomButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            label: 'Replace',
-          ),
-        ],
       ),
-    ),
-  ),
+    );
+    tapWhenBuilt(find.byType(SongEditorScreen, skipOffstage: false), (element) {
+      final menu = find.descendant(
+        of: find.byType(SongEditorScreen, skipOffstage: false),
+        matching: find.text('Menu', skipOffstage: false),
+        skipOffstage: false,
+      );
+      menu.evaluate().first.findAncestorWidgetOfExactType<InkWell>()!.onTap!();
+      tapWhenBuilt(find.text('Import lyrics & chords', skipOffstage: false), (
+        element,
+      ) {
+        element.findAncestorWidgetOfExactType<ListTile>()!.onTap!();
+        tapWhenBuilt(find.byType(ImportLyricsDialog, skipOffstage: false), (_) {
+          final field =
+              find
+                      .descendant(
+                        of: find.byType(
+                          ImportLyricsDialog,
+                          skipOffstage: false,
+                        ),
+                        matching: find.byType(TextField, skipOffstage: false),
+                        skipOffstage: false,
+                      )
+                      .evaluate()
+                      .single
+                      .widget
+                  as TextField;
+          const lyrics =
+              '{start_of_verse: Verse}\n[Am]First Song\n{end_of_verse}';
+          field.controller!.text = lyrics;
+          field.onChanged!(lyrics);
+          tapWhenBuilt(
+            find.byWidgetPredicate(
+              (widget) => widget is CustomButton && widget.label == 'Import 1',
+              skipOffstage: false,
+            ),
+            (element) => (element.widget as CustomButton).onPressed!(),
+          );
+        });
+      });
+    });
+    tapWhenBuilt(find.byType(AlertDialog), (_) {
+      expect(
+        find.byType(SongEditorScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('You already have a song map'), findsOneWidget);
+    });
+  }),
   'grid_editor_dialog_tempo_grid': Opener(
     (context, _, _) => showGridEditorDialog(
       context,
