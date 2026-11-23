@@ -1,0 +1,46 @@
+{
+  "name": "Paste a list",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/components/paste_list/paste_list_flow.dart:64",
+  "slot": 35,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 12,
+      "c": [
+        {
+          "t": "text",
+          "v": "Paste a list",
+          "style": "headlineMedium",
+          "name": "Heading"
+        },
+        {
+          "t": "input",
+          "hint": "Paste one song per line",
+          "lines": 6,
+          "v": "1. Snowman - Sia\n2. White Christmas - Kelly Clarkson\n3. Santa Baby - Laufey\n4. Christmas Is All Around - Billy Mack"
+        },
+        {
+          "t": "row",
+          "gap": 12,
+          "c": [
+            {
+              "t": "button",
+              "v": "Paste",
+              "kind": "secondary",
+              "icon": "content_paste",
+              "w": "fill"
+            },
+            {
+              "t": "button",
+              "v": "Review",
+              "kind": "primary",
+              "w": "fill"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

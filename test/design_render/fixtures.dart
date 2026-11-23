@@ -363,6 +363,18 @@ List<Object> _profileOverrides() {
   ];
 }
 
+List<Object> _pasteListLibrary() => [
+  songsProvider.overrideWith(
+    (ref) => Stream.value([
+      MockDataHelper.createMockSong(
+        id: 'song1',
+        title: 'White Christmas',
+        artist: 'Kelly Clarkson',
+      ),
+    ]),
+  ),
+];
+
 final kKeyOverrides = <String, List<Object> Function()>{
   // The frame shows a practised week: 1h 24m over 5 sessions, a 3-day streak.
   'home': () => [
@@ -376,6 +388,10 @@ final kKeyOverrides = <String, List<Object> Function()>{
       ),
     ),
   ],
+  // The Songs tab behind the paste sheets; one pasted line is already in the
+  // library, so its review row carries no NEW tag.
+  'paste_list_input': _pasteListLibrary,
+  'paste_list_review': _pasteListLibrary,
   // The frame's list has a song without a tempo ('-- BPM').
   'songs_list': () => [
     songsProvider.overrideWith(

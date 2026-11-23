@@ -346,7 +346,7 @@
   "bottom": [
     {
       "t": "actionbar",
-      "menu": false,
+      "menu": true,
       "title": "The Night Owls Songs"
     }
   ],

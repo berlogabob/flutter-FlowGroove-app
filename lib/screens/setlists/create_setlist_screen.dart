@@ -21,6 +21,7 @@ import '../../widgets/menu_items_scope.dart';
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/setlist_break_row.dart';
 import '../../widgets/setlist_song_row.dart';
+import '../songs/components/paste_list/paste_list_flow.dart';
 import 'performer_sheet.dart';
 
 enum SetlistStorageScope { personal, band }
@@ -367,8 +368,49 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
             });
             Navigator.pop(context);
           },
+          onPaste: () {
+            Navigator.pop(context);
+            _pasteSongs(songs);
+          },
         ),
       ),
+    );
+  }
+
+  /// Appends the reviewed pasted songs in order; Undo takes them out of the
+  /// setlist again (newly created library songs stay in the library).
+  Future<void> _pasteSongs(List<Song> library) async {
+    final added = await pasteSongs(
+      context: context,
+      ref: ref,
+      library: library,
+      bandId: _effectiveBandId,
+    );
+    if (added == null || !mounted) return;
+    final items = [
+      for (final song in added)
+        SetlistItem(id: const Uuid().v4(), songId: song.id),
+    ];
+    setState(() {
+      _songsById = {..._songsById, for (final song in added) song.id: song};
+      _selectedItems = [..._selectedItems, ...items];
+      _markAsChanged();
+    });
+    final ids = {for (final item in items) item.id};
+    showAppSnackBar(
+      context,
+      songsAddedMessage(added.length),
+      actionLabel: 'Undo',
+      onAction: () {
+        if (!mounted) return;
+        setState(() {
+          _selectedItems = [
+            for (final item in _selectedItems)
+              if (!ids.contains(item.id)) item,
+          ];
+          _markAsChanged();
+        });
+      },
     );
   }
 
@@ -968,8 +1010,10 @@ class _SongPickerSheet extends StatefulWidget {
     required this.selectedSongs,
     required this.scrollController,
     required this.onConfirm,
+    required this.onPaste,
   });
 
+  final VoidCallback onPaste;
   final List<Song> songs;
   final List<Song> selectedSongs;
   final ScrollController scrollController;
@@ -1028,7 +1072,13 @@ class _SongPickerSheetState extends State<_SongPickerSheet> {
             onChanged: (v) => setState(() => _searchQuery = v),
           ),
         ),
-        const SizedBox(height: 8),
+        ListTile(
+          leading: const Icon(Icons.content_paste),
+          title: const Text('Paste a list'),
+          subtitle: const Text('From Notes, messages or a document'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: widget.onPaste,
+        ),
         Expanded(
           child: ListView.builder(
             controller: widget.scrollController,

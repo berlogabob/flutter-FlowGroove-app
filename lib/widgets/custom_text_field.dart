@@ -117,6 +117,10 @@ class CustomTextField extends StatelessWidget {
           inputFormatters: inputFormatters,
           onTap: onFocus,
           onEditingComplete: onBlur,
+          // The field is white in both themes (design system input): dark text.
+          style: MonoPulseTypography.bodyLarge.copyWith(
+            color: MonoPulseColors.charcoal,
+          ),
           decoration: InputDecoration(
             filled: true,
             fillColor: enabled ? Colors.white : MonoPulseColors.stone,

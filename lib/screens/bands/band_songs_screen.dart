@@ -7,6 +7,7 @@ import '../../models/song.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/custom_text_field.dart';
@@ -15,6 +16,7 @@ import '../../widgets/menu_items_scope.dart';
 import '../../widgets/unified_item/adapters/song_item_adapter.dart';
 import '../../widgets/unified_item/song_card_actions.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
+import '../songs/components/csv_import_export/song_export_dialog.dart';
 
 /// Screen for displaying a band's shared songs.
 ///
@@ -104,6 +106,19 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
                 });
               },
             ),
+          if (canEdit) ...[
+            AppMenuItem(
+              icon: Icons.content_paste,
+              label: 'Paste a list',
+              onTap: pasteSongList,
+            ),
+            // CSV import needs a band-aware merge; only export is shared.
+            AppMenuItem(
+              icon: Icons.download,
+              label: 'Export to CSV',
+              onTap: () => _exportCsv(songsAsync.value ?? const <Song>[]),
+            ),
+          ],
         ],
       ),
       child: Scaffold(
@@ -250,6 +265,14 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
     );
     if (!confirmed) return;
     await ref.read(firestoreProvider).deleteBandSong(widget.band.id, song.id);
+  }
+
+  Future<void> _exportCsv(List<Song> songs) async {
+    if (songs.isEmpty) {
+      showAppSnackBar(context, 'No songs to export');
+      return;
+    }
+    await showSongExportDialog(context, songs);
   }
 
   void _addSongToBand(BuildContext context, WidgetRef ref) {

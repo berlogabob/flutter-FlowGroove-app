@@ -12,6 +12,13 @@ import '../../../../utils/snackbar.dart';
 import '../../../../widgets/custom_button.dart';
 import '../../../../widgets/loading_indicator.dart';
 
+/// Opens the export dialog; the one call site for every song list.
+Future<void> showSongExportDialog(BuildContext context, List<Song> songs) =>
+    showDialog<void>(
+      context: context,
+      builder: (_) => SongExportDialog(songs: songs),
+    );
+
 /// Dialog for exporting songs to CSV file.
 class SongExportDialog extends StatefulWidget {
   const SongExportDialog({required this.songs, super.key});

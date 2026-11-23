@@ -44,6 +44,8 @@ api_access_your_api_key	Sheets & Dialogs	lib/screens/settings/api_access_screen.
 api_access_revoke_key	Sheets & Dialogs	lib/screens/settings/api_access_screen.dart:89	Api access: Revoke key	dialog
 suggestion_selection_dialog	Sheets & Dialogs	lib/screens/songs/add_song_screen.dart:239	Suggestion Selection Dialog	dialog
 links_editor_add_link	Sheets & Dialogs	lib/screens/songs/components/links_editor.dart:102	Links editor: Add Link	dialog
+paste_list_input	Sheets & Dialogs	lib/screens/songs/components/paste_list/paste_list_flow.dart:64	Paste a list	sheet
+paste_list_review	Sheets & Dialogs	lib/screens/songs/components/paste_list/paste_list_flow.dart:74	Review pasted songs	sheet
 section_picker	Sheets & Dialogs	lib/screens/songs/components/song_constructor/song_constructor.dart:79	Section Picker	dialog
 edit_section_dialog	Sheets & Dialogs	lib/screens/songs/components/song_constructor/song_constructor.dart:103	Edit Section Dialog	sheet
 color_picker_dialog	Sheets & Dialogs	lib/screens/songs/components/song_constructor/widgets/section_picker.dart:259	Color Picker Dialog	dialog

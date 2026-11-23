@@ -729,25 +729,25 @@
   {
     "key": "create_setlist_screen._pickDate",
     "kind": "picker",
-    "source": "lib/screens/setlists/create_setlist_screen.dart:304",
+    "source": "lib/screens/setlists/create_setlist_screen.dart:305",
     "widget": "_pickDate",
     "spec": null
   },
   {
     "key": "create_setlist_screen.SongPicker",
     "kind": "sheet",
-    "source": "lib/screens/setlists/create_setlist_screen.dart:351",
+    "source": "lib/screens/setlists/create_setlist_screen.dart:352",
     "widget": "SongPicker",
     "spec": "design/figcraft/specs/create_setlist_sheet_l350.json",
     "sources": [
-      "lib/screens/setlists/create_setlist_screen.dart:351",
-      "lib/screens/setlists/create_setlist_screen.dart:354"
+      "lib/screens/setlists/create_setlist_screen.dart:352",
+      "lib/screens/setlists/create_setlist_screen.dart:355"
     ]
   },
   {
     "key": "create_setlist_screen.DiscardChangesDialog",
     "kind": "dialog",
-    "source": "lib/screens/setlists/create_setlist_screen.dart:524",
+    "source": "lib/screens/setlists/create_setlist_screen.dart:566",
     "widget": "DiscardChangesDialog",
     "spec": null
   },
@@ -875,11 +875,32 @@
     "spec": null
   },
   {
+    "key": "song_export_dialog.SongExportDialog",
+    "kind": "dialog",
+    "source": "lib/screens/songs/components/csv_import_export/song_export_dialog.dart:17",
+    "widget": "SongExportDialog",
+    "spec": "design/figcraft/specs/song_export_dialog.json"
+  },
+  {
     "key": "links_editor.CustomButton",
     "kind": "dialog",
     "source": "lib/screens/songs/components/links_editor.dart:103",
     "widget": "CustomButton",
     "spec": "design/figcraft/specs/links_editor_add_link.json"
+  },
+  {
+    "key": "paste_list_flow.PasteListInputSheet",
+    "kind": "sheet",
+    "source": "lib/screens/songs/components/paste_list/paste_list_flow.dart:64",
+    "widget": "PasteListInputSheet",
+    "spec": "design/figcraft/specs/paste_list_input.json"
+  },
+  {
+    "key": "paste_list_flow.ReviewPastedSongsSheet",
+    "kind": "sheet",
+    "source": "lib/screens/songs/components/paste_list/paste_list_flow.dart:74",
+    "widget": "ReviewPastedSongsSheet",
+    "spec": "design/figcraft/specs/paste_list_review.json"
   },
   {
     "key": "song_constructor.EditSectionDialog",
@@ -980,16 +1001,9 @@
     "spec": "design/figcraft/specs/songs_list_importing_songs.json"
   },
   {
-    "key": "songs_list_screen.SongExportDialog",
-    "kind": "dialog",
-    "source": "lib/screens/songs/songs_list_screen.dart:308",
-    "widget": "SongExportDialog",
-    "spec": "design/figcraft/specs/song_export_dialog.json"
-  },
-  {
     "key": "songs_list_screen.AppFilterChip",
     "kind": "sheet",
-    "source": "lib/screens/songs/songs_list_screen.dart:451",
+    "source": "lib/screens/songs/songs_list_screen.dart:448",
     "widget": "AppFilterChip",
     "spec": "design/figcraft/specs/songs_list_filter_options.json"
   },
@@ -1235,28 +1249,28 @@
   {
     "key": "song_card_actions._runQuickAction",
     "kind": "picker",
-    "source": "lib/widgets/unified_item/song_card_actions.dart:202",
+    "source": "lib/widgets/unified_item/song_card_actions.dart:203",
     "widget": "_runQuickAction",
     "spec": null
   },
   {
     "key": "song_card_actions.pickBandAndAdd",
     "kind": "sheet",
-    "source": "lib/widgets/unified_item/song_card_actions.dart:211",
+    "source": "lib/widgets/unified_item/song_card_actions.dart:212",
     "widget": "pickBandAndAdd",
     "spec": "design/figcraft/specs/song_card_actions_sheet_l209.json"
   },
   {
     "key": "song_card_actions.set",
     "kind": "picker",
-    "source": "lib/widgets/unified_item/song_card_actions.dart:61",
+    "source": "lib/widgets/unified_item/song_card_actions.dart:62",
     "widget": "set",
     "spec": null
   },
   {
     "key": "song_card_actions.QuickActionPicker",
     "kind": "sheet",
-    "source": "lib/widgets/unified_item/song_card_actions.dart:63",
+    "source": "lib/widgets/unified_item/song_card_actions.dart:64",
     "widget": "QuickActionPicker",
     "spec": null
   }

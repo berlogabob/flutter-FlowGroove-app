@@ -24,6 +24,7 @@ import 'package:flowgroove/screens/bands/create_band_screen.dart';
 import 'package:flowgroove/screens/bands/rehearsals/rehearsal_detail_screen.dart';
 import 'package:flowgroove/screens/bands/the_band_screen.dart';
 import 'package:flowgroove/screens/home_screen.dart';
+import 'package:flowgroove/screens/songs/components/paste_list/paste_list_flow.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
 import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
 import 'package:flowgroove/screens/practice_regions/slice_edit_sheet.dart';
@@ -1196,6 +1197,17 @@ final kOpeners = <String, Opener>{
       (element) => (element.widget as ActionChip).onPressed!(),
     );
   }, route: '/main/songs/song1/lab'),
+  // Real path: Songs tab menu -> Paste a list -> type the lines [-> Review].
+  'paste_list_input': Opener(
+    (_, _, _) {},
+    route: '/main/songs',
+    then: (tester) => _pasteList(tester, review: false),
+  ),
+  'paste_list_review': Opener(
+    (_, _, _) {},
+    route: '/main/songs',
+    then: (tester) => _pasteList(tester, review: true),
+  ),
   'create_setlist_sheet_l350': Opener(
     (_, _, _) {
       // _showSongPicker: the 'Add' button is enabled once the songs have loaded.
@@ -1931,4 +1943,23 @@ class _RenderFilePicker extends FilePickerPlatform {
       bytes: Uint8List.fromList(bytes),
     ),
   ]);
+}
+
+Future<void> _pasteList(WidgetTester tester, {required bool review}) async {
+  await tester.tap(find.byTooltip('Library actions'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Paste a list'));
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.descendant(
+      of: find.byType(PasteListInputSheet),
+      matching: find.byType(TextFormField),
+    ),
+    '1. Snowman - Sia\n2. White Christmas - Kelly Clarkson\n'
+    '3. Santa Baby - Laufey\n4. Christmas Is All Around - Billy Mack',
+  );
+  await tester.pumpAndSettle();
+  if (!review) return;
+  await tester.tap(find.text('Review'));
+  await tester.pumpAndSettle();
 }

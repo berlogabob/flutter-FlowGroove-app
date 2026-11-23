@@ -305,10 +305,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
       return;
     }
 
-    await showDialog<void>(
-      context: context,
-      builder: (_) => SongExportDialog(songs: songs),
-    );
+    await showSongExportDialog(context, songs);
   }
 
   // (The app menu sheet already closes itself and defers each action to the
@@ -773,6 +770,10 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                         ? () async => context.pushNamed('song-duplicates')
                         : null,
                     child: const Text('Find duplicates'),
+                  ),
+                  PopupMenuItem<VoidCallback>(
+                    value: pasteSongList,
+                    child: const Text('Paste a list'),
                   ),
                   PopupMenuItem<VoidCallback>(
                     value: _handleImport,

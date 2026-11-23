@@ -1,0 +1,230 @@
+{
+  "name": "Review pasted songs",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/songs/components/paste_list/paste_list_flow.dart:74",
+  "slot": 36,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 12,
+      "c": [
+        {
+          "t": "text",
+          "v": "Review 4 songs",
+          "style": "headlineMedium",
+          "name": "Heading"
+        },
+        {
+          "t": "col",
+          "gap": 8,
+          "c": [
+            {
+              "t": "card",
+              "pad": 12,
+              "c": [
+                {
+                  "t": "row",
+                  "gap": 8,
+                  "cross": "start",
+                  "c": [
+                    {
+                      "t": "col",
+                      "w": "fill",
+                      "gap": 8,
+                      "c": [
+                        {
+                          "t": "input",
+                          "hint": "Title",
+                          "v": "Snowman"
+                        },
+                        {
+                          "t": "input",
+                          "hint": "Artist",
+                          "v": "Sia"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "col",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "iconbtn",
+                          "v": "close"
+                        },
+                        {
+                          "t": "badge",
+                          "v": "NEW",
+                          "color": "petrol",
+                          "outlined": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "card",
+              "pad": 12,
+              "c": [
+                {
+                  "t": "row",
+                  "gap": 8,
+                  "cross": "start",
+                  "c": [
+                    {
+                      "t": "col",
+                      "w": "fill",
+                      "gap": 8,
+                      "c": [
+                        {
+                          "t": "input",
+                          "hint": "Title",
+                          "v": "White Christmas"
+                        },
+                        {
+                          "t": "input",
+                          "hint": "Artist",
+                          "v": "Kelly Clarkson"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "col",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "iconbtn",
+                          "v": "close"
+                        },
+                        {
+                          "t": "badge",
+                          "v": "NEW",
+                          "color": "petrol",
+                          "opacity": 0,
+                          "outlined": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "card",
+              "pad": 12,
+              "c": [
+                {
+                  "t": "row",
+                  "gap": 8,
+                  "cross": "start",
+                  "c": [
+                    {
+                      "t": "col",
+                      "w": "fill",
+                      "gap": 8,
+                      "c": [
+                        {
+                          "t": "input",
+                          "hint": "Title",
+                          "v": "Santa Baby"
+                        },
+                        {
+                          "t": "input",
+                          "hint": "Artist",
+                          "v": "Laufey"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "col",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "iconbtn",
+                          "v": "close"
+                        },
+                        {
+                          "t": "badge",
+                          "v": "NEW",
+                          "color": "petrol",
+                          "outlined": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "card",
+              "pad": 12,
+              "c": [
+                {
+                  "t": "row",
+                  "gap": 8,
+                  "cross": "start",
+                  "c": [
+                    {
+                      "t": "col",
+                      "w": "fill",
+                      "gap": 8,
+                      "c": [
+                        {
+                          "t": "input",
+                          "hint": "Title",
+                          "v": "Christmas Is All Around"
+                        },
+                        {
+                          "t": "input",
+                          "hint": "Artist",
+                          "v": "Billy Mack"
+                        }
+                      ]
+                    },
+                    {
+                      "t": "col",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "iconbtn",
+                          "v": "close"
+                        },
+                        {
+                          "t": "badge",
+                          "v": "NEW",
+                          "color": "petrol",
+                          "outlined": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "t": "button",
+              "v": "Add another song",
+              "kind": "text",
+              "icon": "add"
+            },
+            {
+              "t": "text",
+              "v": "New songs will also be saved to your library.",
+              "style": "bodySmall",
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "button",
+          "v": "Add 4 songs",
+          "kind": "primary",
+          "w": "fill"
+        }
+      ]
+    }
+  ]
+}

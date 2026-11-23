@@ -14,6 +14,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
+import '../../screens/songs/components/paste_list/paste_list_flow.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import 'unified_item_model.dart';
@@ -385,5 +386,25 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             }
           }),
     );
+  }
+
+  /// "Paste a list": review pasted lines, then add them to this library
+  /// (personal, or the band's when [songActionsBandId] is set).
+  Future<void> pasteSongList() async {
+    final bandId = songActionsBandId;
+    final library =
+        (bandId == null
+                ? ref.read(songsProvider)
+                : ref.read(bandSongsProvider(bandId)))
+            .value ??
+        const <Song>[];
+    final added = await pasteSongs(
+      context: context,
+      ref: ref,
+      library: library,
+      bandId: bandId,
+    );
+    if (added == null || !mounted) return;
+    showAppSnackBar(context, songsAddedMessage(added.length));
   }
 }
