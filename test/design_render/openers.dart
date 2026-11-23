@@ -17,6 +17,7 @@ import 'package:flowgroove/providers/data/midi_song_provider.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/screens/bands/create_band_screen.dart';
+import 'package:flowgroove/screens/bands/the_band_screen.dart';
 import 'package:flowgroove/screens/bands/rehearsals/rehearsal_detail_screen.dart';
 import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
@@ -53,6 +54,7 @@ import 'package:flowgroove/widgets/midi/midi_song_panel.dart';
 import 'package:flowgroove/widgets/practice/note_editor_sheet.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/share_sheet.dart';
+import 'package:flowgroove/widgets/standard_screen_scaffold.dart';
 import 'package:flowgroove/widgets/suggestion_selection_dialog.dart';
 import 'package:flowgroove/widgets/support_sheet.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
@@ -175,9 +177,10 @@ final kOpeners = <String, Opener>{
     });
   }),
   'create_band_discard_changes': Opener((context, _, _) {
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(builder: (_) => const CreateBandScreen()),
-    );
+    Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push(MaterialPageRoute<void>(builder: (_) => const CreateBandScreen()));
     tapWhenBuilt(find.byType(EditableText, skipOffstage: false), (element) {
       ((element as StatefulElement).state as EditableTextState)
           .userUpdateTextEditingValue(
@@ -189,7 +192,10 @@ final kOpeners = <String, Opener>{
       });
     });
     tapWhenBuilt(find.byType(AlertDialog), (_) {
-      expect(find.byType(CreateBandScreen, skipOffstage: false), findsOneWidget);
+      expect(
+        find.byType(CreateBandScreen, skipOffstage: false),
+        findsOneWidget,
+      );
     });
   }),
   'create_band_band_created': Opener((context, _, _) {
@@ -262,28 +268,24 @@ final kOpeners = <String, Opener>{
       );
     });
   }),
-  'the_band_edit_band_name': Opener(
-    (context, _, _) => showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Band Name'),
-        content: TextField(
-          controller: TextEditingController(text: 'FlowGroove'),
-          decoration: InputDecoration(
-            labelText: 'Band Name',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(onPressed: () {}, child: const Text('Save')),
-        ],
+  'the_band_edit_band_name': Opener((context, _, router) {
+    router.pushNamed('the-band', pathParameters: {'id': 'band1'});
+    tapWhenBuilt(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is StandardScreenScaffold &&
+            widget.menuItems?.any((item) => item.label == 'Edit Band Name') ==
+                true,
+        skipOffstage: false,
       ),
-    ),
-  ),
+      (element) => (element.widget as StandardScreenScaffold).menuItems!
+          .firstWhere((item) => item.label == 'Edit Band Name')
+          .onTap!(),
+    );
+    tapWhenBuilt(find.byType(AlertDialog), (_) {
+      expect(find.byType(TheBandScreen, skipOffstage: false), findsOneWidget);
+    });
+  }),
   'the_band_edit_description': Opener(
     (context, _, _) => showDialog<void>(
       context: context,
