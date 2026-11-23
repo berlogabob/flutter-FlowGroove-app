@@ -1412,6 +1412,53 @@ comp("AppBadge", ["badge"], lambda v: {"t": "badge", "v": "Badge", "icon": "star
             ("Show icon", "boolean", "Icon", False)])
 
 
+# Reused widget components. Each preview draws the actual visual structure of
+# its Flutter widget; the named text layers are the Code Connect properties.
+def _component_instance(values):
+    return lambda n, pdir: {"p": dict(values(n))}
+
+
+comp("LoadingIndicator", [], lambda v: {"t": "col", "name": "LoadingIndicator", "main": "center",
+     "cross": "center", "gap": 16, "c": [
+         {"t": "icon", "v": "autorenew", "size": 40, "color": "accentOrange", "name": "Progress"},
+         {"t": "text", "v": "Loading", "style": "bodyMedium", "color": "textPrimary", "name": "Message"}]},
+     _component_instance(lambda n: {"Message": n.get("message", "Loading")}),
+     props=[("Message", "text", "Message", "Loading")])
+comp("ErrorBanner", [], lambda v: {"t": "col", "name": "ErrorBanner", "bg": "error10", "border": "error30",
+     "radius": 5, "pad": 16, "gap": 8, "c": [
+         {"t": "row", "cross": "center", "gap": 8, "c": [
+             {"t": "icon", "v": "error_outline", "size": 24, "color": "error"},
+             {"t": "text", "v": "Error title", "style": "titleMedium", "color": "error", "name": "Title"}]},
+         {"t": "text", "v": "Error message", "style": "bodyMedium", "color": "textPrimary", "name": "Message"},
+         {"t": "button", "kind": "danger", "v": "Retry", "icon": "refresh"}]},
+     _component_instance(lambda n: {"Message": n.get("message", "Error message"),
+                                    "Title": n.get("title", "Error title")}),
+     axes={"Style": ["Banner", "Card", "Inline"]},
+     props=[("Message", "text", "Message", "Error message"), ("Title", "text", "Title", "Error title")])
+comp("QuickActionButton", [], lambda v: {"t": "row", "name": "QuickActionButton", "bg": "surfaceRaised",
+     "border": "borderDefault", "radius": 6, "pad": [12, 4, 12, 4], "gap": 8, "cross": "center", "c": [
+         {"t": "icon", "v": "add", "size": 24, "color": "accentOrange", "name": "Icon"},
+         {"t": "text", "v": "Quick action", "style": "labelLarge", "color": "textPrimary", "name": "Label",
+          "maxLines": 2}]},
+     _component_instance(lambda n: {"Label": n.get("label", "Quick action")}),
+     props=[("Label", "text", "Label", "Quick action")])
+comp("EmptyState", [], lambda v: {"t": "col", "name": "EmptyState", "main": "center", "cross": "center",
+     "gap": 8, "c": [
+         {"t": "icon", "v": "music_note", "size": 80, "color": "textTertiary", "name": "Icon"},
+         {"t": "text", "v": "No items yet", "style": "headlineSmall", "color": "textPrimary", "name": "Message"},
+         {"t": "text", "v": "Add something to get started", "style": "bodyMedium", "color": "textTertiary",
+          "name": "Hint"},
+         {"t": "button", "kind": "secondary", "v": "Add item", "icon": "add", "name": "Action"},
+         {"t": "button", "kind": "secondary", "v": "Other action", "icon": "group_add", "name": "SecondaryAction"}]},
+     _component_instance(lambda n: {"Message": n.get("message", "No items yet"),
+                                    "Hint": n.get("hint", "Add something to get started"),
+                                    "Action": n.get("actionLabel", "Add item"),
+                                    "SecondaryAction": n.get("secondaryActionLabel", "Other action")}),
+     props=[("Message", "text", "Message", "No items yet"), ("Hint", "text", "Hint", "Add something to get started"),
+            ("Action", "text", "Action", "Add item"),
+            ("SecondaryAction", "text", "SecondaryAction", "Other action")])
+
+
 def i_avatar(n, pdir):
     s = n.get("size", 40)
     p, over = {}, {}
@@ -1814,6 +1861,18 @@ CONNECT = {
     "AppBadge": (APP + "app_badge.dart", "AppBadge",
               'AppBadge(label: {Label},{Show icon ? " icon: Icons.star /* icon */," : ""})',
               "AppBadge: pill label (band facts, status, offline). 10% tint of its colour, radius 20, 16 px icon."),
+    "LoadingIndicator": (APP + "loading_indicator.dart", "LoadingIndicator",
+              'LoadingIndicator(message: {Message}, semanticsLabel: "Loading")',
+              "Centered circular progress indicator with an optional message."),
+    "ErrorBanner": (APP + "error_banner.dart", "ErrorBanner",
+              'ErrorBanner(message: {Message}, title: {Title}, style: ErrorBannerStyle.{Style}, showRetry: true, onRetry: retry)',
+              "Error feedback with error icon, title, message and optional retry action. Style selects banner, card or inline."),
+    "QuickActionButton": (APP + "quick_action_button.dart", "QuickActionButton",
+              'QuickActionButton(icon: Icons.add, label: {Label}, onTap: onTap)',
+              "Raised quick action tile with orange icon and a two-line label."),
+    "EmptyState": (APP + "empty_state.dart", "EmptyState",
+              'EmptyState(icon: Icons.music_note, message: {Message}, hint: {Hint}, actionLabel: {Action}, onAction: onAction, secondaryActionLabel: {SecondaryAction}, onSecondaryAction: onSecondaryAction)',
+              "Centered empty state with icon, message, optional hint and up to two outline actions."),
     "SectionHeader": (APP + "section_header.dart", "SectionHeader",
                       'SectionHeader({Title}, style: {Style},{Show action ? " actionLabel: " : " /* "}{Action}'
                       '{Show action ? ", onAction: onSeeAll," : " */"})',

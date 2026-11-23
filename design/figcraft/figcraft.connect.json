@@ -71,6 +71,20 @@
       "template": "CustomTextField(label: {Show label ? \"\" : \"null /* \"}{Label}{Show label ? \"\" : \" */\"}, hint: {Value},{Show icon ? \" prefixIcon: Icons.search /* icon */,\" : \"\"} maxLines: {Lines} == InputLines.multi ? 3 : 1)"
     },
     {
+      "component": "EmptyState",
+      "importPath": "package:flowgroove/widgets/empty_state.dart",
+      "language": "flutter",
+      "name": "EmptyState",
+      "template": "EmptyState(icon: Icons.music_note, message: {Message}, hint: {Hint}, actionLabel: {Action}, onAction: onAction, secondaryActionLabel: {SecondaryAction}, onSecondaryAction: onSecondaryAction)"
+    },
+    {
+      "component": "ErrorBanner",
+      "importPath": "package:flowgroove/widgets/error_banner.dart",
+      "language": "flutter",
+      "name": "ErrorBanner",
+      "template": "ErrorBanner(message: {Message}, title: {Title}, style: ErrorBannerStyle.{Style}, showRetry: true, onRetry: retry)"
+    },
+    {
       "component": "FloatingActionButton",
       "importPath": "package:flutter/material.dart",
       "language": "flutter",
@@ -1674,6 +1688,13 @@
       "template": "ListTile(title: Text({Title}), subtitle: {Show subtitle ? \"Text(\" : \"null /* \"}{Subtitle}{Show subtitle ? \")\" : \" */\"},{Show leading ? \" leading: /* Leading slot */ const Icon(Icons.circle),\" : \"\"}{Show trailing ? \" trailing: /* Trailing slot */ const Icon(Icons.chevron_right),\" : \"\"})"
     },
     {
+      "component": "LoadingIndicator",
+      "importPath": "package:flowgroove/widgets/loading_indicator.dart",
+      "language": "flutter",
+      "name": "LoadingIndicator",
+      "template": "LoadingIndicator(message: {Message}, semanticsLabel: \"Loading\")"
+    },
+    {
       "component": "ModalBottomSheet",
       "importPath": "package:flutter/material.dart",
       "language": "flutter",
@@ -1686,6 +1707,13 @@
       "language": "flutter",
       "name": "NavTab",
       "template": "NavTab(item: (icon: Icons.home_outlined, selectedIcon: Icons.home, label: {Label}), selected: {State} == NavItemState.selected, onTap: () {})"
+    },
+    {
+      "component": "QuickActionButton",
+      "importPath": "package:flowgroove/widgets/quick_action_button.dart",
+      "language": "flutter",
+      "name": "QuickActionButton",
+      "template": "QuickActionButton(icon: Icons.add, label: {Label}, onTap: onTap)"
     },
     {
       "component": "SectionHeader",
