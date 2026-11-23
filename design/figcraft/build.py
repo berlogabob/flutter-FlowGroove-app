@@ -1412,6 +1412,41 @@ comp("AppBadge", ["badge"], lambda v: {"t": "badge", "v": "Badge", "icon": "star
             ("Show icon", "boolean", "Icon", False)])
 
 
+comp("ChordChartView", [], lambda v: {"t": "col", "name": "ChordChartView", "gap": 10, "cross": "min", "c": [
+    {"t": "row", "gap": 2, "cross": "end", "c": [
+        {"t": "text", "v": "G", "style": "bodyLarge", "color": "accentOrange", "name": "Chord"},
+        {"t": "text", "v": "Amazing", "style": "bodyLarge", "color": "textPrimary", "name": "Lyric"}]},
+    {"t": "row", "gap": 2, "cross": "end", "c": [
+        {"t": "text", "v": "D", "style": "bodyLarge", "color": "accentOrange"},
+        {"t": "text", "v": "grace", "style": "bodyLarge", "color": "textPrimary"}]}]},
+     lambda n, pdir: {"p": {"Lyric": n.get("chart", "Amazing grace")}},
+     props=[("Lyric", "text", "Lyric", "Amazing grace")])
+
+comp("PerformanceSheetView", [], lambda v: {"t": "col", "name": "PerformanceSheetView", "gap": 12, "w": "fill", "c": [
+    {"t": "col", "gap": 8, "w": "fill", "c": [
+        {"t": "text", "v": "Verse", "style": "titleMedium", "color": "accentOrange", "name": "Section"},
+        {"t": "row", "gap": 2, "cross": "end", "c": [
+            {"t": "text", "v": "G", "style": "headlineSmall", "color": "accentOrange"},
+            {"t": "text", "v": "Amazing", "style": "headlineSmall", "name": "Lyric"},
+            {"t": "text", "v": "D", "style": "headlineSmall", "color": "accentOrange"},
+            {"t": "text", "v": "grace", "style": "headlineSmall"}]}]},
+    {"t": "col", "gap": 4, "bg": "surfaceRaised", "radius": 6, "pad": 8, "w": "fill", "c": [
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+            {"t": "icon", "v": "music_note", "size": 20, "color": "textSecondary"},
+            {"t": "text", "v": "Semitones", "style": "labelLarge"},
+            {"t": "spacer"}, {"t": "icon", "v": "remove", "size": 20},
+            {"t": "text", "v": "Original", "style": "labelLarge"}, {"t": "icon", "v": "add", "size": 20}]},
+        {"t": "row", "gap": 8, "cross": "center", "c": [
+            {"t": "icon", "v": "play_arrow", "size": 20},
+            {"t": "icon", "v": "remove", "size": 20},
+            {"t": "text", "v": "35 px/s", "style": "labelLarge"},
+            {"t": "icon", "v": "add", "size": 20}, {"t": "spacer"},
+            {"t": "badge", "v": "Manual"}]}]}]},
+     lambda n, pdir: {"p": {"Section": n.get("section", "Verse"),
+                            "Lyric": n.get("lyric", "Amazing grace")}},
+     props=[("Section", "text", "Section", "Verse"), ("Lyric", "text", "Lyric", "Amazing grace")])
+
+
 # Reused widget components. Each preview draws the actual visual structure of
 # its Flutter widget; the named text layers are the Code Connect properties.
 def _component_instance(values):
@@ -1990,6 +2025,12 @@ CONNECT = {
     "AppBadge": (APP + "app_badge.dart", "AppBadge",
               'AppBadge(label: {Label},{Show icon ? " icon: Icons.star /* icon */," : ""})',
               "AppBadge: pill label (band facts, status, offline). 10% tint of its colour, radius 20, 16 px icon."),
+    "ChordChartView": (APP + "chord_chart_view.dart", "ChordChartView",
+              'ChordChartView(chart: "[G]{Lyric} [D]grace")',
+              "ChordPro chart rendered as chord labels above lyric syllables, with lines wrapping as needed."),
+    "PerformanceSheetView": (APP + "performance_sheet_view.dart", "PerformanceSheetView",
+              'PerformanceSheetView(sections: [Section(id: "section1", name: {Section}, chordChart: "[G]{Lyric} [D]grace")], bpm: 96)',
+              "Performance sheet with section headings, chord-over-lyric rows, transpose controls and auto-scroll transport."),
     "LoadingIndicator": (APP + "loading_indicator.dart", "LoadingIndicator",
               'LoadingIndicator(message: {Message}, semanticsLabel: "Loading")',
               "Centered circular progress indicator with an optional message."),

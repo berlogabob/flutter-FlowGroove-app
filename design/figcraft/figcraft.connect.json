@@ -57,6 +57,13 @@
       "template": "Checkbox(value: {State} == CheckboxState.on, onChanged: (v) {})"
     },
     {
+      "component": "ChordChartView",
+      "importPath": "package:flowgroove/widgets/chord_chart_view.dart",
+      "language": "flutter",
+      "name": "ChordChartView",
+      "template": "ChordChartView(chart: \"[G]{Lyric} [D]grace\")"
+    },
+    {
       "component": "ConfirmationDialog",
       "importPath": "package:flowgroove/widgets/confirmation_dialog.dart",
       "language": "flutter",
@@ -1714,6 +1721,13 @@
       "language": "flutter",
       "name": "NavTab",
       "template": "NavTab(item: (icon: Icons.home_outlined, selectedIcon: Icons.home, label: {Label}), selected: {State} == NavItemState.selected, onTap: () {})"
+    },
+    {
+      "component": "PerformanceSheetView",
+      "importPath": "package:flowgroove/widgets/performance_sheet_view.dart",
+      "language": "flutter",
+      "name": "PerformanceSheetView",
+      "template": "PerformanceSheetView(sections: [Section(id: \"section1\", name: {Section}, chordChart: \"[G]{Lyric} [D]grace\")], bpm: 96)"
     },
     {
       "component": "PrimaryActionBar",
