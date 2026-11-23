@@ -75,6 +75,30 @@ Future<void> setupRenderApiKeys() async {
   await Firebase.initializeApp();
 }
 
+Future<void> setupRenderTelegram() async {
+  setupFirebaseCoreMocks();
+  const channel = BasicMessageChannel<Object?>(
+    'dev.flutter.pigeon.cloud_functions_platform_interface.CloudFunctionsHostApi.call',
+    StandardMessageCodec(),
+  );
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockDecodedMessageHandler<Object?>(channel, (message) async {
+        final arguments =
+            (message! as List<Object?>).first! as Map<Object?, Object?>;
+        if (arguments['functionName'] != 'createTelegramLinkToken') {
+          throw StateError('Unexpected Telegram operation');
+        }
+        return [
+          {'token': 'token1'},
+        ];
+      });
+  addTearDown(
+    () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockDecodedMessageHandler<Object?>(channel, null),
+  );
+  await Firebase.initializeApp();
+}
+
 class RenderLabRepository extends Mock implements FirestoreLabRepository {}
 
 class RenderSongRepository extends Mock implements SongRepository {
