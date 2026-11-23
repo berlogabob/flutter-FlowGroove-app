@@ -5,6 +5,7 @@ import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/screens/practice_setup_wizard.dart';
 import 'package:flowgroove/screens/songs/components/links_editor.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/widgets/edit_section_dialog.dart';
+import 'package:flowgroove/screens/songs/components/song_constructor/widgets/section_picker.dart';
 import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flowgroove/screens/setlists/performer_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
@@ -693,6 +694,17 @@ final kOpeners = <String, Opener>{
           ),
         );
       },
+    ),
+  ),
+  'section_picker': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(25),
+          child: SectionPicker(onSectionSelected: (_) {}),
+        ),
+      ),
     ),
   ),
   'edit_section_dialog': Opener(
