@@ -1198,6 +1198,14 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'songs_list_filter_options': Opener(
+    (_, tester, _) => tester
+        .widget<OutlinedButton>(
+          find.widgetWithText(OutlinedButton, 'Key / BPM'),
+        )
+        .onPressed!(),
+    route: '/main/songs',
+  ),
   'tuner_tone': Opener((context, tester, _) {
     tester
         .widget<ToolModeSwitcher<TunerMode>>(
