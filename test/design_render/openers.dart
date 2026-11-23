@@ -1204,24 +1204,62 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
-  'practice_regions_replace_n_regions': Opener(
-    (context, _, _) => showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Replace 9 regions?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+  'practice_regions_replace_n_regions': Opener((context, _, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [
+            labRepositoryProvider.overrideWithValue(RenderLabRepository()),
+          ],
+          child: PracticeRegionsScreen(
+            entry: PracticeRegionsScreenFixture.entry(
+              grid: const AudioGrid(bpm: 120),
+              regions: [
+                for (var i = 0; i < 9; i++)
+                  AudioRegion(
+                    id: 'region$i',
+                    name: 'Part ${i + 1}',
+                    startMs: i * 1000,
+                    endMs: (i + 1) * 1000,
+                  ),
+              ],
+            ).copyWith(attachmentIds: const []),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Replace'),
-          ),
-        ],
+        ),
       ),
-    ),
-  ),
+    );
+    tapWhenBuilt(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is PopupMenuButton<String> && widget.tooltip == 'More',
+        skipOffstage: false,
+      ),
+      (element) {
+        (element.widget as PopupMenuButton<String>).onSelected!('slice');
+        tapWhenBuilt(
+          find.widgetWithText(
+            ChoiceChip,
+            'Slice every N bars',
+            skipOffstage: false,
+          ),
+          (element) {
+            (element.widget as ChoiceChip).onSelected!(true);
+            tapWhenBuilt(
+              find.widgetWithText(FilledButton, 'Apply', skipOffstage: false),
+              (element) => (element.widget as FilledButton).onPressed!(),
+            );
+          },
+        );
+      },
+    );
+    tapWhenBuilt(find.byType(AlertDialog), (_) {
+      expect(
+        find.byType(PracticeRegionsScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('Replace 9 regions?'), findsOneWidget);
+    });
+  }),
   'practice_setup_wizard_sheet_l27': Opener(
     (context, _, _) => showPracticeSetupWizard(
       context,
