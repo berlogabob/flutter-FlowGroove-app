@@ -1,11 +1,14 @@
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/event_kit.dart';
+import 'package:flowgroove/screens/practice_setup_wizard.dart';
+import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
+import 'package:flowgroove/screens/setlists/performer_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
-import 'package:flowgroove/screens/practice_setup_wizard.dart';
-import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -76,6 +79,44 @@ final kOpeners = <String, Opener>{
           ],
         ),
       ),
+    ),
+  ),
+  'performer_sheet_sheet_l32': Opener(
+    (context, _, _) => showPerformerSheet(
+      context: context,
+      selected: const ['jake', 'mara'],
+      kit: const EventKit(
+        people: [
+          EventPerson(
+            id: 'jake',
+            name: 'Jake Morris',
+            role: 'Guitar',
+            uid: 'member1',
+          ),
+          EventPerson(
+            id: 'mara',
+            name: 'Mara Velez',
+            role: 'Bass',
+            uid: 'member2',
+          ),
+          EventPerson(id: 'sam', name: 'Sam Okafor', role: 'Keys'),
+          EventPerson(id: 'riley', name: 'Riley Dubois', role: 'Drums'),
+        ],
+      ),
+      members: [
+        BandMember(
+          uid: 'member1',
+          role: BandMember.roleAdmin,
+          displayName: 'Jake Morris',
+        ),
+        BandMember(
+          uid: 'member2',
+          role: BandMember.roleEditor,
+          displayName: 'Mara Velez',
+        ),
+      ],
+      songNumber: 12,
+      songTitle: 'Wonderwall',
     ),
   ),
   'song_form_provider_similar_song_exists': Opener(
