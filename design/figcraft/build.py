@@ -1458,6 +1458,44 @@ comp("EmptyState", [], lambda v: {"t": "col", "name": "EmptyState", "main": "cen
             ("Action", "text", "Action", "Add item"),
             ("SecondaryAction", "text", "SecondaryAction", "Other action")])
 
+comp("ToolButton", [], lambda v: {"t": "row", "name": "ToolButton", "bg": "surfaceRaised",
+     "border": "borderDefault", "radius": 6, "pad": [12, 4, 12, 4], "gap": 8, "cross": "center", "c": [
+         {"t": "icon", "v": "tune", "size": 24, "color": "textSecondary", "layer": "Icon"},
+         {"t": "text", "v": "Tool", "style": "labelLarge", "color": "textPrimary", "name": "Label", "maxLines": 2},
+         {"t": "text", "v": "Soon", "style": "labelSmall", "color": "textPrimary", "name": "Soon"}]},
+     _component_instance(lambda n: {"Label": n.get("label", "Tool"), "Icon": glyph(n.get("icon", "tune"))}),
+     props=[("Label", "text", "Label", "Tool"), ("Icon", "text", "Icon", "tune"),
+            ("isCompact", "boolean", "Label", False)])
+comp("SingleFab", [], lambda v: {"t": "row", "name": "SingleFab", "bg": "accentOrange", "radius": 28,
+     "pad": [16, 16, 16, 16], "main": "center", "cross": "center", "c": [
+         {"t": "icon", "v": "add", "size": 24, "color": "charcoal", "layer": "Icon"}]},
+     _component_instance(lambda n: {"Icon": glyph(n.get("icon", "add"))}),
+     props=[("Icon", "text", "Icon", "add")])
+comp("UnifiedFilterSortWidget", [], lambda v: {"t": "row", "name": "UnifiedFilterSortWidget", "gap": 8,
+     "cross": "center", "c": [
+         {"t": "input", "hint": "Search...", "icon": "search", "name": "Filter", "w": "fill"},
+         {"t": "row", "name": "Sort", "bg": "surface", "border": "borderDefault", "radius": 5,
+          "pad": [8, 0, 8, 0], "gap": 8, "cross": "center", "c": [
+              {"t": "text", "v": "Alphabetical", "style": "bodyMedium", "color": "textPrimary", "name": "Sort option"},
+              {"t": "icon", "v": "sort", "size": 20, "color": "textSecondary"}]}]},
+     _component_instance(lambda n: {"Filter": n.get("filterText", ""), "Hint": n.get("hintText", "Search..."),
+                                    "Sort": "Manual order"}),
+     props=[("Filter", "text", "Filter", ""), ("Hint", "text", "Filter", "Search..."),
+            ("Sort", "text", "Sort option", "Manual order")])
+comp("ConfirmationDialog", [], lambda v: {"t": "dialog", "name": "ConfirmationDialog", "bg": "surface",
+     "radius": 16, "pad": 16, "gap": 12, "cross": "center", "c": [
+         {"t": "icon", "v": "warning_amber", "size": 48, "color": "error", "layer": "Icon"},
+         {"t": "text", "v": "Confirm", "style": "titleMedium", "color": "textPrimary", "name": "Title"},
+         {"t": "text", "v": "Are you sure?", "style": "bodyMedium", "color": "textSecondary", "name": "Message"},
+         {"t": "row", "cross": "center", "gap": 8, "c": [
+             {"t": "button", "kind": "text", "v": "Cancel", "name": "Cancel"},
+             {"t": "button", "kind": "danger", "v": "Confirm", "name": "Confirm"}]}]},
+     _component_instance(lambda n: {"Title": n.get("title", "Confirm"), "Message": n.get("message", "Are you sure?"),
+                                    "Confirm": n.get("confirmLabel", "Confirm"), "Cancel": n.get("cancelLabel", "Cancel")}),
+     props=[("Title", "text", "Title", "Confirm"), ("Message", "text", "Message", "Are you sure?"),
+            ("confirmLabel", "text", "Confirm", "Confirm"), ("cancelLabel", "text", "Cancel", "Cancel"),
+            ("Icon", "text", "Icon", "warning_amber"), ("isDestructive", "boolean", "Icon", True)])
+
 
 def i_avatar(n, pdir):
     s = n.get("size", 40)
@@ -1873,6 +1911,18 @@ CONNECT = {
     "EmptyState": (APP + "empty_state.dart", "EmptyState",
               'EmptyState(icon: Icons.music_note, message: {Message}, hint: {Hint}, actionLabel: {Action}, onAction: onAction, secondaryActionLabel: {SecondaryAction}, onSecondaryAction: onSecondaryAction)',
               "Centered empty state with icon, message, optional hint and up to two outline actions."),
+    "ToolButton": (APP + "tool_button.dart", "ToolButton",
+              'ToolButton(icon: Icons.tune /* {Icon} */, label: {Label}, isCompact: {isCompact}, onTap: onTap)',
+              "Tool tile with icon, label, and a reserved Soon badge when disabled."),
+    "SingleFab": (APP + "fab_variants.dart", "SingleFab",
+              'SingleFab(icon: Icons.add /* {Icon} */, onPressed: onPressed, tooltip: "Create", heroTag: "main_fab")',
+              "Single floating action button with optional tooltip and hero tag."),
+    "UnifiedFilterSortWidget": (APP + "unified_item/unified_filter_sort_widget.dart", "UnifiedFilterSortWidget",
+              'UnifiedFilterSortWidget(currentSort: SortOption.manual /* {Sort} */, onSortChanged: onSortChanged, filterText: {Filter}, onFilterChanged: onFilterChanged, hintText: {Hint})',
+              "Search field with sort dropdown for unified lists."),
+    "ConfirmationDialog": (APP + "confirmation_dialog.dart", "ConfirmationDialog",
+              'ConfirmationDialog(title: {Title}, message: {Message}, confirmLabel: {confirmLabel}, cancelLabel: {cancelLabel}, icon: Icons.warning_amber /* {Icon} */, isDestructive: {isDestructive})',
+              "Confirmation dialog with icon, explanatory text, cancel action and confirm action."),
     "SectionHeader": (APP + "section_header.dart", "SectionHeader",
                       'SectionHeader({Title}, style: {Style},{Show action ? " actionLabel: " : " /* "}{Action}'
                       '{Show action ? ", onAction: onSeeAll," : " */"})',

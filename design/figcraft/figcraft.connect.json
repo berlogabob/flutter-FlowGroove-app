@@ -57,6 +57,13 @@
       "template": "Checkbox(value: {State} == CheckboxState.on, onChanged: (v) {})"
     },
     {
+      "component": "ConfirmationDialog",
+      "importPath": "package:flowgroove/widgets/confirmation_dialog.dart",
+      "language": "flutter",
+      "name": "ConfirmationDialog",
+      "template": "ConfirmationDialog(title: {Title}, message: {Message}, confirmLabel: {confirmLabel}, cancelLabel: {cancelLabel}, icon: Icons.warning_amber /* {Icon} */, isDestructive: {isDestructive})"
+    },
+    {
       "component": "CustomButton",
       "importPath": "package:flowgroove/widgets/custom_button.dart",
       "language": "flutter",
@@ -1723,6 +1730,13 @@
       "template": "SectionHeader({Title}, style: {Style},{Show action ? \" actionLabel: \" : \" /* \"}{Action}{Show action ? \", onAction: onSeeAll,\" : \" */\"})"
     },
     {
+      "component": "SingleFab",
+      "importPath": "package:flowgroove/widgets/fab_variants.dart",
+      "language": "flutter",
+      "name": "SingleFab",
+      "template": "SingleFab(icon: Icons.add /* {Icon} */, onPressed: onPressed, tooltip: \"Create\", heroTag: \"main_fab\")"
+    },
+    {
       "component": "Slider",
       "importPath": "package:flutter/material.dart",
       "language": "flutter",
@@ -1777,6 +1791,20 @@
       "language": "flutter",
       "name": "Tab",
       "template": "Tab(text: {Label})"
+    },
+    {
+      "component": "ToolButton",
+      "importPath": "package:flowgroove/widgets/tool_button.dart",
+      "language": "flutter",
+      "name": "ToolButton",
+      "template": "ToolButton(icon: Icons.tune /* {Icon} */, label: {Label}, isCompact: {isCompact}, onTap: onTap)"
+    },
+    {
+      "component": "UnifiedFilterSortWidget",
+      "importPath": "package:flowgroove/widgets/unified_item/unified_filter_sort_widget.dart",
+      "language": "flutter",
+      "name": "UnifiedFilterSortWidget",
+      "template": "UnifiedFilterSortWidget(currentSort: SortOption.manual /* {Sort} */, onSortChanged: onSortChanged, filterText: {Filter}, onFilterChanged: onFilterChanged, hintText: {Hint})"
     },
     {
       "component": "UserAvatar",
