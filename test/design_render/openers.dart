@@ -125,6 +125,8 @@ void tapWhenBuilt(
       throw StateError('opener trigger never built: $finder');
     }
   });
+  // A settled tree schedules no frames: ask for one, or the callback never runs.
+  WidgetsBinding.instance.scheduleFrame();
 }
 
 BuildContext hostContext(WidgetTester tester) =>
@@ -312,37 +314,55 @@ final kOpeners = <String, Opener>{
       expect(find.byType(TheBandScreen, skipOffstage: false), findsOneWidget);
     });
   }),
-  'home_sheet_l112': Opener(
-    (context, _, _) => showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            ListTile(
-              title: const Text('Rehearsals — choose a band'),
-              subtitle: const Text(
-                'Rehearsals are per band — choose one to see its schedule.',
-              ),
+  'home_sheet_l112': Opener((context, _, _) {
+    // _openRehearsals with 2+ bands shows the real band picker sheet.
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [
+            bandsProvider.overrideWith(
+              (ref) => Stream.value([
+                MockDataHelper.createMockBand(
+                  id: 'band1',
+                  name: 'The Groove Collective',
+                ),
+                MockDataHelper.createMockBand(
+                  id: 'band2',
+                  name: 'Neon Drifters',
+                ),
+              ]),
             ),
-            const Divider(),
-            for (final bandName in [
-              'The Groove Collective',
-              'Neon Drifters',
-              'Basement Static',
-              'Cedar & Rue',
-            ])
-              ListTile(
-                leading: const Icon(Icons.event),
-                title: Text(bandName),
-                trailing: const Icon(Icons.arrow_forward),
-                onTap: () => Navigator.pop(sheetContext),
-              ),
           ],
+          child: const HomeScreen(),
         ),
       ),
-    ),
-  ),
+    );
+    tapWhenBuilt(
+      find
+          .byWidgetPredicate(
+            (widget) => widget is ToolButton && widget.label == 'Rehearsals',
+            skipOffstage: false,
+          )
+          .last,
+      (element) {
+        // _openRehearsals reads bandsProvider once: start the stream, tap a
+        // frame later, as a user does after Home has loaded (F121).
+        final container = ProviderScope.containerOf(element);
+        final sub = container.listen(bandsProvider, (_, _) {});
+        void tapWhenLoaded([Duration? _]) {
+          if (container.read(bandsProvider).hasValue) {
+            sub.close();
+            (element.widget as ToolButton).onTap!();
+          } else {
+            WidgetsBinding.instance.addPostFrameCallback(tapWhenLoaded);
+            WidgetsBinding.instance.scheduleFrame();
+          }
+        }
+
+        tapWhenLoaded();
+      },
+    );
+  }),
   'home_rehearsals': Opener((context, _, _) {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
@@ -1396,42 +1416,28 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
-  'song_card_actions_sheet_l209': Opener(
-    (context, _, _) => showModalBottomSheet<void>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: const [
-            ListTile(title: Text('Add to band…')),
-            ListTile(title: Text('Choose the band to save "Wonderwall" to')),
-            Divider(),
-            ListTile(
-              leading: Icon(Icons.groups),
-              title: Text('FlowGroove'),
-              subtitle: Text('Rehearsal Fri 7pm'),
-              trailing: Icon(Icons.check),
-            ),
-            ListTile(
-              leading: Icon(Icons.groups),
-              title: Text('The Weekend Set'),
-              subtitle: Text("4 members · You're editor"),
-            ),
-            ListTile(
-              leading: Icon(Icons.groups),
-              title: Text('Sunday Jam'),
-              subtitle: Text('2 members'),
-            ),
-            ListTile(
-              leading: Icon(Icons.groups),
-              title: Text('Cover Crew'),
-              subtitle: Text('1 member'),
-            ),
-          ],
+  'song_card_actions_sheet_l209': Opener((_, _, _) {
+    // Real path: a song card's ⋮ menu → 'Add to band…' → pickBandAndAdd sheet.
+    tapWhenBuilt(
+      find.ancestor(
+        of: find.byWidgetPredicate(
+          (w) => w is Icon && w.semanticLabel == 'More actions for First Song',
         ),
+        matching: find.byWidgetPredicate((w) => w is PopupMenuButton),
       ),
-    ),
-  ),
+      (menu) {
+        // ignore: avoid_dynamic_calls
+        ((menu as StatefulElement).state as dynamic).showButtonMenu();
+        tapWhenBuilt(
+          find.ancestor(
+            of: find.text('Add to band…'),
+            matching: find.byType(InkWell),
+          ),
+          (item) => (item.widget as InkWell).onTap!(),
+        );
+      },
+    );
+  }, route: '/main/songs'),
   'add_song_helper_search_on_web': Opener((context, _, _) {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
