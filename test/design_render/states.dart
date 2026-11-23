@@ -119,4 +119,5 @@ final kStates = <String, Future<void> Function(WidgetTester)>{
   'song_map_playing': _songMapPlaying,
   'song_map_playing_light': _songMapPlaying,
   'song_map_review': _songMapReview,
+  'song_map_review_light': _songMapReview,
 };
