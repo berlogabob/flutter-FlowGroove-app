@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flowgroove/models/audio_region.dart';
@@ -22,19 +23,27 @@ const _regions = [
   AudioRegion(id: 'f', name: 'Bridge 1', startMs: 74824, endMs: 91765),
 ];
 
-Future<void> _pumpPractice(WidgetTester tester) async {
+Future<void> _pumpPractice(WidgetTester tester, {bool review = false}) async {
   final decode = PracticeRegionsScreen.decodePcm;
-  PracticeRegionsScreen.decodePcm = (
-    _, {
-    required sampleRate,
-    required durationMs,
-  }) async => Int16List(sampleRate * durationMs ~/ 1000);
+  PracticeRegionsScreen
+      .decodePcm = (_, {required sampleRate, required durationMs}) async {
+    final pcm = Int16List(sampleRate * durationMs ~/ 1000);
+    if (review) {
+      const frequencies = [110, 262, 392, 147, 330, 220, 440, 196, 294, 131];
+      for (var i = 0; i < pcm.length; i++) {
+        final frequency = frequencies[i * frequencies.length ~/ pcm.length];
+        pcm[i] = (4000 * math.sin(2 * math.pi * frequency * i / sampleRate))
+            .round();
+      }
+    }
+    return pcm;
+  };
   addTearDown(() => PracticeRegionsScreen.decodePcm = decode);
   await practiceFixture.pump(
     tester,
     PracticeRegionsScreenFixture.entry(
-      regions: _regions,
-      grid: const AudioGrid(bpm: 170),
+      regions: review ? const [] : _regions,
+      grid: AudioGrid(bpm: review ? 169.6 : 170),
     ).copyWith(title: 'First Song', peaks: const [25, 60, 40, 80, 35]),
     theme: stateTheme == ThemeMode.light
         ? MonoPulseTheme.lightTheme
@@ -88,6 +97,19 @@ Future<void> _songMapPlaying(WidgetTester tester) async {
   );
 }
 
+Future<void> _songMapReview(WidgetTester tester) async {
+  await _pumpPractice(tester, review: true);
+  await tester.tap(find.text('Analyze song'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Analyze'));
+  final review = find.textContaining('sections found · check, then Done');
+  for (var i = 0; i < 20 && review.evaluate().isEmpty; i++) {
+    await practiceFixture.settleAudio(tester);
+  }
+  expect(review, findsOneWidget);
+  expect(find.text('Keep'), findsOneWidget);
+}
+
 final kStates = <String, Future<void> Function(WidgetTester)>{
   'practice_regions': _pumpPractice,
   'song_map_song': _songMapSong,
@@ -96,4 +118,5 @@ final kStates = <String, Future<void> Function(WidgetTester)>{
   'song_map_part_light': _songMapPart,
   'song_map_playing': _songMapPlaying,
   'song_map_playing_light': _songMapPlaying,
+  'song_map_review': _songMapReview,
 };
