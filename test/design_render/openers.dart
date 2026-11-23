@@ -1,3 +1,7 @@
+import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/screens/setlists/event_share_screen.dart';
+import 'package:flowgroove/services/event_share_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
 import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
@@ -534,6 +538,50 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'event_share_sheet_l106': Opener((context, tester, _) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => ProviderScope(
+        overrides: [
+          eventShareServiceProvider.overrideWithValue(
+            EventShareService(
+              invoker: (_, _) async => {
+                'setlistId': 'setlist1',
+                'name': 'Gig Setlist',
+                'viewer': {
+                  'canSuggest': true,
+                  'access': {'runningOrder': 'view'},
+                },
+                'runningOrder': {
+                  'ready': true,
+                  'baseFingerprint': 'a' * 64,
+                  'items': <Map<String, dynamic>>[],
+                },
+              },
+            ),
+          ),
+        ],
+        child: const EventShareScreen(),
+      ),
+    );
+    void openWhenReady(Duration _) {
+      final button = find.text('Suggest a change');
+      if (button.evaluate().isEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback(openWhenReady);
+      } else {
+        tester
+            .widget<FloatingActionButton>(
+              find.ancestor(
+                of: button,
+                matching: find.byType(FloatingActionButton),
+              ),
+            )
+            .onPressed!();
+      }
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback(openWhenReady);
+  }),
   'song_map_part': Opener(
     (context, _, _) => showSectionNameSheet(
       context,
