@@ -2,6 +2,7 @@ import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/event_kit.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/screens/practice_setup_wizard.dart';
+import 'package:flowgroove/screens/songs/components/links_editor.dart';
 import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flowgroove/screens/setlists/performer_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
@@ -136,6 +137,23 @@ final kOpeners = <String, Opener>{
         ],
       ),
     ),
+  ),
+  'links_editor_add_link': Opener(
+    (context, tester, _) {
+      showDialog<void>(
+        context: context,
+        builder: (context) => Dialog(
+          child: LinksEditor(
+            links: const [],
+            onAddLink: (_) {},
+            onRemoveLink: (_) {},
+          ),
+        ),
+      );
+      tester.binding.addPostFrameCallback((_) {
+        tester.tap(find.text('Add'));
+      });
+    },
   ),
   'suggestion_selection_dialog': Opener(
     (context, _, _) => showDialog<void>(
