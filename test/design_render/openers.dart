@@ -999,68 +999,79 @@ final kOpeners = <String, Opener>{
     route: '/main/setlists/create',
     realAsync: true,
   ),
-  'event_kit_editor_brand_optional': Opener(
-    (context, _, _) => showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Brand (optional)'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Brand'),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final brand in [
-                    'Marshall',
-                    'Orange',
-                    'Vox AC30',
-                    'Mesa Boogie',
-                    'Fender Twin',
-                    'Ampeg SVT',
-                    'Roland JC-120',
-                    'Hartke',
-                    'Blackstar',
-                    'Laney',
-                    'Peavey',
-                  ])
-                    ChoiceChip(
-                      label: Text(brand),
-                      selected: brand == 'Vox AC30',
-                      onSelected: (_) {},
-                    ),
+  'event_kit_editor_brand_optional': Opener((context, _, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(
+          setlist: Setlist(
+            id: 'setlist1',
+            bandId: 'band1',
+            name: 'Gig Setlist',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+            eventKit: const EventKit(
+              stage: {
+                'back-left': [
+                  StagePlacement(kind: 'equipment', label: 'Guitar amp'),
                 ],
-              ),
-              const SizedBox(height: 16),
-              const TextField(
-                decoration: InputDecoration(
-                  labelText: 'Custom brand',
-                  hintText: 'Type a brand',
+              },
+            ),
+          ),
+          bandId: 'band1',
+        ),
+      ),
+    );
+    tapWhenBuilt(
+      find.byWidgetPredicate(
+        (w) =>
+            w is InkWell &&
+            w.onTap != null &&
+            w.child is Container &&
+            (w.child! as Container).constraints?.minHeight == 84,
+        skipOffstage: false,
+      ),
+      (element) {
+        expect(
+          find.byType(EventKitEditorScreen, skipOffstage: false),
+          findsOneWidget,
+        );
+        (element.widget as InkWell).onTap!();
+        tapWhenBuilt(
+          find.byWidgetPredicate(
+            (w) =>
+                w is TextField &&
+                w.decoration?.hintText == 'Search gear or type your own…',
+            skipOffstage: false,
+          ),
+          (element) {
+            (element.widget as TextField).onChanged!('Guitar amp');
+            tapWhenBuilt(
+              find.ancestor(
+                of: find.descendant(
+                  of: find.byType(BottomSheet, skipOffstage: false),
+                  matching: find.text('Guitar amp', skipOffstage: false),
+                ),
+                matching: find.byWidgetPredicate(
+                  (w) => w is GestureDetector && w.onTap != null,
+                  skipOffstage: false,
                 ),
               ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, ''),
-            child: const Text('Clear'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, 'Vox AC30'),
-            child: const Text('Done'),
-          ),
-        ],
-      ),
-    ),
-  ),
+              (element) {
+                (element.widget as GestureDetector).onTap!();
+                tapWhenBuilt(
+                  find.byWidgetPredicate(
+                    (w) => w is InputChip && w.onSelected != null,
+                    skipOffstage: false,
+                  ),
+                  (element) => (element.widget as InputChip).onSelected!(true),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }),
   'practice_regions_replace_n_sections': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,
