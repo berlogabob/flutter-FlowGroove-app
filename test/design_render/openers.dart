@@ -352,6 +352,68 @@ final kOpeners = <String, Opener>{
       tester.tap(find.byIcon(Icons.add).first);
     });
   }),
+  'event_kit_editor_brand_optional': Opener(
+    (context, _, _) => showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Brand (optional)'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Brand'),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final brand in [
+                    'Marshall',
+                    'Orange',
+                    'Vox AC30',
+                    'Mesa Boogie',
+                    'Fender Twin',
+                    'Ampeg SVT',
+                    'Roland JC-120',
+                    'Hartke',
+                    'Blackstar',
+                    'Laney',
+                    'Peavey',
+                  ])
+                    ChoiceChip(
+                      label: Text(brand),
+                      selected: brand == 'Vox AC30',
+                      onSelected: (_) {},
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const TextField(
+                decoration: InputDecoration(
+                  labelText: 'Custom brand',
+                  hintText: 'Type a brand',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, ''),
+            child: const Text('Clear'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, 'Vox AC30'),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    ),
+  ),
   'practice_regions_replace_n_sections': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,
