@@ -169,6 +169,16 @@ void main() {
                 await pumpRender(tester, key);
                 if (opener != null) {
                   opener.open(hostContext(tester), tester, router);
+                  // Show helpers that await platform or IO futures first (power
+                  // family, song fetch) need real time before the modal exists.
+                  for (var i = 0; opener.realAsync && i < 3; i++) {
+                    await tester.runAsync(
+                      () => Future<void>.delayed(
+                        const Duration(milliseconds: 20),
+                      ),
+                    );
+                    await tester.pump();
+                  }
                   await pumpRender(tester, key);
                 }
               }
@@ -208,6 +218,21 @@ void main() {
               }
             }
             expect(find.byType(ErrorWidget), findsNothing);
+            if (spec['modal'] != null) {
+              // A modal spec renders a sheet or dialog over its backdrop; an opener
+              // whose trigger silently did nothing would otherwise pass (F111).
+              expect(
+                find.byWidgetPredicate(
+                  (w) =>
+                      w is BottomSheet ||
+                      w is Dialog ||
+                      w is AlertDialog ||
+                      w is SimpleDialog,
+                ),
+                findsWidgets,
+                reason: 'modal spec $key: no sheet or dialog on screen',
+              );
+            }
             expect(find.text('Page Not Found'), findsNothing);
           });
         }

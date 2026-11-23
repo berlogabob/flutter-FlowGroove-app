@@ -111,3 +111,8 @@ song_library_block_sheet_l85
 tuner_settings_sheet
 instrument_picker
 midi_song_panel
+event_kit_editor_sheet_l191
+event_kit_editor_sheet_l256
+song_lab_sheet_l144
+song_lab_sheet_l664
+create_setlist_sheet_l350

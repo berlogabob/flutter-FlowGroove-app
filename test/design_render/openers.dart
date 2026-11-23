@@ -6,6 +6,7 @@ import 'package:flowgroove/models/event_kit.dart';
 import 'package:flowgroove/models/instrument.dart';
 import 'package:flowgroove/models/midi_song.dart';
 import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
@@ -67,15 +68,41 @@ import 'fixtures.dart';
 /// real trigger) after the backdrop has settled. Do not await the returned
 /// Future of a show helper: it completes only when the modal closes.
 class Opener {
-  const Opener(this.open, {this.route = '/main/home'});
+  const Opener(this.open, {this.route = '/main/home', this.realAsync = false});
 
   final String route;
+
+  /// The show helper awaits a platform or IO future before showing the modal:
+  /// the render waits briefly in real time after [open] (fake time never
+  /// completes it). Off by default: real time also lets plugin calls through.
+  final bool realAsync;
   final void Function(
     BuildContext context,
     WidgetTester tester,
     GoRouter router,
   )
   open;
+}
+
+/// Runs [action] on the first element of [finder] at the end of the first frame
+/// that builds it (up to [frames] frames). Openers are synchronous, the render
+/// test pumps after them, so triggers that appear late (streams, pushed routes)
+/// need this.
+void tapWhenBuilt(
+  Finder finder,
+  void Function(Element element) action, {
+  int frames = 20,
+}) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final found = finder.evaluate();
+    if (found.isNotEmpty) {
+      action(found.first);
+    } else if (frames > 1) {
+      tapWhenBuilt(finder, action, frames: frames - 1);
+    } else {
+      throw StateError('opener trigger never built: $finder');
+    }
+  });
 }
 
 BuildContext hostContext(WidgetTester tester) =>
@@ -760,7 +787,86 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
-  'event_kit_editor_sheet_l154': Opener((context, tester, _) {
+  'event_kit_editor_sheet_l154': Opener((context, _, _) {
+    // _addToZone: tap the first stage zone cell (an InkWell around a 84 dp cell).
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(
+          setlist: MockDataHelper.createMockSetlist(
+            id: 'setlist1',
+            bandId: 'band1',
+            name: 'Gig Setlist',
+          ),
+          bandId: 'band1',
+        ),
+      ),
+    );
+    tapWhenBuilt(
+      find.byWidgetPredicate(
+        (w) =>
+            w is InkWell &&
+            w.onTap != null &&
+            w.child is Container &&
+            (w.child! as Container).constraints?.minHeight == 84,
+        skipOffstage: false,
+      ),
+      (element) => (element.widget as InkWell).onTap!(),
+    );
+  }),
+  'event_kit_editor_sheet_l181': Opener((context, _, _) {
+    // _addPerson via the 'Add person' chip.
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(
+          setlist: MockDataHelper.createMockSetlist(
+            id: 'setlist1',
+            bandId: 'band1',
+            name: 'Gig Setlist',
+          ),
+          bandId: 'band1',
+        ),
+      ),
+    );
+    tapWhenBuilt(
+      find.widgetWithText(ActionChip, 'Add person', skipOffstage: false),
+      (element) => (element.widget as ActionChip).onPressed!(),
+    );
+  }),
+  'event_kit_editor_sheet_l191': Opener((context, tester, _) {
+    // _editPerson: person rows are tappable only without a band (personal event).
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(
+          setlist: Setlist(
+            id: 'setlist1',
+            bandId: '',
+            name: 'Gig Setlist',
+            songIds: const [],
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+            eventKit: const EventKit(
+              people: [
+                EventPerson(
+                  id: 'p1',
+                  name: 'Sam Rivera',
+                  role: 'Sound engineer',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tester
+          .widget<ListTile>(
+            find.widgetWithText(ListTile, 'Sam Rivera', skipOffstage: false),
+          )
+          .onTap!();
+    });
+  }),
+  'event_kit_editor_sheet_l256': Opener((context, tester, _) {
+    // _addRiderItem via the 'Add rider item' chip.
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
         builder: (_) => EventKitEditorScreen(
@@ -774,26 +880,53 @@ final kOpeners = <String, Opener>{
       ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      tester.tap(find.byIcon(Icons.add).first);
+      tester
+          .widget<ActionChip>(
+            find.widgetWithText(
+              ActionChip,
+              'Add rider item',
+              skipOffstage: false,
+            ),
+          )
+          .onPressed!();
     });
   }),
-  'event_kit_editor_sheet_l181': Opener((context, tester, _) {
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        builder: (_) => EventKitEditorScreen(
-          setlist: MockDataHelper.createMockSetlist(
-            id: 'setlist1',
-            bandId: 'band1',
-            name: 'Gig Setlist',
-          ),
-          bandId: 'band1',
-        ),
-      ),
+  'song_lab_sheet_l144': Opener((_, tester, _) {
+    // _compose(note) via the Add menu's onSelected (the menu itself is a popup).
+    tester
+        .widget<PopupMenuButton<LabEntryType>>(
+          find.byType(PopupMenuButton<LabEntryType>),
+        )
+        .onSelected!(LabEntryType.note);
+  }, route: '/main/songs/song1/lab'),
+  'song_lab_sheet_l664': Opener((_, tester, _) {
+    // _composeTask: switch to the Tasks segment, then the 'Add task' chip once
+    // the tasks stream has delivered (a few frames).
+    tester
+        .widget<SegmentedButton<bool>>(find.byType(SegmentedButton<bool>))
+        .onSelectionChanged!({true});
+    tapWhenBuilt(
+      find.widgetWithText(ActionChip, 'Add task', skipOffstage: false),
+      (element) => (element.widget as ActionChip).onPressed!(),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      tester.tap(find.byIcon(Icons.add).first);
-    });
-  }),
+  }, route: '/main/songs/song1/lab'),
+  'create_setlist_sheet_l350': Opener(
+    (_, _, _) {
+      // _showSongPicker: the 'Add' button is enabled once the songs have loaded.
+      tapWhenBuilt(
+        find.ancestor(
+          of: find.text('Add', skipOffstage: false),
+          matching: find.byWidgetPredicate(
+            (w) => w is TextButton && w.onPressed != null,
+            skipOffstage: false,
+          ),
+        ),
+        (element) => (element.widget as TextButton).onPressed!(),
+      );
+    },
+    route: '/main/setlists/create',
+    realAsync: true,
+  ),
   'event_kit_editor_brand_optional': Opener(
     (context, _, _) => showDialog<String>(
       context: context,
@@ -1293,6 +1426,7 @@ final kOpeners = <String, Opener>{
   ),
   'reliability_sheet_keep_timing_reliable': Opener(
     (context, _, _) => showReliabilitySheet(context),
+    realAsync: true,
   ),
   'song_library_block_sheet_l85': Opener((_, tester, _) {
     tester
