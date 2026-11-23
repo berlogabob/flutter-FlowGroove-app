@@ -349,6 +349,17 @@ final kOpeners = <String, Opener>{
       builder: (_) => const DrumPracticePanel(songId: 'song1', bandId: 'band1'),
     ),
   ),
+  'drum_grid_editor': Opener((context, tester, _) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const DrumPracticePanel(songId: 'song1'),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tester.tap(find.text('New pattern'));
+    });
+  }),
   'import_lyrics_dialog': Opener((context, tester, _) {
     const lyrics =
         '{title: Back to Black}\n'
