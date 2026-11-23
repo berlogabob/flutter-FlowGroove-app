@@ -7,6 +7,7 @@ import 'package:flowgroove/widgets/metronome/bpm_input_overlay.dart';
 import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
 import 'package:flowgroove/widgets/metronome/metronome_sheets.dart';
 import 'package:flowgroove/widgets/metronome/reliability_sheet.dart';
+import 'package:flowgroove/widgets/unified_item/setlist_card_actions.dart';
 import 'package:flowgroove/widgets/practice/note_editor_sheet.dart';
 import 'package:flowgroove/models/midi_song.dart';
 import 'package:flowgroove/models/song_lab.dart';
@@ -108,6 +109,19 @@ final kOpeners = <String, Opener>{
             ),
           ],
         ),
+      ),
+    ),
+  ),
+  'setlist_card_actions_quick_action': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (_) => Consumer(
+        builder: (context, ref, _) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showSetlistQuickActionPicker(context, ref);
+          });
+          return const SizedBox.shrink();
+        },
       ),
     ),
   ),

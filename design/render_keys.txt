@@ -65,3 +65,4 @@ note_editor_sheet
 arrangement_sheet
 share_sheet_copy_to_clipboard
 support_sheet_telegram
+setlist_card_actions_quick_action
