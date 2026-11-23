@@ -6,7 +6,7 @@ draft: false
 tags: ["about", "story", "solo-dev"]
 categories: ["about"]
 summary: "The story of how a solo developer built FlowGroove to solve 10 years of cover band rehearsal chaos."
-featuredImage: "images/og-cover.svg"
+featuredImage: "images/og-cover.jpg"
 ---
 
 # The Story Behind FlowGroove
