@@ -51,10 +51,10 @@ Defaults: in a column, children fill the width; in a row, they hug.
 | `text` | `v`, `style`, `color`, `align` (left/center/right), `maxLines`, `w` | text |
 | `icon` | `v` (Flutter `Icons.<name>`, e.g. `music_note_outlined`), `size` (24), `color` | Material icon |
 | `iconbtn` | `v` icon, `size`, `color`, `bg`, `border`, `radius` | 48x48 IconButton |
-| `button` | `v` label, `kind` (primary/secondary/text/tonal/danger), `icon`, `w`, `small` | buttons; primary = ElevatedButton (orange), secondary = OutlinedButton |
+| `button` | `v` label, `kind` (primary/secondary/text/tonal/danger), `icon`, `w`, `small` | CustomButton; primary = ElevatedButton (orange), secondary = OutlinedButton |
 | `fab` | `icon`, `v` | FloatingActionButton (white, charcoal border) |
-| `chip` | `v`, `sel`, `icon` | FilterChip / AppFilterChip |
-| `input` | `label`, `hint`, `v` (filled value), `icon`, `trail`, `lines` | TextField (white fill) |
+| `chip` | `v`, `sel`, `icon` | AppFilterChip |
+| `input` | `label`, `hint`, `v` (filled value), `icon`, `trail`, `lines` | CustomTextField (white fill) |
 | `tile` | `lead` (icon name, initials, or a node), `title`, `sub`, `trail` (icon name / text / node / list), `pad`, `bg` | ListTile |
 | `switchrow` | `title`, `sub`, `lead`, `on` | SwitchListTile |
 | `switch` / `checkbox` | `on` | controls |
@@ -62,16 +62,19 @@ Defaults: in a column, children fill the width; in a row, they hug.
 | `segmented` | `items`, `sel` | SegmentedButton / ToggleButtons |
 | `slider` / `progress` | `value` 0..1 | slider / LinearProgressIndicator |
 | `section` | `v`, `action` | section header with optional trailing link |
-| `badge` | `v`, `icon`, `bg`, `color` | small pill (key, BPM, role, status) |
-| `avatar` | `v` initials or `icon`, `size`, `bg` | CircleAvatar |
+| `badge` | `v`, `icon`, `bg`, `color` | AppBadge: small pill (key, BPM, role, status) |
+| `avatar` | `v` initials or `icon`, `size`, `bg` | UserAvatar |
 | `divider` | `color` | 1 px line |
 | `spacer` | `size` (px) or nothing (flex) | gap / Spacer() |
 | `box` | `w`, `h`, `bg`, `radius`, `circle`, `border` | plain rectangle (waveforms, images, placeholders) |
 | `wave` | `w` (defaults to `fill`), `h` (defaults to 72), `radius` (defaults to 8) | A surfaceRaised waveform with 64 thin `textSecondary` bars whose heights come from a fixed seed. |
 | `appbar` | `v` title, `sub`, `back` (default true), `leading` icon, `actions` (icon names or nodes), `style` | AppBar, headlineLarge title |
-| `bottomnav` | `sel` (Home/Songs/Bands/Setlists/More) | main shell tab bar (top-level tab screens) |
-| `actionbar` | `primary` label, `icon` | pushed screens' bottom bar: Back, primary action, Menu |
-| `sheet` | `c`, `bottom` (default true) | bottom sheet / dialog surface |
+| `bottomnav` | `sel` (Home/Songs/Bands/Setlists/More) | AppBottomBar.nav: main shell tab bar (top-level tab screens) |
+| `actionbar` | `primary` label, `icon` | AppBottomBar.actions: pushed screens' bottom bar: Back, primary action, Menu |
+| `sheet` | `c`, `bottom` (default true) | ModalBottomSheet surface |
+| `dialog` | `title`, `icon`, `c`, `actions` | AlertDialog |
+| `navitem` | `v`, `icon`, `sel` | NavTab |
+| `segment` | `v`, `sel` | ButtonSegment |
 | `raw` | `type`, `props` (FigCraft node.set keys), `v` | escape hatch |
 
 ### Song Map nodes
@@ -163,25 +166,25 @@ Examples: `examples/modal_dialog.json`, `examples/modal_sheet.json`.
 ## Components
 
 `setup` and `all` build a component library on the "Components" page, and screens use instances of it:
-- **Button:** variants Variant (Primary, Secondary, Outline, Text, Tonal, Danger, following CustomButton), Size (Small, Medium, Large), and State (Default, Disabled, Loading). Disabled uses 38% opacity; Loading shows a spinner glyph instead of the label. Spec `kind: secondary` still means Outline; `kind: white` gives CustomButton's white Secondary; `size: small|medium|large` is optional.
-- **FAB, IconButton, Badge:** single components.
-- **Chip:** variant State (Default, Selected, Disabled). Disabled uses 38% opacity.
-- **Avatar:** variant Type (Initials, Icon).
+- **CustomButton:** variants Variant (Primary, Secondary, Outline, Text, Tonal, Danger, following CustomButton), Size (Small, Medium, Large), and State (Default, Disabled, Loading). Disabled uses 38% opacity; Loading shows a spinner glyph instead of the label. Spec `kind: secondary` still means Outline; `kind: white` gives CustomButton's white Secondary; `size: small|medium|large` is optional.
+- **FloatingActionButton, IconButton, AppBadge:** single components.
+- **AppFilterChip:** variant State (Default, Selected, Disabled). Disabled uses 38% opacity.
+- **UserAvatar:** variant Type (Initials, Icon).
 - **Switch, Checkbox:** variant State (On, Off).
-- **Input:** variants State (Hint, Filled, Focus, Error, Disabled) and Lines (Single, Multi). All states use a 2 px border and reserve a helper line. Focus uses `accentOrange`; Error uses `error` and shows the helper text; Disabled uses 38% opacity.
-- **Slider, Progress:** variant Value, in 10% steps.
-- **Tab, Segment, NavItem:** variant State.
-- **BottomNav:** variant Tab in the library. Screen footers place individual NavItem instances so each tab can carry its own prototype link.
+- **CustomTextField:** variants State (Hint, Filled, Focus, Error, Disabled) and Lines (Single, Multi). All states use a 2 px border and reserve a helper line. Focus uses `accentOrange`; Error uses `error` and shows the helper text; Disabled uses 38% opacity.
+- **Slider, LinearProgressIndicator:** variant Value, in 10% steps.
+- **Tab, ButtonSegment, NavTab:** variant State.
+- **AppBottomBar:** variant Tab includes Actions and navigation tabs in one component set. Screen footers place individual NavTab instances so each tab can carry its own prototype link.
 - **StatusBar, SectionHeader:** single components.
 - **ListTile:** variant State (Default, Selected) and Leading and Trailing slots. Selected uses an `accentOrange10` background.
-- **SwitchRow:** variant State, Leading slot.
+- **SwitchListTile:** variant State, Leading slot.
 - **AppBar:** variant Leading (Back, None), Actions slot.
-- **ActionBar:** a nested Primary button.
-- **Card:** variant Direction, Content slot.
-- **Sheet:** variant Docked, Content slot.
-- **Dialog:** Content and Actions slots.
-- **Song Map:** Pad, SectionBlock, PartBlock, Boundary, Playhead, Minimap, Ruler, BeatGrid,
-  Breadcrumb, Transport, Overview, ZoomWave and Key have Mode (Dark, Light) variants using the
+- **AppBottomBar.actions:** a nested Primary button.
+- **AppCard:** variant Direction, Content slot.
+- **ModalBottomSheet:** variant Docked, Content slot.
+- **AlertDialog:** Content and Actions slots.
+- **Song Map:** SongMapPads (`pad`), SectionBlock, PartBlock, Boundary, Playhead, Minimap, Ruler, BeatGrid,
+  Breadcrumb, SongMapTransport (`transport`), SongMapOverview (`overview`), SongMapTimeline (`zoomwave`) and Key have Mode (Dark, Light) variants using the
   MonoPulse collection. Pad, SectionBlock, PartBlock, Boundary and Key also have a State variant.
   The builder selects the Mode variant from the screen's `mode` key. Pad, block and key labels
   are text properties. Minimap, Ruler, BeatGrid, Breadcrumb, Transport, Overview and ZoomWave

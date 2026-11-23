@@ -1,11 +1,18 @@
 {
   "links": [
     {
-      "component": "ActionBar",
-      "importPath": "package:flowgroove/widgets/bottom_nav_or_action_bar.dart",
+      "component": "AlertDialog",
+      "importPath": "package:flutter/material.dart",
       "language": "flutter",
-      "name": "AppBottomBar.actions",
-      "template": "AppBottomBar.actions(onBack: () => context.pop(), title: {Show title ? \"\" : \"null /* \"}{Title}{Show title ? \"\" : \" */\"},{Show primary ? \" primaryAction: primaryButton,\" : \"\"}{Show menu ? \" onMenu: openMenu,\" : \"\"})"
+      "name": "AlertDialog",
+      "template": "AlertDialog(title: {Show title ? \"Text(\" : \"null /* \"}{Title}{Show title ? \")\" : \" */\"}, content: /* Content slot */ null, actions: [/* Actions slot */])"
+    },
+    {
+      "component": "AppBadge",
+      "importPath": "package:flowgroove/widgets/app_badge.dart",
+      "language": "flutter",
+      "name": "AppBadge",
+      "template": "AppBadge(label: {Label},{Show icon ? \" icon: Icons.star /* icon */,\" : \"\"})"
     },
     {
       "component": "AppBar",
@@ -15,39 +22,32 @@
       "template": "AppBar(title: Text({Title}), automaticallyImplyLeading: {Leading} == AppBarLeading.back, actions: [/* Actions slot */])"
     },
     {
-      "component": "Avatar",
-      "importPath": "package:flowgroove/widgets/user_avatar.dart",
-      "language": "flutter",
-      "name": "UserAvatar",
-      "template": "UserAvatar(photoURL: null, displayName: {Initials})"
-    },
-    {
-      "component": "Badge",
-      "importPath": "package:flowgroove/widgets/app_badge.dart",
-      "language": "flutter",
-      "name": "AppBadge",
-      "template": "AppBadge(label: {Label},{Show icon ? \" icon: Icons.star /* icon */,\" : \"\"})"
-    },
-    {
-      "component": "BottomNav",
+      "component": "AppBottomBar",
       "importPath": "package:flowgroove/widgets/bottom_nav_or_action_bar.dart",
       "language": "flutter",
-      "name": "AppBottomBar.tabs",
-      "template": "AppBottomBar.tabs(tabs: tabs, selectedIndex: {Tab}.index, onTabTap: (i) {})"
+      "name": "AppBottomBar.actions",
+      "template": "AppBottomBar.actions(onBack: () => context.pop(), title: {Show title ? \"\" : \"null /* \"}{Title}{Show title ? \"\" : \" */\"},{Show primary ? \" primaryAction: primaryButton,\" : \"\"}{Show menu ? \" onMenu: openMenu,\" : \"\"})"
     },
     {
-      "component": "Button",
-      "importPath": "package:flowgroove/widgets/custom_button.dart",
-      "language": "flutter",
-      "name": "CustomButton",
-      "template": "CustomButton(label: {Label}, variant: {Variant}, size: {Size},{Show icon ? \" icon: Icons.add /* icon */,\" : \"\"} onPressed: () {})"
-    },
-    {
-      "component": "Card",
+      "component": "AppCard",
       "importPath": "package:flowgroove/widgets/app_card.dart",
       "language": "flutter",
       "name": "AppCard",
       "template": "AppCard(variant: AppCardVariant.surface, child: /* {Direction}: Content slot */ const SizedBox())"
+    },
+    {
+      "component": "AppFilterChip",
+      "importPath": "package:flowgroove/widgets/app_filter_chip.dart",
+      "language": "flutter",
+      "name": "AppFilterChip",
+      "template": "AppFilterChip(label: {Label}, selected: {State} == ChipState.selected, onSelected: (_) {})"
+    },
+    {
+      "component": "ButtonSegment",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "ButtonSegment",
+      "template": "ButtonSegment(value: {Label}, label: Text({Label}))"
     },
     {
       "component": "Checkbox",
@@ -57,21 +57,21 @@
       "template": "Checkbox(value: {State} == CheckboxState.on, onChanged: (v) {})"
     },
     {
-      "component": "Chip",
-      "importPath": "package:flowgroove/widgets/app_filter_chip.dart",
+      "component": "CustomButton",
+      "importPath": "package:flowgroove/widgets/custom_button.dart",
       "language": "flutter",
-      "name": "AppFilterChip",
-      "template": "AppFilterChip(label: {Label}, selected: {State} == ChipState.selected, onSelected: (_) {})"
+      "name": "CustomButton",
+      "template": "CustomButton(label: {Label}, variant: {Variant}, size: {Size},{Show icon ? \" icon: Icons.add /* icon */,\" : \"\"} onPressed: () {})"
     },
     {
-      "component": "Dialog",
-      "importPath": "package:flutter/material.dart",
+      "component": "CustomTextField",
+      "importPath": "package:flowgroove/widgets/custom_text_field.dart",
       "language": "flutter",
-      "name": "AlertDialog",
-      "template": "AlertDialog(title: {Show title ? \"Text(\" : \"null /* \"}{Title}{Show title ? \")\" : \" */\"}, content: /* Content slot */ null, actions: [/* Actions slot */])"
+      "name": "CustomTextField",
+      "template": "CustomTextField(label: {Show label ? \"\" : \"null /* \"}{Label}{Show label ? \"\" : \" */\"}, hint: {Value},{Show icon ? \" prefixIcon: Icons.search /* icon */,\" : \"\"} maxLines: {Lines} == InputLines.multi ? 3 : 1)"
     },
     {
-      "component": "FAB",
+      "component": "FloatingActionButton",
       "importPath": "package:flutter/material.dart",
       "language": "flutter",
       "name": "FloatingActionButton",
@@ -111,13 +111,6 @@
       "language": "flutter",
       "name": "Icon",
       "template": "const Icon(Icons.add_comment_outlined)"
-    },
-    {
-      "component": "Icon/add_location_alt_outlined",
-      "importPath": "package:flutter/material.dart",
-      "language": "flutter",
-      "name": "Icon",
-      "template": "const Icon(Icons.add_location_alt_outlined)"
     },
     {
       "component": "Icon/add_to_queue",
@@ -440,6 +433,13 @@
       "language": "flutter",
       "name": "Icon",
       "template": "const Icon(Icons.description_outlined)"
+    },
+    {
+      "component": "Icon/done",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "Icon",
+      "template": "const Icon(Icons.done)"
     },
     {
       "component": "Icon/download_done",
@@ -797,13 +797,6 @@
       "language": "flutter",
       "name": "Icon",
       "template": "const Icon(Icons.keyboard_arrow_down)"
-    },
-    {
-      "component": "Icon/keyboard_capslock",
-      "importPath": "package:flutter/material.dart",
-      "language": "flutter",
-      "name": "Icon",
-      "template": "const Icon(Icons.keyboard_capslock)"
     },
     {
       "component": "Icon/label_outline",
@@ -1660,20 +1653,6 @@
       "template": "const Icon(Icons.wifi_off)"
     },
     {
-      "component": "Icon/zoom_out",
-      "importPath": "package:flutter/material.dart",
-      "language": "flutter",
-      "name": "Icon",
-      "template": "const Icon(Icons.zoom_out)"
-    },
-    {
-      "component": "Icon/zoom_out_map",
-      "importPath": "package:flutter/material.dart",
-      "language": "flutter",
-      "name": "Icon",
-      "template": "const Icon(Icons.zoom_out_map)"
-    },
-    {
       "component": "IconButton",
       "importPath": "package:flutter/material.dart",
       "language": "flutter",
@@ -1681,11 +1660,11 @@
       "template": "IconButton(onPressed: () {}, icon: const Icon(Icons.more_vert /* icon */))"
     },
     {
-      "component": "Input",
-      "importPath": "package:flowgroove/widgets/custom_text_field.dart",
+      "component": "LinearProgressIndicator",
+      "importPath": "package:flutter/material.dart",
       "language": "flutter",
-      "name": "CustomTextField",
-      "template": "CustomTextField(label: {Show label ? \"\" : \"null /* \"}{Label}{Show label ? \"\" : \" */\"}, hint: {Value},{Show icon ? \" prefixIcon: Icons.search /* icon */,\" : \"\"} maxLines: {Lines} == InputLines.multi ? 3 : 1)"
+      "name": "LinearProgressIndicator",
+      "template": "LinearProgressIndicator(value: 0.5 /* {Value} */)"
     },
     {
       "component": "ListTile",
@@ -1695,18 +1674,18 @@
       "template": "ListTile(title: Text({Title}), subtitle: {Show subtitle ? \"Text(\" : \"null /* \"}{Subtitle}{Show subtitle ? \")\" : \" */\"},{Show leading ? \" leading: /* Leading slot */ const Icon(Icons.circle),\" : \"\"}{Show trailing ? \" trailing: /* Trailing slot */ const Icon(Icons.chevron_right),\" : \"\"})"
     },
     {
-      "component": "NavItem",
+      "component": "ModalBottomSheet",
+      "importPath": "package:flutter/material.dart",
+      "language": "flutter",
+      "name": "ModalBottomSheet",
+      "template": "showModalBottomSheet(context: context, builder: (context) => /* {Docked}: Content slot */ const SizedBox())"
+    },
+    {
+      "component": "NavTab",
       "importPath": "package:flowgroove/widgets/bottom_nav_or_action_bar.dart",
       "language": "flutter",
       "name": "NavTab",
       "template": "NavTab(item: (icon: Icons.home_outlined, selectedIcon: Icons.home, label: {Label}), selected: {State} == NavItemState.selected, onTap: () {})"
-    },
-    {
-      "component": "Progress",
-      "importPath": "package:flutter/material.dart",
-      "language": "flutter",
-      "name": "LinearProgressIndicator",
-      "template": "LinearProgressIndicator(value: 0.5 /* {Value} */)"
     },
     {
       "component": "SectionHeader",
@@ -1716,25 +1695,39 @@
       "template": "SectionHeader({Title}, style: {Style},{Show action ? \" actionLabel: \" : \" /* \"}{Action}{Show action ? \", onAction: onSeeAll,\" : \" */\"})"
     },
     {
-      "component": "Segment",
-      "importPath": "package:flutter/material.dart",
-      "language": "flutter",
-      "name": "ButtonSegment",
-      "template": "ButtonSegment(value: {Label}, label: Text({Label}))"
-    },
-    {
-      "component": "Sheet",
-      "importPath": "package:flutter/material.dart",
-      "language": "flutter",
-      "name": "showModalBottomSheet",
-      "template": "showModalBottomSheet(context: context, builder: (context) => /* {Docked}: Content slot */ const SizedBox())"
-    },
-    {
       "component": "Slider",
       "importPath": "package:flutter/material.dart",
       "language": "flutter",
       "name": "Slider",
       "template": "Slider(value: 0.5 /* {Value} */, onChanged: (v) {})"
+    },
+    {
+      "component": "SongMapOverview",
+      "importPath": "package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart",
+      "language": "flutter",
+      "name": "SongMapOverview",
+      "template": "SongMapOverview(entry: entry, view: songMapView)"
+    },
+    {
+      "component": "SongMapPads",
+      "importPath": "package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart",
+      "language": "flutter",
+      "name": "SongMapPads",
+      "template": "SongMapPads(view: songMapView)"
+    },
+    {
+      "component": "SongMapTimeline",
+      "importPath": "package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart",
+      "language": "flutter",
+      "name": "SongMapTimeline",
+      "template": "SongMapTimeline(view: songMapView)"
+    },
+    {
+      "component": "SongMapTransport",
+      "importPath": "package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart",
+      "language": "flutter",
+      "name": "SongMapTransport",
+      "template": "SongMapTransport(playing: false, speedPercent: 100, loop: false, countIn: false, click: false, clickAndDrums: false, onPlay: () {}, onStop: () {}, onSpeedTap: () {}, onLoopChanged: (_) {}, onCountInChanged: (_) {}, onClickChanged: (_) {}, onClickAndDrumsChanged: (_) {})"
     },
     {
       "component": "Switch",
@@ -1744,7 +1737,7 @@
       "template": "Switch(value: {State} == SwitchState.on, onChanged: (v) {})"
     },
     {
-      "component": "SwitchRow",
+      "component": "SwitchListTile",
       "importPath": "package:flutter/material.dart",
       "language": "flutter",
       "name": "SwitchListTile",
@@ -1756,6 +1749,13 @@
       "language": "flutter",
       "name": "Tab",
       "template": "Tab(text: {Label})"
+    },
+    {
+      "component": "UserAvatar",
+      "importPath": "package:flowgroove/widgets/user_avatar.dart",
+      "language": "flutter",
+      "name": "UserAvatar",
+      "template": "UserAvatar(photoURL: null, displayName: {Initials})"
     }
   ],
   "version": 1

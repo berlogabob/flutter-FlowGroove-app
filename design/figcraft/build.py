@@ -1349,7 +1349,7 @@ def i_button(n, pdir):
 
 INV_KIND = {"Primary": "primary", "Secondary": "white", "Outline": "secondary", "Text": "text", "Tonal": "tonal",
             "Danger": "danger"}
-comp("Button", ["button"],
+comp("CustomButton", ["button"],
      lambda v: {"t": "button", "kind": INV_KIND[v["Variant"]], "size": v["Size"].lower(), "v": "Button",
                 "icon": "add", "state": v["State"].lower()},
      i_button, axes={"Variant": ["Primary", "Secondary", "Outline", "Text", "Tonal", "Danger"],
@@ -1364,7 +1364,7 @@ def i_fab(n, pdir):
     return dict(p=p, over=over, w="hug")
 
 
-comp("FAB", ["fab"], lambda v: {"t": "fab", "icon": "add", "v": "Label"}, i_fab,
+comp("FloatingActionButton", ["fab"], lambda v: {"t": "fab", "icon": "add", "v": "Label"}, i_fab,
      props=[("Icon", "text", "Icon", None), ("Label", "text", "Label", None),
             ("Show label", "boolean", "Label", False)])
 
@@ -1391,7 +1391,7 @@ def i_chip(n, pdir):
     return dict(v={"State": state}, p=p, over=over, root={"opacity": .38} if state == "Disabled" else {}, w="hug")
 
 
-comp("Chip", ["chip"], lambda v: {"t": "chip", "v": "Chip", "icon": "add", "sel": v["State"] == "Selected",
+comp("AppFilterChip", ["chip"], lambda v: {"t": "chip", "v": "Chip", "icon": "add", "sel": v["State"] == "Selected",
                                    "state": "disabled" if v["State"] == "Disabled" else "default"},
      i_chip, axes={"State": ["Default", "Selected", "Disabled"]},
      props=[("Label", "text", "Label", None), ("Icon", "text", "Icon", None),
@@ -1407,7 +1407,7 @@ def i_badge(n, pdir):
     return dict(p=p, over=over, root=frame_over(n, ("bg",)), w="hug")
 
 
-comp("Badge", ["badge"], lambda v: {"t": "badge", "v": "Badge", "icon": "star"}, i_badge,
+comp("AppBadge", ["badge"], lambda v: {"t": "badge", "v": "Badge", "icon": "star"}, i_badge,
      props=[("Label", "text", "Label", None), ("Icon", "text", "Icon", None),
             ("Show icon", "boolean", "Icon", False)])
 
@@ -1428,7 +1428,7 @@ def i_avatar(n, pdir):
     return dict(v={"Type": "Icon" if n.get("icon") else "Initials"}, p=p, over=over, root=root, w=s, h=s)
 
 
-comp("Avatar", ["avatar"], lambda v: {"t": "avatar", "v": "AR"} if v["Type"] == "Initials"
+comp("UserAvatar", ["avatar"], lambda v: {"t": "avatar", "v": "AR"} if v["Type"] == "Initials"
      else {"t": "avatar", "icon": "person"}, i_avatar, axes={"Type": ["Initials", "Icon"]},
      props=[("Initials", "text", "Initials", None), ("Icon", "text", "Icon", None)])
 
@@ -1452,7 +1452,7 @@ def i_input(n, pdir):
                 p=p, over=over, root={"opacity": .38} if state == "disabled" else {}, w=fill_w(pdir))
 
 
-comp("Input", ["input"],
+comp("CustomTextField", ["input"],
      lambda v: {"t": "input", "label": "Label", "icon": "search", "trail": "close", "hint": "Hint",
                 "v": "Value" if v["State"] in ("Filled", "Focus", "Error") else None,
                 "state": v["State"].lower(), "helper": "Please check this field",
@@ -1480,7 +1480,7 @@ def i_progress(n, pdir):
     return dict(v={"Value": step(n.get("value", 0.5))}, over=over, w="fill")
 
 
-comp("Progress", ["progress"], lambda v: {"t": "progress", "value": int(v["Value"]) / 100}, i_progress,
+comp("LinearProgressIndicator", ["progress"], lambda v: {"t": "progress", "value": int(v["Value"]) / 100}, i_progress,
      axes={"Value": STEPS})
 
 # --- navigation items
@@ -1488,7 +1488,7 @@ comp("Tab", ["tab"], lambda v: {"t": "tab", "v": "Tab", "sel": v["State"] == "Se
      lambda n, pdir: dict(v={"State": "Selected" if n.get("sel") else "Default"}, p={"Label": str(n.get("v", ""))},
                           w=n.get("w", "fill")),
      axes={"State": ["Selected", "Default"]}, props=[("Label", "text", "Label", None)])
-comp("Segment", ["segment"], lambda v: {"t": "segment", "v": "Segment", "sel": v["State"] == "Selected", "w": 120},
+comp("ButtonSegment", ["segment"], lambda v: {"t": "segment", "v": "Segment", "sel": v["State"] == "Selected", "w": 120},
      lambda n, pdir: dict(v={"State": "Selected" if n.get("sel") else "Default"}, p={"Label": str(n.get("v", ""))},
                           w=n.get("w", "fill")),
      axes={"State": ["Selected", "Default"]}, props=[("Label", "text", "Label", None)])
@@ -1500,14 +1500,11 @@ def i_navitem(n, pdir):
     return dict(v={"State": "Selected" if n.get("sel") else "Default"}, p=p, over=over, w="fill")
 
 
-comp("NavItem", ["navitem"], lambda v: {"t": "navitem", "v": "Home", "icon": nav_icon("home", v["State"] == "Selected"),
+comp("NavTab", ["navitem"], lambda v: {"t": "navitem", "v": "Home", "icon": nav_icon("home", v["State"] == "Selected"),
                                         "sel": v["State"] == "Selected", "w": 76},
      i_navitem, axes={"State": ["Selected", "Default"]},
      props=[("Label", "text", "Label", None), ("Icon", "text", "Icon", None)])
 NAV_SEL = [t for t, _ in NAV_TABS] + ["None"]
-comp("BottomNav", ["bottomnav"], lambda v: {"t": "bottomnav", "sel": v["Tab"]},
-     lambda n, pdir: dict(v={"Tab": n.get("sel") if n.get("sel") in NAV_SEL else "None"}, w="fill"),
-     axes={"Tab": NAV_SEL}, main_w=W)
 comp("StatusBar", ["statusbar"], lambda v: {"t": "statusbar"},
      lambda n, pdir: dict(root=frame_over(n, ("bg",)), w="fill"), main_w=W)
 
@@ -1557,7 +1554,7 @@ comp("ListTile", ["tile"], lambda v: {"t": "tile", "title": "Title", "sub": "Sub
      axes={"State": ["Default", "Selected"]},
      props=TILE_PROPS + [("Show trailing", "boolean", "Trailing", False)],
      slots=[("Leading", "Leading", "h"), ("Trailing", "Trailing", "h")])
-comp("SwitchRow", ["switchrow"],
+comp("SwitchListTile", ["switchrow"],
      lambda v: {"t": "switchrow", "title": "Title", "sub": "Subtitle", "on": v["State"] == "On", "_slots": True},
      lambda n, pdir: i_tile(n, pdir, switch=n.get("on", True)) | {
          "root": frame_over(n, ("pad",))},
@@ -1592,11 +1589,18 @@ def i_actionbar(n, pdir):
     return dict(p=p, nested=nested, w="fill")
 
 
-comp("ActionBar", ["actionbar"], lambda v: {"t": "actionbar", "title": "Title", "primary": "Save", "_slots": True},
-     i_actionbar, main_w=W,
+def i_bottombar(n, pdir):
+    if n["t"] == "actionbar":
+        return {**i_actionbar(n, pdir), "v": {"Tab": "Actions"}}
+    return dict(v={"Tab": n.get("sel") if n.get("sel") in NAV_SEL else "None"}, w="fill")
+
+
+comp("AppBottomBar", ["actionbar", "bottomnav"],
+     lambda v: ({"t": "actionbar", "title": "Title", "primary": "Save", "_slots": True}
+                if v["Tab"] == "Actions" else {"t": "bottomnav", "sel": v["Tab"]}),
+     i_bottombar, axes={"Tab": NAV_SEL + ["Actions"]}, main_w=W,
      props=[("Title", "text", "Title", None), ("Show title", "boolean", "Title", True),
             ("Show primary", "boolean", "Primary", False), ("Show menu", "boolean", "Menu", True)])
-
 
 def i_card(n, pdir):
     if n.get("wrap"):
@@ -1607,7 +1611,7 @@ def i_card(n, pdir):
                 root=frame_over(n), over=over, slots={"Content": n.get("c", [])}, w=fill_w(pdir))
 
 
-comp("Card", ["card"], lambda v: {"t": "card", "dir": "h" if v["Direction"] == "Horizontal" else "v"}, i_card,
+comp("AppCard", ["card"], lambda v: {"t": "card", "dir": "h" if v["Direction"] == "Horizontal" else "v"}, i_card,
      axes={"Direction": ["Vertical", "Horizontal"]}, slots=[("Content", "Content", "dir")])
 
 
@@ -1617,7 +1621,7 @@ def i_sheet(n, pdir):
                 over=over, slots={"Content": n.get("c", [])}, w=fill_w(pdir))
 
 
-comp("Sheet", ["sheet"], lambda v: {"t": "sheet", "bottom": v["Docked"] == "Bottom"}, i_sheet,
+comp("ModalBottomSheet", ["sheet"], lambda v: {"t": "sheet", "bottom": v["Docked"] == "Bottom"}, i_sheet,
      axes={"Docked": ["Bottom", "Floating"]}, slots=[("Content", "Content", "v")], main_w=W)
 
 
@@ -1631,7 +1635,7 @@ def i_dialog(n, pdir):
                 w=n.get("w", "fill"))
 
 
-comp("Dialog", ["dialog"], lambda v: {"t": "dialog", "_slots": True}, i_dialog, main_w=340,
+comp("AlertDialog", ["dialog"], lambda v: {"t": "dialog", "_slots": True}, i_dialog, main_w=340,
      props=[("Title", "text", "Title", None), ("Show title", "boolean", "Title", True),
             ("Icon", "text", "Icon", None), ("Show icon", "boolean", "Icon", False),
             ("Show content", "boolean", "Content", True), ("Show actions", "boolean", "Actions", True)],
@@ -1710,7 +1714,7 @@ def song_map_component(name, t, inst, sample=None, states=None, labels=(), slot=
          slots=[(slot, slot, "h")] if slot else [])
 
 
-song_map_component("Pad", "pad", i_pad, {"label": "Chorus 1", "letter": "C", "color": "section3",
+song_map_component("SongMapPads", "pad", i_pad, {"label": "Chorus 1", "letter": "C", "color": "section3",
                                         "sub": "12 bars", "progress": .4},
                    PAD_STATES, ("Label", "Subtitle"), main_w=180)
 song_map_component("SectionBlock", "secblock", i_secblock, {"letter": "C"},
@@ -1728,14 +1732,14 @@ song_map_component("BeatGrid", "beatgrid", lambda n, pdir: dict(w="fill", slots=
                    {"bars": 4}, slot="Bars")
 song_map_component("Breadcrumb", "breadcrumb", lambda n, pdir: dict(w="fill", slots={"Items": breadcrumb_items(n)}),
                    {"items": ["Song", "Chorus 1", "b"]}, slot="Items")
-song_map_component("Transport", "transport", lambda n, pdir: dict(w="fill", slots={"Controls": transport_controls(n)}),
+song_map_component("SongMapTransport", "transport", lambda n, pdir: dict(w="fill", slots={"Controls": transport_controls(n)}),
                    {"speed": 75, "loop": True, "click": True}, slot="Controls")
-song_map_component("Overview", "overview", i_timeline,
+song_map_component("SongMapOverview", "overview", i_timeline,
                    {"sections": [{"letter": "A", "bars": 9, "color": "section1"},
                                  {"letter": "B", "bars": 8, "color": "section2"},
                                  {"letter": "C", "bars": 12, "color": "section3", "state": "selected"}],
                     "playhead": .7, "cuts": [.8]}, slot="Timeline")
-song_map_component("ZoomWave", "zoomwave", i_timeline,
+song_map_component("SongMapTimeline", "zoomwave", i_timeline,
                    {"title": "C · Chorus 1", "color": "section3", "startBar": 18, "playhead": .4,
                     "parts": [{"letter": "a", "bars": 4}, {"letter": "b", "bars": 4, "state": "selected"},
                               {"letter": "c", "bars": 4, "state": "candidate"}],
@@ -1752,43 +1756,40 @@ APP = "package:flowgroove/widgets/"
 # {Prop} is the instance's value; a variant renders as <Component><Prop>.<value> (e.g. ButtonVariant.primary,
 # which is CustomButton's own enum); {Bool ? "a" : "b"} picks a literal.
 CONNECT = {
-    "Button": (APP + "custom_button.dart", "CustomButton",
+    "CustomButton": (APP + "custom_button.dart", "CustomButton",
                'CustomButton(label: {Label}, variant: {Variant}, size: {Size},{Show icon ? " icon: Icons.add /* icon */," : ""} onPressed: () {})',
                "CustomButton. Primary = orange CTA, Secondary = white raised, Outline = OutlinedButton, Text = TextButton, "
                "Tonal = FilledButton.tonal (no border, no shadow), Danger = destructive (error red). Radius 5 (Radius/button). "
                "State: Default, Disabled (38% opacity), Loading (spinner glyph). Use it instead of raw ElevatedButton / OutlinedButton."),
-    "FAB": (MAT, "FloatingActionButton",
+    "FloatingActionButton": (MAT, "FloatingActionButton",
             'FloatingActionButton(onPressed: () {}, child: const Icon(Icons.add /* icon */))',
             "FloatingActionButton (theme: white, charcoal 1.2 border, radius 6). Add actions only; orange is reserved for play/primary."),
     "IconButton": (MAT, "IconButton", 'IconButton(onPressed: () {}, icon: const Icon(Icons.more_vert /* icon */))',
                    "Material IconButton, 48x48 hit area."),
-    "Chip": (APP + "app_filter_chip.dart", "AppFilterChip",
+    "AppFilterChip": (APP + "app_filter_chip.dart", "AppFilterChip",
              'AppFilterChip(label: {Label}, selected: {State} == ChipState.selected, onSelected: (_) {})',
              "AppFilterChip: filters and single choices. Selected = stone fill; Disabled = 38% opacity."),
-    "Avatar": (APP + "user_avatar.dart", "UserAvatar", 'UserAvatar(photoURL: null, displayName: {Initials})',
+    "UserAvatar": (APP + "user_avatar.dart", "UserAvatar", 'UserAvatar(photoURL: null, displayName: {Initials})',
                "UserAvatar / CircleAvatar: initials or an icon on surfaceOverlay."),
     "Switch": (MAT, "Switch", 'Switch(value: {State} == SwitchState.on, onChanged: (v) {})', "Material Switch."),
     "Checkbox": (MAT, "Checkbox", 'Checkbox(value: {State} == CheckboxState.on, onChanged: (v) {})', "Material Checkbox."),
-    "Input": (APP + "custom_text_field.dart", "CustomTextField",
+    "CustomTextField": (APP + "custom_text_field.dart", "CustomTextField",
               'CustomTextField(label: {Show label ? "" : "null /* "}{Label}{Show label ? "" : " */"}, hint: {Value},'
               '{Show icon ? " prefixIcon: Icons.search /* icon */," : ""} maxLines: {Lines} == InputLines.multi ? 3 : 1)',
               "CustomTextField / TextField: white fill, radius 10 (MonoPulseRadius.medium). "
               "FigCraft variants use a 2px border and reserve a helper line. Focus uses accentOrange. "
               "Error uses error and shows the helper. Disabled uses 38% opacity."),
     "Slider": (MAT, "Slider", 'Slider(value: 0.5 /* {Value} */, onChanged: (v) {})', "Material Slider; Value variants in 10% steps."),
-    "Progress": (MAT, "LinearProgressIndicator", 'LinearProgressIndicator(value: 0.5 /* {Value} */)',
+    "LinearProgressIndicator": (MAT, "LinearProgressIndicator", 'LinearProgressIndicator(value: 0.5 /* {Value} */)',
                  "LinearProgressIndicator; Value variants in 10% steps."),
     "Tab": (MAT, "Tab", 'Tab(text: {Label})', "TabBar tab: orange label + 3px indicator when selected."),
-    "Segment": (MAT, "ButtonSegment", 'ButtonSegment(value: {Label}, label: Text({Label}))',
+    "ButtonSegment": (MAT, "ButtonSegment", 'ButtonSegment(value: {Label}, label: Text({Label}))',
                 "SegmentedButton / ToggleButtons segment."),
-    "NavItem": (APP + "bottom_nav_or_action_bar.dart", "NavTab",
+    "NavTab": (APP + "bottom_nav_or_action_bar.dart", "NavTab",
                 'NavTab(item: (icon: Icons.home_outlined, selectedIcon: Icons.home, label: {Label}), '
                 'selected: {State} == NavItemState.selected, onTap: () {})',
                 "NavTab: one slot of AppBottomBar (main tabs, Back, Menu)."),
-    "BottomNav": (APP + "bottom_nav_or_action_bar.dart", "AppBottomBar.tabs",
-                  'AppBottomBar.tabs(tabs: tabs, selectedIndex: {Tab}.index, onTabTap: (i) {})',
-                  "AppBottomBar.tabs: Home, Songs, Bands, Setlists + More. Top-level tab screens only."),
-    "ActionBar": (APP + "bottom_nav_or_action_bar.dart", "AppBottomBar.actions",
+    "AppBottomBar": (APP + "bottom_nav_or_action_bar.dart", "AppBottomBar.actions",
                   'AppBottomBar.actions(onBack: () => context.pop(), title: {Show title ? "" : "null /* "}{Title}{Show title ? "" : " */"},'
                   '{Show primary ? " primaryAction: primaryButton," : ""}{Show menu ? " onMenu: openMenu," : ""})',
                   "AppBottomBar.actions: [Back] [title | primary action] [Menu], flex 1:2:1. Every pushed screen."),
@@ -1797,40 +1798,40 @@ CONNECT = {
                  '{Show leading ? " leading: /* Leading slot */ const Icon(Icons.circle)," : ""}'
                  '{Show trailing ? " trailing: /* Trailing slot */ const Icon(Icons.chevron_right)," : ""})',
                  "Material ListTile. Selected uses accentOrange10 background. Leading and Trailing are slots."),
-    "SwitchRow": (MAT, "SwitchListTile",
+    "SwitchListTile": (MAT, "SwitchListTile",
                   'SwitchListTile(title: Text({Title}), subtitle: {Show subtitle ? "Text(" : "null /* "}{Subtitle}{Show subtitle ? ")" : " */"}, '
                   'value: {State} == SwitchRowState.on, onChanged: (v) {})',
                   "SwitchListTile."),
     "AppBar": (MAT, "AppBar",
                'AppBar(title: Text({Title}), automaticallyImplyLeading: {Leading} == AppBarLeading.back, actions: [/* Actions slot */])',
                "AppBar: headlineLarge title on black. Actions is a slot of IconButtons."),
-    "Card": (APP + "app_card.dart", "AppCard",
+    "AppCard": (APP + "app_card.dart", "AppCard",
              'AppCard(variant: AppCardVariant.surface, child: /* {Direction}: Content slot */ const SizedBox())',
              "AppCard: surface, borderSubtle, radius 7 (Radius/card), padding 16. Content is a slot."),
-    "Sheet": (MAT, "showModalBottomSheet",
+    "ModalBottomSheet": (MAT, "ModalBottomSheet",
               'showModalBottomSheet(context: context, builder: (context) => /* {Docked}: Content slot */ const SizedBox())',
               "Bottom sheet surface: surfaceRaised, radius 16 top, grabber. Content is a slot."),
-    "Badge": (APP + "app_badge.dart", "AppBadge",
+    "AppBadge": (APP + "app_badge.dart", "AppBadge",
               'AppBadge(label: {Label},{Show icon ? " icon: Icons.star /* icon */," : ""})',
               "AppBadge: pill label (band facts, status, offline). 10% tint of its colour, radius 20, 16 px icon."),
     "SectionHeader": (APP + "section_header.dart", "SectionHeader",
                       'SectionHeader({Title}, style: {Style},{Show action ? " actionLabel: " : " /* "}{Action}'
                       '{Show action ? ", onAction: onSeeAll," : " */"})',
                       "SectionHeader: Title = titleMedium section inside a screen; Label = quiet labelMedium group label."),
-    "Dialog": (MAT, "AlertDialog",
+    "AlertDialog": (MAT, "AlertDialog",
                'AlertDialog(title: {Show title ? "Text(" : "null /* "}{Title}{Show title ? ")" : " */"}, '
                'content: /* Content slot */ null, actions: [/* Actions slot */])',
                "AlertDialog (ConfirmationDialog for confirms): surfaceRaised, radius 16. Destructive confirm = Danger button."),
-    "Transport": ("package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart", "SongMapTransport",
+    "SongMapTransport": ("package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart", "SongMapTransport",
                   'SongMapTransport(playing: false, speedPercent: 100, loop: false, countIn: false, click: false, '
                   'clickAndDrums: false, onPlay: () {}, onStop: () {}, onSpeedTap: () {}, onLoopChanged: (_) {}, '
                   'onCountInChanged: (_) {}, onClickChanged: (_) {}, onClickAndDrumsChanged: (_) {})',
                   "Persistent Song Map playback controls."),
-    "Overview": ("package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart", "SongMapOverview",
+    "SongMapOverview": ("package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart", "SongMapOverview",
                  'SongMapOverview(entry: entry, view: songMapView)', "Whole-song Song Map overview."),
-    "ZoomWave": ("package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart", "SongMapTimeline",
+    "SongMapTimeline": ("package:flowgroove/screens/practice_regions/song_map/song_map_timeline.dart", "SongMapTimeline",
                  'SongMapTimeline(view: songMapView)', "Zoomed section waveform and timeline."),
-    "Pad": ("package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart", "SongMapPads",
+    "SongMapPads": ("package:flowgroove/screens/practice_regions/song_map/song_map_pads.dart", "SongMapPads",
              'SongMapPads(view: songMapView)', "Song Map practice pads."),
     # ponytail: SongMapTempoBanner has no FigCraft component yet (banner is a frame), add its entry with one.
 }
@@ -1839,7 +1840,7 @@ DESC_ONLY = {
     "SetlistCard": "Setlist item with title, song count and optional date metadata.",
     "MemberCard": "Band member item with name, role and optional music-role metadata.",
     "StatusBar": "System status bar placeholder (not app code).",
-    "Pad": "Section or part launcher with an optional letter badge. Playing shows loop progress. Queued is marked next.",
+    "SongMapPads": "Section or part launcher with an optional letter badge. Playing shows loop progress. Queued is marked next.",
     "SectionBlock": "Song timeline section. Repeats reuse a letter and colour. Dashed borders mark candidates.",
     "PartBlock": "Part lane block with a letter and bar count.",
     "Boundary": "Timeline seam handle. A dashed stem marks a candidate boundary.",
@@ -1848,9 +1849,9 @@ DESC_ONLY = {
     "Ruler": "Evenly spaced bar labels for the visible timeline span.",
     "BeatGrid": "Visible bars divided into beats, with a taller tick on each downbeat.",
     "Breadcrumb": "Zoom path from Song to the current section or part.",
-    "Transport": "Sticky playback controls with speed, loop, count-in, click and drums.",
-    "Overview": "Whole-song waveform and letter lane on the same bar scale, with a playhead and dashed new cuts.",
-    "ZoomWave": "Section waveform with a proportional parts lane, individual bar numbers and an optional labeled new cut.",
+    "SongMapTransport": "Sticky playback controls with speed, loop, count-in, click and drums.",
+    "SongMapOverview": "Whole-song waveform and letter lane on the same bar scale, with a playhead and dashed new cuts.",
+    "SongMapTimeline": "Section waveform with a proportional parts lane, individual bar numbers and an optional labeled new cut.",
     "Key": "48 px MPC function key with an optional icon. Lit keys have an orange fill and charcoal text.",
 }
 
@@ -2013,8 +2014,8 @@ def check_component_dimensions():
         for v in combos(c):
             e = Emit()
             draw_variant(e, c, v)
-            # Size and Lines describe different component sizes, independently of state.
-            group = (v.get("Size"), v.get("Lines"))
+            # Size, Lines and bottom-bar type describe different layouts, independently of state.
+            group = (v.get("Size"), v.get("Lines"), v.get("Tab") == "Actions" if cname == "AppBottomBar" else None)
             groups.setdefault(group, {}).setdefault(variant_dimensions(e), []).append(vkey(c, v))
         for dimensions in groups.values():
             if len(dimensions) > 1:
@@ -2781,6 +2782,15 @@ def dart_ctor_params(src, ctor):
 def verify_components():
     """Code Connect templates and FigCraft variants vs the Dart widgets they link to. Offline."""
     errors, checked = [], 0
+    expected = {"actionbar": "AppBottomBar", "bottomnav": "AppBottomBar", "avatar": "UserAvatar",
+                "badge": "AppBadge", "button": "CustomButton", "card": "AppCard", "chip": "AppFilterChip",
+                "dialog": "AlertDialog", "fab": "FloatingActionButton", "input": "CustomTextField",
+                "navitem": "NavTab", "progress": "LinearProgressIndicator", "segment": "ButtonSegment",
+                "sheet": "ModalBottomSheet", "switchrow": "SwitchListTile", "pad": "SongMapPads",
+                "transport": "SongMapTransport", "overview": "SongMapOverview", "zoomwave": "SongMapTimeline"}
+    for node_type, component in expected.items():
+        if TYPE2COMP.get(node_type) != component:
+            errors.append(f"{node_type}: expected component {component}, got {TYPE2COMP.get(node_type)}")
     for cname, (imp, name, tpl, _desc) in CONNECT.items():
         if not imp.startswith("package:flowgroove/"):
             continue  # Material widget: the SDK is the contract
@@ -2797,7 +2807,7 @@ def verify_components():
             if arg not in params:
                 errors.append(f"{cname}: template passes `{arg}:` but {name} has no such parameter")
         for axis, opts in C[cname]["axes"].items():
-            enum = f"{cname if cname != 'Button' else 'Button'}{axis}"
+            enum = f"{'Button' if cname == 'CustomButton' else cname}{axis}"
             em = re.search(rf"enum {enum}\s*\{{([^}}]*)\}}", src)
             if not em or "{" + axis + "}" not in tpl:
                 continue  # design-only axis (e.g. ChipState), rendered as a comparison
