@@ -485,4 +485,19 @@ final kOpeners = <String, Opener>{
   'reliability_sheet_keep_timing_reliable': Opener(
     (context, _, _) => showReliabilitySheet(context),
   ),
+  'midi_import_flow_import_midi': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Import MIDI'),
+        content: const Text('Not a valid MIDI file'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    ),
+  ),
 };
