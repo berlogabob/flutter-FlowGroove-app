@@ -68,7 +68,12 @@ jobs:
             test/providers/auth_provider_test.dart
 
       - name: Full Flutter test suite
+        env:
+          RENDER_OUT: design/render
         run: flutter test --exclude-tags firebase-emulator
+
+      - name: Design parity
+        run: python3 design/figcraft/parity_check.py
 
       - name: Security audit
         run: bash test/security/git_audit_test.sh
