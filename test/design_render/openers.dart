@@ -40,7 +40,6 @@ import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
-import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/primary_action_bar.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/metronome/bpm_input_overlay.dart';
@@ -191,35 +190,40 @@ final kOpeners = <String, Opener>{
       expect(find.byType(CreateBandScreen, skipOffstage: false), findsOneWidget);
     });
   }),
-  'create_band_band_created': Opener(
-    (context, _, _) => showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Band Created!'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Share this invite code with your bandmates:'),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Expanded(child: InviteCodeField(code: 'KQ7X2M')),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(Icons.copy),
-                  tooltip: 'Copy',
-                ),
-              ],
-            ),
+  'create_band_band_created': Opener((context, _, _) {
+    final user = MockUser();
+    when(user.uid).thenReturn('user1');
+    when(user.displayName).thenReturn('Test User');
+    when(user.email).thenReturn(null);
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWith((ref) => AsyncValue.data(user)),
           ],
+          child: const CreateBandScreen(),
         ),
-        actions: [TextButton(onPressed: () {}, child: const Text('Done'))],
       ),
-    ),
-  ),
+    );
+    tapWhenBuilt(find.byType(EditableText, skipOffstage: false), (element) {
+      ((element as StatefulElement).state as EditableTextState)
+          .userUpdateTextEditingValue(
+            const TextEditingValue(text: 'Test Band'),
+            SelectionChangedCause.keyboard,
+          );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final action = find.byType(PrimaryActionBar, skipOffstage: false);
+        (action.evaluate().last.widget as PrimaryActionBar).onPressed!();
+      });
+    });
+    tapWhenBuilt(find.byType(AlertDialog), (_) {
+      expect(
+        find.byType(CreateBandScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('Band Created!'), findsOneWidget);
+    });
+  }),
   'rehearsal_detail_suggest_a_different_time': Opener(
     (context, _, _) => showDialog<String>(
       context: context,
