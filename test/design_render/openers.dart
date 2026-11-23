@@ -9,6 +9,13 @@ import 'package:flowgroove/widgets/metronome/metronome_sheets.dart';
 import 'package:flowgroove/widgets/metronome/reliability_sheet.dart';
 import 'package:flowgroove/widgets/practice/note_editor_sheet.dart';
 import 'package:flowgroove/models/midi_song.dart';
+import 'package:flowgroove/models/song_lab.dart';
+import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/data/midi_song_provider.dart';
+import 'package:flowgroove/widgets/midi/arrangement_sheet.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
@@ -532,5 +539,71 @@ final kOpeners = <String, Opener>{
         onApply: (_) {},
       ),
     ),
+  ),
+  'arrangement_sheet': Opener(
+    (context, _, _) {
+      final entry = SongLabEntry(
+        id: 'arrangement1',
+        songId: 'song3',
+        bandId: 'band1',
+        type: LabEntryType.midi,
+        authorId: 'test-user',
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+        midiSong: const MidiSongMeta(
+          fileUrl: 'render-fixture',
+          ppq: 480,
+          initialBpm: 120,
+          startBar: 4,
+          useFileTempo: true,
+          tracks: [],
+        ),
+      );
+      final notes = [
+        const MidiNote(tick: 3840, dur: 241920, pitch: 48, vel: 100),
+      ];
+      final midi = MidiSongData(
+        ppq: 480,
+        tempos: [const TempoChange(tick: 0, microsPerQuarter: 500000)],
+        timeSigs: const [TimeSigChange(tick: 0, numerator: 4, denominator: 4)],
+        tracks: [
+          for (var i = 0; i < 4; i++)
+            MidiTrackData(
+              index: i,
+              name: 'Instrument ${i + 1}',
+              channel: i,
+              program: i,
+              notes: notes,
+            ),
+        ],
+      );
+      final song = Song(
+        id: 'song3',
+        title: 'Third Song',
+        artist: 'Test Artist',
+        bandId: 'band1',
+        ourBPM: 106,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+        sections: [
+          for (final name in ['Intro', 'Verse', 'Chorus', 'Bridge', 'Outro'])
+            Section(id: name.toLowerCase(), name: name),
+        ],
+      );
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (_) => ProviderScope(
+          overrides: [
+            midiSongProvider(entry).overrideWith((ref) => midi),
+            bandSongsProvider('band1').overrideWith(
+              (ref) => Stream.value([song]),
+            ),
+          ],
+          child: ArrangementSheet(entry: entry, bandId: 'band1'),
+        ),
+      );
+    },
   ),
 };
