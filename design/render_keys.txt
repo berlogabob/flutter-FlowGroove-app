@@ -110,3 +110,4 @@ tuner_stage
 song_library_block_sheet_l85
 tuner_settings_sheet
 instrument_picker
+midi_song_panel

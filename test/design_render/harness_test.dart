@@ -18,7 +18,9 @@ void main() {
       initialLocation: '/main/home',
       productionRoutes: true,
       overrides: [
-        appUserProvider.overrideWith(() => TestAppUserNotifier(createTestUser())),
+        appUserProvider.overrideWith(
+          () => TestAppUserNotifier(createTestUser()),
+        ),
         songsProvider.overrideWith((ref) => Stream.value([])),
         bandsProvider.overrideWith((ref) => Stream.value([])),
         setlistsProvider.overrideWith((ref) => Stream.value([])),
@@ -40,7 +42,10 @@ void main() {
     );
     final context = tester.element(find.byType(Scaffold).first);
     expect(Theme.of(context).brightness, Brightness.dark);
-    expect(MediaQuery.textScalerOf(context).scale(10), greaterThanOrEqualTo(13));
+    expect(
+      MediaQuery.textScalerOf(context).scale(10),
+      greaterThanOrEqualTo(13),
+    );
     expect(find.byKey(key), findsOneWidget);
     expect(tester.widget(find.byKey(key)), isA<RepaintBoundary>());
   });

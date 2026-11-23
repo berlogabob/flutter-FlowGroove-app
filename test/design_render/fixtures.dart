@@ -1,18 +1,23 @@
+import 'dart:async';
+
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/metronome_state.dart';
+import 'package:flowgroove/models/midi_song.dart';
 import 'package:flowgroove/models/rehearsal.dart';
+import 'package:flowgroove/models/song_lab.dart';
+import 'package:flowgroove/providers/analytics_consent_provider.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
-import 'package:flowgroove/providers/analytics_consent_provider.dart';
+import 'package:flowgroove/providers/data/midi_song_practice_provider.dart';
 import 'package:flowgroove/providers/haptics_provider.dart';
 import 'package:flowgroove/providers/homework_provider.dart';
 import 'package:flowgroove/providers/keep_screen_on_provider.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/providers/theme_mode_provider.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
-import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:flowgroove/services/band_function_service.dart';
+import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
@@ -132,10 +137,11 @@ List<Object> renderOverrides() {
         .overrideWith((ref) => Stream.value({})),
     metronomeProvider.overrideWith(_RenderMetronome.new),
     tunerProvider.overrideWith(_RenderTuner.new),
+    midiSongPracticeProvider(kRenderMidiEntry)
+        .overrideWith(() => _RenderMidiPractice(kRenderMidiEntry)),
     labEntriesProvider((ideaInboxSongId, null))
         .overrideWith((ref) => Stream.value([])),
-    labEntriesProvider(('song1', null))
-        .overrideWith((ref) => Stream.value([])),
+    labEntriesProvider(('song1', null)).overrideWith((ref) => Stream.value([])),
     labTasksProvider(('song1', null)).overrideWith((ref) => Stream.value([])),
     practiceStatsProvider.overrideWith((ref) async => PracticeStats.empty),
     practiceSessionsProvider.overrideWith((ref) async => []),
@@ -189,4 +195,53 @@ class _RenderAnalyticsConsent extends AnalyticsConsent {
 class _RenderThemeMode extends AppThemeMode {
   @override
   ThemeMode build() => ThemeMode.light;
+}
+
+const _kMidiTracks = [
+  MidiTrackMeta(
+    index: 2,
+    name: 'Electric bass',
+    channel: 0,
+    program: 33,
+    detectedRole: MidiRole.bass,
+    noteCount: 20,
+    minPitch: 28,
+    maxPitch: 48,
+  ),
+  MidiTrackMeta(
+    index: 4,
+    name: 'Piano',
+    channel: 1,
+    program: 0,
+    detectedRole: MidiRole.keys,
+    noteCount: 30,
+    minPitch: 48,
+    maxPitch: 84,
+  ),
+];
+
+/// MIDI lab entry for the midi_song_panel render.
+final kRenderMidiEntry = SongLabEntry(
+  id: 'midi',
+  songId: 'song1',
+  type: LabEntryType.midi,
+  title: 'Practice song',
+  authorId: 'user',
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+  midiSong: const MidiSongMeta(ppq: 480, initialBpm: 120, tracks: _kMidiTracks),
+);
+
+/// Loaded state with two tracks: no player, no backing engine, no download.
+class _RenderMidiPractice extends MidiSongPracticeNotifier {
+  _RenderMidiPractice(super.entry);
+
+  @override
+  MidiSongPracticeState build() =>
+      const MidiSongPracticeState(tracks: _kMidiTracks);
+
+  @override
+  Future<void> loadEntry({
+    FutureOr<void> Function(SongLabEntry)? onPersist,
+  }) async {}
 }

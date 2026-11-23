@@ -1,12 +1,12 @@
-import 'package:flutter/rendering.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flowgroove/widgets/app_badge.dart';
 import 'package:flowgroove/widgets/app_card.dart';
 import 'package:flowgroove/widgets/app_filter_chip.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/custom_text_field.dart';
 import 'package:flowgroove/widgets/user_avatar.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 const Map<Type, String> kRenderKinds = {
   CustomButton: 'button',

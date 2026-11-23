@@ -1,7 +1,4 @@
-import 'package:flowgroove/widgets/tuner/instrument_picker.dart';
-import 'package:flowgroove/widgets/tuner/settings_sheet.dart';
-
-import '../helpers/mocks.dart';
+import 'dart:async';
 
 import 'package:flowgroove/models/audio_region.dart';
 import 'package:flowgroove/models/band.dart';
@@ -42,6 +39,7 @@ import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
 import 'package:flowgroove/widgets/metronome/metronome_sheets.dart';
 import 'package:flowgroove/widgets/metronome/reliability_sheet.dart';
 import 'package:flowgroove/widgets/midi/arrangement_sheet.dart';
+import 'package:flowgroove/widgets/midi/midi_song_panel.dart';
 import 'package:flowgroove/widgets/practice/note_editor_sheet.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/share_sheet.dart';
@@ -50,12 +48,17 @@ import 'package:flowgroove/widgets/support_sheet.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
 import 'package:flowgroove/widgets/tools/tool_mode_switcher.dart';
 import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
+import 'package:flowgroove/widgets/tuner/instrument_picker.dart';
+import 'package:flowgroove/widgets/tuner/settings_sheet.dart';
 import 'package:flowgroove/widgets/tuner/stage_mode_overlay.dart';
 import 'package:flowgroove/widgets/unified_item/setlist_card_actions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+
+import '../helpers/mocks.dart';
+import 'fixtures.dart';
 
 /// How to show a spec that has no route of its own (sheet, dialog, picker).
 ///
@@ -1266,6 +1269,15 @@ final kOpeners = <String, Opener>{
         overrides: [tunerProvider.overrideWith(_PickerTuner.new)],
         child: const InstrumentPicker(),
       ),
+    ),
+  ),
+  'midi_song_panel': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      // Practice notifier is overridden in fixtures.dart (root): the panel's loader
+      // provider is not scoped, so a nested override would not reach it.
+      builder: (_) => MidiSongPanel(entry: kRenderMidiEntry),
     ),
   ),
   'tuner_settings_sheet': Opener(

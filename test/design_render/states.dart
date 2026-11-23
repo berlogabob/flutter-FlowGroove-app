@@ -2,11 +2,11 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flowgroove/models/audio_region.dart';
-import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_transport.dart';
+import 'package:flowgroove/screens/practice_regions_screen.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../screens/practice_regions_screen_test.dart';
