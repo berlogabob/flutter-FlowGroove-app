@@ -73,10 +73,26 @@ Future<void> _songMapPart(WidgetTester tester) async {
   expect(find.text('Rename section'), findsOneWidget);
 }
 
+Future<void> _songMapPlaying(WidgetTester tester) async {
+  await _pumpPractice(tester);
+  await tester.tap(find.byKey(const ValueKey('play')));
+  await practiceFixture.settleAudio(tester);
+  practiceFixture.emitPosition(50824);
+  await practiceFixture.settleAudio(tester);
+  await tester.tap(find.text('Chop'));
+  await tester.pump();
+  expect(find.text('Cut at bar 37'), findsOneWidget);
+  expect(
+    tester.widget<SongMapTransport>(find.byType(SongMapTransport)).playing,
+    isTrue,
+  );
+}
+
 final kStates = <String, Future<void> Function(WidgetTester)>{
   'practice_regions': _pumpPractice,
   'song_map_song': _songMapSong,
   'song_map_song_light': _songMapSong,
   'song_map_part': _songMapPart,
   'song_map_part_light': _songMapPart,
+  'song_map_playing': _songMapPlaying,
 };
