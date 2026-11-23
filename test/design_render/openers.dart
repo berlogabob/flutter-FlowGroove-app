@@ -20,6 +20,7 @@ import 'package:flowgroove/screens/bands/create_band_screen.dart';
 import 'package:flowgroove/screens/bands/the_band_screen.dart';
 import 'package:flowgroove/screens/bands/rehearsals/rehearsal_detail_screen.dart';
 import 'package:flowgroove/screens/home_screen.dart';
+import 'package:flowgroove/screens/settings/api_access_screen.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
 import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
 import 'package:flowgroove/screens/practice_regions/slice_edit_sheet.dart';
@@ -914,20 +915,28 @@ final kOpeners = <String, Opener>{
       songTitle: 'Wonderwall',
     ),
   ),
-  'api_access_revoke_key': Opener(
-    (context, _, _) => showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(Icons.delete_outline),
-        title: const Text('Revoke key'),
-        content: const Text('Revoke sk_7f3a…? Any AI using it loses access.'),
-        actions: [
-          TextButton(onPressed: () {}, child: const Text('Cancel')),
-          TextButton(onPressed: () {}, child: const Text('Revoke')),
-        ],
-      ),
-    ),
-  ),
+  'api_access_revoke_key': Opener((context, _, _) {
+    setupRenderApiKeys().then((_) {
+      if (!context.mounted) return;
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).push(MaterialPageRoute<void>(builder: (_) => const ApiAccessScreen()));
+      tapWhenBuilt(
+        find.byWidgetPredicate(
+          (widget) => widget is IconButton && widget.tooltip == 'Revoke',
+          skipOffstage: false,
+        ),
+        (element) {
+          expect(
+            find.byType(ApiAccessScreen, skipOffstage: false),
+            findsOneWidget,
+          );
+          (element.widget as IconButton).onPressed!();
+        },
+      );
+    });
+  }),
   'links_editor_add_link': Opener((context, tester, _) {
     showDialog<void>(
       context: context,

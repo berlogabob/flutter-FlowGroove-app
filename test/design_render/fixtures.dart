@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/metronome_state.dart';
 import 'package:flowgroove/models/midi_song.dart';
@@ -22,6 +24,8 @@ import 'package:flowgroove/repositories/firestore_lab_repository.dart';
 import 'package:flowgroove/services/band_function_service.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,6 +41,39 @@ const kFixtureIds = {
   'rehearsal': 'reh1',
   'invite': 'INVITE1',
 };
+
+Future<void> setupRenderApiKeys() async {
+  setupFirebaseCoreMocks();
+  const channel = BasicMessageChannel<Object?>(
+    'dev.flutter.pigeon.cloud_functions_platform_interface.CloudFunctionsHostApi.call',
+    StandardMessageCodec(),
+  );
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockDecodedMessageHandler<Object?>(channel, (message) async {
+        final arguments =
+            (message! as List<Object?>).first as Map<Object?, Object?>;
+        if (arguments['functionName'] != 'listApiKeys') {
+          throw StateError('Unexpected API key operation');
+        }
+        return [
+          {
+            'keys': [
+              {
+                'id': 'key1',
+                'scope': 'read',
+                'label': 'Test key',
+                'prefix': 'sk_7f3a',
+              },
+            ],
+          },
+        ];
+      });
+  addTearDown(
+    () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockDecodedMessageHandler<Object?>(channel, null),
+  );
+  await Firebase.initializeApp();
+}
 
 class RenderLabRepository extends Mock implements FirestoreLabRepository {}
 
