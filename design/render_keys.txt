@@ -55,3 +55,4 @@ custom_tuning_editor
 setlist_export_sheet_whose_copy
 lab_recording_sheet
 app_menu_sheet_sheet_l53
+drum_practice_panel

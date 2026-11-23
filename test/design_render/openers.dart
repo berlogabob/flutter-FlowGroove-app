@@ -3,6 +3,7 @@ import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
+import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
 import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
@@ -337,6 +338,14 @@ final kOpeners = <String, Opener>{
       isScrollControlled: true,
       showDragHandle: true,
       builder: (_) => const BackingSheet(songId: 'song1', bandId: 'band1'),
+    ),
+  ),
+  'drum_practice_panel': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const DrumPracticePanel(songId: 'song1', bandId: 'band1'),
     ),
   ),
   'import_lyrics_dialog': Opener((context, tester, _) {
