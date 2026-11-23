@@ -364,6 +364,97 @@ List<Object> _profileOverrides() {
 }
 
 final kKeyOverrides = <String, List<Object> Function()>{
+  // The frame shows a practised week: 1h 24m over 5 sessions, a 3-day streak.
+  'home': () => [
+    practiceStatsProvider.overrideWith(
+      (ref) async => const PracticeStats(
+        totalSecondsThisWeek: 5100,
+        sessionCountThisWeek: 5,
+        streakDays: 3,
+        dailySeconds: [600, 1000, 0, 1500, 800, 0, 1200],
+        perSongSeconds: {},
+      ),
+    ),
+  ],
+  // The frame's list has a song without a tempo ('-- BPM').
+  'songs_list': () => [
+    songsProvider.overrideWith(
+      (ref) => Stream.value([
+        MockDataHelper.createMockSong(
+          id: 'song1',
+          title: 'First Song',
+          originalKey: 'F#m',
+          ourKey: 'F#m',
+          originalBPM: 87,
+          ourBPM: 87,
+        ),
+        MockDataHelper.createMockSong(
+          id: 'song2',
+          title: 'Second Song',
+          originalKey: 'Eb',
+          ourKey: 'Eb',
+        ),
+      ]),
+    ),
+  ],
+  // The frames' bands: names, descriptions and member counts as drawn.
+  'my_bands': () => [
+    bandsProvider.overrideWith(
+      (ref) => Stream.value([
+        _frameBand(
+          'band1',
+          'Midnight Echoes',
+          description: 'Indie rock and late-night grooves',
+          people: ['Alex Morgan', 'Sam Rivera', 'Jamie Chen', 'Taylor Brooks'],
+        ),
+        _frameBand(
+          'band2',
+          'The River Rats',
+          description: 'Blues, soul and good company',
+          people: [
+            'Alex Morgan',
+            'Sam Rivera',
+            'Jamie Chen',
+            'Taylor Brooks',
+            'Riley Lane',
+          ],
+        ),
+        _frameBand(
+          'band3',
+          'Sunday Sessions',
+          description: 'Acoustic covers and originals',
+          people: ['Alex Morgan', 'Sam Rivera', 'Jamie Chen'],
+        ),
+      ]),
+    ),
+  ],
+  'band_members': () => [
+    bandsProvider.overrideWith(
+      (ref) => Stream.value([
+        _frameBand(
+          'band1',
+          'The Vinyls',
+          people: ['Alex Morgan', 'Sam Rivera', 'Jamie Chen', 'Taylor Brooks'],
+          roles: ['admin', 'editor', 'editor', 'viewer'],
+        ),
+      ]),
+    ),
+  ],
+  'band_about': () => [
+    bandsProvider.overrideWith(
+      (ref) => Stream.value([
+        _frameBand(
+          'band1',
+          'The Midnight Groove',
+          description: 'A group of friends playing soulful covers and original songs together.',
+          people: ['Alex Morgan', 'Sam Taylor', 'Jamie Lee'],
+          roles: ['admin', 'editor', 'viewer'],
+          invite: 'GROOVE',
+          created: DateTime(2024, 3, 12),
+        ),
+      ]),
+    ),
+  ],
   'song_page': () => [
     songsProvider.overrideWith(
       (ref) => Stream.value([
@@ -509,16 +600,20 @@ final kKeyOverrides = <String, List<Object> Function()>{
   'song_card_actions_sheet_l209': () => [
     bandsProvider.overrideWith(
       (ref) => Stream.value([
-        for (final (id, name) in [
-          ('band1', 'FlowGroove'),
-          ('band2', 'The Weekend Set'),
-          ('band3', 'Sunday Jam'),
-          ('band4', 'Cover Crew'),
+        for (final (id, name, others, role) in [
+          ('band1', 'FlowGroove', 3, 'admin'),
+          ('band2', 'The Weekend Set', 3, 'editor'),
+          ('band3', 'Sunday Jam', 1, 'admin'),
+          ('band4', 'Cover Crew', 0, 'admin'),
         ])
           MockDataHelper.createMockBand(
             id: id,
             name: name,
-            members: [BandMember(uid: 'test-user-id', role: 'admin')],
+            members: [
+              BandMember(uid: 'test-user-id', role: role),
+              for (var i = 0; i < others; i++)
+                BandMember(uid: '$id-m$i', role: 'viewer'),
+            ],
           ),
       ]),
     ),
@@ -902,6 +997,32 @@ CanonicalSong _canonical(
   baseBpm: bpm,
   baseSections: [
     for (var i = 0; i < sections; i++) Section(id: '$id-$i', name: 'Verse'),
+  ],
+);
+
+Band _frameBand(
+  String id,
+  String name, {
+  required List<String> people,
+  List<String>? roles,
+  String? description,
+  String? invite,
+  DateTime? created,
+}) => Band(
+  id: id,
+  name: name,
+  createdBy: 'test-user-id',
+  createdAt: created ?? DateTime(2024),
+  description: description,
+  inviteCode: invite,
+  tags: const ['rock', 'funk', 'original'],
+  members: [
+    for (var i = 0; i < people.length; i++)
+      BandMember(
+        uid: i == 0 ? 'test-user-id' : '$id-m$i',
+        role: roles?[i] ?? (i == 0 ? 'admin' : 'editor'),
+        displayName: people[i],
+      ),
   ],
 );
 

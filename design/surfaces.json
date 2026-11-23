@@ -669,39 +669,39 @@
   {
     "key": "profile_screen.PhotoOptions",
     "kind": "sheet",
-    "source": "lib/screens/profile_screen.dart:167",
+    "source": "lib/screens/profile_screen.dart:178",
     "widget": "PhotoOptions",
     "spec": "design/figcraft/specs/profile_currently_using.json"
   },
   {
     "key": "profile_screen.CustomButton",
     "kind": "dialog",
-    "source": "lib/screens/profile_screen.dart:320",
+    "source": "lib/screens/profile_screen.dart:307",
     "widget": "CustomButton",
     "spec": "design/figcraft/specs/profile_link_telegram.json"
   },
   {
     "key": "profile_screen.build",
     "kind": "dialog",
-    "source": "lib/screens/profile_screen.dart:649",
+    "source": "lib/screens/profile_screen.dart:636",
     "widget": "build",
     "spec": null
   },
   {
     "key": "profile_screen._confirmAndDeleteAccount",
     "kind": "dialog",
-    "source": "lib/screens/profile_screen.dart:692",
+    "source": "lib/screens/profile_screen.dart:679",
     "widget": "_confirmAndDeleteAccount",
     "spec": "design/figcraft/specs/profile_delete_account.json",
     "sources": [
-      "lib/screens/profile_screen.dart:692",
-      "lib/screens/profile_screen.dart:719"
+      "lib/screens/profile_screen.dart:679",
+      "lib/screens/profile_screen.dart:706"
     ]
   },
   {
     "key": "profile_screen._editRoles",
     "kind": "picker",
-    "source": "lib/screens/profile_screen.dart:845",
+    "source": "lib/screens/profile_screen.dart:832",
     "widget": "_editRoles",
     "spec": null
   },
@@ -1242,7 +1242,7 @@
   {
     "key": "song_card_actions.pickBandAndAdd",
     "kind": "sheet",
-    "source": "lib/widgets/unified_item/song_card_actions.dart:209",
+    "source": "lib/widgets/unified_item/song_card_actions.dart:211",
     "widget": "pickBandAndAdd",
     "spec": "design/figcraft/specs/song_card_actions_sheet_l209.json"
   },

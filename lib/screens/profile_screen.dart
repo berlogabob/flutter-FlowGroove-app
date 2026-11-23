@@ -164,11 +164,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _showPhotoOptions() {
+    // The tile of the photo source in use carries a small green mark at its
+    // right end (the frame's `trail`), never a line under the title.
+    Widget? inUse(bool active) => active
+        ? Text(
+            '✓ Currently using',
+            style: MonoPulseTypography.labelSmall.copyWith(
+              color: MonoPulseColors.successGreen,
+            ),
+          )
+        : null;
+    final uploaded = _photoSource == 'upload' && _avatarUrl != null;
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: context.mp.surface,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: context.mp.surfaceRaised,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MonoPulseRadius.xlarge),
+        ),
       ),
       builder: (context) => SafeArea(
         child: Column(
@@ -176,26 +191,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           children: [
             // Telegram option - always show
             ListTile(
-              leading: Icon(
-                Icons.send,
-                color: _telegramId != null
-                    ? MonoPulseColors.info
-                    : context.mp.textTertiary,
-              ),
+              leading: const Icon(Icons.send),
               title: Text(
                 _telegramId != null ? 'Use Telegram Photo' : 'Link Telegram',
               ),
-              subtitle: _telegramId != null
-                  ? (_photoSource == 'telegram'
-                        ? const Text(
-                            '✓ Currently using',
-                            style: TextStyle(color: MonoPulseColors.success),
-                          )
-                        : null)
-                  : Text(
-                      'Import photo from Telegram',
-                      style: TextStyle(color: context.mp.textTertiary),
-                    ),
+              subtitle: const Text('Import photo from Telegram'),
+              trailing: inUse(
+                _telegramId != null && _photoSource == 'telegram',
+              ),
               onTap: () async {
                 Navigator.pop(context);
                 if (_telegramId == null) {
@@ -215,19 +218,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
             ),
             // Google option - only when google-linked
-            if (ref.read(firebaseAuthProvider).currentUser?.providerData.any(
-                  (p) => p.providerId == 'google.com',
-                ) ??
+            if (ref
+                    .read(firebaseAuthProvider)
+                    .currentUser
+                    ?.providerData
+                    .any((p) => p.providerId == 'google.com') ??
                 false)
               ListTile(
                 leading: const Icon(Icons.account_circle),
                 title: const Text('Use Google Photo'),
-                subtitle: _photoSource == 'google'
-                    ? const Text(
-                        '✓ Currently using',
-                        style: TextStyle(color: MonoPulseColors.success),
-                      )
-                    : null,
+                trailing: inUse(_photoSource == 'google'),
                 onTap: () async {
                   Navigator.pop(context);
                   final messenger = ScaffoldMessenger.of(context);
@@ -243,12 +243,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ListTile(
               leading: const Icon(Icons.camera_alt),
               title: const Text('Take Photo'),
-              subtitle: _photoSource == 'upload' && _avatarUrl != null
-                  ? const Text(
-                      '✓ Currently using',
-                      style: TextStyle(color: MonoPulseColors.success),
-                    )
-                  : null,
+              trailing: inUse(uploaded),
               onTap: () {
                 Navigator.pop(context);
                 _pickPhoto(ImageSource.camera);
@@ -257,12 +252,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ListTile(
               leading: const Icon(Icons.photo_library),
               title: const Text('Choose from Gallery'),
-              subtitle: _photoSource == 'upload' && _avatarUrl != null
-                  ? const Text(
-                      '✓ Currently using',
-                      style: TextStyle(color: MonoPulseColors.success),
-                    )
-                  : null,
+              trailing: inUse(uploaded),
               onTap: () {
                 Navigator.pop(context);
                 _pickPhoto(ImageSource.gallery);
@@ -270,11 +260,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             if (_avatarUrl != null || _profilePhotoPath != null)
               ListTile(
-                leading: const Icon(Icons.delete, color: MonoPulseColors.error),
-                title: const Text(
-                  'Remove Photo',
-                  style: TextStyle(color: MonoPulseColors.error),
-                ),
+                leading: const Icon(Icons.delete),
+                title: const Text('Remove Photo'),
                 onTap: () {
                   Navigator.pop(context);
                   _removePhoto();

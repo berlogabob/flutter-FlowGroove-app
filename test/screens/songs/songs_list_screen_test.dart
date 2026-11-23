@@ -442,6 +442,15 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('First Band'), findsOneWidget);
       expect(find.text('Second Band'), findsOneWidget);
+      // Frame: heading, the song named in the sub line, member count and the
+      // narrower role; admins are implied.
+      expect(find.text('Add to band…'), findsOneWidget);
+      expect(
+        find.text('Choose the band to save "${createTestSong().title}" to'),
+        findsOneWidget,
+      );
+      expect(find.text("1 member · You're editor"), findsOneWidget);
+      expect(find.text('1 member'), findsOneWidget);
     });
 
     testWidgets('filters songs by title', (tester) async {

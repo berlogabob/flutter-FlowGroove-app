@@ -206,18 +206,67 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> pickBandAndAdd(Song song, List<Band> bands) async {
     final targetBands = editableBands(bands);
     if (targetBands.isEmpty) return;
+    final uid = ref.read(appUserProvider).value?.uid;
+    final currentBandId = songActionsBandId;
     final bandId = await showModalBottomSheet<String>(
       context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: context.mp.surfaceRaised,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MonoPulseRadius.xlarge),
+        ),
+      ),
       builder: (context) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final band in targetBands)
-              ListTile(
-                leading: const Icon(Icons.groups),
-                title: Text(band.name),
-                onTap: () => Navigator.pop(context, band.id),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.lg,
               ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: MonoPulseSpacing.xs,
+                children: [
+                  Text(
+                    'Add to band…',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  Text(
+                    'Choose the band to save "${song.title}" to',
+                    style: MonoPulseTypography.bodyMedium.copyWith(
+                      color: context.mp.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: MonoPulseSpacing.lg),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final band in targetBands)
+                    ListTile(
+                      leading: const Icon(Icons.groups),
+                      title: Text(band.name),
+                      subtitle: Text(
+                        '${band.memberUids.length} '
+                        '${band.memberUids.length == 1 ? 'member' : 'members'}'
+                        // Admins are implied; only the narrower role is named.
+                        '${band.adminUids.contains(uid) ? '' : " · You're editor"}',
+                      ),
+                      trailing: band.id == currentBandId
+                          ? const Icon(Icons.check)
+                          : null,
+                      onTap: () => Navigator.pop(context, band.id),
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

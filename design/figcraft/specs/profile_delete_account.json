@@ -1,7 +1,7 @@
 {
   "name": "Profile: Delete account",
   "page": "Sheets & Dialogs",
-  "source": "lib/screens/profile_screen.dart:692",
+  "source": "lib/screens/profile_screen.dart:679",
   "slot": 2,
   "modal": "dialog",
   "body": [

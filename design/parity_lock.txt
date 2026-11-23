@@ -17,6 +17,7 @@ create_setlist_sheet_l350
 custom_tuning_editor
 drum_grid_editor
 drum_practice_panel
+edit_section_dialog
 event_kit_editor_brand_optional
 event_kit_editor_dialog_l103
 event_kit_editor_sheet_l154
@@ -24,6 +25,7 @@ event_kit_editor_sheet_l191
 event_share_sheet_l106
 forgot_password
 grid_editor_dialog_tempo_grid
+home
 home_rehearsals
 home_sheet_l112
 import_lyrics_dialog
@@ -76,6 +78,7 @@ song_map_section
 song_map_section_light
 song_map_song
 song_map_song_light
+songs_list
 songs_list_importing_songs
 suggestion_selection_dialog
 support_sheet_telegram

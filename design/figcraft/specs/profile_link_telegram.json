@@ -1,7 +1,7 @@
 {
   "name": "Profile: Link Telegram",
   "page": "Sheets & Dialogs",
-  "source": "lib/screens/profile_screen.dart:320",
+  "source": "lib/screens/profile_screen.dart:307",
   "slot": 0,
   "modal": "dialog",
   "body": [
