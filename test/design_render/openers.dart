@@ -1459,35 +1459,24 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
-  'add_song_helper_search_on_web': Opener(
-    (context, _, _) => showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Search on Web'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Open Spotify search in browser?'),
-            const SizedBox(height: 16),
-            const Text(
-              'Wonderwall Oasis',
-              style: TextStyle(fontStyle: FontStyle.italic),
-            ),
-          ],
+  'add_song_helper_search_on_web': Opener((context, _, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => AddSongScreen(
+          initialFormData: SongFormData(
+            title: 'First Song',
+            artist: 'Test Artist',
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          CustomButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            label: 'Open Spotify',
-          ),
-        ],
       ),
-    ),
-  ),
+    );
+    tapWhenBuilt(find.byType(SongForm, skipOffstage: false), (element) {
+      (element.widget as SongForm).onSearchWeb();
+    });
+    tapWhenBuilt(find.byType(AlertDialog), (_) {
+      expect(find.byType(AddSongScreen, skipOffstage: false), findsOneWidget);
+    });
+  }),
   'drum_practice_panel': Opener(
     (context, _, _) => showModalBottomSheet<void>(
       context: context,
