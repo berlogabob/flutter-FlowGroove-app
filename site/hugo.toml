@@ -17,7 +17,7 @@ timeout = 30000
   env = "production"
   description = "Real-time setlist sync for cover bands. Built by a musician, for musicians."
   keywords = ["band rehearsal", "setlist sync", "BPM detection", "music app", "cover bands", "rehearsal organizer"]
-  author = "Sounding Doubts - Unipessoal Lda"
+  author = "FlowGroove"
   DateFormat = "January 2, 2006"
 
   disableSpecial1stPost = true

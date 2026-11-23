@@ -7,7 +7,7 @@
 {{- $image := printf "%s%s" .Site.BaseURL "images/og-cover.jpg" -}}
 
 {{- if .IsHome -}}
-  {{- $title = .Site.Title -}}
+  {{- $title = "FlowGroove - shared setlist notebook" -}}
 {{- else -}}
   {{- $title = printf "%s — %s" .Title .Site.Title -}}
 {{- end -}}
