@@ -11,17 +11,68 @@ except ImportError:  # Imported as part of the design.figcraft package.
     from design.figcraft.spec_tree import flatten
 
 
-_DART_STRING = re.compile(r"(['\"])((?:\\.|(?!\1).)*?)\1", re.DOTALL)
+def _skip_string(source: str, i: int) -> tuple[int, str, bool]:
+    """Read the Dart string literal opening at ``source[i]``.
+
+    Returns (index after it, raw content, has_interpolation). Handles raw strings,
+    triple quotes and nested ``${...}`` expressions that contain strings.
+    """
+    raw = i > 0 and source[i - 1] == "r" and not (i > 1 and source[i - 2].isalnum())
+    quote = source[i]
+    triple = source.startswith(quote * 3, i)
+    delimiter = quote * 3 if triple else quote
+    i += len(delimiter)
+    start = i
+    interpolated = False
+    while i < len(source):
+        if source.startswith(delimiter, i):
+            return i + len(delimiter), source[start:i], interpolated
+        char = source[i]
+        if char == "\\" and not raw:
+            i += 2
+        elif char == "\n" and not triple:
+            return i, source[start:i], interpolated  # unterminated: stop at the line end
+        elif char == "$" and not raw:
+            interpolated = True
+            if source.startswith("{", i + 1):
+                depth, i = 1, i + 2
+                while i < len(source) and depth:
+                    if source[i] in "'\"":
+                        i = _skip_string(source, i)[0]
+                        continue
+                    depth += (source[i] == "{") - (source[i] == "}")
+                    i += 1
+            else:
+                i += 1
+        else:
+            i += 1
+    return i, source[start:], interpolated
+
+
+def dart_strings(source: str):
+    """Yield (content, has_interpolation) for every string literal, skipping comments."""
+    i = 0
+    while i < len(source):
+        if source.startswith("//", i):
+            end = source.find("\n", i)
+            i = len(source) if end < 0 else end
+        elif source.startswith("/*", i):
+            end = source.find("*/", i + 2)
+            i = len(source) if end < 0 else end + 2
+        elif source[i] in "'\"":
+            i, content, interpolated = _skip_string(source, i)
+            yield content, interpolated
+        else:
+            i += 1
 
 
 def lib_literals(lib_dir: str) -> set[str]:
     """Return non-interpolated, quoted string literals found under ``lib_dir``."""
     literals = set()
     for dart_file in Path(lib_dir).rglob("*.dart"):
-        source = dart_file.read_text(encoding="utf-8")
-        for match in _DART_STRING.finditer(source):
-            value = match.group(2).strip()
-            if "$" not in value:
+        for content, interpolated in dart_strings(dart_file.read_text(encoding="utf-8")):
+            value = content.strip()
+            if not interpolated and "$" not in value:
                 literals.add(value)
     return literals
 

@@ -5,7 +5,7 @@ import sys
 import unittest
 from pathlib import Path
 
-from design.figcraft.parity_check import compare, lib_literals, static
+from design.figcraft.parity_check import compare, dart_strings, lib_literals, static
 from design.figcraft.spec_tree import flatten
 
 
@@ -31,6 +31,13 @@ class ParityCheckTests(unittest.TestCase):
                 [sys.executable, str(script)], cwd=root, text=True,
                 capture_output=True, check=False,
             )
+
+    def test_dart_strings_skip_comments_and_keep_literals_after_them(self):
+        source = "// don't count\nText('Any BPM'); /* \"no\" */ Text(\"a ${b('x')} c\"); Text('-- BPM');"
+        self.assertEqual(
+            list(dart_strings(source)),
+            [("Any BPM", False), ("a ${b('x')} c", True), ("-- BPM", False)],
+        )
 
     def test_cli_locked_key_failure_exits_one_and_prints_key_and_diff(self):
         result = self.run_cli(rendered_text="Wrong", lock_key="screen")
