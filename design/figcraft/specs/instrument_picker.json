@@ -20,33 +20,16 @@
         {"t": "divider"},
         {"t": "col", "gap": 4, "c": [
           {"t": "col", "gap": 12, "c": [
-            {"t": "tile", "lead": "music_note", "title": "Guitar", "sub": "6-String", "trail": "expand_less", "bg": "stone"},
+            {"t": "tile", "lead": "music_note", "title": "Guitar", "sub": "6 strings", "trail": "expand_less", "bg": "stone"},
             {"t": "col", "gap": 8, "c": [
               {"t": "card", "dir": "h", "pad": [8, 16, 8, 16], "gap": 12, "cross": "center", "c": [
                 {"t": "icon", "v": "tune_outlined", "size": 18, "color": "textTertiary"},
                 {"t": "text", "v": "Standard", "style": "bodyMedium", "color": "textSecondary", "w": "fill"},
                 {"t": "text", "v": "E2 · A2 · D3 · G3 · B3 · E4", "style": "labelSmall", "color": "textTertiary", "w": "hug"}
-              ]},
-              {"t": "card", "dir": "h", "pad": [8, 16, 8, 16], "gap": 12, "cross": "center", "c": [
-                {"t": "icon", "v": "tune_outlined", "size": 18, "color": "textTertiary"},
-                {"t": "text", "v": "Drop D", "style": "bodyMedium", "color": "textSecondary", "w": "fill"},
-                {"t": "text", "v": "D2 · A2 · D3 · G3 · B3 · E4", "style": "labelSmall", "color": "textTertiary", "w": "hug"}
-              ]},
-              {"t": "card", "dir": "h", "pad": [8, 16, 8, 16], "gap": 12, "cross": "center", "c": [
-                {"t": "icon", "v": "tune_outlined", "size": 18, "color": "textTertiary"},
-                {"t": "text", "v": "Half Step Down", "style": "bodyMedium", "color": "textSecondary", "w": "fill"},
-                {"t": "text", "v": "Eb2 · Ab2 · Db3 · Gb3 · Bb3 · Eb4", "style": "labelSmall", "color": "textTertiary", "w": "hug"}
-              ]},
-              {"t": "card", "dir": "h", "pad": [8, 16, 8, 16], "gap": 12, "cross": "center", "c": [
-                {"t": "icon", "v": "tune_outlined", "size": 18, "color": "textTertiary"},
-                {"t": "text", "v": "DADGAD", "style": "bodyMedium", "color": "textSecondary", "w": "fill"},
-                {"t": "text", "v": "D2 · A2 · D3 · G3 · A3 · D4", "style": "labelSmall", "color": "textTertiary", "w": "hug"}
               ]}
             ]}
           ]},
-          {"t": "tile", "lead": "music_note", "title": "Bass", "sub": "4-String", "trail": "expand_more"},
-          {"t": "tile", "lead": "star_outline", "title": "Cavaquinho", "sub": "Brazil", "trail": "expand_more"},
-          {"t": "tile", "lead": "wb_sunny_outlined", "title": "Ukulele", "sub": "Hawaii", "trail": "expand_more"}
+          {"t": "tile", "lead": "music_note", "title": "Bass", "sub": "4 strings", "trail": "expand_more"}
         ]}
       ]
     }

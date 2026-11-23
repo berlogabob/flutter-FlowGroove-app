@@ -8,7 +8,6 @@
     {"t": "sheet", "gap": 4, "c": [
       {"t": "tile", "lead": "copy", "title": "Copy to clipboard", "name": "Copy"},
       {"t": "tile", "lead": "share", "title": "Share via...", "trail": "arrow_forward", "name": "ShareVia"},
-      {"t": "divider"},
       {"t": "tile", "lead": "email", "title": "Email", "trail": "arrow_forward", "name": "Email"},
       {"t": "tile", "lead": "telegram", "title": "Telegram", "trail": "arrow_forward", "name": "Telegram"},
       {"t": "tile", "lead": "link", "title": "WhatsApp", "trail": "arrow_forward", "name": "WhatsApp"}

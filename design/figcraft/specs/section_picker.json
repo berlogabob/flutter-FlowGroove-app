@@ -19,15 +19,15 @@
           "wrap": true,
           "gap": 8,
           "c": [
-            {"t": "chip", "v": "Intro"},
-            {"t": "chip", "v": "Verse"},
-            {"t": "chip", "v": "Chorus"},
-            {"t": "chip", "v": "Bridge"},
-            {"t": "chip", "v": "Pre-Chorus"},
-            {"t": "chip", "v": "Outro"},
-            {"t": "chip", "v": "Instrumental"},
-            {"t": "chip", "v": "Solo"},
-            {"t": "chip", "v": "Pause"}
+            {"t": "text", "v": "Intro"},
+            {"t": "text", "v": "Verse"},
+            {"t": "text", "v": "Chorus"},
+            {"t": "text", "v": "Bridge"},
+            {"t": "text", "v": "Outro"},
+            {"t": "text", "v": "Pre-Chorus"},
+            {"t": "text", "v": "Solo"},
+            {"t": "text", "v": "Pause"},
+            {"t": "text", "v": "Instrumental"}
           ]
         },
         {"t": "divider"},

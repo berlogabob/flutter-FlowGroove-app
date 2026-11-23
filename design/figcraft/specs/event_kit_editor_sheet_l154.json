@@ -8,26 +8,21 @@
     {"t": "sheet", "gap": 12, "c": [
       {"t": "text", "v": "Add to zone", "style": "titleLarge"},
       {"t": "input", "hint": "Search gear or type your own…", "icon": "search"},
-      {"t": "text", "v": "Selected", "style": "labelSmall", "color": "textSecondary"},
-      {"t": "row", "gap": 6, "c": [
-        {"t": "chip", "v": "🎸 Guitar", "sel": true, "icon": "check"},
-        {"t": "chip", "v": "🥁 Drums", "sel": true, "icon": "check"}
-      ]},
       {"t": "text", "v": "Likely needed", "style": "labelSmall", "color": "textSecondary"},
       {"t": "row", "gap": 6, "wrap": true, "c": [
-        {"t": "chip", "v": "🎸 Guitar"},
-        {"t": "chip", "v": "🎤 Mic"},
-        {"t": "chip", "v": "🥁 Drums"}
+        {"t": "row", "pad": [6, 12, 6, 12], "radius": 16, "bg": "surfaceRaised", "c": [{"t": "text", "v": "🎸 Guitar", "style": "labelMedium"}]},
+        {"t": "row", "pad": [6, 12, 6, 12], "radius": 16, "bg": "surfaceRaised", "c": [{"t": "text", "v": "🎤 Mic", "style": "labelMedium"}]},
+        {"t": "row", "pad": [6, 12, 6, 12], "radius": 16, "bg": "surfaceRaised", "c": [{"t": "text", "v": "🥁 Drums", "style": "labelMedium"}]}
       ]},
       {"t": "text", "v": "Band members", "style": "labelSmall", "color": "textSecondary"},
-      {"t": "tile", "lead": "person", "title": "Alex Rivera", "sub": "Guitar", "trail": "check"},
-      {"t": "tile", "lead": "person", "title": "Sam Chen", "sub": "Drums · Keys"},
-      {"t": "tile", "lead": "person", "title": "Jordan Lee", "sub": "Bass"},
+      {"t": "tile", "lead": "person", "title": "Alex Rivera"},
+      {"t": "tile", "lead": "person", "title": "Sam Chen"},
+      {"t": "tile", "lead": "person", "title": "Jordan Lee"},
       {"t": "text", "v": "Gear", "style": "labelSmall", "color": "textSecondary"},
       {"t": "row", "gap": 6, "wrap": true, "c": [
-        {"t": "chip", "v": "🔊 Amp"},
-        {"t": "chip", "v": "🎛️ Mixer"},
-        {"t": "chip", "v": "🎧 Monitor"}
+        {"t": "row", "pad": [6, 12, 6, 12], "radius": 16, "bg": "surfaceRaised", "c": [{"t": "text", "v": "🔊 Amp", "style": "labelMedium"}]},
+        {"t": "row", "pad": [6, 12, 6, 12], "radius": 16, "bg": "surfaceRaised", "c": [{"t": "text", "v": "🎛️ Mixer", "style": "labelMedium"}]},
+        {"t": "row", "pad": [6, 12, 6, 12], "radius": 16, "bg": "surfaceRaised", "c": [{"t": "text", "v": "🎧 Monitor", "style": "labelMedium"}]}
       ]},
       {"t": "row", "main": "end", "gap": 8, "c": [
         {"t": "button", "kind": "text", "v": "Cancel"},

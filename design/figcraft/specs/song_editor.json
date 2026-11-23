@@ -49,10 +49,20 @@
           "v": "The Glass Birds"
         },
         {
-          "t": "input",
-          "hint": "Search the web to autofill",
-          "icon": "music_note",
-          "trail": "travel_explore"
+          "t": "row",
+          "cross": "center",
+          "c": [
+            {
+              "t": "input",
+              "hint": "Search the web to autofill",
+              "icon": "music_note",
+              "w": "fill"
+            },
+            {
+              "t": "iconbtn",
+              "v": "travel_explore"
+            }
+          ]
         },
         {
           "t": "spacer",
@@ -87,7 +97,7 @@
             },
             {
               "t": "text",
-              "v": "Not set",
+              "v": "F#m  ·  87 BPM",
               "style": "bodySmall",
               "color": "accentOrange",
               "w": "hug"
@@ -172,6 +182,90 @@
             {
               "t": "text",
               "v": "No structure yet",
+              "style": "bodySmall",
+              "color": "textSecondary",
+              "w": "hug"
+            },
+            {
+              "t": "icon",
+              "v": "chevron_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "h": 52,
+          "pad": [
+            0,
+            16,
+            0,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "c": [
+            {
+              "t": "icon",
+              "v": "notes",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Notes",
+              "style": "labelLarge",
+              "w": "fill"
+            },
+            {
+              "t": "text",
+              "v": "No notes",
+              "style": "bodySmall",
+              "color": "textSecondary",
+              "w": "hug"
+            },
+            {
+              "t": "icon",
+              "v": "chevron_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "h": 52,
+          "pad": [
+            0,
+            16,
+            0,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "c": [
+            {
+              "t": "icon",
+              "v": "sell",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Tags",
+              "style": "labelLarge",
+              "w": "fill"
+            },
+            {
+              "t": "text",
+              "v": "No tags",
               "style": "bodySmall",
               "color": "textSecondary",
               "w": "hug"

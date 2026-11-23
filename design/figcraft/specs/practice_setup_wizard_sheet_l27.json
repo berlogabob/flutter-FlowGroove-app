@@ -68,10 +68,9 @@
         {
           "t": "row",
           "gap": 8,
-          "main": "spaceBetween",
+          "main": "end",
           "cross": "center",
           "c": [
-            {"t": "button", "kind": "text", "v": "Back"},
             {"t": "button", "kind": "primary", "v": "Next"}
           ]
         }

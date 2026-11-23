@@ -21,12 +21,6 @@
           "t": "col",
           "gap": 10,
           "c": [
-            {"t": "section", "v": "Current Preset", "kind": "label"},
-            {"t": "spacer", "size": 4},
-            {"t": "card", "dir": "h", "pad": [12, 12, 12, 12], "gap": 8, "cross": "center", "c": [
-              {"t": "text", "v": "Guitar · Standard", "style": "bodyMedium", "color": "textHighEmphasis", "w": "fill"}
-            ]},
-            {"t": "spacer", "size": 16},
             {"t": "col", "gap": 6, "c": [
               {"t": "row", "cross": "center", "c": [
                 {"t": "text", "v": "A4 Reference", "style": "labelMedium", "color": "textSecondary", "w": "fill"},
@@ -51,10 +45,10 @@
             {"t": "section", "v": "Transposition", "kind": "label"},
             {"t": "spacer", "size": 4},
             {"t": "row", "gap": 8, "c": [
-              {"t": "chip", "v": "C", "sel": true},
-              {"t": "chip", "v": "Bb"},
-              {"t": "chip", "v": "F"},
-              {"t": "chip", "v": "Eb"}
+              {"t": "text", "v": "C"},
+              {"t": "text", "v": "Bb"},
+              {"t": "text", "v": "F"},
+              {"t": "text", "v": "Eb"}
             ]},
             {"t": "text", "v": "Show detected notes as written pitch for transposing instruments.", "style": "bodySmall", "color": "textTertiary"},
             {"t": "spacer", "size": 16},

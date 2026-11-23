@@ -50,35 +50,6 @@
       "pad": [
         8,
         16,
-        16,
-        16
-      ],
-      "gap": 8,
-      "c": [
-        {
-          "t": "chip",
-          "v": "All",
-          "sel": true
-        },
-        {
-          "t": "chip",
-          "v": "2010s (5)"
-        },
-        {
-          "t": "chip",
-          "v": "edm (4)"
-        },
-        {
-          "t": "chip",
-          "v": "originals"
-        }
-      ]
-    },
-    {
-      "t": "row",
-      "pad": [
-        8,
-        16,
         8,
         16
       ],
@@ -152,10 +123,11 @@
                   "cross": "center",
                   "c": [
                     {
-                      "t": "badge",
+                      "t": "text",
                       "v": "Dm",
-                      "bg": "accentOrange10",
-                      "color": "accentOrange"
+                      "style": "labelMedium",
+                      "color": "accentOrange",
+                      "w": "hug"
                     },
                     {
                       "t": "icon",
@@ -186,76 +158,6 @@
               ]
             }
           ]
-        },
-        {
-          "t": "divider",
-          "color": "borderSubtle"
-        },
-        {
-          "t": "col",
-          "pad": [
-            12,
-            16,
-            12,
-            16
-          ],
-          "gap": 2,
-          "c": [
-            {
-              "t": "text",
-              "v": "Beyond the Skyline",
-              "style": "titleMedium",
-              "maxLines": 1
-            },
-            {
-              "t": "text",
-              "v": "Paper Lanterns",
-              "style": "bodySmall",
-              "color": "textSecondary"
-            },
-            {
-              "t": "row",
-              "cross": "center",
-              "c": [
-                {
-                  "t": "row",
-                  "w": "fill",
-                  "gap": 12,
-                  "cross": "center",
-                  "c": [
-                    {
-                      "t": "badge",
-                      "v": "—",
-                      "bg": "surfaceRaised",
-                      "color": "textSecondary"
-                    },
-                    {
-                      "t": "text",
-                      "v": "-- BPM",
-                      "style": "bodySmall",
-                      "color": "textSecondary",
-                      "w": "hug"
-                    }
-                  ]
-                },
-                {
-                  "t": "iconbtn",
-                  "v": "av_timer",
-                  "size": 20,
-                  "color": "accentOrange"
-                },
-                {
-                  "t": "iconbtn",
-                  "v": "more_vert",
-                  "size": 20
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "t": "divider",
-          "color": "borderSubtle"
         },
         {
           "t": "col",
@@ -290,10 +192,11 @@
                   "cross": "center",
                   "c": [
                     {
-                      "t": "badge",
-                      "v": "C",
-                      "bg": "accentOrange10",
-                      "color": "accentOrange"
+                      "t": "text",
+                      "v": "Eb",
+                      "style": "labelMedium",
+                      "color": "accentOrange",
+                      "w": "hug"
                     },
                     {
                       "t": "text",
@@ -318,76 +221,6 @@
               ]
             }
           ]
-        },
-        {
-          "t": "divider",
-          "color": "borderSubtle"
-        },
-        {
-          "t": "col",
-          "pad": [
-            12,
-            16,
-            12,
-            16
-          ],
-          "gap": 2,
-          "c": [
-            {
-              "t": "text",
-              "v": "Cloudwalker",
-              "style": "titleMedium",
-              "maxLines": 1
-            },
-            {
-              "t": "text",
-              "v": "The Glass Birds",
-              "style": "bodySmall",
-              "color": "textSecondary"
-            },
-            {
-              "t": "row",
-              "cross": "center",
-              "c": [
-                {
-                  "t": "row",
-                  "w": "fill",
-                  "gap": 12,
-                  "cross": "center",
-                  "c": [
-                    {
-                      "t": "badge",
-                      "v": "—",
-                      "bg": "surfaceRaised",
-                      "color": "textSecondary"
-                    },
-                    {
-                      "t": "text",
-                      "v": "-- BPM",
-                      "style": "bodySmall",
-                      "color": "textSecondary",
-                      "w": "hug"
-                    }
-                  ]
-                },
-                {
-                  "t": "iconbtn",
-                  "v": "av_timer",
-                  "size": 20,
-                  "color": "accentOrange"
-                },
-                {
-                  "t": "iconbtn",
-                  "v": "more_vert",
-                  "size": 20
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "t": "divider",
-          "color": "borderSubtle"
         }
       ]
     }
@@ -396,6 +229,16 @@
     {
       "t": "bottomnav",
       "sel": "Songs"
+    }
+  ],
+  "overlay": [
+    {
+      "x": 340,
+      "y": 760,
+      "node": {
+        "t": "fab",
+        "icon": "add"
+      }
     }
   ]
 }

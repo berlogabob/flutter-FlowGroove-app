@@ -11,15 +11,10 @@
       {"t": "text", "v": "SONGS", "style": "labelMedium", "color": "textTertiary"},
       {"t": "col", "gap": 0, "c": [
         {"t": "tile", "lead": "music_note", "title": "Wonderwall", "sub": "Oasis", "trail": "arrow_right"},
-        {"t": "divider"},
         {"t": "tile", "lead": "music_note", "title": "Seven Nation Army", "sub": "The White Stripes", "trail": "arrow_right"},
-        {"t": "divider"},
         {"t": "tile", "lead": "music_note", "title": "Valerie", "sub": "Amy Winehouse", "trail": "arrow_right"},
-        {"t": "divider"},
         {"t": "tile", "lead": "music_note", "title": "Hey Jude", "sub": "The Beatles", "trail": "arrow_right"},
-        {"t": "divider"},
         {"t": "tile", "lead": "music_note", "title": "Wonderwall", "sub": "Oasis", "trail": "arrow_right"},
-        {"t": "divider"},
         {"t": "tile", "lead": "music_note", "title": "Wonderwall", "sub": "Oasis", "trail": "arrow_right"}
       ]}
     ]}

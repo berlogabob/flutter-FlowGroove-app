@@ -19,7 +19,6 @@ notes_panel_note_at_n	Sheets & Dialogs	lib/screens/practice_regions/notes_panel.
 region_name_sheet_region_name	Sheets & Dialogs	lib/screens/practice_regions/region_name_sheet.dart:14	Region name sheet: Region name	sheet
 slice_edit_sheet_start	Sheets & Dialogs	lib/screens/practice_regions/slice_edit_sheet.dart:15	Slice edit sheet: Start	sheet
 practice_regions_replace_n_regions	Sheets & Dialogs	lib/screens/practice_regions_screen.dart:843	Practice regions: Replace N regions?	dialog
-practice_regions_sheet_l981	Sheets & Dialogs	lib/screens/practice_regions_screen.dart:981	Practice regions sheet L981	sheet
 practice_regions_replace_n_sections	Sheets & Dialogs	lib/screens/practice_regions_screen.dart:1468	Practice regions: Replace N sections?	dialog
 practice_regions_speed_n	Sheets & Dialogs	lib/screens/practice_regions_screen.dart:2012	Practice regions: Speed N%	sheet
 practice_setup_wizard_sheet_l27	Sheets & Dialogs	lib/screens/practice_setup_wizard.dart:27	Practice setup wizard sheet L27	sheet

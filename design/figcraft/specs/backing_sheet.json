@@ -9,8 +9,6 @@
       "t": "sheet",
       "gap": 4,
       "c": [
-        {"t": "text", "v": "Backing tracks", "style": "headlineMedium", "name": "Header"},
-        {"t": "divider"},
         {"t": "tile", "lead": "album_outlined", "title": "Drum pattern", "sub": "Grid, import, sync with click"},
         {"t": "tile", "lead": "piano_outlined", "title": "Piano & Bass", "sub": "2 instruments", "trail": "edit_outlined"},
         {"t": "tile", "lead": "piano_outlined", "title": "Full Band", "sub": "3 instruments", "trail": "edit_outlined"},

@@ -76,8 +76,17 @@ def flatten(spec: dict, icons: set[str]) -> dict:
                     value = [part for part in value if not (isinstance(part, str) and part in icons)]
             add(value)
         if kind == "actionbar":
+            # AppBottomBar draws [Back] [title | primary] [Menu]; the title sits above the nav labels.
+            add(node.get("title"))
             add(node.get("primary"))
             add("Back")
+            if node.get("menu", True):
+                add("Menu")
+        elif kind == "appbar":
+            # The back arrow and icon-name actions are IconButtons in the app.
+            actions = node.get("actions") or []
+            if node.get("back", True) or any(isinstance(a, str) and a in icons for a in actions):
+                kinds.append("iconbtn")
         elif kind == "bottomnav":
             add(_BOTTOM_NAV)
 

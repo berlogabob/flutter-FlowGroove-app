@@ -46,11 +46,20 @@
                   "gap": 8,
                   "c": [
                     {
-                      "t": "iconbtn",
-                      "v": "remove",
-                      "color": "textSecondary",
+                      "t": "col",
+                      "w": 48,
+                      "h": 48,
                       "bg": "surfaceRaised",
-                      "radius": 24
+                      "radius": 24,
+                      "main": "center",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "icon",
+                          "v": "remove",
+                          "color": "textSecondary"
+                        }
+                      ]
                     },
                     {
                       "t": "row",
@@ -189,11 +198,20 @@
                   "gap": 8,
                   "c": [
                     {
-                      "t": "iconbtn",
-                      "v": "remove",
-                      "color": "textSecondary",
+                      "t": "col",
+                      "w": 48,
+                      "h": 48,
                       "bg": "surfaceRaised",
-                      "radius": 24
+                      "radius": 24,
+                      "main": "center",
+                      "cross": "center",
+                      "c": [
+                        {
+                          "t": "icon",
+                          "v": "remove",
+                          "color": "textSecondary"
+                        }
+                      ]
                     },
                     {
                       "t": "row",

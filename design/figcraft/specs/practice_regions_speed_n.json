@@ -11,7 +11,6 @@
       "c": [
         {"t": "text", "v": "Speed 100%", "style": "titleMedium"},
         {"t": "col", "gap": 8, "c": [
-          {"t": "text", "v": "Speed", "style": "labelMedium", "color": "textSecondary"},
           {"t": "row", "gap": 8, "wrap": true, "c": [
             {"t": "chip", "v": "50%"},
             {"t": "chip", "v": "60%"},

@@ -34,7 +34,6 @@
             {"t": "iconbtn", "v": "add", "size": 20}
           ]
         },
-        {"t": "divider"},
         {
           "t": "row",
           "gap": 8,
@@ -90,8 +89,16 @@
             {"t": "iconbtn", "v": "add", "size": 20}
           ]
         },
-        {"t": "divider"},
-        {"t": "input", "label": "At end of file", "hint": "Loop", "trail": "arrow_drop_down", "v": "Loop"},
+        {
+          "t": "row",
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {"t": "text", "v": "At end of file", "style": "bodyMedium", "w": "fill"},
+            {"t": "text", "v": "loop", "style": "bodyMedium", "w": "hug"},
+            {"t": "icon", "v": "arrow_drop_down", "size": 20, "color": "textSecondary"}
+          ]
+        },
         {"t": "button", "kind": "primary", "v": "Save", "w": "fill"}
       ]
     }

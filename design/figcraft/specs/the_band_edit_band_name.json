@@ -6,7 +6,7 @@
   "modal": "dialog",
   "body": [
     {"t": "dialog", "title": "Edit Band Name", "c": [
-      {"t": "input", "label": "Band Name", "v": "FlowGroove"}
+      {"t": "input", "label": "Band Name", "v": "Test Band"}
     ], "actions": [
       {"t": "button", "kind": "text", "v": "Cancel"},
       {"t": "button", "kind": "primary", "v": "Save"}

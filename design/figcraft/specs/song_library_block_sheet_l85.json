@@ -12,18 +12,17 @@
         {"t": "iconbtn", "v": "close", "color": "textSecondary"}
       ]},
       {"t": "row", "pad": [0, 16, 0, 16], "gap": 8, "c": [
-        {"t": "segmented", "items": ["Songs", "Setlists"], "sel": 0}
+        {"t": "button", "kind": "tonal", "v": "Songs", "icon": "music_note", "w": "fill"},
+        {"t": "button", "kind": "text", "v": "Setlists", "icon": "playlist_play", "w": "fill"}
       ]},
-      {"t": "input", "label": "Library source", "icon": "folder_outlined", "trail": "arrow_drop_down", "v": "Personal"},
-      {"t": "divider"},
+      {"t": "tile", "lead": "folder_outlined", "title": "Library source", "trail": ["Personal", "arrow_drop_down"]},
       {"t": "col", "pad": [8, 16, 16, 16], "gap": 8, "c": [
         {"t": "tile", "lead": "music_note", "title": "Wonderwall", "sub": "Oasis", "trail": "87 BPM"},
         {"t": "tile", "lead": "music_note", "title": "Seven Nation Army", "sub": "The White Stripes", "trail": "124 BPM"},
         {"t": "tile", "lead": "music_note", "title": "Valerie", "sub": "Amy Winehouse", "trail": "106 BPM"},
         {"t": "tile", "lead": "music_note", "title": "Fix You", "sub": "Coldplay", "trail": "130 BPM"},
         {"t": "tile", "lead": "music_note", "title": "Clocks", "sub": "Coldplay", "trail": "136 BPM"},
-        {"t": "divider"},
-        {"t": "tile", "lead": "playlist_play", "title": "Summer Set 2024", "sub": "12 songs", "trail": "chevron_right"},
+          {"t": "tile", "lead": "playlist_play", "title": "Summer Set 2024", "sub": "12 songs", "trail": "chevron_right"},
         {"t": "tile", "lead": "playlist_play", "title": "Rehearsal Picks", "sub": "7 songs", "trail": "chevron_right"},
         {"t": "tile", "lead": "playlist_play", "title": "Encore Jam", "sub": "4 songs", "trail": "chevron_right"}
       ]}

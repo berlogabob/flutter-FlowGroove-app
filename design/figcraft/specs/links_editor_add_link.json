@@ -5,6 +5,10 @@
   "slot": 0,
   "modal": "dialog",
   "body": [
+    {"t": "row", "main": "spaceBetween", "cross": "center", "pad": 16, "c": [
+      {"t": "text", "v": "Links", "style": "bodyMedium"},
+      {"t": "button", "kind": "text", "v": "Add", "icon": "add"}
+    ]},
     {
       "t": "dialog",
       "title": "Add Link",

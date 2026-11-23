@@ -58,14 +58,15 @@
                   "cross": "center",
                   "c": [
                     {
-                      "t": "badge",
-                      "v": "—",
-                      "bg": "surfaceRaised",
-                      "color": "textSecondary"
+                      "t": "text",
+                      "v": "F#m",
+                      "style": "bodySmall",
+                      "color": "textSecondary",
+                      "w": "hug"
                     },
                     {
                       "t": "text",
-                      "v": "-- BPM",
+                      "v": "87",
                       "style": "bodySmall",
                       "color": "textSecondary",
                       "w": "hug"
@@ -86,10 +87,6 @@
               ]
             }
           ]
-        },
-        {
-          "t": "divider",
-          "color": "borderSubtle"
         },
         {
           "t": "col",
@@ -124,14 +121,15 @@
                   "cross": "center",
                   "c": [
                     {
-                      "t": "badge",
-                      "v": "—",
-                      "bg": "surfaceRaised",
-                      "color": "textSecondary"
+                      "t": "text",
+                      "v": "Em",
+                      "style": "bodySmall",
+                      "color": "textSecondary",
+                      "w": "hug"
                     },
                     {
                       "t": "text",
-                      "v": "-- BPM",
+                      "v": "124",
                       "style": "bodySmall",
                       "color": "textSecondary",
                       "w": "hug"
@@ -152,10 +150,6 @@
               ]
             }
           ]
-        },
-        {
-          "t": "divider",
-          "color": "borderSubtle"
         },
         {
           "t": "col",
@@ -190,14 +184,15 @@
                   "cross": "center",
                   "c": [
                     {
-                      "t": "badge",
-                      "v": "—",
-                      "bg": "surfaceRaised",
-                      "color": "textSecondary"
+                      "t": "text",
+                      "v": "Eb",
+                      "style": "bodySmall",
+                      "color": "textSecondary",
+                      "w": "hug"
                     },
                     {
                       "t": "text",
-                      "v": "-- BPM",
+                      "v": "106",
                       "style": "bodySmall",
                       "color": "textSecondary",
                       "w": "hug"
@@ -218,10 +213,6 @@
               ]
             }
           ]
-        },
-        {
-          "t": "divider",
-          "color": "borderSubtle"
         },
         {
           "t": "col",
@@ -256,14 +247,15 @@
                   "cross": "center",
                   "c": [
                     {
-                      "t": "badge",
-                      "v": "—",
-                      "bg": "surfaceRaised",
-                      "color": "textSecondary"
+                      "t": "text",
+                      "v": "Dm",
+                      "style": "bodySmall",
+                      "color": "textSecondary",
+                      "w": "hug"
                     },
                     {
                       "t": "text",
-                      "v": "-- BPM",
+                      "v": "98",
                       "style": "bodySmall",
                       "color": "textSecondary",
                       "w": "hug"
@@ -284,10 +276,6 @@
               ]
             }
           ]
-        },
-        {
-          "t": "divider",
-          "color": "borderSubtle"
         },
         {
           "t": "col",
@@ -322,14 +310,15 @@
                   "cross": "center",
                   "c": [
                     {
-                      "t": "badge",
-                      "v": "—",
-                      "bg": "surfaceRaised",
-                      "color": "textSecondary"
+                      "t": "text",
+                      "v": "Gm",
+                      "style": "bodySmall",
+                      "color": "textSecondary",
+                      "w": "hug"
                     },
                     {
                       "t": "text",
-                      "v": "-- BPM",
+                      "v": "110",
                       "style": "bodySmall",
                       "color": "textSecondary",
                       "w": "hug"
@@ -350,10 +339,6 @@
               ]
             }
           ]
-        },
-        {
-          "t": "divider",
-          "color": "borderSubtle"
         }
       ]
     }

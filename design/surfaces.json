@@ -653,13 +653,6 @@
     "spec": "design/figcraft/specs/practice_regions_replace_n_regions.json"
   },
   {
-    "key": "practice_regions_sheet_l981",
-    "kind": "state",
-    "source": "lib/screens/practice_regions_screen.dart:981",
-    "widget": "Practice regions sheet L981",
-    "spec": "design/figcraft/specs/practice_regions_sheet_l981.json"
-  },
-  {
     "key": "practice_setup_wizard_sheet_l27",
     "kind": "state",
     "source": "lib/screens/practice_setup_wizard.dart:27",

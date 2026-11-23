@@ -7,7 +7,10 @@
   "body": [
     {"t": "sheet", "gap": 20, "c": [
       {"t": "box", "w": 40, "h": 4, "bg": "borderDefault", "radius": 2},
-      {"t": "segmented", "items": ["Enter BPM", "Tap Tempo"], "sel": 0},
+      {"t": "row", "gap": 8, "c": [
+        {"t": "row", "w": "fill", "main": "center", "pad": 12, "radius": 8, "bg": "accentOrange", "c": [{"t": "text", "v": "Enter BPM", "style": "labelLarge", "color": "charcoal"}]},
+        {"t": "row", "w": "fill", "main": "center", "pad": 12, "radius": 8, "bg": "surfaceRaised", "c": [{"t": "text", "v": "Tap Tempo", "style": "labelLarge"}]}
+      ]},
       {"t": "input", "v": "120", "hint": "Any BPM", "w": "fill"},
       {"t": "text", "v": "40-300 BPM", "style": "bodySmall", "color": "textTertiary"},
       {"t": "button", "kind": "primary", "v": "Set BPM", "w": "fill"}

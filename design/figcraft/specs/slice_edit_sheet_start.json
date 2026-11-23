@@ -6,13 +6,9 @@
   "modal": "sheet",
   "body": [
     {"t": "sheet", "gap": 4, "c": [
-      {"t": "text", "v": "Slice edit", "style": "headlineMedium", "name": "Header"},
-      {"t": "text", "v": "Night Set — Verse pad", "style": "bodyMedium", "color": "textSecondary", "name": "Region label"},
-      {"t": "divider"},
-      {"t": "tile", "lead": "edit_outlined", "title": "Rename slice", "sub": "Night Set — Verse pad", "trail": "chevron_right"},
-      {"t": "tile", "lead": "tune", "title": "Start", "sub": "Trim the lead-in (it becomes a skipped slice)", "trail": "chevron_right"},
-      {"t": "tile", "lead": "tune", "title": "End", "sub": "Trim the tail (it becomes a skipped slice)", "trail": "chevron_right"},
-      {"t": "divider"},
+      {"t": "tile", "title": "Night Set — Verse pad", "trail": "edit_outlined"},
+      {"t": "tile", "lead": {"t": "text", "v": "Start"}, "title": "00:12.000", "sub": "Trim the lead-in (it becomes a skipped slice)", "trail": "tune"},
+      {"t": "tile", "lead": {"t": "text", "v": "End"}, "title": "00:24.000", "sub": "Also start of Night Set — Chorus pad", "trail": "tune"},
       {"t": "switchrow", "title": "Skip", "sub": "Hide the pad and jump over it in playback", "lead": "visibility_off_outlined", "on": false},
       {"t": "tile", "lead": "delete_outline", "title": "Delete slice", "sub": "Its time joins the next slice", "trail": "chevron_right"}
     ]}

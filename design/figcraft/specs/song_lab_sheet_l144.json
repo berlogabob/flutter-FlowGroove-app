@@ -26,17 +26,6 @@
           "lines": 5
         },
         {
-          "t": "text",
-          "v": "Section (optional)",
-          "style": "labelMedium",
-          "color": "textSecondary"
-        },
-        {
-          "t": "input",
-          "hint": "Pick a section",
-          "trail": "arrow_drop_down"
-        },
-        {
           "t": "row",
           "main": "end",
           "gap": 8,

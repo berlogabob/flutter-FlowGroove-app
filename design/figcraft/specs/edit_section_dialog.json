@@ -16,11 +16,11 @@
         {"t": "input", "v": "Verse"},
         {"t": "text", "v": "Duration (phrases):", "style": "headlineSmall", "color": "textSecondary"},
         {"t": "row", "gap": 4, "c": [
-          {"t": "chip", "v": "1"},
-          {"t": "chip", "v": "2"},
-          {"t": "chip", "v": "3", "sel": true},
-          {"t": "chip", "v": "4"},
-          {"t": "input", "v": "", "hint": "Custom", "w": 60}
+          {"t": "button", "kind": "secondary", "v": "1", "small": true},
+          {"t": "button", "kind": "secondary", "v": "2", "small": true},
+          {"t": "button", "kind": "primary", "v": "3", "small": true},
+          {"t": "button", "kind": "secondary", "v": "4", "small": true},
+          {"t": "input", "hint": "Custom", "w": 60}
         ]},
         {"t": "input", "label": "Notes (e.g., guitar chords)", "hint": "Am C G", "lines": 3},
         {"t": "input", "label": "Lyrics & chords (ChordPro)", "hint": "[Am]Twinkle [F]little [C]star", "lines": 5},

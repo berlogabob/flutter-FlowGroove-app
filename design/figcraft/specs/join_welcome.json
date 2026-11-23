@@ -22,16 +22,11 @@
           "cross": "center",
           "c": [
             {
-              "t": "raw",
-              "type": "text",
+              "t": "text",
               "v": "🎸",
               "name": "Guitar",
-              "props": {
-                "fontFamily": "Apple Color Emoji",
-                "fontStyle": "Regular",
-                "fontSize": 48,
-                "textAutoResize": "widthAndHeight"
-              }
+              "style": "displayMedium",
+              "align": "center"
             },
             {
               "t": "spacer",

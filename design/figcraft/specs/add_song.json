@@ -28,8 +28,7 @@
         {
           "t": "input",
           "hint": "Search the web to autofill",
-          "icon": "music_note",
-          "trail": "travel_explore"
+          "icon": "music_note"
         },
         {
           "t": "spacer",
@@ -62,7 +61,7 @@
             },
             {
               "t": "text",
-              "v": "F#m  ·  87 BPM",
+              "v": "Not set",
               "style": "bodySmall",
               "color": "accentOrange",
               "align": "right",
@@ -294,6 +293,16 @@
     {
       "t": "actionbar",
       "primary": "Add Song"
+    }
+  ],
+  "overlay": [
+    {
+      "x": 348,
+      "y": 151,
+      "node": {
+        "t": "iconbtn",
+        "v": "travel_explore"
+      }
     }
   ]
 }

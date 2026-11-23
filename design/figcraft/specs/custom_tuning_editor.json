@@ -16,34 +16,34 @@
       {"t": "input", "hint": "Tuning name (e.g., My Open G)"},
       {"t": "col", "gap": 8, "c": [
         {"t": "row", "gap": 8, "c": [
-          {"t": "text", "v": "1", "style": "labelMedium", "color": "textTertiary", "w": "hug"},
           {"t": "input", "v": "E", "trail": "arrow_drop_down", "w": "fill"},
-          {"t": "input", "v": "2", "trail": "arrow_drop_down", "w": "fill"}
+          {"t": "input", "v": "2", "trail": "arrow_drop_down", "w": "fill"},
+          {"t": "text", "v": "1", "style": "labelMedium", "color": "textTertiary", "w": "hug"}
         ]},
         {"t": "row", "gap": 8, "c": [
-          {"t": "text", "v": "2", "style": "labelMedium", "color": "textTertiary", "w": "hug"},
-          {"t": "input", "v": "A", "trail": "arrow_drop_down", "w": "fill"},
-          {"t": "input", "v": "2", "trail": "arrow_drop_down", "w": "fill"}
-        ]},
-        {"t": "row", "gap": 8, "c": [
-          {"t": "text", "v": "3", "style": "labelMedium", "color": "textTertiary", "w": "hug"},
-          {"t": "input", "v": "D", "trail": "arrow_drop_down", "w": "fill"},
-          {"t": "input", "v": "3", "trail": "arrow_drop_down", "w": "fill"}
-        ]},
-        {"t": "row", "gap": 8, "c": [
-          {"t": "text", "v": "4", "style": "labelMedium", "color": "textTertiary", "w": "hug"},
-          {"t": "input", "v": "G", "trail": "arrow_drop_down", "w": "fill"},
-          {"t": "input", "v": "3", "trail": "arrow_drop_down", "w": "fill"}
-        ]},
-        {"t": "row", "gap": 8, "c": [
-          {"t": "text", "v": "5", "style": "labelMedium", "color": "textTertiary", "w": "hug"},
-          {"t": "input", "v": "B", "trail": "arrow_drop_down", "w": "fill"},
-          {"t": "input", "v": "3", "trail": "arrow_drop_down", "w": "fill"}
-        ]},
-        {"t": "row", "gap": 8, "c": [
-          {"t": "text", "v": "6", "style": "labelMedium", "color": "textTertiary", "w": "hug"},
           {"t": "input", "v": "E", "trail": "arrow_drop_down", "w": "fill"},
-          {"t": "input", "v": "2", "trail": "arrow_drop_down", "w": "fill"}
+          {"t": "input", "v": "2", "trail": "arrow_drop_down", "w": "fill"},
+          {"t": "text", "v": "2", "style": "labelMedium", "color": "textTertiary", "w": "hug"}
+        ]},
+        {"t": "row", "gap": 8, "c": [
+          {"t": "input", "v": "E", "trail": "arrow_drop_down", "w": "fill"},
+          {"t": "input", "v": "2", "trail": "arrow_drop_down", "w": "fill"},
+          {"t": "text", "v": "3", "style": "labelMedium", "color": "textTertiary", "w": "hug"}
+        ]},
+        {"t": "row", "gap": 8, "c": [
+          {"t": "input", "v": "E", "trail": "arrow_drop_down", "w": "fill"},
+          {"t": "input", "v": "2", "trail": "arrow_drop_down", "w": "fill"},
+          {"t": "text", "v": "4", "style": "labelMedium", "color": "textTertiary", "w": "hug"}
+        ]},
+        {"t": "row", "gap": 8, "c": [
+          {"t": "input", "v": "E", "trail": "arrow_drop_down", "w": "fill"},
+          {"t": "input", "v": "2", "trail": "arrow_drop_down", "w": "fill"},
+          {"t": "text", "v": "5", "style": "labelMedium", "color": "textTertiary", "w": "hug"}
+        ]},
+        {"t": "row", "gap": 8, "c": [
+          {"t": "input", "v": "E", "trail": "arrow_drop_down", "w": "fill"},
+          {"t": "input", "v": "2", "trail": "arrow_drop_down", "w": "fill"},
+          {"t": "text", "v": "6", "style": "labelMedium", "color": "textTertiary", "w": "hug"}
         ]}
       ]},
       {"t": "divider"},

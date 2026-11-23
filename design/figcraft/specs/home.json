@@ -206,19 +206,6 @@
           ]
         },
         {
-          "t": "card",
-          "pad": 0,
-          "radius": 12,
-          "c": [
-            {
-              "t": "tile",
-              "title": "Continue",
-              "sub": "Wonderwall · 87 BPM",
-              "trail": "chevron_right"
-            }
-          ]
-        },
-        {
           "t": "spacer",
           "size": 32
         },

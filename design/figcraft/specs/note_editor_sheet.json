@@ -32,13 +32,13 @@
               "gap": 2,
               "main": "spaceBetween",
               "c": [
-                {"t": "text", "v": "A2", "style": "labelMedium", "color": "textSecondary", "w": 44},
+                {"t": "text", "v": "G3", "style": "labelMedium", "color": "textSecondary", "w": 44},
                 {"t": "row", "gap": 2, "c": [
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
+                  {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "accentOrange", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
-                  {"t": "box", "w": 34, "h": 30, "bg": "accentOrange", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2}
@@ -50,15 +50,15 @@
               "gap": 2,
               "main": "spaceBetween",
               "c": [
-                {"t": "text", "v": "C3", "style": "labelMedium", "color": "textSecondary", "w": 44},
+                {"t": "text", "v": "F3", "style": "labelMedium", "color": "textSecondary", "w": 44},
                 {"t": "row", "gap": 2, "c": [
-                  {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
-                  {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "accentOrange", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
+                  {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "accentOrange", "radius": 2},
+                  {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2}
                 ]}
               ]
@@ -86,15 +86,15 @@
               "gap": 2,
               "main": "spaceBetween",
               "c": [
-                {"t": "text", "v": "F3", "style": "labelMedium", "color": "textSecondary", "w": 44},
+                {"t": "text", "v": "C3", "style": "labelMedium", "color": "textSecondary", "w": 44},
                 {"t": "row", "gap": 2, "c": [
-                  {"t": "box", "w": 34, "h": 30, "bg": "accentOrange", "radius": 2},
-                  {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
-                  {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "accentOrange", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
+                  {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
+                  {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
+                  {"t": "box", "w": 34, "h": 30, "bg": "accentOrange", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2}
                 ]}
               ]
@@ -104,13 +104,13 @@
               "gap": 2,
               "main": "spaceBetween",
               "c": [
-                {"t": "text", "v": "G3", "style": "labelMedium", "color": "textSecondary", "w": 44},
+                {"t": "text", "v": "A2", "style": "labelMedium", "color": "textSecondary", "w": 44},
                 {"t": "row", "gap": 2, "c": [
-                  {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "accentOrange", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
+                  {"t": "box", "w": 34, "h": 30, "bg": "accentOrange", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2},
                   {"t": "box", "w": 34, "h": 30, "bg": "surfaceRaised", "radius": 2}
