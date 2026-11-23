@@ -1,7 +1,14 @@
 """Helpers for comparing static design labels with Dart source literals."""
 
 import re
+import json
+import sys
 from pathlib import Path
+
+try:
+    from spec_tree import flatten
+except ImportError:  # Imported as part of the design.figcraft package.
+    from design.figcraft.spec_tree import flatten
 
 
 _DART_STRING = re.compile(r"(['\"])((?:\\.|(?!\1).)*?)\1", re.DOTALL)
@@ -67,3 +74,61 @@ def compare(spec_flat: dict, dump: dict, literals: set[str]) -> dict:
         "kinds_extra": kinds_extra,
         "order": order,
     }
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Compare default render dumps against specs, enforcing the parity lock."""
+    argv = list(sys.argv[1:] if argv is None else argv)
+    lock_passing = "--lock-passing" in argv
+    if any(arg != "--lock-passing" for arg in argv):
+        print("usage: parity_check.py [--lock-passing]", file=sys.stderr)
+        return 2
+
+    root = Path.cwd()
+    design = root / "design"
+    keys = [line.strip() for line in (design / "render_keys.txt").read_text(encoding="utf-8").splitlines()
+            if line.strip()]
+    lock_path = design / "parity_lock.txt"
+    locked = {line.strip() for line in lock_path.read_text(encoding="utf-8").splitlines()
+              if line.strip()} if lock_path.exists() else set()
+    literals = lib_literals(str(root / "lib"))
+    icons_path = root / "design/figcraft/icons.txt"
+    icons = {line.strip() for line in icons_path.read_text(encoding="utf-8").splitlines()
+             if line.strip()} if icons_path.exists() else set()
+
+    results = {}
+    rendered = passed = locked_failing = 0
+    passing_keys = []
+    for key in keys:
+        spec_path = root / "design/figcraft/specs" / f"{key}.json"
+        spec = json.loads(spec_path.read_text(encoding="utf-8"))
+        theme = spec.get("mode", "dark")
+        dump_path = root / "design/render" / f"{key}@{theme}-412-1.00.json"
+        spec_flat = flatten(spec, icons)
+        if dump_path.exists():
+            rendered += 1
+            result = compare(spec_flat, json.loads(dump_path.read_text(encoding="utf-8")), literals)
+        else:
+            result = {"pass": False, "missing_dump": True, "missing": [], "extra": [],
+                      "kinds_missing": [], "kinds_extra": [], "order": 0.0}
+        results[key] = result
+        if result["pass"]:
+            passed += 1
+            passing_keys.append(key)
+        if key in locked and not result["pass"]:
+            locked_failing += 1
+            print(f"{key}: {json.dumps(result, sort_keys=True)}")
+
+    (design / "render").mkdir(parents=True, exist_ok=True)
+    (design / "render/parity.json").write_text(
+        json.dumps(results, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    if lock_passing:
+        locked.update(passing_keys)
+        lock_path.write_text("".join(f"{key}\n" for key in sorted(locked)), encoding="utf-8")
+    print(f"parity: {rendered} rendered, {passed} pass, {len(locked)} locked, {locked_failing} locked failing")
+    return 1 if locked_failing else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
