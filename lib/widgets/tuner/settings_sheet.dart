@@ -13,139 +13,143 @@ class TunerSettingsSheet extends ConsumerWidget {
     final state = ref.watch(tunerProvider);
     final notifier = ref.read(tunerProvider.notifier);
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.82,
-      ),
-      decoration: BoxDecoration(
-        color: context.mp.surface,
-        borderRadius: const BorderRadius.vertical(
+    // Material, not a decorated Container: the SwitchListTiles paint ink on it (F92).
+    return Material(
+      color: context.mp.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
           top: Radius.circular(MonoPulseRadius.large),
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              MonoPulseSpacing.xl,
-              MonoPulseSpacing.lg,
-              MonoPulseSpacing.md,
-              0,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Tuner Settings',
-                    style: MonoPulseTypography.titleMedium.copyWith(
-                      color: context.mp.textHighEmphasis,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  color: context.mp.textSecondary,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-          ),
-          Flexible(
-            child: SingleChildScrollView(
+      clipBehavior: Clip.antiAlias,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.82,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
               padding: const EdgeInsets.fromLTRB(
                 MonoPulseSpacing.xl,
+                MonoPulseSpacing.lg,
                 MonoPulseSpacing.md,
-                MonoPulseSpacing.xl,
-                MonoPulseSpacing.xxl,
+                0,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  if (state.selectedInstrument != null) ...[
-                    const _SectionLabel('Current Preset'),
-                    const SizedBox(height: MonoPulseSpacing.sm),
-                    _PresetSummary(
-                      instrument: state.selectedInstrument!.name,
-                      tuning: state.selectedTuning?.name ?? 'Chromatic',
-                    ),
-                    const SizedBox(height: MonoPulseSpacing.xl),
-                  ],
-                  _SettingSlider(
-                    label: 'A4 Reference',
-                    valueLabel: '${state.referenceA4.round()} Hz',
-                    value: state.referenceA4,
-                    min: 415,
-                    max: 466,
-                    divisions: 51,
-                    onChanged: notifier.setReferenceA4,
-                  ),
-                  _SettingSlider(
-                    label: 'In-Tune Tolerance',
-                    valueLabel: '±${state.centsTolerance} cents',
-                    value: state.centsTolerance.toDouble(),
-                    min: 1,
-                    max: 20,
-                    divisions: 19,
-                    onChanged: notifier.setCentsTolerance,
-                  ),
-                  _SettingSlider(
-                    label: 'Input Sensitivity',
-                    valueLabel: '${state.sensitivity.round()}%',
-                    value: state.sensitivity,
-                    min: 0,
-                    max: 100,
-                    divisions: 20,
-                    onChanged: notifier.setSensitivity,
-                  ),
-                  const _SectionLabel('Transposition'),
-                  const SizedBox(height: MonoPulseSpacing.sm),
-                  _TranspositionSelector(
-                    value: state.transpositionSemitones,
-                    onChanged: notifier.setTransposition,
-                  ),
-                  const SizedBox(height: MonoPulseSpacing.xs),
-                  Text(
-                    'Show detected notes as written pitch for transposing instruments.',
-                    style: MonoPulseTypography.bodySmall.copyWith(
-                      color: context.mp.textTertiary,
+                  Expanded(
+                    child: Text(
+                      'Tuner Settings',
+                      style: MonoPulseTypography.titleMedium.copyWith(
+                        color: context.mp.textHighEmphasis,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: MonoPulseSpacing.lg),
-                  _SettingSwitch(
-                    title: 'Haptic Feedback',
-                    subtitle:
-                        'Confirm when the note becomes stable and in tune',
-                    value: state.hapticEnabled,
-                    onChanged: (_) => notifier.toggleHapticFeedback(),
-                  ),
-                  _SettingSwitch(
-                    title: 'Stage Mode',
-                    subtitle: 'Show a simplified full-screen tuning display',
-                    value: state.stageModeEnabled,
-                    onChanged: (_) => notifier.toggleStageModeEnabled(),
-                  ),
-                  const SizedBox(height: MonoPulseSpacing.lg),
-                  Divider(color: context.mp.borderSubtle),
-                  const SizedBox(height: MonoPulseSpacing.md),
-                  Text(
-                    'Microphone privacy',
-                    style: MonoPulseTypography.labelMedium.copyWith(
-                      color: context.mp.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: MonoPulseSpacing.sm),
-                  Text(
-                    'Pitch detection runs locally. Raw microphone audio is never stored or sent to FlowGroove servers.',
-                    style: MonoPulseTypography.bodySmall.copyWith(
-                      color: context.mp.textTertiary,
-                    ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    color: context.mp.textSecondary,
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  MonoPulseSpacing.xl,
+                  MonoPulseSpacing.md,
+                  MonoPulseSpacing.xl,
+                  MonoPulseSpacing.xxl,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (state.selectedInstrument != null) ...[
+                      const _SectionLabel('Current Preset'),
+                      const SizedBox(height: MonoPulseSpacing.sm),
+                      _PresetSummary(
+                        instrument: state.selectedInstrument!.name,
+                        tuning: state.selectedTuning?.name ?? 'Chromatic',
+                      ),
+                      const SizedBox(height: MonoPulseSpacing.xl),
+                    ],
+                    _SettingSlider(
+                      label: 'A4 Reference',
+                      valueLabel: '${state.referenceA4.round()} Hz',
+                      value: state.referenceA4,
+                      min: 415,
+                      max: 466,
+                      divisions: 51,
+                      onChanged: notifier.setReferenceA4,
+                    ),
+                    _SettingSlider(
+                      label: 'In-Tune Tolerance',
+                      valueLabel: '±${state.centsTolerance} cents',
+                      value: state.centsTolerance.toDouble(),
+                      min: 1,
+                      max: 20,
+                      divisions: 19,
+                      onChanged: notifier.setCentsTolerance,
+                    ),
+                    _SettingSlider(
+                      label: 'Input Sensitivity',
+                      valueLabel: '${state.sensitivity.round()}%',
+                      value: state.sensitivity,
+                      min: 0,
+                      max: 100,
+                      divisions: 20,
+                      onChanged: notifier.setSensitivity,
+                    ),
+                    const _SectionLabel('Transposition'),
+                    const SizedBox(height: MonoPulseSpacing.sm),
+                    _TranspositionSelector(
+                      value: state.transpositionSemitones,
+                      onChanged: notifier.setTransposition,
+                    ),
+                    const SizedBox(height: MonoPulseSpacing.xs),
+                    Text(
+                      'Show detected notes as written pitch for transposing instruments.',
+                      style: MonoPulseTypography.bodySmall.copyWith(
+                        color: context.mp.textTertiary,
+                      ),
+                    ),
+                    const SizedBox(height: MonoPulseSpacing.lg),
+                    _SettingSwitch(
+                      title: 'Haptic Feedback',
+                      subtitle:
+                          'Confirm when the note becomes stable and in tune',
+                      value: state.hapticEnabled,
+                      onChanged: (_) => notifier.toggleHapticFeedback(),
+                    ),
+                    _SettingSwitch(
+                      title: 'Stage Mode',
+                      subtitle: 'Show a simplified full-screen tuning display',
+                      value: state.stageModeEnabled,
+                      onChanged: (_) => notifier.toggleStageModeEnabled(),
+                    ),
+                    const SizedBox(height: MonoPulseSpacing.lg),
+                    Divider(color: context.mp.borderSubtle),
+                    const SizedBox(height: MonoPulseSpacing.md),
+                    Text(
+                      'Microphone privacy',
+                      style: MonoPulseTypography.labelMedium.copyWith(
+                        color: context.mp.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: MonoPulseSpacing.sm),
+                    Text(
+                      'Pitch detection runs locally. Raw microphone audio is never stored or sent to FlowGroove servers.',
+                      style: MonoPulseTypography.bodySmall.copyWith(
+                        color: context.mp.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

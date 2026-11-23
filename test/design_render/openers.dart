@@ -1,3 +1,5 @@
+import 'package:flowgroove/widgets/tuner/settings_sheet.dart';
+
 import '../helpers/mocks.dart';
 
 import 'package:flowgroove/models/audio_region.dart';
@@ -1253,6 +1255,14 @@ final kOpeners = <String, Opener>{
   ),
   'bpm_input_overlay_sheet_l15': Opener(
     (context, _, _) => showTempoInputSheet(context),
+  ),
+  'tuner_settings_sheet': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const TunerSettingsSheet(),
+    ),
   ),
   'metronome_sheets_sheet_l14': Opener(
     (context, _, _) => showSoundSheet(context),
