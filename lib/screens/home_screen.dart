@@ -28,6 +28,8 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _HomeDashboard(BuildContext context, WidgetRef ref) {
+    // Unlistened providers pause: keep bands live for _openRehearsals (F121).
+    ref.watch(bandsProvider);
     // Home leads with actions (#97): no greeting card, no stat counters —
     // the top slot carries the practice dashboard instead (#133).
     return DashboardGrid(
@@ -95,8 +97,9 @@ class HomeScreen extends ConsumerWidget {
   /// schedule, several bands show a titled picker. Rehearsals are band-scoped,
   /// so the destination always identifies itself as "Rehearsals" rather than
   /// silently landing on the plain Bands list (UX audit F-001).
-  void _openRehearsals(BuildContext context, WidgetRef ref) {
-    final bands = ref.read(bandsProvider).value ?? [];
+  Future<void> _openRehearsals(BuildContext context, WidgetRef ref) async {
+    final bands = await ref.read(bandsProvider.future).onError((_, _) => []);
+    if (!context.mounted) return;
     if (bands.isEmpty) {
       _showRehearsalsEmptyState(context, ref);
       return;

@@ -382,14 +382,14 @@
   {
     "key": "home_screen._openRehearsals",
     "kind": "sheet",
-    "source": "lib/screens/home_screen.dart:112",
+    "source": "lib/screens/home_screen.dart:115",
     "widget": "_openRehearsals",
     "spec": "design/figcraft/specs/home_sheet_l112.json"
   },
   {
     "key": "home_screen.RehearsalsEmptyState",
     "kind": "sheet",
-    "source": "lib/screens/home_screen.dart:162",
+    "source": "lib/screens/home_screen.dart:165",
     "widget": "RehearsalsEmptyState",
     "spec": "design/figcraft/specs/home_rehearsals.json"
   },

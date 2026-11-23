@@ -1,3 +1,4 @@
+import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
@@ -29,6 +30,7 @@ Future<void> pumpHomeScreen(
   WidgetTester tester, {
   required MockFirebaseAuth mockAuth,
   AppUser? user,
+  List<Band> bands = const [],
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -48,7 +50,7 @@ Future<void> pumpHomeScreen(
             firebaseAuthProvider.overrideWith((ref) => mockAuth),
             appUserProvider.overrideWith(() => TestAppUserNotifier(user)),
             songsProvider.overrideWith((ref) => Stream.value([])),
-            bandsProvider.overrideWith((ref) => Stream.value([])),
+            bandsProvider.overrideWith((ref) => Stream.value(bands)),
             setlistsProvider.overrideWith((ref) => Stream.value([])),
           ],
           child: const HomeScreen(),
@@ -160,6 +162,32 @@ void main() {
 
       expect(find.text('Sign up to create a band'), findsOneWidget);
     });
+
+    testWidgets(
+      'rehearsals waits for the bands stream before choosing (F121)',
+      (tester) async {
+        Band band(String id) => Band(
+          id: id,
+          name: 'Band $id',
+          createdBy: 'u',
+          createdAt: DateTime(2024),
+        );
+
+        await pumpHomeScreen(
+          tester,
+          mockAuth: mockAuth,
+          user: MockDataHelper.createMockAppUser(),
+          bands: [band('A'), band('B')],
+        );
+
+        await tester.tap(find.text('Rehearsals'));
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text('Band A'), findsOneWidget);
+        expect(find.text('Band B'), findsOneWidget);
+      },
+    );
 
     testWidgets('has responsive layout', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
