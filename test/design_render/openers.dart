@@ -29,14 +29,18 @@ import 'package:flowgroove/screens/songs/components/csv_import_export/song_impor
 import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
 import 'package:flowgroove/screens/songs/components/lab_recording_sheet.dart';
 import 'package:flowgroove/screens/songs/components/links_editor.dart';
+import 'package:flowgroove/screens/songs/components/song_form.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/widgets/edit_section_dialog.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/widgets/section_picker.dart';
+import 'package:flowgroove/screens/songs/add_song_screen.dart';
+import 'package:flowgroove/screens/songs/models/song_form_data.dart';
 import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
+import 'package:flowgroove/widgets/primary_action_bar.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
 import 'package:flowgroove/widgets/metronome/bpm_input_overlay.dart';
 import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
@@ -132,33 +136,42 @@ final kOpeners = <String, Opener>{
     (context, _, _) => showRolePicker(context: context, currentRoles: const []),
   ),
   'tag_input_dialog': Opener((context, _, _) => TagInputDialog.show(context)),
-  'song_form_provider_similar_song_exists': Opener(
-    (context, _, _) => showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded),
-        title: const Text('Similar Song Exists'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '"Wonderwall" by Oasis',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'A similar song already exists in your library. Do you want to:',
+  'song_form_provider_similar_song_exists': Opener((context, _, _) {
+    final user = MockUser();
+    when(user.uid).thenReturn('user1');
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWith((ref) => AsyncValue.data(user)),
+            songRepositoryProvider.overrideWith(
+              (ref) => RenderSongRepository(),
             ),
           ],
+          child: AddSongScreen(
+            initialFormData: SongFormData(
+              title: 'First Song',
+              artist: 'Test Artist',
+            ),
+          ),
         ),
-        actions: [
-          TextButton(onPressed: () {}, child: const Text('Cancel')),
-          TextButton(onPressed: () {}, child: const Text('Save Anyway')),
-        ],
       ),
-    ),
-  ),
+    );
+    tapWhenBuilt(
+      find.byType(SongForm, skipOffstage: false),
+      (element) =>
+          (find
+                      .byType(PrimaryActionBar, skipOffstage: false)
+                      .evaluate()
+                      .last
+                      .widget
+                  as PrimaryActionBar)
+              .onPressed!(),
+    );
+    tapWhenBuilt(find.byType(AlertDialog), (element) {
+      expect(find.text('"First Song" by Test Artist'), findsOneWidget);
+    });
+  }),
   'create_band_discard_changes': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,

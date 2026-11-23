@@ -4,6 +4,7 @@ import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/metronome_state.dart';
 import 'package:flowgroove/models/midi_song.dart';
 import 'package:flowgroove/models/rehearsal.dart';
+import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/providers/analytics_consent_provider.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
@@ -16,6 +17,7 @@ import 'package:flowgroove/providers/keep_screen_on_provider.dart';
 import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/providers/theme_mode_provider.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
+import 'package:flowgroove/repositories/song_repository.dart';
 import 'package:flowgroove/services/band_function_service.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
@@ -34,6 +36,13 @@ const kFixtureIds = {
   'rehearsal': 'reh1',
   'invite': 'INVITE1',
 };
+
+class RenderSongRepository extends Mock implements SongRepository {
+  @override
+  Future<List<Song>> getSongs(String uid) async => [
+    MockDataHelper.createMockSong(id: 'song1', title: 'First Song'),
+  ];
+}
 
 String fillRoute(String route) =>
     route.replaceAllMapped(RegExp(r'\{([^{}]+)\}'), (match) {
