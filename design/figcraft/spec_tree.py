@@ -89,6 +89,26 @@ def flatten(spec: dict, icons: set[str]) -> dict:
                 kinds.append("iconbtn")
         elif kind == "bottomnav":
             add(_BOTTOM_NAV)
+        # Song Map nodes, in the order the app lays their texts out (top to bottom, then left to right).
+        elif kind == "key":
+            kinds.append("button")
+            add(node.get("v"))
+        elif kind == "row" and node.get("c") and all(
+            isinstance(child, dict) and child.get("t") == "pad" for child in node["c"]
+        ):
+            for field in ("label", "letter", "sub"):
+                add([child.get(field) for child in node["c"]])
+            return
+        elif kind == "overview":
+            add([block.get("letter") for block in node.get("sections", [])])
+        elif kind == "zoomwave":
+            parts = node.get("parts", [])
+            add([part.get("letter") for part in parts])
+            add([f"{part['bars']} bar" if part["bars"] == 1 else f"{part['bars']} bars" for part in parts])
+            start = node.get("startBar", 1)
+            add([str(bar) for bar in range(start, start + sum(part["bars"] for part in parts))])
+        elif kind == "transport":
+            add(["Pause" if node.get("playing") else "Play", "Loop", "Click", "Drums", "Count-in"])
 
         # Container children and nested node-valued properties retain source order.
         children = node.get("c")
