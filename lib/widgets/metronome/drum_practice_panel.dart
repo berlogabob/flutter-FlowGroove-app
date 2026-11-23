@@ -15,6 +15,7 @@ import '../../repositories/firestore_lab_repository.dart';
 import '../../screens/songs/components/drum_grid_editor.dart';
 import '../../services/analytics_service.dart';
 import '../../services/audio/midi/smf_parser.dart';
+import '../../theme/mono_pulse_theme.dart';
 import '../../utils/picked_file.dart';
 import '../custom_button.dart';
 import '../midi/drum_kit_view.dart';
@@ -276,7 +277,7 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
       builder: (context, controller) => SafeArea(
         child: ListView(
           controller: controller,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           children: [
             Text('Drums', style: Theme.of(context).textTheme.titleLarge),
             entries.when(
@@ -288,15 +289,17 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                   children: [
                     if (midi.isEmpty)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: MonoPulseSpacing.md,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Icon(
                               Icons.queue_music,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -308,9 +311,9 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                               'Import a MIDI drum file or build a pattern step by step to play along with the click.',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                             ),
                           ],
@@ -409,7 +412,7 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
               ),
             if (_error != null)
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
                 child: Semantics(
                   liveRegion: true,
                   child: Text(

@@ -28,7 +28,9 @@ class TagInputDialog extends StatefulWidget {
       isScrollControlled: true,
       backgroundColor: context.mp.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MonoPulseRadius.xlarge),
+        ),
       ),
       builder: (context) => Padding(
         padding: EdgeInsets.only(

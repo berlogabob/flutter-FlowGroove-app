@@ -773,13 +773,16 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
     label,
     style: SectionHeaderStyle.label,
     textStyle: MonoPulseTypography.labelSmall,
-    padding: const EdgeInsets.only(top: MonoPulseSpacing.sm, bottom: 4),
+    padding: const EdgeInsets.only(
+      top: MonoPulseSpacing.sm,
+      bottom: MonoPulseSpacing.xs,
+    ),
   );
 
   Widget _gearTile(GearEntry entry) {
     final isSelected = _gearPicked(entry);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
       child: GestureDetector(
         onTap: () => _toggleGear(entry),
         child: Container(
@@ -1088,7 +1091,7 @@ class _AccessPreview extends StatelessWidget {
       padding: const EdgeInsets.all(MonoPulseSpacing.md),
       decoration: BoxDecoration(
         border: Border.all(color: context.mp.borderDefault),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

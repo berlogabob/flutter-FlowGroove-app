@@ -486,7 +486,9 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
               child: visible.isEmpty
                   ? Center(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: MonoPulseSpacing.xxl,
+                        ),
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 420),
                           child: EmptyState(

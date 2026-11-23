@@ -7,6 +7,7 @@
 library;
 
 import 'package:material_ui/material_ui.dart';
+
 import '../../../theme/mono_pulse_theme.dart';
 
 /// A collapsible section widget.
@@ -110,7 +111,9 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
                         ? Align(
                             alignment: Alignment.centerRight,
                             child: Padding(
-                              padding: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.only(
+                                left: MonoPulseSpacing.sm,
+                              ),
                               child: widget.preview,
                             ),
                           )

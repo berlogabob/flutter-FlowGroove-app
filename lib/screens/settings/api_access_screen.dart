@@ -209,7 +209,7 @@ class _GuideCard extends StatelessWidget {
       padding: const EdgeInsets.all(MonoPulseSpacing.md),
       decoration: BoxDecoration(
         border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

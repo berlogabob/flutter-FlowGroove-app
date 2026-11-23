@@ -110,7 +110,7 @@ class _CanonicalBrowseScreenState extends ConsumerState<CanonicalBrowseScreen> {
                 hintText: 'Search the catalog…',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(MonoPulseRadius.large),
                 ),
               ),
               textInputAction: TextInputAction.search,

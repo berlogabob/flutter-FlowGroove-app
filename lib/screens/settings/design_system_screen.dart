@@ -258,7 +258,10 @@ class _DataPlate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    padding: const EdgeInsets.symmetric(
+      horizontal: MonoPulseSpacing.md,
+      vertical: MonoPulseSpacing.sm,
+    ),
     decoration: BoxDecoration(
       color: context.mp.surfaceRaised,
       border: Border.all(color: context.mp.borderDefault),

@@ -217,7 +217,9 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
           hintText: widget.hint,
           prefixIcon: Icon(widget.icon),
           suffixIcon: _buildSuffixIcon(searchState.isLoading),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.lg,
             vertical: MonoPulseSpacing.md,
@@ -297,12 +299,12 @@ class _SuggestionDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       elevation: 8,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(MonoPulseRadius.large),
       child: Container(
         constraints: const BoxConstraints(maxHeight: 400, minHeight: 100),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           border: Border.all(
             color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
           ),

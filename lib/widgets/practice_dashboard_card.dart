@@ -37,7 +37,7 @@ class PracticeDashboardCard extends ConsumerWidget {
     final card = Card(
       child: InkWell(
         onTap: tappable ? () => context.pushNamed('practice') : null,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         child: Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: statsAsync.when(

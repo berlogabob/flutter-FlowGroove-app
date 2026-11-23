@@ -11,6 +11,8 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../theme/mono_pulse_theme.dart';
+
 /// Service that manages wakelock state for the app.
 ///
 /// Usage:
@@ -207,7 +209,7 @@ class _ScreenWakelockState extends State<ScreenWakelock>
             child: const SafeArea(
               bottom: false,
               child: Padding(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(MonoPulseSpacing.sm),
                 child: Text('Keep this tab visible for exact timing'),
               ),
             ),

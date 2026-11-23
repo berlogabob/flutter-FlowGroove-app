@@ -414,7 +414,7 @@ class _SlotCard extends StatelessWidget {
                 color: Theme.of(context).colorScheme.primary,
                 width: 2,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             )
           : null,
       child: Padding(

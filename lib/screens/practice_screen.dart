@@ -360,7 +360,7 @@ class _TimePerSong extends StatelessWidget {
         const SizedBox(height: MonoPulseSpacing.sm),
         for (var i = 0; i < segments.length; i++)
           Padding(
-            padding: const EdgeInsets.only(bottom: 2),
+            padding: const EdgeInsets.only(bottom: MonoPulseSpacing.xxs),
             child: Row(
               children: [
                 Container(

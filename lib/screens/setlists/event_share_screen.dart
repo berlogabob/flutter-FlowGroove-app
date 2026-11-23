@@ -419,7 +419,7 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
   );
 
   Widget _row(IconData icon, String text) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
+    padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xs),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -119,7 +119,7 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
     final song = widget.songs[index];
     return InkWell(
       onTap: () => setState(() => _picks[f] = index),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(MonoPulseRadius.small),
       child: Container(
         width: 180,
         padding: const EdgeInsets.all(MonoPulseSpacing.md),
@@ -131,7 +131,7 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
                 : context.mp.borderDefault,
             width: MonoPulseBorder.bold,
           ),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.small),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

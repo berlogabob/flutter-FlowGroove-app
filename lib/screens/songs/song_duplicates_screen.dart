@@ -7,6 +7,7 @@ import '../../providers/data/data_providers.dart';
 import '../../services/matching/song_cluster.dart';
 import '../../services/matching/song_duplicate_detector.dart';
 import '../../services/song_library_merge_service.dart';
+import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/menu_items_scope.dart';
 import 'song_cluster_merge_screen.dart';
@@ -98,9 +99,12 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
 
   Widget _clusterCard(SongCluster cluster) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.lg,
+        vertical: MonoPulseSpacing.xs,
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(MonoPulseSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

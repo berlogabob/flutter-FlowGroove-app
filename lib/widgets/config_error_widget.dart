@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../config/config_validator.dart';
 import '../theme/mono_pulse_theme.dart';
 
@@ -34,9 +35,8 @@ class ConfigErrorWidget extends StatelessWidget {
                   // Title
                   Text(
                     'Configuration Error',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -53,7 +53,9 @@ class ConfigErrorWidget extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(
+                        MonoPulseRadius.large,
+                      ),
                     ),
                     padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                     child: Column(
@@ -64,9 +66,9 @@ class ConfigErrorWidget extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onErrorContainer,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer,
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -81,9 +83,9 @@ class ConfigErrorWidget extends StatelessWidget {
                                 Icon(
                                   Icons.close,
                                   size: 16,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onErrorContainer,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onErrorContainer,
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -93,9 +95,9 @@ class ConfigErrorWidget extends StatelessWidget {
                                         .textTheme
                                         .bodyMedium
                                         ?.copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onErrorContainer,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onErrorContainer,
                                         ),
                                   ),
                                 ),
@@ -112,10 +114,12 @@ class ConfigErrorWidget extends StatelessWidget {
                     const SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(
+                          MonoPulseRadius.large,
+                        ),
                       ),
                       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                       child: Column(
@@ -138,17 +142,17 @@ class ConfigErrorWidget extends StatelessWidget {
                                   Icon(
                                     Icons.warning_amber,
                                     size: 16,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       warning,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium,
                                     ),
                                   ),
                                 ],
@@ -187,7 +191,7 @@ class ConfigErrorWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
       ),
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Column(
@@ -195,9 +199,8 @@ class ConfigErrorWidget extends StatelessWidget {
         children: [
           Text(
             'Troubleshooting:',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           _buildTroubleshootingStep(
