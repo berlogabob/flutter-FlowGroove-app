@@ -286,30 +286,24 @@ final kOpeners = <String, Opener>{
       expect(find.byType(TheBandScreen, skipOffstage: false), findsOneWidget);
     });
   }),
-  'the_band_edit_description': Opener(
-    (context, _, _) => showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Description'),
-        content: TextField(
-          controller: TextEditingController(text: 'Rock band from Portland.'),
-          decoration: const InputDecoration(
-            labelText: 'Description',
-            border: OutlineInputBorder(),
-            hintText: 'Enter band description...',
-          ),
-          maxLines: 4,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(onPressed: () {}, child: const Text('Save')),
-        ],
+  'the_band_edit_description': Opener((context, _, router) {
+    router.pushNamed('the-band', pathParameters: {'id': 'band1'});
+    tapWhenBuilt(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is StandardScreenScaffold &&
+            widget.menuItems?.any((item) => item.label == 'Edit Description') ==
+                true,
+        skipOffstage: false,
       ),
-    ),
-  ),
+      (element) => (element.widget as StandardScreenScaffold).menuItems!
+          .firstWhere((item) => item.label == 'Edit Description')
+          .onTap!(),
+    );
+    tapWhenBuilt(find.byType(AlertDialog), (_) {
+      expect(find.byType(TheBandScreen, skipOffstage: false), findsOneWidget);
+    });
+  }),
   'home_sheet_l112': Opener(
     (context, _, _) => showModalBottomSheet<void>(
       context: context,
