@@ -1260,6 +1260,18 @@ final kOpeners = <String, Opener>{
   'reliability_sheet_keep_timing_reliable': Opener(
     (context, _, _) => showReliabilitySheet(context),
   ),
+  'song_library_block_sheet_l85': Opener((_, tester, _) {
+    tester
+        .widget<InkWell>(
+          find
+              .ancestor(
+                of: find.text('Songs & Setlists'),
+                matching: find.byType(InkWell),
+              )
+              .first,
+        )
+        .onTap!();
+  }, route: '/main/metronome'),
   'midi_import_flow_import_midi': Opener(
     (context, _, _) => showDialog<void>(
       context: context,
