@@ -426,6 +426,57 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
+  'profile_currently_using': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.mp.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.send, color: context.mp.textTertiary),
+              title: const Text('Use Telegram Photo'),
+              subtitle: Text(
+                'Import photo from Telegram',
+                style: TextStyle(color: context.mp.textTertiary),
+              ),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_circle),
+              title: const Text('Use Google Photo'),
+              onTap: () => Navigator.pop(context),
+            ),
+            for (final option in [
+              (Icons.camera_alt, 'Take Photo'),
+              (Icons.photo_library, 'Choose from Gallery'),
+            ])
+              ListTile(
+                leading: Icon(option.$1),
+                title: Text(option.$2),
+                subtitle: const Text(
+                  '✓ Currently using',
+                  style: TextStyle(color: MonoPulseColors.success),
+                ),
+                onTap: () => Navigator.pop(context),
+              ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: MonoPulseColors.error),
+              title: const Text(
+                'Remove Photo',
+                style: TextStyle(color: MonoPulseColors.error),
+              ),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
   'song_map_part': Opener(
     (context, _, _) => showSectionNameSheet(
       context,
