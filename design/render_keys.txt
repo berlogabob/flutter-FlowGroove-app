@@ -51,3 +51,4 @@ songs_list_importing_songs
 song_export_dialog
 add_song_helper_search_on_web
 tuner_tone
+custom_tuning_editor

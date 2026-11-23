@@ -2,6 +2,7 @@ import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
+import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -359,6 +360,14 @@ final kOpeners = <String, Opener>{
         )
         .onModeChanged(TunerMode.generate);
   }, route: '/main/tuner'),
+  'custom_tuning_editor': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const CustomTuningEditor(),
+    ),
+    route: '/main/tuner',
+  ),
   'performance_sheet_you_already_have_a_song_map': Opener(
     (context, _, _) => showDialog<void>(
       context: context,
