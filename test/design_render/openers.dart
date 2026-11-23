@@ -1,24 +1,56 @@
-import 'package:flowgroove/providers/data/data_providers.dart';
-import 'package:flowgroove/screens/setlists/event_share_screen.dart';
-import 'package:flowgroove/services/event_share_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../helpers/mocks.dart';
+
 import 'package:flowgroove/models/audio_region.dart';
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/event_kit.dart';
+import 'package:flowgroove/models/midi_song.dart';
+import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/song_lab.dart';
+import 'package:flowgroove/models/song_suggestion.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/data/midi_song_provider.dart';
+import 'package:flowgroove/providers/tuner_provider.dart';
 import 'package:flowgroove/screens/practice_regions/grid_editor_dialog.dart';
 import 'package:flowgroove/screens/practice_regions/region_name_sheet.dart';
 import 'package:flowgroove/screens/practice_regions/slice_edit_sheet.dart';
 import 'package:flowgroove/screens/practice_regions/song_map/song_map_letters.dart';
+import 'package:flowgroove/screens/practice_setup_wizard.dart';
+import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
+import 'package:flowgroove/screens/setlists/event_share_screen.dart';
+import 'package:flowgroove/screens/setlists/performer_sheet.dart';
+import 'package:flowgroove/screens/songs/components/csv_import_export/song_export_dialog.dart';
+import 'package:flowgroove/screens/songs/components/csv_import_export/song_import_dialog.dart';
+import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
+import 'package:flowgroove/screens/songs/components/lab_recording_sheet.dart';
+import 'package:flowgroove/screens/songs/components/links_editor.dart';
+import 'package:flowgroove/screens/songs/components/song_constructor/widgets/edit_section_dialog.dart';
+import 'package:flowgroove/screens/songs/components/song_constructor/widgets/section_picker.dart';
+import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
+import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flowgroove/widgets/invite_code_field.dart';
 import 'package:flowgroove/widgets/metronome/backing_sheet.dart';
+import 'package:flowgroove/widgets/metronome/bpm_input_overlay.dart';
+import 'package:flowgroove/widgets/metronome/drum_practice_panel.dart';
+import 'package:flowgroove/widgets/metronome/metronome_sheets.dart';
+import 'package:flowgroove/widgets/metronome/reliability_sheet.dart';
+import 'package:flowgroove/widgets/midi/arrangement_sheet.dart';
+import 'package:flowgroove/widgets/practice/note_editor_sheet.dart';
 import 'package:flowgroove/widgets/role_picker_widget.dart';
+import 'package:flowgroove/widgets/share_sheet.dart';
+import 'package:flowgroove/widgets/suggestion_selection_dialog.dart';
+import 'package:flowgroove/widgets/support_sheet.dart';
 import 'package:flowgroove/widgets/tag_input_dialog.dart';
+import 'package:flowgroove/widgets/tools/tool_mode_switcher.dart';
+import 'package:flowgroove/widgets/tuner/custom_tuning_editor.dart';
+import 'package:flowgroove/widgets/unified_item/setlist_card_actions.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
-
-import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
 
 /// How to show a spec that has no route of its own (sheet, dialog, picker).
 ///
@@ -609,5 +641,719 @@ final kOpeners = <String, Opener>{
         'Bridge': SongMapLetter('F', MonoPulseColors.section7),
       },
     ),
+  ),
+  'performer_sheet_link_to_band_member': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const ListTile(title: Text('Link to band member')),
+            for (final name in [
+              'Max Rivera',
+              'Jordan Lee',
+              'Sam Okafor',
+              'Priya Nair',
+              'Diego Ferrer',
+            ])
+              ListTile(
+                leading: const Icon(Icons.person),
+                title: Text(name),
+                onTap: () => Navigator.pop(context),
+              ),
+          ],
+        ),
+      ),
+    ),
+  ),
+  'performer_sheet_sheet_l32': Opener(
+    (context, _, _) => showPerformerSheet(
+      context: context,
+      selected: const ['jake', 'mara'],
+      kit: const EventKit(
+        people: [
+          EventPerson(
+            id: 'jake',
+            name: 'Jake Morris',
+            role: 'Guitar',
+            uid: 'member1',
+          ),
+          EventPerson(
+            id: 'mara',
+            name: 'Mara Velez',
+            role: 'Bass',
+            uid: 'member2',
+          ),
+          EventPerson(id: 'sam', name: 'Sam Okafor', role: 'Keys'),
+          EventPerson(id: 'riley', name: 'Riley Dubois', role: 'Drums'),
+        ],
+      ),
+      members: [
+        BandMember(
+          uid: 'member1',
+          role: BandMember.roleAdmin,
+          displayName: 'Jake Morris',
+        ),
+        BandMember(
+          uid: 'member2',
+          role: BandMember.roleEditor,
+          displayName: 'Mara Velez',
+        ),
+      ],
+      songNumber: 12,
+      songTitle: 'Wonderwall',
+    ),
+  ),
+  'api_access_revoke_key': Opener(
+    (context, _, _) => showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.delete_outline),
+        title: const Text('Revoke key'),
+        content: const Text('Revoke sk_7f3a…? Any AI using it loses access.'),
+        actions: [
+          TextButton(onPressed: () {}, child: const Text('Cancel')),
+          TextButton(onPressed: () {}, child: const Text('Revoke')),
+        ],
+      ),
+    ),
+  ),
+  'links_editor_add_link': Opener((context, tester, _) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        child: LinksEditor(
+          links: const [],
+          onAddLink: (_) {},
+          onRemoveLink: (_) {},
+        ),
+      ),
+    );
+    tester.binding.addPostFrameCallback((_) {
+      tester.tap(find.text('Add'));
+    });
+  }),
+  'suggestion_selection_dialog': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (context) => const SuggestionSelectionDialog(
+        suggestion: SongSuggestion(
+          id: 'suggestion1',
+          title: 'Wonderwall',
+          artist: 'Oasis',
+          source: SuggestionSource.spotify,
+          type: SuggestionType.exact,
+          album: "What's the Story Afternoon?",
+          releaseYear: 1995,
+          bpm: 87,
+          key: 'G',
+        ),
+      ),
+    ),
+  ),
+  'event_kit_editor_sheet_l154': Opener((context, tester, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(
+          setlist: MockDataHelper.createMockSetlist(
+            id: 'setlist1',
+            bandId: 'band1',
+            name: 'Gig Setlist',
+          ),
+          bandId: 'band1',
+        ),
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tester.tap(find.byIcon(Icons.add).first);
+    });
+  }),
+  'event_kit_editor_sheet_l181': Opener((context, tester, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(
+          setlist: MockDataHelper.createMockSetlist(
+            id: 'setlist1',
+            bandId: 'band1',
+            name: 'Gig Setlist',
+          ),
+          bandId: 'band1',
+        ),
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tester.tap(find.byIcon(Icons.add).first);
+    });
+  }),
+  'event_kit_editor_brand_optional': Opener(
+    (context, _, _) => showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Brand (optional)'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Brand'),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final brand in [
+                    'Marshall',
+                    'Orange',
+                    'Vox AC30',
+                    'Mesa Boogie',
+                    'Fender Twin',
+                    'Ampeg SVT',
+                    'Roland JC-120',
+                    'Hartke',
+                    'Blackstar',
+                    'Laney',
+                    'Peavey',
+                  ])
+                    ChoiceChip(
+                      label: Text(brand),
+                      selected: brand == 'Vox AC30',
+                      onSelected: (_) {},
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const TextField(
+                decoration: InputDecoration(
+                  labelText: 'Custom brand',
+                  hintText: 'Type a brand',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, ''),
+            child: const Text('Clear'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, 'Vox AC30'),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    ),
+  ),
+  'practice_regions_replace_n_sections': Opener(
+    (context, _, _) => showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Replace 8 sections?'),
+        content: const Text(
+          'Your current sections will be replaced when you finish setup.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Replace'),
+          ),
+        ],
+      ),
+    ),
+  ),
+  'practice_regions_replace_n_regions': Opener(
+    (context, _, _) => showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Replace 9 regions?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Replace'),
+          ),
+        ],
+      ),
+    ),
+  ),
+  'practice_setup_wizard_sheet_l27': Opener(
+    (context, _, _) => showPracticeSetupWizard(
+      context,
+      durationMs: 180000,
+      detectGrid: () async => (bpm: 87.0, firstDownbeatMs: 12345),
+      fileMarkers: () async => const [],
+      previewGrid: (_) async {},
+      newId: () => 'region1',
+    ),
+  ),
+  'profile_link_telegram': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.send),
+        title: const Text('Link Telegram'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Link your Telegram account to automatically import your profile name and photo to FlowGroove.',
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(dialogContext)
+                      .colorScheme
+                      .surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('How it works:'),
+                    SizedBox(height: 6),
+                    Text('1. Click "Open Telegram" below'),
+                    Text('2. Send /link command to the bot'),
+                    Text('3. Tap "Yes, link my profile"'),
+                    Text('4. Your name and photo will be imported'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          CustomButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            icon: Icons.send,
+            label: 'Open Telegram',
+          ),
+        ],
+      ),
+    ),
+  ),
+  'profile_delete_account': Opener(
+    (context, _, _) => showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        icon: const Icon(Icons.delete_forever),
+        title: const Text('Delete account'),
+        content: const Text(
+          'This permanently deletes your account and all your data — your '
+          'songs, setlists, and band memberships. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () {}, child: const Text('Cancel')),
+          TextButton(onPressed: () {}, child: const Text('Delete')),
+        ],
+      ),
+    ),
+  ),
+  'recorder_link_recording_to_song': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        const songs = [
+          ('Wonderwall', 'Oasis'),
+          ('Seven Nation Army', 'The White Stripes'),
+          ('Valerie', 'Amy Winehouse'),
+          ('Hey Jude', 'The Beatles'),
+          ('Wonderwall', 'Oasis'),
+          ('Wonderwall', 'Oasis'),
+        ];
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              const ListTile(title: Text('Link recording to song')),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  "Choose a song to attach this recording to. It will appear in that song's Lab timeline.",
+                ),
+              ),
+              const ListTile(title: Text('SONGS')),
+              for (var i = 0; i < songs.length; i++) ...[
+                ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.music_note),
+                  title: Text(songs[i].$1),
+                  subtitle: Text(songs[i].$2),
+                  trailing: const Icon(Icons.arrow_right),
+                  onTap: () => Navigator.pop(sheetContext),
+                ),
+                if (i < songs.length - 1) const Divider(),
+              ],
+            ],
+          ),
+        );
+      },
+    ),
+  ),
+  'section_picker': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(25),
+          child: SectionPicker(onSectionSelected: (_) {}),
+        ),
+      ),
+    ),
+  ),
+  'edit_section_dialog': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => EditSectionDialog(
+        section: Section(
+          id: 'section1',
+          name: 'Verse',
+          duration: 3,
+          notes: '',
+          chordChart: '[Am]Twinkle [F]little [C]star',
+        ),
+      ),
+    ),
+  ),
+  'setlist_export_sheet_whose_copy': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: const [
+            ListTile(title: Text('Whose copy?')),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Marcus Reed'),
+              subtitle: Text('#1, #3, #5, #7'),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Dana Kowalski'),
+              subtitle: Text('#2, #6'),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Devon Diaz'),
+              subtitle: Text('#4, #8, #10'),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Priya Nair'),
+              subtitle: Text('#9'),
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Sam Okafor'),
+              subtitle: Text('#1, #2, #4, #6, #8, #10'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
+  'setlist_card_actions_quick_action': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (_) => Consumer(
+        builder: (context, ref, _) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showSetlistQuickActionPicker(context, ref);
+          });
+          return const SizedBox.shrink();
+        },
+      ),
+    ),
+  ),
+  'song_card_actions_sheet_l209': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: const [
+            ListTile(title: Text('Add to band…')),
+            ListTile(title: Text('Choose the band to save "Wonderwall" to')),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('FlowGroove'),
+              subtitle: Text('Rehearsal Fri 7pm'),
+              trailing: Icon(Icons.check),
+            ),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('The Weekend Set'),
+              subtitle: Text("4 members · You're editor"),
+            ),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('Sunday Jam'),
+              subtitle: Text('2 members'),
+            ),
+            ListTile(
+              leading: Icon(Icons.groups),
+              title: Text('Cover Crew'),
+              subtitle: Text('1 member'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
+  'add_song_helper_search_on_web': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Search on Web'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Open Spotify search in browser?'),
+            const SizedBox(height: 16),
+            const Text(
+              'Wonderwall Oasis',
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          CustomButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            label: 'Open Spotify',
+          ),
+        ],
+      ),
+    ),
+  ),
+  'drum_practice_panel': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const DrumPracticePanel(songId: 'song1', bandId: 'band1'),
+    ),
+  ),
+  'drum_grid_editor': Opener((context, tester, _) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const DrumPracticePanel(songId: 'song1'),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tester.tap(find.text('New pattern'));
+    });
+  }),
+  'song_import_dialog': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (_) => const SongImportDialog(librarySongs: []),
+    ),
+  ),
+  'songs_list_importing_songs': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (_) => const SongImportDialog(librarySongs: []),
+    ),
+  ),
+  'song_export_dialog': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (_) => SongExportDialog(
+        songs: List.generate(
+          128,
+          (index) => Song(
+            id: 'song${index + 1}',
+            title: index == 0 ? 'First Song' : 'Song ${index + 1}',
+            artist: 'Test Artist',
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ),
+      ),
+    ),
+  ),
+  'tuner_tone': Opener((context, tester, _) {
+    tester
+        .widget<ToolModeSwitcher<TunerMode>>(
+          find.byType(ToolModeSwitcher<TunerMode>),
+        )
+        .onModeChanged(TunerMode.generate);
+  }, route: '/main/tuner'),
+  'custom_tuning_editor': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const CustomTuningEditor(),
+    ),
+    route: '/main/tuner',
+  ),
+  'lab_recording_sheet': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const LabRecordingSheet(),
+    ),
+  ),
+  'app_menu_sheet_sheet_l53': Opener(
+    (context, _, _) => showAppMenuSheet(
+      context,
+      title: 'More',
+      items: const [
+        AppMenuItem(icon: Icons.av_timer, label: 'Metronome'),
+        AppMenuItem(icon: Icons.tune, label: 'Tuner'),
+        AppMenuItem(icon: Icons.mic_outlined, label: 'Recorder'),
+      ],
+      showProfileRow: true,
+    ),
+  ),
+  'bpm_input_overlay_sheet_l15': Opener(
+    (context, _, _) => showTempoInputSheet(context),
+  ),
+  'metronome_sheets_sheet_l14': Opener(
+    (context, _, _) => showSoundSheet(context),
+  ),
+  'reliability_sheet_keep_timing_reliable': Opener(
+    (context, _, _) => showReliabilitySheet(context),
+  ),
+  'midi_import_flow_import_midi': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Import MIDI'),
+        content: const Text('Not a valid MIDI file'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    ),
+  ),
+  'note_editor_sheet': Opener(
+    (context, _, _) => showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => NoteEditorSheet(
+        track: const MidiTrackMeta(
+          index: 0,
+          name: 'Bass',
+          channel: 0,
+          program: 0,
+          detectedRole: MidiRole.bass,
+          noteCount: 6,
+          minPitch: 45,
+          maxPitch: 55,
+        ),
+        notes: const [
+          MidiNote(tick: 120, dur: 120, pitch: 45, vel: 100),
+          MidiNote(tick: 480, dur: 120, pitch: 45, vel: 100),
+          MidiNote(tick: 240, dur: 120, pitch: 48, vel: 100),
+          MidiNote(tick: 720, dur: 120, pitch: 48, vel: 100),
+          MidiNote(tick: 360, dur: 120, pitch: 50, vel: 100),
+          MidiNote(tick: 59520, dur: 120, pitch: 55, vel: 100),
+        ],
+        ppq: 480,
+        beatsPerBar: 4,
+        sections: const [],
+        onApply: (_) {},
+      ),
+    ),
+  ),
+  'arrangement_sheet': Opener((context, _, _) {
+    final entry = SongLabEntry(
+      id: 'arrangement1',
+      songId: 'song3',
+      bandId: 'band1',
+      type: LabEntryType.midi,
+      authorId: 'test-user',
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+      midiSong: const MidiSongMeta(
+        fileUrl: 'render-fixture',
+        ppq: 480,
+        initialBpm: 120,
+        startBar: 4,
+        useFileTempo: true,
+        tracks: [],
+      ),
+    );
+    final notes = [
+      const MidiNote(tick: 3840, dur: 241920, pitch: 48, vel: 100),
+    ];
+    final midi = MidiSongData(
+      ppq: 480,
+      tempos: [const TempoChange(tick: 0, microsPerQuarter: 500000)],
+      timeSigs: const [TimeSigChange(tick: 0, numerator: 4, denominator: 4)],
+      tracks: [
+        for (var i = 0; i < 4; i++)
+          MidiTrackData(
+            index: i,
+            name: 'Instrument ${i + 1}',
+            channel: i,
+            program: i,
+            notes: notes,
+          ),
+      ],
+    );
+    final song = Song(
+      id: 'song3',
+      title: 'Third Song',
+      artist: 'Test Artist',
+      bandId: 'band1',
+      ourBPM: 106,
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+      sections: [
+        for (final name in ['Intro', 'Verse', 'Chorus', 'Bridge', 'Outro'])
+          Section(id: name.toLowerCase(), name: name),
+      ],
+    );
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => ProviderScope(
+        overrides: [
+          midiSongProvider(entry).overrideWith((ref) => midi),
+          bandSongsProvider('band1')
+              .overrideWith((ref) => Stream.value([song])),
+        ],
+        child: ArrangementSheet(entry: entry, bandId: 'band1'),
+      ),
+    );
+  }),
+  'share_sheet_copy_to_clipboard': Opener(
+    (context, _, _) => showShareSheet(context, 'First Song'),
+  ),
+  'support_sheet_telegram': Opener(
+    (context, _, _) => showSupportSheet(context),
   ),
 };
