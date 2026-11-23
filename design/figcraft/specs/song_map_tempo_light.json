@@ -18,7 +18,7 @@
       "actions": [
         {
           "t": "chip",
-          "v": "85 BPM?"
+          "v": "170 BPM"
         },
         {
           "t": "iconbtn",
@@ -29,100 +29,59 @@
   ],
   "body": [
     {
-      "t": "card",
+      "t": "row",
       "name": "Tempo choice",
-      "bg": "surfaceRaised",
-      "border": "borderSubtle",
-      "radius": 12,
-      "pad": 8,
-      "gap": 6,
+      "gap": 8,
       "c": [
         {
-          "t": "text",
-          "v": "Which tempo is right? Listen, then choose.",
-          "style": "bodyMedium",
-          "color": "textPrimary"
+          "t": "button",
+          "kind": "secondary",
+          "v": "85",
+          "name": "Option A",
+          "w": 126
         },
         {
-          "t": "row",
-          "gap": 8,
-          "c": [
-            {
-              "t": "card",
-              "name": "85 BPM option",
-              "bg": "surface",
-              "border": "borderStrong",
-              "borderW": 2,
-              "radius": 10,
-              "h": 48,
-              "pad": 8,
-              "c": [
-                {
-                  "t": "text",
-                  "v": "85 BPM",
-                  "style": "labelLarge",
-                  "color": "textPrimary",
-                  "align": "center"
-                }
-              ],
-              "w": 182
-            },
-            {
-              "t": "card",
-              "name": "170 BPM selected option",
-              "bg": "surface",
-              "border": "textPrimary",
-              "borderW": 2,
-              "radius": 10,
-              "h": 48,
-              "pad": 8,
-              "c": [
-                {
-                  "t": "text",
-                  "v": "170 BPM",
-                  "style": "labelLarge",
-                  "color": "textPrimary",
-                  "align": "center"
-                }
-              ],
-              "w": 182
-            }
-          ]
+          "t": "button",
+          "kind": "primary",
+          "v": "170",
+          "name": "Option B",
+          "w": 126
         },
         {
-          "t": "row",
-          "gap": 8,
-          "main": "max",
-          "c": [
-            {
-              "t": "button",
-              "v": "Use 170",
-              "kind": "primary",
-              "size": "small"
-            },
-            {
-              "t": "button",
-              "v": "Other tempo",
-              "kind": "text",
-              "size": "small"
-            }
-          ]
+          "t": "button",
+          "kind": "secondary",
+          "v": "Other",
+          "name": "Other tempo",
+          "w": 126
         }
       ]
     },
     {
-      "t": "card",
+      "t": "row",
       "name": "Sections review",
-      "bg": "surfaceRaised",
-      "border": "borderSubtle",
-      "radius": 12,
-      "pad": 8,
+      "gap": 8,
+      "cross": "center",
       "c": [
         {
           "t": "text",
-          "v": "10 sections found · check, then Done",
-          "style": "bodySmall",
-          "color": "textPrimary"
+          "v": "10 sections",
+          "style": "bodyMedium",
+          "color": "textPrimary",
+          "w": "fill"
+        },
+        {
+          "t": "button",
+          "kind": "text",
+          "v": "Discard",
+          "name": "Discard",
+          "small": true
+        },
+        {
+          "t": "button",
+          "kind": "primary",
+          "v": "Done",
+          "name": "Done",
+          "small": true
         }
       ]
     },

@@ -1156,6 +1156,7 @@ def m_timeline(e, n, parent, pdir):
     # Every layer uses these tracks, including markers that fall between bar boundaries.
     grid = e.create("frame", r, "Timeline grid", {"fill": "none", "layout": "grid", "sizingH": "fill",
                     "height": sum(rows), "sizingV": "fixed", "clip": True,
+                    "gap": 0, "crossGap": 0,  # grid default gap is 10: it pushed the lane out of the clip
                     "gridColumns": len(stops) - 1, "gridRows": len(rows),
                     "columnTracks": [{"sizing": "fill", "value": (b - a) * total}
                                      for a, b in zip(stops, stops[1:])],
