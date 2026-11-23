@@ -10,12 +10,13 @@ NUMBER=8
 OUT=site/data/roadmap.json
 
 read -r -d '' QUERY <<'GQL' || true
-query($login:String!, $number:Int!){
+query($login:String!, $number:Int!, $endCursor:String){
   user(login:$login){
     projectV2(number:$number){
       title
       field(name:"Status"){ ... on ProjectV2SingleSelectField { options { name } } }
-      items(first:100){
+      items(first:100, after:$endCursor){
+        pageInfo{ hasNextPage endCursor }
         nodes{
           content{
             __typename
@@ -33,11 +34,12 @@ query($login:String!, $number:Int!){
 }
 GQL
 
-if ! gh api graphql -f query="$QUERY" -F login="$OWNER" -F number="$NUMBER" \
-  | jq '.data.user.projectV2 as $p | {
+# --paginate follows pageInfo.endCursor; --slurp collects every page.
+if ! gh api graphql --paginate --slurp -f query="$QUERY" -F login="$OWNER" -F number="$NUMBER" \
+  | jq '.[0].data.user.projectV2 as $p | {
       title: $p.title,
       order: (($p.field.options | map(.name)) + ["No Status"]),
-      items: [ $p.items.nodes[] | {
+      items: [ .[].data.user.projectV2.items.nodes[] | {
         title:  (.content.title // "Untitled"),
         url:    (.content.url // ""),
         number: (.content.number // null),

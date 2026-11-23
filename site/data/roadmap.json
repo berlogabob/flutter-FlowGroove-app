@@ -584,7 +584,7 @@
       "number": 82,
       "type": "Issue",
       "state": "CLOSED",
-      "status": "No Status"
+      "status": "Done"
     },
     {
       "title": "check each app screen for 3dot menu",
@@ -592,7 +592,7 @@
       "number": 83,
       "type": "Issue",
       "state": "CLOSED",
-      "status": "No Status"
+      "status": "Done"
     },
     {
       "title": "Create hello@flowgroove.app email.",
@@ -656,7 +656,7 @@
       "number": 96,
       "type": "Issue",
       "state": "CLOSED",
-      "status": "No Status"
+      "status": "Done"
     },
     {
       "title": "Beta UX/UI audit 2026-07 — full-app heuristic review (epic)",
@@ -768,7 +768,7 @@
       "number": 150,
       "type": "Issue",
       "state": "CLOSED",
-      "status": "No Status"
+      "status": "Done"
     },
     {
       "title": "iOS metronome: PCM feeder starvation — dropped beats up to 118s silence on older hardware + audio/animation desync",
@@ -776,7 +776,7 @@
       "number": 151,
       "type": "Issue",
       "state": "OPEN",
-      "status": "No Status"
+      "status": "Needs Check"
     },
     {
       "title": "Web metronome: WallClockScheduler replays missed ticks as audible catch-up burst — skip or pre-schedule on AudioContext clock",
@@ -784,7 +784,7 @@
       "number": 152,
       "type": "Issue",
       "state": "CLOSED",
-      "status": "No Status"
+      "status": "Done"
     },
     {
       "title": "Graph-audit remediation 2026-08 (trackable, measurable)",
@@ -809,6 +809,310 @@
       "type": "Issue",
       "state": "OPEN",
       "status": "Todo"
+    },
+    {
+      "title": "[P0] Event sharing: suggestions rule let any signed-in user write into any band",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/181",
+      "number": 181,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "[P1] Event sharing: deploy indexes, rules, functions, app",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/182",
+      "number": 182,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "[P2.1] Event sharing: guest event view dies on refresh / cold link",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/183",
+      "number": 183,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "[P2.2] Event sharing: area editors have permission but no way in",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/184",
+      "number": 184,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "[P2.3] Event sharing: no link -> sign in -> edit path in the client",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/185",
+      "number": 185,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "[P3] Event sharing: list and revoke active share links",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/186",
+      "number": 186,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "[P4] Event sharing: suggestions inbox (band side)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/187",
+      "number": 187,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "[P5] Event sharing: per-person access ticks UI",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/188",
+      "number": 188,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "[P6] Event sharing: /event deep links + analytics",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/189",
+      "number": 189,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Todo"
+    },
+    {
+      "title": "[PA] Event sharing: grants lived on a client-writable doc and got silently deleted",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/190",
+      "number": 190,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Share an event with one person, even from personal setlists",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/193",
+      "number": 193,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Safer band joining and tighter data rules",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/194",
+      "number": 194,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Drum practice on the metronome",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/195",
+      "number": 195,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Import a MIDI drum file or write your own pattern",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/196",
+      "number": 196,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Real recorded drum sounds",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/197",
+      "number": 197,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "October usability pass: bigger tap targets and clearer labels",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/198",
+      "number": 198,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "No white flash when the app starts",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/199",
+      "number": 199,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Concert mode for setlists",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/200",
+      "number": 200,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Import multi-track MIDI songs into Song Lab",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/201",
+      "number": 201,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Backing-track launchpad: play MIDI sections in time with the click",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/202",
+      "number": 202,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "More reliable metronome timing on Android",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/203",
+      "number": 203,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Track console: instrument, mute, solo and volume per track",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/204",
+      "number": 204,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Clearer navigation: Progress tab, stable More menu, songs open on the sheet",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/205",
+      "number": 205,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "New flowgroove.app landing page and light site theme",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/206",
+      "number": 206,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Practice regions: loop named sections of a song recording",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/207",
+      "number": 207,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Slice a song with pads, markers and fine-tune",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/208",
+      "number": 208,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "One recording screen and long recordings cut into songs",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/209",
+      "number": 209,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Find song sections automatically, with seamless loops",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/210",
+      "number": 210,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Orange only for primary actions",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/211",
+      "number": 211,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "October audit: 34 fixes and a blank-screen bug",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/212",
+      "number": 212,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Song Map: one screen for whole song, section and part",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/213",
+      "number": 213,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Analyze song: review new boundaries before saving",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/214",
+      "number": 214,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Brand fonts and one orange button style",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/215",
+      "number": 215,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Song Map in MPC style: Shift, Chop, Range and rename",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/216",
+      "number": 216,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Text scales to your screen width",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/217",
+      "number": 217,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Song Map bar numbers count from the first downbeat",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/218",
+      "number": 218,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Song Map: tempo choice and review row",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/219",
+      "number": 219,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "Design system: app screens match the design file",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/220",
+      "number": 220,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "In Progress"
     }
   ]
 }
