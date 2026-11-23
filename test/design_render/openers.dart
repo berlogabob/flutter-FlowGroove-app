@@ -44,6 +44,7 @@ import 'package:flowgroove/screens/songs/add_song_screen.dart';
 import 'package:flowgroove/screens/songs/song_editor_screen.dart';
 import 'package:flowgroove/screens/songs/models/song_form_data.dart';
 import 'package:flowgroove/services/event_share_service.dart';
+import 'package:flowgroove/services/export/setlist_export_sheet.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/app_menu_sheet.dart';
@@ -1371,45 +1372,44 @@ final kOpeners = <String, Opener>{
       ),
     ),
   ),
-  'setlist_export_sheet_whose_copy': Opener(
-    (context, _, _) => showModalBottomSheet<void>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: const [
-            ListTile(title: Text('Whose copy?')),
-            Divider(),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Marcus Reed'),
-              subtitle: Text('#1, #3, #5, #7'),
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Dana Kowalski'),
-              subtitle: Text('#2, #6'),
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Devon Diaz'),
-              subtitle: Text('#4, #8, #10'),
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Priya Nair'),
-              subtitle: Text('#9'),
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Sam Okafor'),
-              subtitle: Text('#1, #2, #4, #6, #8, #10'),
-            ),
-          ],
-        ),
+  'setlist_export_sheet_whose_copy': Opener((context, _, _) {
+    final setlist = Setlist(
+      id: 'setlist1',
+      bandId: 'band1',
+      name: 'Gig Setlist',
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+      eventKit: const EventKit(
+        people: [EventPerson(id: 'user1', name: 'Test User', role: '')],
       ),
-    ),
-  ),
+      items: const [
+        SetlistItem(id: 'song1', songId: 'song1', performerIds: ['user1']),
+      ],
+    );
+    pickSetlistPdfExport(context, setlist);
+    tapWhenBuilt(find.text('As is'), (element) {
+      final scrollable = Scrollable.of(element);
+      scrollable.position.jumpTo(scrollable.position.maxScrollExtent);
+      tapWhenBuilt(find.text('One musician'), (element) {
+        (element.findAncestorWidgetOfExactType<ListTile>()!).onTap!();
+      });
+    });
+    tapWhenBuilt(find.text('Whose copy?'), (_) {
+      final sheet = find.byType(BottomSheet);
+      expect(
+        find.descendant(of: sheet, matching: find.text('Test User')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: sheet, matching: find.text('#1')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: sheet, matching: find.byType(Divider)),
+        findsNothing,
+      );
+    });
+  }),
   'setlist_card_actions_quick_action': Opener(
     (context, _, _) => showDialog<void>(
       context: context,
