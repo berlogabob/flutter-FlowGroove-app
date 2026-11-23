@@ -335,6 +335,23 @@ final kOpeners = <String, Opener>{
       tester.tap(find.byIcon(Icons.add).first);
     });
   }),
+  'event_kit_editor_sheet_l181': Opener((context, tester, _) {
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(
+          setlist: MockDataHelper.createMockSetlist(
+            id: 'setlist1',
+            bandId: 'band1',
+            name: 'Gig Setlist',
+          ),
+          bandId: 'band1',
+        ),
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tester.tap(find.byIcon(Icons.add).first);
+    });
+  }),
   'practice_regions_replace_n_sections': Opener(
     (context, _, _) => showDialog<bool>(
       context: context,
