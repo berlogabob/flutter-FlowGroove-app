@@ -3,6 +3,7 @@ add_song_helper_search_on_web
 api_access_revoke_key
 api_access_token_dialog
 app_menu_sheet_sheet_l53
+app_settings
 arrangement_sheet
 backing_sheet
 band_about
