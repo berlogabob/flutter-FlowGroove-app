@@ -4,6 +4,10 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## 0.37.0+2382 — 2026-11-24
+
+Same app as build 382. The build number jumps so phones that have a test build installed can update to the release.
+
 ## 0.37.0+382 — 2026-11-24
 
 Paste a list, a calmer Song Map tempo and review flow, readable fields and text in both themes, and a screen-by-screen check of the app against its design frames.
