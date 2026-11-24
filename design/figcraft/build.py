@@ -717,7 +717,9 @@ def m_tab(e, n, parent, pdir):
 
 def m_segmented(e, n, parent, pdir):
     items, sel = n.get("items", []), n.get("sel", 0)
-    kids = [{"t": "segment", "v": it, "sel": i == sel} for i, it in enumerate(items)]
+    icons = n.get("icons") or []
+    kids = [{"t": "segment", "v": it, "sel": i == sel, "icon": icons[i] if i < len(icons) else None}
+            for i, it in enumerate(items)]
     d = {"name": "Segmented", "bg": "surfaceRaised", "radius": 10, "pad": 3, "gap": 2,
          "border": "borderSubtle", "c": kids, "w": n.get("w", "fill" if pdir == "v" else "hug")}
     return m_container("h")(e, d, parent, pdir)
@@ -728,7 +730,10 @@ def m_segment(e, n, parent, pdir):
     return m_container("h")(e, {
         "w": n.get("w", "fill"), "main": "center", "cross": "center", "pad": [10, 8, 10, 8],
         "radius": 8, "bg": "stone" if on else "none", "name": f"Segment/{n.get('v', '')}",
-        "c": [{"t": "text", "v": n.get("v", ""), "style": "labelMedium", "w": "hug", "name": "Label",
+        "gap": 8,
+        "c": ([{"t": "icon", "v": n["icon"], "size": 18, "color": "charcoal" if on else "textSecondary"}]
+              if n.get("icon") else []) +
+             [{"t": "text", "v": n.get("v", ""), "style": "labelMedium", "w": "hug", "name": "Label",
                "color": "charcoal" if on else "textSecondary"}]}, parent, pdir)
 
 

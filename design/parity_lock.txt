@@ -111,6 +111,7 @@ song_map_tempo
 song_map_tempo_light
 song_map_tempo_sheet
 song_map_tempo_sheet_light
+song_page
 songs_list
 songs_list_filter_options
 songs_list_importing_songs

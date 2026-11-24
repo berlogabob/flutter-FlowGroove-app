@@ -59,7 +59,7 @@ Defaults: in a column, children fill the width; in a row, they hug.
 | `switchrow` | `title`, `sub`, `lead`, `on` | SwitchListTile |
 | `switch` / `checkbox` | `on` | controls |
 | `tabs` | `items`, `sel` (index) | TabBar |
-| `segmented` | `items`, `sel` | SegmentedButton / ToggleButtons |
+| `segmented` | `items`, `sel`, optional `icons` (one icon name per item) | SegmentedButton / ToggleButtons |
 | `slider` / `progress` | `value` 0..1 | slider / LinearProgressIndicator |
 | `section` | `v`, `action` | section header with optional trailing link |
 | `badge` | `v`, `icon`, `bg`, `color` | AppBadge: small pill (key, BPM, role, status) |
