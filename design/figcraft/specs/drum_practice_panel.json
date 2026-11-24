@@ -1,7 +1,7 @@
 {
   "name": "Drum Practice Panel",
   "page": "Sheets & Dialogs",
-  "source": "lib/widgets/metronome/backing_sheet.dart:33",
+  "source": "lib/widgets/metronome/backing_sheet.dart:33", "also": ["lib/widgets/metronome/drum_practice_panel.dart:272"],
   "slot": 2,
   "modal": "sheet",
   "body": [

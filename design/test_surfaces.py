@@ -27,6 +27,20 @@ void use() { helper(); helper(); }
             self.assertTrue(any(s['key'] == '/home' for s in found))
             self.assertTrue(any(s['spec'] == 'design/figcraft/specs/home.json' for s in found))
 
+    def test_also_anchors_link_further_surfaces_to_the_same_spec(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'lib/router').mkdir(parents=True)
+            (root / 'lib/screens').mkdir()
+            (root / 'design/figcraft/specs').mkdir(parents=True)
+            (root / 'lib/router/routes.dart').write_text("GoRoute(path: '/a/:id/edit', builder: (c, s) => EditScreen()),\n")
+            (root / 'lib/screens/home.dart').write_text("void a() { showDialog(builder: (c) => AlertDialog()); }\nvoid b() {\n\n\n\n\n\n\n\n\n showDialog(builder: (c) => AlertDialog()); }\n")
+            (root / 'design/figcraft/specs/x.json').write_text(json.dumps(
+                {'source': 'lib/screens/home.dart:1', 'also': ['lib/screens/home.dart:11', '/a/{id}/edit']}))
+            found = surfaces.inventory(root)
+            self.assertEqual(3, len(found))
+            self.assertTrue(all(s['spec'] == 'design/figcraft/specs/x.json' for s in found), found)
+
     def test_parameterized_route_matches_spec_route_field(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

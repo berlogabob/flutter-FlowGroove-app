@@ -193,7 +193,7 @@
     "kind": "route",
     "source": "lib/router/app_router.dart:523",
     "widget": "BandRouteResolver",
-    "spec": null
+    "spec": "design/figcraft/specs/rehearsal_edit.json"
   },
   {
     "key": "/main/bands/:id/rehearsals/:rid",
@@ -917,7 +917,7 @@
     "kind": "dialog",
     "source": "lib/screens/songs/song_editor_screen.dart:160",
     "widget": "CustomButton",
-    "spec": null
+    "spec": "design/figcraft/specs/performance_sheet_you_already_have_a_song_map.json"
   },
   {
     "key": "song_lab_screen.build",
@@ -1093,7 +1093,7 @@
     "kind": "sheet",
     "source": "lib/widgets/metronome/drum_practice_panel.dart:272",
     "widget": "DrumKitView",
-    "spec": null
+    "spec": "design/figcraft/specs/drum_practice_panel.json"
   },
   {
     "key": "metronome_sheets.Sheet",
@@ -1128,7 +1128,7 @@
     "kind": "sheet",
     "source": "lib/widgets/midi/arrangement_sheet.dart:129",
     "widget": "build",
-    "spec": null
+    "spec": "design/figcraft/specs/arrangement_sheet.json"
   },
   {
     "key": "midi_import_flow.fail",
@@ -1142,7 +1142,7 @@
     "kind": "sheet",
     "source": "lib/widgets/midi/midi_song_panel.dart:49",
     "widget": "build",
-    "spec": null
+    "spec": "design/figcraft/specs/midi_song_panel.json"
   },
   {
     "key": "launchpad_view.NoteEditorSheet",

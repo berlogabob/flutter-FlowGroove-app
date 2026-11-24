@@ -1,7 +1,7 @@
 {
   "name": "Midi Song Panel",
   "page": "Sheets & Dialogs",
-  "source": "lib/screens/songs/song_lab_screen.dart:795",
+  "source": "lib/screens/songs/song_lab_screen.dart:795", "also": ["lib/widgets/midi/midi_song_panel.dart:49"],
   "slot": 2,
   "modal": "sheet",
   "body": [

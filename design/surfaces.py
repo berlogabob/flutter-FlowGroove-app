@@ -29,6 +29,13 @@ def inventory(root: Path) -> list[dict]:
         data = json.loads(path.read_text(encoding='utf-8'))
         if isinstance(data, dict):
             specs.append((data.get('source', ''), path.relative_to(root).as_posix(), data))
+    # A spec may list further surfaces it also draws: "also": ["lib/x.dart:LINE", "/route/:id"].
+    # Line anchors behave like `source`; a leading "/" behaves like `route`.
+    linked = list(specs)
+    for source, spec_path, data in list(specs):
+        for extra in data.get('also', []):
+            linked.append(('', spec_path, {'route': extra}) if extra.startswith('/') else (extra, spec_path, {}))
+    specs, base_specs = linked, specs
 
     files = sorted((root / 'lib').rglob('*.dart'))
     classes = {}
@@ -137,7 +144,7 @@ def inventory(root: Path) -> list[dict]:
             if name != 'GoRoute':
                 modal_entries[identity] = entry
 
-    for source, spec, data in specs:
+    for source, spec, data in base_specs:
         stem = Path(spec).stem
         if 'state' in data or re.match(r'^(?:metronome|tuner|recorder)(?:_|$)|^(?:song_map|practice)_', stem):
             result.append({'key': stem, 'kind': 'state', 'source': source if re.search(r':\d+$', source) else (source or spec) + ':1', 'widget': data.get('name', stem), 'spec': spec})

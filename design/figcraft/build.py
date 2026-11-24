@@ -3169,6 +3169,9 @@ def main(a=None, dry_dir=None):
             try:
                 assert spec.get("page") in PAGES, f"page must be one of {PAGES}"
                 assert spec.get("modal") in (None, "sheet", "dialog"), "modal must be sheet or dialog"
+                also = spec.get("also", [])
+                assert isinstance(also, list) and all(isinstance(a_, str) and (a_.startswith("/") or re.fullmatch(r"lib/\S+\.dart:\d+", a_)) for a_ in also), \
+                    'also must be a list of "lib/...dart:LINE" or "/route" strings'
                 for link in spec_links(spec):
                     assert isinstance(link.get("from"), str) and link["from"], "link needs a source node name"
                     assert link.get("to") in frame_names, f"link target frame {link.get('to')!r} does not exist"

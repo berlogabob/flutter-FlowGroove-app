@@ -1,7 +1,7 @@
 {
   "name": "Performance sheet: You already have a song map",
   "page": "Sheets & Dialogs",
-  "source": "lib/screens/performance_sheet_screen.dart:131",
+  "source": "lib/screens/performance_sheet_screen.dart:131", "also": ["lib/screens/songs/song_editor_screen.dart:160"],
   "slot": 16,
   "modal": "dialog",
   "body": [

@@ -1,7 +1,7 @@
 {
   "name": "Arrangement Sheet",
   "page": "Sheets & Dialogs",
-  "source": "lib/widgets/practice/launchpad_view.dart:517",
+  "source": "lib/widgets/practice/launchpad_view.dart:517", "also": ["lib/widgets/midi/arrangement_sheet.dart:129"],
   "slot": 28,
   "modal": "sheet",
   "body": [
