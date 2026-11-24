@@ -1527,17 +1527,35 @@ final kOpeners = <String, Opener>{
     },
   ),
   'setlist_export_sheet_whose_copy': Opener((context, _, _) {
+    const crew = {
+      'p1': ('Marcus Reed', [1, 3, 5, 7]),
+      'p2': ('Dana Kowalski', [2, 6]),
+      'p3': ('Devon Diaz', [4, 8, 10]),
+      'p4': ('Priya Nair', [9]),
+      'p5': ('Sam Okafor', [1, 2, 4, 6, 8, 10]),
+    };
     final setlist = Setlist(
       id: 'setlist1',
       bandId: 'band1',
       name: 'Gig Setlist',
       createdAt: DateTime(2024),
       updatedAt: DateTime(2024),
-      eventKit: const EventKit(
-        people: [EventPerson(id: 'user1', name: 'Test User', role: '')],
+      eventKit: EventKit(
+        people: [
+          for (final e in crew.entries)
+            EventPerson(id: e.key, name: e.value.$1, role: ''),
+        ],
       ),
-      items: const [
-        SetlistItem(id: 'song1', songId: 'song1', performerIds: ['user1']),
+      items: [
+        for (var n = 1; n <= 10; n++)
+          SetlistItem(
+            id: 'song$n',
+            songId: 'song$n',
+            performerIds: [
+              for (final e in crew.entries)
+                if (e.value.$2.contains(n)) e.key,
+            ],
+          ),
       ],
     );
     pickSetlistPdfExport(context, setlist);
@@ -1551,11 +1569,11 @@ final kOpeners = <String, Opener>{
     tapWhenBuilt(find.text('Whose copy?'), (_) {
       final sheet = find.byType(BottomSheet);
       expect(
-        find.descendant(of: sheet, matching: find.text('Test User')),
+        find.descendant(of: sheet, matching: find.text('Priya Nair')),
         findsOneWidget,
       );
       expect(
-        find.descendant(of: sheet, matching: find.text('#1')),
+        find.descendant(of: sheet, matching: find.text('#1, #3, #5, #7')),
         findsOneWidget,
       );
       expect(

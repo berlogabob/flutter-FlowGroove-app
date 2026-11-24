@@ -83,6 +83,7 @@ role_picker_dialog
 section_picker
 setlist_card_actions_quick_action
 setlist_edit
+setlist_export_sheet_whose_copy
 setlist_view
 setlists_list
 share_sheet_copy_to_clipboard
