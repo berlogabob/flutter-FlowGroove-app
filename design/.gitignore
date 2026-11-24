@@ -13,3 +13,5 @@ contact.png
 *.figcraft
 figcraft/specs/.tmp.json
 render/
+figcraft/.scratch/
+figcraft/.index-backup/

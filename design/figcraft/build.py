@@ -76,6 +76,33 @@ class DryTransport:
         self.nodes, self.inherited = {}, set()
         self.component_sets, self.properties = {}, {}
         self.page = "Page:0"
+        # The user's own document, saved to disk and open first, like the live app.
+        self.documents = [{"id": 1, "name": "Working document", "path": "/dry/working.figcraft",
+                           "dirty": False, "active": True}]
+
+    PROPERTY_TYPES = ("boolean", "text", "instanceSwap", "variant", "slot")
+
+    def check_property(self, p, layer, label):
+        """A property needs a known type and, for text, a TEXT layer (FigCraft: text properties
+        bind to text layers, so a label inside a nested instance cannot be one)."""
+        name = f"property {p.get('name')!r}"
+        if p.get("type") not in self.PROPERTY_TYPES:
+            self.problems.setdefault(f"component.addProperty: {name} has type {p.get('type')!r}, "
+                                     f"expected one of {'|'.join(self.PROPERTY_TYPES)}", label)
+        if layer is None:
+            return
+        node = self.nodes.get(layer)
+        if node is None and isinstance(layer, str):  # a layer name inside the component
+            stack = [self.nodes.get(p.get("id"), {"children": []})]
+            while stack and node is None:
+                top = stack.pop()
+                node = next((c for c in top["children"] if c["name"] == layer), None)
+                stack.extend(top["children"])
+        if node is None:
+            self.problems.setdefault(f"component.addProperty: {name} binds unknown layer {layer!r}", label)
+        elif p.get("type") == "text" and node["type"] != "TEXT":
+            self.problems.setdefault(f"component.addProperty: {name} is a text property bound to "
+                                     f"{node['type']} layer {node['name']!r}, not a text layer", label)
 
     def __call__(self, method, params, timeout_ms=None):
         assert method == "engine.execute", method
@@ -107,6 +134,22 @@ class DryTransport:
                 result = result[int(field)] if isinstance(result, list) else result[field]
             return result
 
+        if command == "doc.list":
+            return [dict(d, index=i) for i, d in enumerate(self.documents)]
+        if command == "doc.switch":
+            if not 0 <= p["index"] < len(self.documents):
+                self.problems.setdefault(f"doc.switch: no document at index {p['index']}", label)
+            else:
+                for i, d in enumerate(self.documents):
+                    d["active"] = i == p["index"]
+        if command == "file.new":
+            for d in self.documents:
+                d["active"] = False
+            self.documents.append({"id": len(self.documents) + 1, "name": p.get("name", "Untitled"),
+                                   "path": None, "dirty": True, "active": True})
+            self.pages, self.page = {"Page:0": "Page 1"}, "Page:0"
+        if command in ("file.save", "file.saveAs", "library.publish"):
+            self.problems.setdefault(f"{command}: a rebuild must not save or publish", label)
         if command == "page.list":
             return [{"id": pid, "name": name} for pid, name in self.pages.items()]
         if command == "page.add":
@@ -163,6 +206,7 @@ class DryTransport:
         if command == "component.combineVariants":
             self.component_sets.update(dict.fromkeys(p["ids"], node_id))
         if command == "component.addProperty":
+            self.check_property(p, resolve(p.get("layer")), label)
             self.properties.setdefault(p["id"], []).append(
                 {key: p[key] for key in ("type", "name", "default") if key in p})
         if command == "component.properties":
@@ -537,7 +581,7 @@ def m_button(e, n, parent, pdir):
     bg, fg, border = BUTTON_LOOK[variant]
     size = n.get("size") or ("small" if n.get("small") else "medium")
     pad, isz = ([16, 16, 16, 16], 24) if variant == "fab" else BUTTON_SIZE[size]
-    d = {"t": "row", "name": f"Button/{variant}", "bg": bg, "radius": {"fab": 6}.get(variant, 5),
+    d = {"t": "row", "name": n.get("rootName", f"Button/{variant}"), "bg": bg, "radius": {"fab": 6}.get(variant, 5),
          "pad": pad, "gap": 8, "main": "center", "cross": "center", "w": n.get("w", "hug")}
     if border:
         d.update(border=border, borderW=1.2 if variant in ("primary", "secondary", "danger", "fab") else 1)
@@ -554,7 +598,7 @@ def m_button(e, n, parent, pdir):
                      "opacity": ink_opacity})
     if n.get("v"):
         kids.append({"t": "text", "v": n["v"], "style": "labelLarge", "color": fg, "w": "hug",
-                     "name": "Label", "opacity": ink_opacity})
+                     "name": n.get("labelName", "Label"), "opacity": ink_opacity})
     spinner = {"t": "icon", "v": "autorenew", "size": 18, "color": fg, "layer": "Loading",
                "opacity": int(loading)}
     if variant == "fab":
@@ -1280,9 +1324,12 @@ class Unsupported(Exception):
     """The spec node needs something an instance can't override: draw it as plain layers."""
 
 
-def comp(name, types, draw, inst, axes=None, props=(), slots=(), main_w=360):
+def comp(name, types, draw, inst, axes=None, props=(), slots=(), main_w=360, inline=()):
+    """`inline`: spec node types drawn as plain layers in the main even when they have a component of
+    their own. A text property can only bind a text layer, so a label inside a nested instance
+    (Button) is reachable only when the main draws that button inline with a uniquely named label."""
     C[name] = dict(name=name, types=types, draw=draw, inst=inst, axes=axes or {}, props=props,
-                   slots=slots, main_w=main_w)
+                   slots=slots, main_w=main_w, inline=tuple(inline))
     for t in types:
         TYPE2COMP[t] = name
 
@@ -1499,16 +1546,19 @@ comp("EmptyState", [], lambda v: {"t": "col", "name": "EmptyState", "main": "cen
          {"t": "text", "v": "Add something to get started", "style": "bodyMedium", "color": "textTertiary",
           "name": "Hint"},
          {"t": "spacer", "size": 24},
-         {"t": "button", "kind": "secondary", "v": "Add item", "icon": "add", "name": "Action"},
+         {"t": "button", "kind": "secondary", "v": "Add item", "icon": "add", "rootName": "Action",
+          "labelName": "Action label"},
          {"t": "spacer", "size": 8},
-         {"t": "button", "kind": "secondary", "v": "Other action", "icon": "group_add", "name": "SecondaryAction"}]},
+         {"t": "button", "kind": "secondary", "v": "Other action", "icon": "group_add",
+          "rootName": "SecondaryAction", "labelName": "SecondaryAction label"}]},
      _component_instance(lambda n: {"Message": n.get("message", "No items yet"),
                                     "Hint": n.get("hint", "Add something to get started"),
                                     "Action": n.get("actionLabel", "Add item"),
                                     "SecondaryAction": n.get("secondaryActionLabel", "Other action")}),
      props=[("Message", "text", "Message", "No items yet"), ("Hint", "text", "Hint", "Add something to get started"),
-            ("Action", "text", "Action", "Add item"),
-            ("SecondaryAction", "text", "SecondaryAction", "Other action")])
+            ("Action", "text", "Action label", "Add item"),
+            ("SecondaryAction", "text", "SecondaryAction label", "Other action")],
+     inline=("button",))
 
 comp("TimeSignatureBlock", [], lambda v: {"t": "col", "name": "TimeSignatureBlock", "bg": "blackSurface",
      "border": "borderSubtle", "radius": 16, "pad": 16, "gap": 10, "c": [
@@ -1612,10 +1662,13 @@ comp("SectionCard", [], lambda v: {"t": "col", "name": "SectionCard", "bg": "sur
 comp("PrimaryActionBar", [], lambda v: {"t": "col", "name": "PrimaryActionBar", "bg": "surface",
      "pad": 16, "gap": 12, "c": [
          {"t": "row", "gap": 12, "c": [
-             {"t": "button", "kind": "outline", "v": "Cancel", "name": "Secondary", "w": "fill"},
-             {"t": "button", "kind": "primary", "v": "Save", "icon": "save", "name": "Primary", "w": "fill"}]}]},
+             {"t": "button", "kind": "outline", "v": "Cancel", "rootName": "Secondary",
+              "labelName": "Secondary label", "w": "fill"},
+             {"t": "button", "kind": "primary", "v": "Save", "icon": "save", "rootName": "Primary",
+              "labelName": "Primary label", "w": "fill"}]}]},
      _component_instance(lambda n: {"Label": n.get("label", "Save"), "SecondaryLabel": n.get("secondaryLabel", "Cancel")}),
-     props=[("Label", "text", "Primary", "Save"), ("SecondaryLabel", "text", "Secondary", "Cancel")])
+     props=[("Label", "text", "Primary label", "Save"), ("SecondaryLabel", "text", "Secondary label", "Cancel")],
+     inline=("button",))
 
 comp("ToolButton", [], lambda v: {"t": "row", "name": "ToolButton", "bg": "surfaceRaised",
      "border": "borderDefault", "radius": 6, "pad": [12, 4, 12, 4], "gap": 8, "cross": "center", "c": [
@@ -1633,14 +1686,19 @@ comp("SingleFab", [], lambda v: {"t": "row", "name": "SingleFab", "bg": "white",
      props=[("Icon", "text", "Icon", "add")])
 comp("UnifiedFilterSortWidget", [], lambda v: {"t": "row", "name": "UnifiedFilterSortWidget", "gap": 8,
      "cross": "center", "c": [
-         {"t": "input", "hint": "Search...", "name": "Filter", "w": "fill"},
+         {"t": "row", "name": "Filter", "bg": "white", "border": "borderDefault", "borderW": 2, "radius": 10,
+          "pad": [14, 14, 14, 14], "gap": 0, "cross": "center", "w": "fill", "c": [
+              {"t": "text", "v": "Search...", "style": "bodyLarge", "color": "#62625A", "w": "hug",
+               "name": "Hint"},
+              {"t": "text", "v": "", "style": "bodyLarge", "color": "#1E1E1C", "w": "hug",
+               "name": "Filter value"}]},
          {"t": "row", "name": "Sort", "bg": "surface", "border": "borderDefault", "radius": 8,
           "pad": [8, 0, 8, 0], "gap": 8, "cross": "center", "c": [
               {"t": "text", "v": "Manual order", "style": "bodyMedium", "color": "textPrimary", "name": "Sort option"},
               {"t": "icon", "v": "sort", "size": 20, "color": "textSecondary"}]}]},
      _component_instance(lambda n: {"Filter": n.get("filterText", ""), "Hint": n.get("hintText", "Search..."),
                                     "Sort": "Manual order"}),
-     props=[("Filter", "text", "Filter", ""), ("Hint", "text", "Filter", "Search..."),
+     props=[("Filter", "text", "Filter value", ""), ("Hint", "text", "Hint", "Search..."),
             ("Sort", "text", "Sort option", "Manual order")])
 comp("ConfirmationDialog", [], lambda v: {"t": "dialog", "name": "ConfirmationDialog", "bg": "surface",
      "radius": 16, "pad": 16, "gap": 12, "cross": "center", "c": [
@@ -1648,13 +1706,15 @@ comp("ConfirmationDialog", [], lambda v: {"t": "dialog", "name": "ConfirmationDi
          {"t": "text", "v": "Confirm", "style": "titleMedium", "color": "textPrimary", "name": "Title"},
          {"t": "text", "v": "Are you sure?", "style": "bodyMedium", "color": "textSecondary", "name": "Message"},
          {"t": "row", "cross": "center", "gap": 8, "c": [
-             {"t": "button", "kind": "text", "v": "Cancel", "name": "Cancel"},
-             {"t": "button", "kind": "danger", "v": "Confirm", "name": "Confirm"}]}]},
+             {"t": "button", "kind": "text", "v": "Cancel", "rootName": "Cancel button", "labelName": "Cancel"},
+             {"t": "button", "kind": "danger", "v": "Confirm", "rootName": "Confirm button",
+              "labelName": "Confirm"}]}]},
      _component_instance(lambda n: {"Title": n.get("title", "Confirm"), "Message": n.get("message", "Are you sure?"),
-                                    "Confirm": n.get("confirmLabel", "Confirm"), "Cancel": n.get("cancelLabel", "Cancel")}),
+                                    "confirmLabel": n.get("confirmLabel", "Confirm"),
+                                    "cancelLabel": n.get("cancelLabel", "Cancel")}),
      props=[("Title", "text", "Title", "Confirm"), ("Message", "text", "Message", "Are you sure?"),
             ("confirmLabel", "text", "Confirm", "Confirm"), ("cancelLabel", "text", "Cancel", "Cancel"),
-            ("Icon", "text", "Icon", "warning_amber")])
+            ("Icon", "text", "Icon", "warning_amber")], inline=("button",))
 
 
 def i_avatar(n, pdir):
@@ -2242,7 +2302,7 @@ def outline_layers(node_id):
 
 def draw_variant(e, c, v):
     e.mode = v.get("Mode", "Dark").lower()
-    e.drawing = set(c["types"])
+    e.drawing = set(c["types"]) | set(c["inline"])
     start = len(e.cmds)
     emit(e, c["draw"](v), None, "v")
     cmd = e.cmds[start]["params"]
@@ -2663,6 +2723,41 @@ def setup():
         ex("page.setBackground", {"id": pid, "color": "#141413"})
     push_tokens()
     json.dump(VARS, open(TOKENS, "w"), indent=1)
+
+
+def scratch_run(job):
+    """Run a full rebuild (`setup`, `all`) in a NEW scratch document, never in the working one.
+
+    `file.new` opens a blank document, so the builder's frame/component/token indexes (REG, CREG,
+    TOKENS) of the document that was open would be lost. The job writes its own indexes into a
+    `.scratch` directory next to them, nothing is saved or published, and the document that was
+    active before is made active again, whatever happens. The scratch document stays open and
+    unsaved: inspect it, then close it (doc.switch, file.markSaved, file.close).
+    """
+    global REG, CREG, TOKENS
+    home = next((d for d in ex("doc.list") if d.get("active")), None)
+    if home is None:
+        raise RuntimeError("no active document to return to; open the working document first")
+    scratch = os.path.join(os.path.dirname(REG), ".scratch")
+    os.makedirs(scratch, exist_ok=True)
+    kept = REG, CREG, TOKENS
+    print(f"working document: {home['name']!r} ({home.get('path') or 'unsaved'}): its indexes stay untouched")
+    print(f"building into a NEW scratch document; scratch indexes in {scratch}")
+    REG, CREG, TOKENS = (os.path.join(scratch, os.path.basename(f)) for f in kept)
+    try:
+        return job(scratch)
+    finally:
+        REG, CREG, TOKENS = kept
+        docs = ex("doc.list")
+        back = next((d for d in docs if (home.get("path") and d.get("path") == home["path"])
+                     or (not home.get("path") and d.get("id") == home["id"])), None)
+        if back is None:
+            print(f"WARNING: the working document {home['name']!r} is no longer open")
+        else:
+            ex("doc.switch", {"index": back["index"]})
+            scratch_docs = [d for d in docs if d["id"] != back["id"] and not d.get("path")]
+            print(f"active document again: {back['name']!r} ({back.get('path') or 'unsaved'}); "
+                  f"scratch document(s) left open, unsaved: {[d['index'] for d in scratch_docs]}")
 
 
 SLOTS = {}  # page -> next index
@@ -3151,9 +3246,11 @@ def main(a=None, dry_dir=None):
     global ONLINE
     ONLINE = a[0] not in ("check", "verify-components")
     if a[0] == "setup":
-        setup()
-        build_components()
-        drop_lib()
+        def job(_scratch):
+            setup()
+            build_components()
+            drop_lib()
+        scratch_run(job)
     elif a[0] == "screen":
         spec = json.load(open(a[1]))
         load_lib()
@@ -3231,51 +3328,50 @@ def main(a=None, dry_dir=None):
             T.gen()
         print("pull:", len(diff), "change(s) written" if diff else "nothing to pull")
     elif a[0] == "all":
-        setup()
-        reg = build_components()
-        build_foundations()
-        build_docs(reg, dryrun=dry_dir is not None)
-        build_icons_page()
-        failed = []
-        pending_links, frame_ids, named_nodes = [], {}, {}
-        for path in sorted(glob.glob(os.path.join(HERE, "specs", "*.json"))):
-            try:
-                spec = json.load(open(path))
-                rid, n, nodes = build_screen(spec)
-                frame_ids[spec["name"]] = rid
-                named_nodes[spec["name"]] = nodes
-                pending_links.extend((spec["name"], link) for link in spec_links(spec))
-                print(f"ok   {os.path.basename(path)}: {n} commands")
-            except Exception as err:  # keep going; report at the end
-                failed.append(path)
-                print(f"FAIL {os.path.basename(path)}: {err}")
-        for source_frame, link in pending_links:
-            source_id = named_nodes[source_frame].get(link["from"])
-            if not source_id or link["to"] not in frame_ids:
-                failed.append(source_frame)
-                print(f"FAIL {source_frame}: link {link['from']!r} → {link['to']!r} has a missing endpoint")
-                continue
-            apply_links([(source_id, link["to"])], frame_ids, {})
-        drop_lib()
-        if dry_dir is not None:
-            matrix(["dryrun"])
-        rows = parity(dryrun=dry_dir is not None)
-        print("parity:", sum(r[0] is not None for r in rows), "captured of", len(rows))
-        print("tokens bound:", STATS["on"], "off-scale values:", STATS["off"],
-              sorted(STATS["off_values"].items(), key=lambda x: -x[1])[:12])
-        connect_path = os.path.join(dry_dir, "figcraft.connect.json") if dry_dir else None
-        connect_file = export_connect(connect_path)
-        if not dry_dir:
-            print("connect file:", connect_file)
-        ex("library.publish", {"description": "FlowGroove MonoPulse: colour, type, spacing and radius tokens; "
-                                              "24 components linked to Flutter widgets."})
-        out = os.path.join(HERE, "..", "flowgroove-screens.figcraft")
-        ex("file.saveAs", {"path": os.path.abspath(out)})
-        print("would save" if dry_dir else "saved", os.path.abspath(out), "failed:", len(failed))
-        return len(failed)
+        return scratch_run(lambda scratch: build_all(dry_dir, scratch))
     else:
         print(__doc__)
 
 
+def build_all(dry_dir, scratch):
+    setup()
+    reg = build_components()
+    build_foundations()
+    build_docs(reg, dryrun=dry_dir is not None)
+    build_icons_page()
+    failed = []
+    pending_links, frame_ids, named_nodes = [], {}, {}
+    for path in sorted(glob.glob(os.path.join(HERE, "specs", "*.json"))):
+        try:
+            spec = json.load(open(path))
+            rid, n, nodes = build_screen(spec)
+            frame_ids[spec["name"]] = rid
+            named_nodes[spec["name"]] = nodes
+            pending_links.extend((spec["name"], link) for link in spec_links(spec))
+            print(f"ok   {os.path.basename(path)}: {n} commands")
+        except Exception as err:  # keep going; report at the end
+            failed.append(path)
+            print(f"FAIL {os.path.basename(path)}: {err}")
+    for source_frame, link in pending_links:
+        source_id = named_nodes[source_frame].get(link["from"])
+        if not source_id or link["to"] not in frame_ids:
+            failed.append(source_frame)
+            print(f"FAIL {source_frame}: link {link['from']!r} → {link['to']!r} has a missing endpoint")
+            continue
+        apply_links([(source_id, link["to"])], frame_ids, {})
+    drop_lib()
+    if dry_dir is not None:
+        matrix(["dryrun"])
+    rows = parity(dryrun=dry_dir is not None)
+    print("parity:", sum(r[0] is not None for r in rows), "captured of", len(rows))
+    print("tokens bound:", STATS["on"], "off-scale values:", STATS["off"],
+          sorted(STATS["off_values"].items(), key=lambda x: -x[1])[:12])
+    connect_file = export_connect(os.path.join(scratch, "figcraft.connect.json"))
+    print("connect file:", connect_file)
+    # Not saved, not published: a scratch build must never replace the working file or the library.
+    print("scratch document built and left unsaved; failed:", len(failed), failed)
+    return len(failed)
+
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)
