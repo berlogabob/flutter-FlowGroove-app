@@ -46,6 +46,7 @@ import 'practice_regions/region_name_sheet.dart';
 import 'practice_regions/slice_edit_sheet.dart';
 import 'practice_regions/song_map/song_map_edit.dart' as song_map_edit;
 import 'practice_regions/song_map/song_map_letters.dart';
+import 'practice_regions/song_map/song_map_names.dart';
 import 'practice_regions/song_map/song_map_pads.dart';
 import 'practice_regions/song_map/song_map_tempo_banner.dart';
 import 'practice_regions/song_map/song_map_tempo_row.dart';
@@ -552,6 +553,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     (int, int)? selectionToRemap,
   }) async {
     if (!_canEdit) return;
+    // The one place edited regions are committed: auto names follow badges.
+    regions = normalizeAutoSectionNames(regions);
     setState(() {
       _songMapCutMs = cutMs;
       _undoRegions = undoTo ?? _entry.regions;
@@ -1606,6 +1609,8 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       );
     }
     if (identical(updated, regions)) return;
+    // Normalised here so the Undo check below compares the committed list.
+    updated = normalizeAutoSectionNames(updated);
     if (mergedRange != null) view.overviewSelection = null;
     if (!remove && section == null) {
       view.overviewSelection = view.sections.indexWhere(

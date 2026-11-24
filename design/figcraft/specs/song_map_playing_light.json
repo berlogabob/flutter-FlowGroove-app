@@ -219,7 +219,7 @@
       "c": [
         {
           "t": "pad",
-          "label": "Part A 1",
+          "label": "Part E 1",
           "sub": "9 bars",
           "letter": "E",
           "color": "section11",
@@ -229,7 +229,7 @@
         },
         {
           "t": "pad",
-          "label": "Part E 1",
+          "label": "Part F 1",
           "sub": "8 bars",
           "letter": "F",
           "color": "section7",
