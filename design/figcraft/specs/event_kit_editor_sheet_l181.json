@@ -10,28 +10,29 @@
       {"t": "input", "hint": "Search gear or type your own…", "icon": "search", "v": ""},
       {"t": "text", "v": "Selected", "style": "labelSmall", "color": "textSecondary"},
       {"t": "row", "gap": 4, "wrap": true, "c": [
-        {"t": "chip", "v": "Guitar amp", "sel": true},
-        {"t": "chip", "v": "Drum kit", "sel": true}
+        {"t": "chip", "v": "🎸 Dana Rivera", "sel": true},
+        {"t": "chip", "v": "🥁 Drum kit", "sel": true},
+        {"t": "chip", "v": "🔊 Guitar amp", "sel": true}
       ]},
       {"t": "text", "v": "Likely needed", "style": "labelSmall", "color": "textSecondary"},
       {"t": "row", "gap": 4, "wrap": true, "c": [
-        {"t": "chip", "v": "Microphone"},
-        {"t": "chip", "v": "Monitor wedge"},
-        {"t": "chip", "v": "DI box"},
-        {"t": "chip", "v": "Wireless system"}
+        {"t": "chip", "v": "🎸 Electric guitar"},
+        {"t": "chip", "v": "🪑 Guitar stand"},
+        {"t": "chip", "v": "🎤 Vocal mic"},
+        {"t": "chip", "v": "🎤 Mic stand"},
+        {"t": "chip", "v": "🔊 Monitor wedge"}
       ]},
       {"t": "text", "v": "Band members", "style": "labelSmall", "color": "textSecondary"},
       {"t": "col", "gap": 2, "c": [
-        {"t": "tile", "lead": "person", "title": "Dana Rivera", "sub": "Guitar, Vocals", "trail": "check"},
-        {"t": "tile", "lead": "person", "title": "Marcus Lee", "sub": "Bass, Backing Vox"},
-        {"t": "tile", "lead": "person", "title": "Priya Nair", "sub": "Keys, Backing Vox"}
+        {"t": "tile", "lead": "person", "title": "Dana Rivera", "sub": "Guitarist, Vocalist", "trail": "check"},
+        {"t": "tile", "lead": "person", "title": "Marcus Lee", "sub": "Bassist, Backing Vocalist"},
+        {"t": "tile", "lead": "person", "title": "Priya Nair", "sub": "Keyboardist, Backing Vocalist"}
       ]},
       {"t": "text", "v": "Gear", "style": "labelSmall", "color": "textSecondary"},
+      {"t": "text", "v": "Drums & percussion", "style": "labelSmall", "color": "textSecondary"},
       {"t": "col", "gap": 8, "c": [
-        {"t": "tile", "lead": "mic", "title": "Shure SM58", "trail": "check"},
-        {"t": "tile", "lead": "speaker", "title": "Guitar amp", "trail": "check"},
-        {"t": "tile", "lead": "headphones", "title": "Drum kit"},
-        {"t": "tile", "lead": "speaker", "title": "Monitor wedge"}
+        {"t": "tile", "lead": "headphones", "title": "Drum kit", "trail": "check"},
+        {"t": "tile", "lead": "headphones", "title": "Kick drum"}
       ]},
       {"t": "spacer", "size": 12},
       {"t": "row", "main": "spaceBetween", "c": [
