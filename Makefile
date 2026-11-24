@@ -499,7 +499,7 @@ deploy-functions:
 		exit 1; \
 	}
 	@echo "🧪 Running the full functions suite (emulator suites need JDK 21+)..."
-	@JAVA_HOME="$${JAVA_HOME:-/Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home}" \
+	@JAVA_HOME="$$(/usr/libexec/java_home -v 21+ 2>/dev/null || echo "$$JAVA_HOME")" \
 		npm --prefix functions test
 	@echo ""
 	@echo "🚀 Deploying functions..."
@@ -519,6 +519,7 @@ deploy-rules:
 
 # Deploy all three release channels — OUTWARD-FACING and largely irreversible.
 #   0. Rules   → Firestore + Storage security rules (deployed FIRST)
+#   0b. Functions → Cloud Functions (tests first; before the web app that calls them)
 #   1. Production → Hugo on FTP, app on Firebase Hosting (app.flowgroove.app)
 #   2. Pages   → GitHub Pages (Hugo + Flutter), git commit + push
 #   3. Android → version bump + git tag + push + GitHub Release (APK + AAB)
@@ -538,7 +539,7 @@ release-all:
 	fi
 	@$(MAKE) test-fast
 	@./scripts/bump-build-number.sh $(LEVEL)
-	@$(MAKE) deploy-rules deploy-stable
+	@$(MAKE) deploy-rules deploy-functions deploy-stable
 	@$(MAKE) deploy-pages
 	@$(MAKE) release SKIP_BUMP=1
 	@echo ""
