@@ -45,6 +45,24 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(1, counts("EdgeInsets.only(left: 0, top: 4)")["EdgeInsets"])
         self.assertEqual(1, counts("EdgeInsets.fromLTRB(0, 0, 0, 10.5)")["EdgeInsets"])
 
+    def test_unexplained_uses_allow_list_surviving_line_shifts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            lib = Path(tmp) / "lib"
+            lib.mkdir()
+            allow = Path(tmp) / "allow.txt"
+            code = "// c\nText(style: TextStyle(\n  fontFamily: 'monospace', // why\n  fontSize: 13)); SizedBox(height: 96); EdgeInsets.all(5)"
+            (lib / "a.dart").write_text(code)
+            allow.write_text("# header\nlib/a.dart | TextStyle(fontFamily: 'monospace', fontSize: 13) | monospace\n"
+                             "lib/a.dart | SizedBox(height: 96) |\n")  # no reason: not an entry
+            self.assertEqual({("lib/a.dart", "SizedBox", "SizedBox(height: 96)"),
+                              ("lib/a.dart", "EdgeInsets", "EdgeInsets.all(5)")}, set(metrics.unexplained(str(lib), allow)))
+            allow.write_text(allow.read_text() + "lib/a.dart | SizedBox(height: 96) | bar room\n")
+            (lib / "a.dart").write_text("\n\n\n" + code)  # lines shifted
+            self.assertEqual([("lib/a.dart", "EdgeInsets", "EdgeInsets.all(5)")], metrics.unexplained(str(lib), allow))
+            # Same expression in another file is not covered.
+            (lib / "b.dart").write_text("SizedBox(height: 96)")
+            self.assertIn(("lib/b.dart", "SizedBox", "SizedBox(height: 96)"), metrics.unexplained(str(lib), allow))
+
     def test_raw_counts_respects_reasons_and_exact_exemption(self):
         with tempfile.TemporaryDirectory() as tmp:
             lib = Path(tmp)

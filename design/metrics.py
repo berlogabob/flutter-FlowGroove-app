@@ -73,6 +73,13 @@ def _is_style_tweak(call: str) -> bool:
     return all(name in _TWEAK_ARGS for name in _top_level_names(body)) and not _RAW_COLOUR.search(body)
 
 
+def _normalize(expression: str) -> str:
+    """Expression key for the allow list: comments dropped, whitespace collapsed."""
+    text = " ".join(re.sub(r"//[^\n]*", "", expression).split())
+    text = re.sub(r"\s*([()\[\]])\s*", r"\1", text)  # formatting around brackets is not part of the value
+    return re.sub(r",(?=[)\]])", "", text)  # nor is a trailing comma
+
+
 def raw_hits(source: str) -> list[tuple[str, str, int, int]]:
     """Raw style values of a source as (key, expression, start, end). ds-allow lines are not part of the source."""
     hits = []
@@ -89,7 +96,7 @@ def raw_hits(source: str) -> list[tuple[str, str, int, int]]:
                     continue  # only zeros: nothing raw
             elif key == "fontSize":
                 end = _value_end(source, end - 1)
-            hits.append((key, " ".join(source[start:end].split()), start, end))
+            hits.append((key, _normalize(source[start:end]), start, end))
     return hits
 
 
@@ -114,7 +121,7 @@ def raw_counts(lib_dir: str) -> dict[str, int]:
 
 
 def load_allow(path: Path) -> set[tuple[str, str]]:
-    """Intentional raw values from lines ``lib-relative path | expression | reason`` (reason required)."""
+    """Intentional raw values from lines ``repo path | expression | reason`` (reason required)."""
     allowed = set()
     if path.exists():
         for line in path.read_text(encoding="utf-8").splitlines():
@@ -122,7 +129,7 @@ def load_allow(path: Path) -> set[tuple[str, str]]:
                 continue
             parts = [part.strip() for part in line.split(" | ", 2)]
             if len(parts) == 3 and all(parts):
-                allowed.add((parts[0], " ".join(parts[1].split())))
+                allowed.add((parts[0], _normalize(parts[1])))
     return allowed
 
 
@@ -131,6 +138,7 @@ def unexplained(lib_dir: str, allow_path: Path) -> list[tuple[str, str, str]]:
     allowed = load_allow(allow_path)
     missing = []
     for relative, source in _lib_sources(lib_dir):
+        relative = f"lib/{relative}"
         hits = raw_hits(source)
         spans = [(start, end) for _, expr, start, end in hits if (relative, expr) in allowed]
         for key, expr, start, end in hits:
@@ -290,6 +298,7 @@ def main(argv: list[str]) -> int:
     routed, unspecced = surface_counts(repo / "design/surfaces.json")
     metrics = summarize(links, renders, routed,
                         spec_offscale(str(specs), str(repo / "design/tokens/tokens.json")), raw_counts(str(repo / "lib")))
+    metrics["k5_unexplained"] = len(unexplained(str(repo / "lib"), repo / "design/raw_allow.txt"))
     metrics["unspecced_screens"] = unspecced
     metrics["system_surfaces"] = system_surface_count(repo / "design/surfaces.json")
     metrics["k8"] = render_coverage(repo / "design/render_keys.txt", repo / "design/surfaces.json")

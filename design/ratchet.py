@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 
 if __package__:
-    from design.metrics import link_counts, raw_counts, spec_offscale, surface_counts
+    from design.metrics import link_counts, raw_counts, spec_offscale, surface_counts, unexplained
 else:
-    from metrics import link_counts, raw_counts, spec_offscale, surface_counts
+    from metrics import link_counts, raw_counts, spec_offscale, surface_counts, unexplained
 
 
 def check(current: dict[str, int], baseline: dict[str, int]) -> list[str]:
@@ -57,6 +57,7 @@ def current_counts(repo: Path) -> dict[str, int]:
     current = {
         "k4": spec_offscale(str(specs), str(repo / "design/tokens/tokens.json")),
         **{f"k5.{key}": value for key, value in raw_counts(str(repo / "lib")).items()},
+        "k5_unexplained": len(unexplained(str(repo / "lib"), repo / "design/raw_allow.txt")),
         "unspecced_screens": unspecced_screens(repo / "lib/screens", specs),
         "unlinked_reused": len(links["unlinked"]),
         # Sheets, dialogs, pickers and tool states too (F83), from the inventory.

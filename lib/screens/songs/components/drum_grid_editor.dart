@@ -211,10 +211,10 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
-              8,
-              16,
-              8,
-              16 + MediaQuery.viewInsetsOf(context).bottom,
+              MonoPulseSpacing.sm,
+              MonoPulseSpacing.lg,
+              MonoPulseSpacing.sm,
+              MonoPulseSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

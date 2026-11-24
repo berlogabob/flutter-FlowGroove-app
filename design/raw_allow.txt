@@ -1,0 +1,35 @@
+# Intentional raw style values in lib/. One line each: repo path | expression (whitespace and comments ignored, survives line shifts) | reason.
+# A value inside a listed expression is covered (a fontSize inside a listed TextStyle). Anything not listed counts as k5_unexplained.
+lib/screens/bands/join_welcome_screen.dart | TextStyle(fontSize: 48) | Hero emoji glyph, a fixed illustration size
+lib/screens/bands/my_bands_screen.dart | EdgeInsets.only( bottom: 56 + MonoPulseSpacing.lg, ) | Reserves room for the bottom bar under the list
+lib/screens/concert_mode_screen.dart | TextStyle( fontFamily: MonoPulseTypography.fontFamilyDisplay, fontSize: 148, fontWeight: FontWeight.w700, height: 0.9, letterSpacing: -4, color: context.mp.textPrimary, shadows: const [ Shadow(color: MonoPulseColors.accentOrange, blurRadius: 55), ], ) | Stage readout: the bar number is sized for reading across a room
+lib/screens/practice_regions/notes_panel.dart | TextStyle(fontFeatures: [FontFeature.tabularFigures()]) | Tabular figures keep timer digits from jittering
+lib/screens/practice_regions/song_map/song_map_transport.dart | TextStyle( fontSize: 11, fontFeatures: [FontFeature.tabularFigures()], ) | Timer digits: small tabular readout
+lib/screens/practice_screen.dart | SizedBox(height: 96) | Spacer that reserves room for the bottom bar
+lib/screens/recorder_screen.dart | SizedBox(height: 96) | Spacer that reserves room for the bottom bar
+lib/screens/setlists/create_setlist_screen.dart | SizedBox(width: 28) | Placeholder as wide as the missing action icon, keeps the row stable
+lib/screens/setlists/event_kit_editor_screen.dart | EdgeInsets.all(1) | One-pixel gap around stage-plot cells
+lib/screens/setlists/event_kit_editor_screen.dart | SizedBox(height: 96) | Spacer that reserves room for the bottom bar
+lib/screens/settings/api_access_screen.dart | TextStyle(fontFamily: 'monospace', fontSize: 13) | Monospace token text
+lib/screens/settings/api_access_screen.dart | TextStyle(fontFamily: 'monospace', fontSize: 12) | Monospace token text
+lib/screens/songs/components/csv_import_export/song_import_dialog.dart | SizedBox(width: 720, height: 680, child: content) | Fixed dialog size on wide screens
+lib/screens/songs/components/drum_grid_editor.dart | EdgeInsets.fromLTRB(16, 0, 16, 88) | Snackbar floats above the pinned Play/Save row (bar height)
+lib/screens/songs/components/song_constructor/song_constructor.dart | SizedBox(height: 36, child: PillView(sections: _sections)) | Fixed height of the section pill
+lib/screens/songs/components/song_constructor/widgets/pill_view.dart | EdgeInsets.symmetric(horizontal: 1) | One-pixel gap between section chips
+lib/screens/songs/components/song_form.dart | SizedBox(height: 28, child: PillView(sections: sections)) | Fixed height of the section pill
+lib/screens/songs/song_cluster_merge_screen.dart | SizedBox(height: 72) | Spacer that reserves room for the bottom bar
+lib/screens/songs/song_editor_screen.dart | TextStyle( fontFamily: 'monospace', fontSize: 13, ) | Monospace text
+lib/screens/songs/song_editor_screen.dart | EdgeInsets.symmetric(horizontal: 1) | One-pixel gap between section chips
+lib/widgets/band_avatar.dart | TextStyle( fontSize: widget.radius * 0.8, fontWeight: FontWeight.w700, ) | Initial scales with the avatar radius
+lib/widgets/invite_code_field.dart | TextStyle( fontFamily: 'monospace', fontSize: 26, fontWeight: FontWeight.w600, letterSpacing: 8, ) | Monospace code entry
+lib/widgets/metronome/central_tempo_circle.dart | fontSize: 64 | Dial number
+lib/widgets/metronome/time_signature_block.dart | TextStyle( fontSize: badgeFontSize, fontWeight: FontWeight.bold, color: context.mp.black, ) | Badge digits sized for the small badge, 8 or 10 by screen height
+lib/widgets/setlist_song_row.dart | TextStyle( color: context.mp.textTertiary, fontWeight: FontWeight.w700, fontFeatures: const [FontFeature.tabularFigures()], ) | Tabular figures keep the number column aligned
+lib/widgets/setlist_song_row.dart | TextStyle( fontWeight: FontWeight.w700, color: color, fontFeatures: const [FontFeature.tabularFigures()], ) | Tabular figures keep the number column aligned
+lib/widgets/setlist_song_row.dart | SizedBox(width: 3) | Placeholder as wide as the selection bar, keeps the row stable
+lib/widgets/tuner/central_dial.dart | TextStyle( fontSize: 16, fontWeight: MonoPulseTypography.bold, color: color, letterSpacing: 0.5, ) | Tuner dial readout
+lib/widgets/tuner/central_dial.dart | TextStyle( fontSize: noteFontSize, fontWeight: MonoPulseTypography.bold, color: context.mp.textHighEmphasis, letterSpacing: -2, height: 1, fontFeatures: const [FontFeature.tabularFigures()], ) | Tuner dial readout
+lib/widgets/tuner/stage_mode_overlay.dart | TextStyle( fontSize: 120, fontWeight: MonoPulseTypography.bold, color: context.mp.textHighEmphasis, letterSpacing: -4, height: 1, ) | Stage readout: note and cents sized for reading across a room
+lib/widgets/tuner/stage_mode_overlay.dart | TextStyle( fontSize: 48, fontWeight: MonoPulseTypography.semibold, color: centsColor, letterSpacing: -1, ) | Stage readout: note and cents sized for reading across a room
+lib/widgets/unified_item/unified_filter_sort_widget.dart | TextStyle( fontFamily: MonoPulseTypography.fontFamilyControl, ) | Token font family only (Dropdown items); no size or colour
+lib/widgets/user_avatar.dart | TextStyle( fontSize: widget.radius * 0.8, fontWeight: FontWeight.w700, color: MonoPulseColors.accentOrange, ) | Initial scales with the avatar radius
