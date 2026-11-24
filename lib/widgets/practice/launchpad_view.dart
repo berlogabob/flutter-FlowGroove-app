@@ -237,6 +237,7 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (widget.header != null) widget.header!,
+                if (widget.header != null) const Divider(),
                 Row(
                   children: [
                     Expanded(
@@ -293,7 +294,7 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                     );
                   },
                 ),
-                const SizedBox(height: MonoPulseSpacing.md),
+                const Divider(),
                 if (consoleTracks.isNotEmpty)
                   TrackConsole(
                     key: _console,
@@ -357,6 +358,7 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const Divider(),
                 // Three equal columns that never move: Play/Stop, Loop, Quantize.
                 Row(
                   key: const ValueKey('launchpad-transport'),

@@ -1147,14 +1147,14 @@
   {
     "key": "launchpad_view.NoteEditorSheet",
     "kind": "sheet",
-    "source": "lib/widgets/practice/launchpad_view.dart:316",
+    "source": "lib/widgets/practice/launchpad_view.dart:317",
     "widget": "NoteEditorSheet",
     "spec": "design/figcraft/specs/note_editor_sheet.json"
   },
   {
     "key": "launchpad_view.ArrangementSheet",
     "kind": "sheet",
-    "source": "lib/widgets/practice/launchpad_view.dart:519",
+    "source": "lib/widgets/practice/launchpad_view.dart:521",
     "widget": "ArrangementSheet",
     "spec": "design/figcraft/specs/arrangement_sheet.json"
   },
