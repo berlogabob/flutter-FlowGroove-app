@@ -44,8 +44,14 @@ const Map<Type, String> kRenderKinds = {
   SimpleDialog: 'dialog',
 };
 
-String? _kind(Widget widget) =>
-    widget is SegmentedButton ? 'segmented' : kRenderKinds[widget.runtimeType];
+String? _kind(Widget widget) {
+  if (widget is SegmentedButton) return 'segmented';
+  // A floating SnackBar is a card over the screen (the frames draw it as one).
+  if (widget is SnackBar) {
+    return widget.behavior == SnackBarBehavior.floating ? 'card' : null;
+  }
+  return kRenderKinds[widget.runtimeType];
+}
 
 double roundHalf(double value) => (value * 2).round() / 2;
 
@@ -74,6 +80,8 @@ Map<String, Object?> dumpTree(WidgetTester tester) {
         if (widget is Scrollable) scrollable = true;
         // An avatar is its kind only: its initial is not a text label.
         if (_kind(widget) == 'avatar') hidden = true;
+        // A snackbar's action is part of its card: the frames draw "Cut at bar 37 · Undo" as one text.
+        if (widget is SnackBarAction) hidden = true;
         return true;
       });
       if (hidden || (offscreen && !scrollable)) continue;
@@ -119,7 +127,8 @@ Map<String, Object?> dumpTree(WidgetTester tester) {
         // SegmentedButton builds its segments from buttons: one segmented, not also buttons.
         if (outer == kind ||
             (kind == 'tile' && outer == 'switchrow') ||
-            (kind != 'segmented' && outer == 'segmented'))
+            (kind != 'segmented' && outer == 'segmented') ||
+            (kind != 'card' && ancestor.widget is SnackBar))
           nested = true;
         return !nested;
       });

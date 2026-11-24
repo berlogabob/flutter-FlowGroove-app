@@ -233,6 +233,8 @@ Future<void> _songMapPlaying(WidgetTester tester) async {
   await practiceFixture.settleAudio(tester);
   await tester.tap(find.text('Chop'));
   await tester.pump();
+  // Let the floating snackbar finish sliding in (250 ms), well inside its 5 s life.
+  await tester.pump(const Duration(milliseconds: 400));
   expect(find.text('Cut at bar 37'), findsOneWidget);
   expect(
     tester.widget<SongMapTransport>(find.byType(SongMapTransport)).playing,

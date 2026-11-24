@@ -93,6 +93,36 @@ void main() {
     expect(values(dumpTree(tester), 'kinds', 'kind'), ['segmented', 'button']);
   });
 
+  testWidgets('a visible floating SnackBar is one card, its action is not', (
+    tester,
+  ) async {
+    await pump(tester, const SizedBox(height: 600));
+    final context = tester.element(find.byType(SizedBox).first);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Cut at bar 3'),
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(label: 'Undo', onPressed: () {}),
+      ),
+    );
+    await tester.pump();
+    // Not on screen yet: its height animates from zero.
+    expect(values(dumpTree(tester), 'kinds', 'kind'), isNot(contains('card')));
+    await tester.pump(const Duration(milliseconds: 400));
+    final dump = dumpTree(tester);
+    expect(values(dump, 'kinds', 'kind'), ['card']);
+    expect(values(dump, 'texts', 'v'), ['Cut at bar 3']);
+  });
+
+  testWidgets('a fixed SnackBar is not a card', (tester) async {
+    await pump(tester, const SizedBox(height: 600));
+    final context = tester.element(find.byType(SizedBox).first);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Saved')));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(values(dumpTree(tester), 'kinds', 'kind'), isNot(contains('card')));
+  });
+
   testWidgets('plain Dialog counts as a dialog kind', (tester) async {
     await pump(tester, const Dialog(child: Text('D')));
     expect(values(dumpTree(tester), 'kinds', 'kind'), ['dialog']);
