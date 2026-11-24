@@ -114,11 +114,12 @@ Future<void> _pumpPractice(
   PracticeRegionsScreen
       .decodePcm = (_, {required sampleRate, required durationMs}) async {
     // noAudio: analysis fails with 'Missing audio' (the Manual setup path).
-    // review: the frames' song, 118 bars: a quiet 9-bar Intro (A), then
-    // B C D E C D F F D in 8 12 16 8 12 16 12 4 21 bars, one tone per letter,
+    // review: the frames' song, 118 bars: a quiet Intro (A) of 11 bars (the analyzer
+    // reads 10; 8 + 2, never a 1-bar tail part), then
+    // B C D E C D F F D in 8 12 16 8 12 16 12 4 19 bars, one tone per letter,
     // clicks on every beat from 0.3 s. Shorter than the player's duration.
     const letters = 'ABCDECDFFD';
-    const bars = [9, 8, 12, 16, 8, 12, 16, 12, 4, 21];
+    const bars = [11, 8, 12, 16, 8, 12, 16, 12, 4, 19];
     const tones = {
       'A': [110.0],
       'B': [262.0, 392.0],
@@ -152,7 +153,7 @@ Future<void> _pumpPractice(
       if (beats) {
         final step = sampleRate * 60 / reviewBpm;
         for (var t = sampleRate * 0.3; t + 220 < pcm.length; t += step) {
-          final volume = t < sampleRate * 0.3 + 9 * bar ? 0.05 : 1;
+          final volume = t < sampleRate * 0.3 + bars[0] * bar ? 0.05 : 1;
           for (var b = 0; b < 220; b++) {
             pcm[t.round() + b] = (volume * (b.isEven ? 20000 : -20000)).round();
           }

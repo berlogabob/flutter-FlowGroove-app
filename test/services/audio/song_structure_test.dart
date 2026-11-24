@@ -168,7 +168,7 @@ void main() {
         ];
         final anchored = decode(prefixed);
         expect(anchored.sections.first.endMs, lead * 2000);
-        expect(anchored.sections.first.name, 'Intro 1');
+        expect(anchored.sections.first.name, 'Intro');
         expect(
           anchored.sections.skip(1).map((s) => s.startMs),
           original.sections.map((s) => s.startMs + lead * 2000),

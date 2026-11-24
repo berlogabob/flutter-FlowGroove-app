@@ -1008,8 +1008,10 @@ void _nameSections(List<_Segment> sections, List<StructureUnit> units) {
       name = 'Part $letter';
     }
     names[name] = (names[name] ?? 0) + 1;
+    // Intro and Outro occur once per song: the frames show them unnumbered.
+    final unique = name == 'Intro' || name == 'Outro';
     s
-      ..name = '$name ${names[name]}'
+      ..name = unique ? name : '$name ${names[name]}'
       ..label = letter;
   }
 }
@@ -1062,7 +1064,7 @@ SongStructure analyseStructureUnits(
   }
   if (coarse.length == 1) {
     return SongStructure(
-      sections: [(startMs: 0, endMs: endMs, label: 'A', name: 'Intro 1')],
+      sections: [(startMs: 0, endMs: endMs, label: 'A', name: 'Intro')],
       parts: [(startMs: 0, endMs: endMs, sectionIndex: 0, letter: 'a')],
       levels: [],
     );

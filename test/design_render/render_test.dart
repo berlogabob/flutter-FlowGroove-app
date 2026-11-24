@@ -26,6 +26,9 @@ const kFrameHeights = <String, double>{
   'event_kit_editor_sheet_l181': 3000,
   'event_kit_editor_sheet_l191': 3000,
   'import_lyrics_dialog': 3000,
+  // The frame floats the Suggest FAB over the scrolled list; the render needs the
+  // whole list above it, so the FAB lands after the last request in dump order.
+  'event_share': 1100,
 };
 
 // Add screen keys and reasons here if they have perpetual animations.
