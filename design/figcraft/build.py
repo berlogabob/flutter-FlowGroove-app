@@ -1502,12 +1502,13 @@ comp("EmptyState", [], lambda v: {"t": "col", "name": "EmptyState", "main": "cen
          {"t": "button", "kind": "secondary", "v": "Add item", "icon": "add", "name": "Action"},
          {"t": "spacer", "size": 8},
          {"t": "button", "kind": "secondary", "v": "Other action", "icon": "group_add", "name": "SecondaryAction"}]},
-     # The two buttons are nested Button instances: their labels are set through `nested`.
-     lambda n, pdir: {"p": {"Message": n.get("message", "No items yet"),
-                            "Hint": n.get("hint", "Add something to get started")},
-                      "nested": {"Action": {"Label": n.get("actionLabel", "Add item")},
-                                 "SecondaryAction": {"Label": n.get("secondaryActionLabel", "Other action")}}},
-     props=[("Message", "text", "Message", "No items yet"), ("Hint", "text", "Hint", "Add something to get started")])
+     _component_instance(lambda n: {"Message": n.get("message", "No items yet"),
+                                    "Hint": n.get("hint", "Add something to get started"),
+                                    "Action": n.get("actionLabel", "Add item"),
+                                    "SecondaryAction": n.get("secondaryActionLabel", "Other action")}),
+     props=[("Message", "text", "Message", "No items yet"), ("Hint", "text", "Hint", "Add something to get started"),
+            ("Action", "text", "Action", "Add item"),
+            ("SecondaryAction", "text", "SecondaryAction", "Other action")])
 
 comp("TimeSignatureBlock", [], lambda v: {"t": "col", "name": "TimeSignatureBlock", "bg": "blackSurface",
      "border": "borderSubtle", "radius": 16, "pad": 16, "gap": 10, "c": [
