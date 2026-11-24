@@ -17,6 +17,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/confirmed_write.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/setlist_break_row.dart';
@@ -264,13 +265,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 ],
               ),
               const SizedBox(height: MonoPulseSpacing.lg),
-              TextField(
+              CustomTextField(
+                label: 'Custom label (optional)',
                 controller: labelController,
-                decoration: const InputDecoration(
-                  labelText: 'Custom label (optional)',
-                  hintText: 'e.g. EUSTACE',
-                  border: OutlineInputBorder(),
-                ),
+                hint: 'e.g. EUSTACE',
               ),
               const SizedBox(height: MonoPulseSpacing.lg),
               Align(
@@ -624,17 +622,16 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       Expanded(
                         child: Semantics(
                           label: 'Setlist Name, required',
-                          child: TextFormField(
+                          child: CustomTextField(
+                            label: 'Setlist Name',
                             controller: _nameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Setlist Name *',
-                              prefixIcon: Icon(Icons.queue_music),
-                            ),
                             textInputAction: TextInputAction.next,
                             onChanged: (_) => _markAsChanged(),
                             validator: (v) => (v == null || v.trim().isEmpty)
                                 ? 'Required'
                                 : null,
+                            prefixIcon: Icons.queue_music,
+                            required: true,
                           ),
                         ),
                       ),
@@ -713,22 +710,18 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       onTap: _pickDate,
                     ),
                     const SizedBox(height: MonoPulseSpacing.lg),
-                    TextFormField(
+                    CustomTextField(
+                      label: 'Event Location',
                       controller: _eventLocationController,
-                      decoration: const InputDecoration(
-                        labelText: 'Event Location',
-                        prefixIcon: Icon(Icons.location_on),
-                      ),
                       textInputAction: TextInputAction.done,
                       onChanged: (_) => _markAsChanged(),
-                      onFieldSubmitted: (_) => _saveSetlist(),
+                      onSubmitted: (_) => _saveSetlist(),
+                      prefixIcon: Icons.location_on,
                     ),
                     const SizedBox(height: MonoPulseSpacing.lg),
-                    TextFormField(
+                    CustomTextField(
+                      label: 'Description',
                       controller: _descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                      ),
                       maxLines: 2,
                       onChanged: (_) => _markAsChanged(),
                     ),

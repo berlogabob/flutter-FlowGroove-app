@@ -5,6 +5,7 @@ import '../../models/api_error.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 
 /// Forgot Password Screen - Firebase password reset
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -177,34 +178,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: MonoPulseSpacing.xxl),
               ],
-              TextFormField(
+              CustomTextField(
+                label: 'Email',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 enabled: !_isLoading && !_emailSent,
-                style: TextStyle(color: context.mp.textPrimary),
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(color: context.mp.textSecondary),
-                  prefixIcon: Icon(
-                    Icons.email_outlined,
-                    color: context.mp.textSecondary,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                    borderSide: BorderSide(color: context.mp.borderDefault),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                    borderSide: BorderSide(color: context.mp.borderDefault),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                    borderSide: const BorderSide(
-                      color: MonoPulseColors.accentOrange,
-                      width: 2,
-                    ),
-                  ),
-                ),
+                prefixIcon: Icons.email_outlined,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter your email';

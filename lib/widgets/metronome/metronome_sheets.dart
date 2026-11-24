@@ -8,6 +8,7 @@ import '../../models/tempo_ramp.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../custom_text_field.dart';
 
 /// Shared bottom-sheet launcher for the metronome tool panels.
 Future<void> _showSheet(BuildContext context, Widget child) {
@@ -530,19 +531,11 @@ class _NumField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return CustomTextField(
+      label: label,
       controller: controller,
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: context.mp.surfaceRaised,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          borderSide: BorderSide.none,
-        ),
-      ),
     );
   }
 }

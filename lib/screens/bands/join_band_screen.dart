@@ -13,6 +13,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 
 class JoinBandScreen extends ConsumerStatefulWidget {
   const JoinBandScreen({super.key, this.inviteCode});
@@ -287,19 +288,18 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                         ),
                         const SizedBox(height: MonoPulseSpacing.xxxl),
 
-                        TextFormField(
+                        CustomTextField(
+                          label: 'Invite Code',
                           controller: _codeController,
                           textCapitalization: TextCapitalization.characters,
                           textInputAction: TextInputAction.done,
-                          onFieldSubmitted: (_) => _loadBand(),
-                          decoration: const InputDecoration(
-                            labelText: 'Invite Code *',
-                            prefixIcon: Icon(Icons.vpn_key),
-                            hintText: 'ABC123',
-                          ),
+                          onSubmitted: (_) => _loadBand(),
                           validator: (v) => (v == null || v.trim().length < 6)
                               ? 'Enter 6-char code'
                               : null,
+                          prefixIcon: Icons.vpn_key,
+                          hint: 'ABC123',
+                          required: true,
                         ),
                         const SizedBox(height: MonoPulseSpacing.xxl),
 

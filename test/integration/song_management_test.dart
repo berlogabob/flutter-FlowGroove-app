@@ -26,6 +26,7 @@ import 'package:uuid/uuid.dart';
 import '../helpers/mocks.dart';
 import '../helpers/mocks.mocks.dart';
 import '../helpers/test_helpers.dart';
+import '../helpers/field_finders.dart';
 
 // Test autocomplete notifier that doesn't access FirebaseAuth
 class TestAutocompleteNotifier extends AutocompleteSearchNotifier {
@@ -94,11 +95,11 @@ void main() {
         );
 
         // Act: Enter required fields
-        final titleField = find.widgetWithText(TextFormField, 'Title *');
+        final titleField = fieldLabelled(TextFormField, 'Title *');
         await tester.enterText(titleField, 'Test Song');
         await tester.pump();
 
-        final artistField = find.widgetWithText(TextFormField, 'Artist');
+        final artistField = fieldLabelled(TextFormField, 'Artist');
         await tester.enterText(artistField, 'Test Artist');
         await tester.pump();
 

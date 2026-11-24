@@ -7,6 +7,7 @@ import '../../models/lineup.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 import '../../widgets/role_picker_widget.dart';
 
 /// What the sheet hands back. The caller owns persistence: it writes
@@ -301,15 +302,12 @@ class _AddPersonFormState extends State<_AddPersonForm> {
         children: [
           Text('Add person', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: MonoPulseSpacing.md),
-          TextField(
+          CustomTextField(
+            label: 'Name',
             controller: _nameController,
             autofocus: true,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              labelText: 'Name',
-              hintText: 'e.g. Anna',
-              border: OutlineInputBorder(),
-            ),
+            hint: 'e.g. Anna',
           ),
           const SizedBox(height: MonoPulseSpacing.md),
           CustomButton(

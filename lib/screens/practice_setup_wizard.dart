@@ -6,6 +6,7 @@ import '../services/audio/audio_analysis.dart';
 import '../services/audio/audio_markers.dart';
 import '../services/audio/song_structure.dart' show SongStructure;
 import '../theme/mono_pulse_theme.dart';
+import '../widgets/custom_text_field.dart';
 
 class PracticeSetupResult {
   const PracticeSetupResult({this.grid, this.regions, this.markByEar = false});
@@ -444,10 +445,7 @@ class _SetupWizardState extends State<_SetupWizard> {
               ? _bases[i]
               : '${_time(_regions[i].startMs)} – ${_time(_regions[i].endMs)}',
         ),
-        TextField(
-          controller: _names[i],
-          decoration: InputDecoration(labelText: 'Section ${i + 1} name'),
-        ),
+        CustomTextField(label: 'Section ${i + 1} name', controller: _names[i]),
         Wrap(
           spacing: MonoPulseSpacing.sm,
           children: [

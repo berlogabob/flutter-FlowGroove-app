@@ -150,7 +150,9 @@ void main() {
       await tester.enterText(nameField, 'Bridge');
       await tester.pump();
 
-      // Tap Save
+      // Tap Save (labels above the fields make the sheet scroll)
+      await tester.ensureVisible(find.text('Save'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 

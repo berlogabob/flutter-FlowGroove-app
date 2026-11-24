@@ -7,6 +7,7 @@ import '../../../models/song_suggestion.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/song_tags.dart';
 import '../../../widgets/autocomplete_type_ahead.dart';
+import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/tag_input_dialog.dart';
 import 'bpm_selector.dart';
 import 'collapsible_section.dart';
@@ -156,21 +157,22 @@ class SongForm extends StatelessWidget {
           // Title field
           Semantics(
             label: 'Title, required',
-            child: TextFormField(
+            child: CustomTextField(
+              label: 'Title',
               controller: titleController,
-              decoration: const InputDecoration(labelText: 'Title *'),
               textInputAction: TextInputAction.next,
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Title required' : null,
+              required: true,
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
           // Artist field
           Semantics(
             label: 'Artist',
-            child: TextFormField(
+            child: CustomTextField(
+              label: 'Artist',
               controller: artistController,
-              decoration: const InputDecoration(labelText: 'Artist'),
               textInputAction: TextInputAction.done,
             ),
           ),

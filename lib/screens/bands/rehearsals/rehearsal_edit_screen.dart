@@ -12,6 +12,7 @@ import '../../../services/analytics_service.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/member_label.dart';
 import '../../../utils/snackbar.dart';
+import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/section_header.dart';
 import '../../../widgets/standard_screen_scaffold.dart';
 import 'rehearsal_format.dart';
@@ -222,9 +223,9 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
       body: ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [
-          TextField(
+          CustomTextField(
+            label: 'Title (optional)',
             controller: _title,
-            decoration: const InputDecoration(labelText: 'Title (optional)'),
             textCapitalization: TextCapitalization.sentences,
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
@@ -332,18 +333,16 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
           ),
           if (_venueType == Rehearsal.venueCustom) ...[
             const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
+            CustomTextField(
+              label: 'Location',
               controller: _location,
-              decoration: const InputDecoration(
-                labelText: 'Location',
-                hintText: 'e.g. Studio A',
-              ),
+              hint: 'e.g. Studio A',
             ),
           ],
           const SizedBox(height: MonoPulseSpacing.lg),
-          TextField(
+          CustomTextField(
+            label: 'Notes (optional)',
             controller: _notes,
-            decoration: const InputDecoration(labelText: 'Notes (optional)'),
             maxLines: 3,
           ),
           const SizedBox(height: MonoPulseSpacing.xxl),

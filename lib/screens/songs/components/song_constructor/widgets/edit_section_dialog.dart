@@ -5,6 +5,7 @@ import '../../../../../theme/mono_pulse_theme.dart';
 import '../../../../../utils/snackbar.dart';
 import '../../../../../widgets/chord_chart_view.dart';
 import '../../../../../widgets/custom_button.dart';
+import '../../../../../widgets/custom_text_field.dart';
 
 /// Dialog for editing a section's name, duration, and notes.
 class EditSectionDialog extends StatefulWidget {
@@ -87,12 +88,9 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
             ),
             const SizedBox(height: MonoPulseSpacing.lg),
             // Name field (for custom names)
-            TextField(
+            CustomTextField(
+              label: 'Custom Name',
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Custom Name',
-                border: OutlineInputBorder(),
-              ),
               onChanged: (value) {
                 setState(() {
                   _selectedTemplate = Section.templates.contains(value)
@@ -137,14 +135,12 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 const SizedBox(width: MonoPulseSpacing.xs),
                 SizedBox(
                   width: 60,
-                  child: TextField(
+                  child: CustomTextField(
+                    hint: 'Custom',
+                    semanticsLabel: 'Custom',
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Custom',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: MonoPulseSpacing.sm,
-                      ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: MonoPulseSpacing.sm,
                     ),
                     onChanged: (value) {
                       final parsed = int.tryParse(value);
@@ -160,29 +156,24 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
             ),
             const SizedBox(height: MonoPulseSpacing.lg),
             // Notes field
-            TextField(
+            CustomTextField(
+              label: 'Notes (e.g., guitar chords)',
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notes (e.g., guitar chords)',
-                hintText: 'Am C G',
-                border: OutlineInputBorder(),
-              ),
               maxLines: 3,
               maxLength: 100,
+              counterText: '',
+              hint: 'Am C G',
             ),
             const SizedBox(height: MonoPulseSpacing.lg),
             // Lyrics + chords (ChordPro) field with live preview
-            TextField(
+            CustomTextField(
+              label: 'Lyrics & chords (ChordPro)',
               controller: _chordController,
-              decoration: const InputDecoration(
-                labelText: 'Lyrics & chords (ChordPro)',
-                hintText: '[Am]Twinkle [F]little [C]star',
-                helperText: 'Put a chord in [brackets] before its syllable.',
-                border: OutlineInputBorder(),
-              ),
               maxLines: 5,
               minLines: 2,
               onChanged: (_) => setState(() {}),
+              hint: '[Am]Twinkle [F]little [C]star',
+              helperText: 'Put a chord in [brackets] before its syllable.',
             ),
             if (_chordController.text.trim().isNotEmpty) ...[
               const SizedBox(height: MonoPulseSpacing.md),

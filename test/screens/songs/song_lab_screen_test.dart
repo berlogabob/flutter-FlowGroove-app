@@ -19,6 +19,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:mockito/mockito.dart';
 
 import '../../helpers/mocks.mocks.dart';
+import '../../helpers/field_finders.dart';
 
 class _InMemoryLabRepo extends FirestoreLabRepository {
   _InMemoryLabRepo()
@@ -489,7 +490,7 @@ void main() {
       await tester.tap(find.text('Note'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'What happened?'),
+        fieldLabelled(TextField, 'What happened?'),
         'Do not write',
       );
       identity.change(const AsyncValue.data(null));
@@ -529,7 +530,7 @@ void main() {
         await tester.tap(find.byTooltip('Save version'));
         await tester.pumpAndSettle();
         await tester.enterText(
-          find.widgetWithText(TextField, 'Name (e.g. v0.3, Live, Acoustic)'),
+          fieldLabelled(TextField, 'Name (e.g. v0.3, Live, Acoustic)'),
           'Live',
         );
         await tester.tap(find.text('Save'));
@@ -551,7 +552,7 @@ void main() {
         await tester.tap(find.byTooltip('Save version'));
         await tester.pumpAndSettle();
         await tester.enterText(
-          find.widgetWithText(TextField, 'Name (e.g. v0.3, Live, Acoustic)'),
+          fieldLabelled(TextField, 'Name (e.g. v0.3, Live, Acoustic)'),
           'Snapshot',
         );
         await tester.tap(find.text('Save'));
@@ -742,7 +743,7 @@ void main() {
       await tester.tap(find.text('Note'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'What happened?'),
+        fieldLabelled(TextField, 'What happened?'),
         'Try the riff an octave up',
       );
       await tester.tap(find.text('Save'));
@@ -762,7 +763,7 @@ void main() {
       await tester.tap(find.text('Decision'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'What happened?'),
+        fieldLabelled(TextField, 'What happened?'),
         'Half-time last chorus',
       );
       await tester.tap(find.text('Save'));
@@ -784,7 +785,7 @@ void main() {
       await tester.tap(find.text('Add task'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'What needs to be prepared?'),
+        fieldLabelled(TextField, 'What needs to be prepared?'),
         'Learn the solo',
       );
       await tester.tap(find.text('Add'));

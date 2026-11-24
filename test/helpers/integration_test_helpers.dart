@@ -27,6 +27,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 import 'mocks.mocks.dart';
+import 'field_finders.dart';
 
 /// Test data factory for creating mock entities
 class TestDataFactory {
@@ -292,7 +293,7 @@ class AppFinders {
   }
 
   static Finder textFieldByLabel(String label) {
-    return find.widgetWithText(TextFormField, label);
+    return fieldLabelled(TextFormField, label);
   }
 }
 

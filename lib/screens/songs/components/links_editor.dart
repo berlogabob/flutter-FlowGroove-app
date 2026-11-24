@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../models/link.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/custom_button.dart';
+import '../../../widgets/custom_text_field.dart';
 
 /// A widget for managing a collection of links.
 ///
@@ -135,9 +136,9 @@ class LinksEditor extends StatelessWidget {
                 onChanged: (value) => selectedType = value!,
               ),
               const SizedBox(height: MonoPulseSpacing.lg),
-              TextField(
+              CustomTextField(
+                label: 'URL',
                 controller: urlController,
-                decoration: const InputDecoration(labelText: 'URL'),
               ),
             ],
           ),

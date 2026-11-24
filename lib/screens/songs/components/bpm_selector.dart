@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/custom_text_field.dart';
 
 /// A widget for entering BPM (Beats Per Minute) value.
 ///
@@ -29,24 +30,13 @@ class BpmSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (label != null) ...[
-          Text(label!, style: MonoPulseTypography.labelMedium),
-          const SizedBox(height: MonoPulseSpacing.xs),
-        ],
-        TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: 'BPM',
-            hintText: hintText,
-            isDense: true,
-          ),
-          keyboardType: TextInputType.number,
-          onChanged: onChanged,
-        ),
-      ],
+    return CustomTextField(
+      label: label ?? 'BPM',
+      controller: controller,
+      hint: hintText,
+      isDense: true,
+      keyboardType: TextInputType.number,
+      onChanged: onChanged,
     );
   }
 }
@@ -163,12 +153,10 @@ class KeyBpmGrid extends StatelessWidget {
             ),
             const SizedBox(width: MonoPulseSpacing.xs),
             Expanded(
-              child: TextFormField(
+              child: CustomTextField(
+                label: 'BPM',
                 controller: bpm,
-                decoration: const InputDecoration(
-                  labelText: 'BPM',
-                  isDense: true,
-                ),
+                isDense: true,
                 keyboardType: TextInputType.number,
               ),
             ),

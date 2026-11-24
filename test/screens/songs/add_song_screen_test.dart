@@ -12,6 +12,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/mocks.mocks.dart';
 import '../../helpers/test_helpers.dart';
+import '../../helpers/field_finders.dart';
 
 // Test notifier that returns a specific value
 class TestAppUserNotifier extends AppUserNotifier {
@@ -140,8 +141,8 @@ void main() {
       );
 
       // Find title and artist text fields
-      final titleField = find.widgetWithText(TextFormField, 'Title *');
-      final artistField = find.widgetWithText(TextFormField, 'Artist');
+      final titleField = fieldLabelled(TextFormField, 'Title *');
+      final artistField = fieldLabelled(TextFormField, 'Artist');
 
       // Enter title
       await tester.enterText(titleField, 'Test Song');
@@ -175,7 +176,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The grid has one 'BPM' field per row: Original first, then Our.
-      final bpmFields = find.widgetWithText(TextFormField, 'BPM');
+      final bpmFields = fieldLabelled(TextFormField, 'BPM');
       expect(bpmFields, findsNWidgets(2));
 
       await tester.enterText(bpmFields.at(0), '120');

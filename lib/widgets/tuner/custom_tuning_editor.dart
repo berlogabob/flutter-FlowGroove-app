@@ -11,6 +11,7 @@ import '../../providers/permissions_provider.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/field_label.dart';
 import '../custom_button.dart';
 
 /// Custom Tuning Editor - Bottom sheet for creating custom tunings.
@@ -135,22 +136,25 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
             padding: const EdgeInsets.symmetric(
               horizontal: MonoPulseSpacing.xl,
             ),
-            child: DropdownButtonFormField<TunerPresetScope>(
-              key: ValueKey(selectedScope),
-              initialValue: _scope,
-              dropdownColor: context.mp.surfaceRaised,
-              decoration: const InputDecoration(labelText: 'Save preset to'),
-              items: scopes
-                  .map(
-                    (scope) => DropdownMenuItem(
-                      value: scope,
-                      child: Text(_scopeLabel(scope)),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) setState(() => _scope = value);
-              },
+            child: LabeledField(
+              label: 'Save preset to',
+              child: DropdownButtonFormField<TunerPresetScope>(
+                key: ValueKey(selectedScope),
+                initialValue: _scope,
+                dropdownColor: context.mp.surfaceRaised,
+
+                items: scopes
+                    .map(
+                      (scope) => DropdownMenuItem(
+                        value: scope,
+                        child: Text(_scopeLabel(scope)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setState(() => _scope = value);
+                },
+              ),
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.md),

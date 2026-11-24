@@ -21,6 +21,7 @@ import '../../utils/snackbar.dart';
 import '../../utils/stage_gear.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/user_avatar.dart';
 
@@ -736,12 +737,9 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
                   ],
                 ),
                 const SizedBox(height: MonoPulseSpacing.md),
-                TextField(
+                CustomTextField(
+                  label: 'Custom brand',
                   controller: custom,
-                  decoration: const InputDecoration(
-                    labelText: 'Custom brand',
-                    border: OutlineInputBorder(),
-                  ),
                   onChanged: (value) =>
                       setDialogState(() => selected = value.trim()),
                 ),
@@ -1188,22 +1186,12 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
-              controller: _name,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                border: OutlineInputBorder(),
-              ),
-            ),
+            CustomTextField(label: 'Name', controller: _name, autofocus: true),
             const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
+            CustomTextField(
+              label: 'Role (Photographer, Manager, +1…)',
               controller: _role,
               onChanged: (role) => setState(() => _resetForRole(role)),
-              decoration: const InputDecoration(
-                labelText: 'Role (Photographer, Manager, +1…)',
-                border: OutlineInputBorder(),
-              ),
             ),
             const SizedBox(height: MonoPulseSpacing.sm),
             Wrap(
@@ -1262,13 +1250,7 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
             ),
             _AccessPreview(access: _access, canSuggest: _canSuggest),
             const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
-              controller: _notes,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optional)',
-                border: OutlineInputBorder(),
-              ),
-            ),
+            CustomTextField(label: 'Notes (optional)', controller: _notes),
             const SizedBox(height: MonoPulseSpacing.lg),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -1495,13 +1477,10 @@ class _AddRiderSheet extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-        child: TextField(
+        child: CustomTextField(
+          label: 'Rider item (e.g. XLR cables ×4)',
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Rider item (e.g. XLR cables ×4)',
-            border: OutlineInputBorder(),
-          ),
           onSubmitted: (v) => Navigator.pop(context, v.trim()),
         ),
       ),

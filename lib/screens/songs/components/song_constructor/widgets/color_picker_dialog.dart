@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
+import '../../../../../widgets/custom_text_field.dart';
 import '../core/theme/app_colors.dart';
 
 /// Color picker dialog with 3 methods: theme colors, color wheel, hex input.
@@ -347,15 +348,9 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
   }
 
   Widget _buildHexInput(BuildContext context) {
-    return TextField(
+    return CustomTextField(
+      label: 'Hex Color Code',
       controller: _hexController,
-      decoration: const InputDecoration(
-        labelText: 'Hex Color Code',
-        hintText: '#RRGGBB',
-        prefixText: '#',
-        border: OutlineInputBorder(),
-        helperText: 'Enter 6-digit hex code (e.g., FF5733)',
-      ),
       maxLength: 6,
       textCapitalization: TextCapitalization.characters,
       onChanged: (value) {
@@ -368,6 +363,9 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
           }
         }
       },
+      hint: '#RRGGBB',
+      prefixText: '#',
+      helperText: 'Enter 6-digit hex code (e.g., FF5733)',
     );
   }
 

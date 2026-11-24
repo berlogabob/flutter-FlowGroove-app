@@ -9,6 +9,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/field_label.dart';
 import '../error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 
 class SongLibraryBlock extends ConsumerWidget {
@@ -452,22 +453,25 @@ class _SourceDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<String?>(
-      initialValue: bandId,
-      dropdownColor: context.mp.surfaceRaised,
-      decoration: const InputDecoration(
-        labelText: 'Library source',
-        prefixIcon: Icon(Icons.folder_outlined),
-        border: OutlineInputBorder(),
-      ),
-      items: [
-        const DropdownMenuItem<String?>(child: Text('Personal')),
-        ...bands.map(
-          (band) =>
-              DropdownMenuItem<String?>(value: band.id, child: Text(band.name)),
+    return LabeledField(
+      label: 'Library source',
+      child: DropdownButtonFormField<String?>(
+        initialValue: bandId,
+        dropdownColor: context.mp.surfaceRaised,
+        decoration: const InputDecoration(
+          prefixIcon: Icon(Icons.folder_outlined),
         ),
-      ],
-      onChanged: onChanged,
+        items: [
+          const DropdownMenuItem<String?>(child: Text('Personal')),
+          ...bands.map(
+            (band) => DropdownMenuItem<String?>(
+              value: band.id,
+              child: Text(band.name),
+            ),
+          ),
+        ],
+        onChanged: onChanged,
+      ),
     );
   }
 }

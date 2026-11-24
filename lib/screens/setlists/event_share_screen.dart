@@ -12,6 +12,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/field_label.dart';
 import 'event_kit_editor_screen.dart';
 
 /// What someone opening a shared event link sees — a venue's art director, a
@@ -501,20 +502,23 @@ class _SuggestSheetState extends State<_SuggestSheet> {
             ),
             if (_orderReady) ...[
               const SizedBox(height: MonoPulseSpacing.md),
-              DropdownButtonFormField<String>(
-                initialValue: _kind,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Change type'),
-                items: const [
-                  DropdownMenuItem(value: 'note', child: Text('Note')),
-                  DropdownMenuItem(value: 'add', child: Text('Add a song')),
-                  DropdownMenuItem(
-                    value: 'remove',
-                    child: Text('Remove a song occurrence'),
-                  ),
-                  DropdownMenuItem(value: 'reorder', child: Text('Reorder')),
-                ],
-                onChanged: (value) => setState(() => _kind = value!),
+              LabeledField(
+                label: 'Change type',
+                child: DropdownButtonFormField<String>(
+                  initialValue: _kind,
+                  isExpanded: true,
+
+                  items: const [
+                    DropdownMenuItem(value: 'note', child: Text('Note')),
+                    DropdownMenuItem(value: 'add', child: Text('Add a song')),
+                    DropdownMenuItem(
+                      value: 'remove',
+                      child: Text('Remove a song occurrence'),
+                    ),
+                    DropdownMenuItem(value: 'reorder', child: Text('Reorder')),
+                  ],
+                  onChanged: (value) => setState(() => _kind = value!),
+                ),
               ),
               if (_kind == 'add')
                 if (widget.view.suggestionCandidates.isEmpty)

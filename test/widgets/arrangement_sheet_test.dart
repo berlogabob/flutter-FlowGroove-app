@@ -126,7 +126,11 @@ Future<void> _pump(
 }
 
 Future<void> _save(WidgetTester tester) async {
+  // The sheet grows while scrolling, so scroll to the button twice.
   await tester.ensureVisible(find.text('Save'));
+  await tester.pumpAndSettle();
+  await tester.ensureVisible(find.text('Save'));
+  await tester.pumpAndSettle();
   await tester.tap(find.text('Save'));
   await tester.pumpAndSettle();
 }

@@ -13,6 +13,7 @@ import '../../../providers/permissions_provider.dart';
 import '../../../services/analytics_service.dart';
 import '../../../services/audio/midi/drum_map.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/custom_text_field.dart';
 
 const _lanes = <DrumLane, int>{
   DrumLane.kick: 36,
@@ -221,10 +222,10 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: MonoPulseSpacing.md),
-                TextField(
+                CustomTextField(
+                  label: 'Name',
                   controller: _name,
                   enabled: canEdit && !_busy,
-                  decoration: const InputDecoration(labelText: 'Name'),
                   onChanged: (_) {
                     setState(() {});
                     widget.dirty?.value = true;

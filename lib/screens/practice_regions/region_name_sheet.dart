@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../models/section.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/app_badge.dart';
+import '../../widgets/custom_text_field.dart';
 import 'song_map/song_map_letters.dart';
 
 Future<({String name, bool move})?> showSectionNameSheet(
@@ -289,9 +290,9 @@ Future<String?> showRegionNameSheet(
                         ),
                     ],
                   ),
-                  TextField(
+                  CustomTextField(
+                    label: 'Name',
                     controller: controller,
-                    decoration: const InputDecoration(labelText: 'Name'),
                     onChanged: (_) => sheetSetState(() {}),
                     onSubmitted: (value) => Navigator.pop(sheetContext, value),
                   ),

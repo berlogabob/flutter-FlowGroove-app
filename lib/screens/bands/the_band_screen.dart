@@ -16,6 +16,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/responsive_breakpoints.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
+import '../../widgets/custom_text_field.dart';
 import '../../widgets/dashboard_grid.dart';
 import '../../widgets/quick_action_button.dart';
 import '../../widgets/standard_screen_scaffold.dart';
@@ -315,12 +316,9 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Band Name'),
-        content: TextField(
+        content: CustomTextField(
+          label: 'Band Name',
           controller: _nameController,
-          decoration: const InputDecoration(
-            labelText: 'Band Name',
-            border: OutlineInputBorder(),
-          ),
           autofocus: true,
         ),
         actions: [
@@ -385,15 +383,12 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Description'),
-        content: TextField(
+        content: CustomTextField(
+          label: 'Description',
           controller: _descriptionController,
-          decoration: const InputDecoration(
-            labelText: 'Description',
-            border: OutlineInputBorder(),
-            hintText: 'Enter band description...',
-          ),
           maxLines: 4,
           autofocus: true,
+          hint: 'Enter band description...',
         ),
         actions: [
           TextButton(

@@ -10,7 +10,8 @@ CALL = re.compile(r'\b(GoRoute|showModalBottomSheet|showDialog|DraggableScrollab
 METHOD = re.compile(r'\b(?:Future(?:<[^\n]*?>)?|void|Widget|[A-Z]\w*)\s+(\w+)\s*\([^;{}]*\)\s*(?:async\s*)?\{')
 WRAPPERS = {'StatefulBuilder', 'Builder', 'SafeArea', 'Padding', 'Column', 'Row', 'Material',
             'DraggableScrollableSheet', 'Container', 'SizedBox', 'Center', 'Align', 'Expanded',
-            'Flexible', 'SingleChildScrollView', 'Scaffold', 'AlertDialog', 'Dialog', 'Text'}
+            'Flexible', 'SingleChildScrollView', 'Scaffold', 'AlertDialog', 'Dialog', 'Text',
+            'CustomTextField', 'LabeledField', 'FieldLabel'}
 # Pickers drawn entirely by Flutter/the OS with no app layout: no frame is possible or needed.
 SYSTEM_PICKERS = {'showDatePicker', 'showTimePicker', 'showDateRangePicker'}
 WIDGET = re.compile(r'(?:=>\s*|return\s+)(?:const\s+)?([A-Z]\w*)\s*\(')

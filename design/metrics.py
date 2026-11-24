@@ -189,7 +189,7 @@ def spec_offscale(specs_dir: str, tokens_path: str) -> int:
     return total
 
 
-LAYOUT_ONLY = {"StandardScreenScaffold", "ToolScreenScaffold", "MenuScopePublisher", "StableSlotText"}
+LAYOUT_ONLY = {"StandardScreenScaffold", "ToolScreenScaffold", "MenuScopePublisher", "StableSlotText", "LabeledField"}
 
 
 def link_counts(connect_path: str, widgets_dir: str, screens_dir: str) -> dict:

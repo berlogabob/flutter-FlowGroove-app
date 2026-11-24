@@ -206,6 +206,9 @@ void main() {
         overrides: overrides(),
       );
 
+      // Labels above the fields make the form scroll on the test screen.
+      await tester.ensureVisible(find.text('Sign In'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
 

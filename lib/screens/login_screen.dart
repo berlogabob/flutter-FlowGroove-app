@@ -14,6 +14,7 @@ import '../services/event_share_service.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/custom_text_field.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/google_sign_in_button_stub.dart'
     if (dart.library.js_interop) '../widgets/google_sign_in_button_web.dart';
@@ -355,28 +356,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: MonoPulseSpacing.xxl),
               ],
-              TextFormField(
+              CustomTextField(
+                label: 'Email',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 onChanged: _onEmailChanged,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  errorText: !_email.isPure ? _email.errorMessage : null,
-                ),
+                prefixIcon: Icons.email_outlined,
+                errorText: !_email.isPure ? _email.errorMessage : null,
               ),
               const SizedBox(height: MonoPulseSpacing.lg),
-              TextFormField(
+              CustomTextField(
+                label: 'Password',
                 controller: _passwordController,
                 obscureText: true,
                 textInputAction: TextInputAction.done,
                 onChanged: _onPasswordChanged,
-                onFieldSubmitted: (_) => _login(),
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outlined),
-                  errorText: !_password.isPure ? _password.errorMessage : null,
-                ),
+                onSubmitted: (_) => _login(),
+                prefixIcon: Icons.lock_outlined,
+                errorText: !_password.isPure ? _password.errorMessage : null,
               ),
               Align(
                 alignment: Alignment.centerRight,

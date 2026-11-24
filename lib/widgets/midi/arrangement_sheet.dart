@@ -10,6 +10,7 @@ import '../../providers/permissions_provider.dart';
 import '../../services/audio/midi/midi_song_facts.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/split_bars.dart';
+import '../../widgets/field_label.dart';
 
 class ArrangementSheet extends ConsumerStatefulWidget {
   ArrangementSheet({required this.entry, this.bandId, super.key})
@@ -168,19 +169,22 @@ class _ArrangementSheetState extends ConsumerState<ArrangementSheet> {
                 _bars![i],
                 editable ? (value) => setState(() => _bars![i] = value) : null,
               ),
-            DropdownButtonFormField<String>(
-              initialValue: _endBehavior,
-              decoration: const InputDecoration(labelText: 'At end of file'),
-              items: [
-                for (final behavior in LoopBehavior.values)
-                  DropdownMenuItem(
-                    value: behavior.name,
-                    child: Text(behavior.name),
-                  ),
-              ],
-              onChanged: editable
-                  ? (value) => setState(() => _endBehavior = value!)
-                  : null,
+            LabeledField(
+              label: 'At end of file',
+              child: DropdownButtonFormField<String>(
+                initialValue: _endBehavior,
+
+                items: [
+                  for (final behavior in LoopBehavior.values)
+                    DropdownMenuItem(
+                      value: behavior.name,
+                      child: Text(behavior.name),
+                    ),
+                ],
+                onChanged: editable
+                    ? (value) => setState(() => _endBehavior = value!)
+                    : null,
+              ),
             ),
             if (_error != null)
               Semantics(

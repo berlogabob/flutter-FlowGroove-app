@@ -9,6 +9,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -162,13 +163,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: MonoPulseSpacing.massive),
-              TextFormField(
+              CustomTextField(
+                label: 'Email',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined),
-                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter your email';
@@ -178,15 +176,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   }
                   return null;
                 },
+                prefixIcon: Icons.email_outlined,
               ),
               const SizedBox(height: MonoPulseSpacing.lg),
-              TextFormField(
+              CustomTextField(
+                label: 'Password',
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock_outlined),
-                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a password';
@@ -196,17 +192,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   }
                   return null;
                 },
+                prefixIcon: Icons.lock_outlined,
               ),
               const SizedBox(height: MonoPulseSpacing.sm),
               _buildPasswordRequirements(),
               const SizedBox(height: MonoPulseSpacing.lg),
-              TextFormField(
+              CustomTextField(
+                label: 'Confirm Password',
                 controller: _confirmPasswordController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Confirm Password',
-                  prefixIcon: Icon(Icons.lock_outlined),
-                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please confirm your password';
@@ -216,6 +210,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   }
                   return null;
                 },
+                prefixIcon: Icons.lock_outlined,
               ),
               const SizedBox(height: MonoPulseSpacing.xxxl),
               CustomButton(

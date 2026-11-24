@@ -15,6 +15,7 @@ import '../../providers/permissions_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/custom_text_field.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/invite_code_field.dart';
 import '../../widgets/menu_items_scope.dart';
@@ -333,30 +334,27 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                           ],
                           Semantics(
                             label: 'Band Name, required',
-                            child: TextFormField(
+                            child: CustomTextField(
+                              label: 'Band Name',
                               controller: _nameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Band Name *',
-                                prefixIcon: Icon(Icons.groups),
-                              ),
                               textInputAction: TextInputAction.next,
                               onChanged: (_) => _markAsChanged(),
                               validator: (v) => (v == null || v.trim().isEmpty)
                                   ? 'Required'
                                   : null,
+                              prefixIcon: Icons.groups,
+                              required: true,
                             ),
                           ),
                           const SizedBox(height: MonoPulseSpacing.lg),
                           Semantics(
                             label: 'Description',
-                            child: TextFormField(
+                            child: CustomTextField(
+                              label: 'Description',
                               controller: _descriptionController,
-                              decoration: const InputDecoration(
-                                labelText: 'Description',
-                              ),
                               textInputAction: TextInputAction.done,
                               onChanged: (_) => _markAsChanged(),
-                              onFieldSubmitted: (_) {
+                              onSubmitted: (_) {
                                 if (canEdit) _saveBand();
                               },
                               maxLines: 3,

@@ -87,6 +87,7 @@ import '../helpers/mocks.dart';
 import '../helpers/mocks.mocks.dart';
 import '../screens/practice_regions_screen_test.dart';
 import 'fixtures.dart';
+import '../helpers/field_finders.dart';
 
 class _HangingHttpClient extends Fake implements HttpClient {
   @override
@@ -1198,7 +1199,7 @@ final kOpeners = <String, Opener>{
       await tester.tap(chip);
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'Name').last,
+        fieldLabelled(TextField, 'Name').last,
         'Sam Rivera',
       );
       await tester.pumpAndSettle();

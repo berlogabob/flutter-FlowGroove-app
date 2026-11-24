@@ -7,6 +7,7 @@ import '../../widgets/app_filter_chip.dart';
 import '../../widgets/chord_chart_view.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/field_label.dart';
 import '../../widgets/setlist_break_row.dart';
 import '../../widgets/setlist_song_row.dart';
 
@@ -416,11 +417,8 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
     String label,
     String value,
     List<String> choices,
-  ) => InputDecorator(
-    decoration: InputDecoration(
-      labelText: label,
-      contentPadding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: MonoPulseSpacing.xs),
-    ),
+  ) => LabeledField(label: label, child: InputDecorator(
+    decoration: const InputDecoration(contentPadding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: MonoPulseSpacing.xs)),
     child: DropdownButtonHideUnderline(
       child: DropdownButton<String>(
         value: value,
@@ -434,7 +432,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
         onChanged: (_) {},
       ),
     ),
-  );
+  ));
 
   Widget _saveSongBar(BuildContext context) => Container(
     padding: const EdgeInsets.all(MonoPulseSpacing.sm),

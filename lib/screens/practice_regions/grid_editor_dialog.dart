@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../models/audio_region.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/custom_text_field.dart';
 
 Future<AudioGrid?> showGridEditorDialog(
   BuildContext context, {
@@ -29,15 +30,13 @@ Future<AudioGrid?> showGridEditorDialog(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
+                CustomTextField(
+                  label: 'BPM',
                   controller: bpm,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: InputDecoration(
-                    labelText: 'BPM',
-                    errorText: error,
-                  ),
+                  errorText: error,
                 ),
                 Wrap(
                   children: [

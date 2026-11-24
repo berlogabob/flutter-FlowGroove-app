@@ -20,6 +20,7 @@ import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/picked_file.dart';
 import '../../../utils/snackbar.dart';
 import '../../../widgets/custom_button.dart';
+import '../../../widgets/custom_text_field.dart';
 
 enum _RecordingPermissionState {
   granted,
@@ -497,13 +498,10 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
                     setState(() => _parts[i].included = value ?? false),
               ),
               Expanded(
-                child: TextField(
+                child: CustomTextField(
+                  label:
+                      'Part ${i + 1} ${_partTime(_parts[i].startMs)}–${_partTime(_parts[i].endMs)}',
                   controller: _parts[i].title,
-                  decoration: InputDecoration(
-                    labelText:
-                        'Part ${i + 1} ${_partTime(_parts[i].startMs)}–${_partTime(_parts[i].endMs)}',
-                    border: const OutlineInputBorder(),
-                  ),
                 ),
               ),
             ],
@@ -595,22 +593,16 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
                 ],
               ),
               const SizedBox(height: MonoPulseSpacing.md),
-              TextField(
+              CustomTextField(
+                label: 'Title (e.g. "Bridge riff idea")',
                 controller: _title,
-                decoration: const InputDecoration(
-                  labelText: 'Title (e.g. "Bridge riff idea")',
-                  border: OutlineInputBorder(),
-                ),
               ),
               const SizedBox(height: MonoPulseSpacing.md),
-              TextField(
+              CustomTextField(
+                label: 'Timestamp notes (optional)',
                 controller: _notes,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Timestamp notes (optional)',
-                  hintText: '00:42 good chorus entry\n01:15 tempo drops',
-                  border: OutlineInputBorder(),
-                ),
+                hint: '00:42 good chorus entry\n01:15 tempo drops',
               ),
               const SizedBox(height: MonoPulseSpacing.lg),
               if (_bytes != null && _bytes!.length >= _maxUploadBytes)

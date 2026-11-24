@@ -5,6 +5,7 @@ import '../../services/mcp_api_key_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
+import '../../widgets/custom_text_field.dart';
 
 /// Manages per-user API keys for the MCP endpoint: mint (shown once), list, revoke,
 /// plus a short "connect your AI" guide.
@@ -264,12 +265,9 @@ class _CreateKeySheetState extends State<_CreateKeySheet> {
         children: [
           Text('New API key', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: MonoPulseSpacing.lg),
-          TextField(
+          CustomTextField(
+            label: 'Label (e.g. "Claude Desktop")',
             controller: _label,
-            decoration: const InputDecoration(
-              labelText: 'Label (e.g. "Claude Desktop")',
-              border: OutlineInputBorder(),
-            ),
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
           SegmentedButton<String>(

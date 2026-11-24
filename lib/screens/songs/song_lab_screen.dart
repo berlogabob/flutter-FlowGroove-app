@@ -26,7 +26,9 @@ import '../../widgets/app_filter_chip.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/field_label.dart';
 import '../../widgets/midi/midi_import_flow.dart';
 import '../../widgets/midi/midi_song_panel.dart';
 import '../../widgets/standard_screen_scaffold.dart';
@@ -939,39 +941,30 @@ class _ComposeEntrySheetState extends State<_ComposeEntrySheet> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
+            CustomTextField(
+              label: 'Title (optional)',
               controller: _title,
-              decoration: const InputDecoration(
-                labelText: 'Title (optional)',
-                border: OutlineInputBorder(),
-              ),
             ),
             const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
+            CustomTextField(
+              label: 'What happened?',
               controller: _body,
               maxLines: 5,
               minLines: 2,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'What happened?',
-                border: OutlineInputBorder(),
-              ),
             ),
             if (widget.song.sections.isNotEmpty && widget.existing == null) ...[
               const SizedBox(height: MonoPulseSpacing.md),
-              DropdownButtonFormField<String?>(
+              LabeledField(label: 'Section (optional)', child: DropdownButtonFormField<String?>(
                 initialValue: _sectionId,
-                decoration: const InputDecoration(
-                  labelText: 'Section (optional)',
-                  border: OutlineInputBorder(),
-                ),
+                
                 items: [
                   const DropdownMenuItem(child: Text('—')),
                   for (final s in widget.song.sections)
                     DropdownMenuItem(value: s.id, child: Text(s.name)),
                 ],
                 onChanged: (v) => setState(() => _sectionId = v),
-              ),
+              )),
             ],
             const SizedBox(height: MonoPulseSpacing.lg),
             Row(
@@ -1045,13 +1038,10 @@ class _ComposeTaskSheetState extends State<_ComposeTaskSheet> {
           children: [
             Text('New task', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
+            CustomTextField(
+              label: 'What needs to be prepared?',
               controller: _title,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'What needs to be prepared?',
-                border: OutlineInputBorder(),
-              ),
             ),
             const SizedBox(height: MonoPulseSpacing.md),
             Row(
@@ -1078,12 +1068,9 @@ class _ComposeTaskSheetState extends State<_ComposeTaskSheet> {
             ),
             if (widget.members.isNotEmpty) ...[
               const SizedBox(height: MonoPulseSpacing.md),
-              DropdownButtonFormField<String?>(
+              LabeledField(label: 'Assignee (optional)', child: DropdownButtonFormField<String?>(
                 initialValue: _assignee,
-                decoration: const InputDecoration(
-                  labelText: 'Assignee (optional)',
-                  border: OutlineInputBorder(),
-                ),
+                
                 items: [
                   const DropdownMenuItem(child: Text('—')),
                   for (final m in widget.members)
@@ -1095,7 +1082,7 @@ class _ComposeTaskSheetState extends State<_ComposeTaskSheet> {
                     ),
                 ],
                 onChanged: (v) => setState(() => _assignee = v),
-              ),
+              )),
             ],
             const SizedBox(height: MonoPulseSpacing.lg),
             Row(
@@ -1178,22 +1165,16 @@ class _SaveVersionSheetState extends State<_SaveVersionSheet> {
               ),
             ),
             const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
+            CustomTextField(
+              label: 'Name (e.g. v0.3, Live, Acoustic)',
               controller: _name,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Name (e.g. v0.3, Live, Acoustic)',
-                border: OutlineInputBorder(),
-              ),
             ),
             const SizedBox(height: MonoPulseSpacing.md),
-            TextField(
+            CustomTextField(
+              label: 'What changed? (optional)',
               controller: _notes,
               maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'What changed? (optional)',
-                border: OutlineInputBorder(),
-              ),
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,

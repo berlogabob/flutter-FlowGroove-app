@@ -23,6 +23,7 @@ import 'package:mockito/mockito.dart';
 
 import '../../helpers/mocks.mocks.dart';
 import '../../helpers/routed_test_harness.dart';
+import '../../helpers/field_finders.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -513,9 +514,9 @@ void main() {
       await tester.ensureVisible(find.text('Add person'));
       await tester.tap(find.text('Add person'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.widgetWithText(TextField, 'Name'), 'Ana');
+      await tester.enterText(fieldLabelled(TextField, 'Name'), 'Ana');
       await tester.enterText(
-        find.widgetWithText(TextField, 'Role (Photographer, Manager, +1…)'),
+        fieldLabelled(TextField, 'Role (Photographer, Manager, +1…)'),
         'Photographer',
       );
       await tester.ensureVisible(find.text('Add'));
@@ -545,7 +546,7 @@ void main() {
       await tester.tap(find.widgetWithText(ListTile, 'Ana'));
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.widgetWithText(TextField, 'Name'),
+        fieldLabelled(TextField, 'Name'),
         'Ana Maria',
       );
       await tester.ensureVisible(find.text('Save'));
@@ -705,9 +706,9 @@ void main() {
       final firestore = await pump(tester);
       await tester.tap(find.text('Add person'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.widgetWithText(TextField, 'Name'), 'Ana');
+      await tester.enterText(fieldLabelled(TextField, 'Name'), 'Ana');
       await tester.enterText(
-        find.widgetWithText(TextField, 'Role (Photographer, Manager, +1…)'),
+        fieldLabelled(TextField, 'Role (Photographer, Manager, +1…)'),
         'client',
       );
       expect(
@@ -807,7 +808,7 @@ void main() {
         await tester.tap(find.widgetWithText(ListTile, 'Ana'));
         await tester.pumpAndSettle();
         await tester.enterText(
-          find.widgetWithText(TextField, 'Name'),
+          fieldLabelled(TextField, 'Name'),
           'Discard me',
         );
         await tester.binding.handlePopRoute();
@@ -831,11 +832,8 @@ void main() {
         final firestore = await pump(tester);
         await tester.tap(find.text('Add person'));
         await tester.pumpAndSettle();
-        await tester.enterText(find.widgetWithText(TextField, 'Name'), 'Ana');
-        final role = find.widgetWithText(
-          TextField,
-          'Role (Photographer, Manager, +1…)',
-        );
+        await tester.enterText(fieldLabelled(TextField, 'Name'), 'Ana');
+        final role = fieldLabelled(TextField, 'Role (Photographer, Manager, +1…)');
         await tester.enterText(role, 'client');
         await tester.pumpAndSettle();
         expect(
@@ -1011,9 +1009,9 @@ void main() {
 
       await tester.tap(find.text('Add person'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.widgetWithText(TextField, 'Name'), 'Vera');
+      await tester.enterText(fieldLabelled(TextField, 'Name'), 'Vera');
       await tester.enterText(
-        find.widgetWithText(TextField, 'Role (Photographer, Manager, +1…)'),
+        fieldLabelled(TextField, 'Role (Photographer, Manager, +1…)'),
         'Photographer',
       );
       await tester.ensureVisible(find.text('Add'));
