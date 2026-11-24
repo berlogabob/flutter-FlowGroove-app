@@ -547,14 +547,14 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   }
 
   Future<void> _changeRegions(
-    List<AudioRegion> regions, {
+    List<AudioRegion> edited, {
     List<AudioRegion>? undoTo,
     int? cutMs,
     (int, int)? selectionToRemap,
   }) async {
     if (!_canEdit) return;
     // The one place edited regions are committed: auto names follow badges.
-    regions = normalizeAutoSectionNames(regions);
+    final regions = normalizeAutoSectionNames(edited);
     setState(() {
       _songMapCutMs = cutMs;
       _undoRegions = undoTo ?? _entry.regions;
