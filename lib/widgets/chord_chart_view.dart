@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../theme/mono_pulse_theme.dart';
 import '../utils/chordpro.dart';
 
 /// Renders a ChordPro [chart] as chords-over-lyrics. Each segment is a small
@@ -24,7 +25,8 @@ class ChordChartView extends StatelessWidget {
   Widget build(BuildContext context) {
     final lyric =
         lyricStyle ??
-        Theme.of(context).textTheme.bodyLarge ??
+        Theme.of(context).textTheme.bodyLarge
+            ?.copyWith(color: context.mp.textPrimary) ??
         const TextStyle();
     final chordStyle = lyric.copyWith(
       fontWeight: FontWeight.bold,

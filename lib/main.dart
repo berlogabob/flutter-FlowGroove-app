@@ -455,7 +455,8 @@ class FirebaseErrorApp extends StatelessWidget {
                   Text(
                     'The app could not connect to Firebase. '
                     'Please check your internet connection and try again.',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: Theme.of(context).textTheme.bodyLarge
+                        ?.copyWith(color: context.mp.textPrimary),
                     textAlign: TextAlign.center,
                   ),
                 ],

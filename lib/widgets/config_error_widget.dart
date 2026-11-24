@@ -44,7 +44,8 @@ class ConfigErrorWidget extends StatelessWidget {
                   // Subtitle
                   Text(
                     'The app could not start due to configuration issues.',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: Theme.of(context).textTheme.bodyLarge
+                        ?.copyWith(color: context.mp.textPrimary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: MonoPulseSpacing.xxxl),

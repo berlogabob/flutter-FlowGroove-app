@@ -337,7 +337,11 @@ class _RuleLine extends StatelessWidget {
         ),
         const SizedBox(width: MonoPulseSpacing.md),
         Expanded(
-          child: Text(text, style: Theme.of(context).textTheme.bodyLarge),
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodyLarge
+                ?.copyWith(color: context.mp.textPrimary),
+          ),
         ),
       ],
     ),

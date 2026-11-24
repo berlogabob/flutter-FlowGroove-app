@@ -495,7 +495,7 @@ class MonoPulseTheme {
       // the exact family names the const styles use. google_fonts registered
       // them as e.g. "Marcellus_regular", so those styles never matched and
       // every screen fell back to Roboto (fixed 2026-11-19).
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         // Slots the MonoPulse set does not define.
         displaySmall: TextStyle(
           fontFamily: MonoPulseTypography.fontFamilyDisplay,
@@ -510,7 +510,13 @@ class MonoPulseTheme {
         headlineLarge: MonoPulseTypography.headlineLarge,
         headlineMedium: MonoPulseTypography.headlineMedium,
         headlineSmall: MonoPulseTypography.headlineSmall,
-        bodyLarge: MonoPulseTypography.bodyLarge,
+        // Input text: TextField/TextFormField/DropdownMenu take their colour
+        // from bodyLarge, and every field is white in both themes (see
+        // inputDecorationTheme), so this slot is dark. Body text that wants
+        // the screen's text colour sets it from context.mp.
+        bodyLarge: MonoPulseTypography.bodyLarge.copyWith(
+          color: MonoPulseColors.charcoal,
+        ),
         bodyMedium: MonoPulseTypography.bodyMedium,
         bodySmall: MonoPulseTypography.bodySmall,
         labelLarge: MonoPulseTypography.labelLarge,
