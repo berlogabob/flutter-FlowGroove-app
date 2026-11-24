@@ -107,6 +107,45 @@ void showFallback() {
             (root / 'lib/router/routes.dart').write_text("GoRoute(path: '/home', builder: (c, s) => HomeScreen()),")
             self.assertFalse(surfaces.check(root))
 
+    def test_stock_pickers_are_system_but_app_pickers_are_not(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'lib').mkdir()
+            (root / 'design/figcraft/specs').mkdir(parents=True)
+            (root / 'lib/a.dart').write_text('''
+Future<void> pickDay() async { await showDatePicker(context: context); }
+Future<void> pickTime() async { await showTimePicker(context: context); }
+Future<void> pickRole() async { await showRolePicker(context: context); }
+Future<void> pickMenu() async { await showModalBottomSheet(builder: (c) => Column()); }
+''')
+            kinds = {s['key']: s['kind'] for s in surfaces.inventory(root)}
+            self.assertEqual({'a.pickDay': 'system', 'a.pickTime': 'system', 'a.pickRole': 'picker', 'a.pickMenu': 'sheet'}, kinds)
+
+    def test_spec_name_links_widget_ignoring_spaces_and_case(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'lib').mkdir()
+            specs = root / 'design/figcraft/specs'
+            specs.mkdir(parents=True)
+            (root / 'lib/a.dart').write_text('''class EditSectionDialog extends StatelessWidget {}
+void open() { showModalBottomSheet(builder: (c) => EditSectionDialog()); }
+''')
+            (specs / 'edit_section_dialog.json').write_text(json.dumps({'name': 'Edit Section Dialog', 'source': 'lib/other.dart:1'}))
+            self.assertEqual('design/figcraft/specs/edit_section_dialog.json', surfaces.inventory(root)[0]['spec'])
+
+    def test_app_picker_helpers_and_their_calls_are_not_surfaces(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'lib').mkdir()
+            (root / 'design/figcraft/specs').mkdir(parents=True)
+            (root / 'lib/a.dart').write_text('''
+Future<List<String>?> showRolePicker({required BuildContext context}) async {
+  return showDialog(builder: (c) => RoleDialog());
+}
+void use() { showRolePicker(context: context); }
+''')
+            self.assertEqual(['dialog'], [s['kind'] for s in surfaces.inventory(root)])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,40 @@
+{
+  "name": "Api access: Your API key",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/settings/api_access_screen.dart:55",
+  "slot": 42,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Your API key",
+      "c": [
+        {
+          "t": "col",
+          "gap": 12,
+          "c": [
+            {
+              "t": "text",
+              "v": "Copy it now — it is shown only once and cannot be recovered.",
+              "style": "bodyMedium",
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "sk_7f3a91c2e4b8d6105a3c",
+              "style": "mono",
+              "color": "textPrimary"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "t": "button",
+          "kind": "text",
+          "v": "Copy & close"
+        }
+      ]
+    }
+  ]
+}

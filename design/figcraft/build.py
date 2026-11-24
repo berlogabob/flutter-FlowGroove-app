@@ -519,7 +519,7 @@ BUTTON_LOOK = {  # variant: (bg, fg, border) -- CustomButton / theme button styl
     "primary": ("accentOrange", "charcoal", "charcoal"),
     "secondary": ("white", "charcoal", "charcoal"),       # CustomButton secondary: white ElevatedButton
     "outline": ("none", "textPrimary", "borderDefault"),  # OutlinedButton
-    "text": ("none", "accentOrange", None),
+    "text": ("none", "textPrimary", None),
     "tonal": ("textSecondary", "black", None),  # FilledButton.tonal: secondaryContainer / onSecondaryContainer
     "danger": ("error", "charcoal", "charcoal"),
     "fab": ("white", "charcoal", "charcoal"),

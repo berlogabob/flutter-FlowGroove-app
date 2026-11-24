@@ -1,7 +1,7 @@
 {
   "name": "Band about sheet L519",
   "page": "Sheets & Dialogs",
-  "source": "lib/screens/bands/band_about_screen.dart:519",
+  "source": "lib/screens/bands/band_about_screen.dart:493",
   "slot": 4,
   "modal": "sheet",
   "body": [

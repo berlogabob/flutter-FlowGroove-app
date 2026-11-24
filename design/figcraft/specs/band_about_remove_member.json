@@ -1,7 +1,7 @@
 {
   "name": "Band about: Remove member",
   "page": "Sheets & Dialogs",
-  "source": "lib/screens/bands/band_about_screen.dart:656",
+  "source": "lib/screens/bands/band_about_screen.dart:630",
   "slot": 5,
   "modal": "dialog",
   "body": [

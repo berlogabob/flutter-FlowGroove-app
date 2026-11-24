@@ -68,6 +68,11 @@ Future<void> setupRenderApiKeys() async {
       .setMockDecodedMessageHandler<Object?>(channel, (message) async {
         final arguments =
             (message! as List<Object?>).first as Map<Object?, Object?>;
+        if (arguments['functionName'] == 'createApiKey') {
+          return [
+            {'token': 'sk_7f3a91c2e4b8d6105a3c'},
+          ];
+        }
         if (arguments['functionName'] != 'listApiKeys') {
           throw StateError('Unexpected API key operation');
         }
@@ -611,6 +616,12 @@ final kKeyOverrides = <String, List<Object> Function()>{
       ),
     ],
   ),
+  // The band setlist page shows the requests inbox: a band with none shows nothing.
+  'band_setlist_view': () => [
+    setlistSuggestionsProvider(
+      ('band1', 'setlist1'),
+    ).overrideWith((ref) => Stream.value(const [])),
+  ],
   'profile': _profileOverrides,
   // The band picker offers the bands the user can write to.
   'song_card_actions_sheet_l209': () => [

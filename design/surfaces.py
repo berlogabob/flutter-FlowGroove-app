@@ -11,7 +11,14 @@ METHOD = re.compile(r'\b(?:Future(?:<[^\n]*?>)?|void|Widget|[A-Z]\w*)\s+(\w+)\s*
 WRAPPERS = {'StatefulBuilder', 'Builder', 'SafeArea', 'Padding', 'Column', 'Row', 'Material',
             'DraggableScrollableSheet', 'Container', 'SizedBox', 'Center', 'Align', 'Expanded',
             'Flexible', 'SingleChildScrollView', 'Scaffold', 'AlertDialog', 'Dialog', 'Text'}
+# Pickers drawn entirely by Flutter/the OS with no app layout: no frame is possible or needed.
+SYSTEM_PICKERS = {'showDatePicker', 'showTimePicker', 'showDateRangePicker'}
 WIDGET = re.compile(r'(?:=>\s*|return\s+)(?:const\s+)?([A-Z]\w*)\s*\(')
+
+
+def squash(name):
+    # Specs name a frame "Edit Section Dialog" for the widget EditSectionDialog.
+    return re.sub(r'[^a-z0-9]', '', str(name).lower())
 
 
 def inventory(root: Path) -> list[dict]:
@@ -49,9 +56,16 @@ def inventory(root: Path) -> list[dict]:
     def modal_spec(source, line, widget):
         for spec_source, spec_path, data in specs:
             anchor = re.fullmatch(r'(.+):(\d+)', spec_source)
-            if (anchor and anchor.group(1) == source and abs(int(anchor.group(2)) - line) <= 3) or (widget and data.get('name') == widget):
+            if (anchor and anchor.group(1) == source and abs(int(anchor.group(2)) - line) <= 3) or (widget and squash(data.get('name', '')) == squash(widget)):
                 return spec_path
         return None
+
+    # show*Picker helpers defined in lib/ (showRolePicker...): the helper's own sheet or dialog is
+    # the surface and is inventoried at that call; the helper's definition and its call sites are not.
+    helpers = set()
+    for path in files:
+        helpers.update(re.findall(r'\b(?:Future(?:<[^;(){}]*>)?|void)\s+(show\w*Picker)\s*\(',
+                                  path.read_text(encoding='utf-8')))
 
     result = []
     modal_entries = {}
@@ -67,6 +81,8 @@ def inventory(root: Path) -> list[dict]:
             if name == 'GoRoute' and not relative.startswith('lib/router/'):
                 continue
             if name.startswith('show') and name.endswith('Picker') and re.search(r'\b(?:Future|void)\s+$', clean[max(0, match.start()-40):match.start()]):
+                continue
+            if name in helpers:
                 continue
             line = clean.count('\n', 0, match.start()) + 1
             end = match.end()
@@ -95,7 +111,9 @@ def inventory(root: Path) -> list[dict]:
                 kind = 'route'
                 spec = route_spec(key) or spec_for(classes.get(widget, relative), line)
             else:
-                kind = 'sheet' if name in ('showModalBottomSheet', 'DraggableScrollableSheet') else 'dialog' if name == 'showDialog' else 'picker'
+                kind = ('sheet' if name in ('showModalBottomSheet', 'DraggableScrollableSheet')
+                        else 'dialog' if name == 'showDialog'
+                        else 'system' if name in SYSTEM_PICKERS else 'picker')
                 fallback = re.sub(r'^_?show', '', method) or method
                 label = widget or fallback
                 base = f'{path.stem}.{label}'

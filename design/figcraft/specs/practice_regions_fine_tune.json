@@ -1,0 +1,148 @@
+{
+  "name": "Practice regions: Fine-tune",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/practice_regions_screen.dart:1180",
+  "slot": 38,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 8,
+      "c": [
+        {
+          "t": "text",
+          "v": "Fine-tune M1",
+          "style": "titleLarge"
+        },
+        {
+          "t": "text",
+          "v": "00:05.647",
+          "style": "titleMedium"
+        },
+        {
+          "t": "row",
+          "main": "center",
+          "h": 140,
+          "c": [
+            {
+              "t": "box",
+              "name": "Boundary",
+              "w": 2,
+              "h": 140,
+              "bg": "accentOrange"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "main": "center",
+          "cross": "center",
+          "c": [
+            {
+              "t": "box",
+              "name": "Jog wheel",
+              "w": 160,
+              "h": 160,
+              "circle": true,
+              "bg": "blackSurface",
+              "border": "textSecondary"
+            },
+            {
+              "t": "col",
+              "gap": 8,
+              "c": [
+                {
+                  "t": "chip",
+                  "v": "ms",
+                  "sel": true
+                },
+                {
+                  "t": "chip",
+                  "v": "beat"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "c": [
+            {
+              "t": "button",
+              "kind": "secondary",
+              "v": "−10 ms",
+              "small": true
+            },
+            {
+              "t": "button",
+              "kind": "secondary",
+              "v": "−1 ms",
+              "small": true
+            },
+            {
+              "t": "button",
+              "kind": "secondary",
+              "v": "+1 ms",
+              "small": true
+            },
+            {
+              "t": "button",
+              "kind": "secondary",
+              "v": "+10 ms",
+              "small": true
+            },
+            {
+              "t": "button",
+              "kind": "secondary",
+              "v": "−1 beat",
+              "small": true
+            },
+            {
+              "t": "button",
+              "kind": "secondary",
+              "v": "+1 beat",
+              "small": true
+            }
+          ]
+        },
+        {
+          "t": "segmented",
+          "items": [
+            "Off",
+            "Bar",
+            "Beat",
+            "Zero crossing"
+          ],
+          "sel": 0
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "cross": "center",
+          "c": [
+            {
+              "t": "button",
+              "kind": "secondary",
+              "v": "Audition",
+              "small": true
+            },
+            {
+              "t": "chip",
+              "v": "Loop seam"
+            },
+            {
+              "t": "spacer"
+            },
+            {
+              "t": "button",
+              "kind": "primary",
+              "v": "Done"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

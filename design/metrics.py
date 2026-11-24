@@ -137,8 +137,13 @@ def render_counts(render_dir: str, lock_path: str) -> dict:
 
 
 def surface_counts(path: Path) -> tuple[int, int]:
-    surfaces = json.loads(path.read_text(encoding="utf-8"))
+    """(surfaces, unspecced) over app-built surfaces; kind "system" (OS/stock pickers) needs no spec."""
+    surfaces = [item for item in json.loads(path.read_text(encoding="utf-8")) if item.get("kind") != "system"]
     return len(surfaces), sum(item["spec"] is None for item in surfaces)
+
+
+def system_surface_count(path: Path) -> int:
+    return sum(item.get("kind") == "system" for item in json.loads(path.read_text(encoding="utf-8")))
 
 
 def render_coverage(keys_path: Path, surfaces_path: Path) -> str:
@@ -182,6 +187,7 @@ def main(argv: list[str]) -> int:
     metrics = summarize(links, renders, routed,
                         spec_offscale(str(specs), str(repo / "design/tokens/tokens.json")), raw_counts(str(repo / "lib")))
     metrics["unspecced_screens"] = unspecced
+    metrics["system_surfaces"] = system_surface_count(repo / "design/surfaces.json")
     metrics["k8"] = render_coverage(repo / "design/render_keys.txt", repo / "design/surfaces.json")
     if args.append:
         metrics["date"] = datetime.date.today().isoformat()

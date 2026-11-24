@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -317,7 +318,42 @@ Future<void> _replaceSections(WidgetTester tester) async {
   expect(find.text('Replace ${_regions.length} sections?'), findsOneWidget);
 }
 
+// Leaving the Song Map while a proposed map is unsaved asks what to do with it.
+Future<void> _saveNewSectionMap(WidgetTester tester) async {
+  await _songMapReview(tester);
+  unawaited(
+    Navigator.of(tester.element(find.byType(PracticeRegionsScreen))).maybePop(),
+  );
+  await tester.pumpAndSettle();
+  expect(find.text('Save the new section map?'), findsOneWidget);
+}
+
+// A seam marker's handle opens the fine-tune sheet.
+Future<void> _fineTune(WidgetTester tester) async {
+  await _pumpPractice(tester, full: true);
+  tester
+      .widget<PopupMenuButton<String>>(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is PopupMenuButton<String> && widget.tooltip == 'More',
+        ),
+      )
+      .onSelected!('edit');
+  await tester.pumpAndSettle();
+  await tester.tap(
+    find.byWidgetPredicate(
+      (widget) =>
+          widget.key is ValueKey<String> &&
+          (widget.key! as ValueKey<String>).value.startsWith('marker-handle-'),
+    ).first,
+  );
+  await tester.pumpAndSettle();
+  expect(find.textContaining('Fine-tune M'), findsOneWidget);
+}
+
 final kStates = <String, Future<void> Function(WidgetTester)>{
+  'practice_regions_save_new_section_map': _saveNewSectionMap,
+  'practice_regions_fine_tune': _fineTune,
   'practice_regions_replace_n_sections': _replaceSections,
   'song_map_section': _songMapSection,
   'song_map_section_light': _songMapSection,

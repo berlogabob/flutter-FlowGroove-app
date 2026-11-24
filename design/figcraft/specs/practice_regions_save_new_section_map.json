@@ -1,0 +1,30 @@
+{
+  "name": "Practice regions: Save the new section map?",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/practice_regions_screen.dart:2084",
+  "slot": 40,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Save the new section map?",
+      "actions": [
+        {
+          "t": "button",
+          "kind": "text",
+          "v": "Cancel"
+        },
+        {
+          "t": "button",
+          "kind": "text",
+          "v": "Discard"
+        },
+        {
+          "t": "button",
+          "kind": "primary",
+          "v": "Save"
+        }
+      ]
+    }
+  ]
+}

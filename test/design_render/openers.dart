@@ -76,6 +76,7 @@ import 'package:flowgroove/widgets/tuner/instrument_picker.dart';
 import 'package:flowgroove/widgets/tuner/settings_sheet.dart';
 import 'package:flowgroove/widgets/tuner/stage_mode_overlay.dart';
 import 'package:flowgroove/widgets/unified_item/setlist_card_actions.dart';
+import 'package:flowgroove/widgets/unified_item/song_card_actions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -154,6 +155,68 @@ BuildContext hostContext(WidgetTester tester) =>
     tester.element(find.byType(Scaffold).last);
 
 final kOpeners = <String, Opener>{
+  'region_name_sheet_l255': Opener(
+    (context, _, _) => showRegionNameSheet(context, initialName: 'Bridge 2'),
+  ),
+  // Real path: Settings -> Quick action row (song cards).
+  'song_card_actions_quick_action': Opener(
+    (context, _, _) => showDialog<void>(
+      context: context,
+      builder: (_) => Consumer(
+        builder: (context, ref, _) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showQuickActionPicker(context, ref);
+          });
+          return const SizedBox.shrink();
+        },
+      ),
+    ),
+  ),
+  // Real path: edit a new setlist's name, then leave with the back bar.
+  'create_setlist_discard_changes': Opener(
+    (_, _, _) {},
+    route: '/main/setlists/create',
+    then: (tester) async {
+      await tester.enterText(find.byType(TextField).first, 'Friday Night');
+      await tester.pump();
+      unawaited(Navigator.of(tester.element(find.byType(Scaffold).last)).maybePop());
+      await tester.pumpAndSettle();
+    },
+  ),
+  // Real path: API access -> New key -> Create (the callable answers a token).
+  'api_access_token_dialog': Opener(
+    (context, _, _) {
+      setupRenderApiKeys().then((_) {
+        if (!context.mounted) return;
+        Navigator.of(context, rootNavigator: true).push(
+          MaterialPageRoute<void>(builder: (_) => const ApiAccessScreen()),
+        );
+        tapWhenBuilt(
+          find.byType(FloatingActionButton, skipOffstage: false),
+          (element) =>
+              (element.widget as FloatingActionButton).onPressed!(),
+        );
+        tapWhenBuilt(
+          find.widgetWithText(FilledButton, 'Create', skipOffstage: false),
+          (element) => (element.widget as FilledButton).onPressed!(),
+        );
+      });
+    },
+    realAsync: true,
+  ),
+  // Real path: the Setlists list opens the editor with the tapped setlist as extra.
+  'setlist_edit': Opener(
+    (_, _, router) => router.push(
+      '/main/setlists/setlist1/edit',
+      extra: MockDataHelper.createMockSetlist(
+        id: 'setlist1',
+        bandId: '',
+        name: 'Gig Setlist',
+        songIds: const ['song1', 'song2', 'song3'],
+      ),
+    ),
+    route: '/main/setlists',
+  ),
   'forgot_password': Opener(
     (_, _, _) {},
     route: '/login',

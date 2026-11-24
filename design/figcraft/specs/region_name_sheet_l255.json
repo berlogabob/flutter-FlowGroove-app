@@ -1,0 +1,78 @@
+{
+  "name": "Region name sheet L255",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/practice_regions/region_name_sheet.dart:255",
+  "slot": 37,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 8,
+      "c": [
+        {
+          "t": "text",
+          "v": "Region name",
+          "style": "titleLarge"
+        },
+        {
+          "t": "row",
+          "gap": 8,
+          "wrap": true,
+          "c": [
+            {
+              "t": "chip",
+              "v": "Intro"
+            },
+            {
+              "t": "chip",
+              "v": "Verse"
+            },
+            {
+              "t": "chip",
+              "v": "Chorus"
+            },
+            {
+              "t": "chip",
+              "v": "Bridge"
+            },
+            {
+              "t": "chip",
+              "v": "Pre-Chorus"
+            },
+            {
+              "t": "chip",
+              "v": "Outro"
+            },
+            {
+              "t": "chip",
+              "v": "Instrumental"
+            },
+            {
+              "t": "chip",
+              "v": "Solo"
+            },
+            {
+              "t": "chip",
+              "v": "Pause"
+            }
+          ]
+        },
+        {
+          "t": "input",
+          "label": "Name",
+          "v": "Bridge 2"
+        },
+        {
+          "t": "row",
+          "c": [
+            {
+              "t": "button",
+              "kind": "primary",
+              "v": "Save"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

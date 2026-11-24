@@ -1,0 +1,305 @@
+{
+  "name": "Edit setlist",
+  "page": "Setlists",
+  "source": "lib/screens/setlists/create_setlist_screen.dart",
+  "route": "/main/setlists/{setlist}/edit",
+  "slot": 5,
+  "body": [
+    {
+      "t": "col",
+      "pad": 16,
+      "c": [
+        {
+          "t": "row",
+          "cross": "center",
+          "c": [
+            {
+              "t": "input",
+              "label": "Setlist Name *",
+              "v": "Gig Setlist",
+              "icon": "queue_music",
+              "w": "fill"
+            },
+            {
+              "t": "iconbtn",
+              "v": "expand_more",
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 24
+        },
+        {
+          "t": "row",
+          "main": "spaceBetween",
+          "cross": "center",
+          "c": [
+            {
+              "t": "text",
+              "v": "Songs (3)",
+              "style": "titleMedium",
+              "w": "fill"
+            },
+            {
+              "t": "button",
+              "v": "Break",
+              "kind": "text",
+              "icon": "horizontal_rule"
+            },
+            {
+              "t": "button",
+              "v": "Add",
+              "kind": "text",
+              "icon": "add"
+            }
+          ]
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "row",
+          "h": 72,
+          "pad": [
+            8,
+            12,
+            8,
+            4
+          ],
+          "gap": 8,
+          "cross": "center",
+          "border": "borderSubtle",
+          "c": [
+            {
+              "t": "text",
+              "v": "1",
+              "style": "labelMedium",
+              "color": "textTertiary",
+              "w": 44,
+              "align": "center"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "gap": 2,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "First Song",
+                  "style": "labelLarge"
+                },
+                {
+                  "t": "text",
+                  "v": "Test Artist",
+                  "style": "bodySmall",
+                  "color": "textSecondary"
+                }
+              ]
+            },
+            {
+              "t": "iconbtn",
+              "v": "person_outline"
+            },
+            {
+              "t": "row",
+              "w": 44,
+              "pad": [
+                4,
+                4,
+                4,
+                4
+              ],
+              "bg": "accentOrange10",
+              "radius": 4,
+              "main": "center",
+              "c": [
+                {
+                  "t": "text",
+                  "v": "F#m",
+                  "style": "labelMedium",
+                  "color": "accentOrange",
+                  "w": "hug"
+                }
+              ]
+            },
+            {
+              "t": "text",
+              "v": "87",
+              "style": "labelMedium",
+              "w": "hug"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "h": 72,
+          "pad": [
+            8,
+            12,
+            8,
+            4
+          ],
+          "gap": 8,
+          "cross": "center",
+          "border": "borderSubtle",
+          "c": [
+            {
+              "t": "text",
+              "v": "2",
+              "style": "labelMedium",
+              "color": "textTertiary",
+              "w": 44,
+              "align": "center"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "gap": 2,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Second Song",
+                  "style": "labelLarge"
+                },
+                {
+                  "t": "text",
+                  "v": "Test Artist",
+                  "style": "bodySmall",
+                  "color": "textSecondary"
+                }
+              ]
+            },
+            {
+              "t": "iconbtn",
+              "v": "person_outline"
+            },
+            {
+              "t": "row",
+              "w": 44,
+              "pad": [
+                4,
+                4,
+                4,
+                4
+              ],
+              "bg": "accentOrange10",
+              "radius": 4,
+              "main": "center",
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Em",
+                  "style": "labelMedium",
+                  "color": "accentOrange",
+                  "w": "hug"
+                }
+              ]
+            },
+            {
+              "t": "text",
+              "v": "124",
+              "style": "labelMedium",
+              "w": "hug"
+            }
+          ]
+        },
+        {
+          "t": "row",
+          "h": 72,
+          "pad": [
+            8,
+            12,
+            8,
+            4
+          ],
+          "gap": 8,
+          "cross": "center",
+          "border": "borderSubtle",
+          "c": [
+            {
+              "t": "text",
+              "v": "3",
+              "style": "labelMedium",
+              "color": "textTertiary",
+              "w": 44,
+              "align": "center"
+            },
+            {
+              "t": "col",
+              "w": "fill",
+              "gap": 2,
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Third Song",
+                  "style": "labelLarge"
+                },
+                {
+                  "t": "text",
+                  "v": "Test Artist",
+                  "style": "bodySmall",
+                  "color": "textSecondary"
+                }
+              ]
+            },
+            {
+              "t": "iconbtn",
+              "v": "person_outline"
+            },
+            {
+              "t": "row",
+              "w": 44,
+              "pad": [
+                4,
+                4,
+                4,
+                4
+              ],
+              "bg": "accentOrange10",
+              "radius": 4,
+              "main": "center",
+              "c": [
+                {
+                  "t": "text",
+                  "v": "Eb",
+                  "style": "labelMedium",
+                  "color": "accentOrange",
+                  "w": "hug"
+                }
+              ]
+            },
+            {
+              "t": "text",
+              "v": "106",
+              "style": "labelMedium",
+              "w": "hug"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "col",
+      "bg": "surface",
+      "pad": 16,
+      "c": [
+        {
+          "t": "button",
+          "v": "Save Changes",
+          "kind": "primary",
+          "w": "fill"
+        }
+      ]
+    },
+    {
+      "t": "actionbar",
+      "menu": false,
+      "title": "Edit Band Setlist"
+    }
+  ]
+}

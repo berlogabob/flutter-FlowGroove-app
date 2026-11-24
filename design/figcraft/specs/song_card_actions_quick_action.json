@@ -1,0 +1,68 @@
+{
+  "name": "Song card actions: Quick action",
+  "page": "Sheets & Dialogs",
+  "source": "lib/widgets/unified_item/song_card_actions.dart:64",
+  "slot": 39,
+  "modal": "sheet",
+  "body": [
+    {
+      "t": "sheet",
+      "gap": 4,
+      "c": [
+        {
+          "t": "col",
+          "pad": [
+            8,
+            16,
+            8,
+            16
+          ],
+          "gap": 4,
+          "c": [
+            {
+              "t": "text",
+              "v": "Quick action",
+              "style": "bodyLarge"
+            },
+            {
+              "t": "text",
+              "v": "Sets what the pinned button on song cards does",
+              "style": "bodyMedium",
+              "color": "textSecondary"
+            }
+          ]
+        },
+        {
+          "t": "col",
+          "gap": 2,
+          "c": [
+            {
+              "t": "tile",
+              "lead": "radio_button_checked",
+              "title": "Metronome",
+              "trail": "av_timer"
+            },
+            {
+              "t": "tile",
+              "lead": "radio_button_unchecked",
+              "title": "Open in Tuner",
+              "trail": "tune"
+            },
+            {
+              "t": "tile",
+              "lead": "radio_button_unchecked",
+              "title": "Play on Spotify",
+              "trail": "play_circle_fill"
+            },
+            {
+              "t": "tile",
+              "lead": "radio_button_unchecked",
+              "title": "Add to band…",
+              "trail": "add_to_queue"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

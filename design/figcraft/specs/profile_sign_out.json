@@ -1,7 +1,7 @@
 {
   "name": "Profile · Sign out dialog",
   "page": "Sheets & Dialogs",
-  "source": "lib/screens/profile_screen.dart:654",
+  "source": "lib/screens/profile_screen.dart:636",
   "slot": 0,
   "modal": "dialog",
   "body": [

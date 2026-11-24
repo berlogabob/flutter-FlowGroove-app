@@ -1,0 +1,33 @@
+{
+  "name": "Create setlist: Discard Changes?",
+  "page": "Sheets & Dialogs",
+  "source": "lib/screens/setlists/create_setlist_screen.dart:566",
+  "slot": 41,
+  "modal": "dialog",
+  "body": [
+    {
+      "t": "dialog",
+      "title": "Discard Changes?",
+      "c": [
+        {
+          "t": "text",
+          "v": "You have unsaved changes. Are you sure you want to discard them?",
+          "style": "bodyMedium",
+          "color": "textSecondary"
+        }
+      ],
+      "actions": [
+        {
+          "t": "button",
+          "kind": "text",
+          "v": "Cancel"
+        },
+        {
+          "t": "button",
+          "kind": "text",
+          "v": "Discard"
+        }
+      ]
+    }
+  ]
+}

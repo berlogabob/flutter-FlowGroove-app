@@ -1,7 +1,7 @@
 {
   "name": "Event kit editor: Revoke share link?",
   "page": "Sheets & Dialogs",
-  "source": "lib/screens/setlists/event_kit_editor_screen.dart:1384",
+  "source": "lib/screens/setlists/event_kit_editor_screen.dart:1379",
   "slot": 0,
   "modal": "dialog",
   "body": [

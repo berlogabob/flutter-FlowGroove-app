@@ -157,3 +157,10 @@ class SurfaceMetricsTest(unittest.TestCase):
             path = Path(tmp) / 'surfaces.json'
             path.write_text(json.dumps([{'spec': 'a.json'}, {'spec': None}, {'spec': None}]))
             self.assertEqual(metrics.surface_counts(path), (3, 2))
+
+    def test_system_surfaces_need_no_spec_and_are_counted_separately(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'surfaces.json'
+            path.write_text(json.dumps([{'kind': 'sheet', 'spec': None}, {'kind': 'system', 'spec': None}, {'kind': 'system', 'spec': None}]))
+            self.assertEqual(metrics.surface_counts(path), (1, 1))
+            self.assertEqual(metrics.system_surface_count(path), 2)

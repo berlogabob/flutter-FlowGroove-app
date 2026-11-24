@@ -1,0 +1,71 @@
+{
+  "name": "Edit band",
+  "page": "Bands",
+  "source": "lib/screens/bands/create_band_screen.dart",
+  "route": "/main/bands/{band}/edit",
+  "slot": 12,
+  "body": [
+    {
+      "t": "col",
+      "pad": 24,
+      "c": [
+        {
+          "t": "text",
+          "v": "Edit band details",
+          "style": "headlineSmall",
+          "align": "center"
+        },
+        {
+          "t": "spacer",
+          "size": 8
+        },
+        {
+          "t": "text",
+          "v": "Update band information",
+          "style": "bodyMedium",
+          "color": "textSecondary",
+          "align": "center"
+        },
+        {
+          "t": "spacer",
+          "size": 32
+        },
+        {
+          "t": "input",
+          "label": "Band Name *",
+          "icon": "groups",
+          "v": "Test Band"
+        },
+        {
+          "t": "spacer",
+          "size": 16
+        },
+        {
+          "t": "input",
+          "label": "Description",
+          "v": "A group of friends playing songs together.",
+          "lines": 3
+        }
+      ]
+    }
+  ],
+  "bottom": [
+    {
+      "t": "col",
+      "bg": "surface",
+      "pad": 16,
+      "c": [
+        {
+          "t": "button",
+          "v": "Save Changes",
+          "w": "fill"
+        }
+      ]
+    },
+    {
+      "t": "actionbar",
+      "menu": false,
+      "title": "Edit Band"
+    }
+  ]
+}

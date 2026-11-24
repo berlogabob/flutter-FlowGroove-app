@@ -126,3 +126,12 @@ song_map_section_light
 event_share
 paste_list_input
 paste_list_review
+band_edit
+band_setlist_view
+setlist_edit
+region_name_sheet_l255
+practice_regions_fine_tune
+song_card_actions_quick_action
+practice_regions_save_new_section_map
+create_setlist_discard_changes
+api_access_token_dialog
