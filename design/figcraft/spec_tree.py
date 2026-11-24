@@ -121,6 +121,7 @@ def flatten(spec: dict, icons: set[str]) -> dict:
 
     for section in ("top", "body", "bottom"):
         visit(spec.get(section, []))
+    overlay_from = len(texts)
     for overlay in spec.get("overlay", []):
         if isinstance(overlay, dict):
             visit(overlay.get("node"))
@@ -128,6 +129,10 @@ def flatten(spec: dict, icons: set[str]) -> dict:
             visit(overlay)
 
     flat = {"texts": texts, "kinds": kinds}
+    if spec.get("overlay") and overlay_from < len(texts):
+        # The dump orders by screen position, so a sheet over the screen interleaves with the
+        # screen's texts; the frame cannot say how. Order holds within each part, not across them.
+        flat["overlay_from"] = overlay_from
     if spec.get("modal"):
         flat["modal"] = spec["modal"]  # parity ignores the backdrop's extras (F94)
     return flat

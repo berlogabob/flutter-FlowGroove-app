@@ -83,6 +83,36 @@ def static(texts: list[str], literals: set[str]) -> list[str]:
 
 
 MIN_LABELS = 2
+ROW_TOLERANCE = 4.0  # px: texts whose tops differ by less sit on one row (a 3.5 px baseline offset)
+
+
+def row_ordered(items: list) -> list[str]:
+    """Dump labels in row reading order: rows (tops within ROW_TOLERANCE of the row's first), then x.
+
+    Items without positions keep their given order.
+    """
+    def label(item):
+        return item if isinstance(item, str) else item.get("v", "")
+
+    if not all(isinstance(item, dict) and "x" in item and "y" in item for item in items):
+        return [label(item) for item in items]
+    rows: list[list[dict]] = []
+    for item in sorted(items, key=lambda item: item["y"]):
+        if rows and item["y"] - rows[-1][0]["y"] < ROW_TOLERANCE:
+            rows[-1].append(item)
+        else:
+            rows.append([item])
+    return [label(item) for row in rows for item in sorted(row, key=lambda item: item["x"])]
+
+
+def _lcs(left: list[str], right: list[str]) -> int:
+    previous = [0] * (len(right) + 1)
+    for a in left:
+        current = [0]
+        for index, b in enumerate(right, 1):
+            current.append(previous[index - 1] + 1 if a == b else max(previous[index], current[-1]))
+        previous = current
+    return previous[-1]
 
 
 def debug_only_labels(path: Path) -> dict[str, str]:
@@ -147,8 +177,8 @@ def compare(spec_flat: dict, dump: dict, literals: set[str], ignore: frozenset =
         return [item if isinstance(item, str) else item.get("v", "")
                 for item in items]
 
-    spec_labels = [label for label in labels(spec_flat.get("texts", []))
-                   if label in literals and label not in ignore]
+    spec_texts = [label for label in labels(spec_flat.get("texts", []))]
+    spec_labels = [label for label in spec_texts if label in literals and label not in ignore]
     dump_labels = [label for label in labels(dump.get("texts", []))
                    if label in literals and label not in ignore]
     spec_set, dump_set = set(spec_labels), set(dump_labels)
@@ -167,19 +197,19 @@ def compare(spec_flat: dict, dump: dict, literals: set[str], ignore: frozenset =
     kinds_extra = [] if "modal" in spec_flat else sorted(dump_kinds - spec_kinds)
 
     common = spec_set & dump_set
-    spec_order = list(dict.fromkeys(label for label in spec_labels if label in common))
     # Every dump occurrence counts: a label repeated elsewhere on screen (a background
     # "F" before the sheet's "F") must not hide the occurrence in the right place.
-    dump_order = [label for label in dump_labels if label in common]
-    # LCS preserves the first occurrence order while tolerating unrelated labels.
-    previous = [0] * (len(dump_order) + 1)
-    for left in spec_order:
-        current = [0]
-        for index, right in enumerate(dump_order, 1):
-            current.append(previous[index - 1] + 1 if left == right
-                           else max(previous[index], current[-1]))
-        previous = current
-    order = previous[-1] / len(common) if common else 1.0
+    def dump_order(texts):
+        return [label for label in texts if label in literals and label not in ignore and label in common]
+
+    # A sheet over the screen interleaves with it in the dump (position order): each part keeps its own order.
+    cut = spec_flat.get("overlay_from")
+    parts = [spec_texts] if cut is None else [spec_texts[:cut], spec_texts[cut:]]
+    spec_parts = [list(dict.fromkeys(label for label in part if label in common)) for part in parts]
+    kept = sum(map(len, spec_parts))
+    # Texts a few px apart may be one row (centred in a taller one) or two: either reading order is the dump's.
+    readings = [dump_order(labels(dump.get("texts", []))), dump_order(row_ordered(dump.get("texts", [])))]
+    order = max(sum(_lcs(part, reading) for part in spec_parts) for reading in readings) / kept if kept else 1.0
 
     # Fewer than 2 shared static labels proves nothing about the screen: never a pass, never locked.
     weak = len(common) < MIN_LABELS

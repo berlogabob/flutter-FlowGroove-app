@@ -55,6 +55,7 @@ performance_sheet_you_already_have_a_song_map
 performer_sheet_sheet_l32
 practice
 practice_regions
+practice_regions_fine_tune
 practice_regions_replace_n_regions
 practice_regions_replace_n_sections
 practice_regions_save_new_section_map
@@ -90,6 +91,8 @@ song_lab
 song_lab_sheet_l144
 song_lab_sheet_l664
 song_library_block_sheet_l85
+song_map_playing
+song_map_playing_light
 song_map_review
 song_map_review_light
 song_map_section

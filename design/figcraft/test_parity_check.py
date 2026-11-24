@@ -5,7 +5,7 @@ import sys
 import unittest
 from pathlib import Path
 
-from design.figcraft.parity_check import compare, dart_strings, debug_only_labels, in_debug_conditional, lib_literals, static
+from design.figcraft.parity_check import compare, dart_strings, debug_only_labels, in_debug_conditional, lib_literals, row_ordered, static
 from design.figcraft.spec_tree import flatten
 
 
@@ -167,6 +167,33 @@ class ParityCheckTests(unittest.TestCase):
         for label, source in listed.items():
             text = (root / source).read_text(encoding="utf-8")
             self.assertTrue(in_debug_conditional(text, label), f"{label!r} is not under kDebugMode in {source}")
+
+    def at(self, *items):
+        return [{"v": v, "x": x, "y": y} for v, x, y in items]
+
+    def test_sheet_interleaved_with_the_screen_keeps_each_part_in_order(self):
+        lits = {"Top", "Mid", "Bottom", "Sheet", "Ok"}
+        spec = {"texts": ["Top", "Mid", "Bottom", "Sheet", "Ok"], "overlay_from": 3, "kinds": []}
+        dump = {"texts": self.at(("Top", 0, 10), ("Sheet", 0, 50), ("Mid", 0, 60), ("Ok", 0, 70), ("Bottom", 0, 90)),
+                "kinds": []}
+        self.assertEqual(1.0, compare(spec, dump, lits)["order"])
+        # Without the overlay marker the same dump is out of order.
+        self.assertLess(compare({"texts": spec["texts"], "kinds": []}, dump, lits)["order"], 1.0)
+        # Order inside a part still counts.
+        swapped = {"texts": self.at(("Top", 0, 10), ("Mid", 0, 20), ("Ok", 0, 50), ("Sheet", 0, 60), ("Bottom", 0, 90)),
+                   "kinds": []}
+        self.assertLess(compare(spec, swapped, lits)["order"], 1.0)
+
+    def test_texts_a_few_px_apart_may_read_as_one_row(self):
+        lits = {"Audition", "Loop seam", "Done"}
+        spec = {"texts": ["Audition", "Loop seam", "Done"], "kinds": []}
+        dump = {"texts": self.at(("Audition", 28, 864.5), ("Done", 337, 864.5), ("Loop seam", 117, 868)), "kinds": []}
+        self.assertEqual(1.0, compare(spec, dump, lits)["order"])
+        self.assertEqual(["Audition", "Loop seam", "Done"], row_ordered(dump["texts"]))
+        # Rows more than the tolerance apart stay in y order, and a real swap still fails.
+        far = {"texts": self.at(("Audition", 28, 864.5), ("Done", 337, 870), ("Loop seam", 117, 880)), "kinds": []}
+        self.assertEqual(["Audition", "Done", "Loop seam"], row_ordered(far["texts"]))
+        self.assertLess(compare(spec, far, lits)["order"], 1.0)
 
 
 if __name__ == "__main__":

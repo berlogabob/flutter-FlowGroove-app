@@ -73,6 +73,13 @@ class FlattenTest(unittest.TestCase):
         )
         self.assertEqual(flat["kinds"], ["button"])
 
+    def test_overlay_texts_are_marked_as_a_separate_part(self):
+        flat = flatten({"body": [{"t": "text", "v": "Back"}],
+                        "overlay": [{"x": 0, "y": 500, "node": {"t": "sheet", "c": [{"t": "text", "v": "Sheet"}]}}]}, set())
+        self.assertEqual(["Back", "Sheet"], flat["texts"])
+        self.assertEqual(1, flat["overlay_from"])
+        self.assertNotIn("overlay_from", flatten({"body": [{"t": "text", "v": "Back"}]}, set()))
+
 
 if __name__ == "__main__":
     unittest.main()
