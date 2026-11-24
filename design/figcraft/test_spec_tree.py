@@ -96,6 +96,22 @@ class FlattenTest(unittest.TestCase):
         # Only inputs: a text node's value stays.
         self.assertEqual(["Bridge"], flatten({"body": [{"t": "text", "v": "Bridge"}]}, set())["texts"])
 
+    def test_side_by_side_cards_read_row_by_row(self):
+        card = lambda *v: {"t": "card", "c": [{"t": "col", "c": [{"t": "text", "v": x} for x in v]}]}
+        flat = flatten({"body": [{"t": "row", "c": [card("A", "1 bar", "Idle"), card("B", "2 bars", "Idle")]}]}, set())
+        self.assertEqual(["A", "B", "1 bar", "2 bars", "Idle", "Idle"], flat["texts"])
+        # Unequal text counts: no honest interleave, source order stays.
+        flat = flatten({"body": [{"t": "row", "c": [card("A", "1"), card("B")]}]}, set())
+        self.assertEqual(["A", "1", "B"], flat["texts"])
+
+    def test_lone_button_beside_titled_buttons_reads_between_title_and_value(self):
+        choice = lambda t, b: {"t": "col", "c": [{"t": "text", "v": t}, {"t": "button", "v": b}]}
+        flat = flatten({"body": [{"t": "row", "c": [{"t": "button", "v": "Stop"}, choice("Mode", "Loop"), choice("Quantize", "Bar")]}]}, set())
+        self.assertEqual(["Mode", "Quantize", "Stop", "Loop", "Bar"], flat["texts"])
+        # Not that shape (first child is not a button): untouched.
+        flat = flatten({"body": [{"t": "row", "c": [{"t": "text", "v": "X"}, choice("Mode", "Loop"), choice("Q", "Bar")]}]}, set())
+        self.assertEqual(["X", "Mode", "Loop", "Q", "Bar"], flat["texts"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -512,26 +512,6 @@
                "w": "hug"
               }
              ]
-            },
-            {
-             "t": "row",
-             "cross": "center",
-             "gap": 4,
-             "c": [
-              {
-               "t": "icon",
-               "v": "loop",
-               "size": 16,
-               "color": "textSecondary"
-              },
-              {
-               "t": "text",
-               "v": "Loop",
-               "style": "labelSmall",
-               "color": "textSecondary",
-               "w": "hug"
-              }
-             ]
             }
            ],
            "w": "fill"
@@ -689,207 +669,205 @@
        "c": [
         {
          "t": "card",
-         "dir": "h",
          "pad": [
           12,
           12,
           12,
           12
          ],
-         "gap": 8,
-         "cross": "center",
+         "gap": 2,
          "c": [
           {
-           "t": "col",
-           "w": "fill",
-           "gap": 2,
+           "t": "row",
+           "cross": "center",
+           "gap": 8,
            "c": [
             {
              "t": "text",
              "v": "Drum kit",
              "style": "titleMedium",
              "color": "textHighEmphasis",
-             "maxLines": 1
+             "maxLines": 1,
+             "w": "fill"
             },
             {
              "t": "row",
-             "cross": "center",
-             "gap": 8,
+             "gap": 2,
              "c": [
               {
-               "t": "col",
-               "w": 40,
-               "h": 40,
-               "radius": 20,
-               "bg": "surfaceRaised",
-               "main": "center",
-               "cross": "center",
-               "c": [
-                {
-                 "t": "text",
-                 "v": "M",
-                 "style": "labelLarge",
-                 "color": "textPrimary",
-                 "w": "hug"
-                }
-               ]
-              },
-              {
-               "t": "col",
-               "w": 40,
-               "h": 40,
-               "radius": 20,
-               "bg": "surfaceRaised",
-               "main": "center",
-               "cross": "center",
-               "c": [
-                {
-                 "t": "text",
-                 "v": "S",
-                 "style": "labelLarge",
-                 "color": "textPrimary",
-                 "w": "hug"
-                }
-               ]
-              },
-              {
-               "t": "iconbtn",
-               "v": "edit_note",
-               "size": 16,
+               "t": "text",
+               "v": "Drum kit",
+               "style": "labelSmall",
                "color": "textSecondary",
-               "radius": 8
+               "w": "hug"
+              },
+              {
+               "t": "icon",
+               "v": "arrow_drop_down",
+               "size": 18,
+               "color": "textSecondary"
               }
-             ]
+             ],
+             "cross": "center"
             }
            ]
           },
           {
            "t": "row",
-           "gap": 2,
+           "cross": "center",
+           "gap": 8,
            "c": [
             {
-             "t": "text",
-             "v": "Drum kit",
-             "style": "labelSmall",
-             "color": "textSecondary",
-             "w": "hug"
+             "t": "col",
+             "w": 40,
+             "h": 40,
+             "radius": 20,
+             "bg": "surfaceRaised",
+             "main": "center",
+             "cross": "center",
+             "c": [
+              {
+               "t": "text",
+               "v": "M",
+               "style": "labelLarge",
+               "color": "textPrimary",
+               "w": "hug"
+              }
+             ]
             },
             {
-             "t": "icon",
-             "v": "arrow_drop_down",
-             "size": 18,
-             "color": "textSecondary"
+             "t": "col",
+             "w": 40,
+             "h": 40,
+             "radius": 20,
+             "bg": "surfaceRaised",
+             "main": "center",
+             "cross": "center",
+             "c": [
+              {
+               "t": "text",
+               "v": "S",
+               "style": "labelLarge",
+               "color": "textPrimary",
+               "w": "hug"
+              }
+             ]
+            },
+            {
+             "t": "iconbtn",
+             "v": "edit_note",
+             "size": 16,
+             "color": "textSecondary",
+             "radius": 8
             }
-           ],
-           "cross": "center"
+           ]
+          },
+          {
+           "t": "slider",
+           "value": 0.7
           }
          ]
         },
         {
-         "t": "slider",
-         "value": 0.7
-        },
-        {
          "t": "card",
-         "dir": "h",
          "pad": [
           12,
           12,
           12,
           12
          ],
-         "gap": 8,
-         "cross": "center",
+         "gap": 2,
          "c": [
           {
-           "t": "col",
-           "w": "fill",
-           "gap": 2,
+           "t": "row",
+           "cross": "center",
+           "gap": 8,
            "c": [
             {
              "t": "text",
              "v": "Bass",
              "style": "titleMedium",
              "color": "textHighEmphasis",
-             "maxLines": 1
+             "maxLines": 1,
+             "w": "fill"
             },
             {
              "t": "row",
-             "cross": "center",
-             "gap": 8,
+             "gap": 2,
              "c": [
               {
-               "t": "col",
-               "w": 40,
-               "h": 40,
-               "radius": 20,
-               "bg": "surfaceRaised",
-               "main": "center",
-               "cross": "center",
-               "c": [
-                {
-                 "t": "text",
-                 "v": "M",
-                 "style": "labelLarge",
-                 "color": "textPrimary",
-                 "w": "hug"
-                }
-               ]
-              },
-              {
-               "t": "col",
-               "w": 40,
-               "h": 40,
-               "radius": 20,
-               "bg": "surfaceRaised",
-               "main": "center",
-               "cross": "center",
-               "c": [
-                {
-                 "t": "text",
-                 "v": "S",
-                 "style": "labelLarge",
-                 "color": "textPrimary",
-                 "w": "hug"
-                }
-               ]
-              },
-              {
-               "t": "iconbtn",
-               "v": "edit_note",
-               "size": 16,
+               "t": "text",
+               "v": "Electric Bass (finger)",
+               "style": "labelSmall",
                "color": "textSecondary",
-               "radius": 8
+               "w": "hug"
+              },
+              {
+               "t": "icon",
+               "v": "arrow_drop_down",
+               "size": 18,
+               "color": "textSecondary"
               }
-             ]
+             ],
+             "cross": "center"
             }
            ]
           },
           {
            "t": "row",
-           "gap": 2,
+           "cross": "center",
+           "gap": 8,
            "c": [
             {
-             "t": "text",
-             "v": "Electric Bass (finger)",
-             "style": "labelSmall",
-             "color": "textSecondary",
-             "w": "hug"
+             "t": "col",
+             "w": 40,
+             "h": 40,
+             "radius": 20,
+             "bg": "surfaceRaised",
+             "main": "center",
+             "cross": "center",
+             "c": [
+              {
+               "t": "text",
+               "v": "M",
+               "style": "labelLarge",
+               "color": "textPrimary",
+               "w": "hug"
+              }
+             ]
             },
             {
-             "t": "icon",
-             "v": "arrow_drop_down",
-             "size": 18,
-             "color": "textSecondary"
+             "t": "col",
+             "w": 40,
+             "h": 40,
+             "radius": 20,
+             "bg": "surfaceRaised",
+             "main": "center",
+             "cross": "center",
+             "c": [
+              {
+               "t": "text",
+               "v": "S",
+               "style": "labelLarge",
+               "color": "textPrimary",
+               "w": "hug"
+              }
+             ]
+            },
+            {
+             "t": "iconbtn",
+             "v": "edit_note",
+             "size": 16,
+             "color": "textSecondary",
+             "radius": 8
             }
-           ],
-           "cross": "center"
+           ]
+          },
+          {
+           "t": "slider",
+           "value": 0.9
           }
          ]
-        },
-        {
-         "t": "slider",
-         "value": 0.9
         }
        ]
       },

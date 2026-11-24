@@ -47,6 +47,7 @@ lab_recording_sheet
 links_editor_add_link
 login
 metronome
+metronome_launchpad
 metronome_sheets_sheet_l14
 midi_import_flow_import_midi
 midi_song_panel

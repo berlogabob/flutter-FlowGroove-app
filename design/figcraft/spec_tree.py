@@ -104,6 +104,36 @@ def flatten(spec: dict, icons: set[str]) -> dict:
             for field in ("label", "letter", "sub"):
                 add([child.get(field) for child in node["c"]])
             return
+        elif kind == "row" and node.get("c") and len(node["c"]) > 1 and all(
+            isinstance(child, dict) and child.get("t") == "card" for child in node["c"]
+        ):
+            # Side-by-side cards: the app reads row by row (same-height texts of every card, then the next
+            # line). Interleave the cards' texts by position, only when each card has as many texts as the rest.
+            start = len(texts)
+            parts = []
+            for child in node["c"]:
+                before = len(texts)
+                visit(child)
+                parts.append(texts[before:])
+            if len({len(part) for part in parts}) == 1:
+                texts[start:] = [part[i] for i in range(len(parts[0])) for part in parts]
+            return
+        elif kind == "row" and len(node.get("c") or []) > 2 and node["c"][0].get("t") == "button" and all(
+            isinstance(child, dict) and child.get("t") == "col" and [g.get("t") for g in child.get("c", [])] == ["text", "button"]
+            for child in node["c"][1:]
+        ):
+            # A lone button beside titled buttons (title above, button below): the lone button is centred, so
+            # the dump (top to bottom) reads the titles, then the lone button, then the titled buttons.
+            parts = []
+            for child in node["c"]:
+                before = len(texts)
+                visit(child)
+                parts.append(texts[before:])
+            if all(len(part) == 1 for part in parts[:1]) and all(len(part) == 2 for part in parts[1:]):
+                texts[len(texts) - sum(map(len, parts)):] = (
+                    [part[0] for part in parts[1:]] + parts[0] + [part[1] for part in parts[1:]]
+                )
+            return
         elif kind == "overview":
             add([block.get("letter") for block in node.get("sections", [])])
         elif kind == "zoomwave":
