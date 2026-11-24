@@ -1103,16 +1103,32 @@
       "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/219",
       "number": 219,
       "type": "Issue",
-      "state": "OPEN",
-      "status": "Needs Check"
+      "state": "CLOSED",
+      "status": "Done"
     },
     {
       "title": "Design system: app screens match the design file",
       "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/220",
       "number": 220,
       "type": "Issue",
-      "state": "OPEN",
-      "status": "In Progress"
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Paste a list: add songs from notes or a chat",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/221",
+      "number": 221,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Song Map: section names follow their letter after a cut",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/222",
+      "number": 222,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
     }
   ]
 }
