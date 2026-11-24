@@ -95,6 +95,8 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return AlertDialog(
+      // Scrolls when the roles outgrow a short or large-text screen.
+      scrollable: true,
       title: Text(widget.title ?? 'Select Roles'),
       content: SizedBox(
         width: min(screenWidth * 0.9, 500),

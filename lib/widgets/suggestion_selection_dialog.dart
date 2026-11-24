@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+
 import '../models/song_suggestion.dart';
 import '../theme/mono_pulse_theme.dart';
 
@@ -90,10 +91,12 @@ class SuggestionSelectionDialog extends StatelessWidget {
                 color: theme.colorScheme.outline,
               ),
               const SizedBox(width: MonoPulseSpacing.xs),
-              Text(
-                _getSourceText(),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
+              Flexible(
+                child: Text(
+                  _getSourceText(),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
                 ),
               ),
             ],
@@ -250,9 +253,8 @@ class _SongDetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+                style: Theme.of(context).textTheme.labelSmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
               Text(value, style: Theme.of(context).textTheme.bodyMedium),
             ],

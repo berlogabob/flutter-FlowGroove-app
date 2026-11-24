@@ -234,6 +234,8 @@ final kOpeners = <String, Opener>{
     then: (tester) async {
       // Detail screen -> its real 'Edit details' button.
       final edit = find.widgetWithText(TextButton, 'Edit details');
+      // A long list at large text scale builds lazily: scroll to the button.
+      await tester.scrollUntilVisible(edit, 200);
       await tester.ensureVisible(edit);
       await tester.tap(edit);
       await tester.pumpAndSettle();

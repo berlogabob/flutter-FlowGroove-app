@@ -234,24 +234,33 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
               ],
             ],
             const SizedBox(height: MonoPulseSpacing.sm),
-            Row(
+            // Wraps instead of overflowing on a narrow dialog: the prompt
+            // button on the left, Cancel + Import on the right.
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              runSpacing: MonoPulseSpacing.sm,
               children: [
                 TextButton.icon(
                   onPressed: _copyAiPrompt,
                   icon: const Icon(Icons.auto_awesome, size: 18),
                   label: const Text('Copy AI prompt'),
                 ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: MonoPulseSpacing.sm),
-                CustomButton(
-                  onPressed: canImport ? _import : null,
-                  label: parsed.sections.isEmpty
-                      ? 'Import'
-                      : 'Import ${parsed.sections.length}',
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: MonoPulseSpacing.sm),
+                    CustomButton(
+                      onPressed: canImport ? _import : null,
+                      label: parsed.sections.isEmpty
+                          ? 'Import'
+                          : 'Import ${parsed.sections.length}',
+                    ),
+                  ],
                 ),
               ],
             ),

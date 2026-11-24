@@ -61,8 +61,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         case 'weak-password':
           message = 'Password is too weak';
         case 'operation-not-allowed':
-          message =
-              'Email/password auth is not enabled. Go to Firebase Console → Authentication → Sign-in method → enable Email/Password';
+          message = 'Email/password auth is not enabled. Go to Firebase Console → Authentication → Sign-in method → enable Email/Password';
         default:
           message = 'Error: ${e.code} - ${e.message}';
       }
@@ -158,9 +157,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: MonoPulseSpacing.sm),
               Text(
                 'Create an account to manage your band repertoire',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: context.mp.textSecondary,
-                ),
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(color: context.mp.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: MonoPulseSpacing.massive),
@@ -226,8 +224,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 isLoading: _isLoading,
               ),
               const SizedBox(height: MonoPulseSpacing.lg),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text('Already have an account?'),
                   TextButton(

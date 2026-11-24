@@ -68,6 +68,9 @@ Map<String, Object?> dumpTree(WidgetTester tester) {
     if (render is! RenderBox || !render.hasSize || render.size.isEmpty)
       continue;
     final rect = render.localToGlobal(Offset.zero) & render.size;
+    // A FittedBox in a zero-width slot (a sliver of a part at 360 px) yields a NaN
+    // transform: nothing is painted, so it is not part of the screen.
+    if (!rect.left.isFinite || !rect.top.isFinite) continue;
     var offscreen = !rect.overlaps(screen);
     if (widget is Text) {
       var hidden = false;

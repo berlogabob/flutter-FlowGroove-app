@@ -176,7 +176,9 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
               ],
             ),
             const SizedBox(height: MonoPulseSpacing.lg),
-            Row(
+            Wrap(
+              spacing: MonoPulseSpacing.sm,
+              runSpacing: MonoPulseSpacing.sm,
               children: [
                 _buildInfoChip(
                   icon: Icons.people_outline,
@@ -187,7 +189,6 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                     extra: _band,
                   ),
                 ),
-                const SizedBox(width: MonoPulseSpacing.sm),
                 if (_band.inviteCode != null && _band.inviteCode!.isNotEmpty)
                   _buildInfoChip(
                     icon: Icons.qr_code,

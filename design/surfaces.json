@@ -296,14 +296,14 @@
   {
     "key": "band_about_screen.MemberActions",
     "kind": "sheet",
-    "source": "lib/screens/bands/band_about_screen.dart:493",
+    "source": "lib/screens/bands/band_about_screen.dart:494",
     "widget": "MemberActions",
     "spec": "design/figcraft/specs/band_about_sheet_l519.json"
   },
   {
     "key": "band_about_screen._removeMember",
     "kind": "dialog",
-    "source": "lib/screens/bands/band_about_screen.dart:630",
+    "source": "lib/screens/bands/band_about_screen.dart:631",
     "widget": "_removeMember",
     "spec": "design/figcraft/specs/band_about_remove_member.json"
   },
@@ -613,42 +613,42 @@
   {
     "key": "practice_regions_screen._leaveWithCandidate",
     "kind": "dialog",
-    "source": "lib/screens/practice_regions_screen.dart:2084",
+    "source": "lib/screens/practice_regions_screen.dart:2091",
     "widget": "_leaveWithCandidate",
     "spec": "design/figcraft/specs/practice_regions_save_new_section_map.json"
   },
   {
     "key": "practice_regions_save_new_section_map",
     "kind": "state",
-    "source": "lib/screens/practice_regions_screen.dart:2084",
+    "source": "lib/screens/practice_regions_screen.dart:2091",
     "widget": "Practice regions: Save the new section map?",
     "spec": "design/figcraft/specs/practice_regions_save_new_section_map.json"
   },
   {
     "key": "practice_regions_screen._manualSetup",
     "kind": "dialog",
-    "source": "lib/screens/practice_regions_screen.dart:2236",
+    "source": "lib/screens/practice_regions_screen.dart:2243",
     "widget": "_manualSetup",
     "spec": "design/figcraft/specs/practice_regions_replace_n_sections.json"
   },
   {
     "key": "practice_regions_replace_n_sections",
     "kind": "state",
-    "source": "lib/screens/practice_regions_screen.dart:2236",
+    "source": "lib/screens/practice_regions_screen.dart:2243",
     "widget": "Practice regions: Replace N sections?",
     "spec": "design/figcraft/specs/practice_regions_replace_n_sections.json"
   },
   {
     "key": "practice_regions_screen._playbackOptions",
     "kind": "sheet",
-    "source": "lib/screens/practice_regions_screen.dart:2949",
+    "source": "lib/screens/practice_regions_screen.dart:2956",
     "widget": "_playbackOptions",
     "spec": "design/figcraft/specs/practice_regions_speed_n.json"
   },
   {
     "key": "practice_regions_speed_n",
     "kind": "state",
-    "source": "lib/screens/practice_regions_screen.dart:2949",
+    "source": "lib/screens/practice_regions_screen.dart:2956",
     "widget": "Practice regions: Speed N%",
     "spec": "design/figcraft/specs/practice_regions_speed_n.json"
   },

@@ -272,29 +272,36 @@ class _AutoScrollBar extends StatelessWidget {
                 ),
               ],
             ),
-            Row(
+            // Wraps rather than overflowing on a narrow or large-text screen.
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                IconButton.filled(
-                  onPressed: onToggle,
-                  icon: Icon(scrolling ? Icons.pause : Icons.play_arrow),
-                  tooltip: scrolling ? 'Pause scroll' : 'Auto-scroll',
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton.filled(
+                      onPressed: onToggle,
+                      icon: Icon(scrolling ? Icons.pause : Icons.play_arrow),
+                      tooltip: scrolling ? 'Pause scroll' : 'Auto-scroll',
+                    ),
+                    const SizedBox(width: MonoPulseSpacing.sm),
+                    IconButton(
+                      onPressed: onSlower,
+                      icon: const Icon(Icons.remove),
+                      tooltip: 'Slower',
+                    ),
+                    Text(
+                      '${speed.round()} px/s',
+                      style: MonoPulseTypography.labelLarge,
+                    ),
+                    IconButton(
+                      onPressed: onFaster,
+                      icon: const Icon(Icons.add),
+                      tooltip: 'Faster',
+                    ),
+                  ],
                 ),
-                const SizedBox(width: MonoPulseSpacing.sm),
-                IconButton(
-                  onPressed: onSlower,
-                  icon: const Icon(Icons.remove),
-                  tooltip: 'Slower',
-                ),
-                Text(
-                  '${speed.round()} px/s',
-                  style: MonoPulseTypography.labelLarge,
-                ),
-                IconButton(
-                  onPressed: onFaster,
-                  icon: const Icon(Icons.add),
-                  tooltip: 'Faster',
-                ),
-                const Spacer(),
                 ChoiceChip(
                   label: Text(bpmSync ? 'BPM' : 'Manual'),
                   selected: bpmSync,

@@ -1381,33 +1381,40 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
                             sheetSetState(() => snap = value.single),
                       ),
                     ),
-                    Row(
+                    // Wraps rather than overflowing on a narrow or large-text screen.
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        TextButton(
-                          onPressed: _loaded && !seamOn
-                              ? () => _audition(ms)
-                              : null,
-                          child: const Text('Audition'),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextButton(
+                              onPressed: _loaded && !seamOn
+                                  ? () => _audition(ms)
+                                  : null,
+                              child: const Text('Audition'),
+                            ),
+                            FilterChip(
+                              key: const ValueKey('loop-seam'),
+                              label: const Text('Loop seam'),
+                              selected: seamOn,
+                              onSelected: _loaded
+                                  ? (on) => sheetSetState(() {
+                                      seamOn = on;
+                                      seamMs = ms;
+                                      seamDebounce?.cancel();
+                                      if (on) {
+                                        playSeam();
+                                      } else {
+                                        _seam = null;
+                                        unawaited(_player.pause());
+                                      }
+                                    })
+                                  : null,
+                            ),
+                          ],
                         ),
-                        FilterChip(
-                          key: const ValueKey('loop-seam'),
-                          label: const Text('Loop seam'),
-                          selected: seamOn,
-                          onSelected: _loaded
-                              ? (on) => sheetSetState(() {
-                                  seamOn = on;
-                                  seamMs = ms;
-                                  seamDebounce?.cancel();
-                                  if (on) {
-                                    playSeam();
-                                  } else {
-                                    _seam = null;
-                                    unawaited(_player.pause());
-                                  }
-                                })
-                              : null,
-                        ),
-                        const Spacer(),
                         FilledButton(
                           onPressed: () => Navigator.pop(sheetContext, ms),
                           child: const Text('Done'),

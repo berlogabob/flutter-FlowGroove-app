@@ -50,11 +50,13 @@ class _SongExportDialogState extends State<SongExportDialog> {
                 children: [
                   const Icon(Icons.file_download),
                   const SizedBox(width: MonoPulseSpacing.md),
-                  Text(
-                    'Export Songs',
-                    style: MonoPulseTypography.headlineLarge.copyWith(
-                      fontWeight: MonoPulseTypography.bold,
-                      color: context.mp.textHighEmphasis,
+                  Expanded(
+                    child: Text(
+                      'Export Songs',
+                      style: MonoPulseTypography.headlineLarge.copyWith(
+                        fontWeight: MonoPulseTypography.bold,
+                        color: context.mp.textHighEmphasis,
+                      ),
                     ),
                   ),
                 ],
@@ -100,8 +102,10 @@ class _SongExportDialogState extends State<SongExportDialog> {
           ),
         ),
         const SizedBox(height: MonoPulseSpacing.xxl),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: MonoPulseSpacing.lg,
+          runSpacing: MonoPulseSpacing.md,
           children: [
             // Save to file
             CustomButton(
@@ -109,7 +113,6 @@ class _SongExportDialogState extends State<SongExportDialog> {
               icon: Icons.save,
               label: 'Save to Device',
             ),
-            const SizedBox(width: MonoPulseSpacing.lg),
             // Share
             CustomButton(
               onPressed: _exportAndShare,
