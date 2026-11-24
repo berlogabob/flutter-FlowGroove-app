@@ -71,6 +71,7 @@ profile_currently_using
 profile_delete_account
 profile_link_telegram
 recorder
+recorder_link_recording_to_song
 region_name_sheet_l255
 register
 rehearsal_detail
