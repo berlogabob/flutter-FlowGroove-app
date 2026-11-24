@@ -52,147 +52,174 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Edit Section', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: MonoPulseSpacing.lg),
-            // Template dropdown
-            Text(
-              'Section Type:',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: MonoPulseSpacing.sm),
-            AppDropdownField<String>(
-              initialValue: _selectedTemplate,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: MonoPulseSpacing.md,
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                left: MonoPulseSpacing.lg,
+                top: MonoPulseSpacing.lg,
+                right: MonoPulseSpacing.lg,
               ),
-              hint: const Text('Select template'),
-              items: Section.templates.map((template) {
-                return DropdownMenuItem(value: template, child: Text(template));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedTemplate = value;
-                  if (value != null) {
-                    _nameController.text = value;
-                  }
-                });
-              },
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
-            // Name field (for custom names)
-            CustomTextField(
-              label: 'Custom Name',
-              controller: _nameController,
-              onChanged: (value) {
-                setState(() {
-                  _selectedTemplate = Section.templates.contains(value)
-                      ? value
-                      : null;
-                });
-              },
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
-            // Duration field with helper buttons
-            Text(
-              'Duration (phrases):',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: MonoPulseSpacing.sm),
-            Row(
-              children: [
-                for (int i = 1; i <= 4; i++)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        right: MonoPulseSpacing.xs,
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _duration = i;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _duration == i
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
-                          foregroundColor: _duration == i
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : null,
-                        ),
-                        child: Text('$i'),
-                      ),
-                    ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Edit Section',
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                const SizedBox(width: MonoPulseSpacing.xs),
-                SizedBox(
-                  width: 60,
-                  child: CustomTextField(
-                    hint: 'Custom',
-                    semanticsLabel: 'Custom',
-                    keyboardType: TextInputType.number,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: MonoPulseSpacing.sm,
+                  const SizedBox(height: MonoPulseSpacing.lg),
+                  // Template dropdown
+                  Text(
+                    'Section Type:',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.sm),
+                  AppDropdownField<String>(
+                    initialValue: _selectedTemplate,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: MonoPulseSpacing.md,
+                      ),
                     ),
+                    hint: const Text('Select template'),
+                    items: Section.templates.map((template) {
+                      return DropdownMenuItem(
+                        value: template,
+                        child: Text(template),
+                      );
+                    }).toList(),
                     onChanged: (value) {
-                      final parsed = int.tryParse(value);
-                      if (parsed != null && parsed > 0) {
-                        setState(() {
-                          _duration = parsed;
-                        });
-                      }
+                      setState(() {
+                        _selectedTemplate = value;
+                        if (value != null) {
+                          _nameController.text = value;
+                        }
+                      });
                     },
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
-            // Notes field
-            CustomTextField(
-              label: 'Notes (e.g., guitar chords)',
-              controller: _notesController,
-              maxLines: 3,
-              maxLength: 100,
-              counterText: '',
-              hint: 'Am C G',
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
-            // Lyrics + chords (ChordPro) field with live preview
-            CustomTextField(
-              label: 'Lyrics & chords (ChordPro)',
-              controller: _chordController,
-              maxLines: 5,
-              minLines: 2,
-              onChanged: (_) => setState(() {}),
-              hint: '[Am]Twinkle [F]little [C]star',
-              helperText: 'Put a chord in [brackets] before its syllable.',
-            ),
-            if (_chordController.text.trim().isNotEmpty) ...[
-              const SizedBox(height: MonoPulseSpacing.md),
-              Text('Preview:', style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: MonoPulseSpacing.xs),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(MonoPulseSpacing.md),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Theme.of(context).dividerColor),
-                  borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                ),
-                child: ChordChartView(chart: _chordController.text),
+                  const SizedBox(height: MonoPulseSpacing.lg),
+                  // Name field (for custom names)
+                  CustomTextField(
+                    label: 'Custom Name',
+                    controller: _nameController,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedTemplate = Section.templates.contains(value)
+                            ? value
+                            : null;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.lg),
+                  // Duration field with helper buttons
+                  Text(
+                    'Duration (phrases):',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.sm),
+                  Row(
+                    children: [
+                      for (int i = 1; i <= 4; i++)
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              right: MonoPulseSpacing.xs,
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _duration = i;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _duration == i
+                                    ? Theme.of(context).colorScheme.primary
+                                    : null,
+                                foregroundColor: _duration == i
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                    : null,
+                              ),
+                              child: Text('$i'),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(width: MonoPulseSpacing.xs),
+                      SizedBox(
+                        // ds-allow: unchanged width of the custom-duration field, only re-indented
+                        width: 60,
+                        child: CustomTextField(
+                          hint: 'Custom',
+                          semanticsLabel: 'Custom',
+                          keyboardType: TextInputType.number,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: MonoPulseSpacing.sm,
+                          ),
+                          onChanged: (value) {
+                            final parsed = int.tryParse(value);
+                            if (parsed != null && parsed > 0) {
+                              setState(() {
+                                _duration = parsed;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.lg),
+                  // Notes field
+                  CustomTextField(
+                    label: 'Notes (e.g., guitar chords)',
+                    controller: _notesController,
+                    maxLines: 3,
+                    maxLength: 100,
+                    hint: 'Am C G',
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.lg),
+                  // Lyrics + chords (ChordPro) field with live preview
+                  CustomTextField(
+                    label: 'Lyrics & chords (ChordPro)',
+                    controller: _chordController,
+                    maxLines: 5,
+                    minLines: 2,
+                    onChanged: (_) => setState(() {}),
+                    hint: '[Am]Twinkle [F]little [C]star',
+                    helperText:
+                        'Put a chord in [brackets] before its syllable.',
+                  ),
+                  if (_chordController.text.trim().isNotEmpty) ...[
+                    const SizedBox(height: MonoPulseSpacing.md),
+                    Text(
+                      'Preview:',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: MonoPulseSpacing.xs),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(MonoPulseSpacing.md),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                        ),
+                        borderRadius: BorderRadius.circular(
+                          MonoPulseRadius.small,
+                        ),
+                      ),
+                      child: ChordChartView(chart: _chordController.text),
+                    ),
+                  ],
+                ],
               ),
-            ],
-            const SizedBox(height: MonoPulseSpacing.lg),
-            // Action buttons
-            Row(
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
@@ -217,8 +244,8 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
