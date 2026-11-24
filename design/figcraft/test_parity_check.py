@@ -5,7 +5,7 @@ import sys
 import unittest
 from pathlib import Path
 
-from design.figcraft.parity_check import compare, dart_strings, debug_only_labels, in_debug_conditional, lib_literals, row_ordered, static
+from design.figcraft.parity_check import compare, dart_strings, debug_only_labels, fixture_literals, in_debug_conditional, lib_literals, row_ordered, static
 from design.figcraft.spec_tree import flatten
 
 
@@ -194,6 +194,28 @@ class ParityCheckTests(unittest.TestCase):
         far = {"texts": self.at(("Audition", 28, 864.5), ("Done", 337, 870), ("Loop seam", 117, 880)), "kinds": []}
         self.assertEqual(["Audition", "Done", "Loop seam"], row_ordered(far["texts"]))
         self.assertLess(compare(spec, far, lits)["order"], 1.0)
+
+    def test_fixture_strings_rescue_a_weak_frame_only(self):
+        spec = {"texts": ["Link to", "Alex", "Sam"], "kinds": []}
+        dump = {"texts": ["Link to", "Alex", "Sam"], "kinds": []}
+        lits, fixtures = {"Link to"}, {"Alex", "Sam"}
+        self.assertTrue(compare(spec, dump, lits)["weak"])
+        self.assertTrue(compare(spec, dump, lits, fixtures=fixtures)["pass"])
+        # Labels that do not match still fail.
+        wrong = {"texts": ["Link to", "Alex", "Kim"], "kinds": []}
+        result = compare(spec, wrong, lits, fixtures=fixtures | {"Kim"})
+        self.assertFalse(result["pass"])
+        self.assertEqual(["Sam"], result["missing"])
+        self.assertEqual(["Kim"], result["extra"])
+        # A frame with two app literals keeps its data labels out of the comparison.
+        solid = {"texts": ["Link to", "Cancel", "Alex"], "kinds": []}
+        plain = {"texts": ["Link to", "Cancel", "Sam"], "kinds": []}
+        self.assertTrue(compare(solid, plain, {"Link to", "Cancel"}, fixtures=fixtures)["pass"])
+
+    def test_fixture_literals_read_plain_strings_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "fixtures.dart").write_text("final a = 'Alex'; final b = 'Hi $name'; // 'Nope'\n")
+            self.assertEqual({"Alex"}, fixture_literals(Path(tmp)))
 
 
 if __name__ == "__main__":

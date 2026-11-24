@@ -77,6 +77,19 @@ def lib_literals(lib_dir: str) -> set[str]:
     return literals
 
 
+def fixture_literals(render_dir: Path) -> set[str]:
+    """Non-interpolated strings of the render fixtures: test data is as deterministic as app literals."""
+    literals = set()
+    for name in ("fixtures.dart", "states.dart"):
+        path = render_dir / name
+        if path.exists():
+            for content, interpolated in dart_strings(path.read_text(encoding="utf-8")):
+                value = content.strip()
+                if not interpolated and "$" not in value:
+                    literals.add(value)
+    return literals
+
+
 def static(texts: list[str], literals: set[str]) -> list[str]:
     """Keep text entries that occur as static source literals, preserving order."""
     return [text for text in texts if text in literals]
@@ -168,14 +181,20 @@ def _close(source: str, i: int) -> int:
 KIND_ALIASES = {"switchrow": "switch"}
 
 
-def compare(spec_flat: dict, dump: dict, literals: set[str], ignore: frozenset = frozenset()) -> dict:
+def compare(spec_flat: dict, dump: dict, literals: set[str], ignore: frozenset = frozenset(),
+            fixtures: set[str] = frozenset()) -> dict:
     """Compare flattened spec labels and kinds with a rendered dump.
 
     ``ignore``: debug-only labels (see debug_only.txt); the dump shows them, the shipped app does not.
+    ``fixtures``: strings of the render fixtures. A frame with fewer than MIN_LABELS app literals is
+    otherwise unprovable ("weak"); for it only, the fixed fixture strings count as labels too.
     """
     def labels(items):
         return [item if isinstance(item, str) else item.get("v", "")
                 for item in items]
+
+    if len({label for label in labels(spec_flat.get("texts", [])) if label in literals}) < MIN_LABELS:
+        literals = literals | set(fixtures)
 
     spec_texts = [label for label in labels(spec_flat.get("texts", []))]
     spec_labels = [label for label in spec_texts if label in literals and label not in ignore]
@@ -241,6 +260,7 @@ def main(argv: list[str] | None = None) -> int:
     locked = {line.strip() for line in lock_path.read_text(encoding="utf-8").splitlines()
               if line.strip()} if lock_path.exists() else set()
     literals = lib_literals(str(root / "lib"))
+    fixtures = fixture_literals(root / "test/design_render")
     icons_path = root / "design/figcraft/icons.txt"
     icons = {line.strip() for line in icons_path.read_text(encoding="utf-8").splitlines()
              if line.strip()} if icons_path.exists() else set()
@@ -257,7 +277,7 @@ def main(argv: list[str] | None = None) -> int:
         spec_flat = flatten(spec, icons)
         if dump_path.exists():
             rendered += 1
-            result = compare(spec_flat, json.loads(dump_path.read_text(encoding="utf-8")), literals, ignore)
+            result = compare(spec_flat, json.loads(dump_path.read_text(encoding="utf-8")), literals, ignore, fixtures)
         else:
             result = {"pass": False, "missing_dump": True, "missing": [], "extra": [],
                       "kinds_missing": [], "kinds_extra": [], "order": 0.0}

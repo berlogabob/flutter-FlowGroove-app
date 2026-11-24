@@ -52,6 +52,7 @@ notes_panel_note_at_n
 paste_list_input
 paste_list_review
 performance_sheet_you_already_have_a_song_map
+performer_sheet_link_to_band_member
 performer_sheet_sheet_l32
 practice
 practice_regions
