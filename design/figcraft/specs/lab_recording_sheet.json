@@ -8,27 +8,63 @@
     {
       "t": "sheet",
       "c": [
-        {"t": "text", "v": "Audio idea", "style": "titleLarge"},
-        {"t": "text", "v": "Record an idea (up to 25 min) or attach a file", "style": "bodySmall", "color": "textSecondary"},
-        {"t": "row", "gap": 16, "c": [
-          {"t": "icon", "v": "mic", "size": 20, "color": "accentOrange"},
-          {"t": "col", "w": "fill", "gap": 4, "c": [
-            {"t": "progress", "value": 0.35},
-            {"t": "text", "v": "03:12 · AAC · 4.8MB", "style": "labelSmall", "color": "textTertiary"}
-          ]}
-        ]},
-        {"t": "row", "gap": 16, "c": [
-          {"t": "iconbtn", "v": "stop", "color": "accentOrange", "radius": 24, "bg": "accentOrange15"},
-          {"t": "col", "w": "fill", "gap": 4, "c": [
-            {"t": "text", "v": "Bridge riff idea", "style": "bodyMedium"},
-            {"t": "text", "v": "Good chorus entry at 00:42 · tempo drops at 01:15", "style": "bodySmall", "color": "textSecondary"}
-          ]}
-        ]},
-        {"t": "divider"},
-        {"t": "row", "gap": 16, "c": [
-          {"t": "icon", "v": "playlist_add", "size": 18, "color": "textSecondary"},
-          {"t": "text", "v": "Link to a song later from the Recorder list", "style": "bodySmall", "color": "textSecondary"}
-        ]}
+        {
+          "t": "text",
+          "v": "Audio idea",
+          "style": "titleLarge"
+        },
+        {
+          "t": "text",
+          "v": "Record an idea (up to 25 min) or attach a file",
+          "style": "bodySmall",
+          "color": "textSecondary"
+        },
+        {
+          "t": "row",
+          "gap": 16,
+          "c": [
+            {
+              "t": "button",
+              "kind": "white",
+              "v": "Record",
+              "icon": "mic",
+              "w": "fill"
+            },
+            {
+              "t": "button",
+              "kind": "secondary",
+              "v": "Attach file",
+              "icon": "attach_file",
+              "w": "fill"
+            }
+          ]
+        },
+        {
+          "t": "input",
+          "hint": "Title (e.g. \"Bridge riff idea\")"
+        },
+        {
+          "t": "input",
+          "hint": "Timestamp notes (optional)",
+          "lines": 3
+        },
+        {
+          "t": "row",
+          "main": "spaceBetween",
+          "c": [
+            {
+              "t": "button",
+              "kind": "text",
+              "v": "Cancel"
+            },
+            {
+              "t": "button",
+              "kind": "primary",
+              "v": "Save",
+              "small": true
+            }
+          ]
+        }
       ]
     }
   ]

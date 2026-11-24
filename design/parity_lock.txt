@@ -43,6 +43,7 @@ import_lyrics_dialog
 instrument_picker
 join_band
 join_welcome
+lab_recording_sheet
 links_editor_add_link
 login
 metronome
