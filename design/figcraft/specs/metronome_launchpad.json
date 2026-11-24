@@ -503,6 +503,13 @@
                "v": "4 bars",
                "style": "bodySmall",
                "color": "textSecondary"
+              },
+              {
+               "t": "text",
+               "v": "Idle",
+               "style": "labelSmall",
+               "color": "textSecondary",
+               "w": "hug"
               }
              ]
             },
@@ -526,7 +533,8 @@
               }
              ]
             }
-           ]
+           ],
+           "w": "fill"
           },
           {
            "t": "card",
@@ -555,10 +563,18 @@
                "v": "16 bars",
                "style": "bodySmall",
                "color": "textSecondary"
+              },
+              {
+               "t": "text",
+               "v": "Idle",
+               "style": "labelSmall",
+               "color": "textSecondary",
+               "w": "hug"
               }
              ]
             }
-           ]
+           ],
+           "w": "fill"
           }
          ]
         },
@@ -617,7 +633,8 @@
               }
              ]
             }
-           ]
+           ],
+           "w": "fill"
           },
           {
            "t": "card",
@@ -646,10 +663,18 @@
                "v": "8 bars",
                "style": "bodySmall",
                "color": "textSecondary"
+              },
+              {
+               "t": "text",
+               "v": "Idle",
+               "style": "labelSmall",
+               "color": "textSecondary",
+               "w": "hug"
               }
              ]
             }
-           ]
+           ],
+           "w": "fill"
           }
          ]
         }
@@ -692,18 +717,40 @@
              "gap": 8,
              "c": [
               {
-               "t": "iconbtn",
-               "v": "volume_off",
-               "size": 16,
-               "color": "textSecondary",
-               "radius": 8
+               "t": "col",
+               "w": 40,
+               "h": 40,
+               "radius": 20,
+               "bg": "surfaceRaised",
+               "main": "center",
+               "cross": "center",
+               "c": [
+                {
+                 "t": "text",
+                 "v": "M",
+                 "style": "labelLarge",
+                 "color": "textPrimary",
+                 "w": "hug"
+                }
+               ]
               },
               {
-               "t": "iconbtn",
-               "v": "push_pin",
-               "size": 16,
-               "color": "accentOrange",
-               "radius": 8
+               "t": "col",
+               "w": 40,
+               "h": 40,
+               "radius": 20,
+               "bg": "surfaceRaised",
+               "main": "center",
+               "cross": "center",
+               "c": [
+                {
+                 "t": "text",
+                 "v": "S",
+                 "style": "labelLarge",
+                 "color": "textPrimary",
+                 "w": "hug"
+                }
+               ]
               },
               {
                "t": "iconbtn",
@@ -717,13 +764,12 @@
            ]
           },
           {
-           "t": "col",
-           "w": 72,
+           "t": "row",
            "gap": 2,
            "c": [
             {
              "t": "text",
-             "v": "Acoustic Kit",
+             "v": "Drum kit",
              "style": "labelSmall",
              "color": "textSecondary",
              "w": "hug"
@@ -734,7 +780,8 @@
              "size": 18,
              "color": "textSecondary"
             }
-           ]
+           ],
+           "cross": "center"
           }
          ]
         },
@@ -772,11 +819,40 @@
              "gap": 8,
              "c": [
               {
-               "t": "iconbtn",
-               "v": "volume_off",
-               "size": 16,
-               "color": "textSecondary",
-               "radius": 8
+               "t": "col",
+               "w": 40,
+               "h": 40,
+               "radius": 20,
+               "bg": "surfaceRaised",
+               "main": "center",
+               "cross": "center",
+               "c": [
+                {
+                 "t": "text",
+                 "v": "M",
+                 "style": "labelLarge",
+                 "color": "textPrimary",
+                 "w": "hug"
+                }
+               ]
+              },
+              {
+               "t": "col",
+               "w": 40,
+               "h": 40,
+               "radius": 20,
+               "bg": "surfaceRaised",
+               "main": "center",
+               "cross": "center",
+               "c": [
+                {
+                 "t": "text",
+                 "v": "S",
+                 "style": "labelLarge",
+                 "color": "textPrimary",
+                 "w": "hug"
+                }
+               ]
               },
               {
                "t": "iconbtn",
@@ -790,13 +866,12 @@
            ]
           },
           {
-           "t": "col",
-           "w": 72,
+           "t": "row",
            "gap": 2,
            "c": [
             {
              "t": "text",
-             "v": "Finger",
+             "v": "Electric Bass (finger)",
              "style": "labelSmall",
              "color": "textSecondary",
              "w": "hug"
@@ -807,7 +882,8 @@
              "size": 18,
              "color": "textSecondary"
             }
-           ]
+           ],
+           "cross": "center"
           }
          ]
         },
@@ -831,9 +907,9 @@
          "c": [
           {
            "t": "button",
-           "v": "Play",
+           "v": "Stop",
            "kind": "primary",
-           "icon": "play_arrow",
+           "icon": "stop",
            "w": "fill"
           },
           {
@@ -854,7 +930,8 @@
              "kind": "secondary",
              "w": "fill"
             }
-           ]
+           ],
+           "w": "fill"
           },
           {
            "t": "col",
@@ -870,11 +947,12 @@
             },
             {
              "t": "button",
-             "v": "1 bar",
+             "v": "Bar",
              "kind": "secondary",
              "w": "fill"
             }
-           ]
+           ],
+           "w": "fill"
           }
          ]
         }

@@ -277,6 +277,41 @@
               "color": "textSecondary"
             }
           ]
+        },
+        {
+          "t": "row",
+          "h": 52,
+          "pad": [
+            0,
+            16,
+            0,
+            16
+          ],
+          "gap": 12,
+          "cross": "center",
+          "bg": "surface",
+          "border": "borderDefault",
+          "radius": 12,
+          "c": [
+            {
+              "t": "icon",
+              "v": "music_note",
+              "size": 20,
+              "color": "textSecondary"
+            },
+            {
+              "t": "text",
+              "v": "Metronome Settings",
+              "style": "labelLarge",
+              "w": "fill"
+            },
+            {
+              "t": "icon",
+              "v": "chevron_right",
+              "size": 20,
+              "color": "textSecondary"
+            }
+          ]
         }
       ]
     }

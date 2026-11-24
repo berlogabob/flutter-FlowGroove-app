@@ -74,6 +74,7 @@ share_sheet_copy_to_clipboard
 slice_edit_sheet_start
 song_card_actions_sheet_l209
 song_duplicates
+song_editor
 song_export_dialog
 song_form_provider_similar_song_exists
 song_import_dialog

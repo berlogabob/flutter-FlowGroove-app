@@ -52,12 +52,18 @@
         {
           "letter": "D",
           "color": "section3",
-          "bars": 16,
+          "bars": 7,
           "state": "playing"
         },
         {
           "letter": "E",
           "color": "section11",
+          "bars": 9,
+          "state": "confirmed"
+        },
+        {
+          "letter": "F",
+          "color": "section7",
           "bars": 8,
           "state": "confirmed"
         },
@@ -74,14 +80,14 @@
           "state": "confirmed"
         },
         {
-          "letter": "F",
-          "color": "section7",
+          "letter": "G",
+          "color": "section4",
           "bars": 12,
           "state": "confirmed"
         },
         {
-          "letter": "F",
-          "color": "section7",
+          "letter": "G",
+          "color": "section4",
           "bars": 4,
           "state": "confirmed"
         },
@@ -103,19 +109,24 @@
       "parts": [
         {
           "letter": "a",
-          "bars": 8,
+          "bars": 4,
           "color": "section3"
         },
         {
           "letter": "b",
-          "bars": 8,
+          "bars": 2,
+          "color": "section3"
+        },
+        {
+          "letter": "c",
+          "bars": 1,
           "color": "section3"
         }
       ],
       "startBar": 30,
-      "cut": 0.44,
+      "cut": 0.97,
       "cutLabel": "bar 37",
-      "playhead": 0.45
+      "playhead": 0.95
     },
     {
       "t": "row",
@@ -193,11 +204,11 @@
         {
           "t": "pad",
           "label": "Part D 1",
-          "sub": "16 bars",
+          "sub": "7 bars",
           "letter": "D",
           "color": "section3",
           "state": "playing",
-          "progress": 0.45,
+          "progress": 0.95,
           "w": 186
         }
       ]
@@ -208,14 +219,30 @@
       "c": [
         {
           "t": "pad",
-          "label": "Part E 1",
-          "sub": "8 bars",
+          "label": "Part A 1",
+          "sub": "9 bars",
           "letter": "E",
           "color": "section11",
           "state": "idle",
           "progress": 0,
           "w": 186
         },
+        {
+          "t": "pad",
+          "label": "Part E 1",
+          "sub": "8 bars",
+          "letter": "F",
+          "color": "section7",
+          "state": "idle",
+          "progress": 0,
+          "w": 186
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
         {
           "t": "pad",
           "label": "Chorus 2",
@@ -225,13 +252,7 @@
           "state": "idle",
           "progress": 0,
           "w": 186
-        }
-      ]
-    },
-    {
-      "t": "row",
-      "gap": 8,
-      "c": [
+        },
         {
           "t": "pad",
           "label": "Part D 2",
@@ -241,13 +262,29 @@
           "state": "idle",
           "progress": 0,
           "w": 186
-        },
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
         {
           "t": "pad",
           "label": "Bridge 1",
           "sub": "12 bars",
-          "letter": "F",
-          "color": "section7",
+          "letter": "G",
+          "color": "section4",
+          "state": "idle",
+          "progress": 0,
+          "w": 186
+        },
+        {
+          "t": "pad",
+          "label": "Bridge 2",
+          "sub": "4 bars",
+          "letter": "G",
+          "color": "section4",
           "state": "idle",
           "progress": 0,
           "w": 186
@@ -258,16 +295,6 @@
       "t": "row",
       "gap": 8,
       "c": [
-        {
-          "t": "pad",
-          "label": "Bridge 2",
-          "sub": "4 bars",
-          "letter": "F",
-          "color": "section7",
-          "state": "idle",
-          "progress": 0,
-          "w": 186
-        },
         {
           "t": "pad",
           "label": "Part D 3",
