@@ -5,7 +5,7 @@ import sys
 import unittest
 from pathlib import Path
 
-from design.figcraft.parity_check import compare, dart_strings, lib_literals, static
+from design.figcraft.parity_check import compare, dart_strings, debug_only_labels, in_debug_conditional, lib_literals, static
 from design.figcraft.spec_tree import flatten
 
 
@@ -135,6 +135,38 @@ class ParityCheckTests(unittest.TestCase):
             static(["Add song", "First Song", "All"], literals),
             ["Add song", "All"],
         )
+
+    def test_debug_only_labels_are_ignored_but_others_still_extra(self):
+        spec = {"texts": [{"v": "Edit"}, {"v": "Save"}], "kinds": []}
+        dump = {"texts": [{"v": "Edit"}, {"v": "Dev tools"}, {"v": "Save"}], "kinds": []}
+        lits = {"Edit", "Save", "Dev tools"}
+        self.assertEqual(["Dev tools"], compare(spec, dump, lits)["extra"])
+        self.assertTrue(compare(spec, dump, lits, frozenset({"Dev tools"}))["pass"])
+        self.assertEqual(["Other"], compare(spec, {"texts": dump["texts"] + [{"v": "Other"}], "kinds": []},
+                                            lits | {"Other"}, frozenset({"Dev tools"}))["extra"])
+
+    def test_in_debug_conditional_proof(self):
+        src = """children: [
+          if (kDebugMode || _flag)
+            CustomButton(label: 'Dev one'),
+          Text('Shipped'),
+          if (kDebugMode) ...[
+            Text('Dev two'),
+          ],
+          Text('Also shipped'),
+        ]"""
+        self.assertTrue(in_debug_conditional(src, "Dev one"))
+        self.assertTrue(in_debug_conditional(src, "Dev two"))
+        self.assertFalse(in_debug_conditional(src, "Shipped"))
+        self.assertFalse(in_debug_conditional(src, "Also shipped"))
+
+    def test_every_listed_debug_only_label_is_inside_kdebugmode_in_its_file(self):
+        root = Path(__file__).resolve().parents[2]
+        listed = debug_only_labels(root / "design/figcraft/debug_only.txt")
+        self.assertTrue(listed)
+        for label, source in listed.items():
+            text = (root / source).read_text(encoding="utf-8")
+            self.assertTrue(in_debug_conditional(text, label), f"{label!r} is not under kDebugMode in {source}")
 
 
 if __name__ == "__main__":

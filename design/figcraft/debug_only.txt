@@ -1,0 +1,6 @@
+# Labels drawn only under kDebugMode: debug-run dumps show them, shipped builds never do.
+# label<TAB>file that must contain it inside an `if (kDebugMode ...)` (proved by test_parity_check).
+Sync test	lib/widgets/practice/launchpad_view.dart
+Build tools	lib/screens/settings/app_settings_screen.dart
+FlowGroove design system	lib/screens/settings/app_settings_screen.dart
+Palette, type, controls, and patterns	lib/screens/settings/app_settings_screen.dart

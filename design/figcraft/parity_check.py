@@ -83,19 +83,74 @@ def static(texts: list[str], literals: set[str]) -> list[str]:
 
 
 MIN_LABELS = 2
+
+
+def debug_only_labels(path: Path) -> dict[str, str]:
+    """Labels drawn only under ``kDebugMode`` (never shipped), from lines ``label<TAB>lib/file.dart``."""
+    labels = {}
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip() and not line.startswith("#"):
+                label, _, source = line.partition("\t")
+                labels[label] = source.strip()
+    return labels
+
+
+def in_debug_conditional(source: str, label: str) -> bool:
+    """True when a literal ``label`` sits inside the widget guarded by an ``if (kDebugMode ...)``."""
+    for match in re.finditer(r"\bif\s*\(\s*kDebugMode\b", source):
+        i = source.index("(", match.start())
+        depth = 0
+        while i < len(source):  # skip the condition
+            depth += (source[i] == "(") - (source[i] == ")")
+            i += 1
+            if depth == 0:
+                break
+        start, depth = i, 0
+        while i < len(source):  # the guarded element: up to the comma/closer ending it
+            char = source[i]
+            if char in "([{":
+                depth += 1
+            elif char in ")]}":
+                depth -= 1
+                if depth < 0:
+                    break
+            elif char == "," and depth == 0:
+                break
+            i += 1
+        # The spread form `...[ a, b ]` and `{ ... }` bodies hold the label at nested depth.
+        body = source[start:i]
+        if re.match(r"\s*(\.\.\.)?\s*[\[{]", body):
+            body = source[start:_close(source, start + re.match(r"\s*(\.\.\.)?\s*", body).end())]
+        if any(content.strip() == label for content, _ in dart_strings(body)):
+            return True
+    return False
+
+
+def _close(source: str, i: int) -> int:
+    depth = 0
+    while i < len(source):
+        depth += (source[i] in "([{") - (source[i] in ")]}")
+        i += 1
+        if depth == 0:
+            break
+    return i
 KIND_ALIASES = {"switchrow": "switch"}
 
 
-def compare(spec_flat: dict, dump: dict, literals: set[str]) -> dict:
-    """Compare flattened spec labels and kinds with a rendered dump."""
+def compare(spec_flat: dict, dump: dict, literals: set[str], ignore: frozenset = frozenset()) -> dict:
+    """Compare flattened spec labels and kinds with a rendered dump.
+
+    ``ignore``: debug-only labels (see debug_only.txt); the dump shows them, the shipped app does not.
+    """
     def labels(items):
         return [item if isinstance(item, str) else item.get("v", "")
                 for item in items]
 
     spec_labels = [label for label in labels(spec_flat.get("texts", []))
-                   if label in literals]
+                   if label in literals and label not in ignore]
     dump_labels = [label for label in labels(dump.get("texts", []))
-                   if label in literals]
+                   if label in literals and label not in ignore]
     spec_set, dump_set = set(spec_labels), set(dump_labels)
     missing = sorted(spec_set - dump_set)
     extra = [] if "modal" in spec_flat else sorted(dump_set - spec_set)
@@ -160,6 +215,7 @@ def main(argv: list[str] | None = None) -> int:
     icons = {line.strip() for line in icons_path.read_text(encoding="utf-8").splitlines()
              if line.strip()} if icons_path.exists() else set()
 
+    ignore = frozenset(debug_only_labels(root / "design/figcraft/debug_only.txt"))
     results = {}
     rendered = passed = locked_failing = 0
     passing_keys = []
@@ -171,7 +227,7 @@ def main(argv: list[str] | None = None) -> int:
         spec_flat = flatten(spec, icons)
         if dump_path.exists():
             rendered += 1
-            result = compare(spec_flat, json.loads(dump_path.read_text(encoding="utf-8")), literals)
+            result = compare(spec_flat, json.loads(dump_path.read_text(encoding="utf-8")), literals, ignore)
         else:
             result = {"pass": False, "missing_dump": True, "missing": [], "extra": [],
                       "kinds_missing": [], "kinds_extra": [], "order": 0.0}
