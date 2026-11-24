@@ -148,7 +148,7 @@
         },
         {
           "t": "pad",
-          "label": "Part B",
+          "label": "Part B 1",
           "sub": "8 bars",
           "letter": "B",
           "color": "section5",
@@ -162,7 +162,7 @@
       "c": [
         {
           "t": "pad",
-          "label": "Chorus",
+          "label": "Chorus 1",
           "sub": "12 bars",
           "letter": "C",
           "color": "section8",
@@ -170,7 +170,7 @@
         },
         {
           "t": "pad",
-          "label": "Part D",
+          "label": "Part D 1",
           "sub": "16 bars",
           "letter": "D",
           "color": "section3",
@@ -184,7 +184,7 @@
       "c": [
         {
           "t": "pad",
-          "label": "Part E",
+          "label": "Part E 1",
           "sub": "8 bars",
           "letter": "E",
           "color": "section11",
@@ -192,10 +192,54 @@
         },
         {
           "t": "pad",
-          "label": "Bridge",
+          "label": "Chorus 2",
+          "sub": "12 bars",
+          "letter": "C",
+          "color": "section8",
+          "w": 194
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Part D 2",
+          "sub": "16 bars",
+          "letter": "D",
+          "color": "section3",
+          "w": 194
+        },
+        {
+          "t": "pad",
+          "label": "Bridge 1",
           "sub": "12 bars",
           "letter": "F",
           "color": "section7",
+          "w": 194
+        }
+      ]
+    },
+    {
+      "t": "row",
+      "gap": 8,
+      "c": [
+        {
+          "t": "pad",
+          "label": "Bridge 2",
+          "sub": "4 bars",
+          "letter": "F",
+          "color": "section7",
+          "w": 194
+        },
+        {
+          "t": "pad",
+          "label": "Part D 3",
+          "sub": "21 bars",
+          "letter": "D",
+          "color": "section3",
           "w": 194
         }
       ]
