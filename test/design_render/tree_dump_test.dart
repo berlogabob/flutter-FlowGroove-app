@@ -55,6 +55,44 @@ void main() {
     expect(values(dump, 'kinds', 'kind'), ['avatar']);
   });
 
+  testWidgets('segmented control is one kind, its segment buttons are not', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      SegmentedButton<int>(
+        segments: const [
+          ButtonSegment(value: 1, label: Text('One')),
+          ButtonSegment(value: 2, label: Text('Two')),
+        ],
+        selected: const {1},
+        onSelectionChanged: (_) {},
+      ),
+    );
+    final dump = dumpTree(tester);
+    expect(values(dump, 'kinds', 'kind'), ['segmented']);
+    expect(values(dump, 'texts', 'v'), ['One', 'Two']);
+  });
+
+  testWidgets('a button beside a segmented control is still a button', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      Column(
+        children: [
+          SegmentedButton<int>(
+            segments: const [ButtonSegment(value: 1, label: Text('One'))],
+            selected: const {1},
+            onSelectionChanged: (_) {},
+          ),
+          CustomButton(label: 'Go', onPressed: () {}),
+        ],
+      ),
+    );
+    expect(values(dumpTree(tester), 'kinds', 'kind'), ['segmented', 'button']);
+  });
+
   testWidgets('plain Dialog counts as a dialog kind', (tester) async {
     await pump(tester, const Dialog(child: Text('D')));
     expect(values(dumpTree(tester), 'kinds', 'kind'), ['dialog']);

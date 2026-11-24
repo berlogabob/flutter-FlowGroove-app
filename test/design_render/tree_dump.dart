@@ -116,7 +116,10 @@ Map<String, Object?> dumpTree(WidgetTester tester) {
       element.visitAncestorElements((ancestor) {
         final outer = _kind(ancestor.widget);
         // SwitchListTile builds a ListTile: one switchrow, not also a tile.
-        if (outer == kind || (kind == 'tile' && outer == 'switchrow'))
+        // SegmentedButton builds its segments from buttons: one segmented, not also buttons.
+        if (outer == kind ||
+            (kind == 'tile' && outer == 'switchrow') ||
+            (kind != 'segmented' && outer == 'segmented'))
           nested = true;
         return !nested;
       });
