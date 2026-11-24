@@ -231,7 +231,9 @@ class MonoPulseTheme {
         foregroundColor: p.textPrimary,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: MonoPulseTypography.headlineLarge,
+        titleTextStyle: MonoPulseTypography.headlineLarge.copyWith(
+          color: p.textPrimary,
+        ),
         systemOverlayStyle: dark
             ? SystemUiOverlayStyle.light
             : SystemUiOverlayStyle.dark,

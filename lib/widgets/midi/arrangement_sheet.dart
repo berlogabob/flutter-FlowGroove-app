@@ -10,6 +10,7 @@ import '../../providers/permissions_provider.dart';
 import '../../services/audio/midi/midi_song_facts.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/split_bars.dart';
+import '../app_dropdown_field.dart';
 import '../../widgets/field_label.dart';
 
 class ArrangementSheet extends ConsumerStatefulWidget {
@@ -171,7 +172,7 @@ class _ArrangementSheetState extends ConsumerState<ArrangementSheet> {
               ),
             LabeledField(
               label: 'At end of file',
-              child: DropdownButtonFormField<String>(
+              child: AppDropdownField<String>(
                 initialValue: _endBehavior,
 
                 items: [

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../models/link.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/app_dropdown_field.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_text_field.dart';
 
@@ -111,7 +112,7 @@ class LinksEditor extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              DropdownButtonFormField<String>(
+              AppDropdownField<String>(
                 initialValue: selectedType,
                 items: const [
                   DropdownMenuItem(

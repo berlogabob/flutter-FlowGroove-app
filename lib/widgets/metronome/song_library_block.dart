@@ -9,6 +9,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../app_dropdown_field.dart';
 import '../../widgets/field_label.dart';
 import '../error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 
@@ -455,9 +456,8 @@ class _SourceDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return LabeledField(
       label: 'Library source',
-      child: DropdownButtonFormField<String?>(
+      child: AppDropdownField<String?>(
         initialValue: bandId,
-        dropdownColor: context.mp.surfaceRaised,
         decoration: const InputDecoration(
           prefixIcon: Icon(Icons.folder_outlined),
         ),

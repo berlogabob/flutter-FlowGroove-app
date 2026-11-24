@@ -32,6 +32,7 @@ import '../../widgets/field_label.dart';
 import '../../widgets/midi/midi_import_flow.dart';
 import '../../widgets/midi/midi_song_panel.dart';
 import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/app_dropdown_field.dart';
 import 'components/lab_recording_sheet.dart';
 
 /// Song Lab timeline (#67): a reverse-chronological journal of typed entries
@@ -955,7 +956,7 @@ class _ComposeEntrySheetState extends State<_ComposeEntrySheet> {
             ),
             if (widget.song.sections.isNotEmpty && widget.existing == null) ...[
               const SizedBox(height: MonoPulseSpacing.md),
-              LabeledField(label: 'Section (optional)', child: DropdownButtonFormField<String?>(
+              LabeledField(label: 'Section (optional)', child: AppDropdownField<String?>(
                 initialValue: _sectionId,
                 
                 items: [
@@ -1068,7 +1069,7 @@ class _ComposeTaskSheetState extends State<_ComposeTaskSheet> {
             ),
             if (widget.members.isNotEmpty) ...[
               const SizedBox(height: MonoPulseSpacing.md),
-              LabeledField(label: 'Assignee (optional)', child: DropdownButtonFormField<String?>(
+              LabeledField(label: 'Assignee (optional)', child: AppDropdownField<String?>(
                 initialValue: _assignee,
                 
                 items: [

@@ -11,6 +11,7 @@ import '../../providers/permissions_provider.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../app_dropdown_field.dart';
 import '../../widgets/field_label.dart';
 import '../custom_button.dart';
 
@@ -138,10 +139,9 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
             ),
             child: LabeledField(
               label: 'Save preset to',
-              child: DropdownButtonFormField<TunerPresetScope>(
+              child: AppDropdownField<TunerPresetScope>(
                 key: ValueKey(selectedScope),
                 initialValue: _scope,
-                dropdownColor: context.mp.surfaceRaised,
 
                 items: scopes
                     .map(

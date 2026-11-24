@@ -18,6 +18,7 @@ import '../../utils/confirmed_write.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/field_label.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/setlist_break_row.dart';
@@ -617,13 +618,19 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 children: [
                   // Name + the expand/collapse arrow share one row; event details
                   // (date/place/description) reveal below when expanded.
+                  const ExcludeSemantics(
+                    child: FieldLabel('Setlist Name', required: true),
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.md),
+                  // Top-aligned: the field box and the button are both one
+                  // touch target tall, so an error line below never moves it.
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Semantics(
                           label: 'Setlist Name, required',
                           child: CustomTextField(
-                            label: 'Setlist Name',
                             controller: _nameController,
                             textInputAction: TextInputAction.next,
                             onChanged: (_) => _markAsChanged(),
@@ -631,7 +638,6 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                 ? 'Required'
                                 : null,
                             prefixIcon: Icons.queue_music,
-                            required: true,
                           ),
                         ),
                       ),

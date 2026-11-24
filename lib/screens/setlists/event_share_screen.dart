@@ -11,6 +11,7 @@ import '../../services/event_share_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/app_dropdown_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/field_label.dart';
 import 'event_kit_editor_screen.dart';
@@ -504,7 +505,7 @@ class _SuggestSheetState extends State<_SuggestSheet> {
               const SizedBox(height: MonoPulseSpacing.md),
               LabeledField(
                 label: 'Change type',
-                child: DropdownButtonFormField<String>(
+                child: AppDropdownField<String>(
                   initialValue: _kind,
                   isExpanded: true,
 

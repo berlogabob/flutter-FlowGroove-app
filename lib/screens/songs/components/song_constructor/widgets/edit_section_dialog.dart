@@ -4,6 +4,7 @@ import '../../../../../models/section.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
 import '../../../../../utils/snackbar.dart';
 import '../../../../../widgets/chord_chart_view.dart';
+import '../../../../../widgets/app_dropdown_field.dart';
 import '../../../../../widgets/custom_button.dart';
 import '../../../../../widgets/custom_text_field.dart';
 
@@ -65,7 +66,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: MonoPulseSpacing.sm),
-            DropdownButtonFormField<String>(
+            AppDropdownField<String>(
               initialValue: _selectedTemplate,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),

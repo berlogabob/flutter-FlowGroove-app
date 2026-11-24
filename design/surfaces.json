@@ -722,25 +722,25 @@
   {
     "key": "create_setlist_screen._pickDate",
     "kind": "system",
-    "source": "lib/screens/setlists/create_setlist_screen.dart:303",
+    "source": "lib/screens/setlists/create_setlist_screen.dart:304",
     "widget": "_pickDate",
     "spec": null
   },
   {
     "key": "create_setlist_screen.SongPicker",
     "kind": "sheet",
-    "source": "lib/screens/setlists/create_setlist_screen.dart:350",
+    "source": "lib/screens/setlists/create_setlist_screen.dart:351",
     "widget": "SongPicker",
     "spec": "design/figcraft/specs/create_setlist_sheet_l350.json",
     "sources": [
-      "lib/screens/setlists/create_setlist_screen.dart:350",
-      "lib/screens/setlists/create_setlist_screen.dart:353"
+      "lib/screens/setlists/create_setlist_screen.dart:351",
+      "lib/screens/setlists/create_setlist_screen.dart:354"
     ]
   },
   {
     "key": "create_setlist_screen.DiscardChangesDialog",
     "kind": "dialog",
-    "source": "lib/screens/setlists/create_setlist_screen.dart:564",
+    "source": "lib/screens/setlists/create_setlist_screen.dart:565",
     "widget": "DiscardChangesDialog",
     "spec": "design/figcraft/specs/create_setlist_discard_changes.json"
   },
@@ -796,7 +796,7 @@
   {
     "key": "event_share_screen._suggest",
     "kind": "sheet",
-    "source": "lib/screens/setlists/event_share_screen.dart:108",
+    "source": "lib/screens/setlists/event_share_screen.dart:109",
     "widget": "_suggest",
     "spec": "design/figcraft/specs/event_share_sheet_l106.json"
   },
@@ -852,7 +852,7 @@
   {
     "key": "links_editor.CustomButton",
     "kind": "dialog",
-    "source": "lib/screens/songs/components/links_editor.dart:104",
+    "source": "lib/screens/songs/components/links_editor.dart:105",
     "widget": "CustomButton",
     "spec": "design/figcraft/specs/links_editor_add_link.json"
   },
@@ -922,35 +922,35 @@
   {
     "key": "song_lab_screen.build",
     "kind": "system",
-    "source": "lib/screens/songs/song_lab_screen.dart:1056",
+    "source": "lib/screens/songs/song_lab_screen.dart:1057",
     "widget": "build",
     "spec": null
   },
   {
     "key": "song_lab_screen._migrateNotesIfNeeded",
     "kind": "sheet",
-    "source": "lib/screens/songs/song_lab_screen.dart:147",
+    "source": "lib/screens/songs/song_lab_screen.dart:148",
     "widget": "_migrateNotesIfNeeded",
     "spec": "design/figcraft/specs/song_lab_sheet_l144.json"
   },
   {
     "key": "song_lab_screen.ConfirmationDialog",
     "kind": "dialog",
-    "source": "lib/screens/songs/song_lab_screen.dart:252",
+    "source": "lib/screens/songs/song_lab_screen.dart:253",
     "widget": "ConfirmationDialog",
     "spec": "design/figcraft/specs/confirmation_dialog.json"
   },
   {
     "key": "song_lab_screen._composeTask",
     "kind": "sheet",
-    "source": "lib/screens/songs/song_lab_screen.dart:669",
+    "source": "lib/screens/songs/song_lab_screen.dart:670",
     "widget": "_composeTask",
     "spec": "design/figcraft/specs/song_lab_sheet_l664.json"
   },
   {
     "key": "song_lab_screen.MidiSongPanel",
     "kind": "sheet",
-    "source": "lib/screens/songs/song_lab_screen.dart:800",
+    "source": "lib/screens/songs/song_lab_screen.dart:801",
     "widget": "MidiSongPanel",
     "spec": "design/figcraft/specs/midi_song_panel.json"
   },
@@ -1119,14 +1119,14 @@
   {
     "key": "song_library_block._openLibrarySheet",
     "kind": "sheet",
-    "source": "lib/widgets/metronome/song_library_block.dart:86",
+    "source": "lib/widgets/metronome/song_library_block.dart:87",
     "widget": "_openLibrarySheet",
     "spec": "design/figcraft/specs/song_library_block_sheet_l85.json"
   },
   {
     "key": "arrangement_sheet.build",
     "kind": "sheet",
-    "source": "lib/widgets/midi/arrangement_sheet.dart:130",
+    "source": "lib/widgets/midi/arrangement_sheet.dart:131",
     "widget": "build",
     "spec": "design/figcraft/specs/arrangement_sheet.json"
   },
