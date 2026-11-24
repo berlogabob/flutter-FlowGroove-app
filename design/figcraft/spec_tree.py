@@ -1,5 +1,7 @@
 """Extract rendered text and semantic node kinds from a FigCraft spec."""
 
+import json
+
 
 _KINDS = {
     "button",
@@ -31,15 +33,17 @@ def flatten(spec: dict, icons: set[str]) -> dict:
     kinds = []
 
     def add(value):
+        # The dump drops blank text (an empty field value never appears in it).
         if isinstance(value, str):
-            texts.append(value)
+            if value.strip():
+                texts.append(value)
         elif isinstance(value, list):
             for item in value:
                 add(item)
 
     def visit(node):
         if isinstance(node, str):
-            texts.append(node)
+            add(node)
             return
         if isinstance(node, list):
             for child in node:
@@ -122,7 +126,11 @@ def flatten(spec: dict, icons: set[str]) -> dict:
     for section in ("top", "body", "bottom"):
         visit(spec.get(section, []))
     overlay_from = len(texts)
+    has_avatar = '"t": "avatar"' in json.dumps(spec)
     for overlay in spec.get("overlay", []):
+        node = overlay.get("node") if isinstance(overlay, dict) else None
+        if has_avatar and isinstance(node, dict) and node.get("t") == "text" and len(str(node.get("v", "")).strip()) <= 2:
+            continue  # an initial drawn over an avatar: the dump hides avatar initials
         if isinstance(overlay, dict):
             visit(overlay.get("node"))
         else:

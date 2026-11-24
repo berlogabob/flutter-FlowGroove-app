@@ -61,6 +61,7 @@ practice_regions_replace_n_sections
 practice_regions_save_new_section_map
 practice_regions_speed_n
 practice_setup_wizard_sheet_l27
+profile
 profile_currently_using
 profile_delete_account
 profile_link_telegram

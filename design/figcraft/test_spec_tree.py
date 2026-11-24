@@ -80,6 +80,15 @@ class FlattenTest(unittest.TestCase):
         self.assertEqual(1, flat["overlay_from"])
         self.assertNotIn("overlay_from", flatten({"body": [{"t": "text", "v": "Back"}]}, set()))
 
+    def test_blank_values_and_avatar_initials_are_not_texts(self):
+        flat = flatten({"body": [{"t": "avatar", "icon": "person"}, {"t": "input", "label": "Search", "v": ""}],
+                        "overlay": [{"x": 0, "y": 0, "node": {"t": "text", "v": "R"}}]}, set())
+        self.assertEqual(["Search"], flat["texts"])
+        # An overlay initial with no avatar on the screen, or a real label, stays.
+        self.assertEqual(["R"], flatten({"body": [], "overlay": [{"node": {"t": "text", "v": "R"}}]}, set())["texts"])
+        self.assertEqual(["Edit"], flatten({"body": [{"t": "avatar", "icon": "person"}],
+                                            "overlay": [{"node": {"t": "text", "v": "Edit"}}]}, set())["texts"])
+
 
 if __name__ == "__main__":
     unittest.main()
