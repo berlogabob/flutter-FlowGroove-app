@@ -1502,13 +1502,12 @@ comp("EmptyState", [], lambda v: {"t": "col", "name": "EmptyState", "main": "cen
          {"t": "button", "kind": "secondary", "v": "Add item", "icon": "add", "name": "Action"},
          {"t": "spacer", "size": 8},
          {"t": "button", "kind": "secondary", "v": "Other action", "icon": "group_add", "name": "SecondaryAction"}]},
-     _component_instance(lambda n: {"Message": n.get("message", "No items yet"),
-                                    "Hint": n.get("hint", "Add something to get started"),
-                                    "Action": n.get("actionLabel", "Add item"),
-                                    "SecondaryAction": n.get("secondaryActionLabel", "Other action")}),
-     props=[("Message", "text", "Message", "No items yet"), ("Hint", "text", "Hint", "Add something to get started"),
-            ("Action", "text", "Action", "Add item"),
-            ("SecondaryAction", "text", "SecondaryAction", "Other action")])
+     # The two buttons are nested Button instances: their labels are set through `nested`.
+     lambda n, pdir: {"p": {"Message": n.get("message", "No items yet"),
+                            "Hint": n.get("hint", "Add something to get started")},
+                      "nested": {"Action": {"Label": n.get("actionLabel", "Add item")},
+                                 "SecondaryAction": {"Label": n.get("secondaryActionLabel", "Other action")}}},
+     props=[("Message", "text", "Message", "No items yet"), ("Hint", "text", "Hint", "Add something to get started")])
 
 comp("TimeSignatureBlock", [], lambda v: {"t": "col", "name": "TimeSignatureBlock", "bg": "blackSurface",
      "border": "borderSubtle", "radius": 16, "pad": 16, "gap": 10, "c": [
@@ -1585,12 +1584,12 @@ comp("SetlistSongRow", [], lambda v: {"t": "col", "name": "SetlistSongRow", "bg"
              {"t": "text", "v": "Performers", "style": "bodySmall", "color": "textTertiary", "name": "Performers"}]},
          {"t": "text", "v": "B♭m · 120 BPM", "style": "labelSmall", "color": "textSecondary", "name": "Details"}]},
      {"t": "box", "w": "fill", "h": 1, "bg": "borderSubtle", "name": "Bottom border"}]},
-     _component_instance(lambda n: {"Index": n.get("index", 1), "Title": n.get("title", "First Song"),
+     _component_instance(lambda n: {"Index": str(n.get("index", "01")), "Title": n.get("title", "First Song"),
                                     "Artist": n.get("artist", "Test Band"),
                                     "Performers": n.get("performers", "Performers"),
                                     "Details": n.get("details", "B♭m · 120 BPM"),
                                     "isCurrent": n.get("isCurrent", False)}),
-     props=[("Index", "number", "Index", 1), ("Title", "text", "Title", "First Song"),
+     props=[("Index", "text", "Index", "01"), ("Title", "text", "Title", "First Song"),
             ("Artist", "text", "Artist", "Test Band"), ("Performers", "text", "Performers", "Performers"),
             ("Details", "text", "Details", "B♭m · 120 BPM"), ("isCurrent", "boolean", "Current bar", False)])
 
