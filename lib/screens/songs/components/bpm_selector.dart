@@ -34,7 +34,7 @@ class BpmSelector extends StatelessWidget {
       children: [
         if (label != null) ...[
           Text(label!, style: MonoPulseTypography.labelMedium),
-          const SizedBox(height: 4),
+          const SizedBox(height: MonoPulseSpacing.xs),
         ],
         TextFormField(
           controller: controller,

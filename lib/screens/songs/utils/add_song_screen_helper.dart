@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../models/api_error.dart';
 import '../../../providers/auth/error_provider.dart';
+import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/custom_button.dart';
 import '../models/song_form_data.dart';
 
@@ -66,7 +67,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text('Open Spotify search in browser?'),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             Text(query, style: const TextStyle(fontStyle: FontStyle.italic)),
           ],
         ),

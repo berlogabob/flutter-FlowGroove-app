@@ -64,7 +64,7 @@ class _ApiAccessScreenState extends State<ApiAccessScreen> {
             const Text(
               'Copy it now — it is shown only once and cannot be recovered.',
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: MonoPulseSpacing.md),
             SelectableText(
               token,
               style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
@@ -215,13 +215,13 @@ class _GuideCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('How to connect', style: MonoPulseTypography.titleMedium),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           const Text('Gateway URL:'),
           SelectableText(
             gatewayUrl,
             style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           const Text(
             'Run the MCP server (see mcp/README.md) with FLOWGROOVE_API_KEY set to '
             'your key and FLOWGROOVE_GATEWAY_URL set to the URL above, then add it '
@@ -263,7 +263,7 @@ class _CreateKeySheetState extends State<_CreateKeySheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('New API key', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           TextField(
             controller: _label,
             decoration: const InputDecoration(
@@ -271,7 +271,7 @@ class _CreateKeySheetState extends State<_CreateKeySheet> {
               border: OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           SegmentedButton<String>(
             segments: const [
               ButtonSegment(
@@ -288,7 +288,7 @@ class _CreateKeySheetState extends State<_CreateKeySheet> {
             selected: {_scope},
             onSelectionChanged: (s) => setState(() => _scope = s.first),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           Align(
             alignment: Alignment.centerRight,
             child: FilledButton(

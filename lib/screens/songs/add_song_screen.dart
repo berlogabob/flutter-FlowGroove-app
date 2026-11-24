@@ -554,7 +554,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
                               .read(songFormStateProvider.notifier)
                               .clearError(),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: MonoPulseSpacing.lg),
                       ],
                       // Song form with autocomplete
                       SongForm(

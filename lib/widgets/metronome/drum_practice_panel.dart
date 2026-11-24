@@ -301,12 +301,12 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                                   .colorScheme
                                   .onSurfaceVariant,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: MonoPulseSpacing.sm),
                             Text(
                               'No MIDI patterns yet',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: MonoPulseSpacing.xs),
                             Text(
                               'Import a MIDI drum file or build a pattern step by step to play along with the click.',
                               style: Theme.of(context).textTheme.bodySmall
@@ -433,7 +433,7 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                     variant: ButtonVariant.outline,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: MonoPulseSpacing.md),
                 Expanded(
                   child: CustomButton(
                     onPressed: _busy ? null : _openEditor,

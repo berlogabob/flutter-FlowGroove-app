@@ -1169,7 +1169,7 @@ class _SaveVersionSheetState extends State<_SaveVersionSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Save version', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
+            const SizedBox(height: MonoPulseSpacing.xs),
             Text(
               'A named snapshot of the song as it is right now — key, BPM, '
               'structure and the full chord chart.',

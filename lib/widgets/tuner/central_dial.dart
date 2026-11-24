@@ -182,7 +182,7 @@ class CentralDial extends ConsumerWidget {
                             notifier.setTargetNoteByIndex(index);
                           },
                           behavior: HitTestBehavior.opaque,
-                          child: const SizedBox(width: 48, height: 48),
+                          child: const SizedBox(width: MonoPulseSpacing.massive, height: MonoPulseSpacing.massive),
                         ),
                       ),
                     ),

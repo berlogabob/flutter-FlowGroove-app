@@ -78,7 +78,7 @@ class SuggestionCard extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 4),
+            const SizedBox(height: MonoPulseSpacing.xs),
 
             // Second row: artist and metadata
             Row(

@@ -51,7 +51,7 @@ class LinksEditor extends StatelessWidget {
                   )
                   .toList(),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
           ],
           Align(
             alignment: Alignment.centerLeft,
@@ -79,7 +79,7 @@ class LinksEditor extends StatelessWidget {
           ],
         ),
         if (links.isNotEmpty) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           Wrap(
             spacing: 8,
             children: links
@@ -134,7 +134,7 @@ class LinksEditor extends StatelessWidget {
                 ],
                 onChanged: (value) => selectedType = value!,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               TextField(
                 controller: urlController,
                 decoration: const InputDecoration(labelText: 'URL'),

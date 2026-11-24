@@ -78,7 +78,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
             decoration: BoxDecoration(
               color: context.mp.surface,
               border: Border.all(color: MonoPulseColors.charcoal, width: 2),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
               boxShadow: [
                 BoxShadow(
                   color: context.mp.borderStrong.withValues(alpha: 0.35),
@@ -142,7 +142,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           decoration: BoxDecoration(
             color: MonoPulseColors.accentOrange,
             border: Border.all(color: MonoPulseColors.charcoal),
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(MonoPulseRadius.button),
           ),
           child: const Icon(
             Icons.graphic_eq,
@@ -169,14 +169,14 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
       ),
       const SizedBox(height: 5),
       Text('A Fechada', style: Theme.of(context).textTheme.headlineMedium),
-      const SizedBox(height: 4),
+      const SizedBox(height: MonoPulseSpacing.xs),
       Text(
         '30 Jul 2026  ·  9 songs  ·  48 min',
         style: MonoPulseTypography.labelSmall.copyWith(
           color: context.mp.textTertiary,
         ),
       ),
-      const SizedBox(height: 8),
+      const SizedBox(height: MonoPulseSpacing.sm),
       AppCard(
         variant: AppCardVariant.raised,
         padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
@@ -233,7 +233,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           _ReadoutPlate(label: 'Meter', value: '4/4'),
         ],
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: MonoPulseSpacing.mdPlus),
       const Text('Structure', style: MonoPulseTypography.labelMedium),
       const SizedBox(height: 6),
       for (final section in const [
@@ -316,7 +316,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           Expanded(
             child: _choiceField(context, 'Key', 'Am', ['Am', 'C', 'F', 'G']),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: MonoPulseSpacing.sm),
           Expanded(
             child: _choiceField(context, 'Meter', '4/4', ['4/4', '3/4', '6/8']),
           ),
@@ -348,7 +348,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           ],
         ),
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: MonoPulseSpacing.md),
       const Text('Structure', style: MonoPulseTypography.labelMedium),
       const SizedBox(height: 3),
       Wrap(
@@ -368,7 +368,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
             ),
         ],
       ),
-      const SizedBox(height: 8),
+      const SizedBox(height: MonoPulseSpacing.sm),
       AppCard(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         child: Row(
@@ -382,7 +382,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
               ),
             ),
             Text('16 bars', style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(width: 8),
+            const SizedBox(width: MonoPulseSpacing.sm),
             Text(
               'Am',
               style: MonoPulseTypography.labelMedium.copyWith(
@@ -401,7 +401,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
         variant: ButtonVariant.secondary,
         onPressed: () {},
       ),
-      const SizedBox(height: 8),
+      const SizedBox(height: MonoPulseSpacing.sm),
       Text(
         'Audio, lyrics and links can be added anytime.',
         style: Theme.of(
@@ -426,7 +426,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
         value: value,
         isDense: true,
         isExpanded: true,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.xsmall),
         items: [
           for (final choice in choices)
             DropdownMenuItem(value: choice, child: Text(choice)),
@@ -505,7 +505,7 @@ class _ReadoutPlate extends StatelessWidget {
     decoration: BoxDecoration(
       color: context.mp.surfaceRaised,
       border: Border.all(color: context.mp.borderDefault),
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.circular(MonoPulseRadius.xsmall),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,

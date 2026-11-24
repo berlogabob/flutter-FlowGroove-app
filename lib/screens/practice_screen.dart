@@ -341,13 +341,13 @@ class _TimePerSong extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.xsmall),
           child: SizedBox(
             height: 8,
             child: Row(
               children: [
                 for (var i = 0; i < segments.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 2),
+                  if (i > 0) const SizedBox(width: MonoPulseSpacing.xxs),
                   Expanded(
                     flex: segments[i].$2,
                     child: ColoredBox(color: colors[i]),

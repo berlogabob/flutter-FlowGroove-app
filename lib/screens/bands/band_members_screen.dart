@@ -74,7 +74,7 @@ class BandMembersScreen extends StatelessWidget {
                             style: TextStyle(color: context.mp.textSecondary),
                           ),
                           if (member.musicRoles.isNotEmpty) ...[
-                            const SizedBox(height: 4),
+                            const SizedBox(height: MonoPulseSpacing.xs),
                             Wrap(
                               spacing: 4,
                               runSpacing: 4,

@@ -59,7 +59,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
       child: Row(
         children: [
           const Icon(Icons.upload_file),
-          const SizedBox(width: 12),
+          const SizedBox(width: MonoPulseSpacing.md),
           Expanded(
             child: Text(
               'Import songs (CSV or JSON)',
@@ -95,7 +95,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
           child: Column(
             children: [
               const Icon(Icons.table_view_outlined, size: 56),
-              const SizedBox(height: 20),
+              const SizedBox(height: MonoPulseSpacing.xl),
               const Text(
                 'Choose a CSV file, or paste CSV or FlowGroove Song JSON (e.g. from an AI). Everything is compared with your library and previewed before anything is saved.',
                 textAlign: TextAlign.center,
@@ -110,7 +110,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
                   label: const Text('Select CSV file'),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: MonoPulseSpacing.md),
               SizedBox(
                 width: double.infinity,
                 child: CustomButton(
@@ -120,14 +120,14 @@ class _SongImportDialogState extends State<SongImportDialog> {
                   variant: ButtonVariant.outline,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: MonoPulseSpacing.xxl),
               const Text(
                 'No file? Ask your own AI. Copy a prompt, paste it into '
                 'ChatGPT/Claude/Gemini, then paste its result back here.',
                 textAlign: TextAlign.center,
                 style: MonoPulseTypography.bodyMedium,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: MonoPulseSpacing.sm),
               SizedBox(
                 width: double.infinity,
                 child: TextButton.icon(
@@ -162,14 +162,14 @@ class _SongImportDialogState extends State<SongImportDialog> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: MonoPulseSpacing.sm),
         Text(
           'Library values are preserved. CSV data fills blank fields and combines tags and links.',
           style: MonoPulseTypography.bodyMedium.copyWith(
             color: context.mp.textSecondary,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: MonoPulseSpacing.lg),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -187,7 +187,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
               ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: MonoPulseSpacing.lg),
         _resultSection(
           title: 'Added',
           count: analysis.songsToCreate.length,

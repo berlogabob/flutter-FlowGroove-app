@@ -40,14 +40,14 @@ class SuggestionSelectionDialog extends StatelessWidget {
             label: 'Song',
             value: suggestion.title,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           _SongDetailRow(
             icon: Icons.person,
             label: 'Artist',
             value: suggestion.artist,
           ),
           if (suggestion.album != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             _SongDetailRow(
               icon: Icons.album,
               label: 'Album',
@@ -55,7 +55,7 @@ class SuggestionSelectionDialog extends StatelessWidget {
             ),
           ],
           if (suggestion.releaseYear != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             _SongDetailRow(
               icon: Icons.calendar_today,
               label: 'Year',
@@ -63,7 +63,7 @@ class SuggestionSelectionDialog extends StatelessWidget {
             ),
           ],
           if (suggestion.bpm != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             _SongDetailRow(
               icon: Icons.speed,
               label: 'BPM',
@@ -71,7 +71,7 @@ class SuggestionSelectionDialog extends StatelessWidget {
             ),
           ],
           if (suggestion.key != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             _SongDetailRow(
               icon: Icons.music_note,
               label: 'Key',
@@ -243,7 +243,7 @@ class _SongDetailRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 16, color: Theme.of(context).colorScheme.outline),
-        const SizedBox(width: 8),
+        const SizedBox(width: MonoPulseSpacing.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -116,7 +116,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ? MonoPulseColors.successGreen
                 : context.mp.textTertiary,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: MonoPulseSpacing.sm),
           Text(
             text,
             style: MonoPulseTypography.bodySmall.copyWith(
@@ -147,7 +147,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 32),
+              const SizedBox(height: MonoPulseSpacing.xxxl),
               Text(
                 'Join FlowGroove',
                 style: MonoPulseTypography.headlineMedium.copyWith(
@@ -155,7 +155,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: MonoPulseSpacing.sm),
               Text(
                 'Create an account to manage your band repertoire',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -163,7 +163,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: MonoPulseSpacing.massive),
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -181,7 +181,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
@@ -199,9 +199,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: MonoPulseSpacing.sm),
               _buildPasswordRequirements(),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               TextFormField(
                 controller: _confirmPasswordController,
                 obscureText: true,
@@ -219,13 +219,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: MonoPulseSpacing.xxxl),
               CustomButton(
                 onPressed: _isLoading ? null : _register,
                 label: 'Create Account',
                 isLoading: _isLoading,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

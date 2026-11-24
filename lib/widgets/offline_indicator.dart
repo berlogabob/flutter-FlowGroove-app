@@ -58,7 +58,7 @@ class OfflineIndicator extends ConsumerWidget {
             color: MonoPulseColors.accentOrange,
             size: 20,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: MonoPulseSpacing.sm),
           Text(
             'Offline - Some features may be limited',
             style: MonoPulseTypography.bodySmall.copyWith(

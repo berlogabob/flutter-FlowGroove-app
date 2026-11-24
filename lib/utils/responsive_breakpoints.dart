@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// Screen breakpoint categories for responsive design.
 enum ScreenBreakpoint { mobile, tablet, desktop }
@@ -31,11 +32,11 @@ extension ResponsiveContext on BuildContext {
   EdgeInsets get responsivePadding {
     switch (breakpoint) {
       case ScreenBreakpoint.mobile:
-        return const EdgeInsets.all(16);
+        return const EdgeInsets.all(MonoPulseSpacing.lg);
       case ScreenBreakpoint.tablet:
-        return const EdgeInsets.all(24);
+        return const EdgeInsets.all(MonoPulseSpacing.xxl);
       case ScreenBreakpoint.desktop:
-        return const EdgeInsets.all(32);
+        return const EdgeInsets.all(MonoPulseSpacing.xxxl);
     }
   }
 

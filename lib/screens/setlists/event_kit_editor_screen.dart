@@ -304,7 +304,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
               ),
               const SizedBox(height: MonoPulseSpacing.md),
               _stageGrid(),
-              const SizedBox(height: 4),
+              const SizedBox(height: MonoPulseSpacing.xs),
               Center(
                 child: Text(
                   '▼ audience ▼',
@@ -545,7 +545,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
           decoration: BoxDecoration(
             color: context.mp.surface,
             border: Border.all(color: context.mp.borderDefault),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(MonoPulseRadius.xsmall),
           ),
           child: Wrap(
             spacing: 2,
@@ -1097,7 +1097,7 @@ class _AccessPreview extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('They will see', style: MonoPulseTypography.labelSmall),
-          const SizedBox(height: 4),
+          const SizedBox(height: MonoPulseSpacing.xs),
           for (final area in granted)
             Text(
               canEditArea(access, area)
@@ -1115,7 +1115,7 @@ class _AccessPreview extends StatelessWidget {
               ),
             ),
           if (canSuggest) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: MonoPulseSpacing.xs),
             Text(
               'Can suggest changes (the band decides).',
               style: MonoPulseTypography.bodySmall.copyWith(

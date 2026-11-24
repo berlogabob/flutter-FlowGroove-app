@@ -239,11 +239,11 @@ class _Swatch extends StatelessWidget {
           height: 42,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(MonoPulseRadius.button),
             border: Border.all(color: context.mp.borderDefault),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: MonoPulseSpacing.xs),
         Text(name, style: Theme.of(context).textTheme.labelMedium),
         Text(value, style: Theme.of(context).textTheme.bodySmall),
       ],
@@ -265,7 +265,7 @@ class _DataPlate extends StatelessWidget {
     decoration: BoxDecoration(
       color: context.mp.surfaceRaised,
       border: Border.all(color: context.mp.borderDefault),
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: BorderRadius.circular(MonoPulseRadius.xsmall),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,7 +302,7 @@ class _HardwareButton extends StatelessWidget {
               ? MonoPulseColors.accentOrange
               : context.mp.surfaceRaised,
           border: Border.all(color: MonoPulseColors.charcoal, width: 1.2),
-          borderRadius: BorderRadius.circular(5),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.button),
           boxShadow: [
             BoxShadow(
               color: context.mp.borderStrong.withValues(alpha: 0.55),

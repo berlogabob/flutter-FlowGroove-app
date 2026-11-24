@@ -218,7 +218,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
                     });
                   },
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
                 ...contributors.map(
                   (contributor) => Padding(
                     padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
@@ -236,7 +236,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
               ],
             ),
           ),
-        if (contributors.isNotEmpty) const SizedBox(height: 8),
+        if (contributors.isNotEmpty) const SizedBox(height: MonoPulseSpacing.sm),
       ],
     );
   }

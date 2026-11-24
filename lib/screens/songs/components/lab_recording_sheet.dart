@@ -553,7 +553,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Audio idea', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
+            const SizedBox(height: MonoPulseSpacing.xs),
             Text(
               _statusLine,
               style: MonoPulseTypography.bodySmall.copyWith(

@@ -9,287 +9,287 @@
   {
     "key": "/login",
     "kind": "route",
-    "source": "lib/router/app_router.dart:277",
+    "source": "lib/router/app_router.dart:278",
     "widget": "LoginScreen",
     "spec": "design/figcraft/specs/login.json"
   },
   {
     "key": "/register",
     "kind": "route",
-    "source": "lib/router/app_router.dart:282",
+    "source": "lib/router/app_router.dart:283",
     "widget": "RegisterScreen",
     "spec": "design/figcraft/specs/register.json"
   },
   {
     "key": "/forgot-password",
     "kind": "route",
-    "source": "lib/router/app_router.dart:287",
+    "source": "lib/router/app_router.dart:288",
     "widget": "ForgotPasswordScreen",
     "spec": "design/figcraft/specs/forgot_password.json"
   },
   {
     "key": "/join",
     "kind": "route",
-    "source": "lib/router/app_router.dart:295",
+    "source": "lib/router/app_router.dart:296",
     "widget": "Scaffold",
     "spec": null
   },
   {
     "key": "/join-welcome",
     "kind": "route",
-    "source": "lib/router/app_router.dart:304",
+    "source": "lib/router/app_router.dart:305",
     "widget": "JoinWelcomeScreen",
     "spec": "design/figcraft/specs/join_welcome.json"
   },
   {
     "key": "/event",
     "kind": "route",
-    "source": "lib/router/app_router.dart:313",
+    "source": "lib/router/app_router.dart:314",
     "widget": "EventShareScreen",
     "spec": "design/figcraft/specs/event_share.json"
   },
   {
     "key": "/main/home",
     "kind": "route",
-    "source": "lib/router/app_router.dart:333",
+    "source": "lib/router/app_router.dart:334",
     "widget": "HomeScreen",
     "spec": "design/figcraft/specs/home.json"
   },
   {
     "key": "/main/songs",
     "kind": "route",
-    "source": "lib/router/app_router.dart:344",
+    "source": "lib/router/app_router.dart:345",
     "widget": "SongsListScreen",
     "spec": "design/figcraft/specs/songs_list.json"
   },
   {
     "key": "/main/songs/duplicates",
     "kind": "route",
-    "source": "lib/router/app_router.dart:349",
+    "source": "lib/router/app_router.dart:350",
     "widget": "SongDuplicatesScreen",
     "spec": "design/figcraft/specs/song_duplicates.json"
   },
   {
     "key": "/main/songs/catalog",
     "kind": "route",
-    "source": "lib/router/app_router.dart:354",
+    "source": "lib/router/app_router.dart:355",
     "widget": "CanonicalBrowseScreen",
     "spec": "design/figcraft/specs/canonical_browse.json"
   },
   {
     "key": "/main/songs/add",
     "kind": "route",
-    "source": "lib/router/app_router.dart:359",
+    "source": "lib/router/app_router.dart:360",
     "widget": "AddSongScreen",
     "spec": "design/figcraft/specs/add_song.json"
   },
   {
     "key": "/main/songs/:id/lab",
     "kind": "route",
-    "source": "lib/router/app_router.dart:374",
+    "source": "lib/router/app_router.dart:375",
     "widget": "dispose",
     "spec": "design/figcraft/specs/song_lab.json"
   },
   {
     "key": "/main/songs/:id/edit",
     "kind": "route",
-    "source": "lib/router/app_router.dart:380",
+    "source": "lib/router/app_router.dart:381",
     "widget": "dispose",
     "spec": "design/figcraft/specs/song_editor.json"
   },
   {
     "key": "/main/songs/:id",
     "kind": "route",
-    "source": "lib/router/app_router.dart:391",
+    "source": "lib/router/app_router.dart:392",
     "widget": "dispose",
     "spec": "design/figcraft/specs/song_page.json"
   },
   {
     "key": "/main/bands",
     "kind": "route",
-    "source": "lib/router/app_router.dart:404",
+    "source": "lib/router/app_router.dart:405",
     "widget": "MyBandsScreen",
     "spec": "design/figcraft/specs/my_bands.json"
   },
   {
     "key": "/main/bands/create",
     "kind": "route",
-    "source": "lib/router/app_router.dart:414",
+    "source": "lib/router/app_router.dart:415",
     "widget": "CreateBandScreen",
     "spec": "design/figcraft/specs/create_band.json"
   },
   {
     "key": "/main/bands/:id",
     "kind": "route",
-    "source": "lib/router/app_router.dart:419",
+    "source": "lib/router/app_router.dart:420",
     "widget": "BandRouteResolver",
     "spec": "design/figcraft/specs/the_band.json"
   },
   {
     "key": "/main/bands/:id/edit",
     "kind": "route",
-    "source": "lib/router/app_router.dart:428",
+    "source": "lib/router/app_router.dart:429",
     "widget": "BandRouteResolver",
     "spec": null
   },
   {
     "key": "/main/bands/:id/songs",
     "kind": "route",
-    "source": "lib/router/app_router.dart:437",
+    "source": "lib/router/app_router.dart:438",
     "widget": "BandRouteResolver",
     "spec": "design/figcraft/specs/band_songs.json"
   },
   {
     "key": "/main/bands/:id/setlists",
     "kind": "route",
-    "source": "lib/router/app_router.dart:446",
+    "source": "lib/router/app_router.dart:447",
     "widget": "BandRouteResolver",
     "spec": "design/figcraft/specs/band_setlists.json"
   },
   {
     "key": "/main/bands/:id/setlists/:setlistId",
     "kind": "route",
-    "source": "lib/router/app_router.dart:459",
+    "source": "lib/router/app_router.dart:460",
     "widget": "SetlistRouteResolver",
     "spec": null
   },
   {
     "key": "/main/bands/:id/about",
     "kind": "route",
-    "source": "lib/router/app_router.dart:476",
+    "source": "lib/router/app_router.dart:477",
     "widget": "BandRouteResolver",
     "spec": "design/figcraft/specs/band_about.json"
   },
   {
     "key": "/main/bands/:id/invite",
     "kind": "route",
-    "source": "lib/router/app_router.dart:485",
+    "source": "lib/router/app_router.dart:486",
     "widget": "BandRouteResolver",
     "spec": "design/figcraft/specs/band_invite.json"
   },
   {
     "key": "/main/bands/:id/members",
     "kind": "route",
-    "source": "lib/router/app_router.dart:494",
+    "source": "lib/router/app_router.dart:495",
     "widget": "BandRouteResolver",
     "spec": "design/figcraft/specs/band_members.json"
   },
   {
     "key": "/main/bands/:id/rehearsals",
     "kind": "route",
-    "source": "lib/router/app_router.dart:503",
+    "source": "lib/router/app_router.dart:504",
     "widget": "BandRouteResolver",
     "spec": "design/figcraft/specs/rehearsals_list.json"
   },
   {
     "key": "/main/bands/:id/rehearsals/create",
     "kind": "route",
-    "source": "lib/router/app_router.dart:513",
+    "source": "lib/router/app_router.dart:514",
     "widget": "BandRouteResolver",
     "spec": "design/figcraft/specs/rehearsal_edit.json"
   },
   {
     "key": "/main/bands/:id/rehearsals/:rid/edit",
     "kind": "route",
-    "source": "lib/router/app_router.dart:522",
+    "source": "lib/router/app_router.dart:523",
     "widget": "BandRouteResolver",
     "spec": null
   },
   {
     "key": "/main/bands/:id/rehearsals/:rid",
     "kind": "route",
-    "source": "lib/router/app_router.dart:533",
+    "source": "lib/router/app_router.dart:534",
     "widget": "BandRouteResolver",
     "spec": "design/figcraft/specs/rehearsal_detail.json"
   },
   {
     "key": "/main/setlists",
     "kind": "route",
-    "source": "lib/router/app_router.dart:552",
+    "source": "lib/router/app_router.dart:553",
     "widget": "SetlistsListScreen",
     "spec": "design/figcraft/specs/setlists_list.json"
   },
   {
     "key": "/main/setlists/create",
     "kind": "route",
-    "source": "lib/router/app_router.dart:557",
+    "source": "lib/router/app_router.dart:558",
     "widget": "CreateSetlistScreen",
     "spec": "design/figcraft/specs/create_setlist.json"
   },
   {
     "key": "/main/setlists/:id",
     "kind": "route",
-    "source": "lib/router/app_router.dart:578",
+    "source": "lib/router/app_router.dart:579",
     "widget": "SetlistRouteResolver",
     "spec": "design/figcraft/specs/setlist_view.json"
   },
   {
     "key": "/main/setlists/:id/edit",
     "kind": "route",
-    "source": "lib/router/app_router.dart:601",
+    "source": "lib/router/app_router.dart:602",
     "widget": "SetlistRouteResolver",
     "spec": null
   },
   {
     "key": "/main/profile",
     "kind": "route",
-    "source": "lib/router/app_router.dart:632",
+    "source": "lib/router/app_router.dart:633",
     "widget": "ProfileScreen",
     "spec": "design/figcraft/specs/profile.json"
   },
   {
     "key": "/main/metronome",
     "kind": "route",
-    "source": "lib/router/app_router.dart:648",
+    "source": "lib/router/app_router.dart:649",
     "widget": "MetronomeScreen",
     "spec": "design/figcraft/specs/metronome.json"
   },
   {
     "key": "/main/practice",
     "kind": "route",
-    "source": "lib/router/app_router.dart:657",
+    "source": "lib/router/app_router.dart:658",
     "widget": "PracticeScreen",
     "spec": "design/figcraft/specs/practice.json"
   },
   {
     "key": "/main/recorder",
     "kind": "route",
-    "source": "lib/router/app_router.dart:666",
+    "source": "lib/router/app_router.dart:667",
     "widget": "RecorderScreen",
     "spec": "design/figcraft/specs/recorder.json"
   },
   {
     "key": "/main/audio-note/:id",
     "kind": "route",
-    "source": "lib/router/app_router.dart:679",
+    "source": "lib/router/app_router.dart:680",
     "widget": "RecorderScreen",
     "spec": "design/figcraft/specs/recorder.json"
   },
   {
     "key": "/main/practice-regions/:id",
     "kind": "route",
-    "source": "lib/router/app_router.dart:697",
+    "source": "lib/router/app_router.dart:698",
     "widget": "RecorderScreen",
     "spec": "design/figcraft/specs/recorder.json"
   },
   {
     "key": "/main/tuner",
     "kind": "route",
-    "source": "lib/router/app_router.dart:715",
+    "source": "lib/router/app_router.dart:716",
     "widget": "TunerScreen",
     "spec": "design/figcraft/specs/tuner.json"
   },
   {
     "key": "/main/settings",
     "kind": "route",
-    "source": "lib/router/app_router.dart:728",
+    "source": "lib/router/app_router.dart:729",
     "widget": "AppSettingsScreen",
     "spec": "design/figcraft/specs/app_settings.json"
   },
   {
     "key": "/main/join-band",
     "kind": "route",
-    "source": "lib/router/app_router.dart:734",
+    "source": "lib/router/app_router.dart:735",
     "widget": "JoinBandScreen",
     "spec": "design/figcraft/specs/join_band.json"
   },
@@ -1010,7 +1010,7 @@
   {
     "key": "add_song_screen_helper.CustomButton",
     "kind": "dialog",
-    "source": "lib/screens/songs/utils/add_song_screen_helper.dart:61",
+    "source": "lib/screens/songs/utils/add_song_screen_helper.dart:62",
     "widget": "CustomButton",
     "spec": "design/figcraft/specs/add_song_helper_search_on_web.json"
   },

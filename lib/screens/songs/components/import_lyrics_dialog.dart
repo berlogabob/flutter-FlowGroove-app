@@ -174,14 +174,14 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
               'Import lyrics & chords',
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: MonoPulseSpacing.xs),
             Text(
               'Paste ChordPro. A full chart with {title}, {key}, {tempo} and '
               '{start_of_verse: …} blocks fills the whole song; plain lyrics with '
               '[Verse 1] or "Chorus:" just split into sections.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             TextField(
               controller: _controller,
               decoration: const InputDecoration(
@@ -196,12 +196,12 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
               onChanged: (_) => setState(() {}),
             ),
             if (parsed.hasMeta) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               Text(
                 'Song details detected:',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: MonoPulseSpacing.xs),
               Text(
                 _metaLine(parsed),
                 style: MonoPulseTypography.bodyMedium.copyWith(
@@ -210,17 +210,17 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
               ),
             ],
             if (parsed.sections.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               Text(
                 'Preview — ${parsed.sections.length} section(s):',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: MonoPulseSpacing.xs),
               Text(
                 songMapSummary(parsed.sections.map((s) => s.name).toList()),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: MonoPulseSpacing.sm),
               for (final s in parsed.sections) ...[
                 Text(
                   s.name,
@@ -228,12 +228,12 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
                     color: MonoPulseColors.accentOrange,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: MonoPulseSpacing.xs),
                 ChordChartView(chart: s.chordChart ?? ''),
-                const SizedBox(height: 12),
+                const SizedBox(height: MonoPulseSpacing.md),
               ],
             ],
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             Row(
               children: [
                 TextButton.icon(
@@ -246,7 +246,7 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
                 CustomButton(
                   onPressed: canImport ? _import : null,
                   label: parsed.sections.isEmpty

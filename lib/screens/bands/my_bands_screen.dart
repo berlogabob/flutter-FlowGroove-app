@@ -563,7 +563,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
                     color: MonoPulseColors.error,
                     size: 20,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: MonoPulseSpacing.sm),
                   Expanded(
                     child: Text(
                       _currentError?.message ?? 'An unexpected error occurred',
@@ -575,15 +575,15 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
           ],
           const Text('Share this code with band members:'),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           InviteCodeField(
             code: _isRegenerating ? '' : _inviteCode,
             placeholder: 'Generating…',
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [

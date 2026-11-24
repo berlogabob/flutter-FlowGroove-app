@@ -63,10 +63,10 @@ class QuickActionButton extends StatelessWidget {
     // fills its grid cell — consistent density, no dead gutters (audit A9).
     return Material(
       color: context.mp.surfaceRaised,
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(MonoPulseRadius.fab),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.fab),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.md,
@@ -75,7 +75,7 @@ class QuickActionButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: context.mp.surfaceRaised,
             border: Border.all(color: context.mp.borderDefault),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(MonoPulseRadius.fab),
             boxShadow: [
               BoxShadow(
                 color: context.mp.borderStrong.withValues(alpha: 0.24),

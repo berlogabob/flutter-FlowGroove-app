@@ -202,7 +202,7 @@ class _SongConstructorState extends State<SongConstructor> {
                       size: 24,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: MonoPulseSpacing.sm),
                   // Title
                   Expanded(
                     child: Text(
@@ -307,7 +307,7 @@ class _SongConstructorState extends State<SongConstructor> {
                         child: Row(
                           children: [
                             Icon(Icons.edit, color: context.mp.textPrimary),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: MonoPulseSpacing.sm),
                             Text(
                               'Edit',
                               style: TextStyle(
@@ -334,7 +334,7 @@ class _SongConstructorState extends State<SongConstructor> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: MonoPulseSpacing.sm),
                             Icon(Icons.delete, color: context.mp.textPrimary),
                           ],
                         ),
@@ -405,7 +405,7 @@ class _SongConstructorState extends State<SongConstructor> {
           ),
         ],
         // Add button
-        const SizedBox(height: 8),
+        const SizedBox(height: MonoPulseSpacing.sm),
         CustomButton(
           key: const Key('song_constructor_add_section'),
           onPressed: _showSectionPicker,

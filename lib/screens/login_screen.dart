@@ -331,21 +331,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 48),
+              const SizedBox(height: MonoPulseSpacing.massive),
               Text(
                 'FlowGroove',
                 style: Theme.of(context).textTheme.headlineMedium
                     ?.copyWith(fontWeight: FontWeight.w700),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: MonoPulseSpacing.sm),
               Text(
                 'Sign in to manage your band',
                 style: Theme.of(context).textTheme.bodyMedium
                     ?.copyWith(color: context.mp.textSecondary),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: MonoPulseSpacing.xxxl),
               if (_currentError != null) ...[
                 ErrorBanner(
                   message:
@@ -353,7 +353,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onRetry: _retry,
                   showRetry: _isConnectionError,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: MonoPulseSpacing.xxl),
               ],
               TextFormField(
                 controller: _emailController,
@@ -365,7 +365,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   errorText: !_email.isPure ? _email.errorMessage : null,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
@@ -395,13 +395,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: const Text('Forgot Password?'),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               CustomButton(
                 onPressed: _isLoading ? null : _login,
                 label: 'Sign In',
                 isLoading: _isLoading,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: MonoPulseSpacing.md),
               if (kIsWeb)
                 // GIS renders this button itself; sign-in arrives via
                 // authenticationEvents (see _onWebGoogleAuthEvent).
@@ -421,10 +421,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   label: const Text('Continue with Google'),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.mdPlus),
                   ),
                 ),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -435,27 +435,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: MonoPulseSpacing.xxl),
               const Divider(),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               Text(
                 'Just looking around?',
                 style: Theme.of(context).textTheme.bodySmall
                     ?.copyWith(color: context.mp.textSecondary),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: MonoPulseSpacing.sm),
               OutlinedButton.icon(
                 onPressed: _isLoading ? null : _loginDemo,
                 icon: const Icon(Icons.visibility_outlined),
                 label: const Text('Try Demo Account'),
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.mdPlus),
                   foregroundColor: MonoPulseColors.accentOrange,
                   side: const BorderSide(color: MonoPulseColors.accentOrange),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: MonoPulseSpacing.sm),
               Text(
                 'Read-only access to explore all features',
                 style: Theme.of(context).textTheme.bodySmall

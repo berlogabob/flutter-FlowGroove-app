@@ -148,7 +148,7 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                   color: context.mp.textSecondary,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: MonoPulseSpacing.xs),
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
@@ -184,7 +184,7 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                 color: context.mp.textSecondary,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: MonoPulseSpacing.xs),
             if (_filteredPopular.isEmpty && _searchQuery.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -234,7 +234,7 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                         children: [
                           if (icon != null)
                             Text(icon, style: const TextStyle(fontSize: 16)),
-                          if (icon != null) const SizedBox(width: 4),
+                          if (icon != null) const SizedBox(width: MonoPulseSpacing.xs),
                           Text(
                             displayName,
                             style: MonoPulseTypography.bodySmall.copyWith(

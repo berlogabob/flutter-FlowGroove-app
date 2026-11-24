@@ -92,7 +92,7 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
                       color: context.mp.textSecondary,
                       size: 20,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: MonoPulseSpacing.sm),
                   ],
                   // Title (compact — leaves room for the collapsed preview).
                   Text(
@@ -121,10 +121,10 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
                   ),
                   // Action button
                   if (widget.action != null) ...[
-                    const SizedBox(width: 8),
+                    const SizedBox(width: MonoPulseSpacing.sm),
                     widget.action!,
                   ],
-                  const SizedBox(width: 8),
+                  const SizedBox(width: MonoPulseSpacing.sm),
                   AnimatedRotation(
                     turns: _isExpanded ? 0 : -0.25,
                     duration: const Duration(milliseconds: 200),

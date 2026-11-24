@@ -43,7 +43,7 @@ class SetlistBreakRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            if (leading != null) ...[leading!, const SizedBox(width: 8)],
+            if (leading != null) ...[leading!, const SizedBox(width: MonoPulseSpacing.sm)],
             Icon(type.icon, size: 18, color: context.mp.textTertiary),
             const SizedBox(width: MonoPulseSpacing.md),
             Expanded(

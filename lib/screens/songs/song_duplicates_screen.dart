@@ -113,7 +113,7 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
               '${cluster.maxScore.toStringAsFixed(0)}% match',
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: MonoPulseSpacing.xs),
             for (final s in cluster.songs)
               Text(
                 '• ${s.title} — ${s.artist}'
@@ -121,7 +121,7 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -129,7 +129,7 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
                   onPressed: () => _dismissCluster(cluster),
                   child: const Text('Not duplicates'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
                 FilledButton(
                   onPressed: () => _mergeCluster(cluster),
                   child: const Text('Merge…'),

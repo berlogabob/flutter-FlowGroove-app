@@ -123,7 +123,7 @@ class CustomTextField extends StatelessWidget {
           ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: enabled ? Colors.white : MonoPulseColors.stone,
+            fillColor: enabled ? MonoPulseColors.white : MonoPulseColors.stone,
             hintText: hint,
             prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
             suffixIcon: suffix,

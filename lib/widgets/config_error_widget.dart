@@ -30,7 +30,7 @@ class ConfigErrorWidget extends StatelessWidget {
                     size: 80,
                     color: Theme.of(context).colorScheme.error,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: MonoPulseSpacing.xxl),
 
                   // Title
                   Text(
@@ -39,7 +39,7 @@ class ConfigErrorWidget extends StatelessWidget {
                         ?.copyWith(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: MonoPulseSpacing.lg),
 
                   // Subtitle
                   Text(
@@ -47,7 +47,7 @@ class ConfigErrorWidget extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyLarge,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: MonoPulseSpacing.xxxl),
 
                   // Error cards
                   Container(
@@ -71,7 +71,7 @@ class ConfigErrorWidget extends StatelessWidget {
                                     .onErrorContainer,
                               ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: MonoPulseSpacing.sm),
                         ...exception.errors.map(
                           (error) => Padding(
                             padding: const EdgeInsets.only(
@@ -87,7 +87,7 @@ class ConfigErrorWidget extends StatelessWidget {
                                       .colorScheme
                                       .onErrorContainer,
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: MonoPulseSpacing.sm),
                                 Expanded(
                                   child: Text(
                                     error,
@@ -111,7 +111,7 @@ class ConfigErrorWidget extends StatelessWidget {
 
                   // Warnings (if any)
                   if (exception.warnings.isNotEmpty) ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: MonoPulseSpacing.lg),
                     Container(
                       decoration: BoxDecoration(
                         color: Theme.of(context)
@@ -130,7 +130,7 @@ class ConfigErrorWidget extends StatelessWidget {
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: MonoPulseSpacing.sm),
                           ...exception.warnings.map(
                             (warning) => Padding(
                               padding: const EdgeInsets.only(
@@ -146,7 +146,7 @@ class ConfigErrorWidget extends StatelessWidget {
                                         .colorScheme
                                         .onSurfaceVariant,
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: MonoPulseSpacing.sm),
                                   Expanded(
                                     child: Text(
                                       warning,
@@ -164,12 +164,12 @@ class ConfigErrorWidget extends StatelessWidget {
                     ),
                   ],
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: MonoPulseSpacing.xxxl),
 
                   // Troubleshooting section
                   _buildTroubleshootingSection(context),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: MonoPulseSpacing.xxl),
 
                   // Retry button
                   if (onRetry != null)
@@ -202,7 +202,7 @@ class ConfigErrorWidget extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: MonoPulseSpacing.md),
           _buildTroubleshootingStep(
             context,
             '1',
@@ -249,7 +249,7 @@ class ConfigErrorWidget extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: MonoPulseSpacing.md),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(top: MonoPulseSpacing.xxs),

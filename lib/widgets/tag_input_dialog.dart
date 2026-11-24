@@ -102,7 +102,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           Row(
             children: [
               Expanded(
@@ -121,7 +121,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
                   onSubmitted: _addTag,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: MonoPulseSpacing.sm),
               IconButton(
                 icon: const Icon(Icons.add),
                 onPressed: () => _addTag(_controller.text),
@@ -129,9 +129,9 @@ class _TagInputDialogState extends State<TagInputDialog> {
             ],
           ),
           if (widget.suggestions != null && widget.suggestions!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: MonoPulseSpacing.md),
             const Text('Suggestions:', style: MonoPulseTypography.labelSmall),
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -149,10 +149,10 @@ class _TagInputDialogState extends State<TagInputDialog> {
                   .toList(),
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           if (_tags.isNotEmpty) ...[
             const Text('Your tags:', style: MonoPulseTypography.labelSmall),
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -167,7 +167,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
                   .toList(),
             ),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: MonoPulseSpacing.xl),
           SizedBox(
             width: double.infinity,
             child: CustomButton(
@@ -175,7 +175,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
               label: 'Save',
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
         ],
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 /// Base interface for all unified items (Song, Band, Setlist)
 abstract class UnifiedItemModel {
@@ -96,7 +97,7 @@ class OverflowMenuAction implements UnifiedItemAction {
             child: Row(
               children: [
                 Icon(entries[i].$2, size: 20),
-                const SizedBox(width: 12),
+                const SizedBox(width: MonoPulseSpacing.md),
                 Expanded(
                   child: Text(entries[i].$1, overflow: TextOverflow.ellipsis),
                 ),

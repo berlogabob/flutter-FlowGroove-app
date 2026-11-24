@@ -61,9 +61,9 @@ class _SectionPickerState extends State<SectionPicker>
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: MonoPulseSpacing.xl),
             _buildTabBar(context),
-            const SizedBox(height: 20),
+            const SizedBox(height: MonoPulseSpacing.xl),
             SizedBox(
               height: AppDimensions.pickerTabHeight,
               child: TabBarView(
@@ -71,20 +71,20 @@ class _SectionPickerState extends State<SectionPicker>
                 children: [_buildPartsTab(context), _buildColorsTab(context)],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: MonoPulseSpacing.xl),
             Divider(
               color: Theme.of(context).colorScheme.outline
                   .withValues(alpha: 0.3),
               thickness: 1.5,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             Text(
               'Or create custom:',
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: MonoPulseSpacing.md),
             _buildCustomInputRow(context),
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
           ],
         ),
       ),
@@ -104,7 +104,7 @@ class _SectionPickerState extends State<SectionPicker>
         indicator: BoxDecoration(
           // Same selected-pill treatment as role_picker_widget.dart: a low-alpha
           // orange tint keeps contrast with onSurface label text in both themes.
-          // The previous Colors.grey[300] was near-invisible against the
+          // The previous grey 300 was near-invisible against the
           // near-white label color in the app's default dark theme.
           color: MonoPulseColors.accentOrange10,
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),
@@ -140,7 +140,7 @@ class _SectionPickerState extends State<SectionPicker>
             },
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: MonoPulseSpacing.md),
         CustomButton(
           onPressed: () {
             if (_customController.text.trim().isNotEmpty) {

@@ -12,6 +12,7 @@ import '../../../providers/data/drum_practice_provider.dart';
 import '../../../providers/permissions_provider.dart';
 import '../../../services/analytics_service.dart';
 import '../../../services/audio/midi/drum_map.dart';
+import '../../../theme/mono_pulse_theme.dart';
 
 const _lanes = <DrumLane, int>{
   DrumLane.kick: 36,
@@ -219,7 +220,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 12),
+                const SizedBox(height: MonoPulseSpacing.md),
                 TextField(
                   controller: _name,
                   enabled: canEdit && !_busy,
@@ -229,13 +230,13 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                     widget.dirty?.value = true;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: MonoPulseSpacing.lg),
                 Row(
                   children: [
                     for (final bars in [1, 2, 3, 4])
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xs),
                           child: ChoiceChip(
                             label: FittedBox(
                               fit: BoxFit.scaleDown,
@@ -245,7 +246,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                             ),
                             showCheckmark: false,
                             labelPadding: const EdgeInsets.symmetric(
-                              horizontal: 4,
+                              horizontal: MonoPulseSpacing.xs,
                             ),
                             selected: _bars == bars,
                             onSelected: canEdit && !_busy
@@ -266,11 +267,11 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: MonoPulseSpacing.lg),
                 const Text(
                   'Tap: Off → Normal (90) → Accent (120) → Ghost (40) → Off',
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: MonoPulseSpacing.lg),
                 Wrap(
                   spacing: 8,
                   children: [
@@ -284,7 +285,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: MonoPulseSpacing.sm),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -293,7 +294,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 24),
+                          const SizedBox(height: MonoPulseSpacing.xxl),
                           for (final lane in DrumLane.values)
                             SizedBox(
                               height: 48,
@@ -337,7 +338,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                   label: Text(playing ? 'Stop' : 'Play'),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: MonoPulseSpacing.md),
               Expanded(
                 child: FilledButton(
                   onPressed: canEdit && !_busy && _name.text.trim().isNotEmpty
@@ -410,7 +411,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
               color: velocity == 0
                   ? (step % 4 == 0 ? colors.surfaceContainerHigh : null)
                   : colors.primary.withValues(alpha: velocity / 127),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(MonoPulseRadius.small),
               border: Border.all(color: colors.outline),
             ),
             alignment: Alignment.center,

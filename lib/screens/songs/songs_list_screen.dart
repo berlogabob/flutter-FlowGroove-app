@@ -180,7 +180,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                         ? 1
                         : completed / totalOperations,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: MonoPulseSpacing.md),
                   Text('$completed of $totalOperations changes completed'),
                 ],
               ),
@@ -813,7 +813,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                     deleteIcon: const Icon(Icons.close, size: 18),
                   ),
                 if (state.bpmFilter != null) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: MonoPulseSpacing.sm),
                   Chip(
                     label: Text('BPM: ${state.bpmFilter}'),
                     onDeleted: () {

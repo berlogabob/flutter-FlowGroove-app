@@ -49,7 +49,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
               child: Row(
                 children: [
                   const Icon(Icons.file_download),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: MonoPulseSpacing.md),
                   Text(
                     'Export Songs',
                     style: MonoPulseTypography.headlineLarge.copyWith(
@@ -99,7 +99,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
             color: context.mp.textHighEmphasis,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: MonoPulseSpacing.xxl),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -109,7 +109,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
               icon: Icons.save,
               label: 'Save to Device',
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: MonoPulseSpacing.lg),
             // Share
             CustomButton(
               onPressed: _exportAndShare,
@@ -118,7 +118,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: MonoPulseSpacing.md),
         // Copy FlowGroove Song JSON (round-trips with paste-import; AI-friendly)
         CustomButton(
           onPressed: _copyJson,
@@ -126,7 +126,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
           label: 'Copy as JSON',
           variant: ButtonVariant.outline,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: MonoPulseSpacing.lg),
         Text(
           'CSV opens in Excel/Google Sheets. JSON is the FlowGroove Song format — '
           'paste it into an AI to edit, or back into Import.',
@@ -147,7 +147,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
           color: MonoPulseColors.successGreen,
           size: 64,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: MonoPulseSpacing.lg),
         Text(
           'Export Successful!',
           style: MonoPulseTypography.titleLarge.copyWith(
@@ -155,7 +155,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
             color: context.mp.textHighEmphasis,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: MonoPulseSpacing.sm),
         Text(
           'Songs exported to CSV',
           style: TextStyle(color: context.mp.textSecondary),

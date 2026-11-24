@@ -146,7 +146,7 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
                     : context.mp.textTertiary,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: MonoPulseSpacing.xxs),
             Text(
               _valueFor(f, song),
               maxLines: 3,

@@ -690,7 +690,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
               '"${duplicate.title}" by ${duplicate.artist}',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             const Text(
               'A similar song already exists in your library. '
               'Do you want to:',

@@ -244,7 +244,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                       // Band info card (if loaded)
                       if (_band != null) ...[
                         _buildBandInfoCard(),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: MonoPulseSpacing.xxl),
                       ],
 
                       // Error message
@@ -265,7 +265,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: MonoPulseSpacing.lg),
                       ],
 
                       // Invite code input (if no band loaded)
@@ -277,7 +277,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: MonoPulseSpacing.sm),
                         Text(
                           widget.inviteCode != null
                               ? 'Loading band info...'
@@ -285,7 +285,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                           style: TextStyle(color: context.mp.textTertiary),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: MonoPulseSpacing.xxxl),
 
                         TextFormField(
                           controller: _codeController,
@@ -301,7 +301,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                               ? 'Enter 6-char code'
                               : null,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: MonoPulseSpacing.xxl),
 
                         CustomButton(
                           onPressed: _isLoading ? null : _loadBand,
@@ -319,7 +319,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                         ),
 
                         if (isDemo) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: MonoPulseSpacing.lg),
                           Text(
                             'Demo accounts cannot join bands. Sign up to join.',
                             style: MonoPulseTypography.bodySmall.copyWith(
@@ -328,7 +328,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                             textAlign: TextAlign.center,
                           ),
                         ] else if (!isLoggedIn) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: MonoPulseSpacing.lg),
                           Text(
                             'You need to create an account to join this band',
                             style: MonoPulseTypography.bodySmall.copyWith(
@@ -387,7 +387,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
 
           // Band name
           Text(
@@ -402,7 +402,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
           // public subset, and the Welcome screen shows the same fields.
 
           // Member count
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -411,7 +411,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                 color: context.mp.textSecondary,
                 size: 20,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: MonoPulseSpacing.sm),
               Text(
                 '${_band!.memberCount} member${_band!.memberCount == 1 ? '' : 's'}',
                 style: MonoPulseTypography.bodyMedium.copyWith(

@@ -329,7 +329,7 @@ class _InputLevelIndicator extends StatelessWidget {
       child: Container(
         width: 56,
         height: 56,
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(MonoPulseSpacing.mdPlus),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(color: context.mp.borderSubtle, width: 1.5),
@@ -345,7 +345,7 @@ class _InputLevelIndicator extends StatelessWidget {
                   width: 12,
                   decoration: BoxDecoration(
                     color: MonoPulseColors.accentOrange,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.fab),
                   ),
                 ),
               ),

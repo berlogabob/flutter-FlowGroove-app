@@ -120,11 +120,11 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
             padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             children: [
               _buildBandInfo(),
-              const SizedBox(height: 24),
+              const SizedBox(height: MonoPulseSpacing.xxl),
               _buildDescriptionSection(),
-              const SizedBox(height: 24),
+              const SizedBox(height: MonoPulseSpacing.xxl),
               _buildTagsSection(),
-              const SizedBox(height: 24),
+              const SizedBox(height: MonoPulseSpacing.xxl),
               _buildMembersSection(canManageMembers),
             ],
           ),
@@ -152,7 +152,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: MonoPulseSpacing.lg),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,7 +163,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                           color: context.mp.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: MonoPulseSpacing.xs),
                       Text(
                         'Created ${_formatDate(_band.createdAt)}',
                         style: MonoPulseTypography.bodyMedium.copyWith(
@@ -175,7 +175,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             Row(
               children: [
                 _buildInfoChip(
@@ -187,7 +187,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                     extra: _band,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
                 if (_band.inviteCode != null && _band.inviteCode!.isNotEmpty)
                   _buildInfoChip(
                     icon: Icons.qr_code,
@@ -234,7 +234,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
             Row(
               children: [
                 const Icon(Icons.description_outlined, size: 20),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
                 Text(
                   'Description',
                   style: MonoPulseTypography.headlineSmall.copyWith(
@@ -243,7 +243,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: MonoPulseSpacing.md),
             if (_isEditing)
               TextField(
                 controller: _descriptionController,
@@ -280,7 +280,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
             Row(
               children: [
                 const Icon(Icons.label_outline, size: 20),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
                 Text(
                   'Tags',
                   style: MonoPulseTypography.headlineSmall.copyWith(
@@ -289,7 +289,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: MonoPulseSpacing.md),
             if (_isEditing) ...[
               Wrap(
                 spacing: 8,
@@ -359,7 +359,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 Row(
                   children: [
                     const Icon(Icons.people, size: 20),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: MonoPulseSpacing.sm),
                     Text(
                       'Members',
                       style: MonoPulseTypography.headlineSmall.copyWith(
@@ -377,7 +377,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: MonoPulseSpacing.md),
             if (_band.members.isEmpty)
               Text(
                 'No members found',
@@ -389,7 +389,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 return _buildMemberTile(member, index, canManageMembers);
               }),
             if (canManageMembers) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: MonoPulseSpacing.xs),
               Text(
                 'You are an admin — tap a member to manage their role.',
                 style: MonoPulseTypography.bodySmall.copyWith(
@@ -451,7 +451,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
             style: TextStyle(color: context.mp.textSecondary),
           ),
           if (member.musicRoles.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: MonoPulseSpacing.xs),
             Wrap(
               spacing: 4,
               runSpacing: 4,

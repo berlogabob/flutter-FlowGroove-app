@@ -63,7 +63,7 @@ class BandInviteScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: MonoPulseColors.white,
                           borderRadius: BorderRadius.circular(
                             MonoPulseRadius.large,
                           ),

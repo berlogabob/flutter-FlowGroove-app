@@ -196,11 +196,11 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
               'Share this invite code with your bandmates:',
               style: MonoPulseTypography.bodyMedium,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             Row(
               children: [
                 Expanded(child: InviteCodeField(code: inviteCode)),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
                 IconButton(
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: inviteCode));
@@ -269,21 +269,21 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                               Icons.lock_outline,
                               color: context.mp.textSecondary,
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: MonoPulseSpacing.lg),
                             Text(
                               'Demo accounts are read-only',
                               style: Theme.of(context).textTheme.headlineSmall
                                   ?.copyWith(fontWeight: FontWeight.w700),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: MonoPulseSpacing.sm),
                             Text(
                               'You can explore bands in demo mode. Sign up to '
                               'create and edit your own bands.',
                               style: TextStyle(color: context.mp.textSecondary),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: MonoPulseSpacing.xxl),
                             FilledButton(
                               onPressed: () {
                                 ref.read(appUserProvider.notifier).signOut();
@@ -310,7 +310,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                                 ?.copyWith(fontWeight: FontWeight.w700),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: MonoPulseSpacing.sm),
                           Text(
                             _isEditing
                                 ? 'Update band information'
@@ -318,7 +318,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                             style: TextStyle(color: context.mp.textSecondary),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: MonoPulseSpacing.xxxl),
                           // Error banner
                           if (_currentError != null) ...[
                             ErrorBanner(
@@ -329,7 +329,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                               showRetry: _currentError!.isNetwork,
                               style: ErrorBannerStyle.card,
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: MonoPulseSpacing.xxl),
                           ],
                           Semantics(
                             label: 'Band Name, required',
@@ -346,7 +346,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                                   : null,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: MonoPulseSpacing.lg),
                           Semantics(
                             label: 'Description',
                             child: TextFormField(

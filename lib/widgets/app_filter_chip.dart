@@ -67,7 +67,7 @@ class AppFilterChip extends StatelessWidget {
         horizontal: MonoPulseSpacing.md,
         vertical: MonoPulseSpacing.sm,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(MonoPulseRadius.button)),
     );
   }
 }

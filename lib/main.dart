@@ -99,14 +99,14 @@ Licensed under the LGPL. lamejs is loaded as a separate, unmodified script
                 size: 48,
                 color: MonoPulseColors.error,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: MonoPulseSpacing.md),
               Text(
                 'Something went wrong',
                 style: MonoPulseTypography.headlineSmall.copyWith(
                   color: MonoPulseColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: MonoPulseSpacing.sm),
               Text(
                 kDebugMode
                     ? details.exception.toString()
@@ -444,14 +444,14 @@ class FirebaseErrorApp extends StatelessWidget {
                     size: 80,
                     color: Theme.of(context).colorScheme.error,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: MonoPulseSpacing.xxl),
                   Text(
                     'Firebase Initialization Error',
                     style: Theme.of(context).textTheme.headlineSmall
                         ?.copyWith(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: MonoPulseSpacing.lg),
                   Text(
                     'The app could not connect to Firebase. '
                     'Please check your internet connection and try again.',

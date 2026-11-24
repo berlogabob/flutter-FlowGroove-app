@@ -88,7 +88,7 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: MonoPulseSpacing.sm),
 
         // Sort dropdown
         Container(

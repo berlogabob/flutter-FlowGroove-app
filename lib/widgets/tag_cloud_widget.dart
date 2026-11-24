@@ -29,7 +29,7 @@ class TagCloudWidget extends StatelessWidget {
       // chip used to clip flush against the screen edge with no affordance).
       child: ShaderMask(
         shaderCallback: (rect) => const LinearGradient(
-          colors: [Colors.white, Colors.white, Colors.transparent],
+          colors: [MonoPulseColors.white, MonoPulseColors.white, Colors.transparent],
           stops: [0.0, 0.9, 1.0],
         ).createShader(rect),
         blendMode: BlendMode.dstIn,

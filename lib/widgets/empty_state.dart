@@ -102,14 +102,14 @@ class EmptyState extends StatelessWidget {
             size: iconSize,
             color: iconColor ?? context.mp.textTertiary,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           Text(
             message,
             style: MonoPulseTypography.headlineSmall,
             textAlign: TextAlign.center,
           ),
           if (hint != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             Text(
               hint!,
               style: MonoPulseTypography.bodyMedium.copyWith(
@@ -119,7 +119,7 @@ class EmptyState extends StatelessWidget {
             ),
           ],
           if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: MonoPulseSpacing.xxl),
             CustomButton(
               onPressed: onAction,
               icon: Icons.add,
@@ -128,7 +128,7 @@ class EmptyState extends StatelessWidget {
             ),
           ],
           if (secondaryActionLabel != null && onSecondaryAction != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             CustomButton(
               onPressed: onSecondaryAction,
               icon: Icons.group_add,

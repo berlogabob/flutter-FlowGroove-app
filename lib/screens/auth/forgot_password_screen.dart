@@ -96,13 +96,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 32),
+              const SizedBox(height: MonoPulseSpacing.xxxl),
               const Icon(
                 Icons.lock_reset,
                 size: 64,
                 color: MonoPulseColors.accentOrange,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: MonoPulseSpacing.xxl),
               Text(
                 'Forgot Password?',
                 style: MonoPulseTypography.headlineSmall.copyWith(
@@ -110,7 +110,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: MonoPulseSpacing.md),
               Text(
                 "Enter your email address and we'll send you instructions to reset your password.",
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -118,7 +118,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: MonoPulseSpacing.xxxl),
               if (_emailSent && _successMessage != null) ...[
                 Container(
                   padding: const EdgeInsets.all(MonoPulseSpacing.lg),
@@ -134,7 +134,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         color: MonoPulseColors.successAlt,
                         size: 24,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: MonoPulseSpacing.md),
                       Expanded(
                         child: Text(
                           _successMessage!,
@@ -146,7 +146,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: MonoPulseSpacing.xxl),
               ],
               if (_errorMessage != null) ...[
                 Container(
@@ -163,7 +163,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         color: MonoPulseColors.error,
                         size: 24,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: MonoPulseSpacing.md),
                       Expanded(
                         child: Text(
                           _errorMessage!,
@@ -175,7 +175,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: MonoPulseSpacing.xxl),
               ],
               TextFormField(
                 controller: _emailController,
@@ -215,13 +215,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: MonoPulseSpacing.xxl),
               CustomButton(
                 onPressed: (!_isLoading && !_emailSent) ? _resetPassword : null,
                 label: _emailSent ? 'Email Sent' : 'Send Reset Email',
                 isLoading: _isLoading,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               if (_emailSent)
                 TextButton(
                   onPressed: () {

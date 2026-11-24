@@ -44,7 +44,7 @@ class DemoModeBanner extends ConsumerWidget {
                   size: 18,
                   color: MonoPulseColors.accentOrange,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
                 Expanded(
                   child: Text(
                     'Demo mode — changes are not saved',

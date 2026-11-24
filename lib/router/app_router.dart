@@ -52,6 +52,7 @@ import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
 import '../services/analytics_service.dart';
 import '../services/event_share_service.dart';
+import '../theme/mono_pulse_theme.dart';
 import '../widgets/custom_button.dart';
 import 'branch_stack_observer.dart';
 
@@ -917,7 +918,7 @@ class BandRouteResolver extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('Failed to load band data'),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             CustomButton(
               // This screen can be the first history entry (direct URL /
               // browser-restored), where pop() would throw.

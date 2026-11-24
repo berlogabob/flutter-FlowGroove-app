@@ -156,12 +156,12 @@ class ToolScreenScaffold extends StatelessWidget {
               Expanded(child: mainWidget),
               // Secondary widget (optional, fixed height)
               if (secondaryWidget != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: MonoPulseSpacing.sm),
                 secondaryWidget!,
               ],
               // Bottom widget (optional, fixed height)
               if (bottomWidget != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: MonoPulseSpacing.sm),
                 bottomWidget!,
               ],
             ],

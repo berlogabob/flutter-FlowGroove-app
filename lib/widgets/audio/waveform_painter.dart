@@ -53,7 +53,7 @@ class WaveformPainter extends CustomPainter {
       Offset(playhead * size.width, 0),
       Offset(playhead * size.width, size.height),
       Paint()
-        ..color = Colors.white
+        ..color = MonoPulseColors.white
         ..strokeWidth = 1.5,
     );
   }

@@ -63,7 +63,7 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
               color: Theme.of(context).colorScheme.error,
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: MonoPulseSpacing.lg),
-              child: const Icon(Icons.delete, color: Colors.white),
+              child: const Icon(Icons.delete, color: MonoPulseColors.white),
             ),
             confirmDismiss: (direction) async {
               if (direction == DismissDirection.endToStart &&

@@ -64,7 +64,7 @@ class SongCsvPreviewTable extends StatelessWidget {
                 ? MonoPulseColors.warning
                 : MonoPulseColors.error,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: MonoPulseSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,7 +110,7 @@ class SongCsvPreviewTable extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           ...errors.map(
             (error) => Padding(
               padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
@@ -121,7 +121,7 @@ class SongCsvPreviewTable extends StatelessWidget {
                     color: MonoPulseColors.error,
                     size: 20,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: MonoPulseSpacing.sm),
                   Expanded(
                     child: Text(
                       error,

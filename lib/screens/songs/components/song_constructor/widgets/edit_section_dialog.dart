@@ -57,13 +57,13 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Edit Section', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             // Template dropdown
             Text(
               'Section Type:',
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             DropdownButtonFormField<String>(
               initialValue: _selectedTemplate,
               decoration: const InputDecoration(
@@ -85,7 +85,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             // Name field (for custom names)
             TextField(
               controller: _nameController,
@@ -101,13 +101,13 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 });
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             // Duration field with helper buttons
             Text(
               'Duration (phrases):',
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             Row(
               children: [
                 for (int i = 1; i <= 4; i++)
@@ -134,7 +134,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                       ),
                     ),
                   ),
-                const SizedBox(width: 4),
+                const SizedBox(width: MonoPulseSpacing.xs),
                 SizedBox(
                   width: 60,
                   child: TextField(
@@ -158,7 +158,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             // Notes field
             TextField(
               controller: _notesController,
@@ -170,7 +170,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
               maxLines: 3,
               maxLength: 100,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             // Lyrics + chords (ChordPro) field with live preview
             TextField(
               controller: _chordController,
@@ -185,9 +185,9 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
               onChanged: (_) => setState(() {}),
             ),
             if (_chordController.text.trim().isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: MonoPulseSpacing.md),
               Text('Preview:', style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 4),
+              const SizedBox(height: MonoPulseSpacing.xs),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(MonoPulseSpacing.md),
@@ -198,7 +198,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 child: ChordChartView(chart: _chordController.text),
               ),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             // Action buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -207,7 +207,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
                 CustomButton(
                   onPressed: () {
                     if (_nameController.text.trim().isEmpty) {

@@ -338,9 +338,9 @@ class _SuggestionDropdown extends StatelessWidget {
             color: Theme.of(context).colorScheme.error,
             size: 32,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           Text('Search failed', style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 4),
+          const SizedBox(height: MonoPulseSpacing.xs),
           Text(
             'Please try again',
             style: Theme.of(context).textTheme.bodySmall,
@@ -368,9 +368,9 @@ class _SuggestionDropdown extends StatelessWidget {
             color: Theme.of(context).colorScheme.outline,
             size: 32,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           Text('No songs found', style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 4),
+          const SizedBox(height: MonoPulseSpacing.xs),
           Text(
             'Try a different search',
             style: Theme.of(context).textTheme.bodySmall,

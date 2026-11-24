@@ -132,7 +132,7 @@ class _ModePill extends StatelessWidget {
                       : context.mp.textSecondary,
                   size: 18,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
               ],
               Flexible(
                 child: Text(

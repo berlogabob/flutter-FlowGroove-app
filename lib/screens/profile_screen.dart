@@ -319,13 +319,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   color: context.mp.textSecondary,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               if (isDesktopWeb) ...[
                 Center(
                   child: Container(
                     padding: const EdgeInsets.all(MonoPulseSpacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: MonoPulseColors.white,
                       borderRadius: BorderRadius.circular(
                         MonoPulseRadius.small,
                       ),
@@ -333,7 +333,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     child: QrImageView(data: botLink, size: 160),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: MonoPulseSpacing.sm),
                 Center(
                   child: Text(
                     'Scan with your phone - Telegram opens the FlowGroove bot',
@@ -342,7 +342,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: MonoPulseSpacing.lg),
               ],
               Container(
                 padding: const EdgeInsets.all(MonoPulseSpacing.md),
@@ -357,7 +357,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       'How it works:',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: MonoPulseSpacing.sm),
                     if (isDesktopWeb)
                       const Text('1. Scan the QR code with your phone')
                     else

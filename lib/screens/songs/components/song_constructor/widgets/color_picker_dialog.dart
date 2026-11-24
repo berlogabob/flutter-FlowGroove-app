@@ -47,9 +47,9 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(context),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           _buildTabBar(context),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           SizedBox(
             height: AppDimensions.colorPickerHeight,
             child: TabBarView(
@@ -61,7 +61,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           _buildActionButtons(context),
         ],
       ),
@@ -89,7 +89,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: MonoPulseSpacing.sm),
         IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
@@ -119,7 +119,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: MonoPulseSpacing.sm),
         ElevatedButton(
           onPressed: () {
             Navigator.pop(context, _selectedColor);
@@ -141,7 +141,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
       child: Column(
         children: [
           _buildThemeColorsGrid(context),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           _buildSuggestedColorsGrid(context),
         ],
       ),
@@ -167,7 +167,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
           'Suggested for ${widget.sectionName}:',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: MonoPulseSpacing.sm),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -214,11 +214,11 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
     return Column(
       children: [
         _buildHueSlider(context),
-        const SizedBox(height: 8),
+        const SizedBox(height: MonoPulseSpacing.sm),
         _buildSaturationSlider(context),
-        const SizedBox(height: 8),
+        const SizedBox(height: MonoPulseSpacing.sm),
         _buildBrightnessSlider(context),
-        const SizedBox(height: 16),
+        const SizedBox(height: MonoPulseSpacing.lg),
         _buildPaletteGrid(context),
       ],
     );
@@ -340,7 +340,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
     return Column(
       children: [
         _buildHexInput(context),
-        const SizedBox(height: 16),
+        const SizedBox(height: MonoPulseSpacing.lg),
         _buildHexPresets(context),
       ],
     );

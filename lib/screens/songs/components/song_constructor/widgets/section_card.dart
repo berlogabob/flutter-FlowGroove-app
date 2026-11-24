@@ -70,7 +70,7 @@ class SectionCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 4),
+        const SizedBox(height: MonoPulseSpacing.xs),
         Text(
           'Duration: ${section.duration} ${section.duration == 1 ? 'phrase' : 'phrases'}',
           style:
@@ -80,7 +80,7 @@ class SectionCard extends StatelessWidget {
               TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         if (section.notes.isNotEmpty) ...[
-          const SizedBox(height: 2),
+          const SizedBox(height: MonoPulseSpacing.xxs),
           Text(
             section.notes,
             style:
@@ -118,7 +118,7 @@ class SectionCard extends StatelessWidget {
             padding: const EdgeInsets.all(MonoPulseSpacing.sm),
             constraints: const BoxConstraints(),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: MonoPulseSpacing.xs),
           Icon(Icons.drag_handle, color: context.mp.textSecondary, size: 20),
         ],
       ],

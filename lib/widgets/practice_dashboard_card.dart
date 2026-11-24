@@ -93,7 +93,7 @@ class PracticeDashboardCard extends ConsumerWidget {
               color: context.mp.textSecondary,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: MonoPulseSpacing.xxs),
           const Text('No practice yet', style: MonoPulseTypography.titleMedium),
           if (tappable)
             Row(
@@ -127,14 +127,14 @@ class PracticeDashboardCard extends ConsumerWidget {
             color: context.mp.textSecondary,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: MonoPulseSpacing.xxs),
         Text(
           formatMinutes(stats.totalSecondsThisWeek),
           style: MonoPulseTypography.headlineLarge.copyWith(
             color: context.mp.textPrimary,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: MonoPulseSpacing.xxs),
         Text(
           [
             '${stats.sessionCountThisWeek} '
@@ -171,16 +171,16 @@ class _WeekBars extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             for (var i = 0; i < 7; i++) ...[
-              if (i > 0) const SizedBox(width: 2), // surface gap between bars
+              if (i > 0) const SizedBox(width: MonoPulseSpacing.xxs), // surface gap between bars
               _bar(context, i, maxSeconds),
             ],
           ],
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: MonoPulseSpacing.xxs),
         Row(
           children: [
             for (var i = 0; i < 7; i++) ...[
-              if (i > 0) const SizedBox(width: 2),
+              if (i > 0) const SizedBox(width: MonoPulseSpacing.xxs),
               SizedBox(
                 width: _barWidth,
                 child: Text(
@@ -218,7 +218,7 @@ class _WeekBars extends StatelessWidget {
             ? PracticeDashboardCard._todayBar
             : PracticeDashboardCard._pastBar,
         // Rounded data-end only; flat at the baseline.
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(MonoPulseRadius.xsmall)),
       ),
     );
   }

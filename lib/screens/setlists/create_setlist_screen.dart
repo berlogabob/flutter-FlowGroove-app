@@ -249,7 +249,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Break', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -263,7 +263,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                     ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               TextField(
                 controller: labelController,
                 decoration: const InputDecoration(
@@ -272,7 +272,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: MonoPulseSpacing.lg),
               Align(
                 alignment: Alignment.centerRight,
                 child: FilledButton(
@@ -312,7 +312,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.dark(
               primary: MonoPulseColors.accentOrange,
-              onPrimary: Colors.white,
+              onPrimary: MonoPulseColors.white,
               onSurface: context.mp.textPrimary,
             ),
           ),
@@ -658,7 +658,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                     ],
                   ),
                   if (_showEventDetails) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: MonoPulseSpacing.sm),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: Container(
@@ -712,7 +712,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       ),
                       onTap: _pickDate,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: MonoPulseSpacing.lg),
                     TextFormField(
                       controller: _eventLocationController,
                       decoration: const InputDecoration(
@@ -723,7 +723,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       onChanged: (_) => _markAsChanged(),
                       onFieldSubmitted: (_) => _saveSetlist(),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: MonoPulseSpacing.lg),
                     TextFormField(
                       controller: _descriptionController,
                       decoration: const InputDecoration(
@@ -733,7 +733,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       onChanged: (_) => _markAsChanged(),
                     ),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: MonoPulseSpacing.xxl),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -760,7 +760,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: MonoPulseSpacing.sm),
                   if (availableSongsAsync.hasError) ...[
                     Row(
                       children: [
@@ -778,7 +778,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: MonoPulseSpacing.sm),
                   ],
                   if (_selectedItems.isEmpty)
                     Container(
@@ -957,7 +957,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                         ),
                                         SetlistBpmSlot(song.ourBPM),
                                         if (song.spotifyUrl != null) ...[
-                                          const SizedBox(width: 4),
+                                          const SizedBox(width: MonoPulseSpacing.xs),
                                           InkWell(
                                             onTap: () async {
                                               final uri = Uri.parse(

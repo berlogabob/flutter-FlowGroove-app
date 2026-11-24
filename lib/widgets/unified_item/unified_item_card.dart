@@ -167,7 +167,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
                   size: 14,
                   color: MonoPulseColors.accentOrange,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: MonoPulseSpacing.xs),
                 Text(
                   '$displayBPM',
                   style: MonoPulseTypography.bodySmall.copyWith(
@@ -194,7 +194,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
                   size: 12,
                   color: context.mp.textTertiary,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: MonoPulseSpacing.xs),
                 Text(
                   song.contributedBy != null
                       ? 'Added by ${song.contributedBy}'
@@ -260,12 +260,12 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
     return Tooltip(
       message: key != null ? 'Key: $key' : 'Key not set',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm, vertical: MonoPulseSpacing.xxs),
         decoration: BoxDecoration(
           color: key != null
               ? MonoPulseColors.accentOrange10
               : context.mp.surfaceRaised,
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.xsmall),
         ),
         child: Text(
           key ?? '—',

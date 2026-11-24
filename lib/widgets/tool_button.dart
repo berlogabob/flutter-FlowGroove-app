@@ -82,10 +82,10 @@ class ToolButton extends StatelessWidget {
     // fills its grid cell, matching Quick Actions for consistent density (A9).
     return Material(
       color: isEnabled ? context.mp.surfaceRaised : context.mp.surfaceOverlay,
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(MonoPulseRadius.fab),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.fab),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.md,
@@ -95,7 +95,7 @@ class ToolButton extends StatelessWidget {
             color: isEnabled
                 ? context.mp.surfaceRaised
                 : context.mp.surfaceOverlay,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(MonoPulseRadius.fab),
             border: Border.all(color: context.mp.borderDefault),
             boxShadow: isEnabled
                 ? [

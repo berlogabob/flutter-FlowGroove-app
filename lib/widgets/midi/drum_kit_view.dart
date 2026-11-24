@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../models/midi_pattern.dart';
 import '../../services/audio/midi/drum_map.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 class DrumKitView extends StatefulWidget {
   const DrumKitView({
@@ -170,7 +171,7 @@ class _DrumKitViewState extends State<DrumKitView>
         selected: selected,
         showCheckmark: false,
         padding: EdgeInsets.zero,
-        labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+        labelPadding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.mdPlus),
         materialTapTargetSize: MaterialTapTargetSize.padded,
         onSelected: (_) => onToggle(lane),
       ),
