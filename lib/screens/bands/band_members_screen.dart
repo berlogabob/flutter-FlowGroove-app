@@ -87,7 +87,7 @@ class BandMembersScreen extends StatelessWidget {
                                     icon != null
                                         ? '$icon $displayName'
                                         : displayName,
-                                    style: const TextStyle(fontSize: 10),
+                                    style: MonoPulseTypography.labelSmall,
                                   ),
                                   padding: EdgeInsets.zero,
                                   materialTapTargetSize:

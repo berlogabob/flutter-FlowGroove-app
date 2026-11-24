@@ -61,7 +61,7 @@ class SuggestionCard extends StatelessWidget {
                 // Source icon
                 SourceIcon(source: suggestion.source),
 
-                const SizedBox(width: 10),
+                const SizedBox(width: MonoPulseSpacing.sm),
 
                 // Title
                 Expanded(
@@ -99,7 +99,7 @@ class SuggestionCard extends StatelessWidget {
 
             // Third row: badges and metadata
             if (_hasMetadata) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: MonoPulseSpacing.xs),
               Wrap(spacing: 6, runSpacing: 4, children: _buildBadges(context)),
             ],
           ],
@@ -205,7 +205,7 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) {
     final badge = Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 6,
+        horizontal: MonoPulseSpacing.sm,
         vertical: MonoPulseSpacing.xxs,
       ),
       decoration: BoxDecoration(
@@ -217,14 +217,12 @@ class _Badge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 12, color: color.withValues(alpha: opacity ?? 1.0)),
-          const SizedBox(width: 3),
+          const SizedBox(width: MonoPulseSpacing.xs),
           Flexible(
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 10,
+              style: MonoPulseTypography.labelSmall.copyWith(
                 color: color.withValues(alpha: opacity ?? 1.0),
-                fontWeight: FontWeight.w500,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

@@ -343,13 +343,13 @@ class _Row {
     }
     if (notes != null) {
       return Padding(
-        padding: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
         child: Text(notes!, style: Theme.of(context).textTheme.titleLarge),
       );
     }
     return RepaintBoundary(
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
         child: ChordLineView(segments: segments!, lyric: lyric, chord: chord),
       ),
     );

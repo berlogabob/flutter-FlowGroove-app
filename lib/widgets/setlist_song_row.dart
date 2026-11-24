@@ -134,8 +134,7 @@ class SetlistSongRow extends StatelessWidget {
                           performers,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12,
+                          style: MonoPulseTypography.bodySmall.copyWith(
                             color: context.mp.textTertiary,
                           ),
                         ),

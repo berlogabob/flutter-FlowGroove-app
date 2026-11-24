@@ -333,7 +333,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(
                 MonoPulseSpacing.lg,
-                10,
+                MonoPulseSpacing.md,
                 MonoPulseSpacing.sm,
                 MonoPulseSpacing.xs,
               ),
@@ -368,7 +368,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
                 MonoPulseSpacing.lg,
                 0,
                 MonoPulseSpacing.lg,
-                10,
+                MonoPulseSpacing.md,
               ),
               child: _thinMap(sections),
             )
@@ -420,7 +420,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 1),
                 decoration: BoxDecoration(
                   color: s.color,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(MonoPulseRadius.handle),
                 ),
               ),
             ),

@@ -387,7 +387,9 @@ class _MadeByFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final secondary = TextStyle(color: context.mp.textTertiary, fontSize: 12);
+    final secondary = MonoPulseTypography.bodySmall.copyWith(
+      color: context.mp.textTertiary,
+    );
 
     return Center(
       child: Row(

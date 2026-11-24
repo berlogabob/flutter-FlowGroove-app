@@ -368,7 +368,7 @@ class _TimePerSong extends StatelessWidget {
                   height: 8,
                   decoration: BoxDecoration(
                     color: colors[i],
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.handle),
                   ),
                 ),
                 const SizedBox(width: MonoPulseSpacing.sm),

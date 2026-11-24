@@ -506,7 +506,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 96),
+                      padding: const EdgeInsets.only(bottom: MonoPulseSpacing.fabClearance),
                       itemCount: visible.length,
                       itemBuilder: (context, i) => _entryCard(visible[i]),
                     ),
@@ -551,7 +551,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
                           'to prepare.',
                     )
                   : ListView(
-                      padding: const EdgeInsets.only(bottom: 96),
+                      padding: const EdgeInsets.only(bottom: MonoPulseSpacing.fabClearance),
                       children: [
                         for (final t in open) _taskCard(t),
                         if (closed.isNotEmpty)

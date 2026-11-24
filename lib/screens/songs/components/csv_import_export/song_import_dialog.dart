@@ -101,7 +101,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
                 textAlign: TextAlign.center,
                 style: MonoPulseTypography.bodyLarge,
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: MonoPulseSpacing.xxxl),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(

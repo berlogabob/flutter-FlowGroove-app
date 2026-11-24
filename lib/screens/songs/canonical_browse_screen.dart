@@ -144,7 +144,7 @@ class _CanonicalBrowseScreenState extends ConsumerState<CanonicalBrowseScreen> {
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 96),
+      padding: const EdgeInsets.only(bottom: MonoPulseSpacing.fabClearance),
       itemCount: _results.length,
       itemBuilder: (context, i) {
         final c = _results[i];

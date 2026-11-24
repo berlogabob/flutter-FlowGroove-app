@@ -489,10 +489,12 @@ class _SetupWizardState extends State<_SetupWizard> {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Set up for practice',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: MonoPulseTypography.titleLarge.copyWith(
+                    fontWeight: MonoPulseTypography.bold,
+                  ),
                 ),
               ),
               TextButton(

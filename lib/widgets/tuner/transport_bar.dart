@@ -231,7 +231,7 @@ class _VolumeControlState extends State<_VolumeControl> {
                       height: 3,
                       decoration: BoxDecoration(
                         color: MonoPulseColors.accentOrange,
-                        borderRadius: BorderRadius.circular(1.5),
+                        borderRadius: BorderRadius.circular(MonoPulseRadius.handle),
                       ),
                     ),
                   ),

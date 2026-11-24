@@ -51,7 +51,7 @@ class _SheetScaffold extends StatelessWidget {
               height: 4,
               decoration: BoxDecoration(
                 color: context.mp.borderDefault,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(MonoPulseRadius.handle),
               ),
             ),
           ),

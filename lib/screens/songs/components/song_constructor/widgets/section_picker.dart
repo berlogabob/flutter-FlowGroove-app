@@ -110,7 +110,9 @@ class _SectionPickerState extends State<SectionPicker>
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
-        labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+        labelStyle: MonoPulseTypography.labelLarge.copyWith(
+          fontWeight: MonoPulseTypography.semibold,
+        ),
         tabs: const [
           Tab(icon: Icon(Icons.grid_view, size: 24), text: 'Parts'),
           Tab(icon: Icon(Icons.palette, size: 24), text: 'Colors'),
@@ -255,7 +257,7 @@ class _SectionPickerState extends State<SectionPicker>
       context: context,
       builder: (context) => Dialog(
         child: Container(
-          padding: const EdgeInsets.all(25),
+          padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
           child: ColorPickerDialog(
             sectionName: sectionName,
             initialColor: currentColor,

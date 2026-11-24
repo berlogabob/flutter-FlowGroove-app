@@ -41,7 +41,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(25),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,9 +420,8 @@ class _HexPresetChip extends StatelessWidget {
         ),
         child: Text(
           hex,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
+          style: MonoPulseTypography.labelSmall.copyWith(
+            fontWeight: MonoPulseTypography.bold,
             color: color.computeLuminance() > 0.5
                 ? MonoPulseColors.black
                 : MonoPulseColors.white,

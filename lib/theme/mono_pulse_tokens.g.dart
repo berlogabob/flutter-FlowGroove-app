@@ -236,6 +236,7 @@ class MonoPulseSpacing {
   static const double xxxl = 32;
   static const double huge = 40;
   static const double massive = 48;
+  static const double fabClearance = 120;
 }
 
 class MonoPulseRadius {
@@ -250,6 +251,7 @@ class MonoPulseRadius {
   static const double fab = 6;
   static const double card = 7;
   static const double cardMaterial = 6;
+  static const double handle = 2;
 }
 
 class MonoPulseElevation {

@@ -89,7 +89,7 @@ class SuggestionSelectionDialog extends StatelessWidget {
                 size: 16,
                 color: theme.colorScheme.outline,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: MonoPulseSpacing.xs),
               Text(
                 _getSourceText(),
                 style: theme.textTheme.bodySmall?.copyWith(

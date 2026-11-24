@@ -126,7 +126,7 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
               height: 4,
               decoration: BoxDecoration(
                 color: context.mp.borderStrong,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(MonoPulseRadius.handle),
               ),
             ),
           ),

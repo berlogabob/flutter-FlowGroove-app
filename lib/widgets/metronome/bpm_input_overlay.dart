@@ -53,7 +53,7 @@ class _TempoInputSheetState extends ConsumerState<_TempoInputSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: context.mp.borderDefault,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(MonoPulseRadius.handle),
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.lg),

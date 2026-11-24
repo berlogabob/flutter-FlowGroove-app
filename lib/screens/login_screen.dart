@@ -458,8 +458,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: MonoPulseSpacing.sm),
               Text(
                 'Read-only access to explore all features',
-                style: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(color: context.mp.textTertiary, fontSize: 11),
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: context.mp.textTertiary,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

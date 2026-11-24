@@ -255,7 +255,7 @@ Widget _buildCircleStrip({
         scrollbarTheme: ScrollbarThemeData(
           thumbColor: WidgetStateProperty.all(context.mp.borderDefault),
           thickness: WidgetStateProperty.all(2),
-          radius: const Radius.circular(2),
+          radius: const Radius.circular(MonoPulseRadius.handle),
         ),
       ),
       child: SingleChildScrollView(

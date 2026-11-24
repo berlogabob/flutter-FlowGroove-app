@@ -248,7 +248,7 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
             if (view.stage != null) ..._stage(view),
             if (view.rider != null) ..._rider(view),
             ..._myRequests(view),
-            const SizedBox(height: 80),
+            const SizedBox(height: MonoPulseSpacing.fabClearance),
           ],
         ),
       ),

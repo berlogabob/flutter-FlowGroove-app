@@ -50,7 +50,7 @@ class AppBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.md,
-        vertical: 6,
+        vertical: MonoPulseSpacing.sm,
       ),
       decoration: BoxDecoration(
         color: solidLabelColor != null ? color : color.withValues(alpha: 0.1),
@@ -62,7 +62,7 @@ class AppBadge extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: MonoPulseIcons.sizeSmall, color: color),
-            const SizedBox(width: 6),
+            const SizedBox(width: MonoPulseSpacing.xs),
           ],
           Flexible(
             child: Text(

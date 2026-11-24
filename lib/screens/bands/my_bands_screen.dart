@@ -379,7 +379,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         !isDemo && appUser != null && band.adminUids.contains(appUser.uid);
     return UnifiedItemList<BandItemAdapter>(
       items: adapters,
-      padding: const EdgeInsets.only(bottom: 120), // clear the FAB (F-004)
+      padding: const EdgeInsets.only(bottom: MonoPulseSpacing.fabClearance), // clear the FAB (F-004)
       enableReorder: _sortOption == SortOption.manual,
       onReorder: _sortOption == SortOption.manual ? _handleReorder : null,
       onDelete: _handleDelete,

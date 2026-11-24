@@ -328,7 +328,12 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
           ),
         ),
         SafeArea(
-          minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          minimum: const EdgeInsets.fromLTRB(
+            MonoPulseSpacing.lg,
+            MonoPulseSpacing.sm,
+            MonoPulseSpacing.lg,
+            MonoPulseSpacing.md,
+          ),
           child: Row(
             children: [
               Expanded(
@@ -406,7 +411,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
           key: ValueKey('drum-cell-${lane.name}-$step'),
           onTap: enabled ? () => _toggle(lane, step) : null,
           child: Container(
-            margin: const EdgeInsets.all(3),
+            margin: const EdgeInsets.all(MonoPulseSpacing.xs),
             decoration: BoxDecoration(
               color: velocity == 0
                   ? (step % 4 == 0 ? colors.surfaceContainerHigh : null)

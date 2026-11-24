@@ -563,11 +563,11 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     avatar: Text(
                       p.icon ?? StageGear.iconFor(p.label, kind: p.kind),
-                      style: const TextStyle(fontSize: 11),
+                      style: MonoPulseTypography.labelSmall,
                     ),
                     label: Text(
                       p.displayLabel,
-                      style: const TextStyle(fontSize: 10),
+                      style: MonoPulseTypography.labelSmall,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -804,7 +804,7 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
           ),
           child: Row(
             children: [
-              Text(entry.icon, style: const TextStyle(fontSize: 18)),
+              Text(entry.icon, style: MonoPulseTypography.bodyLarge),
               const SizedBox(width: MonoPulseSpacing.sm),
               Expanded(
                 child: Text(
@@ -987,7 +987,7 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
                                 selectedTileColor: MonoPulseColors.stone,
                                 leading: Text(
                                   icon,
-                                  style: const TextStyle(fontSize: 18),
+                                  style: MonoPulseTypography.bodyLarge,
                                 ),
                                 title: Text(
                                   memberLabel(
@@ -1021,7 +1021,7 @@ class _AddPlacementSheetState extends State<_AddPlacementSheet> {
                           dense: true,
                           leading: Text(
                             StageGear.iconFor(trimmedQuery),
-                            style: const TextStyle(fontSize: 18),
+                            style: MonoPulseTypography.bodyLarge,
                           ),
                           title: Text('Add "$trimmedQuery"'),
                           onTap: () => _addCustomGear(trimmedQuery),

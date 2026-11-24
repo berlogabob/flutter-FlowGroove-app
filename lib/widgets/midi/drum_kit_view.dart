@@ -231,9 +231,8 @@ class DrumKitPainter extends CustomPainter {
       final label = TextPainter(
         text: TextSpan(
           text: lanePadLabel(entry.key),
-          style: TextStyle(
+          style: MonoPulseTypography.labelSmall.copyWith(
             color: strength > 0.5 ? colors.onPrimary : colors.onSurface,
-            fontSize: 12,
           ),
         ),
         textDirection: TextDirection.ltr,

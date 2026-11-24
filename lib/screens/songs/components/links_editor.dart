@@ -201,7 +201,9 @@ class _LinkChip extends StatelessWidget {
       onPressed: link.url.trim().isEmpty ? null : () => _open(context),
       label: Text(
         label,
-        style: TextStyle(fontSize: 12, color: context.mp.textPrimary),
+        style: MonoPulseTypography.labelSmall.copyWith(
+          color: context.mp.textPrimary,
+        ),
       ),
       deleteIcon: Icon(Icons.close, size: 16, color: context.mp.textSecondary),
       onDeleted: onDeleted,

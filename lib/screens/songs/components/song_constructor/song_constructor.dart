@@ -81,7 +81,7 @@ class _SongConstructorState extends State<SongConstructor> {
       context: context,
       builder: (dialogContext) => Dialog(
         child: Container(
-          padding: const EdgeInsets.all(25),
+          padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
           child: SectionPicker(
             onSectionSelected: (name) {
               setState(() {
@@ -226,11 +226,10 @@ class _SongConstructorState extends State<SongConstructor> {
                           key: const Key('song_constructor_auto_generate'),
                           onPressed: _autoGenerate,
                           icon: const Icon(Icons.auto_awesome, size: 16),
-                          label: const Text(
+                          label: Text(
                             'Auto',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                            style: MonoPulseTypography.labelMedium.copyWith(
+                              fontWeight: MonoPulseTypography.semibold,
                             ),
                           ),
                           style: TextButton.styleFrom(

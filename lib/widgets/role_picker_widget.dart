@@ -233,7 +233,7 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (icon != null)
-                            Text(icon, style: const TextStyle(fontSize: 16)),
+                            Text(icon, style: MonoPulseTypography.bodyLarge),
                           if (icon != null) const SizedBox(width: MonoPulseSpacing.xs),
                           Text(
                             displayName,

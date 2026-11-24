@@ -111,7 +111,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
   );
 
   Widget _statusBar(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(14, 9, 14, 5),
+    padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.mdPlus, MonoPulseSpacing.sm, MonoPulseSpacing.mdPlus, MonoPulseSpacing.xs),
     child: Row(
       children: [
         Text('9:41', style: Theme.of(context).textTheme.labelSmall),
@@ -121,16 +121,16 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           size: 15,
           color: context.mp.textPrimary,
         ),
-        const SizedBox(width: 5),
+        const SizedBox(width: MonoPulseSpacing.xs),
         Icon(Icons.wifi, size: 15, color: context.mp.textPrimary),
-        const SizedBox(width: 5),
+        const SizedBox(width: MonoPulseSpacing.xs),
         Icon(Icons.battery_full, size: 16, color: context.mp.textPrimary),
       ],
     ),
   );
 
   Widget _brandBar(BuildContext context) => Container(
-    padding: const EdgeInsets.fromLTRB(14, 7, 14, 9),
+    padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.mdPlus, MonoPulseSpacing.sm, MonoPulseSpacing.mdPlus, MonoPulseSpacing.sm),
     decoration: BoxDecoration(
       border: Border(bottom: BorderSide(color: context.mp.borderDefault)),
     ),
@@ -150,7 +150,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
             color: MonoPulseColors.charcoal,
           ),
         ),
-        const SizedBox(width: 9),
+        const SizedBox(width: MonoPulseSpacing.sm),
         const Text('FlowGroove', style: MonoPulseTypography.labelMedium),
         const Spacer(),
         Icon(Icons.more_horiz, color: context.mp.textSecondary),
@@ -159,7 +159,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
   );
 
   Widget _setlistView(BuildContext context) => ListView(
-    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+    padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.mdPlus, MonoPulseSpacing.md, MonoPulseSpacing.mdPlus, MonoPulseSpacing.md),
     children: [
       Text(
         'Setlist / Lisbon',
@@ -167,7 +167,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           color: MonoPulseColors.petrol,
         ),
       ),
-      const SizedBox(height: 5),
+      const SizedBox(height: MonoPulseSpacing.xs),
       Text('A Fechada', style: Theme.of(context).textTheme.headlineMedium),
       const SizedBox(height: MonoPulseSpacing.xs),
       Text(
@@ -179,7 +179,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
       const SizedBox(height: MonoPulseSpacing.sm),
       AppCard(
         variant: AppCardVariant.raised,
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+        padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: MonoPulseSpacing.sm),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -189,7 +189,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           ],
         ),
       ),
-      const SizedBox(height: 7),
+      const SizedBox(height: MonoPulseSpacing.sm),
       for (var i = 0; i < _songs.length; i++)
         SetlistSongRow(
           index: i,
@@ -208,7 +208,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
   );
 
   Widget _songView(BuildContext context) => ListView(
-    padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+    padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.mdPlus, MonoPulseSpacing.md, MonoPulseSpacing.mdPlus, MonoPulseSpacing.mdPlus),
     children: [
       Text(
         'Song / our version',
@@ -216,7 +216,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           color: MonoPulseColors.petrol,
         ),
       ),
-      const SizedBox(height: 5),
+      const SizedBox(height: MonoPulseSpacing.xs),
       Text('Viento Helado', style: Theme.of(context).textTheme.headlineMedium),
       Text(
         'Sol Vk',
@@ -224,7 +224,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           context,
         ).textTheme.bodyMedium?.copyWith(color: context.mp.textSecondary),
       ),
-      const SizedBox(height: 9),
+      const SizedBox(height: MonoPulseSpacing.sm),
       const Wrap(
         spacing: 7,
         children: [
@@ -235,7 +235,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
       ),
       const SizedBox(height: MonoPulseSpacing.mdPlus),
       const Text('Structure', style: MonoPulseTypography.labelMedium),
-      const SizedBox(height: 6),
+      const SizedBox(height: MonoPulseSpacing.xs),
       for (final section in const [
         ('Intro', '8 bars', 'Am'),
         ('Verse 1', '16 bars', 'Am'),
@@ -244,9 +244,9 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
         ('Bridge', '8 bars', 'C'),
       ])
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
+          padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xs),
           child: AppCard(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm, vertical: MonoPulseSpacing.sm),
             child: Row(
               children: [
                 Expanded(
@@ -261,7 +261,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
                     color: context.mp.textTertiary,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: MonoPulseSpacing.sm),
                 Text(
                   section.$3,
                   style: MonoPulseTypography.labelLarge.copyWith(
@@ -272,12 +272,12 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
             ),
           ),
         ),
-      const SizedBox(height: 11),
+      const SizedBox(height: MonoPulseSpacing.md),
       const Text('Lyrics + chords', style: MonoPulseTypography.labelMedium),
-      const SizedBox(height: 6),
+      const SizedBox(height: MonoPulseSpacing.xs),
       const AppCard(
         variant: AppCardVariant.raised,
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.all(MonoPulseSpacing.md),
         child: ChordChartView(
           chart:
               '[Am]Viento helado\nme lleva [F]lejos\n\n[C]Entre la sombra\ny el [G]sol',
@@ -288,7 +288,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
   );
 
   Widget _addSongView(BuildContext context) => ListView(
-    padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+    padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.mdPlus, MonoPulseSpacing.md, MonoPulseSpacing.mdPlus, MonoPulseSpacing.mdPlus),
     children: [
       Text(
         'New song / details',
@@ -296,21 +296,21 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           color: MonoPulseColors.petrol,
         ),
       ),
-      const SizedBox(height: 5),
+      const SizedBox(height: MonoPulseSpacing.xs),
       Text('Add a song', style: Theme.of(context).textTheme.headlineMedium),
-      const SizedBox(height: 10),
+      const SizedBox(height: MonoPulseSpacing.sm),
       const CustomTextField(
         label: 'Song title',
         hint: 'e.g. Viento Helado',
         prefixIcon: Icons.music_note,
       ),
-      const SizedBox(height: 9),
+      const SizedBox(height: MonoPulseSpacing.sm),
       const CustomTextField(
         label: 'Artist / writer',
         hint: 'Who wrote or performs it?',
         prefixIcon: Icons.person_outline,
       ),
-      const SizedBox(height: 10),
+      const SizedBox(height: MonoPulseSpacing.sm),
       Row(
         children: [
           Expanded(
@@ -322,13 +322,13 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
           ),
         ],
       ),
-      const SizedBox(height: 9),
+      const SizedBox(height: MonoPulseSpacing.sm),
       AppCard(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: MonoPulseSpacing.sm),
         child: Row(
           children: [
             Icon(Icons.speed, color: context.mp.textSecondary, size: 19),
-            const SizedBox(width: 9),
+            const SizedBox(width: MonoPulseSpacing.sm),
             const Expanded(
               child: Text('Tempo', style: MonoPulseTypography.labelMedium),
             ),
@@ -350,7 +350,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
       ),
       const SizedBox(height: MonoPulseSpacing.md),
       const Text('Structure', style: MonoPulseTypography.labelMedium),
-      const SizedBox(height: 3),
+      const SizedBox(height: MonoPulseSpacing.xs),
       Wrap(
         spacing: 5,
         children: [
@@ -370,11 +370,11 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
       ),
       const SizedBox(height: MonoPulseSpacing.sm),
       AppCard(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: MonoPulseSpacing.sm),
         child: Row(
           children: [
             Icon(Icons.drag_indicator, color: context.mp.textTertiary),
-            const SizedBox(width: 6),
+            const SizedBox(width: MonoPulseSpacing.xs),
             Expanded(
               child: Text(
                 'Verse 1',
@@ -389,12 +389,12 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
                 color: MonoPulseColors.petrol,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: MonoPulseSpacing.xs),
             Icon(Icons.more_horiz, color: context.mp.textSecondary),
           ],
         ),
       ),
-      const SizedBox(height: 10),
+      const SizedBox(height: MonoPulseSpacing.sm),
       CustomButton(
         label: 'Add recording',
         icon: Icons.add,
@@ -419,7 +419,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
   ) => InputDecorator(
     decoration: InputDecoration(
       labelText: label,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      contentPadding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: MonoPulseSpacing.xs),
     ),
     child: DropdownButtonHideUnderline(
       child: DropdownButton<String>(
@@ -437,7 +437,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
   );
 
   Widget _saveSongBar(BuildContext context) => Container(
-    padding: const EdgeInsets.all(9),
+    padding: const EdgeInsets.all(MonoPulseSpacing.sm),
     decoration: BoxDecoration(
       color: context.mp.surfaceRaised,
       border: Border(top: BorderSide(color: context.mp.borderDefault)),
@@ -451,7 +451,7 @@ class _FlowGrooveScreenExamplesState extends State<FlowGrooveScreenExamples> {
   );
 
   Widget _transportBar(BuildContext context) => Container(
-    padding: const EdgeInsets.all(9),
+    padding: const EdgeInsets.all(MonoPulseSpacing.sm),
     decoration: BoxDecoration(
       color: context.mp.surfaceRaised,
       border: Border(top: BorderSide(color: context.mp.borderDefault)),
@@ -501,7 +501,7 @@ class _ReadoutPlate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+    padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm, vertical: MonoPulseSpacing.sm),
     decoration: BoxDecoration(
       color: context.mp.surfaceRaised,
       border: Border.all(color: context.mp.borderDefault),

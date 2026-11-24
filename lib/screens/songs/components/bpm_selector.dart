@@ -210,7 +210,9 @@ Widget _keyMiniDropdown(
               value: k,
               child: Text(
                 k.isEmpty ? '-' : k,
-                style: TextStyle(fontSize: 13, color: context.mp.textPrimary),
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: context.mp.textPrimary,
+                ),
               ),
             ),
           )

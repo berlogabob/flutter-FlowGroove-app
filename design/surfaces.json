@@ -715,7 +715,7 @@
   {
     "key": "recorder_screen._linkToSong",
     "kind": "sheet",
-    "source": "lib/screens/recorder_screen.dart:187",
+    "source": "lib/screens/recorder_screen.dart:186",
     "widget": "_linkToSong",
     "spec": "design/figcraft/specs/recorder_link_recording_to_song.json"
   },
@@ -919,9 +919,9 @@
   {
     "key": "section_picker.ColorPickerDialog",
     "kind": "dialog",
-    "source": "lib/screens/songs/components/song_constructor/widgets/section_picker.dart:254",
+    "source": "lib/screens/songs/components/song_constructor/widgets/section_picker.dart:256",
     "widget": "ColorPickerDialog",
-    "spec": null
+    "spec": "design/figcraft/specs/color_picker_dialog.json"
   },
   {
     "key": "song_editor_screen.EditSectionDialog",

@@ -132,9 +132,8 @@ class _RecordingCard extends ConsumerWidget {
         onTap: () => context.goAudioNote(recording),
         title: Text(
           recording.title ?? 'Take · ${d.day}/${d.month}',
-          style: MonoPulseTypography.titleLarge.copyWith(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
+          style: MonoPulseTypography.titleMedium.copyWith(
+              fontWeight: FontWeight.w700,
           ),
         ),
         subtitle: Column(

@@ -82,7 +82,7 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
                     child: clusters.isEmpty
                         ? const Center(child: Text('No duplicate songs found.'))
                         : ListView.builder(
-                            padding: const EdgeInsets.only(bottom: 96),
+                            padding: const EdgeInsets.only(bottom: MonoPulseSpacing.fabClearance),
                             itemCount: clusters.length,
                             itemBuilder: (context, index) =>
                                 _clusterCard(clusters[index]),
