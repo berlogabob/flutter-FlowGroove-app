@@ -20,20 +20,124 @@ _RAW_PATTERNS = {
 }
 
 
-def raw_counts(lib_dir: str) -> dict[str, int]:
-    """Count selected raw Flutter style values outside exempt source files."""
-    counts = {key: 0 for key in _RAW_PATTERNS}
+_NUMBER = re.compile(r"\b\d+(?:\.\d+)?\b")
+_TWEAK_ARGS = {"color", "fontWeight", "fontStyle", "decoration", "decorationColor", "decorationStyle"}
+_RAW_COLOUR = re.compile(r"\bColors\.(?!transparent\b)[a-z]|Color\(\s*0x|Color\.from(?:ARGB|RGBO)\(")
+
+
+def _call_end(source: str, open_index: int) -> int:
+    """Index just past the parenthesis closing the one at ``open_index``."""
+    depth = 0
+    for i in range(open_index, len(source)):
+        depth += (source[i] == "(") - (source[i] == ")")
+        if depth == 0:
+            return i + 1
+    return len(source)
+
+
+def _value_end(source: str, i: int) -> int:
+    """Index of the ',' or closing bracket ending the argument value that contains ``i``."""
+    depth = 0
+    while i < len(source):
+        char = source[i]
+        if char in "([{":
+            depth += 1
+        elif char in ")]}":
+            if depth == 0:
+                return i
+            depth -= 1
+        elif char == "," and depth == 0:
+            return i
+        i += 1
+    return len(source)
+
+
+def _top_level_names(args: str) -> list[str]:
+    """Names of the named arguments of a call body (positional arguments give an empty name)."""
+    names, depth, start = [], 0, 0
+    for i, char in enumerate(args + ","):
+        depth += char in "([{" 
+        depth -= char in ")]}"
+        if char == "," and depth == 0:
+            part = args[start:i].strip()
+            if part:
+                match = re.match(r"(\w+)\s*:", part)
+                names.append(match.group(1) if match else "")
+            start = i + 1
+    return names
+
+
+def _is_style_tweak(call: str) -> bool:
+    """TextStyle(...) that only adjusts colour/weight/style/decoration with non-raw values."""
+    body = call[call.index("(") + 1:-1]
+    return all(name in _TWEAK_ARGS for name in _top_level_names(body)) and not _RAW_COLOUR.search(body)
+
+
+def raw_hits(source: str) -> list[tuple[str, str, int, int]]:
+    """Raw style values of a source as (key, expression, start, end). ds-allow lines are not part of the source."""
+    hits = []
+    for key, pattern in _RAW_PATTERNS.items():
+        for match in pattern.finditer(source):
+            start, end = match.start(), match.end()
+            if key == "TextStyle":
+                end = _call_end(source, end - 1)
+                if _is_style_tweak(source[start:end]):
+                    continue
+            elif key in ("EdgeInsets", "SizedBox", "radius"):
+                end = _call_end(source, source.index("(", start))  # the whole call, not up to its first digit
+                if key == "EdgeInsets" and all(float(n) == 0 for n in _NUMBER.findall(match.group())):
+                    continue  # only zeros: nothing raw
+            elif key == "fontSize":
+                end = _value_end(source, end - 1)
+            hits.append((key, " ".join(source[start:end].split()), start, end))
+    return hits
+
+
+def _lib_sources(lib_dir: str):
     root = Path(lib_dir)
-    for path in root.rglob("*.dart"):
+    for path in sorted(root.rglob("*.dart")):
         relative = path.relative_to(root).as_posix()
         if path.name.endswith((".g.dart", ".freezed.dart")):
             continue
         if relative.startswith("theme/") or relative == "services/export/pdf_service.dart":
             continue
-        source = "\n".join(line for line in path.read_text(encoding="utf-8").splitlines() if not ALLOW.search(line))
-        for key, pattern in _RAW_PATTERNS.items():
-            counts[key] += len(pattern.findall(source))
+        yield relative, "\n".join(line for line in path.read_text(encoding="utf-8").splitlines() if not ALLOW.search(line))
+
+
+def raw_counts(lib_dir: str) -> dict[str, int]:
+    """Count selected raw Flutter style values outside exempt source files."""
+    counts = {key: 0 for key in _RAW_PATTERNS}
+    for _, source in _lib_sources(lib_dir):
+        for key, *_ in raw_hits(source):
+            counts[key] += 1
     return counts
+
+
+def load_allow(path: Path) -> set[tuple[str, str]]:
+    """Intentional raw values from lines ``lib-relative path | expression | reason`` (reason required)."""
+    allowed = set()
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if not line.strip() or line.startswith("#"):
+                continue
+            parts = [part.strip() for part in line.split(" | ", 2)]
+            if len(parts) == 3 and all(parts):
+                allowed.add((parts[0], " ".join(parts[1].split())))
+    return allowed
+
+
+def unexplained(lib_dir: str, allow_path: Path) -> list[tuple[str, str, str]]:
+    """Raw values (path, key, expression) not covered by the allow list; a value inside a listed one is covered."""
+    allowed = load_allow(allow_path)
+    missing = []
+    for relative, source in _lib_sources(lib_dir):
+        hits = raw_hits(source)
+        spans = [(start, end) for _, expr, start, end in hits if (relative, expr) in allowed]
+        for key, expr, start, end in hits:
+            if (relative, expr) in allowed or any(a <= start and end <= b for a, b in spans):
+                continue
+            missing.append((relative, key, expr))
+    return missing
 
 
 def spec_files(specs_dir):

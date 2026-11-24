@@ -26,6 +26,25 @@ class MetricsTests(unittest.TestCase):
                 {"fontSize": 1, "TextStyle": 1, "EdgeInsets": 1, "SizedBox": 1, "radius": 1, "Colors": 1},
             )
 
+    def test_text_style_tweaks_and_zero_insets_are_not_raw(self):
+        def counts(code):
+            with tempfile.TemporaryDirectory() as tmp:
+                (Path(tmp) / "a.dart").write_text(code)
+                return raw_counts(tmp)
+        tweak = counts("TextStyle(color: context.mp.textPrimary, fontWeight: FontWeight.w700, "
+                       "decoration: TextDecoration.underline); EdgeInsets.zero; EdgeInsets.only(left: 0, top: 0); "
+                       "EdgeInsets.fromLTRB(0, 0, 0, 0)")
+        self.assertEqual(0, tweak["TextStyle"])
+        self.assertEqual(0, tweak["EdgeInsets"])
+        # fontSize, fontFamily, a raw colour, or any non-zero inset keeps counting.
+        self.assertEqual(1, counts("TextStyle(fontSize: 12)")["TextStyle"])
+        self.assertEqual(1, counts("TextStyle(fontFamily: 'x', color: c)")["TextStyle"])
+        self.assertEqual(1, counts("TextStyle(color: Color(0xFF000000))")["TextStyle"])
+        self.assertEqual(1, counts("TextStyle(color: Colors.red)")["TextStyle"])
+        self.assertEqual(1, counts("TextStyle(color: c, fontWeight: w, letterSpacing: 2)")["TextStyle"])
+        self.assertEqual(1, counts("EdgeInsets.only(left: 0, top: 4)")["EdgeInsets"])
+        self.assertEqual(1, counts("EdgeInsets.fromLTRB(0, 0, 0, 10.5)")["EdgeInsets"])
+
     def test_raw_counts_respects_reasons_and_exact_exemption(self):
         with tempfile.TemporaryDirectory() as tmp:
             lib = Path(tmp)
