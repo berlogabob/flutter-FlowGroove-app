@@ -2,10 +2,30 @@
 
 ## Make targets
 
-- `make design-check` runs the offline spec check, the FigCraft command dry run, Code Connect component verification, and the contrast matrix. It fails if any command fails and does not require FigCraft.
-- `make design` runs `python3 design/figcraft/build.py all` to rebuild the FigCraft library. FigCraft must already be running with its control channel; this target does not start it.
+| Target | What it does |
+|---|---|
+| `make design-guard` | Runs on every commit and in CI. `stable-layout-check`, `surfaces.py --check`, the guard unit tests, `gate_guard.py`, `diff_lint.py`, `ratchet.py` and `design/test_hooks.sh`. Fails when a gate is loosened or a raw value is added. |
+| `make design-check` | Offline: `stable-layout-check`, `surfaces.py --check`, `ratchet.py`, `build.py check`, `build.py dryrun`, `build.py verify-components`, `contrast.py`. Needs no FigCraft. |
+| `make stable-layout-check` | `scripts/check_stable_layout.py`: flags Dart ternaries that change layout and chips that add a checkmark. Intentional cases are listed with a reason in `design/stable_layout_allow.txt`. |
+| `make design-render` | Runs `test/design_render/render_test.dart` in matrix mode (both themes, four widths, several text sizes) and writes dumps and PNGs to `design/render/` (not committed). |
+| `make design-parity` | Runs the render test, then `parity_check.py`. |
+| `make design-diff` | Renders `HEAD~1` and the working tree and writes a visual change report with `render_diff.py`. |
+| `make design-metrics` | `metrics.py --append`: adds a dated KPI row to `design/metrics.jsonl`. |
+| `make design` | `build.py all`: rebuilds the whole FigCraft library in a new scratch document (see Builder commands). FigCraft must already be running with its control channel; this target does not start it. |
 
-`python3 design/figcraft/build.py dryrun [commands.json]` runs the build with simulated FigCraft responses. It checks command IDs and top-level parameter names, including commands inside batches. It uses the catalog at `../_plans/song-map/fc_commands.json` relative to the repository root by default. The dry run uses temporary registries and simulates image export and parity scores.
+## Builder commands
+
+`python3 design/figcraft/build.py <command>`. FigCraft must run with its control channel (see the docstring in `build.py`).
+
+| Command | What it does |
+|---|---|
+| `check [spec.json ...]` | Offline. Expands each spec (all of them by default) and reports unknown pages, icons, links, `also` values and component-variant size differences. |
+| `dryrun [commands.json]` | Runs the whole build against simulated FigCraft responses. Checks command IDs and top-level parameter names, including commands inside batches, against `design/figcraft/fc_commands.json` by default. Uses temporary registries. |
+| `verify-components` | Offline. Checks that each linked widget has a component and that template placeholders can be filled. |
+| `screen <spec.json> [--png out.png]` | Redraws one frame in the working document, replacing the previous frame of the same name, and optionally exports it as a PNG. Needs the `.components.json` index of the working document. |
+| `setup`, `all` | Full rebuild (`setup`: variables, text styles, pages, components; `all`: also every frame). They build in a NEW scratch document with their own indexes under `design/figcraft/.scratch/`, then switch back to the working document. They do not touch the working document or its index files. The scratch document stays open and unsaved. |
+| `drift`, `pull` | Compare the open document with `design/tokens/tokens.json` (`drift` exits 1 on any difference); `pull` writes the changes to `tokens.json` and regenerates the Dart tokens. |
+| `export-connect` | Writes `figcraft.connect.json` (components linked to Flutter widgets). |
 
 One JSON file per screen in `design/figcraft/specs/<screen>.json`. `build.py` turns it into an
 editable 412x915 auto-layout frame in FigCraft (Android phone, Dark by default). Check a spec offline
@@ -19,7 +39,9 @@ with `python3 design/figcraft/build.py check design/figcraft/specs/<screen>.json
   "name": "Songs",                 // frame name, unique
   "page": "Songs",                 // Auth | Home & Tools | Songs | Setlists | Bands | Settings | Song Map
   "mode": "dark",                  // optional: light | dark, selects the MonoPulse variable mode
-  "source": "lib/screens/...dart", // the Dart file it recreates
+  "source": "lib/screens/...dart", // the Dart file it recreates; "path.dart:LINE" anchors a sheet or dialog
+  "also": ["lib/x.dart:120", "/route/:id"], // optional: further surfaces this frame also draws
+  "route": "/songs",               // optional: the app route it shows
   "slot": 0,                       // position on the page (0,1,2... per page, unique per page)
   "links": [{"from": "Back", "to": "Songs"}], // optional prototype connections (node name -> frame name)
   "bg": "black",                   // optional screen background token
@@ -31,6 +53,13 @@ with `python3 design/figcraft/build.py check design/figcraft/specs/<screen>.json
 ```
 
 A status bar (28 px) is added automatically on top.
+
+`source`, `also` and `route` tie a frame to the code. `design/surfaces.py` lists every route, sheet,
+dialog and tool state in `lib/` and finds the frame for each: by `route`, by a `source` or `also` line
+anchor within 3 lines, or by name (the frame name with spaces removed equals the widget name, so
+"Edit Section Dialog" matches `EditSectionDialog`). `also` takes `"lib/...dart:LINE"` anchors and
+`"/route"` strings. After code moves, re-point the anchors and run `python3 design/surfaces.py` to
+regenerate `design/surfaces.json`.
 
 `links` connects a named node in this screen to a destination frame by its `name`. `all` adds
 click-to-navigate interactions after building every frame. `check` verifies destination frame names
@@ -54,7 +83,7 @@ Defaults: in a column, children fill the width; in a row, they hug.
 | `button` | `v` label, `kind` (primary/secondary/text/tonal/danger), `icon`, `w`, `small` | CustomButton; primary = ElevatedButton (orange), secondary = OutlinedButton |
 | `fab` | `icon`, `v` | FloatingActionButton (white, charcoal border) |
 | `chip` | `v`, `sel`, `icon` | AppFilterChip |
-| `input` | `label`, `hint`, `v` (filled value), `icon`, `trail`, `lines` | CustomTextField (white fill) |
+| `input` | `label` (drawn above the field), `hint`, `v` (filled value), `icon`, `trail`, `lines` | CustomTextField (white fill, label above). Dropdowns use the same label through `LabeledField` and `AppDropdownField`. |
 | `tile` | `lead` (icon name, initials, or a node), `title`, `sub`, `trail` (icon name / text / node / list), `pad`, `bg` | ListTile |
 | `switchrow` | `title`, `sub`, `lead`, `on` | SwitchListTile |
 | `switch` / `checkbox` | `on` | controls |
@@ -62,7 +91,7 @@ Defaults: in a column, children fill the width; in a row, they hug.
 | `segmented` | `items`, `sel`, optional `icons` (one icon name per item) | SegmentedButton / ToggleButtons |
 | `slider` / `progress` | `value` 0..1 | slider / LinearProgressIndicator |
 | `section` | `v`, `action` | section header with optional trailing link |
-| `badge` | `v`, `icon`, `bg`, `color` | AppBadge: small pill (key, BPM, role, status) |
+| `badge` | `v`, `icon`, `bg`, `color` | AppBadge: small pill (key, BPM, role, status); a filled `bg` is `AppBadge.solid` |
 | `avatar` | `v` initials or `icon`, `size`, `bg` | UserAvatar |
 | `divider` | `color` | 1 px line |
 | `spacer` | `size` (px) or nothing (flex) | gap / Spacer() |
@@ -124,8 +153,14 @@ Text styles (MonoPulseTypography): `displayLarge` 40, `displayMedium` 32, `headl
 `bodyLarge` 16, `bodyMedium` 15, `bodySmall` 13, `caption` 12 (Source Serif 4); `labelLarge` 15,
 `labelMedium` 13, `labelSmall` 12 (Arial bold); `mono`.
 
-Spacing (MonoPulseSpacing): xxs 2, xs 4, sm 8, md 12, lg 16, xl 20, xxl 24, xxxl 32, huge 40,
-massive 48. Radius (MonoPulseRadius): small 8, medium 10, large 12, xlarge 16, huge 20, massive 24.
+Spacing (MonoPulseSpacing): xxs 2, xs 4, sm 8, md 12, mdPlus 14, lg 16, xl 20, xxl 24, xxxl 32,
+huge 40, massive 48, fabClearance 120 (bottom room so the floating button never covers the last row).
+Radius (MonoPulseRadius): xsmall 4, small 8, medium 10, large 12, xlarge 16, huge 20, massive 24,
+plus button 5, fab 6, card 7, cardMaterial 6 and handle 2 (sheet drag handle).
+
+`design/tokens/tokens.json` is the single source. After editing it, run
+`python3 design/tokens/tokens.py gen` to write `lib/theme/mono_pulse_tokens.g.dart` (`tokens.py check`
+fails when the generated file is stale). Never edit the generated file by hand.
 
 ## Rules
 
@@ -141,8 +176,25 @@ Stable layout is the main design-system rule for every component.
 | **S4. Reserve or overlay appearing content.** Banners, hints, errors and loaders use a reserved slot or an overlay. Reflow is allowed only for an explicit user-tapped expand or collapse, and it animates. | Reserve a line under an input for its error message. | Insert the error as a new row that pushes the rest of the form down. |
 | **S5. Align list columns.** Give each column a fixed slot across rows and keep slots for missing values. | Keep a BPM slot in every song row, including songs without a tempo. | Move the key or trailing actions into the BPM slot when a value is missing. |
 
+`make stable-layout-check` finds state-dependent geometry in Dart, and the render test's component state
+matrix and screen toggles check that no rect moves when a state changes.
+
 `build.py check` checks the width and height of component-set variants offline. It compares states
 at the same declared Button Size or Input Lines setting.
+
+### Frames and code
+
+- The app follows the approved frames. When the app and a frame differ, change the code to match.
+- A control the app has is never removed to match a frame. Redraw the frame so it shows the control.
+- Build UI only from design-system components (`lib/widgets/`) and tokens. No raw sizes or colours in
+  `lib/`; an intentional exception is a line ending in `// ds-allow: <reason>` or an entry in
+  `design/raw_allow.txt`.
+- Orange (`accentOrange`) is reserved for playing, selected and the one main action of a screen. Text
+  buttons use the text colour.
+- Sibling actions share one button style (for example Discard and Done, Cancel and Save).
+- Field labels sit above the field. There are no floating labels.
+- Changing a frame, `design/figcraft/specs`, `tokens.json` or a locked parity line needs approval and a
+  `Design-Approved: <who, when>` line in the commit message.
 
 ### Screen composition
 
@@ -168,10 +220,10 @@ Examples: `examples/modal_dialog.json`, `examples/modal_sheet.json`.
 `setup` and `all` build a component library on the "Components" page, and screens use instances of it:
 - **CustomButton:** variants Variant (Primary, Secondary, Outline, Text, Tonal, Danger, following CustomButton), Size (Small, Medium, Large), and State (Default, Disabled, Loading). Disabled uses 38% opacity; Loading shows a spinner glyph instead of the label. Spec `kind: secondary` still means Outline; `kind: white` gives CustomButton's white Secondary; `size: small|medium|large` is optional.
 - **FloatingActionButton, IconButton, AppBadge:** single components.
-- **AppFilterChip:** variant State (Default, Selected, Disabled). Disabled uses 38% opacity.
+- **AppFilterChip:** variant State (Default, Selected, Disabled). Unselected: raised surface, default border, primary text. Selected: stone with a charcoal label. Disabled uses 38% opacity.
 - **UserAvatar:** variant Type (Initials, Icon).
 - **Switch, Checkbox:** variant State (On, Off).
-- **CustomTextField:** variants State (Hint, Filled, Focus, Error, Disabled) and Lines (Single, Multi). All states use a 2 px border and reserve a helper line. Focus uses `accentOrange`; Error uses `error` and shows the helper text; Disabled uses 38% opacity.
+- **CustomTextField:** the label sits above the field (`FieldLabel`, `LabeledField` for non-text inputs). Variants State (Hint, Filled, Focus, Error, Disabled) and Lines (Single, Multi). All states use a 2 px border and reserve a helper line. Typed text is charcoal on the white fill in both themes. Focus uses `accentOrange`; Error uses `error` and shows the helper text; Disabled uses 38% opacity.
 - **Slider, LinearProgressIndicator:** variant Value, in 10% steps.
 - **Tab, ButtonSegment, NavTab:** variant State.
 - **AppBottomBar:** variant Tab includes Actions and navigation tabs in one component set. Screen footers place individual NavTab instances so each tab can carry its own prototype link.
@@ -192,7 +244,7 @@ Examples: `examples/modal_dialog.json`, `examples/modal_sheet.json`.
 
 Labels, titles and icons are text properties. An icon property holds the Material glyph, and the icon layer is renamed `icon/<name>`. Optional parts have `Show …` boolean properties. Spec keys an instance can't express, such as a wrapping card, fall back to plain layers.
 
-Rebuild one screen: `build.py screen specs/x.json`. It needs `.components.json`, written by `setup` and `all`.
+Rebuild one screen: `build.py screen specs/x.json`. It needs `.components.json` of the working document.
 
 ## Tokens, docs, Code Connect
 
@@ -201,3 +253,23 @@ Rebuild one screen: `build.py screen specs/x.json`. It needs `.components.json`,
 - **Code Connect:** the `CONNECT` map in build.py links components to Flutter widgets, exported to `figcraft.connect.json`.
 - **Publishing:** `all` publishes the file as a library.
 - **Plan:** see PLAN.md.
+
+## How a designer works with this
+
+1. Edit a spec in `design/figcraft/specs/`, or add one (set `source`, `route` or `also`, and add the key to `design/render_keys.txt` when the screen has a render opener).
+2. `python3 design/figcraft/build.py check design/figcraft/specs/<name>.json`.
+3. `python3 design/figcraft/build.py screen design/figcraft/specs/<name>.json --png out.png`, then look at the PNG and the frame.
+4. `make design-parity`: the render test draws the real screen and `parity_check.py` compares its structure with the frame. Fix the code or redraw the frame until it passes.
+5. `python3 design/figcraft/parity_check.py --lock-passing` locks newly passing frames in `design/parity_lock.txt`.
+6. `make design-guard`, then commit with a `Design-Approved: <who, when>` line.
+
+## Checks and gates
+
+- `design/parity_lock.txt`: one render key per line; a locked frame must keep passing. Removing a line needs approval.
+- `design/figcraft/debug_only.txt`: labels drawn only under `kDebugMode`; parity ignores them (a test proves each is inside such a branch).
+- `design/surfaces.py`: inventory of every surface in `lib/`, kinds `route`, `sheet`, `dialog`, `state` and `system` (date and time pickers drawn by the OS: no frame needed). `--check` fails when `design/surfaces.json` is stale.
+- `design/metrics.py`: KPIs. k1 reused widgets linked to components; k2 rendered/inventoried surfaces; k3 locked frames passing parity; k4 off-scale spacing and radius values in specs; k5 raw size and colour values in `lib/` by kind, `k5_unexplained` those not listed in `design/raw_allow.txt` (`path | expression | reason`); k6 FigCraft names that differ from the Dart class; k7 matrix cells without overflow (theme x width x text scale); k8 render keys per distinct spec.
+- `design/ratchet.py` with `design/ratchets.json`: fails when a tracked metric grows. Values only go down.
+- `design/diff_lint.py`: rejects raw values in lines added to `lib/` (a `// ds-allow: <reason>` line is exempt).
+- `design/gate_guard.py`: rejects loosened gates (raised ratchets, removed lock lines, deleted tests, fewer `expect` calls, added skips). In CI, `--base <ref>` compares with the merge-base; a `Design-Approved:` line in the pushed commits lets an approved change through.
+- Hooks (`.githooks/`, enable with `make setup`) and `.github/workflows/checks.yml` run these guards.

@@ -95,6 +95,7 @@ Deploy target:
 - Offline-first data flow with Hive-backed local caching
 - Firebase Auth, Firestore, and Storage integration
 - In-app account deletion (Google Play compliant), removing all associated data
+- Paste a list: add songs from a pasted text list (notes app, chat) to a setlist, the song library or a band's song list, with a review step; a row without an artist matches a library song by title
 - CSV and FlowGroove Song JSON import/export (documented, AI-ready schema; paste auto-detects format) plus PDF export
 - Search-to-autofill from MusicBrainz (type the artist too to rank the right recording first), enriched with tempo/key from Deezer and lyrics from lyrics.ovh (split into Verse/Chorus sections); accepting a match drops in tappable provenance links (MusicBrainz, Spotify, YouTube, chords, lyrics); your own library is excluded from suggestions
 - Bring-your-own-AI: copy a prompt for ChatGPT/Claude/Gemini, or connect an agent via MCP — a one-click remote OAuth connector (spike) or a per-user API key + local server — FlowGroove pays no AI tokens
@@ -164,7 +165,7 @@ Deploy target:
 
 ## App design system
 
-The Flutter app’s current visual tokens, component patterns, and implementation guidance are documented in [FLOWGROOVE_DESIGN_SYSTEM.md](FLOWGROOVE_DESIGN_SYSTEM.md), with the existing component API catalog in [COMPONENT_LIBRARY.md](COMPONENT_LIBRARY.md) and implementation rules in [DESIGN_SYSTEM_LINT.md](DESIGN_SYSTEM_LINT.md). Preview the system without Firebase or sign-in with `flutter run -d chrome -t tool/design_system_preview.dart`; the reference includes interactive setlist, song, and add-song examples.
+The Flutter app’s current visual tokens, component patterns, and implementation guidance are documented in [FLOWGROOVE_DESIGN_SYSTEM.md](FLOWGROOVE_DESIGN_SYSTEM.md), with the existing component API catalog in [COMPONENT_LIBRARY.md](COMPONENT_LIBRARY.md) and implementation rules in [DESIGN_SYSTEM_LINT.md](DESIGN_SYSTEM_LINT.md). Every app surface has a frame in `design/figcraft/specs/`, and the app follows the approved frames; the workflow, tools and commit guards are described in [design/figcraft/SPEC.md](design/figcraft/SPEC.md). Preview the system without Firebase or sign-in with `flutter run -d chrome -t tool/design_system_preview.dart`; the reference includes interactive setlist, song, and add-song examples.
 
 ## Documentation
 

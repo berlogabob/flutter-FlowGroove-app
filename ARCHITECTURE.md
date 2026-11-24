@@ -428,6 +428,10 @@ Primary service areas:
 - Song JSON import/export — versioned, documented format
   (`services/json/song_json_codec.dart`, schema in `docs/SONG_JSON_SCHEMA.md`); the
   import dialog auto-detects JSON vs CSV. This is the contract the AI/MCP layer writes against.
+- Paste a list (`services/paste/pasted_song_parser.dart`, flow in
+  `screens/songs/components/paste_list/paste_list_flow.dart`): turns pasted text into
+  title/artist rows (up to 200), a review sheet, then saves through the song repository;
+  a row without an artist matches a library song by title.
 - connectivity and cache control
 - matching/search utilities
 - external API wrappers for Spotify and MusicBrainz

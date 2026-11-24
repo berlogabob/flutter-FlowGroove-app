@@ -124,6 +124,14 @@ make release
 
 This builds APK + AAB and attempts the tagged GitHub release flow.
 
+For a small test APK to share by hand (under 30 MB, arm64 only), run:
+
+```bash
+FG_COMPRESS_NATIVE_LIBS=1 FLUTTER_BUILD_ARGS="--split-per-abi --target-platform android-arm64" ./scripts/build-mobile-with-env.sh apk
+```
+
+`FLUTTER_BUILD_ARGS` adds flags to `flutter build`. `FG_COMPRESS_NATIVE_LIBS=1` stores the native libraries compressed (smaller APK, slightly larger install). Store builds leave both unset.
+
 Mobile builds now use compile-time dart-defines instead of bundled `assets/env.json`.
 If local `.env` exists, the build script uses it. Otherwise it falls back to the tracked demo source `assets/env.demo.json`.
 `TRACK_ANALYSIS_API_KEY` is intentionally excluded from client build inputs until that integration moves behind a backend proxy.

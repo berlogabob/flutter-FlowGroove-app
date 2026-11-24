@@ -59,24 +59,29 @@ CustomButton(
 
 ## CustomTextField
 
-Input field with label, hint, validation, and consistent styling.
+Input field with the label above the field, hint, validation and consistent styling. The field is white in both themes and typed text is charcoal. There are no floating labels.
 
 **Location:** `lib/widgets/custom_text_field.dart`
 
 ### Props
-- `label` (String?) — Label above field
+- `label` (String?) — Label drawn above the field (`FieldLabel`, excluded from semantics; the field itself is announced with it)
 - `hint` (String?) — Placeholder when empty
-- `controller` (TextEditingController?) — Input controller
-- `onChanged` (ValueChanged<String>?) — On text change
-- `validator` (Function?) — Form validation
-- `required` (bool) — Shows red * on label
-- `keyboardType` (TextInputType) — Numeric, email, etc.
+- `controller` (TextEditingController?) / `initialValue` (String?) — Input controller or starting text
+- `onChanged` (ValueChanged<String>?) / `onSubmitted` (ValueChanged<String>?) — On text change / submit
+- `validator` (Function?) / `autovalidateMode` (AutovalidateMode?) — Form validation
+- `required` (bool) — Shows a red * on the label
+- `keyboardType` (TextInputType), `textInputAction` (TextInputAction?), `textCapitalization` (TextCapitalization)
 - `obscureText` (bool) — Password field
-- `maxLines` (int?) — Single line (1) or multi-line
-- `prefixIcon` (IconData?) — Icon before input
-- `suffix` (Widget?) — Widget after input (e.g., clear button)
-- `readOnly` (bool) — Disable editing
-- `onFocus` / `onBlur` (VoidCallback?) — Focus callbacks
+- `maxLines` (int?), `minLines` (int?), `maxLength` (int?) — Lines and length limits
+- `prefixIcon` (IconData?), `suffix` (Widget?), `prefixText` / `suffixText` (String?)
+- `helperText` / `errorText` (String?) — Text under the field; `errorText` overrides the validator message
+- `counterText` (String?) — Replaces the character counter (empty string hides it)
+- `readOnly` (bool), `enabled` (bool) — Disabled fields use a Stone fill
+- `onFocus` / `onBlur` / `onTap` (VoidCallback?) — Focus and tap callbacks
+- `inputFormatters` (List<TextInputFormatter>?)
+- `fieldKey` (Key?), `focusNode` (FocusNode?), `autofocus` (bool) — Test and focus handles
+- `textAlign` (TextAlign), `style` (TextStyle?), `isDense` (bool?), `contentPadding` (EdgeInsetsGeometry?)
+- `semanticsLabel` (String?) — Announced name when there is no visible label (hint only)
 
 ### Usage
 ```dart
@@ -111,6 +116,22 @@ CustomTextField(
 - ✅ Error messages read by screen readers
 
 ---
+
+## FieldLabel / LabeledField
+
+`lib/widgets/field_label.dart` — the label drawn above an input. `FieldLabel(label, {required})` is medium-weight body text with an optional red asterisk. `LabeledField(label:, child:, required:)` stacks a `FieldLabel` above any input with the design-system gap (`MonoPulseSpacing.md`). `CustomTextField` uses `FieldLabel` itself; use `LabeledField` for pickers and other non-text inputs so labels never float onto the field.
+
+## AppDropdownField
+
+`lib/widgets/app_dropdown_field.dart` — dropdown form field for the white input fill. Props: `items`, `onChanged`, `initialValue`, `decoration`, `hint`, `isExpanded`. The selected value, the arrow and the open menu are dark on white in both themes; the menu is white. Put a `FieldLabel` or `LabeledField` above it.
+
+## AppBadge
+
+`lib/widgets/app_badge.dart` — small pill for key, BPM, role and status. `AppBadge(label, {icon, trailingIcon, color, outlined})` tints the pill with `color`. `AppBadge.solid(label:, color:, labelColor:)` fills the pill with `color` and sets the label colour (white or charcoal by contrast, for example Song Map section letters).
+
+## AppFilterChip
+
+`lib/widgets/app_filter_chip.dart` — filter chip with no checkmark. Selected: Stone fill, charcoal label, shallow shadow. Unselected: raised surface, default border, primary text (`unselectedBackgroundColor` overrides the fill). Selection never changes the chip's size.
 
 ## AppIconButton
 
@@ -369,12 +390,14 @@ MonoPulseSpacing.xxs = 2px
 MonoPulseSpacing.xs = 4px
 MonoPulseSpacing.sm = 8px
 MonoPulseSpacing.md = 12px
+MonoPulseSpacing.mdPlus = 14px
 MonoPulseSpacing.lg = 16px
 MonoPulseSpacing.xl = 20px
 MonoPulseSpacing.xxl = 24px
 MonoPulseSpacing.xxxl = 32px
 MonoPulseSpacing.huge = 40px
 MonoPulseSpacing.massive = 48px
+MonoPulseSpacing.fabClearance = 120px  // bottom room so the floating button does not cover the last row
 ```
 
 ### Usage
@@ -391,6 +414,8 @@ Padding(
 // Bad (raw numeric)
 Padding(padding: EdgeInsets.all(16), child: child)
 ```
+
+Radius tokens (`MonoPulseRadius`): xsmall 4, small 8, medium 10, large 12, xlarge 16, huge 20, massive 24, plus button 5, fab 6, card 7, cardMaterial 6 and handle 2 (sheet drag handle). Tokens come from `design/tokens/tokens.json`; run `python3 design/tokens/tokens.py gen` after editing it.
 
 ---
 
