@@ -89,6 +89,13 @@ class FlattenTest(unittest.TestCase):
         self.assertEqual(["Edit"], flatten({"body": [{"t": "avatar", "icon": "person"}],
                                             "overlay": [{"node": {"t": "text", "v": "Edit"}}]}, set())["texts"])
 
+    def test_input_value_is_not_a_text_but_label_and_hint_are(self):
+        flat = flatten({"body": [{"t": "input", "label": "Rename", "hint": "Name", "v": "Bridge"}]}, set())
+        self.assertEqual(["Rename", "Name"], flat["texts"])
+        self.assertEqual(["input"], flat["kinds"])
+        # Only inputs: a text node's value stays.
+        self.assertEqual(["Bridge"], flatten({"body": [{"t": "text", "v": "Bridge"}]}, set())["texts"])
+
 
 if __name__ == "__main__":
     unittest.main()

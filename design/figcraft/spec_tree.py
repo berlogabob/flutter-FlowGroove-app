@@ -60,7 +60,8 @@ def flatten(spec: dict, icons: set[str]) -> dict:
             "text": ("v",),
             "button": ("v",),
             "chip": ("v",),
-            "input": ("label", "hint", "v"),
+            # A field's typed value is an EditableText, not a Text: the dump never captures it.
+            "input": ("label", "hint"),
             "tile": ("title", "sub", "trail"),
             "switchrow": ("title", "sub"),
             "tabs": ("items",),
