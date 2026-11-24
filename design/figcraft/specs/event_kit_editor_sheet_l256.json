@@ -5,8 +5,19 @@
   "slot": 1,
   "modal": "sheet",
   "body": [
+    {"t": "col", "gap": 12, "pad": 16, "opacity": 0.4, "h": "fill", "name": "Screen behind", "c": [
+      {"t": "text", "v": "Stage plot", "style": "titleMedium"},
+      {"t": "text", "v": "Tap a zone to place people and gear. Long-press a chip to remove it. Top row is the back of the stage.", "style": "bodySmall", "color": "textSecondary"},
+      {"t": "text", "v": "▼ audience ▼", "style": "bodySmall", "color": "textSecondary", "align": "center"},
+      {"t": "text", "v": "Crew & guests", "style": "titleMedium"},
+      {"t": "chip", "v": "Add person", "icon": "person_add"},
+      {"t": "text", "v": "Rider / equipment", "style": "titleMedium"},
+      {"t": "chip", "v": "Add rider item", "icon": "add"},
+      {"t": "text", "v": "Role cards", "style": "titleMedium"},
+      {"t": "text", "v": "Everyone involved in this event — band, crew and guests. These print in the event-guide PDF.", "style": "bodySmall", "color": "textSecondary"}
+    ]},
     {"t": "sheet", "gap": 16, "c": [
-      {"t": "input", "label": "Rider item (e.g. XLR cables ×4)", "v": "XLR cables ×4"}
+      {"t": "input", "label": "Rider item (e.g. XLR cables ×4)"}
     ]}
   ]
 }
