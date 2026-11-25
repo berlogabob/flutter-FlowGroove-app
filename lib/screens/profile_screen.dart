@@ -700,8 +700,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
     if (confirm != true || !mounted) return;
-
-    // Non-dismissible progress while the server cascades the deletion.
+    final rootNav = Navigator.of(context, rootNavigator: true);
+    // Non-dismissible progress, on the root navigator: pop it there too.
     unawaited(
       showDialog<void>(
         context: context,
@@ -712,25 +712,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     try {
       await AccountFunctionService().deleteAccount();
-      if (!mounted) return;
-      Navigator.pop(context); // dismiss progress
-      await ref.read(appUserProvider.notifier).signOut();
-      if (mounted) context.goNamed('login');
     } on FirebaseFunctionsException catch (e) {
+      rootNav.pop(); // dismiss progress
       if (!mounted) return;
-      Navigator.pop(context); // dismiss progress
       final msg = e.code == 'failed-precondition'
           ? (e.message ?? 'This account cannot be deleted.')
           : 'Could not delete your account. Please try again.';
       showAppSnackBar(context, msg);
+      return;
     } catch (_) {
+      rootNav.pop(); // dismiss progress
       if (!mounted) return;
-      Navigator.pop(context); // dismiss progress
       showAppSnackBar(
         context,
         'Could not delete your account. Please try again.',
       );
+      return;
     }
+    rootNav.pop(); // dismiss progress
+    if (!mounted) return; // the auth change already sent us to login
+    await ref.read(appUserProvider.notifier).signOut();
+    if (mounted) context.goNamed('login');
   }
 
   Widget _buildSection({

@@ -342,7 +342,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           setState(() => _duration = duration);
         }),
         _player.positionStream.listen((position) {
-          if (!mounted || _changingClip) return;
+          if (!mounted || _changingClip || _webLoopBack(position)) return;
           if (_pendingLoop != null &&
               (_player.playbackEvent.currentIndex ?? 0) > 0) {
             return; // The next WAV's position uses a different origin.
@@ -3096,6 +3096,17 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     } else {
       setState(() => _undoRegions = before);
     }
+  }
+
+  /// just_audio_web stops watching a clip's end after its first repeat and
+  /// plays on past the part: loop it here instead. True when it seeked back.
+  bool _webLoopBack(Duration position) {
+    final end = _clipEnd;
+    if (!kIsWeb || !_playing || end == null) return false;
+    if (_audioLoopMode != LoopMode.one) return false;
+    if (position.inMilliseconds < end - _clipStart) return false;
+    unawaited(_player.seek(Duration.zero));
+    return true;
   }
 }
 

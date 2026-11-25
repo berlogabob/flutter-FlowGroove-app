@@ -175,6 +175,28 @@ void main() {
         final notifier = container.read(appUserProvider.notifier);
         expect(notifier, isNotNull);
       });
+
+      test('appUserProvider shows the users doc displayName over auth', () async {
+        when(mockUser.uid).thenReturn('u1');
+        when(mockUser.email).thenReturn('a@b.c');
+        when(mockUser.displayName).thenReturn('Old Name');
+        when(mockUser.photoURL).thenReturn(null);
+        final c = ProviderContainer(
+          overrides: [
+            firebaseAuthProvider.overrideWithValue(mockFirebaseAuth),
+            cacheServiceProvider.overrideWithValue(mockCacheService),
+            authStateProvider.overrideWith((ref) => Stream.value(mockUser)),
+            userDocProvider.overrideWith(
+              (ref) => Stream.value({'displayName': 'New Name'}),
+            ),
+          ],
+        );
+        addTearDown(c.dispose);
+        c.listen(appUserProvider, (_, _) {});
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
+        expect(c.read(appUserProvider).value?.displayName, 'New Name');
+      });
     });
 
     group('Authentication Flow - Sign In', () {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -268,7 +270,9 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   void _handleBack() {
     if (context.canPop()) {
-      context.pop();
+      // Same path as system back, so a screen's PopScope (unsaved changes)
+      // is asked; context.pop() would bypass it.
+      unawaited(GoRouter.of(context).routerDelegate.popRoute());
     } else {
       context.go('/main/home');
     }

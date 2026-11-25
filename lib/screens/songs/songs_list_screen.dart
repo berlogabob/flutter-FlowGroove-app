@@ -49,13 +49,11 @@ class SongsFilterSortNotifier extends Notifier<SongsFilterSortState> {
     state = state.copyWith(filterText: text);
   }
 
-  void setKeyFilter(String? key) {
-    state = state.copyWith(keyFilter: key);
-  }
+  void setKeyFilter(String? key) =>
+      state = state.copyWith(keyFilter: key, clearKeyFilter: key == null);
 
-  void setBpmFilter(int? bpm) {
-    state = state.copyWith(bpmFilter: bpm);
-  }
+  void setBpmFilter(int? bpm) =>
+      state = state.copyWith(bpmFilter: bpm, clearBpmFilter: bpm == null);
 
   void setTagFilter(String? tag) {
     if (tag == null) {
@@ -97,13 +95,15 @@ class SongsFilterSortState {
     String? keyFilter,
     int? bpmFilter,
     String? tagFilter,
+    bool clearKeyFilter = false,
+    bool clearBpmFilter = false,
     bool clearTagFilter = false,
   }) {
     return SongsFilterSortState(
       sortOption: sortOption ?? this.sortOption,
       filterText: filterText ?? this.filterText,
-      keyFilter: keyFilter ?? this.keyFilter,
-      bpmFilter: bpmFilter ?? this.bpmFilter,
+      keyFilter: clearKeyFilter ? null : (keyFilter ?? this.keyFilter),
+      bpmFilter: clearBpmFilter ? null : (bpmFilter ?? this.bpmFilter),
       tagFilter: clearTagFilter ? null : (tagFilter ?? this.tagFilter),
     );
   }

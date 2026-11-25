@@ -203,6 +203,11 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
           );
         }
 
+        // The doc name is the one the user edited; auth's displayName does not
+        // refresh on updateDisplayName, so it would show the old name.
+        final docName = (data['displayName'] as String?)?.trim() ?? '';
+        if (docName.isNotEmpty) displayName = docName;
+
         final telegramConsent = data['telegramConsent'] == true;
         final telegramUsername = telegramConsent
             ? data['telegramUsername'] as String?

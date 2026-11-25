@@ -157,6 +157,9 @@ class SetlistViewScreen extends ConsumerWidget {
                 eventPerms?.access ??
                     {for (final a in EventArea.all) a: EventAccessLevel.edit},
                 isMember: eventPerms?.isMember ?? true,
+                ownerUid: bandId == null
+                    ? ref.read(currentUserProvider).value?.uid
+                    : null,
               ),
             ),
         ],
@@ -204,6 +207,7 @@ class SetlistViewScreen extends ConsumerWidget {
     Setlist live,
     Map<String, String> access, {
     required bool isMember,
+    String? ownerUid,
   }) {
     // rootNavigator: cover the shell so its bottom bar doesn't stack under the
     // editor's own bar (the double-bar bug).
@@ -214,6 +218,7 @@ class SetlistViewScreen extends ConsumerWidget {
           bandId: bandId,
           access: access,
           isMember: isMember,
+          ownerUid: ownerUid,
         ),
       ),
     );

@@ -698,4 +698,18 @@ void main() {
       expect(find.text('Slow Song'), findsNothing);
     });
   });
+
+  test('key and BPM filters can be cleared again', () {
+    final c = ProviderContainer();
+    addTearDown(c.dispose);
+    final n = c.read(songsFilterSortProvider.notifier);
+    n.setKeyFilter('G');
+    n.setBpmFilter(100);
+    expect(c.read(songsFilterSortProvider).keyFilter, 'G');
+    expect(c.read(songsFilterSortProvider).bpmFilter, 100);
+    n.setKeyFilter(null);
+    n.setBpmFilter(null);
+    expect(c.read(songsFilterSortProvider).keyFilter, isNull);
+    expect(c.read(songsFilterSortProvider).bpmFilter, isNull);
+  });
 }

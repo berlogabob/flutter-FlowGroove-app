@@ -30,7 +30,7 @@ class _ApiAccessScreenState extends State<ApiAccessScreen> {
     _keys = _service.listKeys();
   }
 
-  void _reload() => setState(() => _keys = _service.listKeys());
+  void _reload() => setState(() { _keys = _service.listKeys(); });
 
   Future<void> _createKey() async {
     final spec = await showModalBottomSheet<({String scope, String label})>(

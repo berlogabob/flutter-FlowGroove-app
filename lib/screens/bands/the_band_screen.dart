@@ -314,7 +314,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Edit Band Name'),
         content: CustomTextField(
           label: 'Band Name',
@@ -323,11 +323,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: _isSaving ? null : _saveBandName,
+            onPressed: _isSaving ? null : () => _saveBandName(dialogContext),
             child: _isSaving
                 ? const SizedBox(
                     width: 16,
@@ -342,10 +342,10 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   }
 
   /// Save band name
-  Future<void> _saveBandName() async {
+  Future<void> _saveBandName(BuildContext dialogContext) async {
     final newName = _nameController.text.trim();
     if (newName.isEmpty || newName == widget.band.name) {
-      Navigator.pop(context);
+      Navigator.pop(dialogContext);
       return;
     }
 
@@ -357,11 +357,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       if (user == null) return;
 
       final updatedBand = widget.band.copyWith(name: newName);
-      final bandRepo = ref.read(firestoreProvider);
-      await bandRepo.saveBand(updatedBand, uid: user.uid);
+      await ref.read(firestoreProvider).saveBandToGlobal(updatedBand);
+      await ref.read(firestoreProvider).saveBand(updatedBand, uid: user.uid);
 
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(dialogContext);
         showAppSnackBar(context, 'Band name updated successfully');
       }
     } catch (e) {
@@ -381,7 +381,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Edit Description'),
         content: CustomTextField(
           label: 'Description',
@@ -392,11 +392,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: _isSaving ? null : _saveDescription,
+            onPressed: _isSaving ? null : () => _saveDescription(dialogContext),
             child: _isSaving
                 ? const SizedBox(
                     width: 16,
@@ -411,10 +411,10 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   }
 
   /// Save description
-  Future<void> _saveDescription() async {
+  Future<void> _saveDescription(BuildContext dialogContext) async {
     final newDescription = _descriptionController.text.trim();
     if (newDescription == widget.band.description) {
-      Navigator.pop(context);
+      Navigator.pop(dialogContext);
       return;
     }
 
@@ -428,11 +428,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       final updatedBand = widget.band.copyWith(
         description: newDescription.isEmpty ? null : newDescription,
       );
-      final bandRepo = ref.read(firestoreProvider);
-      await bandRepo.saveBand(updatedBand, uid: user.uid);
+      await ref.read(firestoreProvider).saveBandToGlobal(updatedBand);
+      await ref.read(firestoreProvider).saveBand(updatedBand, uid: user.uid);
 
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(dialogContext);
         showAppSnackBar(context, 'Description updated successfully');
       }
     } catch (e) {

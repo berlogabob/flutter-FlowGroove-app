@@ -74,7 +74,7 @@ case "$PLATFORM" in
     WRAP="$(mktemp -d)/chrome-autoplay.sh"   # outside the repo: chromedriver may not exec scripts from it
     # Synthetic taps are not user activation, so Chrome would refuse audio.play(): lift that policy.
     # Fake microphone, no permission prompt, for the recorder checks.
-    printf '#!/bin/bash\nexec "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --autoplay-policy=no-user-gesture-required --use-fake-ui-for-media-stream --use-fake-device-for-media-stream "$@"\n' > "$WRAP"
+    printf '#!/bin/bash\nexec "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --autoplay-policy=no-user-gesture-required --mute-audio --use-fake-ui-for-media-stream --use-fake-device-for-media-stream "$@"\n' > "$WRAP"
     chmod +x "$WRAP"
     DEFINES=(--browser-dimension=480x900 --chrome-binary="$WRAP")
     ;;

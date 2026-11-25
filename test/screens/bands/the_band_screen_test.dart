@@ -5,6 +5,8 @@ import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/bands/the_band_screen.dart';
+import 'package:flowgroove/services/firestore_service.dart';
+import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -15,8 +17,82 @@ import '../../helpers/mocks.dart';
 import '../../helpers/mocks.mocks.dart';
 import '../../helpers/routed_test_harness.dart';
 
+class _RecordingFirestore implements FirestoreService {
+  final calls = <String>[];
+
+  @override
+  Future<void> saveBandToGlobal(Band band) async =>
+      calls.add('global:${band.name}');
+
+  @override
+  Future<void> saveBand(Band band, {String? uid}) async =>
+      calls.add('user:${band.name}');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
 void main() {
   group('TheBandScreen', () {
+    testWidgets('rename saves the shared band too and closes only the dialog', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1000, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      MenuScopeRegistry.reset();
+
+      final band = MockDataHelper.createMockBand(
+        id: 'band-123',
+        name: 'Band 123',
+        members: [BandMember(uid: 'test-user-id', role: BandMember.roleAdmin)],
+      );
+      final firebaseUser = MockUser();
+      when(firebaseUser.uid).thenReturn('test-user-id');
+      final fs = _RecordingFirestore();
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/bands/band-123',
+        routes: [
+          GoRoute(
+            path: '/main/bands/:id',
+            name: 'the-band',
+            builder: (context, state) => TheBandScreen(band: band),
+          ),
+        ],
+        overrides: [
+          firestoreProvider.overrideWithValue(fs),
+          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([band])),
+          currentUserProvider.overrideWithValue(
+            AsyncValue<User?>.data(firebaseUser),
+          ),
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
+          ),
+          bandSongsProvider.overrideWith(
+            (ref, bandId) => Stream<List<Song>>.value([]),
+          ),
+          bandSetlistsProvider.overrideWith(
+            (ref, bandId) => Stream<List<Setlist>>.value([]),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      final menu = MenuScopeRegistry.forLocation('/main/bands/band-123')!;
+      menu.items.firstWhere((i) => i.label == 'Edit Band Name').onTap!();
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Renamed');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(fs.calls, ['global:Renamed', 'user:Renamed']);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.byType(TheBandScreen), findsOneWidget);
+    });
+
     testWidgets('Setlist action opens create route with bandId', (
       tester,
     ) async {

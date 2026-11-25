@@ -280,7 +280,8 @@ void registerEventsChecks() {
         }
       }
       await tapOn(tester, find.text('Share links inventory'), 'Share links inventory chip');
-      await see(tester, find.text('Check Guest'), 'the share for Check Guest in the inventory', seconds: 15);
+      // The roster behind the dialog also shows the name: wait for the inventory's own Revoke button.
+      await see(tester, find.byTooltip('Revoke Check Guest'), 'the share for Check Guest in the inventory', seconds: 15);
       if (!found(find.textContaining('active'))) fail('expected the new share to be active; on screen: ${onScreen()}');
       await tapOn(tester, find.byTooltip('Revoke Check Guest'), 'Revoke button');
       await see(tester, find.text('Revoke share link?'), 'revoke confirmation');
