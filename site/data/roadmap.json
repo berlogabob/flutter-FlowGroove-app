@@ -1129,6 +1129,78 @@
       "type": "Issue",
       "state": "CLOSED",
       "status": "Done"
+    },
+    {
+      "title": "Web: Song Map loop stops after one pass of the selected part",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/223",
+      "number": 223,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Songs: key and tempo filters cannot be removed one at a time",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/224",
+      "number": 224,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Setlist editor: the Back button in the bottom bar discards edits without asking",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/225",
+      "number": 225,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Band: saving a new band name or description closes the wrong screen and can crash the app",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/226",
+      "number": 226,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Band: a renamed band keeps its old name for the other members",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/227",
+      "number": 227,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Profile: a changed name does not show after saving",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/228",
+      "number": 228,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Delete account leaves a blank screen instead of the login screen",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/229",
+      "number": 229,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Event share link: the owner of a personal setlist cannot see or revoke the links they created",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/230",
+      "number": 230,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Song Map: Click and Drums do not work in practice",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/231",
+      "number": 231,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Todo"
     }
   ]
 }

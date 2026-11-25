@@ -499,8 +499,8 @@ deploy-functions:
 		exit 1; \
 	}
 	@echo "🧪 Running the full functions suite (emulator suites need JDK 21+)..."
-	@JAVA_HOME="$$(/usr/libexec/java_home -v 21+ 2>/dev/null || echo "$$JAVA_HOME")" \
-		npm --prefix functions test
+	@JH="$$(/usr/libexec/java_home -v 21+ 2>/dev/null || echo "$$JAVA_HOME")"; \
+		JAVA_HOME="$$JH" PATH="$$JH/bin:$$PATH" npm --prefix functions test
 	@echo ""
 	@echo "🚀 Deploying functions..."
 	firebase deploy --only functions
