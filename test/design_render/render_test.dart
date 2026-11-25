@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:clock/clock.dart';
+import 'package:flowgroove/widgets/practice_dashboard_card.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -53,6 +54,7 @@ void main() {
   final results = <String, dynamic>{};
 
   setUpAll(() async {
+    practiceCardNow = () => DateTime(2026, 11, 24); // frames draw a Tuesday
     if (Platform.environment['RENDER_CLEAN'] == '1') {
       final directory = Directory('design/render');
       if (directory.existsSync()) directory.deleteSync(recursive: true);

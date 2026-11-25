@@ -5,6 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../providers/practice_stats_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 
+/// Today's date for the weekday strip; tests pin it so renders do not change day to day.
+@visibleForTesting
+DateTime Function() practiceCardNow = DateTime.now;
+
 /// Home dashboard card (#133): this week's practice minutes + streak with a
 /// 7-day mini bar chart, computed from the metronome session log. Tapping
 /// opens the Practice screen (unless [tappable] is false — the Practice
@@ -161,7 +165,7 @@ class _WeekBars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxSeconds = dailySeconds.fold<int>(0, (m, v) => v > m ? v : m);
-    final today = DateTime.now().weekday; // 1=Mon..7=Sun
+    final today = practiceCardNow().weekday; // 1=Mon..7=Sun
     const letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     return Column(
