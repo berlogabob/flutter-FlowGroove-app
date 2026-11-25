@@ -84,6 +84,7 @@ CHECK_PLATFORM="$PLATFORM" flutter drive \
   --target=integration_test/check/check_test.dart \
   -d "$DEVICE" \
   --dart-define=EMULATOR_HOST="$HOST" \
+  ${CHECK_ONLY:+--dart-define=CHECK_ONLY="$CHECK_ONLY"} \
   ${DEFINES[@]+"${DEFINES[@]}"} </dev/null
 
 test -f "build/check/$PLATFORM.json" && echo "wrote build/check/$PLATFORM.json"

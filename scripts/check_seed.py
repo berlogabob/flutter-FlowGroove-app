@@ -17,13 +17,16 @@ import sys
 import urllib.parse
 import urllib.request
 import wave
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 PROJECT = "repsync-app-8685c"
 BUCKET = "repsync-app-8685c.firebasestorage.app"
 EMAIL, PASSWORD = "check@flowgroove.test", "Password123!"
-SONGS = [("check-song-1", "Check Song Alpha"), ("check-song-2", "Check Song Beta"),
-         ("check-song-3", "Check Song Gamma")]
+# (id, title, our key, our BPM, tags); created one minute apart, Alpha first, so
+# "Date Added" order is Gamma, Beta, Alpha.
+SONGS = [("check-song-1", "Check Song Alpha", "C", 120, []),
+         ("check-song-2", "Check Song Beta", "G", 100, ["learning"]),
+         ("check-song-3", "Check Song Gamma", "Am", 140, [])]
 ENTRY_ID = "check-entry"
 BAR_MS = 2000  # 120 bpm, 4/4
 # (sectionId, section name, part ids): each part is one bar pair, 4 s long.
@@ -94,10 +97,12 @@ def main():
                      "bandIds": fs_value([]), "musicRoles": fs_value([]), "systemTags": fs_value([]),
                      "telegramConsent": {"booleanValue": False}, "createdAt": ts, "updatedAt": ts}})
 
-    for i, (sid, title) in enumerate(SONGS):
+    base = datetime.now(timezone.utc).replace(tzinfo=None)
+    for i, (sid, title, key, bpm, tags) in enumerate(SONGS):
+        created = (base + timedelta(minutes=i - len(SONGS))).isoformat()
         fs_set(f"users/{uid}/songs/{sid}", {
-            "id": sid, "title": title, "artist": "Check Band", "originalKey": "C", "originalBPM": 120,
-            "ourKey": "C", "ourBPM": 120, "tags": [], "createdAt": now, "updatedAt": now})
+            "id": sid, "title": title, "artist": "Check Band", "originalKey": key, "originalBPM": bpm,
+            "ourKey": key, "ourBPM": bpm, "tags": tags, "createdAt": created, "updatedAt": created})
 
     name = f"lab_audio/user/{uid}/{SONGS[0][0]}/check.wav"
     up = call("POST", f"http://localhost:9199/v0/b/{BUCKET}/o?name={urllib.parse.quote(name, safe='')}",

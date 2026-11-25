@@ -10,11 +10,14 @@ import 'package:flowgroove/main.dart' as app;
 import 'package:flowgroove/router/app_router.dart';
 import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/screens/login_screen.dart';
+import 'package:flowgroove/screens/songs/song_page_screen.dart';
+import 'package:flowgroove/screens/songs/songs_list_screen.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart' show ErrorWidget;
+import 'package:flutter/widgets.dart' show ErrorWidget, Scrollable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:material_ui/material_ui.dart' show Text, TextField;
 
 /// How the app under test reaches the emulators: 127.0.0.1 on Android (adb
 /// reverse) and web, the Mac's LAN address on iOS (set by scripts/check_run.sh).
@@ -29,6 +32,9 @@ const seedPassword = 'Password123!';
 const seedSongTitles = ['Check Song Alpha', 'Check Song Beta', 'Check Song Gamma'];
 const seedSongId = 'check-song-1';
 const seedEntryId = 'check-entry';
+
+/// Dev filter: `CHECK_ONLY=SG,SL-01 scripts/check_run.sh web` runs only matching ids.
+const _only = String.fromEnvironment('CHECK_ONLY');
 
 final _results = <Map<String, Object?>>[];
 
@@ -50,6 +56,7 @@ void check(
   String title,
   Future<void> Function(WidgetTester tester) body,
 ) {
+  if (_only.isNotEmpty && !_only.split(',').any(id.startsWith)) return;
   testWidgets('$id $title', (tester) async {
     final watch = Stopwatch()..start();
     // The app's main() installs its own ErrorWidget.builder; the test binding
@@ -159,3 +166,162 @@ Future<void> pumpUntil(
 }
 
 bool found(Finder finder) => finder.evaluate().isNotEmpty;
+
+// --- small shared helpers for the area files ---------------------------------
+
+Finder byKey(String key) => find.byKey(ValueKey(key));
+
+/// A Text widget showing [text] (find.text also matches a typed-in text field).
+Finder label(String text) =>
+    find.byWidgetPredicate((w) => w is Text && w.data == text, description: 'Text "$text"');
+
+/// Pumps for [ms] of real time (async work like Firestore needs wall-clock time).
+Future<void> pause(WidgetTester tester, [int ms = 400]) async {
+  final end = DateTime.now().add(Duration(milliseconds: ms));
+  while (DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
+/// Waits until [finder] matches; the timeout message names [what].
+Future<void> see(
+  WidgetTester tester,
+  Finder finder,
+  String what, {
+  int seconds = 20,
+}) => pumpUntil(
+  tester,
+  () => found(finder),
+  timeout: Duration(seconds: seconds),
+  what: what,
+);
+
+/// Waits for [finder], taps its first match, lets the UI react.
+Future<void> tapOn(WidgetTester tester, Finder finder, String what) async {
+  await see(tester, finder, what);
+  await tester.tap(finder.first);
+  await pause(tester, 300);
+}
+
+Future<void> typeInto(
+  WidgetTester tester,
+  Finder finder,
+  String text,
+  String what,
+) async {
+  await see(tester, finder, what);
+  await tester.enterText(finder.first, text);
+  await pause(tester, 150);
+}
+
+/// Scrolls the scrollable inside [within] until [finder] is on screen.
+Future<void> scrollTo(
+  WidgetTester tester,
+  Finder finder,
+  Finder within,
+  String what,
+) async {
+  await see(tester, within, 'scroll area for $what');
+  if (!found(finder)) {
+    await tester.scrollUntilVisible(
+      finder,
+      200,
+      scrollable: find
+          .descendant(of: within, matching: find.byType(Scrollable))
+          .first,
+    );
+  } else {
+    await tester.ensureVisible(finder.first);
+  }
+  await pause(tester, 200);
+}
+
+/// Polls [read] (a Firestore read or provider read) until [ok] holds.
+Future<T> eventually<T>(
+  WidgetTester tester,
+  Future<T> Function() read,
+  bool Function(T value) ok,
+  String what, {
+  int seconds = 15,
+  String Function(T value)? show,
+}) async {
+  final end = DateTime.now().add(Duration(seconds: seconds));
+  late T last;
+  while (true) {
+    last = await read();
+    if (ok(last)) return last;
+    if (DateTime.now().isAfter(end)) {
+      throw TestFailure('$what: not reached in ${seconds}s, last value ${show == null ? last : show(last)}');
+    }
+    await pause(tester, 250);
+  }
+}
+
+String get uid => FirebaseAuth.instance.currentUser!.uid;
+
+DocumentReference<Map<String, dynamic>> songDoc(String id) =>
+    FirebaseFirestore.instance.doc('users/$uid/songs/$id');
+
+/// Writes a song the way scripts/check_seed.py does, for checks that need
+/// their own data (so they never change the seeded songs).
+Future<void> putSong(
+  String id,
+  String title, {
+  String artist = 'Check Band',
+  String? key,
+  int? bpm,
+  List<String> tags = const [],
+  List<Map<String, dynamic>> sections = const [],
+}) {
+  final now = DateTime.now().toIso8601String();
+  return songDoc(id).set({
+    'id': id,
+    'title': title,
+    'artist': artist,
+    'originalKey': key,
+    'originalBPM': bpm,
+    'ourKey': key,
+    'ourBPM': bpm,
+    'tags': tags,
+    'sections': sections,
+    'createdAt': now,
+    'updatedAt': now,
+  });
+}
+
+Future<Map<String, dynamic>?> readSong(String id) async =>
+    (await songDoc(id).get()).data();
+
+/// Opens the Songs tab and waits for the seeded songs.
+Future<void> openSongsTab(WidgetTester tester) async {
+  appRouter.go('/main/songs');
+  await see(tester, find.byType(SongsListScreen), 'songs screen');
+  await see(
+    tester,
+    find.text(seedSongTitles.first),
+    'seeded song in the songs list',
+  );
+}
+
+Finder get songSearchField => find.byWidgetPredicate(
+  (w) => w is TextField && w.decoration?.hintText == 'Search...',
+);
+
+/// Songs tab, search for [title], tap the card: lands on the Song Page.
+Future<void> openSongPage(WidgetTester tester, String title) async {
+  await openSongsTab(tester);
+  await typeInto(tester, songSearchField, title, 'song search field');
+  await tapOn(tester, label(title), 'song "$title" in the list');
+  await see(tester, find.byType(SongPageScreen), 'song page');
+}
+
+/// The shell bar's Menu / More button.
+Future<void> openShellMenu(WidgetTester tester) async {
+  await tapOn(tester, find.text('Menu'), 'Menu button in the bottom bar');
+}
+
+/// Opens the shell menu and taps the row labelled [label].
+Future<void> menuAction(WidgetTester tester, String label) async {
+  await openShellMenu(tester);
+  await tapOn(tester, find.text(label), 'menu row "$label"');
+}

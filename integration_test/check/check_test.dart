@@ -18,6 +18,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'check.dart';
+import 'check_metronome.dart';
+import 'check_setlists.dart';
+import 'check_settings.dart';
+import 'check_songmap.dart';
+import 'check_songs.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -211,4 +216,10 @@ void main() {
     if (wrapAt.length < 2) throw TestFailure('did not loop twice; $summary');
     checkNote = summary;
   });
+
+  registerSongsChecks();
+  registerSetlistsChecks();
+  registerMetronomeChecks();
+  registerSongMapChecks();
+  registerSettingsChecks();
 }
