@@ -4,6 +4,20 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## 0.37.1+2383 — 2026-11-25
+
+Nine fixes found by a new check that runs every main function of the app on Android and on the web and compares the results.
+
+- Web: choosing a part in Song Map now plays and loops that part. Before, the screen showed the part while the sound played from the start of the song. On the web each repeat has a short gap; on Android it stays seamless.
+- Bands: saving a new band name or description closes the dialog and keeps you on the band screen. Before, it closed the band screen and could crash the app. The new name is now saved for every member, not only for the person who changed it.
+- Profile: a changed name shows straight away.
+- Delete account: the app returns to the sign-in screen. Before, it stayed on a blank screen.
+- Setlist editor and other editors: Back in the bottom bar asks before discarding unsaved changes, the same as the system back gesture.
+- Songs: the key and tempo filters can be removed one at a time from their chips, or with All.
+- Events: on a personal setlist the owner can see the share links and revoke them.
+- Menu on Recorder, Tuner and Metronome shows your name and photo.
+- Connect your AI: a new key appears in the list right after it is created.
+
 ## 0.37.0+2382 — 2026-11-24
 
 Same app as build 382. The build number jumps so phones that have a test build installed can update to the release.

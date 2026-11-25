@@ -244,3 +244,15 @@ MIT License. See [LICENSE](LICENSE).
 - Version: `0.14.0+203`
 - Last updated: June 16, 2026
 - Current project state: active development with `.codex/` as the canonical internal layer and `oldarchive/` for legacy context
+
+## Cross-platform checks
+
+One list of checks runs the real app on an Android phone, on iOS and in Chrome against local test servers, and prints one table per check and platform.
+
+```
+./scripts/check_run.sh android          # phone over USB
+./scripts/check_run_areas.sh web        # Chrome, one app start per area
+uv run python scripts/check_compare.py  # the comparison table
+```
+
+Each check has a fixed ID (`SM-04`). On the web the Song Map checks measure the real audio position, not the position the app shows.
