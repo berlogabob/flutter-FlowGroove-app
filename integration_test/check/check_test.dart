@@ -180,7 +180,8 @@ void main() {
       var last = read().pos;
       // Two passes of a 4 s part, plus time for the start and a loop restart.
       while (watch.elapsedMilliseconds < 14000) {
-        await tester.pump(const Duration(milliseconds: 100));
+        // Real time (pause pumps frames until the wall clock passes): on web tester.pump(duration) returns at once.
+        await pause(tester, 100);
         final now = read();
         if (!now.playing) {
           stoppedAt = watch.elapsedMilliseconds;

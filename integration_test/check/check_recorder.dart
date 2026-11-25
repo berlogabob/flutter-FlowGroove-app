@@ -5,10 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flowgroove/router/app_router.dart';
 import 'package:flowgroove/screens/recorder_screen.dart';
 import 'package:flowgroove/screens/songs/song_lab_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'check.dart';
+import 'web_probe_stub.dart' if (dart.library.js_interop) 'web_probe_web.dart';
 
 CollectionReference<Map<String, dynamic>> get _inbox =>
     FirebaseFirestore.instance.collection('users/$uid/songs/_inbox/labEntries');
@@ -19,6 +21,15 @@ CollectionReference<Map<String, dynamic>> _labOf(String songId) =>
 Future<void> _openRecorder(WidgetTester tester) async {
   unawaited(appRouter.push('/main/recorder'));
   await see(tester, find.byType(RecorderScreen), 'recorder screen');
+}
+
+/// Leaves the recorder the way a user does (its Back button). A pushed page that is still open when the
+/// next check starts is popped behind its back, and the closing page then keeps absorbing taps.
+Future<void> _closeRecorder(WidgetTester tester) async {
+  if (found(find.byType(RecorderScreen)) && found(find.text('Back'))) {
+    await tester.tap(find.text('Back').first);
+    await pause(tester, 800);
+  }
 }
 
 /// A recording in the idea inbox that plays: it reuses the seeded recording's audio.
@@ -43,6 +54,12 @@ Future<void> _putInboxRecording(String id, String title) async {
 
 void registerRecorderChecks() {
   check('RC-01', 'Record 5 s, stop, entry appears', (tester) async {
+    if (kIsWeb && !await microphoneStreamWorks()) {
+      throw CheckSkip(
+        'Chrome under chromedriver never resolves getUserMedia here (a direct call from the test hangs too), so no recorder can start; '
+        'not an app fault, run it in a Chrome with a working (fake) microphone',
+      );
+    }
     await bootApp(tester);
     const title = 'Check Take';
     try {
@@ -72,6 +89,7 @@ void registerRecorderChecks() {
       if (urls.isEmpty) fail('expected the saved entry to carry an audio file; attachmentIds empty');
       await expectSeen(tester, label(title), 'expected the recording "$title" in the Recordings list');
     } finally {
+      await _closeRecorder(tester);
       for (final d in (await _inbox.where('title', isEqualTo: title).get()).docs) {
         await d.reference.delete();
       }
@@ -95,6 +113,7 @@ void registerRecorderChecks() {
       await tapOn(tester, find.byTooltip('Pause $title'), 'pause button');
       await expectSeen(tester, find.byTooltip('Play $title'), 'expected Play again after pausing');
     } finally {
+      await _closeRecorder(tester);
       await _inbox.doc(id).delete();
     }
   });
@@ -120,6 +139,7 @@ void registerRecorderChecks() {
       final left = (await _inbox.doc(id).get()).exists;
       if (left) fail('expected the recording to leave the idea inbox once linked; bands inbox still holds $id');
     } finally {
+      await _closeRecorder(tester);
       await _inbox.doc(id).delete();
       for (final d in (await _labOf('check-song-2').where('title', isEqualTo: title).get()).docs) {
         await d.reference.delete();

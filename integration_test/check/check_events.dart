@@ -84,6 +84,10 @@ Future<void> _leaveKit(WidgetTester tester) async {
     await tester.tap(find.text('Back').first);
     await pause(tester, 800);
   }
+  // Also close the setlist page under the editor while the Setlists tab is on screen. Left open, the next check's tap on
+  // the same setlist card (EV-05 after EV-04) spins Chrome's renderer forever and the whole web run dies.
+  appRouter.go('/main/setlists');
+  await pause(tester, 800);
 }
 
 Future<Map<String, dynamic>> _kit() async => (((await FirebaseFirestore.instance.doc('users/$uid/setlists/$_kitSetlist').get()).data() ?? {})['eventKit'] as Map?)?.cast<String, dynamic>() ?? {};
@@ -102,7 +106,6 @@ Future<void> _addPerson(WidgetTester tester, String name, String role) async {
 
 void registerEventsChecks() {
   check('EV-01', 'Create a rehearsal', (tester) async {
-    if (kIsWeb) throw CheckSkip('crashes the Chrome renderer in the test run (the web run died with \"Timed out receiving message from renderer\" and wrote no results)');
     await bootApp(tester);
     const title = 'Check New Rehearsal';
     try {
@@ -140,7 +143,6 @@ void registerEventsChecks() {
   });
 
   check('EV-02', 'Rehearsal detail: answer, suggest another time', (tester) async {
-    if (kIsWeb) throw CheckSkip('crashes the Chrome renderer in the test run (the web run died with \"Timed out receiving message from renderer\" and wrote no results)');
     await bootApp(tester);
     const id = 'check-rehearsal-vote';
     await _putRehearsal(id, 'Check Vote Rehearsal');
@@ -181,7 +183,6 @@ void registerEventsChecks() {
   });
 
   check('EV-03', 'Edit a rehearsal', (tester) async {
-    if (kIsWeb) throw CheckSkip('crashes the Chrome renderer in the test run (the web run died with \"Timed out receiving message from renderer\" and wrote no results)');
     await bootApp(tester);
     const id = 'check-rehearsal-edit';
     await _putRehearsal(id, 'Check Edit Rehearsal', slots: 1);
@@ -191,8 +192,18 @@ void registerEventsChecks() {
       await tapOn(tester, find.text('Edit details'), 'Edit details button');
       await see(tester, find.byType(RehearsalEditScreen), 'edit form');
       await typeInto(tester, find.descendant(of: find.byType(RehearsalEditScreen), matching: find.byType(TextFormField)).first, 'Check Edited Rehearsal', 'title field');
+      FocusManager.instance.primaryFocus?.unfocus(); // close the keyboard: its animation shifts the list under the tap
+      await pause(tester, 600);
+      await scrollTo(tester, find.text('Custom place'), find.byType(RehearsalEditScreen), 'Custom place chip');
       await tapOn(tester, find.text('Custom place'), 'Custom place chip');
-      await typeInto(tester, find.descendant(of: find.byType(RehearsalEditScreen), matching: find.byType(TextFormField)).at(1), 'Garage 7', 'location field');
+      final location = find.ancestor(of: find.text('e.g. Studio A'), matching: find.byType(TextFormField));
+      // The Location field only exists once "Custom place" is selected; it sits below the chips in a lazy list.
+      await pumpUntil(tester, () => found(location), what: 'Location field after selecting Custom place', timeout: const Duration(seconds: 5));
+      for (var i = 0; i < 10 && !found(location); i++) {
+        await tester.drag(find.byType(ListView).first, const Offset(0, -150));
+        await pause(tester, 200);
+      }
+      await typeInto(tester, location, 'Garage 7', 'location field');
       final save = find.descendant(of: find.byType(RehearsalEditScreen), matching: find.text('Save'));
       await scrollTo(tester, save, find.byType(RehearsalEditScreen), 'Save button');
       await tapOn(tester, save, 'Save button');
@@ -213,7 +224,6 @@ void registerEventsChecks() {
   });
 
   check('EV-04', 'Event kit editor: add performer, kit item', (tester) async {
-    if (kIsWeb) throw CheckSkip('crashes the Chrome renderer in the test run (the web run died with \"Timed out receiving message from renderer\" and wrote no results)');
     await bootApp(tester);
     await _putKitSetlist();
     try {
@@ -242,14 +252,6 @@ void registerEventsChecks() {
   });
 
   check('EV-05', 'Event share link: create, revoke', (tester) async {
-    if (kIsWeb) throw CheckSkip('crashes the Chrome renderer in the test run (the web run died with \"Timed out receiving message from renderer\" and wrote no results)');
-    if (!kIsWeb) {
-      throw CheckSkip(
-        'on Android this check drives the app into a busy loop (app process at 107% CPU for 12+ min, no log output), '
-        'which also blocks the check timeout; cause not isolated (candidates: the share-link call or the clipboard write). '
-        'Not run on Android; on web it runs and fails on the missing "Share links inventory" chip',
-      );
-    }
     await bootApp(tester);
     await _putKitSetlist();
     try {

@@ -120,7 +120,8 @@ void registerSongMapChecks() {
       await tester.tap(byKey('play'));
       await pumpUntil(tester, () => _player(tester).playing, what: 'Song Map playing');
       final p0 = _player(tester).pos;
-      await tester.pump(const Duration(milliseconds: 1500));
+      // Real time, not tester.pump(duration): on web the binding's pump does not wait, and the player runs on the wall clock.
+      await pause(tester, 1500);
       final p1 = _player(tester).pos;
       if (!_player(tester).playing || p1 <= p0 + 500) {
         fail('expected the position to advance ~1500 ms while playing; $p0 -> $p1 ms, playing ${_player(tester).playing}');
@@ -128,7 +129,7 @@ void registerSongMapChecks() {
       await tester.tap(byKey('play'));
       await pumpUntil(tester, () => !_player(tester).playing, what: 'Song Map paused');
       final q0 = _player(tester).pos;
-      await tester.pump(const Duration(milliseconds: 1000));
+      await pause(tester, 1000);
       final q1 = _player(tester).pos;
       if ((q1 - q0).abs() > 100) fail('position kept moving while paused: $q0 -> $q1 ms');
     } finally {

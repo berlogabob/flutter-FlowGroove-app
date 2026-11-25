@@ -58,6 +58,10 @@ void registerSettingsChecks() {
       Navigator.of(tester.element(find.byType(AlertDialog))).pop();
       await pause(tester, 600);
     }
+    // The app reports a failed reload in a snackbar that is gone before the list wait below ends.
+    if (found(find.textContaining('Could not create key'))) {
+      fail('expected the new key to be listed; the app said "${(find.textContaining('Could not create key').evaluate().first.widget as Text).data}"');
+    }
     await expectSeen(tester, find.text('Check Key'), 'expected the new key "Check Key" in the list', seconds: 15);
     await tapOn(tester, find.byTooltip('Revoke'), 'Revoke button');
     await see(tester, find.text('Revoke key'), 'revoke dialog');

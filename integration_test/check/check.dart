@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flowgroove/firebase_options.dart';
 import 'package:flowgroove/main.dart' as app;
 import 'package:flowgroove/router/app_router.dart';
@@ -151,6 +152,8 @@ Future<void> bootFirebase() async {
     await FirebaseAuth.instance.useAuthEmulator(emulatorHost, 9099);
     FirebaseFirestore.instance.useFirestoreEmulator(emulatorHost, 8080);
     FirebaseFunctions.instance.useFunctionsEmulator(emulatorHost, 5001);
+    // Without this, uploads (recordings) go to the real bucket and are refused with 403.
+    await FirebaseStorage.instance.useStorageEmulator(emulatorHost, 9199);
     _emulatorsSet = true;
   }
 }
@@ -317,6 +320,8 @@ Future<void> scrollTo(
 ) async {
   lastStep = 'scroll to $what';
   await see(tester, within, 'scroll area for $what');
+  // A screen that is still loading has no scrollable yet.
+  if (!found(finder)) await see(tester, find.descendant(of: within, matching: find.byType(Scrollable)), 'scrollable for $what');
   if (!found(finder)) {
     final scrollable = find.descendant(of: within, matching: find.byType(Scrollable)).first;
     try {

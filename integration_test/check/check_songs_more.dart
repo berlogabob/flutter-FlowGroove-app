@@ -213,8 +213,15 @@ void registerSongsMoreChecks() {
       await see(tester, find.byType(SetlistViewScreen), 'setlist view');
       await menuAction(tester, 'Export to PDF');
       await see(tester, find.text('As is'), 'export layout "As is"');
+      await pause(tester, 800); // the sheet slides in; a tap during the slide lands on the page behind it
       for (final t in ['Compact', 'SetlistPack', 'Cheat sheet', 'One musician']) {
         if (!found(find.text(t))) fail('expected export layout "$t" in the sheet; on screen: ${onScreen()}');
+      }
+      // The last row sits half under the sheet's bottom edge: scroll the sheet like a user would.
+      final sheetRect = tester.getRect(find.byType(BottomSheet));
+      for (var i = 0; i < 5 && !sheetRect.contains(tester.getCenter(find.text('One musician'))); i++) {
+        await tester.drag(find.descendant(of: find.byType(BottomSheet), matching: find.byType(Scrollable)).first, const Offset(0, -120));
+        await pause(tester, 300);
       }
       await tapOn(tester, find.text('One musician'), 'layout "One musician"');
       await see(tester, find.text('Whose copy?'), 'whose copy sheet');

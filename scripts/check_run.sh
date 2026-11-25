@@ -45,7 +45,14 @@ case "$PLATFORM" in
     HOST=0.0.0.0
     for port in 9099 8080 9199 5001; do "$ADB" -s "$DEVICE" reverse tcp:$port tcp:$port; done
     # The recorder checks need the microphone; the prompt itself is a manual check (RC-05).
-    "$ADB" -s "$DEVICE" shell pm grant com.flowgroove.app android.permission.RECORD_AUDIO || true
+    # flutter drive reinstalls the app (and uninstalls it at the end), so a grant made now is lost:
+    # keep granting until the fresh install has the permission.
+    ( for _ in $(seq 120); do
+        "$ADB" -s "$DEVICE" shell pm grant com.flowgroove.app android.permission.RECORD_AUDIO >/dev/null 2>&1 \
+          && "$ADB" -s "$DEVICE" shell dumpsys package com.flowgroove.app 2>/dev/null | grep -q 'RECORD_AUDIO: granted=true' && break
+        sleep 3
+      done ) &
+    STARTED+=($!)
     ;;
   ios)
     : "${DEVICE:?ios needs a device id (flutter devices)}"
