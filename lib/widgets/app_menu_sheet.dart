@@ -212,18 +212,19 @@ class _ProfileRow extends StatelessWidget {
   Widget build(BuildContext context) {
     String? displayName;
     String? photoURL;
-    // Defensive: appUserProvider may not have resolved yet (or ref may be
-    // null when the sheet was opened outside a ConsumerWidget) — fall back
-    // to a generic "Profile" row rather than throwing.
-    final currentRef = ref;
-    if (currentRef != null) {
-      try {
-        final user = currentRef.read(appUserProvider).value;
-        displayName = user?.displayName;
-        photoURL = user?.photoURL;
-      } on Object {
-        // Provider not available in this context — keep the fallback.
-      }
+    // Read the user from the sheet's own scope, so a caller that passes no
+    // ref (tool screens) still shows the name and photo. Defensive: the
+    // provider may not have resolved, or there is no scope (tests) — fall
+    // back to a generic "Profile" row rather than throwing.
+    try {
+      final user = ProviderScope.containerOf(
+        sheetContext,
+        listen: false,
+      ).read(appUserProvider).value;
+      displayName = user?.displayName;
+      photoURL = user?.photoURL;
+    } on Object {
+      // Provider not available in this context — keep the fallback.
     }
 
     return ListTile(
