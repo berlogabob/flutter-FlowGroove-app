@@ -12,11 +12,16 @@ PROJECT=repsync-app-8685c
 ADB="${ADB:-$HOME/Library/Android/sdk/platform-tools/adb}"
 CHROMEDRIVER_PORT=4444
 STARTED=()
-cleanup() { for pid in "${STARTED[@]:-}"; do [ -n "$pid" ] && kill "$pid" 2>/dev/null || true; done; }
+cleanup() {
+  for pid in "${STARTED[@]:-}"; do [ -n "$pid" ] && kill "$pid" 2>/dev/null || true; done
+  # the emulator jars outlive the firebase CLI and would hold the ports for the next run
+  pkill -f cloud-firestore-emulator 2>/dev/null || true; pkill -f cloud-storage-rules 2>/dev/null || true; sleep 2
+}
 trap cleanup EXIT
 
 # --- emulators (need JDK 21+) ---
-if ! curl -s localhost:8080 >/dev/null; then
+if ! curl -s localhost:8080 >/dev/null || ! curl -s localhost:5001 >/dev/null; then
+  pkill -f 'firebase emulators' 2>/dev/null || true; pkill -f cloud-firestore-emulator 2>/dev/null || true; sleep 2
   export JAVA_HOME="$(/usr/libexec/java_home -v 21+)" PATH="$(/usr/libexec/java_home -v 21+)/bin:$PATH"
   mkdir -p build/check
   CONFIG=firebase.json
@@ -25,9 +30,9 @@ if ! curl -s localhost:8080 >/dev/null; then
     CONFIG=build/check/firebase.ios.json
     uv run python -c "import json; c=json.load(open('firebase.json')); [e.update(host='0.0.0.0') for e in c['emulators'].values() if isinstance(e, dict)]; json.dump(c, open('$CONFIG','w'))"
   fi
-  firebase emulators:start --config "$CONFIG" --project "$PROJECT" --only auth,firestore,storage >build/check/emulators.log 2>&1 &
+  NODE_OPTIONS="--require $ROOT/scripts/check_functions_preload.js" firebase emulators:start --config "$CONFIG" --project "$PROJECT" --only auth,firestore,storage,functions >build/check/emulators.log 2>&1 &
   STARTED+=($!)
-  for _ in $(seq 60); do curl -s localhost:8080 >/dev/null && curl -s localhost:9099 >/dev/null && curl -s localhost:9199 >/dev/null && break; sleep 1; done
+  for _ in $(seq 60); do curl -s localhost:8080 >/dev/null && curl -s localhost:9099 >/dev/null && curl -s localhost:9199 >/dev/null && curl -s localhost:5001 >/dev/null && break; sleep 1; done
 fi
 
 # --- per-platform: how the app reaches the emulators, and the drive target ---
@@ -38,7 +43,9 @@ case "$PLATFORM" in
     # firebase_core rewrites localhost/127.0.0.1 to the Android emulator's 10.0.2.2, which a
     # real phone cannot reach; 0.0.0.0 is not rewritten and reaches the adb-reverse listener.
     HOST=0.0.0.0
-    for port in 9099 8080 9199; do "$ADB" -s "$DEVICE" reverse tcp:$port tcp:$port; done
+    for port in 9099 8080 9199 5001; do "$ADB" -s "$DEVICE" reverse tcp:$port tcp:$port; done
+    # The recorder checks need the microphone; the prompt itself is a manual check (RC-05).
+    "$ADB" -s "$DEVICE" shell pm grant com.flowgroove.app android.permission.RECORD_AUDIO || true
     ;;
   ios)
     : "${DEVICE:?ios needs a device id (flutter devices)}"
@@ -59,7 +66,8 @@ case "$PLATFORM" in
     sleep 1
     WRAP="$(mktemp -d)/chrome-autoplay.sh"   # outside the repo: chromedriver may not exec scripts from it
     # Synthetic taps are not user activation, so Chrome would refuse audio.play(): lift that policy.
-    printf '#!/bin/bash\nexec "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --autoplay-policy=no-user-gesture-required "$@"\n' > "$WRAP"
+    # Fake microphone, no permission prompt, for the recorder checks.
+    printf '#!/bin/bash\nexec "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --autoplay-policy=no-user-gesture-required --use-fake-ui-for-media-stream --use-fake-device-for-media-stream "$@"\n' > "$WRAP"
     chmod +x "$WRAP"
     DEFINES=(--browser-dimension=480x900 --chrome-binary="$WRAP")
     ;;
@@ -79,6 +87,9 @@ fi
 uv run python scripts/check_seed.py "$HOST"
 
 rm -f "build/check/$PLATFORM.json"
+# Watchdog: a hung app must not hang the run (macOS has no timeout(1)). CHECK_MAX_MIN, default 45.
+( sleep $(( ${CHECK_MAX_MIN:-45} * 60 )); echo "check_run: watchdog killed flutter drive after ${CHECK_MAX_MIN:-45} min" >&2; pkill -f "flutter_tools.snapshot drive" ) &
+STARTED+=($!)
 CHECK_PLATFORM="$PLATFORM" flutter drive \
   --driver=test_driver/check_driver.dart \
   --target=integration_test/check/check_test.dart \

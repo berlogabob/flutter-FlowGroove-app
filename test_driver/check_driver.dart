@@ -6,6 +6,8 @@ import 'dart:io';
 import 'package:integration_test/integration_test_driver.dart';
 
 Future<void> main() => integrationDriver(
+  // A framework invariant failing after one check must not lose every result.
+  writeResponseOnFailure: true,
   responseDataCallback: (data) async {
     final platform = data?['platform'] ?? 'unknown';
     final file = File('build/check/$platform.json')

@@ -18,11 +18,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'check.dart';
+import 'check_account.dart';
+import 'check_bands.dart';
+import 'check_events.dart';
 import 'check_metronome.dart';
+import 'check_recorder.dart';
 import 'check_setlists.dart';
 import 'check_settings.dart';
 import 'check_songmap.dart';
 import 'check_songs.dart';
+import 'check_songs_more.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -217,9 +222,15 @@ void main() {
     checkNote = summary;
   });
 
+  registerAccountChecks();
   registerSongsChecks();
+  registerSongsMoreChecks();
+  registerBandsChecks();
+  registerEventsChecks();
+  registerRecorderChecks();
   registerSetlistsChecks();
   registerMetronomeChecks();
   registerSongMapChecks();
   registerSettingsChecks();
+  registerAccountDeleteCheck();
 }

@@ -1,7 +1,9 @@
-// Setlists area: SL-01, SL-02, SL-03, SL-05, SL-06.
+// Setlists area: SL-01, SL-02, SL-03, SL-05, SL-06; MT-05 (metronome follows the setlist; it needs a setlist).
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/data/metronome_provider.dart';
+import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/router/app_router.dart';
 import 'package:flowgroove/screens/setlists/create_setlist_screen.dart';
 import 'package:flowgroove/screens/setlists/setlist_view_screen.dart';
@@ -294,6 +296,35 @@ void registerSetlistsChecks() {
       );
       if (found(label(name))) fail('setlist "$name" still shown in the list after deleting');
     } finally {
+      await _setlists.doc(id).delete();
+    }
+  });
+
+  check('MT-05', 'Metronome follows the setlist song', (tester) async {
+    final c = await bootApp(tester);
+    const id = 'check-sl-metro';
+    const name = 'Check Metro Setlist';
+    try {
+      await _putSetlist(c, id, name, _songIds);
+      await _openView(tester, name);
+      await menuAction(tester, 'Open in Metronome');
+      await see(tester, find.byType(MetronomeScreen), 'metronome screen');
+      int bpm() => c.read(metronomeProvider).bpm;
+      int index() => c.read(metronomeProvider).currentSetlistIndex;
+      await see(tester, label(seedSongTitles[0]), 'first song title in the metronome');
+      if (bpm() != 120 || index() != 0) fail('expected song 1 at 120 BPM; observed index ${index()}, ${bpm()} BPM');
+      await tapOn(tester, find.byIcon(Icons.skip_next), 'next song button');
+      await pause(tester, 600);
+      if (bpm() != 100 || index() != 1) fail('expected song 2 at 100 BPM after next; observed index ${index()}, ${bpm()} BPM');
+      await see(tester, label(seedSongTitles[1]), 'second song title in the metronome');
+      await tapOn(tester, find.byIcon(Icons.skip_next), 'next song button');
+      await pause(tester, 600);
+      if (bpm() != 140 || index() != 2) fail('expected song 3 at 140 BPM after next; observed index ${index()}, ${bpm()} BPM');
+      await tapOn(tester, find.byIcon(Icons.skip_previous), 'previous song button');
+      await pause(tester, 600);
+      if (bpm() != 100 || index() != 1) fail('expected song 2 at 100 BPM after previous; observed index ${index()}, ${bpm()} BPM');
+    } finally {
+      c.read(metronomeProvider.notifier).clearLoadedContent();
       await _setlists.doc(id).delete();
     }
   });

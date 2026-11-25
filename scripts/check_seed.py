@@ -27,6 +27,8 @@ EMAIL, PASSWORD = "check@flowgroove.test", "Password123!"
 SONGS = [("check-song-1", "Check Song Alpha", "C", 120, []),
          ("check-song-2", "Check Song Beta", "G", 100, ["learning"]),
          ("check-song-3", "Check Song Gamma", "Am", 140, [])]
+# A second user: owner of a band the seed user can join, and member of a band the seed user admins.
+EMAIL2 = "check2@flowgroove.test"
 ENTRY_ID = "check-entry"
 BAR_MS = 2000  # 120 bpm, 4/4
 # (sectionId, section name, part ids): each part is one bar pair, 4 s long.
@@ -96,6 +98,46 @@ def main():
                      "displayName": {"stringValue": "Check User"}, "accessRole": {"stringValue": "member"},
                      "bandIds": fs_value([]), "musicRoles": fs_value([]), "systemTags": fs_value([]),
                      "telegramConsent": {"booleanValue": False}, "createdAt": ts, "updatedAt": ts}})
+
+    uid2 = call("POST", "http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake",
+                {"email": EMAIL2, "password": PASSWORD, "displayName": "Check Two", "returnSecureToken": True})["localId"]
+    call("PATCH", f"http://localhost:8080/v1/projects/{PROJECT}/databases/(default)/documents/users/{uid2}",
+         {"fields": {"uid": {"stringValue": uid2}, "email": {"stringValue": EMAIL2},
+                     "displayName": {"stringValue": "Check Two"}, "accessRole": {"stringValue": "member"},
+                     "bandIds": fs_value([]), "musicRoles": fs_value([]), "systemTags": fs_value([]),
+                     "telegramConsent": {"booleanValue": False}, "createdAt": ts, "updatedAt": ts}})
+    # Band the seed user admins (user 2 is an editor), with one band song; band the seed user can join by code.
+    members = [{"uid": uid, "role": "admin", "displayName": "Check User", "email": EMAIL, "musicRoles": []},
+               {"uid": uid2, "role": "editor", "displayName": "Check Two", "email": EMAIL2, "musicRoles": []}]
+    fs_set("bands/check-band-admin", {
+        "id": "check-band-admin", "name": "Check Admin Band", "createdBy": uid, "members": members,
+        "memberUids": [uid, uid2], "adminUids": [uid], "editorUids": [uid2], "tags": [],
+        "inviteCode": "ADMIN1", "createdAt": now})
+    fs_set(f"users/{uid}/bands/check-band-admin", {"bandId": "check-band-admin"})
+    fs_set(f"users/{uid2}/bands/check-band-admin", {"bandId": "check-band-admin"})
+    fs_set("bands/check-band-admin/songs/check-band-song", {
+        "id": "check-band-song", "title": "Band Song One", "artist": "Check Band", "originalKey": "D",
+        "originalBPM": 110, "ourKey": "D", "ourBPM": 110, "tags": [], "bandId": "check-band-admin",
+        "contributorId": uid, "contributorName": "Check User", "createdAt": now, "updatedAt": now})
+    fs_set("bands/check-band-join", {
+        "id": "check-band-join", "name": "Check Join Band", "createdBy": uid2,
+        "members": [{"uid": uid2, "role": "admin", "displayName": "Check Two", "email": EMAIL2, "musicRoles": []}],
+        "memberUids": [uid2], "adminUids": [uid2], "editorUids": [], "tags": [],
+        "inviteCode": "JOIN42", "createdAt": now})
+    fs_set(f"users/{uid2}/bands/check-band-join", {"bandId": "check-band-join"})
+    # Band the seed user can join through a deep link, and one whose members BD-06 edits.
+    fs_set("bands/check-band-link", {
+        "id": "check-band-link", "name": "Check Link Band", "createdBy": uid2,
+        "members": [{"uid": uid2, "role": "admin", "displayName": "Check Two", "email": EMAIL2, "musicRoles": []}],
+        "memberUids": [uid2], "adminUids": [uid2], "editorUids": [], "tags": [],
+        "inviteCode": "LINK77", "createdAt": now})
+    fs_set(f"users/{uid2}/bands/check-band-link", {"bandId": "check-band-link"})
+    fs_set("bands/check-band-members", {
+        "id": "check-band-members", "name": "Check Members Band", "createdBy": uid, "members": members,
+        "memberUids": [uid, uid2], "adminUids": [uid], "editorUids": [uid2], "tags": [],
+        "inviteCode": "MEMBR1", "createdAt": now})
+    fs_set(f"users/{uid}/bands/check-band-members", {"bandId": "check-band-members"})
+    fs_set(f"users/{uid2}/bands/check-band-members", {"bandId": "check-band-members"})
 
     base = datetime.now(timezone.utc).replace(tzinfo=None)
     for i, (sid, title, key, bpm, tags) in enumerate(SONGS):
