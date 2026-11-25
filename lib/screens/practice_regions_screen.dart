@@ -341,7 +341,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           }
           setState(() => _duration = duration);
         }),
-        _player.positionStream.listen((position) {
+        _player.positionStream.map(_clipPos).listen((position) {
           if (!mounted || _changingClip || _webLoopBack(position)) return;
           if (_pendingLoop != null &&
               (_player.playbackEvent.currentIndex ?? 0) > 0) {
@@ -355,7 +355,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           final end = _clipEnd;
           final pastEnd = end != null && ms >= end - _clipStart;
           if (seam != null && ms > seam.$1 && ms < seam.$2) {
-            unawaited(_player.seek(Duration(milliseconds: seam.$2)));
+            unawaited(_pseek(Duration(milliseconds: seam.$2)));
           } else if (seam == null && _playing && !_sync && !pastEnd) {
             _skipFrom(ms);
           }
@@ -366,7 +366,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
           });
         }),
         _player.currentIndexStream.listen(_onLoopIndex),
-        _player.playerStateStream.listen((state) {
+        _player.playerStateStream.where(_webKeep).listen((state) {
           if (!mounted) return;
           final playing =
               state.playing &&
@@ -584,7 +584,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       return;
     }
     if (_onLoopWav) await _wholeSongSource();
-    await _player.setClip(
+    await _setClip(
       start: Duration(milliseconds: start),
       end: Duration(milliseconds: end),
     );
@@ -592,7 +592,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
 
   Future<void> _wholeSongSource() async {
     if (!_onLoopWav) {
-      await _player.setClip();
+      await _setClip();
       return;
     }
     _onLoopWav = false;
@@ -682,7 +682,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       await _player.setLoopMode(_audioLoopMode);
       if (!mounted) return;
       final target = span == null ? resume : Duration.zero;
-      await _player.seek(target);
+      await _player.seek(target + _webShift(span?.$1));
       if (!mounted) return;
       setState(() {
         _clipStart = span?.$1 ?? 0;
@@ -700,7 +700,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   });
 
-  Future<void> _seekTo(int ms) => _player.seek(
+  Future<void> _seekTo(int ms) => _pseek(
     Duration(
       milliseconds: (ms - _clipStart).clamp(
         0,
@@ -731,7 +731,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
   }
 
   LoopMode get _audioLoopMode =>
-      (_loopEnabled ?? (_selection != null)) ? LoopMode.one : LoopMode.off;
+      _playerLoopsThePart ? LoopMode.one : LoopMode.off;
 
   PlayMode get _syncLoopMode =>
       _loopEnabled == false ? PlayMode.once : PlayMode.loop;
@@ -937,7 +937,7 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
         }
         if (!mounted) return;
         if (_player.processingState == ProcessingState.completed) {
-          await _player.seek(Duration.zero);
+          await _pseek(Duration.zero);
         }
         if (mounted) unawaited(_player.play());
       } catch (e) {
@@ -1114,12 +1114,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
       try {
         await _player.pause();
         await _loopSource(startMs, endMs);
-        await _player.setLoopMode(LoopMode.one);
+        await _player.setLoopMode(kIsWeb ? LoopMode.off : LoopMode.one);
         if (!mounted) return;
         final length = endMs - startMs;
         final seam = length > 2 * _seamMs ? (_seamMs, length - _seamMs) : null;
         final target = Duration(milliseconds: seam?.$2 ?? 0);
-        await _player.seek(target);
+        await _player.seek(target + _webShift(startMs));
         if (!mounted) return;
         setState(() {
           _clipStart = startMs;
@@ -1545,12 +1545,12 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     if (target == null) return;
     final end = _clipEnd ?? _durationMs;
     if (target < end) {
-      unawaited(_player.seek(Duration(milliseconds: target - _clipStart)));
+      unawaited(_pseek(Duration(milliseconds: target - _clipStart)));
     } else if (_clipEnd == null) {
       unawaited(_player.pause());
     } else if (skipTarget(_entry.regions, _clipStart) == null) {
       // The loop's tail is skipped: wrap to its start.
-      unawaited(_player.seek(Duration.zero));
+      unawaited(_pseek(Duration.zero));
     }
   }
 
@@ -3098,14 +3098,78 @@ class _PracticeRegionsScreenState extends ConsumerState<PracticeRegionsScreen> {
     }
   }
 
-  /// just_audio_web stops watching a clip's end after its first repeat and
-  /// plays on past the part: loop it here instead. True when it seeked back.
+  // --- web: the player cannot clip --------------------------------------
+  // just_audio_web caches the root playlist player under the id '' (every
+  // setClip sends that id), so a clip never replaces the loaded song: it keeps
+  // playing the whole file with absolute positions and seeks. On web the song
+  // therefore stays loaded as is, and the part loop lives here: the player's
+  // position is made part-relative, and seeks add the part start back.
+
+  Future<Duration?> _setClip({Duration? start, Duration? end}) async =>
+      kIsWeb ? null : _player.setClip(start: start, end: end);
+
+  /// The player looping the part itself (never on web, see above).
+  bool get _playerLoopsThePart =>
+      !kIsWeb && (_loopEnabled ?? (_selection != null));
+
+  /// Where the plugin's own timeline starts for the current part (0 off web).
+  Duration get _webOrigin =>
+      kIsWeb ? Duration(milliseconds: _clipStart) : Duration.zero;
+
+  /// Same for a part that starts at [start] but is not the current one yet.
+  Duration _webShift(int? start) =>
+      kIsWeb && start != null ? Duration(milliseconds: start) : Duration.zero;
+
+  /// A plugin position as a position inside the current part.
+  Duration _clipPos(Duration raw) => kIsWeb && _clipEnd != null
+      ? raw - Duration(milliseconds: _clipStart)
+      : raw;
+
+  /// Seeks inside the current part.
+  Future<void> _pseek(Duration inPart) => _player.seek(inPart + _webOrigin);
+
+  bool _webWrapping = false;
+  bool _webEnding = false;
+
+  /// False for the player states of a web wrap that must not show in the UI.
+  /// A part that ends where the song ends reaches the file's end before the
+  /// position check can wrap it: the player then completes, and the part is
+  /// restarted (or left stopped, loop off) from here.
+  bool _webKeep(PlayerState state) {
+    if (_webWrapping) return false;
+    final done = state.processingState == ProcessingState.completed;
+    if (!kIsWeb || !done || _clipEnd == null || _changingClip) return true;
+    if (!_webEnding) unawaited(_webEnded());
+    return false;
+  }
+
+  Future<void> _webEnded() async {
+    final loop = _seam != null || (_loopEnabled ?? (_selection != null));
+    _webEnding = true;
+    _webWrapping = loop;
+    try {
+      await _player.pause();
+      // The web player stays "completed" until something loads again.
+      await _player.setClip();
+      await _pseek(Duration.zero);
+      if (loop && mounted) unawaited(_player.play());
+    } finally {
+      _webWrapping = false;
+      _webEnding = false;
+    }
+  }
+
+  /// At the part's end: back to its start while looping, else stop there.
+  /// True when it acted ([position] is part-relative).
   bool _webLoopBack(Duration position) {
     final end = _clipEnd;
     if (!kIsWeb || !_playing || end == null) return false;
-    if (_audioLoopMode != LoopMode.one) return false;
     if (position.inMilliseconds < end - _clipStart) return false;
-    unawaited(_player.seek(Duration.zero));
+    if (_seam != null || (_loopEnabled ?? (_selection != null))) {
+      unawaited(_pseek(Duration.zero));
+    } else {
+      unawaited(_player.pause().then((_) => _pseek(Duration.zero)));
+    }
     return true;
   }
 }

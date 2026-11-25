@@ -17,6 +17,7 @@ import sys
 import urllib.parse
 import urllib.request
 import wave
+import os
 from datetime import datetime, timedelta, timezone
 
 PROJECT = "repsync-app-8685c"
@@ -147,13 +148,21 @@ def main():
             "ourKey": key, "ourBPM": bpm, "tags": tags, "createdAt": created, "updatedAt": created})
 
     name = f"lab_audio/user/{uid}/{SONGS[0][0]}/check.wav"
+    # CHECK_SEED_AUDIO=<file>: seed that file (any format) instead of the 16 s tone, and
+    # CHECK_SEED_OFFSET_MS=<ms>: shift every region later in the song (for long-file checks).
+    own = os.environ.get("CHECK_SEED_AUDIO")
+    if own:
+        name = name.rsplit(".", 1)[0] + os.path.splitext(own)[1]
+        body, ctype = open(own, "rb").read(), {".aac": "audio/aac", ".mp3": "audio/mpeg", ".wav": "audio/wav"}.get(os.path.splitext(own)[1], "application/octet-stream")
+    else:
+        body, ctype = wav_bytes(), "audio/wav"
     up = call("POST", f"http://localhost:9199/v0/b/{BUCKET}/o?name={urllib.parse.quote(name, safe='')}",
-              wav_bytes(), {"Content-Type": "audio/wav"}, raw=True)
+              body, {"Content-Type": ctype}, raw=True)
     token = up["downloadTokens"].split(",")[0]
     audio_url = (f"http://{host}:9199/v0/b/{BUCKET}/o/{urllib.parse.quote(name, safe='')}"
                  f"?alt=media&token={token}")
 
-    regions, t = [], 0
+    regions, t = [], int(os.environ.get("CHECK_SEED_OFFSET_MS", "0"))
     for sec_id, sec_name, parts in SECTIONS:
         for n, pid in enumerate(parts, 1):
             regions.append({"id": pid, "name": f"{sec_name} {n}", "startMs": t, "endMs": t + 2 * BAR_MS,

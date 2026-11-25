@@ -28,6 +28,7 @@ import 'check_settings.dart';
 import 'check_songmap.dart';
 import 'check_songs.dart';
 import 'check_songs_more.dart';
+import 'web_probe_stub.dart' if (dart.library.js_interop) 'web_probe_web.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -110,7 +111,11 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       expect(playing(), isTrue, reason: 'stopped on its own');
       await tester.tap(find.byIcon(Icons.pause).first);
-      await pumpUntil(tester, () => !playing(), what: 'metronome state stopped');
+      await pumpUntil(
+        tester,
+        () => !playing(),
+        what: 'metronome state stopped',
+      );
     } finally {
       if (playing()) container.read(metronomeProvider.notifier).stop();
     }
@@ -119,6 +124,7 @@ void main() {
   check('SM-04', 'Song Map loop stays inside the selected part', (
     tester,
   ) async {
+    installAudioProbe();
     await bootApp(tester);
     final uid = FirebaseAuth.instance.currentUser!.uid;
     final doc = await FirebaseFirestore.instance
@@ -167,32 +173,30 @@ void main() {
     }
 
     final samples = <(int, int)>[]; // (elapsed ms, position ms)
+    final watch = RealAudioWatch();
     final wrapAt = <int>[];
     var stoppedAt = -1;
     try {
       await tester.tap(playButton);
-      await pumpUntil(
-        tester,
-        () => read().playing,
-        what: 'Song Map playing',
-      );
-      final watch = Stopwatch()..start();
+      await pumpUntil(tester, () => read().playing, what: 'Song Map playing');
+      final clock = Stopwatch()..start();
       var last = read().pos;
       // Two passes of a 4 s part, plus time for the start and a loop restart.
-      while (watch.elapsedMilliseconds < 14000) {
+      while (clock.elapsedMilliseconds < 14000) {
         // Real time (pause pumps frames until the wall clock passes): on web tester.pump(duration) returns at once.
         await pause(tester, 100);
         final now = read();
+        watch.sample(clock.elapsedMilliseconds, now.pos);
         if (!now.playing) {
-          stoppedAt = watch.elapsedMilliseconds;
-          samples.add((watch.elapsedMilliseconds, now.pos));
+          stoppedAt = clock.elapsedMilliseconds;
+          samples.add((clock.elapsedMilliseconds, now.pos));
           break;
         }
         if (now.pos < last - (partEnd - partStart) ~/ 2) {
-          wrapAt.add(watch.elapsedMilliseconds);
+          wrapAt.add(clock.elapsedMilliseconds);
         }
         last = now.pos;
-        samples.add((watch.elapsedMilliseconds, now.pos));
+        samples.add((clock.elapsedMilliseconds, now.pos));
       }
     } finally {
       if (read().playing) await tester.tap(playButton);
@@ -220,7 +224,8 @@ void main() {
       throw TestFailure('playback stopped at +$stoppedAt ms; $summary');
     }
     if (wrapAt.length < 2) throw TestFailure('did not loop twice; $summary');
-    checkNote = summary;
+    checkNote =
+        '$summary | ${watch.verify('part ${part.name}', partStart, partEnd)}';
   });
 
   registerAccountChecks();

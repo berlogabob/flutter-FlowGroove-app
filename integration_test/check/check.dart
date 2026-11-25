@@ -17,11 +17,11 @@ import 'package:flowgroove/screens/songs/song_page_screen.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter/widgets.dart' show ErrorWidget, Page, Scrollable, SizedBox, runApp;
+import 'package:flutter/widgets.dart' show ErrorWidget, ModalRoute, Page, Scrollable, SizedBox, runApp;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:material_ui/material_ui.dart' show SnackBar, Text, TextField;
+import 'package:material_ui/material_ui.dart' show Scaffold, SnackBar, Text, TextField;
 
 /// How the app under test reaches the emulators: 127.0.0.1 on Android (adb
 /// reverse) and web, the Mac's LAN address on iOS (set by scripts/check_run.sh).
@@ -198,6 +198,7 @@ Future<ProviderContainer> bootApp(
   // Routes a check pushed by hand (editors, dialogs) outlive the router's go().
   appRouter.routerDelegate.navigatorKey.currentState?.popUntil((r) => r.settings is Page<Object?> || r.isFirst);
   await tester.pump(const Duration(milliseconds: 500));
+  await routesSettled(tester);
   appRouter.go(signedIn ? '/main/home' : '/login');
   await pumpUntil(
     tester,
@@ -287,16 +288,84 @@ Future<void> expectSeen(
   }
 }
 
+/// True while a page route is still animating in or out, or has been closed but not yet removed.
+/// Such a route (a closing one stays on top of the page below it, animation stuck at 1.0 on web)
+/// takes the pointer events a tap meant for the page below would need.
+bool routeInTransition() {
+  for (final e in find.byType(Scaffold, skipOffstage: false).evaluate()) {
+    final r = ModalRoute.of(e);
+    if (r != null && (r.animation?.isAnimating ?? false)) return true;
+    if (r != null && !r.isActive) return true;
+  }
+  return false;
+}
+
+/// Pumps in real time until no route is in transition (up to [seconds]; then the tap goes ahead anyway).
+Future<void> routesSettled(WidgetTester tester, {int seconds = 5}) async {
+  final end = DateTime.now().add(Duration(seconds: seconds));
+  while (routeInTransition() && DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
+bool _onScreen(WidgetTester tester, Finder candidate) {
+  try {
+    final at = tester.getCenter(candidate);
+    final size = tester.view.physicalSize / tester.view.devicePixelRatio;
+    return at.dx >= 0 && at.dy >= 0 && at.dx <= size.width && at.dy <= size.height;
+  } on Object {
+    return false;
+  }
+}
+
+bool _reachable(WidgetTester tester, Finder candidate) {
+  try {
+    final box = candidate.evaluate().first.renderObject;
+    if (box == null) return false;
+    if (!_onScreen(tester, candidate)) return false;
+    final at = tester.getCenter(candidate);
+    return tester.hitTestOnBinding(at).path.any((h) => h.target == box);
+  } on Object {
+    return false;
+  }
+}
+
 /// Waits for [finder], taps its first match, lets the UI react.
 Future<void> tapOn(WidgetTester tester, Finder finder, String what) async {
   lastStep = 'tap $what';
   await see(tester, finder, what);
-  try {
-    await tester.ensureVisible(finder.first); // off-screen under the keyboard or the fold
-  } on Object {
-    // not inside a scrollable
+  await routesSettled(tester);
+  // On web a page that is closing or was left behind can still hold a match (same text, other
+  // position): tap the first match a pointer at its centre really reaches.
+  var target = finder.first;
+  final n = finder.evaluate().length;
+  // Only the page on top can take a tap; a stale or closing page below keeps its widgets in the tree.
+  final live = [
+    for (var i = 0; i < n; i++)
+      if (ModalRoute.of(finder.evaluate().elementAt(i))?.isCurrent ?? true) i,
+  ];
+  for (final i in live.isEmpty ? [for (var i = 0; i < n; i++) i] : live) {
+    final candidate = finder.at(i);
+    try {
+      await tester.ensureVisible(candidate); // off-screen under the keyboard or the fold
+    } on Object {
+      // not inside a scrollable
+    }
+    // ensureVisible parks the target at the screen edge, possibly under a bottom bar: centre it.
+    if (_onScreen(tester, candidate) && !_reachable(tester, candidate)) {
+      try {
+        await Scrollable.ensureVisible(candidate.evaluate().first, alignment: 0.5);
+      } on Object {
+        // not inside a scrollable
+      }
+      await pause(tester, 150);
+    }
+    if (_reachable(tester, candidate)) {
+      target = candidate;
+      break;
+    }
   }
-  await tester.tap(finder.first);
+  await tester.tap(target);
   await pause(tester, 300);
 }
 
